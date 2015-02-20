@@ -1,13 +1,5 @@
 'use strict';
 
-
-/**
- * @ngdoc directive
- * @name scumApp.directive:sortToggle
- * @description
- * # sortToggle
- */
-
 angular.module('deckApp')
   .directive('sortToggle', function () {
     return {
@@ -15,8 +7,8 @@ angular.module('deckApp')
       scope: {
         key: '@',
         label: '@',
-        'default': '@',
         onChange: '&',
+        sortModel: '=',
       },
       restrict: 'A',
       controller: 'SortToggleCtrl as ctrl'
@@ -25,28 +17,22 @@ angular.module('deckApp')
   .controller('SortToggleCtrl', function($scope) {
     var ctrl = this;
 
-    if (angular.isObject($scope.$parent.sortModel)) {
-      $scope.model = $scope.$parent.sortModel;
-    } else {
-      $scope.model = {
-        reverse: false,
-      };
-      $scope.$parent.sortModel = $scope.model;
-    }
+    this.isSortKey = function (key) {
+      var field = $scope.sortModel.key;
+      return field === key || field === '-' + key;
+    };
 
-    if ($scope.default === 'true') {
-      $scope.model.sortKey = $scope.key;
-    }
+    this.isReverse = function() {
+      return $scope.sortModel.key.indexOf('-') === 0;
+    };
 
-    ctrl.setSortKey = function (key) {
-      $scope.model.sortKey = key;
-      $scope.model.reverse = ctrl.isSortKey(key) ? !$scope.model.reverse : false;
+    this.setSortKey = function (key, $event) {
+      $event.preventDefault();
+      var predicate = ctrl.isSortKey(key) && ctrl.isReverse() ? '' : '-';
+      $scope.sortModel.key = predicate + key;
       if ($scope.onChange) {
         $scope.onChange();
       }
     };
 
-    ctrl.isSortKey = function (key) {
-      return $scope.$parent.sortModel.sortKey === key;
-    };
   });

@@ -5,7 +5,7 @@ angular.module('deckApp.loadBalancer.tag', [])
   .directive('loadBalancersTag', function () {
     return {
       restrict: 'E',
-      replace: true,
+      replace: false,
       templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancersTag.html',
       scope: {
         loadBalancers: '=',

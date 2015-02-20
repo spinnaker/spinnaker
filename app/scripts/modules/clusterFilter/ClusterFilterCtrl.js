@@ -5,10 +5,12 @@
 angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.utils.lodash'])
   .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
-    var defaultPrimary = 'account';
-    $scope.sortFilter.sortPrimary = $stateParams.primary || defaultPrimary;
+    $scope.sortFilter.sortPrimary = 'account';
+    $scope.sortFilter.sortSecondary = 'cluster';
     $scope.application = application;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
+
+    var ctrl = this;
 
     var accountOption = {
       label: 'Account',
@@ -34,18 +36,6 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'de
       }
     };
 
-    var clusterOption = {
-      label: 'Cluster Name',
-      key: 'cluster',
-      clusterKey: 'name',
-      getDisplayValue: function (cluster) {
-        return cluster.name;
-      },
-      getDisplayLabel: function (cluster) {
-        return cluster.name;
-      }
-    };
-
     var providerType = {
       getDisplayValue: function (cluster) {
         return _.unique(_.collect(cluster.serverGroups, 'type'));
@@ -57,12 +47,6 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'de
         return _.unique(_.collect(cluster.serverGroups, 'instanceType'));
       }
     };
-
-    $scope.sortOptions = [
-      accountOption,
-      clusterOption,
-      regionOption
-    ];
 
 
     this.updateClusterGroups = _.debounce(function updateClusterGroups() {
@@ -107,32 +91,33 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'de
       return _.compact(_.unique(_.flatten(allValues))).sort();
     }
 
+    function getAvailabilityZones() {
+      return _(application.serverGroups)
+        .pluck('instances')
+        .flatten()
+        .pluck('availabilityZone')
+        .unique()
+        .valueOf();
+    }
+
     function clearFilters() {
       clusterFilterService.clearFilters();
       clusterFilterService.updateClusterGroups(application);
     }
 
-
-    this.accountHeadings = getAccountHeadings();
-    this.regionHeadings = getRegionHeadings();
-    this.instanceTypeHeadings = getInstanceType();
-    this.providerTypeHeadings = getProviderType();
-    this.clearFilters = clearFilters;
-
-    this.getClustersFor = function getClustersFor(value) {
-      return application.clusters.filter(function (cluster) {
-        if ($scope.sortFilter.sortPrimary === 'region') {
-          return cluster.serverGroups.some(function(serverGroup) {
-            return serverGroup.region === value;
-          });
-        }
-        return cluster.serverGroups &&
-          cluster.serverGroups.length > 0 &&
-          cluster[getSelectedSortOption().clusterKey] === value;
-      });
+    this.initialize = function() {
+      ctrl.accountHeadings = getAccountHeadings();
+      ctrl.regionHeadings = getRegionHeadings();
+      ctrl.instanceTypeHeadings = getInstanceType();
+      ctrl.providerTypeHeadings = getProviderType();
+      ctrl.availabilityZoneHeadings = getAvailabilityZones();
+      ctrl.clearFilters = clearFilters;
+      $scope.clusters = application.clusters;
     };
 
-    $scope.clusters = application.clusters;
+    this.initialize();
+
+    application.registerAutoRefreshHandler(this.initialize, $scope);
 
   }
 );

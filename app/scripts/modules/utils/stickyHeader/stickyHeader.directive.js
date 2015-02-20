@@ -6,12 +6,13 @@
 
 angular.module('deckApp.utils.stickyHeader', [
   'deckApp.utils.jQuery',
+  'deckApp.utils.lodash',
 ])
-  .directive('stickyHeader', function ($log, _) {
+  .directive('stickyHeader', function ($log, $window, _, $) {
     return {
       restrict: 'A',
       link: {
-        post: function (scope, elem) {
+        post: function (scope, elem, attrs) {
           var $heading = elem,
             $section = $heading.parent(),
             $scrollableContainer = $heading.closest('[sticky-headers]'),
@@ -24,39 +25,78 @@ angular.module('deckApp.utils.stickyHeader', [
 
           $scrollableContainer.css({position: 'relative'});
 
-          var positionHeader = _.throttle(function () {
-            var containerTop = $scrollableContainer.offset().top,
-              containerWidth = $scrollableContainer.width(),
-              sectionOffset = $section.offset(),
-              top = sectionOffset.top - containerTop;
+          var addedOffsetHeight = attrs.addedOffsetHeight ? parseInt(attrs.addedOffsetHeight) : 0,
+              addedOffsetWidth = attrs.addedOffsetWidth ? parseInt(attrs.addedOffsetWidth) : 0;
 
-            if (top < 0) {
-              $section.css({
-                paddingTop: $heading.height(),
-              });
-              $heading.addClass('heading-sticky').css({
-                top: containerTop,
-                width: containerWidth,
-              });
-            } else {
-              $section.css({
-                paddingTop: 0,
-              });
-              $heading.removeClass('heading-sticky').css({
-                top: '',
-                width: '',
-                zIndex: 3,
-              });
+          var positionHeader = _.throttle(function () {
+
+            var sectionRect = $section.get(0).getBoundingClientRect(),
+              sectionTop = sectionRect.bottom - sectionRect.height,
+              windowHeight = $window.innerHeight,
+              bottom = sectionRect.bottom;
+
+            if (sectionRect.bottom < 0 || sectionTop > windowHeight) {
+              clearStickiness($section, $heading);
+              return;
             }
 
-          }, 100);
+            var containerTop = $scrollableContainer.offset().top,
+                top = sectionTop - containerTop - addedOffsetHeight;
 
-          $scrollableContainer.bind('scroll.stickyHeader-' + id, positionHeader);
-          $scrollableContainer.bind('resize.stickyHeader-' + id, positionHeader);
+            if (top < 0 && bottom > containerTop + addedOffsetHeight) {
+              var containerWidth = $scrollableContainer.width(),
+                  headingHeight = $heading.outerHeight();
+              var topBase = containerTop,
+                  zIndex = 3;
+              if (containerTop + headingHeight + addedOffsetHeight > bottom) {
+                topBase = bottom - headingHeight - addedOffsetHeight;
+                zIndex = 2;
+              }
+              $section.css({
+                paddingTop: headingHeight,
+              });
+              $heading.addClass('heading-sticky').css({
+                top: topBase + addedOffsetHeight,
+                width: containerWidth + addedOffsetWidth,
+                zIndex: zIndex
+              });
+            } else {
+              clearStickiness($section, $heading);
+            }
 
-          scope.$on('$destroy', function () {
+          }, 50);
+
+          function destroyStickyBindings() {
             $scrollableContainer.unbind('.stickyHeader-' + id);
-          });
+            $($window).unbind('.stickyHeader-' + id);
+          }
+
+          function clearStickiness($section, $heading) {
+            $section.css({
+              paddingTop: 0,
+            });
+            if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
+              $heading.removeClass('heading-sticky').addClass('not-sticky');
+            }
+          }
+
+          function toggleSticky(enabled) {
+            if (enabled) {
+              $scrollableContainer.bind('scroll.stickyHeader-' + id + ' resize.stickyHeader-' + id, positionHeader);
+              $($window).bind('resize.stickyHeader-' + id, positionHeader);
+
+              scope.$on('$destroy', destroyStickyBindings);
+            } else {
+              destroyStickyBindings();
+            }
+          }
+
+          if (attrs.stickyIf) {
+            scope.$watch(attrs.stickyIf, toggleSticky);
+          } else {
+            toggleSticky(true);
+          }
+
         },
       }
     };

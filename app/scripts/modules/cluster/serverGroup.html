@@ -1,52 +1,50 @@
-<div class="row rollup-entry sub-group"
-     ng-click="loadDetails($event)"
+<div class="cluster-pod-server-group"
+     waypoint="{{serverGroup.account}}:{{serverGroup.region}}:{{serverGroup.name}}"
      ng-class="{
-        active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type}),
         disabled: serverGroup.isDisabled
      }">
-  <div class="rollup-summary">
+  <div class="server-group-title clickable" sticky-header added-offset-height="69" added-offset-width="-4"
+       ng-click="loadDetails($event)"
+       ng-class="{
+          active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})
+        }"
+       sticky-if="headerIsSticky()">
     <div class="container-fluid no-padding">
       <div class="row">
-        <div class="col-md-9">
-          <div class="rollup-title-cell">
-            <span class="glyphicon glyphicon-th"></span>
-            {{serverGroup.name}}
-            <account-tag account="serverGroup.account" pad="both"></account-tag>
-          </div>
+        <div class="col-md-8">
+          <span class="server-group-sequence">{{ serverGroup.name | serverGroupSequence }}:</span>
+          <a ng-if="serverGroup.buildInfo.jenkins.host"
+             href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
+             target="_blank">
+            Build: #{{ serverGroup.buildInfo.jenkins.number }}
+          </a>
+          <span ng-if="!serverGroup.buildInfo.jenkins.host && serverGroup.buildInfo.version">
+            Build Version: {{serverGroup.buildInfo.version}}
+          </span>
+          <span ng-if="!serverGroup.buildInfo">
+            (No build info)
+          </span>
         </div>
-        <div class="col-md-3 text-right">
+        <div class="col-md-4 text-right">
+          <span ng-if="!serverGroup.isDisabled">
+            <health-counts container="serverGroup"></health-counts>
+          </span>
+          <span ng-if="serverGroup.isDisabled" class="badge-disabled">disabled</span>
           <running-tasks-tag application="application" tasks="serverGroup.runningTasks"></running-tasks-tag>
           <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
         </div>
       </div>
     </div>
   </div>
-  <div class="rollup-details">
-    <div class="build-title">
-      <span ng-if="serverGroup.createdTime">
-        Created: {{serverGroup.createdTime | date : 'MM/dd/yy @ HH:mm'}},
-      </span>
-
-      <a ng-if="serverGroup.buildInfo.jenkins.host"
-         href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
-         target="_blank">
-          Build: #{{ serverGroup.buildInfo.jenkins.number }}
-      </a>
-      <span ng-if="!serverGroup.buildInfo.jenkins.host && serverGroup.buildInfo.version">
-          Build Version: {{serverGroup.buildInfo.version}}
-      </span>
-      <span ng-if="!serverGroup.buildInfo">
-        (No build info)
-      </span>
-
-      <span ng-if="!serverGroup.isDisabled">
-        <health-counts container="serverGroup"></health-counts>
-      </span>
-
-      <span ng-if="serverGroup.isDisabled" class="badge badge-disabled">disabled</span>
+  <div class="instance-list" ng-if="displayOptions.showInstances">
+    <div ng-if="!displayOptions.listInstances">
+      <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="serverGroup.instances"
+                 render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
     </div>
-    <div ng-if="displayOptions.showInstances">
-      <instances highlight="displayOptions.filter" scroll-target="nav-content" instances="serverGroup.instances" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+    <div ng-if="displayOptions.listInstances">
+      <instance-list scroll-target="clusters-content" instances="serverGroup.instances"
+                     sort-filter="sortFilter"
+                     render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instance-list>
     </div>
   </div>
 </div>

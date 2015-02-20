@@ -81,15 +81,15 @@ describe('Controller: Applications', function () {
       var $scope = this.$scope,
           ctrl = this.ctrl;
 
-      $scope.sortModel.reverse = true;
+      $scope.sortModel.key = '-name';
       $scope.$digest();
       expect($scope.filteredApplications).toEqual([oort, mort, deck]);
 
-      $scope.sortModel.sortKey = 'createTs';
+      $scope.sortModel.key = '-createTs';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([oort, deck, mort]);
 
-      $scope.sortModel.reverse = false;
+      $scope.sortModel.key = 'createTs';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([mort, deck, oort]);
 

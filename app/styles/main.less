@@ -72,6 +72,19 @@ body {
     bottom: 0;
     overflow-y: auto;
     overflow-x: hidden;
+
+    display: flex;
+    flex-direction: column;
+
+    > .header {
+      flex: none
+    }
+
+    > .content {
+      flex: 1 0 100px;
+      overflow-y: auto;
+    }
+
   }
   .nav {
     margin-left: -15px;
@@ -755,7 +768,10 @@ server-error-flag {
   }
 
   .glyphicon {
-    font-size: .6em;
+    &:before {
+      color: @mid_grey;
+    }
+    font-size: .75em;
     top: 0px;
   }
 }

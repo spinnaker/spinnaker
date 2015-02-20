@@ -2,9 +2,9 @@
 
 angular.module('deckApp.naming', [])
   .factory('namingService', function() {
+    var versionPattern = /(v\d{3})/;
 
     function parseServerGroupName(serverGroupName) {
-      var versionPattern = /(v\d{3})/;
       if (!serverGroupName) {
         return {};
       }
@@ -45,8 +45,19 @@ angular.module('deckApp.naming', [])
       return clusterName;
     }
 
+    function getSequence(serverGroupName) {
+      var split = serverGroupName.split('-'),
+        isVersioned = versionPattern.test(split[split.length - 1]);
+
+      if (isVersioned) {
+        return split.pop();
+      }
+      return null;
+    }
+
     return {
       parseServerGroupName: parseServerGroupName,
       getClusterName: getClusterName,
+      getSequence: getSequence,
     };
   });

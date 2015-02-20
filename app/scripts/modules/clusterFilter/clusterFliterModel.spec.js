@@ -183,10 +183,6 @@ describe('Model: ClusterFilterModel', function () {
 
   describe('activate sets the sortFilter state', function () {
 
-    it('should allow sorting', function () {
-     expect(ClusterFilterModel.sortFilter.allowSorting).toBe(true)
-    });
-
     it('should set the primary sort to account by default', function () {
       expect(ClusterFilterModel.sortFilter.sortPrimary).toBe('account');
     });
@@ -198,7 +194,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should set the secondary sort to region by default', function () {
-      expect(ClusterFilterModel.sortFilter.sortSecondary).toBe('region');
+      expect(ClusterFilterModel.sortFilter.sortSecondary).toBe('cluster');
     });
 
     it('should set the secondary sort to the region set on the query string', function () {
@@ -214,39 +210,39 @@ describe('Model: ClusterFilterModel', function () {
     it('should set the filter to what is on the query string', function () {
       $stateParams.q = 'us-west';
       ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.filter).toBe('us-west')
+      expect(ClusterFilterModel.sortFilter.filter).toBe('us-west');
     });
 
     it('should show all the instances if the param is NOT on the query string', function () {
-      expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(true)
+      expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(true);
     });
 
     it('should NOT show all the instances if the param IS on the query string', function () {
       $stateParams.hideInstances  = true
       ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(false)
+      expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(false);
     });
 
     it('should hide the health clusters if the param is on the query string', function () {
       $stateParams.hideHealthy = true;
       ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(true)
+      expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(true);
     });
 
     it('should show the healthy clustes if the param is NOT on the query string', function () {
       $stateParams.hideHealthy = false;
       ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(false)
+      expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(false);
     });
 
     it('should not hide the disabled if the param is not on the query string', function () {
-      expect(ClusterFilterModel.sortFilter.hideDisabled).toBe(false)
+      expect(ClusterFilterModel.sortFilter.hideDisabled).toBe(false);
     });
 
     it('should hide the disabled if the param is on the query string', function () {
       $stateParams.hideDisabled = true;
       ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.hideDisabled).toBe(true)
+      expect(ClusterFilterModel.sortFilter.hideDisabled).toBe(true);
     });
 
 

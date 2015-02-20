@@ -4,7 +4,9 @@ angular
   .module('cluster.filter.model', ['ui.router', 'deckApp.utils.lodash'])
   .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, _) {
 
-    var sortFilter = {};
+    var sortFilter = {
+      instanceSort: { key: 'launchTime' }
+    };
 
     function convertParamsToObject(paramList) {
       if(paramList) {
@@ -47,6 +49,10 @@ angular
       return convertParamsToObject($stateParams.instanceType);
     }
 
+    function setZone() {
+      return convertParamsToObject($stateParams.zone);
+    }
+
     function clearSideFilters() {
       sortFilter.account = undefined;
       sortFilter.region = undefined;
@@ -62,7 +68,8 @@ angular
         acct: undefined,
         reg: undefined,
         status: undefined,
-        instanceType: undefined
+        instanceType: undefined,
+        zone: undefined,
       });
     }
 
@@ -73,7 +80,9 @@ angular
         acct: convertObjectToParam(sortFilter.account),
         reg: convertObjectToParam(sortFilter.region),
         status: convertObjectToParam(sortFilter.status),
-        instanceType: convertObjectToParam(sortFilter.instanceType)
+        instanceType: convertObjectToParam(sortFilter.instanceType),
+        zone: convertObjectToParam(sortFilter.availabilityZone),
+        instanceSort: sortFilter.instanceSort.key,
       });
 
       return params;
@@ -81,13 +90,13 @@ angular
 
 
     function activate() {
-      var defPrimary = 'account', defSecondary = 'region';
+      var defPrimary = 'account', defSecondary = 'cluster';
 
-      sortFilter.allowSorting = true;
       sortFilter.sortPrimary = $stateParams.primary || defPrimary;
       sortFilter.sortSecondary = $stateParams.secondary || defSecondary;
       sortFilter.filter = $stateParams.q || '';
       sortFilter.showAllInstances = ($stateParams.hideInstances ? false : true);
+      sortFilter.listInstances = ($stateParams.listInstances ? true : false);
       sortFilter.hideHealthy = ($stateParams.hideHealthy === 'true' || $stateParams.hideHealthy === true);
       sortFilter.hideDisabled = ($stateParams.hideDisabled === 'true' || $stateParams.hideDisabled === true);
       sortFilter.account = setSelectedAccounts();
@@ -95,6 +104,8 @@ angular
       sortFilter.status = setStatus();
       sortFilter.providerType = setProviderType();
       sortFilter.instanceType = setInstanceType();
+      sortFilter.availabilityZone = setZone();
+      sortFilter.instanceSort.key = $stateParams.instanceSort || 'launchTime';
 
       sortFilter.sortOptions = [
         { label: 'Account', key: 'account' },

@@ -4,25 +4,19 @@
 angular.module('clusters.all', [
   'cluster.filter.service',
   'cluster.filter.model',
+  'deckApp.cluster.pod',
   'deckApp.account',
   'deckApp.providerSelection',
   'deckApp.providerSelection.service',
   'deckApp.securityGroup.read.service',
-  'deckApp.serverGroup.configure.common.service'
+  'deckApp.serverGroup.configure.common.service',
+  'deckApp.utils.waypoints.container.directive',
 ])
   .controller('AllClustersCtrl', function($scope, application, $modal,
                                           securityGroupReader, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
-
-    var sortOptions = ClusterFilterModel.sortFilter.sortOptions;
-
-    this.getSortOptions = function getSortOptions(exclude) {
-      return exclude ?
-        sortOptions.filter(function(option) { return option.key !== exclude; }) :
-        sortOptions;
-    };
 
     // Because we use reloadOnSearch: false for this state, and reloadOnSearch doesn't discriminate parameters,
     // we won't change state when the application changes in the URL via global search or manually changing the URL
