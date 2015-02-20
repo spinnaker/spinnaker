@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.NotifyEchoTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
@@ -43,8 +42,7 @@ class DestroyAsgStage extends LinearStage {
   protected List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "destroyAsg", DestroyAsgTask)
     def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
-    def step3 = buildStep(stage, "sendNotification", NotifyEchoTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4].flatten().toList()
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    [step1, step2, step3].flatten().toList()
   }
 }
