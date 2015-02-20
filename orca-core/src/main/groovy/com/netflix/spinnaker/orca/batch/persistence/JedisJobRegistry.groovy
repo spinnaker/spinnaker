@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.batch.persistence
 
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.configuration.DuplicateJobException
@@ -13,14 +13,14 @@ class JedisJobRegistry implements JobRegistry {
 
   private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
-  private final PipelineStarter pipelineStarter
+  private final PipelineJobBuilder pipelineJobBuilder
 
   public JedisJobRegistry(JobExplorer jobExplorer,
                           ExecutionRepository executionRepository,
-                          PipelineStarter pipelineStarter) {
+                          PipelineJobBuilder pipelineJobBuilder) {
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
-    this.pipelineStarter = pipelineStarter
+    this.pipelineJobBuilder = pipelineJobBuilder
   }
 
   @Override
@@ -50,6 +50,6 @@ class JedisJobRegistry implements JobRegistry {
     def latestExecution = jobExecutions.first()
     def pipelineId = latestExecution.jobParameters.getString("pipeline")
     def pipeline = executionRepository.retrievePipeline(pipelineId)
-    pipelineStarter.build(pipeline.initialConfig, pipeline)
+    pipelineJobBuilder.build(pipeline.initialConfig, pipeline)
   }
 }

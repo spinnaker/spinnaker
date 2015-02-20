@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -55,6 +56,7 @@ class PipelineConfigurationSpec extends Specification {
   @Autowired JobRepository jobRepository
 
   @Subject pipelineStarter = new PipelineStarter()
+  @Subject pipelineJobBuilder = new PipelineJobBuilder()
 
   def fooTask = Mock(Task)
   def barTask = Mock(Task)
@@ -68,6 +70,7 @@ class PipelineConfigurationSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
+      registerSingleton "pipelineJobBuilder", pipelineJobBuilder
       registerSingleton "pipelineStore", pipelineStore
       registerSingleton "orchestrationStore", orchestrationStore
       registerSingleton "executionRepository", executionRepository
@@ -75,9 +78,12 @@ class PipelineConfigurationSpec extends Specification {
       registerSingleton "barStage", new TestStage("bar", steps, executionRepository, barTask)
       registerSingleton "bazStage", new TestStage("baz", steps, executionRepository, bazTask)
 
+      autowireBean pipelineJobBuilder
       autowireBean pipelineStarter
     }
-    pipelineStarter.initialize()
+
+    // need to do this so that our stages are picked up
+    pipelineJobBuilder.initialize()
   }
 
   def "an unknown stage type results in an exception"() {

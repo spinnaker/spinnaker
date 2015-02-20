@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StandaloneTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -49,7 +50,8 @@ class AdHocStageSpec extends Specification {
   @Autowired JobLauncher jobLauncher
   @Autowired JobRepository jobRepository
 
-  @Autowired @Subject PipelineStarter jobStarter
+  @Autowired @Subject PipelineStarter pipelineStarter
+  @Autowired @Subject PipelineJobBuilder pipelineJobBuilder
   @Autowired ExecutionRepository executionRepository
 
   @Shared mapper = new OrcaObjectMapper()
@@ -64,10 +66,10 @@ class AdHocStageSpec extends Specification {
       registerSingleton "fooStage", new TestStage("foo", steps, executionRepository, fooTask)
       registerSingleton "barTask", barTask
     }
-    jobStarter.initialize()
+    pipelineJobBuilder.initialize()
 
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     1 * fooTask.execute(_) >> DefaultTaskResult.SUCCEEDED
@@ -94,10 +96,10 @@ class AdHocStageSpec extends Specification {
     applicationContext.beanFactory.with {
       registerSingleton "fooTask", fooTask
     }
-    jobStarter.initialize()
+    pipelineJobBuilder.initialize()
 
     when:
-    jobStarter.start configJson
+    pipelineStarter.start configJson
 
     then:
     2 * fooTask.execute(_) >>> [new DefaultTaskResult(RUNNING), DefaultTaskResult.SUCCEEDED]

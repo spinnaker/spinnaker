@@ -27,7 +27,7 @@ import com.netflix.spinnaker.orca.batch.persistence.JedisJobRegistry
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -63,8 +63,8 @@ class OrcaConfiguration {
   }
 
   @Bean
-  JobRegistry jobRegistry(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
-    new JedisJobRegistry(jobExplorer, executionRepository, pipelineStarter)
+  JobRegistry jobRegistry(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineJobBuilder pipelineJobBuilder) {
+    new JedisJobRegistry(jobExplorer, executionRepository, pipelineJobBuilder)
   }
 
   @Bean @ConditionalOnMissingBean(JobOperator)

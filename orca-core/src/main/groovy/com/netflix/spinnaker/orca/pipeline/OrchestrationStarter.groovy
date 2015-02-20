@@ -18,20 +18,17 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import org.springframework.batch.core.Job
-import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.JobParameters
+import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
-import static java.util.UUID.randomUUID
 
 @Component
-class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration> {
+class OrchestrationStarter extends ExecutionStarter<Orchestration> {
 
-  @Autowired
-  ExecutionRepository executionRepository
+  @Autowired ExecutionRepository executionRepository
+  @Autowired OrchestrationJobBuilder executionJobBuilder
 
   OrchestrationStarter() {
     super("orchestration")
@@ -69,20 +66,14 @@ class OrchestrationStarter extends AbstractOrchestrationInitiator<Orchestration>
   }
 
   @Override
-  protected Job build(Map<String, Serializable> config, Orchestration orchestration) {
-    def jobBuilder = jobs.get("Orchestration:${randomUUID()}")
-    jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
-    List<Stage<Orchestration>> orchestrationStages = []
-    orchestrationStages.addAll(orchestration.stages)
-    orchestrationStages.each { stage ->
-      stages.get(stage.type).build(jobBuilder, stage)
-    }
-
-    jobBuilder.build().build()
+  protected void persistExecution(Orchestration orchestration) {
+    executionRepository.store(orchestration)
   }
 
   @Override
-  protected void persistExecution(Orchestration orchestration) {
-    executionRepository.store(orchestration)
+  protected JobParameters createJobParameters(Orchestration orchestration) {
+    def params = new JobParametersBuilder(super.createJobParameters(orchestration))
+    params.addString("description", orchestration.description)
+    params.toJobParameters()
   }
 }

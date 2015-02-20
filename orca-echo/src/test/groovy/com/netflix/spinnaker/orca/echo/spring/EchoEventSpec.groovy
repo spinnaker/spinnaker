@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.SimpleStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -37,6 +38,7 @@ class EchoEventSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired PipelineStarter pipelineStarter
+  @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired ExecutionRepository executionRepository
 
   def task1 = Mock(Task)
@@ -64,9 +66,11 @@ class EchoEventSpec extends Specification {
         autowireBean stage
         registerSingleton name, stage
       }
-      autowireBean pipelineStarter
+      // needs to pick up the listeners
+      autowireBean pipelineJobBuilder
     }
-    pipelineStarter.initialize()
+    // needs to pick up the tasks
+    pipelineJobBuilder.initialize()
   }
 
   def "events are raised in the correct order"() {

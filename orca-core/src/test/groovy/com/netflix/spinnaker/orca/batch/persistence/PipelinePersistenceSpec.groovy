@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -24,19 +25,22 @@ import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import spock.lang.Ignore
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [
-    AsyncJobLauncherConfiguration,
-    BatchTestConfiguration,
-    OrcaConfiguration
+  AsyncJobLauncherConfiguration,
+  BatchTestConfiguration,
+  OrcaConfiguration
 ])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelinePersistenceSpec extends Specification {
 
   @Autowired ThreadPoolTaskExecutor taskExecutor
+  @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired PipelineStarter pipelineStarter
   @Autowired AbstractApplicationContext applicationContext
   @Autowired StepBuilderFactory steps
@@ -51,7 +55,7 @@ class PipelinePersistenceSpec extends Specification {
     def testStage = new TestStage("test", steps, executionRepository, task1, task2)
     applicationContext.beanFactory.registerSingleton("testStage", testStage)
 
-    pipelineStarter.initialize()
+    pipelineJobBuilder.initialize()
   }
 
   def "if a pipeline dies we can reconstitute it"() {
@@ -59,18 +63,9 @@ class PipelinePersistenceSpec extends Specification {
     task1.execute(_) >> new DefaultTaskResult(RUNNING)
 
     and:
-    def config = [
-        application: "app",
-        name: "my-pipeline",
-        stages     : [
-            [type: "test"]
-        ]
-    ]
-    def configJson = mapper.writeValueAsString(config)
-    def pipeline = pipelineStarter.start(configJson)
+    def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
 
     and:
-    sleep 1000
     taskExecutor.shutdown()
 
     expect:
@@ -78,6 +73,34 @@ class PipelinePersistenceSpec extends Specification {
       name == jobNameFor(pipeline)
       restartable
     }
+  }
+
+  @Ignore def "if a pipeline restarts it resumes from where it left off"() {
+    when:
+    def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
+    sleep 1000 // ugh… PollingConditions doesn't seem to work with mock assertions
+    taskExecutor.shutdown()
+
+    then:
+    1 * task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    (1.._) * task2.execute(_) >> new DefaultTaskResult(RUNNING)
+
+    when:
+    pipelineStarter.resume(pipeline)
+    sleep 1000
+
+    then:
+    1 * task2.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    0 * task1.execute(_)
+  }
+
+  private String pipelineConfigFor(String... stages) {
+    def config = [
+      application: "app",
+      name       : "my-pipeline",
+      stages     : stages.collect { [type: it] }
+    ]
+    mapper.writeValueAsString(config)
   }
 
   private String jobNameFor(Pipeline pipeline) {
@@ -89,9 +112,9 @@ class PipelinePersistenceSpec extends Specification {
   static class AsyncJobLauncherConfiguration {
     @Bean TaskExecutor taskExecutor() {
       new ThreadPoolTaskExecutor(
-          maxPoolSize: 1,
-          corePoolSize: 1,
-          waitForTasksToCompleteOnShutdown: false
+        maxPoolSize: 1,
+        corePoolSize: 1,
+        waitForTasksToCompleteOnShutdown: false
       )
     }
 
@@ -112,8 +135,8 @@ class PipelinePersistenceSpec extends Specification {
           super.initialize()
 
           jobLauncher = new SimpleJobLauncher(
-              taskExecutor: taskExecutor,
-              jobRepository: jobRepository
+            taskExecutor: taskExecutor,
+            jobRepository: jobRepository
           )
         }
       }
