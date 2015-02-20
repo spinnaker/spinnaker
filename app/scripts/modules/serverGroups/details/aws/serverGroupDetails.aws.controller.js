@@ -10,12 +10,11 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
   'deckApp.utils.lodash',
   'deckApp.serverGroup.details.aws.autoscaling.process',
   'deckApp.serverGroup.read.service',
-  'deckApp.aws.serverGroupCommandBuilder.service'
-
+  'deckApp.aws.serverGroupCommandBuilder.service',
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
-                                                  subnetReader, autoScalingProcessService) {
+                                                     subnetReader, autoScalingProcessService) {
 
     $scope.state = {
       loading: true

@@ -2,6 +2,14 @@
 
 angular.module('deckApp.help')
   .constant('helpContents', {
+    'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an ip address that Spinnaker will associate with this cluster.' +
+      '<p>If specified, this elastic ip must exist and not already be attached to an instance or cluster.</p>' +
+      '<p>If left blank, Spinnaker will make a selection from the list of available elastic ips in the provided account and region.</p>',
+    'aws.associateElasticIp.type': '<p><b>Type</b> of elastic ip to associate:' +
+      '<ul>' +
+      '<li><b>standard</b> is usable in EC2 Classic</li>' +
+      '<li><b>vpc</b> is usable in VPC</li>' +
+      '</ul>',
     'aws.serverGroup.subnet': 'The subnet selection determines the VPC in which your server group will run. Options vary by account and region; the most common ones are:' +
       '<ul>' +
       '<li><b>None (EC2 Classic)</b>: instances will not run in a VPC</li>' +

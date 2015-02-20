@@ -156,6 +156,34 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Networking">
+      <div ng-controller="networkingCtrl">
+      <table class="table table-condensed packed" ng-if="elasticIps">
+        <thead>
+        <tr>
+          <th>Address</th>
+          <th>Instance</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="elasticIp in elasticIps">
+          <td>
+            {{elasticIp.address}}
+            <a href ng-if="!elasticIp.attachedToId" ng-click="disassociateElasticIp(elasticIp.address)"><span class="glyphicon glyphicon-trash"></span></a>
+          </td>
+          <td ng-if="elasticIp.attachedToId">
+            <a ui-sref="^.instanceDetails({instanceId: elasticIp.attachedToId})">{{elasticIp.attachedToId}}</a>
+          </td>
+          <td ng-if="!elasticIp.attachedToId">
+            <em>not assigned</em>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+
+      <a href ng-click="associateElasticIp()">Associate Elastic IP</a>
+      </div>
+    </collapsible-section>
     <collapsible-section heading="Package">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo && serverGroup.buildInfo.jenkins">
         <dt>Job</dt>
