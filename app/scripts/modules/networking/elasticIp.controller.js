@@ -16,7 +16,6 @@ angular.module('deckApp.elasticIp.controller', [
     };
 
     this.isValid = function () {
-      var command = $scope.command;
       if ($scope.verification.requireAccountEntry && $scope.verification.verifyAccount !== serverGroup.account.toUpperCase()) {
         return false;
       }

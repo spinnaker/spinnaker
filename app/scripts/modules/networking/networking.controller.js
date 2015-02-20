@@ -40,7 +40,7 @@ angular.module('deckApp.networking.controller', [
         resolve: {
           application: function() { return $scope.application; },
           serverGroup: function() { return $scope.serverGroup; },
-          elasticIp: function() { return _.find($scope.elasticIps, function (elasticIp) { return elasticIp.address === address }); },
+          elasticIp: function() { return _.find($scope.elasticIps, function (elasticIp) { return elasticIp.address === address; }); },
           onTaskComplete: function() { return getElasticIpsForCluster;}
         }
       });
