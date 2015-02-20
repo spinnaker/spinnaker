@@ -9,6 +9,7 @@ angular
 
     function upsertSecurityGroup(command, application, descriptor) {
       command.type = 'upsertSecurityGroup';
+      command.credentials = command.accountName;
 
       var operation = taskExecutor.executeTask({
         job: [
