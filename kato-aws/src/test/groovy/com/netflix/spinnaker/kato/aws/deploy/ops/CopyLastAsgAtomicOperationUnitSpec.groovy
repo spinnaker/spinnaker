@@ -32,6 +32,7 @@ import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -54,6 +55,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def mockEC2 = Mock(AmazonEC2)
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
+    def asgService = new AsgService(mockAutoScaling)
     mockProvider.getAmazonEC2(_, _) >> mockEC2
     mockProvider.getAutoScaling(_, _) >> mockAutoScaling
     def op = new CopyLastAsgAtomicOperation(description)
@@ -63,6 +65,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     op.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
       forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
         getAsgReferenceCopier(_, _) >> mockAsgReferenceCopier
+        getAsgService() >> asgService
       }
     }
     def expectedDeployDescription = { region ->

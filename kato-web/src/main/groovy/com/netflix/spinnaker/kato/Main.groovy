@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.kato
 import org.springframework.boot.SpringApplication
+import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
@@ -27,7 +29,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters"])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
+@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
 class Main extends SpringBootServletInitializer {
 
   static final Map<String, String> DEFAULT_PROPS = [

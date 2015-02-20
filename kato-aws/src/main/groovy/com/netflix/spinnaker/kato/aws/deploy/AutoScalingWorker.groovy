@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
@@ -79,6 +80,7 @@ class AutoScalingWorker {
   private List<String> availabilityZones
   private AmazonEC2 amazonEC2
   private AmazonAutoScaling autoScaling
+  private AsgService asgService
   private List<AmazonBlockDevice> blockDevices
 
   private SecurityGroupService securityGroupService
@@ -88,6 +90,11 @@ class AutoScalingWorker {
   private int desiredInstances
 
   private List<UserDataProvider> userDataProviders = []
+
+  public void setAutoScaling(AmazonAutoScaling autoScaling) {
+    this.asgService = new AsgService(autoScaling)
+    this.autoScaling = autoScaling
+  }
 
   AutoScalingWorker() {
 
@@ -149,12 +156,12 @@ class AutoScalingWorker {
     }
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
-    def ancestorAsg = ancestorAsg
+    def ancestorAsg = asgService.getAncestorAsg(application, stack, freeFormDetails)
     Integer nextSequence
     if (ancestorAsg) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG: parsing details."
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
-      nextSequence = ancestorNames.sequence + 1
+      nextSequence = ((ancestorNames.sequence ?: 0) + 1) % 1000
     } else {
       nextSequence = 0
     }
@@ -208,32 +215,6 @@ class AutoScalingWorker {
       }
     }
     mySubnets
-  }
-
-  /**
-   * Will lookup an existing ASG for this deployable, based off of Netflix ASG naming conventions.
-   *
-   * @return map depicting the ASG data structure.
-   */
-  AutoScalingGroup getAncestorAsg() {
-    def request = new DescribeAutoScalingGroupsRequest()
-    def result = autoScaling.describeAutoScalingGroups(request)
-    List<AutoScalingGroup> asgs = []
-    while (true) {
-      asgs.addAll result.autoScalingGroups
-      if (result.nextToken) {
-        result = autoScaling.describeAutoScalingGroups(request.withNextToken(result.nextToken))
-      } else {
-        break
-      }
-    }
-    asgs.findAll { AutoScalingGroup asg ->
-      def names = Names.parseName(asg.autoScalingGroupName)
-      names.sequence = names.sequence?: 0
-        application == names.app &&
-        (stack || names.stack ? stack == names.stack : true) &&
-        (freeFormDetails || names.detail ? freeFormDetails == names.detail : true)
-    }?.max({ a, b -> a.autoScalingGroupName <=> b.autoScalingGroupName }) ?: null
   }
 
   /**

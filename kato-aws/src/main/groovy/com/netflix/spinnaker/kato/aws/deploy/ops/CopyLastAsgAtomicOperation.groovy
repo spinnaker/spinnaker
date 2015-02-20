@@ -19,11 +19,10 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
-import com.amazonaws.services.autoscaling.model.DescribeLaunchConfigurationsRequest
-import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
@@ -70,10 +69,11 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
     task.updateStatus BASE_PHASE, "Initializing Copy Last ASG Operation..."
 
     DeploymentResult result = new DeploymentResult()
+    def cluster = new AutoScalingGroupNameBuilder(appName: description.application, stack: description.stack, detail: description.freeFormDetails).buildGroupName()
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       def targetRegion = entry.key
 
-      def ancestorAsg
+      AutoScalingGroup ancestorAsg = null
       def sourceRegion
       def sourceAsgCredentials
       if (description.source.account && description.source.region && description.source.asgName) {
@@ -82,21 +82,24 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         def sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceAsgCredentials, sourceRegion)
         def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.source.asgName])
         List<AutoScalingGroup> ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(request).autoScalingGroups
-        ancestorAsg = ancestorAsgs.isEmpty() ? null : ancestorAsgs[0]
+        ancestorAsg = ancestorAsgs.getAt(0)
       } else {
         sourceRegion = targetRegion
         sourceAsgCredentials = description.credentials
-        task.updateStatus BASE_PHASE, "Looking up last ASG in ${sourceRegion} for ${description.application}-${description.stack}."
-        ancestorAsg = getAncestorAsg(sourceRegion)
       }
       def sourceRegionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
-      def ancestorLaunchConfiguration = getLaunchConfiguration(sourceRegion, ancestorAsg.launchConfigurationName)
+      if (!ancestorAsg) {
+        task.updateStatus BASE_PHASE, "Looking up last ASG in ${sourceRegion} for ${cluster}."
+        ancestorAsg = sourceRegionScopedProvider.asgService.getAncestorAsg(cluster)
+      }
+
+      def ancestorLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(ancestorAsg.launchConfigurationName)
       BasicAmazonDeployDescription newDescription = description.clone()
 
       if (ancestorAsg.VPCZoneIdentifier) {
         task.updateStatus BASE_PHASE, "Looking up subnet type..."
-        newDescription.subnetType = getPurposeForSubnet(sourceRegion, ancestorAsg.VPCZoneIdentifier.tokenize(',').getAt(0))
+        newDescription.subnetType = description.subnetType != null ? description.subnetType : getPurposeForSubnet(sourceRegion, ancestorAsg.VPCZoneIdentifier.tokenize(',').getAt(0))
         task.updateStatus BASE_PHASE, "Found: ${newDescription.subnetType}."
       }
 
@@ -133,22 +136,9 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       result.messages.addAll(thisResult.messages)
       task.updateStatus BASE_PHASE, "Deployment complete in $targetRegion. New ASGs = ${result.serverGroupNames}"
     }
-    task.updateStatus BASE_PHASE, "Finished copying last ASG for ${description.application}-${description.stack}. New ASGs = ${result.serverGroupNames}."
+    task.updateStatus BASE_PHASE, "Finished copying last ASG for ${cluster}. New ASGs = ${result.serverGroupNames}."
 
     result
-  }
-
-  AutoScalingGroup getAncestorAsg(String region) {
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
-    def autoScalingWorker = new AutoScalingWorker(application: description.application, stack: description.stack, autoScaling: autoScaling, region: region,
-      environment: description.credentials.name)
-    autoScalingWorker.ancestorAsg
-  }
-
-  LaunchConfiguration getLaunchConfiguration(String region, String launchConfigurationName) {
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
-    def result = autoScaling.describeLaunchConfigurations(new DescribeLaunchConfigurationsRequest().withLaunchConfigurationNames(launchConfigurationName))
-    result.launchConfigurations?.getAt(0)
   }
 
   String getPurposeForSubnet(String region, String subnetId) {
