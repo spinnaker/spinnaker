@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
@@ -51,4 +52,7 @@ interface JenkinsClient {
 
     @POST('/job/{jobName}/build')
     Response build(@Path('jobName') String jobName)
+
+    @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
+    JobConfig getJobConfig(@Path('jobName') String jobName)
 }
