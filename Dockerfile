@@ -4,7 +4,7 @@ MAINTAINER clin@netflix.com
 
 COPY . workdir
 
-WORKDIR workdir
+WORKDIR workdir/
 
 RUN ./gradlew build -x test
 
