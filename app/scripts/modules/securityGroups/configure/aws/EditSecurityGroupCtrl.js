@@ -54,7 +54,7 @@ angular.module('deckApp.securityGroup.aws.edit.controller', [])
 
       $scope.taskMonitor.submit(
         function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application.name, 'Update');
+          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, 'Update');
         }
       );
     };
