@@ -30,7 +30,6 @@ import org.springframework.batch.repeat.RepeatStatus
 
 class RetryableTaskTasklet extends TaskTasklet {
   private final Clock clock
-  private final Date startDate
   private final long timeoutMs
 
   RetryableTaskTasklet(RetryableTask task,
@@ -39,7 +38,6 @@ class RetryableTaskTasklet extends TaskTasklet {
                        Clock clock = Clock.WALL) {
     super(task, executionRepository, exceptionHandlers)
     this.clock = clock
-    this.startDate = new Date(clock.now())
     this.timeoutMs = task.timeout
   }
 
@@ -53,10 +51,12 @@ class RetryableTaskTasklet extends TaskTasklet {
   }
 
   @Override
-  protected TaskResult doExecuteTask(Stage stage) {
-    if (clock.now() - startDate.time > timeoutMs) {
-      throw new TimeoutException("Operation timed out after ${timeoutMs}ms")
+  protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
+    def now = clock.now()
+    def startTime = chunkContext.stepContext.getStepExecution().startTime.time
+    if (now - startTime > timeoutMs) {
+      throw new TimeoutException("Operation timed out after ${timeoutMs}ms (startTime: ${startTime}, endTime: ${now})")
     }
-    return super.doExecuteTask(stage)
+    return super.doExecuteTask(stage, chunkContext)
   }
 }
