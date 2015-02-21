@@ -29,7 +29,10 @@ import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrat
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.job.builder.JobBuilder
+import org.springframework.batch.core.scope.context.ChunkContext
+import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -117,9 +120,13 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   void "should raise TimeoutException if timeout exceeded"() {
     given:
     def clock = Mock(Clock) {
-      1 * now() >> { return 0 }
       1 * now() >> { return currentTime }
     }
+    def chunkContext = new ChunkContext(
+      new StepContext(Mock(StepExecution) {
+        1 * getStartTime() >> { new Date(0) }
+      })
+    )
 
     and:
     def tasklet = new RetryableTaskTasklet(task, null, null, clock)
@@ -127,7 +134,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     when:
     def exceptionThrown = false
     try {
-      tasklet.doExecuteTask(null)
+      tasklet.doExecuteTask(null, chunkContext)
     } catch (TimeoutException ignored) {
       exceptionThrown = true
     }

@@ -193,7 +193,7 @@ class TaskTaskletSpec extends Specification {
     task.execute(_) >> { throw new RuntimeException() }
 
     expect:
-    with(tasklet.executeTask(tasklet.currentStage(chunkContext))) {
+    with(tasklet.executeTask(tasklet.currentStage(chunkContext), chunkContext)) {
       status == TERMINAL
       outputs.exception.exceptionType == exceptionType
       outputs.exception.operation == operation
