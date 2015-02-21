@@ -88,6 +88,17 @@ angular.module('deckApp.pipelines')
         });
     };
 
+    this.editPipelineJson = function() {
+      $modal.open({
+        templateUrl: 'scripts/modules/pipelines/config/actions/json/editPipelineJsonModal.html',
+        controller: 'EditPipelineJsonModalCtrl',
+        controllerAs: 'editPipelineJsonModalCtrl',
+        resolve: {
+          pipeline: function() { return $scope.pipeline; },
+        }
+      });
+    };
+
     this.navigateToStage = function(index, event) {
       $scope.viewState.section = 'stage';
       $scope.viewState.stageIndex = index;
