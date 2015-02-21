@@ -12,6 +12,7 @@
     <div class="container-fluid no-padding">
       <div class="row">
         <div class="col-md-8">
+          <span class="glyphicon glyphicon-th-large small"></span>
           <span class="server-group-sequence">{{ serverGroup.name | serverGroupSequence }}:</span>
           <a ng-if="serverGroup.buildInfo.jenkins.host"
              href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
