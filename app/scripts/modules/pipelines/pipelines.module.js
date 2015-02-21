@@ -13,6 +13,7 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.create',
   'deckApp.pipelines.delete',
   'deckApp.pipelines.rename',
+  'deckApp.pipelines.editJson',
   'deckApp.authentication',
   'deckApp.utils.lodash',
   'ui.sortable',
