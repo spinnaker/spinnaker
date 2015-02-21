@@ -13,24 +13,23 @@ angular
 
       var defPrimary = 'account';
       var defSecondary = 'cluster';
-      var instanceSortDefault = 'launchTime';
 
       var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
           locationQ = $location.search().q || null;
       if (filter !== locationQ) {
         $location.search('q',
-            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : undefined);
+            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : '');
       }
       $location.search('hideHealth', ClusterFilterModel.sortFilter.hideHealthy ? true : null);
       $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
-      $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? true : null);
+      $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? 'true' : null);
       $location.search('hideDisabled', ClusterFilterModel.sortFilter.hideDisabled ? true : null);
       $location.search('primary',
         ClusterFilterModel.sortFilter.sortPrimary === defPrimary ? null : ClusterFilterModel.sortFilter.sortPrimary);
       $location.search('secondary',
           ClusterFilterModel.sortFilter.sortSecondary === defSecondary ? null : ClusterFilterModel.sortFilter.sortSecondary);
       $location.search('instanceSort',
-          ClusterFilterModel.sortFilter.instanceSort.key === instanceSortDefault ? null : ClusterFilterModel.sortFilter.instanceSort.key);
+          ClusterFilterModel.sortFilter.instanceSort.key);
 
       updateAccountParams();
       updateRegionParams();

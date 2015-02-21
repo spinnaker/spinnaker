@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('instanceList', function (scrollTriggerService, clusterFilterService, $rootScope, $timeout) {
+  .directive('instanceList', function (scrollTriggerService, clusterFilterService, $rootScope) {
     return {
       restrict: 'E',
       templateUrl: 'scripts/modules/instance/instanceList.html',
@@ -80,18 +80,16 @@ angular.module('deckApp')
         scope.$state = $rootScope.$state;
 
         scope.loadInstanceDetails = function(event, id) {
-          $timeout(function() {
-            // anything handled by ui-sref or actual links should be ignored
-            if (event.isDefaultPrevented() || (event.originalEvent && event.originalEvent.target.href)) {
-              return;
-            }
-            event.preventDefault();
-            var params = {
-              instanceId: id
-            };
-            // also stolen from uiSref directive
-            scope.$state.go('.instanceDetails', params, {relative: base, inherit: true});
-          });
+          // anything handled by ui-sref or actual links should be ignored
+          if (event.isDefaultPrevented() || (event.originalEvent && event.originalEvent.target.href)) {
+            return;
+          }
+          event.preventDefault();
+          var params = {
+            instanceId: id
+          };
+          // also stolen from uiSref directive
+          scope.$state.go('.instanceDetails', params, {relative: base, inherit: true});
         };
 
         scope.updateQueryParams = clusterFilterService.updateQueryParams;

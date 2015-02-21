@@ -34,7 +34,7 @@ angular.module('deckApp.utils.waypoints.service', [
             }
           });
 
-          waypointRegistry[key].lastWindow = _(inView).sortBy('top').pluck('elem').valueOf();
+          waypointRegistry[key].lastWindow = _.sortBy(inView, 'top');
 
         }, 300));
         registryEntry.scrollEnabled = true;
@@ -58,13 +58,12 @@ angular.module('deckApp.utils.waypoints.service', [
 
         var candidates = registry.lastWindow || [],
           container = registry.container,
-          containerScrollTop = container.scrollTop(),
-          containerTop = container.offset().top;
+          containerScrollTop = container.scrollTop();
 
         candidates.every(function(candidate) {
-          var elem = $('[waypoint="' + candidate + '"]', container);
+          var elem = $('[waypoint="' + candidate.elem + '"]', container);
           if (elem.length) {
-            container.scrollTop(containerScrollTop + elem.offset().top - containerTop - registry.offset);
+            container.scrollTop(containerScrollTop + elem.offset().top - candidate.top);
             container.trigger('scroll');
             return false;
           }
