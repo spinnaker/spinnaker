@@ -1,51 +1,51 @@
 <div class="cluster-pod-server-group"
-     waypoint="{{serverGroup.account}}:{{serverGroup.region}}:{{serverGroup.name}}"
+     waypoint="{{viewModel.waypoint}}"
      ng-class="{
-        disabled: serverGroup.isDisabled
+        disabled: viewModel.serverGroup.isDisabled
      }">
-  <div class="server-group-title clickable" sticky-header added-offset-height="69" added-offset-width="-4"
-       ng-click="loadDetails($event)"
-       ng-class="{
-          active: $state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})
-        }"
-       sticky-if="headerIsSticky()">
-    <div class="container-fluid no-padding">
-      <div class="row">
-        <div class="col-md-8">
-          <span class="glyphicon glyphicon-th-large small"></span>
-          <span class="server-group-sequence">{{ serverGroup.name | serverGroupSequence }}:</span>
-          <a ng-if="serverGroup.buildInfo.jenkins.host"
-             href="{{ serverGroup.buildInfo.jenkins.host }}job/{{ serverGroup.buildInfo.jenkins.name }}/{{ serverGroup.buildInfo.jenkins.number }}/"
-             target="_blank">
-            Build: #{{ serverGroup.buildInfo.jenkins.number }}
-          </a>
-          <span ng-if="!serverGroup.buildInfo.jenkins.host && serverGroup.buildInfo.version">
-            Build Version: {{serverGroup.buildInfo.version}}
-          </span>
-          <span ng-if="!serverGroup.buildInfo">
-            (No build info)
-          </span>
-        </div>
-        <div class="col-md-4 text-right">
-          <span ng-if="!serverGroup.isDisabled">
-            <health-counts container="serverGroup"></health-counts>
-          </span>
-          <span ng-if="serverGroup.isDisabled" class="badge-disabled">disabled</span>
-          <running-tasks-tag application="application" tasks="serverGroup.runningTasks"></running-tasks-tag>
-          <load-balancers-tag load-balancers="serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
+  <div class="cluster-container">
+    <div class="server-group-title clickable" sticky-header added-offset-height="69" added-offset-width="-4"
+         ng-click="loadDetails($event)"
+         ng-class="{
+            active: $state.includes('**.serverGroup', {region: viewModel.serverGroup.region, accountId: viewModel.serverGroup.account, viewModel.serverGroup: viewModel.serverGroup.name, provider: viewModel.serverGroup.type})
+          }"
+         ng-style="viewModel.placeholderStyle"
+         sticky-if="headerIsSticky()">
+      <div class="container-fluid no-padding">
+        <div class="row">
+          <div class="col-md-8">
+            <span class="glyphicon glyphicon-th-large small"></span>
+            <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}:</span>
+            <a ng-if="viewModel.jenkins"
+               href="{{viewModel.jenkins.href}}"
+               target="_blank">
+              Build: #{{ viewModel.jenkins.number }}
+            </a>
+            <span ng-if="!viewModel.jenkins">
+              (No build info)
+            </span>
+          </div>
+          <div class="col-md-4 text-right">
+            <span ng-if="!viewModel.serverGroup.isDisabled">
+              <health-counts container="viewModel.serverGroup"></health-counts>
+            </span>
+            <span ng-if="viewModel.serverGroup.isDisabled" class="badge-disabled">disabled</span>
+            <running-tasks-tag application="application" tasks="viewModel.serverGroup.runningTasks"></running-tasks-tag>
+            <load-balancers-tag load-balancers="viewModel.serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-  <div class="instance-list" ng-if="displayOptions.showInstances">
-    <div ng-if="!displayOptions.listInstances">
-      <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="serverGroup.instances"
-                 render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
-    </div>
-    <div ng-if="displayOptions.listInstances">
-      <instance-list scroll-target="clusters-content" instances="serverGroup.instances"
-                     sort-filter="sortFilter"
-                     render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instance-list>
+    <div class="instance-list" ng-if="displayOptions.showInstances && viewModel.loaded">
+      <div ng-if="!displayOptions.listInstances">
+        <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="viewModel.serverGroup.instances"
+                   render-instances-on-scroll="false"></instances>
+      </div>
+      <div ng-if="displayOptions.listInstances">
+        <instance-list scroll-target="clusters-content" instances="viewModel.serverGroup.instances"
+                       sort-filter="sortFilter"
+                       render-instances-on-scroll="false"></instance-list>
+      </div>
     </div>
   </div>
 </div>

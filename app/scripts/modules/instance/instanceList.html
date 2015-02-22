@@ -9,11 +9,6 @@
       <th width="15%" class="text-center" sort-toggle key="discoveryState" label="Discovery" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
       <th width="36%" sort-toggle key="loadBalancerSort" label="Load Balancers" sort-model="sortFilter.instanceSort" on-change="updateQueryParams()"></th>
 
-      <!--<th width="14%">Instance</th>-->
-      <!--<th width="22%">Launch Time</th>-->
-      <!--<th width="13%">Zone</th>-->
-      <!--<th width="14%" class="text-center">Discovery</th>-->
-      <!--<th>Load Balancers</th>-->
     </tr>
   </thead>
   <tbody>
@@ -25,8 +20,6 @@
       <!--<td><input type="checkbox"></td>-->
       <td>
         <span class="glyphicon glyphicon-{{instance.status.toLowerCase()}}-triangle"></span>
-        <!-- use this when multi-select is a thing -->
-        <!--<a ui-sref=".instanceDetails({instanceId: instance.id })">{{instance.id}}</a>-->
         {{instance.id}}
       </td>
       <td>{{instance.launchTime | simpleTime }}</td>

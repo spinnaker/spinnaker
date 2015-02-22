@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('serverGroup', function ($rootScope, $timeout) {
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _) {
     return {
       restrict: 'E',
       replace: true,
@@ -20,6 +20,52 @@ angular.module('deckApp')
         var base = el.parent().inheritedData('$uiView').state;
 
         scope.$state = $rootScope.$state;
+
+        function loadView() {
+          scope.$evalAsync(function() {
+            scope.viewModel.loaded = true;
+            scope.viewModel.placeholderStyle = '';
+          });
+        }
+
+        function calculatePlaceholderHeight() {
+          if (scope.displayOptions.showInstances) {
+            if (scope.displayOptions.listInstances) {
+              var extraLoadBalancers = scope.serverGroup.instances.reduce(function(acc, instance) {
+                var loadBalancerHealths = _.find(instance.health, { type: 'LoadBalancer' });
+                return loadBalancerHealths ? loadBalancerHealths.loadBalancers.length - 1 : 0 + acc;
+              }, 0);
+              return scope.serverGroup.instances.length * 29 + extraLoadBalancers * 18;
+            } else {
+              var rows = Math.ceil(scope.serverGroup.instances.length / 60);
+              return rows * 20 + 5;
+            }
+          }
+        }
+
+        var serverGroup = scope.serverGroup;
+
+        scope.viewModel = {
+          loaded: true,
+          waypoint: [serverGroup.account,serverGroup.region,serverGroup.name].join(':'),
+          serverGroup: serverGroup,
+          serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
+          jenkins: null
+        };
+
+        if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
+          var jenkins = serverGroup.buildInfo.jenkins;
+          scope.viewModel.jenkins = {
+            href: [jenkins.host, 'job', jenkins.name, jenkins.number, ''].join(','),
+            number: jenkins.number,
+          };
+        }
+
+          if (scope.displayOptions.renderInstancesOnScroll) {
+            scope.viewModel.loaded = false;
+            scope.viewModel.placeholderStyle = { 'padding-bottom': calculatePlaceholderHeight() + 'px'};
+            scrollTriggerService.register(scope, el, 'clusters-content', loadView);
+        }
 
         scope.loadDetails = function(e) {
           $timeout(function() {
