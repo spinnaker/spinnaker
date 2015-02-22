@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-buildscript {
-    repositories {
-        jcenter()
-        maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
-    }
-    dependencies {
-        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.35'
-    }
+plugins {
+    id 'nebula.netflixoss' version '2.2.7'
 }
-
 
 allprojects {
     group = 'com.netflix.spinnaker.cats'
-    apply plugin: 'spinnaker-gradle-project'
+    apply plugin: 'nebula.netflixoss'
     apply plugin: 'idea'
+
+    repositories {
+      jcenter()
+    }
 }
 
 subprojects {
@@ -36,12 +33,25 @@ subprojects {
     apply plugin: 'groovy'
     apply plugin: 'findbugs'
     apply plugin: 'pmd'
+    apply plugin: 'nebula-source-jar'
+    apply plugin: 'nebula-javadoc-jar'
+    apply plugin: 'nebula-test-jar'
+    apply plugin: 'nebula-publishing'
 
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
 
+    bintray {
+      pkg {
+        repo = 'spinnaker'
+        userOrg = 'spinnaker'
+      }
+    }
+
     dependencies {
-        spinnaker.group('spockBase')
+        testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
+        testCompile 'cglib:cglib-nodep:3.1'
+        testCompile 'org.objenesis:objenesis:2.1'
         pmd 'net.sourceforge.pmd:pmd:5.1.3'
     }
 

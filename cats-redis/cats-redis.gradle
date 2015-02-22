@@ -1,9 +1,3 @@
-configurations.all {
-    resolutionStrategy {
-        force 'com.fasterxml.jackson.core:jackson-annotations:2.4.3'
-    }
-}
-
 dependencies {
     compile project(':cats-core')
     compile 'redis.clients:jedis:2.5.2'
