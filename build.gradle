@@ -23,6 +23,14 @@ allprojects {
     apply plugin: 'nebula.netflixoss'
     apply plugin: 'idea'
 
+    bintray {
+      pkg {
+        repo = 'spinnaker'
+        userOrg = 'spinnaker'
+      }
+    }
+
+
     repositories {
       jcenter()
     }
@@ -40,13 +48,6 @@ subprojects {
 
     sourceCompatibility = 1.7
     targetCompatibility = 1.7
-
-    bintray {
-      pkg {
-        repo = 'spinnaker'
-        userOrg = 'spinnaker'
-      }
-    }
 
     dependencies {
         testCompile 'org.spockframework:spock-core:0.7-groovy-2.0'
