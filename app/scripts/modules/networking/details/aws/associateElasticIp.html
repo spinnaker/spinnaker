@@ -30,7 +30,7 @@
       <div class="form-group">
         <div class="col-md-2 sm-label-left">Type <help-field key="aws.associateElasticIp.type"></help-field></div>
         <div class="col-md-3">
-          <select class="form-control input-sm" ng-model="elasticIp.type" ng-init="elasticIp.type='standard'">
+          <select class="form-control input-sm" ng-model="elasticIp.type">
             <option>standard</option>
             <option>vpc</option>
           </select>
@@ -48,7 +48,8 @@
         <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
         <button type="submit"
                 class="btn btn-primary"
-                ng-click="ctrl.associate()">
+                ng-click="ctrl.associate()"
+                ng-disabled="!elasticIp.type">
           Associate
         </button>
       </div>
