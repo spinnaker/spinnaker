@@ -49,8 +49,9 @@ angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
     }
 
     function eventIsInView(registeredEvent, scrollBottom) {
-      var elementTop = registeredEvent.element.get(0).getBoundingClientRect().top;
-      if (elementTop < 0) {
+      var rect = registeredEvent.element.get(0).getBoundingClientRect();
+      var elementTop = rect.top;
+      if (rect.bottom < 0) {
         return false;
       }
       scrollBottom = scrollBottom || $$window.scrollTop() + $window.innerHeight;

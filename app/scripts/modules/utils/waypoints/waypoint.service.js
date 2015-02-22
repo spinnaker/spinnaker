@@ -13,8 +13,8 @@ angular.module('deckApp.utils.waypoints.service', [
       waypointRegistry[key].offset = offset;
       enableWaypointEvent(element, key);
       elementScope.$on('$destroy', function() {
-        waypointRegistry[key] = null;
         disableWaypointEvent(key);
+        waypointRegistry[key] = null;
       });
     }
 
