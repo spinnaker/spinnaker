@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepositor
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.explore.JobExplorer
@@ -37,13 +38,13 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Ignore
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @Ignore("@robfletcher halp")
-@ContextConfiguration(classes = [BatchTestConfiguration, OrcaConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, JesqueConfiguration, EmbeddedRedisConfiguration, OrcaConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineStatusSpec extends Specification {
 

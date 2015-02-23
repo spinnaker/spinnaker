@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.notifications
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
@@ -24,6 +23,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 
+import javax.ws.rs.HEAD
+
+/**
+ * An abstract class that can be extended to implement the {@code NotificationHandler} functionality. It has the basic
+ * pipeline orchestration stuff wired in. The {@code NotificationHandler}'s are used by the classes that extend {@AbstractPollingNotificationAgent}
+ */
 abstract class AbstractNotificationHandler implements NotificationHandler {
   private final Logger log = LoggerFactory.getLogger(getClass());
 

@@ -15,17 +15,14 @@
  */
 
 package com.netflix.spinnaker.orca.config
-
-import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.batch.exceptions.NoopExceptionHandler
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -34,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.explore.JobExplorer
@@ -50,8 +48,10 @@ import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
+
 @Configuration
-@ComponentScan("com.netflix.spinnaker.orca.pipeline")
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling"])
 @CompileStatic
 class OrcaConfiguration {
 
@@ -95,8 +95,9 @@ class OrcaConfiguration {
     new OrchestrationStarter()
   }
 
-  @Bean NoopNotificationHandler noopNotificationHandler() {
-    new NoopNotificationHandler()
+  @Bean @Scope(SCOPE_PROTOTYPE) // Scope is really important here...
+  SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map input) {
+    new SuspendedPipelinesNotificationHandler(input)
   }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE) DefaultExceptionHandler defaultExceptionHandler() {

@@ -15,12 +15,10 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-
-import groovy.transform.CompileStatic
-import javax.annotation.PostConstruct
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.JobParameters
@@ -30,6 +28,8 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
+
+import javax.annotation.PostConstruct
 
 @CompileStatic
 abstract class AbstractOrchestrationInitiator<T extends Execution> {
@@ -51,8 +51,8 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
 
   @PostConstruct
   void initialize() {
-    applicationContext.getBeansOfType(StageBuilder).values().each {
-      stages[it.type] = it
+    applicationContext.getBeansOfType(StageBuilder).values().each { StageBuilder stageBuilder ->
+      stages[stageBuilder.type] = stageBuilder
     }
     applicationContext.getBeansOfType(StandaloneTask).values().each {
       def stage = new SimpleStage(it.type, it)
@@ -90,6 +90,13 @@ abstract class AbstractOrchestrationInitiator<T extends Execution> {
     if (config.containsKey("description")) {
       params.addString("description", config.description as String, false)
     }
+    params.toJobParameters()
+  }
+
+  protected JobParameters createJobParameters(T subject) {
+    def params = new JobParametersBuilder()
+    params.addString(type, subject.id)
+    params.addString("application", subject.application)
     params.toJobParameters()
   }
 

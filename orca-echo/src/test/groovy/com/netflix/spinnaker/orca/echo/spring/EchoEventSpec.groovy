@@ -1,8 +1,8 @@
 package com.netflix.spinnaker.orca.echo.spring
-
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -10,20 +10,21 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.SimpleStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 /**
  * Most of what the listener does can be tested at a unit level, this is just to
  * ensure that we're making the right assumptions about the statuses we'll get
  * from Batch at runtime, etc.
  */
-@ContextConfiguration(classes = [BatchTestConfiguration, OrcaConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class EchoEventSpec extends Specification {
 
@@ -135,4 +136,13 @@ class EchoEventSpec extends Specification {
     }
     return events
   }
+
+//  @Configuration
+//  private static class EchoTestConfiguration extends Specification {
+//    @Bean
+//    MayoService mayoService() {
+//      Mock(MayoService)
+//    }
+//  }
+
 }

@@ -15,17 +15,22 @@
  */
 
 package com.netflix.spinnaker.orca.web.config
-
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
-import javax.servlet.*
-import javax.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.JedisCommands
+
+import javax.servlet.Filter
+import javax.servlet.FilterChain
+import javax.servlet.FilterConfig
+import javax.servlet.ServletException
+import javax.servlet.ServletRequest
+import javax.servlet.ServletResponse
+import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')

@@ -31,6 +31,7 @@ import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 @Component
@@ -56,12 +57,18 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
    */
   @CompileDynamic
   protected Job build(Map<String, Object> config, Pipeline pipeline) {
-    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
-    pipelineListeners.each {
-      jobBuilder = jobBuilder.listener(it)
+    def jobBuilder = jobFlowBuilder(pipeline)
+    buildFlow(jobBuilder, pipeline.stages).build().build()
+  }
+
+  @CompileDynamic
+  protected Job buildForRestart(Pipeline pipeline) {
+    def jobBuilder = jobFlowBuilder(pipeline)
+    def stages = []
+    for (Stage stage in pipeline.stages) {
+      if (!stage.status.complete) stages.add(stage)
     }
-    jobBuilder = jobBuilder.flow(initializationStep(steps, pipeline)) as JobFlowBuilder
-    buildFlow(jobBuilder, pipeline).build().build()
+    buildFlow(jobBuilder, stages).build().build()
   }
 
   @Override
@@ -80,11 +87,34 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
             .build()
   }
 
-  // static compiler doesn't seem to know what to do here anymore...
-  @CompileStatic(TypeCheckingMode.SKIP)
-  private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
+  @Override
+  protected JobParameters createJobParameters(Pipeline pipeline, Map<String, Object> config) {
+    def params = new JobParametersBuilder(super.createJobParameters(pipeline, config))
+    params.addString("pipeline", pipeline.id)
+    params.toJobParameters()
+  }
+
+  @Override
+  protected JobParameters createJobParameters(Pipeline pipeline) {
+    def params = new JobParametersBuilder(super.createJobParameters(pipeline))
+    params.addString("pipeline", pipeline.id)
+    params.addString("name", pipeline.name)
+    params.toJobParameters()
+  }
+
+  @CompileDynamic
+  private JobFlowBuilder jobFlowBuilder(Pipeline pipeline) {
+    def jobBuilder = jobs.get("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+    pipelineListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
+    jobBuilder.flow(initializationStep(steps, pipeline)) as JobFlowBuilder
+  }
+
+  @CompileStatic(TypeCheckingMode.SKIP)   // static compiler doesn't seem to know what to do here anymore...
+  private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, List<Stage> pipelineStages) {
     def stages = []
-    stages.addAll(pipeline.stages)
+    stages.addAll(pipelineStages)
     stages.inject(jobBuilder, this.&createStage)
   }
 
@@ -100,10 +130,20 @@ class PipelineStarter extends AbstractOrchestrationInitiator<Pipeline> {
     }
   }
 
-  @Override
-  protected JobParameters createJobParameters(Pipeline pipeline, Map<String, Object> config) {
-    def params = new JobParametersBuilder(super.createJobParameters(pipeline, config))
-    params.addString("pipeline", pipeline.id)
-    params.toJobParameters()
+  /*
+   * If we want restarts to apply to Orchestration as well, then
+   * this can be refactored and moved to the abstract super class
+   */
+  Pipeline restart(String executionId) {
+    def pipeline = get(executionId)
+    persistExecution(pipeline)
+    def job = buildForRestart(pipeline)
+    launcher.run(job, createJobParameters(pipeline))
+    pipeline
   }
+
+  protected Pipeline get(String executionId) {
+    executionRepository.retrievePipeline(executionId)
+  }
+
 }

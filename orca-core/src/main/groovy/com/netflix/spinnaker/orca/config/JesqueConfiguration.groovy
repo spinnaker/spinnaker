@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.echo.config
+package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import net.greghaines.jesque.Config
@@ -25,9 +27,13 @@ import net.greghaines.jesque.client.ClientPoolImpl
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Profile
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
@@ -37,11 +43,8 @@ import redis.clients.util.Pool
 class JesqueConfiguration {
   @Bean
   @ConditionalOnProperty("redis.connection")
-  public Pool<Jedis> jedisPool(
-    @Value('${redis.connection:redis://localhost:6379}')
-      String connection) {
+  Pool<Jedis> jedisPool(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
-
     final JedisPool pool
     if (jedisConnection.userInfo != null) {
       pool = new JedisPool(jedisConnection)
@@ -53,8 +56,7 @@ class JesqueConfiguration {
 
   @Bean
   @ConditionalOnProperty("redis.connection")
-  Config jesqueConfig(@Value('${redis.connection:redis://localhost:6379}')
-                        String connection) {
+  Config jesqueConfig(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
     new ConfigBuilder()
       .withHost(jedisConnection.host)

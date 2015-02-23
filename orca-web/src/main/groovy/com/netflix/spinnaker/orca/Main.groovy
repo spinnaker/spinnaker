@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
@@ -53,6 +54,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   WebConfiguration,
   OrcaConfiguration,
   JedisConfig,
+  JesqueConfiguration,
   BakeryConfiguration,
   EchoConfiguration,
   Front50Configuration,

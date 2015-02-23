@@ -1,44 +1,37 @@
 package com.netflix.spinnaker.orca.notifications
-
-import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.echo.EchoEventPoller
-import com.netflix.spinnaker.orca.echo.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.jenkins.Trigger
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import net.greghaines.jesque.Config
-import net.greghaines.jesque.ConfigBuilder
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.context.ContextConfiguration
-import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
-import redis.clients.util.Pool
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import rx.schedulers.Schedulers
 import spock.lang.Specification
+
+import java.util.concurrent.CountDownLatch
+
 import static java.util.concurrent.TimeUnit.SECONDS
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
-
 /**
  * Integration test to ensure the Jesque-based notification workflow hangs
  * together.
  */
-@ContextConfiguration(classes = [JedisConfiguration, TestConfiguration, JesqueConfiguration])
+@ContextConfiguration(classes = [TestConfiguration, JesqueConfiguration, EmbeddedRedisConfiguration])
 class NotificationSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
@@ -136,32 +129,3 @@ class TestConfiguration {
     new BuildJobNotificationHandler(input)
   }
 }
-
-/**
- * This configuration class sets up embedded Redis for Jesque if a Redis URL is
- * not specified in system properties.
- */
-@Configuration
-class JedisConfiguration {
-  @Bean
-  @ConditionalOnExpression("#{systemProperties['redis.connection'] == null}")
-  EmbeddedRedis redisServer() {
-    EmbeddedRedis.embed()
-  }
-
-  @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  Config jesqueConfig(EmbeddedRedis redis) {
-    new ConfigBuilder()
-      .withHost("localhost")
-      .withPort(redis.redisServer.port)
-      .build()
-  }
-
-  @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  Pool<Jedis> jedisPool(EmbeddedRedis redis) {
-    new JedisPool("localhost", redis.redisServer.port)
-  }
-}
-
