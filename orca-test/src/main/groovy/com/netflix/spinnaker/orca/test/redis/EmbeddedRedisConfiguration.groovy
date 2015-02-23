@@ -14,30 +14,34 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.config
+package com.netflix.spinnaker.orca.test.redis
+
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import groovy.transform.CompileDynamic
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
+
 /**
  *
  * @author sthadeshwar
  */
-@Configuration
-class JedisTestConfiguration {
+class EmbeddedRedisConfiguration {
+
   @Bean
   EmbeddedRedis redisServer() {
+    println "redis.connection = " + System.getProperty("redis.connection")
     EmbeddedRedis.embed()
   }
 
   @Bean
   @ConditionalOnBean(EmbeddedRedis)
-  Config jesqueConfig(EmbeddedRedis redis) {
+  @CompileDynamic
+  Config embeddedJesqueConfig(EmbeddedRedis redis) {
     new ConfigBuilder()
         .withHost("localhost")
         .withPort(redis.redisServer.port)
@@ -46,7 +50,9 @@ class JedisTestConfiguration {
 
   @Bean
   @ConditionalOnBean(EmbeddedRedis)
-  Pool<Jedis> jedisPool(EmbeddedRedis redis) {
+  @CompileDynamic
+  Pool<Jedis> embeddedJedisPool(EmbeddedRedis redis) {
     new JedisPool("localhost", redis.redisServer.port)
   }
+
 }

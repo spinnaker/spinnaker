@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.notifications
+package com.netflix.spinnaker.orca.notifications.scheduling
+
+import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 
 /**
  *
