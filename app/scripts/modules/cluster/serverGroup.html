@@ -7,7 +7,7 @@
     <div class="server-group-title clickable" sticky-header added-offset-height="69" added-offset-width="-4"
          ng-click="loadDetails($event)"
          ng-class="{
-            active: $state.includes('**.serverGroup', {region: viewModel.serverGroup.region, accountId: viewModel.serverGroup.account, viewModel.serverGroup: viewModel.serverGroup.name, provider: viewModel.serverGroup.type})
+            active: $state.includes('**.serverGroup', {region: viewModel.serverGroup.region, accountId: viewModel.serverGroup.account, serverGroup: viewModel.serverGroup.name, provider: viewModel.serverGroup.type})
           }"
          ng-style="viewModel.placeholderStyle"
          sticky-if="headerIsSticky()">
