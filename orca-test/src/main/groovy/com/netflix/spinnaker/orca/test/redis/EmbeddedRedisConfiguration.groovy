@@ -34,7 +34,6 @@ class EmbeddedRedisConfiguration {
 
   @Bean
   EmbeddedRedis redisServer() {
-    println "redis.connection = " + System.getProperty("redis.connection")
     EmbeddedRedis.embed()
   }
 

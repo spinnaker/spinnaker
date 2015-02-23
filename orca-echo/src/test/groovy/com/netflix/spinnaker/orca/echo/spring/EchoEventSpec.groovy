@@ -46,7 +46,6 @@ class EchoEventSpec extends Specification {
   @Shared json
 
   def setupSpec() {
-    println System.getProperty("redis.connection")
     def config = [
         application: "app",
         stages     : [[type: "stage1"], [type: "stage2"]]
