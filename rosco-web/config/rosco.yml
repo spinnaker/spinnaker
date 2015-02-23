@@ -19,14 +19,21 @@ executionStatusToBakeStates:
     - executionStatus: FAILED
       bakeState: CANCELLED
 
+executionStatusToBakeResults:
+  associations:
+    - executionStatus: SUCCESSFUL
+      bakeResult: SUCCESS
+    - executionStatus: FAILED
+      bakeResult: FAILURE
+
 defaultCloudProviderType: aws
 
 aws:
   enabled: ${AWS_ENABLED:false}
   bakeryDefaults:
     # TODO(duftler): Make aws credentials-handling consistent with that of other spinnaker modules.
-    awsAccessKey: FOO
-    awsSecretKey: BAR
+    awsAccessKey: ${AWS_ACCESS_KEY:FOO}
+    awsSecretKey: ${AWS_SECRET_KEY:BAR}
     templateFile: aws-ebs.json
     defaultVirtualizationType: hvm
     operatingSystemVirtualizationSettings:

@@ -45,6 +45,9 @@ class BakeryController {
   @Autowired
   RoscoConfiguration.ExecutionStatusToBakeStateMap executionStatusToBakeStateMap
 
+  @Autowired
+  RoscoConfiguration.ExecutionStatusToBakeResultMap executionStatusToBakeResultMap
+
   @RequestMapping(value = '/{region}/bake', method = RequestMethod.POST)
   BakeStatus createBake(@PathVariable("region") String region, @RequestBody BakeRequest bakeRequest) {
     CloudProviderBakeHandler cloudProviderBakeHandler = cloudProviderBakeHandlerRegistry.lookup(bakeRequest.cloud_provider_type)
@@ -67,7 +70,8 @@ class BakeryController {
 
       return new BakeStatus(id: scriptExecution.id,
                             resource_id: scriptExecution.id,
-                            state: executionStatusToBakeStateMap.convertExecutionStatusToBakeState(scriptExecution.status))
+                            state: executionStatusToBakeStateMap.convertExecutionStatusToBakeState(scriptExecution.status),
+                            result: executionStatusToBakeResultMap.convertExecutionStatusToBakeResult(scriptExecution.status))
     } catch (RetrofitError e) {
       throw new IllegalArgumentException("Unable to retrieve status for '$statusId'.", e)
     }

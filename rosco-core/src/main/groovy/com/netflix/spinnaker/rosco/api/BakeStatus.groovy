@@ -36,6 +36,8 @@ class BakeStatus implements Serializable {
 
   State state
 
+  Result result
+
   /**
    * The bake id that can be used to find the details of the bake.
    *
@@ -45,5 +47,9 @@ class BakeStatus implements Serializable {
 
   static enum State {
     PENDING, RUNNING, COMPLETED, SUSPENDED, CANCELLED
+  }
+
+  static enum Result {
+    SUCCESS, FAILURE
   }
 }
