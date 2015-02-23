@@ -60,7 +60,7 @@ class TaskTasklet implements Tasklet {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         return cancel(stage)
       } else {
-        def result = executeTask(stage)
+        def result = executeTask(stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
@@ -114,9 +114,13 @@ class TaskTasklet implements Tasklet {
     }
   }
 
-  private TaskResult executeTask(Stage stage) {
+  protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
+    return task.execute(stage)
+  }
+
+  private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
     try {
-      return task.execute(stage.asImmutable())
+      return doExecuteTask(stage.asImmutable(), chunkContext)
     } catch (RuntimeException e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {

@@ -60,6 +60,11 @@ class BuildJobPipelineIndexerSpec extends Specification {
     stages  : []
   ]
 
+  def noTriggersPipeline = [
+    name  : "pipeline5",
+    stages: []
+  ]
+
   def setup() {
     pipelineIndexer.scheduler = scheduler
   }
@@ -115,6 +120,31 @@ class BuildJobPipelineIndexerSpec extends Specification {
     scheduler.advanceTimeBy(pipelineIndexer.pollingInterval, SECONDS)
 
     then:
+    pipelineIndexer.pipelines[key].name == ["pipeline1"]
+
+    cleanup:
+    pipelineIndexer.shutdown()
+
+    where:
+    key = new Trigger("master1", jobName)
+  }
+
+  def "should ignore pipelines with no triggers"() {
+    given:
+    mayoService.getPipelines() >>
+      mayoResponse(noTriggersPipeline) >>
+      mayoResponse(pipeline1)
+
+    and:
+    pipelineIndexer.init()
+
+    when:
+    scheduler.advanceTimeBy(pipelineIndexer.pollingInterval * 2, SECONDS)
+
+    then:
+    notThrown NullPointerException
+
+    and:
     pipelineIndexer.pipelines[key].name == ["pipeline1"]
 
     cleanup:
