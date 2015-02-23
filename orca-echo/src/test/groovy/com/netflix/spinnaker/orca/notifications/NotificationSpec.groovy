@@ -31,7 +31,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
  * Integration test to ensure the Jesque-based notification workflow hangs
  * together.
  */
-@ContextConfiguration(classes = [TestConfiguration, JesqueConfiguration, EmbeddedRedisConfiguration])
+@ContextConfiguration(classes = [TestConfiguration, EmbeddedRedisConfiguration, JesqueConfiguration])
 class NotificationSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
