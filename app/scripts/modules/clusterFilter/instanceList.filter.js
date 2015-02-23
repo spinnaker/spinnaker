@@ -6,7 +6,7 @@ angular
     return function (instanceList, query) {
       if (instanceList && instanceList.length) {
         return instanceList.filter(function (instance) {
-          if (query.indexOf('i-') > -1) {
+          if (query.match('^i-')) {
             if (instance.id.indexOf(query) > -1) {
               return instance;
             }
