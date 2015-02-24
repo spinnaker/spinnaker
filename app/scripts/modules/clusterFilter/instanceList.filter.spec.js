@@ -43,5 +43,12 @@ describe('Filter: instanceList', function () {
     var query = 'i-foo';
     expect(filter(instanceList, query )).toMatch([]);
   });
+
+  it('should not filter on "i-" if it is not in the beginning', function () {
+    var instanceList = [{id:'i-1234'}];
+    var query = 'api-int';
+    expect(filter(instanceList, query )).toMatch(instanceList);
+  });
 });
+
 
