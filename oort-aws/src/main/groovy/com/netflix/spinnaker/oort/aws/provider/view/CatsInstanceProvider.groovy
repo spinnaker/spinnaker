@@ -46,7 +46,8 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
     AmazonInstance instance = new AmazonInstance(id)
     instance.putAll(instanceEntry.attributes)
     if (instanceEntry.relationships[HEALTH.ns]) {
-      instance.health = cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes
+      instance.health = instance.health ?: []
+      instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
     }
 
     instance

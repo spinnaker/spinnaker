@@ -199,16 +199,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
-      Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
-      HealthState amazonState = instanceEntry.attributes.state?.code == 16 ? HealthState.Unknown : HealthState.Down
-      Collection<Map<String, Object>> healths = []
-      Map<String, String> awsInstanceHealth = [type: 'Amazon', instanceId: instanceKey.instanceId, state: amazonState.toString()]
-      awsInstanceHealth.remove('class')
-      healths << awsInstanceHealth
-
       AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
       instance.putAll(instanceEntry.attributes)
-      instance.health = healths
       instance.zone = instanceEntry.attributes.placement?.availabilityZone?: null
       [(instanceEntry.id): instance]
     }
