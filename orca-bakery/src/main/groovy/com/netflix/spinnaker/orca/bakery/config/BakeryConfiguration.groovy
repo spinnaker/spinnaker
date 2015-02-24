@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -64,6 +65,7 @@ class BakeryConfiguration {
         .setConverter(new GsonConverter(gson))
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(BakeryService))
         .build()
         .create(BakeryService)
   }

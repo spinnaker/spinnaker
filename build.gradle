@@ -36,6 +36,9 @@ allprojects {
     exclude group: "org.slf4j", module: "slf4j-simple"
     resolutionStrategy {
       eachDependency {
+        if (it.requested.group.startsWith("com.fasterxml.jackson")) {
+          it.useVersion "2.4.4"
+        }
         if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
           it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.2"
         }

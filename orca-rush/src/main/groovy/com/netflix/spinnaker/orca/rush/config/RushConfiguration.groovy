@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.rush.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import java.lang.reflect.Type
 import com.google.gson.*
@@ -72,6 +73,7 @@ class RushConfiguration {
         .setConverter(new GsonConverter(gson))
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(RushService))
         .build()
         .create(RushService)
   }

@@ -18,6 +18,8 @@
 
 package com.netflix.spinnaker.orca.mort.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.google.gson.Gson
@@ -51,6 +53,7 @@ class MortConfiguration {
       .setEndpoint(mortEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(MortService))
       .setConverter(new GsonConverter(gson))
       .build()
       .create(MortService)

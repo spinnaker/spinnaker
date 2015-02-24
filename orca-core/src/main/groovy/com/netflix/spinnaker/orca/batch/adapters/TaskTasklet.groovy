@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import org.slf4j.LoggerFactory
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -61,6 +62,7 @@ class TaskTasklet implements Tasklet {
         return cancel(stage)
       } else {
         def result = executeTask(stage, chunkContext)
+        logResult(result, stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
@@ -73,7 +75,12 @@ class TaskTasklet implements Tasklet {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
         }
 
-        stage.context.putAll result.outputs
+        def contextResults = new HashMap(result.outputs)
+        if (result.status.complete) {
+          contextResults.put 'batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id
+        }
+
+        stage.context.putAll contextResults
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
@@ -151,6 +158,22 @@ class TaskTasklet implements Tasklet {
 
   private static String stageId(ChunkContext chunkContext) {
     chunkContext.stepContext.stepName.tokenize(".").first()
+  }
+
+  private static String taskName(ChunkContext chunkContext) {
+    chunkContext.stepContext.stepName.tokenize(".").getAt(2) ?: "Unknown"
+  }
+
+  private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
+    def taskLogger = LoggerFactory.getLogger(task.class)
+    if (result.status.complete || taskLogger.isDebugEnabled()) {
+      def message = "${stage.execution.class.simpleName}:${stage.execution.id} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${result.outputs},  Stage Context: ${stage.context}"
+      if (result.status.complete) {
+        taskLogger.info message
+      } else {
+        taskLogger.debug message
+      }
+    }
   }
 }
 

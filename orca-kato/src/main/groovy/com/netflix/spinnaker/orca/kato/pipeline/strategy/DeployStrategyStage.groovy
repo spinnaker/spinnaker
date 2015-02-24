@@ -31,13 +31,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 abstract class DeployStrategyStage extends LinearStage {
-  Logger logger = Logger.getLogger(DeployStrategyStage.simpleName)
+  Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
   @Autowired OortService oort
   @Autowired ObjectMapper mapper
