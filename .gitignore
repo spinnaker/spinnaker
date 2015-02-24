@@ -5,6 +5,8 @@ node_modules
 /xmloutput
 test-results.xml
 npm-debug.log
+*.ipr
+*.iws
 *.iml
 deck.iml
 .idea

@@ -25,22 +25,22 @@
         <div class="col-md-1 col-md-offset-2">
           <button class="btn-link" ng-click="pipelineConfigurerCtrl.removeStage(stage)">
             <span class="glyphicon glyphicon-trash" tooltip="Remove stage"></span><span
-            class="sr-only">Remove stage</span>
+              class="sr-only">Remove stage</span>
           </button>
         </div>
       </div>
       <div class="form-group">
         <label class="col-md-2 col-md-offset-1 sm-label-left">Stage Name</label>
-
         <div class="col-md-6">
           <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
         </div>
       </div>
-    </form>
-    <div class="stage-details">
-      <div class="row">
-        <div class="stage-body"></div>
+      <div class="stage-details">
+        <div class="row">
+          <div class="stage-body"></div>
+        </div>
       </div>
-    </div>
+      <execution-windows stage="stage"></execution-windows>
+    </form>
   </div>
 </div>

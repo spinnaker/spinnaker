@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('deckApp.pipelines.stageConfig', [
+
+])
   .directive('pipelineConfigStage', function() {
     return {
       restrict: 'E',
@@ -17,8 +19,8 @@ angular.module('deckApp.pipelines')
       }
     };
   })
-  .controller('StageConfigCtrl', function($scope, $element, pipelineConfig, $compile, $controller, $templateCache) {
-    var stageTypes = pipelineConfig.getStageTypes();
+  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, pipelineConfig) {
+    var stageTypes = pipelineConfig.getConfigurableStageTypes();
     $scope.options = stageTypes;
 
     function getConfig(type) {
