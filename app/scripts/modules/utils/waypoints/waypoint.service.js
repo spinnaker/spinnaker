@@ -22,20 +22,21 @@ angular.module('deckApp.utils.waypoints.service', [
       var registryEntry = waypointRegistry[key];
       if (!registryEntry.scrollEnabled) {
         // because they do not affect rendering directly, we can debounce this pretty liberally
+        // but delay in case the scroll triggers a render of other elements and the top changes
         element.bind('scroll.waypointEvents resize.waypointEvents', _.debounce(function() {
-          var containerRect = element.get(0).getBoundingClientRect(),
-            topThreshold = containerRect.top + registryEntry.offset,
-            waypoints = element.find('[waypoint]'),
-            inView = [];
-          waypoints.each(function(idx, waypoint) {
-            var waypointRect = waypoint.getBoundingClientRect();
-            if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
-              inView.push({ top: waypointRect.top, elem: waypoint.getAttribute('waypoint') });
-            }
+          $timeout(function() {
+            var containerRect = element.get(0).getBoundingClientRect(),
+              topThreshold = containerRect.top + registryEntry.offset,
+              waypoints = element.find('[waypoint]'),
+              inView = [];
+            waypoints.each(function(idx, waypoint) {
+              var waypointRect = waypoint.getBoundingClientRect();
+              if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
+                  inView.push({ top: waypointRect.top, elem: waypoint.getAttribute('waypoint') });
+              }
+            });
+            waypointRegistry[key].lastWindow = _.sortBy(inView, 'top');
           });
-
-          waypointRegistry[key].lastWindow = _.sortBy(inView, 'top');
-
         }, 300));
         registryEntry.scrollEnabled = true;
       }
@@ -73,11 +74,16 @@ angular.module('deckApp.utils.waypoints.service', [
       }, 50);
     }
 
+    function getLastWindow(key) {
+      return waypointRegistry[key] ? _.pluck(waypointRegistry[key].lastWindow, 'elem') : [];
+    }
+
     return {
       registerWaypointContainer: registerWaypointContainer,
       enableWaypointEvent: enableWaypointEvent,
       disableWaypointEvent: disableWaypointEvent,
       restoreToWaypoint: restoreToWaypoint,
+      getLastWindow: getLastWindow,
     };
 
   });
