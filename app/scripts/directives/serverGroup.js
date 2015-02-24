@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _) {
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService) {
     return {
       restrict: 'E',
       replace: true,
@@ -35,7 +35,7 @@ angular.module('deckApp')
                 var loadBalancerHealths = _.find(instance.health, { type: 'LoadBalancer' });
                 return loadBalancerHealths ? loadBalancerHealths.loadBalancers.length - 1 : 0 + acc;
               }, 0);
-              return scope.serverGroup.instances.length * 29 + extraLoadBalancers * 18;
+              return scope.serverGroup.instances.length * 29 + extraLoadBalancers * 18 + 34; //34 = header (29) + original padding (5)
             } else {
               var rows = Math.ceil(scope.serverGroup.instances.length / 60);
               return rows * 20 + 5;
@@ -61,10 +61,12 @@ angular.module('deckApp')
           };
         }
 
-          if (scope.displayOptions.renderInstancesOnScroll) {
-            scope.viewModel.loaded = false;
-            scope.viewModel.placeholderStyle = { 'padding-bottom': calculatePlaceholderHeight() + 'px'};
-            scrollTriggerService.register(scope, el, 'clusters-content', loadView);
+        var wasInLastWindow = waypointService.getLastWindow(scope.application.name).indexOf(scope.viewModel.waypoint) !== -1;
+
+        if (scope.displayOptions.renderInstancesOnScroll && !wasInLastWindow) {
+          scope.viewModel.loaded = false;
+          scope.viewModel.placeholderStyle = { 'padding-bottom': calculatePlaceholderHeight() + 'px'};
+          scrollTriggerService.register(scope, el, 'clusters-content', loadView);
         }
 
         scope.loadDetails = function(e) {
