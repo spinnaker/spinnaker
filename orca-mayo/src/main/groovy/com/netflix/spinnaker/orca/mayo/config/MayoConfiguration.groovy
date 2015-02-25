@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mayo.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mayo.MayoService
@@ -55,6 +56,7 @@ class MayoConfiguration {
         .setEndpoint(mayoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(MayoService))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(MayoService)

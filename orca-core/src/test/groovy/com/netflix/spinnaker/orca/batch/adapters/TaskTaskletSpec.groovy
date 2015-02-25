@@ -146,7 +146,7 @@ class TaskTaskletSpec extends Specification {
 
     then:
     with(pipelineStore.retrieve(pipeline.id)) {
-      stages.first().context == outputs
+      stages.first().context == outputs + (taskStatus == RUNNING ? [:] : ['batch.task.id.task1': stepExecution.id])
     }
 
     where:

@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.echo.config
+
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
@@ -22,6 +23,7 @@ import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListene
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -62,6 +64,7 @@ class EchoConfiguration {
         .setEndpoint(echoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(EchoService))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(EchoService)

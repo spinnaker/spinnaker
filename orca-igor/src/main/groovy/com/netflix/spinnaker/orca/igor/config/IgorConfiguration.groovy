@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.igor.config
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -55,6 +56,7 @@ class IgorConfiguration {
       .setEndpoint(igorEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(IgorService))
       .setConverter(new GsonConverter(gson))
       .build()
       .create(IgorService)

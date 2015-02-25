@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.api
 
-import com.netflix.spinnaker.orca.bakery.api.BakeRequest.Label
-import com.netflix.spinnaker.orca.bakery.api.BakeRequest.OperatingSystem
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.test.httpserver.HttpServerRule
 import org.junit.Rule
