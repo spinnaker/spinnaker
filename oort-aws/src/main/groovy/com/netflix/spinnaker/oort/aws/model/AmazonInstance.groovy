@@ -23,6 +23,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
 
   AmazonInstance(String name) {
     setProperty "name", name
+    setProperty "health", []
   }
 
   @Override
