@@ -18,6 +18,8 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Instance
+import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.StateReason
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -31,11 +33,13 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import com.netflix.spinnaker.oort.model.HealthState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
@@ -155,6 +159,7 @@ class InstanceCachingAgent implements CachingAgent {
   private void cacheInstance(InstanceData data, Map<String, CacheData> instances) {
     instances[data.instanceId].with {
       attributes.putAll(objectMapper.convertValue(data.instance, ATTRIBUTES))
+      attributes.put(HEALTH.ns, [getAmazonHealth(data.instance)])
       relationships[IMAGES.ns].add(data.imageId)
       if (data.serverGroup) {
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
@@ -163,6 +168,17 @@ class InstanceCachingAgent implements CachingAgent {
       }
     }
 
+  }
+
+  private Map<String, String>  getAmazonHealth(Instance instance) {
+    InstanceState state = instance.state
+    StateReason stateReason = instance.stateReason
+    HealthState amazonState = state?.code == 16 ? HealthState.Unknown : HealthState.Down
+    Map<String, String> awsInstanceHealth = [type: 'Amazon', state: amazonState.toString()]
+    if (stateReason) {
+      awsInstanceHealth.description = stateReason.message
+    }
+    awsInstanceHealth
   }
 
   private static class InstanceData {
