@@ -33,7 +33,7 @@ import org.springframework.stereotype.Component
 class MonitorScriptTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 600000
+  long timeout = 3600000
 
   @Autowired
   RushService rushService

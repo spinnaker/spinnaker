@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 class MonitorKatoTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 300000
+  long timeout = 3600000
 
   @Autowired
   KatoService kato

@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component
 @Component
 class WaitForTerminatedInstancesTask implements RetryableTask {
   long backoffPeriod = 1000
-  long timeout = 600000
+  long timeout = 3600000
 
   @Autowired
   OortService oortService

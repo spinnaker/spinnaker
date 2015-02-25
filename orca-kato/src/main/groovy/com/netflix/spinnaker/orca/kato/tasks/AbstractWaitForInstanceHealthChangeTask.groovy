@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 @CompileStatic
 abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask {
   long backoffPeriod = 5000
-  long timeout = 600000
+  long timeout = 3600000
 
   @Autowired
   OortService oortService

@@ -29,7 +29,7 @@ import retrofit.RetrofitError
 
 abstract class AbstractInstancesCheckTask implements RetryableTask {
   long backoffPeriod = 1000
-  long timeout = 600000
+  long timeout = 3600000
 
   @Autowired
   OortService oortService
