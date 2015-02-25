@@ -6,16 +6,13 @@ angular.module('deckApp.pipelines.rename')
     this.cancel = $modalInstance.dismiss;
 
     function removeImmutableFields(obj) {
-      if (obj.name) {
-        console.warn('NAME!', obj.name);
+      if (obj.hasOwnProperty('name')) {
         delete obj.name;
       }
-      if (obj.application) {
-        console.warn('APP!', obj.application);
+      if (obj.hasOwnProperty('application')) {
         delete obj.application;
       }
-      if (obj.appConfig) {
-        console.warn('AC!', obj.appConfig);
+      if (obj.hasOwnProperty('appConfig')) {
         delete obj.appConfig;
       }
     }

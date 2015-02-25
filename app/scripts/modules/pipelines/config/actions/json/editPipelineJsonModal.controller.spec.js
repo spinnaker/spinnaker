@@ -17,11 +17,12 @@ describe('Controller: renamePipelineModal', function() {
     };
   }));
 
-  it ('controller removes name, all Restangular fields and hash keys', function() {
+  it ('controller removes name, application, appConfig, all Restangular fields and hash keys', function() {
 
     var pipeline = {
       name: 'foo',
       application: 'myApp',
+      appConfig: null,
       stage: {
         foo: [
           {}
@@ -51,6 +52,7 @@ describe('Controller: renamePipelineModal', function() {
     // name
     expect(converted.name).toBeUndefined();
     expect(converted.application).toBeUndefined();
+    expect(converted.appConfig).toBeUndefined();
 
     // hash keys
     expect(converted.stage.$$hashKey).toBeUndefined();
