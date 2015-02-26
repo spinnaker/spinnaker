@@ -18,7 +18,7 @@ angular.module('deckApp.cluster.service', [
       serverGroup.instances.forEach(function (instance) {
         var healthList = instance.health;
         var activeHealth = _.filter(healthList, function(health) {
-          return health.state !== 'Unknown' && health.type !== 'Amazon';
+          return health.state !== 'Unknown';
         });
 
         instance.hasHealthStatus = Boolean(activeHealth.length);
