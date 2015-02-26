@@ -27,7 +27,7 @@ angular.module('deckApp.networking.controller', [
         resolve: {
           application: function() { return $scope.application; },
           serverGroup: function() { return $scope.serverGroup; },
-          elasticIp: function() { return {}; },
+          elasticIp: function() { return { type: 'standard' }; },
           onTaskComplete: function() { return getElasticIpsForCluster; }
         }
       });
