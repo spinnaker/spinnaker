@@ -5,7 +5,6 @@ angular.module('deckApp')
   .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService) {
     return {
       restrict: 'E',
-      replace: true,
       templateUrl: 'scripts/modules/cluster/serverGroup.html',
       scope: {
         cluster: '=',
