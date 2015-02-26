@@ -69,6 +69,8 @@ angular.module('deckApp.utils.stickyHeader', [
           function destroyStickyBindings() {
             $scrollableContainer.unbind('.stickyHeader-' + id);
             $($window).unbind('.stickyHeader-' + id);
+            $section.removeData();
+            $heading.removeData();
           }
 
           function clearStickiness($section, $heading) {
