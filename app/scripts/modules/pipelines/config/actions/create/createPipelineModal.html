@@ -23,7 +23,7 @@
                  validate-unique="existingNames"/>
         </div>
       </div>
-      <div class="form-group row slide-in" ng-if="form.name.$error.pattern">
+      <div class="form-group row slide-in animated" ng-if="form.name.$error.pattern">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <div>
             Pipeline name cannot contain any of the following characters:
@@ -31,7 +31,7 @@
           <code>/  \  ?  %  #</code>
         </div>
       </div>
-      <div class="form-group row slide-in" ng-if="form.name.$error.validateUnique">
+      <div class="form-group row slide-in animated" ng-if="form.name.$error.validateUnique">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>There is already a pipeline with that name.</span>
         </div>

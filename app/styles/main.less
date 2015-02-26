@@ -393,47 +393,6 @@ body > .container {
   }
 }
 
-.forward {
-  .modal-page {
-    &.ng-leave, &.ng-enter {
-      left: 0;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
-      left: -600px;
-    }
-  }
-}
-
-.back {
-  .modal-page {
-    &.ng-leave, &.ng-enter {
-      left: -600px;
-    }
-    &.ng-leave.ng-leave-active, &.ng-enter.ng-enter-active {
-      left: 0;
-    }
-  }
-}
-
-.jump {
-  .modal-page {
-    &.ng-leave, &.ng-enter.ng-enter-active {
-      opacity: 1;
-    }
-    &.ng-enter, &.ng-leave.ng-leave-active {
-      opacity: 0;
-    }
-  }
-}
-
-.forward, .back {
-  .modal-page {
-    &.ng-leave, &.ng-enter {
-      transition: opacity 0.15s ease-in-out, left 0.35s ease-in-out;
-    }
-  }
-}
-
 .full-width {
   display: block;
   width: 100%;
@@ -520,45 +479,6 @@ tfoot .add-new {
   ul {
     padding-left: 0;
     margin-bottom: 0;
-  }
-}
-
-.advanced-settings {
-  &.ng-enter {
-    transition: 0.2s all ease-in;
-    opacity: 0;
-    max-height: 0;
-    &.ng-enter-active, .ng-leave {
-      opacity: 1;
-      max-height: 1000px;
-    }
-    &.ng-leave-active {
-      opacity: 0;
-      max-height: 0;
-    }
-  }
-}
-
-server-error-flag {
-  .server-error-flag {
-    color: @state-danger-text;
-    text-shadow: 0 0 2px #ffffff, 0 0 4px #ffffff, 0 0 6px #ffffff;
-    margin-left: 6px;
-
-  }
-  .tooltip-inner {
-    .alert-variant(@alert-danger-bg; @alert-danger-border; @alert-danger-text);
-    box-shadow: 0px 0px 8px 2px #BBBBBB;
-  }
-  .tooltip {
-    font-weight: normal;
-    white-space: normal;
-    width: 200px;
-    &.top {
-      .tooltip-arrow {
-        border-top-color: @alert-danger-border;
-      }
-    }
   }
 }
 

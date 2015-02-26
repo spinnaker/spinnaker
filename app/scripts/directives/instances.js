@@ -5,7 +5,6 @@ angular.module('deckApp')
   .directive('instances', function (scrollTriggerService) {
     return {
       restrict: 'E',
-      replace: true,
       templateUrl: 'scripts/modules/instance/instances.html',
       scope: {
         instances: '=',
