@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -83,6 +82,44 @@ class CreateBakeTaskSpec extends Specification {
     bake.packageName == bakeConfig.package
     bake.baseOs.name() == bakeConfig.baseOs
     bake.baseLabel.name() == bakeConfig.baseLabel
+  }
+
+  def "finds package details from the pipeline trigger"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[lastBuild:[artifacts:[
+            [fileName: 'hodor_1.0_all.deb'],
+            [fileName: 'hodor-1.0.noarch.rpm']
+    ]]]]).build()
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    def bake
+    task.bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        Observable.from(runningStatus)
+      }
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    bake.packageName == 'hodor_1.0_all'
+  }
+
+  def "fails if pipeline trigger includes artifacts but no artifact for the bake package"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[lastBuild:[artifacts:[
+      [fileName: 'hodorhooodor_1.0_all.deb'],
+      [fileName: 'hodor-1.0.noarch.rpm']
+    ]]]]).build()
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+
+    when:
+    task.execute(stage)
+
+    then:
+    IllegalStateException ise = thrown(IllegalStateException)
+    ise.message.startsWith("Unable to find deployable artifact starting with hodor_ and ending with .deb in")
   }
 
   def "outputs the status of the bake"() {
