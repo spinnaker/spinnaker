@@ -85,13 +85,16 @@ class EurekaOkClient extends OkClient {
       cause = e.class.simpleName
       throw e
     } finally {
-      String responseClass = httpBucketForResponse(status)
-      def id = (cause == null ? metricId : metricId.withTag('cause', cause))
-        .withTag('statusCode', Integer.toString(status))
-        .withTag('status', responseClass)
-        .withTag('success', Boolean.toString(cause == null && status >= 100 && status < 400))
-      registry.timer(id).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+      registry.timer(buildMetric(cause, status)).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
+  }
+
+  private Id buildMetric(String cause, int status) {
+    def id = (cause == null ? metricId : metricId.withTag('cause', cause))
+      .withTag('statusCode', Integer.toString(status))
+      .withTag('status', httpBucketForResponse(status))
+      .withTag('success', Boolean.toString(cause == null && status >= 100 && status < 400))
+    id
   }
 
   private static String httpBucketForResponse(int httpCode) {
