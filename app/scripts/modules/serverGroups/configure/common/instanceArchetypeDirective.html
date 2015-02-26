@@ -14,7 +14,7 @@
     </button>
   </div>
 </div>
-<div class="row fade-in" ng-if="selectedInstanceProfile.description">
+<div class="row fade-in animated" ng-if="selectedInstanceProfile.description">
   <div class="col-md-12">
     <p ng-bind="selectedInstanceProfile.description"></p>
     <dl class="dl-horizontal" ng-if="selectedInstanceProfile.type !== 'custom'">
@@ -32,7 +32,7 @@
     </dl>
   </div>
 </div>
-<div class="row fade-in" ng-if="command.viewState.instanceProfile === 'custom'">
+<div class="row fade-in animated" ng-if="command.viewState.instanceProfile === 'custom'">
   <div class="col-md-12">
     <select class="form-control input-sm"
             ng-model="command.instanceType"

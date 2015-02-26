@@ -5,6 +5,7 @@
     <h3>{{wizard.heading}}</h3>
     <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!hideIndicators">
       <li ng-repeat="page in wizard.renderedPages"
+          class="animated"
          ng-class="{
             default: !page.state.done && !page.state.current,
             current: page.state.current,

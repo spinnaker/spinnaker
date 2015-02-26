@@ -143,4 +143,8 @@ angular.module('deckApp', [
       });
       pageTitleService.handleRoutingSuccess(toState.data);
     });
+  })
+  .config(function($animateProvider) {
+    $animateProvider.classNameFilter(/animated/);
+
   });
