@@ -31,7 +31,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 
 @EnableAsync
 @Configuration
-@ComponentScan("com.netflix.spinnaker.gate")
+@ComponentScan(["com.netflix.spinnaker.gate", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
