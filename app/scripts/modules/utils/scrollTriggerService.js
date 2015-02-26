@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.utils.scrollTrigger', ['deckApp.utils.jQuery'])
-  .factory('scrollTriggerService', function($window, $timeout, $) {
+  .factory('scrollTriggerService', function($window, $) {
     var eventRegistry = Object.create(null),// creates {} with no prototype; ES6 Maps would be preferable (available in Chrome 38?),
         registryCounter = 0,
         scrollEventActive = Object.create(null),
