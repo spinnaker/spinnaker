@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import static java.util.Collections.EMPTY_LIST
-import static java.util.UUID.randomUUID
 
 /**
  * Base class for a component that builds a _stage_ to be run as (part of) a
@@ -89,8 +88,8 @@ abstract class StageBuilder implements ApplicationContextAware {
    */
   protected Step buildStep(Stage stage, String taskName, Task task) {
     createStepWithListeners(stage, taskName)
-        .tasklet(taskTaskletAdapter.decorate(task))
-        .build()
+      .tasklet(taskTaskletAdapter.decorate(task))
+      .build()
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
@@ -102,7 +101,7 @@ abstract class StageBuilder implements ApplicationContextAware {
   }
 
   private String stepName(String stageId, String taskName) {
-    "${stageId}.${type}.${taskName}.${randomUUID().toString()}"
+    "${stageId}.${type}.${taskName}"
   }
 
   @Autowired

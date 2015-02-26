@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.batch.persistence
 
 import groovy.transform.CompileStatic
+import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
@@ -25,7 +26,6 @@ import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import spock.lang.Ignore
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
@@ -75,17 +75,27 @@ class PipelinePersistenceSpec extends Specification {
     }
   }
 
-  @Ignore def "if a pipeline restarts it resumes from where it left off"() {
-    when:
+  def "if a pipeline restarts it resumes from where it left off"() {
+    given:
+    def latch = new CountDownLatch(1)
+    task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    task2.execute(_) >> new DefaultTaskResult(RUNNING) >>
+      new DefaultTaskResult(RUNNING) >>
+      new DefaultTaskResult(RUNNING) >>
+      {
+//        taskExecutor.shutdown()
+        latch.countDown()
+        throw new RuntimeException()
+      }
+
+    and:
     def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
-    sleep 1000 // ugh… PollingConditions doesn't seem to work with mock assertions
-    taskExecutor.shutdown()
-
-    then:
-    1 * task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    (1.._) * task2.execute(_) >> new DefaultTaskResult(RUNNING)
+    latch.await()
 
     when:
+//    taskExecutor.initialize()
+//
+//    and:
     pipelineStarter.resume(pipeline)
     sleep 1000
 
