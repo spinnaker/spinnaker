@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.controllers.aws
 import com.netflix.spinnaker.gate.services.aws.InfrastructureService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -27,22 +28,22 @@ class AmazonInfrastructureController {
   @Autowired
   InfrastructureService infrastructureService
 
-  @RequestMapping("/instanceTypes")
+  @RequestMapping(value = "/instanceTypes", method = RequestMethod.GET)
   List<Map> instanceTypes() {
     infrastructureService.instanceTypes
   }
 
-  @RequestMapping("/keyPairs")
+  @RequestMapping(value = "/keyPairs", method = RequestMethod.GET)
   List<Map> keyPairs() {
     infrastructureService.keyPairs
   }
 
-  @RequestMapping("/subnets")
+  @RequestMapping(value = "/subnets", method = RequestMethod.GET)
   List<Map> subnets() {
     infrastructureService.subnets
   }
 
-  @RequestMapping("/vpcs")
+  @RequestMapping(value = "/vpcs", method = RequestMethod.GET)
   List<Map> vpcs() {
     infrastructureService.vpcs
   }

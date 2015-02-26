@@ -43,7 +43,7 @@ class SecurityGroupController {
     }
   }
 
-  @RequestMapping(value = "/{account}")
+  @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
       @PathVariable String account,
       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
@@ -51,7 +51,7 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region)
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name}")
+  @RequestMapping(value = "/{account}/{region}/{name}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,
       @PathVariable String region,
