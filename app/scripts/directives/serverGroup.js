@@ -55,7 +55,7 @@ angular.module('deckApp')
         if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
           var jenkins = serverGroup.buildInfo.jenkins;
           scope.viewModel.jenkins = {
-            href: [jenkins.host, 'job', jenkins.name, jenkins.number, ''].join(','),
+            href: [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/'),
             number: jenkins.number,
           };
         }
