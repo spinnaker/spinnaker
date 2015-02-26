@@ -37,12 +37,10 @@
         <span class="glyphicon glyphicon-cog"></span> Configure Pipelines</a>
   </div>
 </div>
-<div class="row" ng-if="viewState.loading">
-  <div class="col-md-12">
-    <h2 class="text-center" style="margin-bottom: 250px">
-      <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-    </h2>
-  </div>
+<div class="row" ng-if="viewState.loading" style="min-height: 300px">
+  <h4 class="text-center">
+    <span us-spinner="{radius:20, width:6, length: 12}"></span>
+  </h4>
 </div>
 <div class="row" ng-if="viewState.initializationError">
   <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
