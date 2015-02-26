@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.orca.notifications
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Log4j
 import groovy.util.logging.Slf4j
-import rx.functions.Func1
-
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
@@ -31,6 +28,7 @@ import net.greghaines.jesque.client.Client
 import rx.Observable
 import rx.Scheduler
 import rx.Subscription
+import rx.functions.Func1
 import rx.schedulers.Schedulers
 
 @Slf4j
@@ -52,7 +50,10 @@ abstract class AbstractPollingNotificationAgent {
 
   abstract String getNotificationType()
 
-  protected abstract List<Map> filterEvents(List<Map> input)
+  protected List<Map> filterEvents(List<Map> input) {
+    // default implementation does no filtering
+    input
+  }
 
   protected abstract Func1<Long, List<Map>> getEvents()
 

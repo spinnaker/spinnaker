@@ -16,24 +16,22 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
+import com.netflix.eventbus.spi.EventBus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.JesqueActivator
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import net.greghaines.jesque.client.Client
 import net.greghaines.jesque.client.ClientPoolImpl
+import net.greghaines.jesque.worker.WorkerPool
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
@@ -76,9 +74,20 @@ class JesqueConfiguration {
     })
   }
 
+  @Autowired(required = false) EventBus eventBus
+
   @Bean(initMethod = "init", destroyMethod = "destroy")
   SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
                               @Value('${jesque.numWorkers:1}') int numWorkers) {
-    new SpringWorkerPool(workerFactory, numWorkers)
+    def pool = new SpringWorkerPool(workerFactory, numWorkers)
+    if (eventBus) {
+      pool.togglePause(true)
+    }
+    return pool
+  }
+
+  @Bean
+  JesqueActivator jesqueActivator(WorkerPool workerPool) {
+    new JesqueActivator(workerPool)
   }
 }

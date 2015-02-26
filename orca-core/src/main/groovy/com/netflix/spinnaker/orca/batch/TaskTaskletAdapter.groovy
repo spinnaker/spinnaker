@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.adapters.RetryableTaskTasklet
 import com.netflix.spinnaker.orca.batch.adapters.TaskTasklet
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.retry.PollingRetryPolicy
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.aop.framework.ProxyFactory
 import org.springframework.aop.target.SingletonTargetSource
 import org.springframework.batch.core.step.tasklet.Tasklet
@@ -36,7 +36,7 @@ import static org.springframework.retry.interceptor.RetryInterceptorBuilder.stat
 @CompileStatic
 class TaskTaskletAdapter {
 
-  private static final DEFAULT_SLEEPER = new ThreadWaitSleeper()
+  private static final Sleeper DEFAULT_SLEEPER = new ThreadWaitSleeper()
 
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers

@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.notifications.jenkins
 
 import groovy.json.JsonSlurper
 import com.google.common.collect.ImmutableMap
-import com.netflix.appinfo.InstanceInfo
-import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -30,46 +28,40 @@ import spock.lang.Subject
 class BuildJobNotificationHandlerSpec extends Specification {
 
   def pipeline1 = [
-      name    : "pipeline1",
-      triggers: [[type  : "jenkins",
-                  job   : "SPINNAKER-package-pond",
-                  master: "master1"]],
-      stages  : [[type: "bake"],
-                 [type: "deploy", cluster: [name: "bar"]]]
+    name    : "pipeline1",
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master1"]],
+    stages  : [[type: "bake"],
+               [type: "deploy", cluster: [name: "bar"]]]
   ]
 
   def pipeline2 = [
-      name    : "pipeline2",
-      triggers: [[type  : "jenkins",
-                  job   : "SPINNAKER-package-pond",
-                  master: "master1"]],
-      stages  : [[type: "bake"],
-                 [type: "deploy", cluster: [name: "foo"]]]
+    name    : "pipeline2",
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master1"]],
+    stages  : [[type: "bake"],
+               [type: "deploy", cluster: [name: "foo"]]]
   ]
 
   def pipeline3 = [
-      name    : "pipeline3",
-      triggers: [[type  : "jenkins",
-                  job   : "SPINNAKER-package-pond",
-                  master: "master2"]],
-      stages  : []
+    name    : "pipeline3",
+    triggers: [[type  : "jenkins",
+                job   : "SPINNAKER-package-pond",
+                master: "master2"]],
+    stages  : []
   ]
 
-  def discoveryClient = Stub(DiscoveryClient)
   def pipelineIndexer = Stub(PipelineIndexer)
   def pipelineStarter = Mock(PipelineStarter)
 
   private BuildJobNotificationHandler handlerFor(Map input) {
     def handler = new BuildJobNotificationHandler(input)
-    handler.discoveryClient = discoveryClient
     handler.pipelineStarter = pipelineStarter
     handler.objectMapper = new OrcaObjectMapper()
     handler.pipelineIndexer = pipelineIndexer
     return handler
-  }
-
-  void setup() {
-    discoveryClient.getInstanceRemoteStatus() >> InstanceInfo.InstanceStatus.UP
   }
 
   void "should pick up stages subsequent to build job completing"() {
@@ -78,7 +70,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        new Trigger(input.master, input.name), [pipeline1]
+      new Trigger(input.master, input.name), [pipeline1]
     )
 
     when:
@@ -99,9 +91,9 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     where:
     input = [
-        name     : "SPINNAKER-package-pond",
-        master   : "master1",
-        lastBuild: [result: "SUCCESS", building: false]
+      name     : "SPINNAKER-package-pond",
+      master   : "master1",
+      lastBuild: [result: "SUCCESS", building: false]
     ]
   }
 
@@ -111,8 +103,8 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        new Trigger(input.master, input.name), [pipeline1],
-        new Trigger("master2", input.name), [pipeline3]
+      new Trigger(input.master, input.name), [pipeline1],
+      new Trigger("master2", input.name), [pipeline3]
     )
 
     expect:
@@ -131,9 +123,9 @@ class BuildJobNotificationHandlerSpec extends Specification {
     "master1" | _
 
     input = [
-        name     : "SPINNAKER-package-pond",
-        master   : master,
-        lastBuild: [result: "SUCCESS", building: false]
+      name     : "SPINNAKER-package-pond",
+      master   : master,
+      lastBuild: [result: "SUCCESS", building: false]
     ]
   }
 
@@ -143,7 +135,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        new Trigger(input.master, input.name), [pipeline3]
+      new Trigger(input.master, input.name), [pipeline3]
     )
 
     when:
@@ -154,9 +146,9 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     where:
     input = [
-        name     : "SPINNAKER-package-pond",
-        master   : "master2",
-        lastBuild: [result: "FAILURE", building: false]
+      name     : "SPINNAKER-package-pond",
+      master   : "master2",
+      lastBuild: [result: "FAILURE", building: false]
     ]
   }
 
@@ -166,7 +158,7 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     and:
     pipelineIndexer.getPipelines() >> ImmutableMap.of(
-        new Trigger(input.master, input.name), [pipeline3]
+      new Trigger(input.master, input.name), [pipeline3]
     )
 
     when:
@@ -177,9 +169,9 @@ class BuildJobNotificationHandlerSpec extends Specification {
 
     where:
     input = [
-        name     : "SPINNAKER-package-pond",
-        master   : "master2",
-        lastBuild: [result: "SUCCESS", building: true]
+      name     : "SPINNAKER-package-pond",
+      master   : "master2",
+      lastBuild: [result: "SUCCESS", building: true]
     ]
   }
 }
