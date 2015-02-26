@@ -75,8 +75,15 @@
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'LoadBalancer'">
-            <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span> {{metric.state}}
-            <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">(Health Check)</a>
+            <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+              <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span>
+              {{metric.state | robotToHuman}}
+            </span>
+            <span class="pad-left small">
+              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
+              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
+              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+            </span>
           </div>
           <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
             <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>

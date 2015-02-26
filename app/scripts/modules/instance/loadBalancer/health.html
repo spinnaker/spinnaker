@@ -1,8 +1,7 @@
-<div>
+<div style="display:inline-block" tooltip="{{loadBalancer.state === 'OutOfService' ? loadBalancer.description : ''}}" tooltip-placement="left">
   <span ng-if="loadBalancer.state === 'InService'"
         class="glyphicon glyphicon-up-triangle"></span>
   <span ng-if="loadBalancer.state === 'OutOfService'"
-        class="glyphicon glyphicon-down-triangle"
-        tooltip="{{loadBalancer.description}}"></span>
+        class="glyphicon glyphicon-down-triangle"></span>
   <span>{{name}}</span>
 </div>
