@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import groovy.transform.TypeCheckingMode
@@ -95,14 +101,17 @@ abstract class StageBuilder implements ApplicationContextAware {
 
   @CompileStatic(TypeCheckingMode.SKIP)
   private StepBuilder createStepWithListeners(Stage stage, String taskName) {
-    def stepBuilder = steps.get(stepName(stage.id, taskName))
+    def stepBuilder = steps.get(stepName(stage, taskName))
     getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
     } as StepBuilder
   }
 
-  private String stepName(String stageId, String taskName) {
-    "${stageId}.${type}.${taskName}.${randomUUID().toString()}"
+  private String stepName(Stage stage, String taskName) {
+    def task = new DefaultTask(id: randomUUID().toString(), name: taskName)
+    stage.tasks.add(task)
+
+    "${stage.id}.${type}.${taskName}.${task.id}"
   }
 
   @Autowired
@@ -135,5 +144,18 @@ abstract class StageBuilder implements ApplicationContextAware {
     Optional.fromNullable(taskListeners)
             .transform(ImmutableList.&copyOf as Function)
             .or(EMPTY_LIST)
+  }
+
+  static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
+                                Stage parent, Stage.SyntheticStageOwner stageOwner) {
+    def stage
+    if (execution instanceof Orchestration) {
+      stage = new OrchestrationStage(execution, type, context)
+    } else {
+      stage = new PipelineStage((Pipeline)execution, type, name, context)
+    }
+    stage.parentStageId = parent.id
+    stage.syntheticStageOwner = stageOwner
+    stage
   }
 }

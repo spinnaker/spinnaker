@@ -21,10 +21,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
+import com.netflix.spinnaker.orca.batch.ExecutionContextManager
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -75,12 +76,12 @@ class TaskTasklet implements Tasklet {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
         }
 
-        def contextResults = new HashMap(result.outputs)
+        def stageOutputs = new HashMap(result.stageOutputs)
         if (result.status.complete) {
-          contextResults.put 'batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id
+          stageOutputs.put('batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id)
         }
 
-        stage.context.putAll contextResults
+        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
@@ -94,7 +95,7 @@ class TaskTasklet implements Tasklet {
         return batchStepStatus.repeatStatus
       }
     } finally {
-      save(stage.execution)
+      save(stage)
     }
   }
 
@@ -105,11 +106,11 @@ class TaskTasklet implements Tasklet {
     return BatchStepStatus.mapResult(new DefaultTaskResult(ExecutionStatus.CANCELED)).repeatStatus
   }
 
-  private void save(Execution execution) {
-    if (execution instanceof Orchestration) {
-      executionRepository.store(execution)
-    } else if (execution instanceof Pipeline) {
-      executionRepository.store(execution)
+  private void save(Stage stage) {
+    if (stage instanceof OrchestrationStage) {
+      executionRepository.storeStage(stage as OrchestrationStage)
+    } else if (stage instanceof PipelineStage) {
+      executionRepository.storeStage(stage as PipelineStage)
     }
   }
 
@@ -153,7 +154,13 @@ class TaskTasklet implements Tasklet {
 
   private Stage currentStage(ChunkContext chunkContext) {
     def execution = currentExecution(chunkContext)
-    execution.stages.find { it.id == stageId(chunkContext) }
+    def stage = execution.stages.find { it.id == stageId(chunkContext) }
+    return ExecutionContextManager.retrieve(stage, chunkContext)
+  }
+
+  private static void storeExecutionResults(TaskResult taskResult, Stage stage, ChunkContext chunkContext) {
+    stage.context.putAll(taskResult.stageOutputs)
+    ExecutionContextManager.store(chunkContext, taskResult)
   }
 
   private static String stageId(ChunkContext chunkContext) {

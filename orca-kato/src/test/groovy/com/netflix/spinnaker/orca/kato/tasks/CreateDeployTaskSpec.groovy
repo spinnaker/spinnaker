@@ -30,7 +30,8 @@ import spock.lang.Subject
 
 class CreateDeployTaskSpec extends Specification {
 
-  @Subject task = new CreateDeployTask()
+  @Subject
+  def task = new CreateDeployTask()
   def stage = new PipelineStage(new Pipeline(), "deploy")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
@@ -175,7 +176,7 @@ class CreateDeployTaskSpec extends Specification {
     subnetTypeValue = "the-subnet-type-value"
   }
 
-  def "can use the AMI output by a bake"() {
+  def "can use the AMI supplied by deployment details"() {
     given:
     def operations = []
     task.kato = Mock(KatoService) {
@@ -184,9 +185,11 @@ class CreateDeployTaskSpec extends Specification {
         Observable.from(taskId)
       }
     }
-    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
-    stage.pipeline.stages.clear()
-    stage.pipeline.stages.addAll([bakeStage, stage])
+    stage.context.deploymentDetails = [
+      ["ami": "not-my-ami", "region": "us-west-1"],
+      ["ami": "definitely-not-my-ami", "region": "us-west-2"],
+      ["ami": amiName, "region": deployConfig.availabilityZones.keySet()[0]]
+    ]
 
     when:
     task.execute(stage.asImmutable())

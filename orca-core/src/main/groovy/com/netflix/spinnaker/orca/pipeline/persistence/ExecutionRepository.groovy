@@ -17,11 +17,16 @@
 package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 
 interface ExecutionRepository {
   void store(Orchestration orchestration)
   void store(Pipeline pipeline)
+
+  void storeStage(OrchestrationStage stage)
+  void storeStage(PipelineStage stage)
 
   Pipeline retrievePipeline(String id)
   List<Pipeline> retrievePipelines()

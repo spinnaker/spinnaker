@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 @JsonDeserialize(as = DefaultTask)
 interface Task {
 
+  String getId()
+
   String getName()
 
   Long getStartTime()
