@@ -11,10 +11,10 @@ angular.module('deckApp')
         usePreferredZones: '='
       },
       templateUrl: 'views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html',
-      controller: 'LoadBalnacerAvailabilityZoneSelectorCtrl as availabilityZoneCtrl',
+      controller: 'LoadBalancerAvailabilityZoneSelectorCtrl as availabilityZoneCtrl',
     };
   })
-  .controller('LoadBalnacerAvailabilityZoneSelectorCtrl', function($scope, $q, accountService) {
+  .controller('LoadBalancerAvailabilityZoneSelectorCtrl', function($scope, $q, accountService) {
     $scope.model.usePreferredZones = angular.isDefined($scope.model.usePreferredZones) ? $scope.model.usePreferredZones : true;
 
     function setDefaultZones() {

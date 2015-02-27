@@ -173,7 +173,7 @@ angular.module('deckApp.modalWizard', [])
       };
 
       function setRendered(pageKey, rendered) {
-        _(wizard.pageRegistry).filter({key: pageKey}).each(function(page) { page.state.rendered = rendered; });
+        _.forEach(_.filter(wizard.pageRegistry, 'key', pageKey), function(page) { page.state.rendered = rendered; });
         wizard.renderPages();
       }
 

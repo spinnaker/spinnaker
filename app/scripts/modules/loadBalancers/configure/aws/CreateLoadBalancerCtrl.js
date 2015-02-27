@@ -207,8 +207,10 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
           availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
         updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
+        $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
         modalWizardService.getWizard().includePage('Security Groups');
       } else {
+        $scope.loadBalancer.vpcId = null;
         modalWizardService.getWizard().excludePage('Security Groups');
       }
     };
