@@ -87,6 +87,7 @@ class WaitForDownInstancesTaskSpec extends Specification {
     false        || ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     false        || ['b']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     false        || ['b']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
+    true         || ['a']               | [ [ health: [ [ type: 'a', state: "OutOfService"] ] ] ]
 
     // multiple health providers
     false        || []                  | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
@@ -101,6 +102,7 @@ class WaitForDownInstancesTaskSpec extends Specification {
     false        || ['a']               | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
     true         || ['b']               | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
     true         || ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "Down"] ] ] ]
+    true         || ['a', 'b']          | [ [ health: [ [ type: 'a', state : "Unknown"], [ type: 'b', state : "OutOfService"] ] ] ]
 
     // multiple instances
     false        || []                  | [ [ health: [ [ type: 'a', state : "Up"] ] ], [ health: [ [ type: 'a', state : "Up"] ] ] ]
