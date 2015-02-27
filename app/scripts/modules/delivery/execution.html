@@ -4,7 +4,7 @@
     <a id="execution-{{execution.id}}"></a>
     <div class="row" ng-if="execution" ui-sref=".execution({executionId: execution.id})">
       <div class="col-md-3">
-        <execution-status execution="execution">
+        <execution-status execution="execution" filter="filter">
         </execution-status>
       </div>
       <div class="col-md-9">

@@ -1,6 +1,7 @@
 <div class="row execution-status">
   <div class="col-md-7 execution-info">
-    <span ng-switch="execution.trigger.type">
+    <h5 ng-if="filter.execution.groupBy !== 'name'">{{execution.name}}</h5>
+    <span ng-switch="execution.trigger.type" ng-class="{subheading: filter.execution.groupBy !== 'name'}">
       <h5 ng-switch-when="jenkins">
         <a ng-if="execution.trigger.buildInfo.lastBuild.url"
            href="{{ execution.trigger.buildInfo.lastBuild.url }}"
