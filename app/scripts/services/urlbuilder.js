@@ -30,6 +30,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
               account: input.account,
               region: input.region,
               instanceId: input.instanceId,
+              provider: input.provider,
             }
           );
         }
@@ -41,6 +42,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
             accountId: input.account,
             instanceId: input.instanceId,
             account: input.account,
+            provider: input.provider,
           },
           { inherit: false }
         );

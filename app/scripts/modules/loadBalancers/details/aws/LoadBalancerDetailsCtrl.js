@@ -19,6 +19,9 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
     };
 
     function extractLoadBalancer() {
+      if (!loadBalancer.vpcId) {
+        loadBalancer.vpcId = null;
+      }
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && test.vpcId === loadBalancer.vpcId;
       })[0];

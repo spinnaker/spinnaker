@@ -31,6 +31,8 @@ angular.module('deckApp.cluster.service', [
       serverGroup.upCount = serverGroup.instanceCounts.up;
       serverGroup.downCount = serverGroup.instanceCounts.down;
       serverGroup.unknownCount = serverGroup.instanceCounts.unknown;
+      serverGroup.startingCount = serverGroup.instanceCounts.starting;
+      serverGroup.outOfServiceCount = serverGroup.instanceCounts.outOfService;
     }
 
     function addHealthCountsToCluster(cluster) {

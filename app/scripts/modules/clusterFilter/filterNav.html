@@ -60,9 +60,17 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.unknown"
+                 ng-model="sortFilter.status.starting"
                  ng-change="clustersFilters.updateClusterGroups()"/>
-          Unknown
+          Starting
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.outOfService"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Out of Service
         </label>
       </div>
     </div>
