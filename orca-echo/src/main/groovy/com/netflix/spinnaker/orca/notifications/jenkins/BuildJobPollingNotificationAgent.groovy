@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.notifications.jenkins
 
+import com.netflix.spinnaker.orca.notifications.EchoPollingNotificationAgent
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.echo.EchoEventPoller
-import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class BuildJobPollingNotificationAgent extends AbstractPollingNotificationAgent {
+class BuildJobPollingNotificationAgent extends EchoPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "build"
 

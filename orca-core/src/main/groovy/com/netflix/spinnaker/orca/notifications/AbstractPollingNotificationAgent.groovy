@@ -17,36 +17,32 @@
 package com.netflix.spinnaker.orca.notifications
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.echo.EchoEventPoller
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 import rx.Observable
 import rx.Scheduler
 import rx.Subscription
+import rx.functions.Func1
 import rx.schedulers.Schedulers
 
-@Log4j
+@Slf4j
 @CompileStatic
 abstract class AbstractPollingNotificationAgent {
 
   protected final ObjectMapper objectMapper
   private final Client jesqueClient
-  protected final EchoEventPoller echoEventPoller
 
   private Scheduler scheduler = Schedulers.io()
   private Subscription subscription
 
-  AbstractPollingNotificationAgent(ObjectMapper objectMapper,
-                                   EchoEventPoller echoEventPoller,
-                                   Client jesqueClient) {
+  AbstractPollingNotificationAgent(ObjectMapper objectMapper, Client jesqueClient) {
     this.objectMapper = objectMapper
-    this.echoEventPoller = echoEventPoller
     this.jesqueClient = jesqueClient
   }
 
@@ -54,14 +50,20 @@ abstract class AbstractPollingNotificationAgent {
 
   abstract String getNotificationType()
 
-  protected abstract List<Map> filterEvents(List<Map> input)
+  protected List<Map> filterEvents(List<Map> input) {
+    // default implementation does no filtering
+    input
+  }
+
+  protected abstract Func1<Long, List<Map>> getEvents()
+
+  // TODO: can we just use logical names rather than handler classes?
+  abstract Class<? extends NotificationHandler> handlerType()
 
   @PostConstruct
   void init() {
-    subscription = Observable.interval(pollingInterval, TimeUnit.SECONDS, scheduler).map {
-      def response = echoEventPoller.getEvents(notificationType)
-      objectMapper.readValue(response.body.in().text, List)
-    } doOnError { Throwable err ->
+    subscription = Observable.interval(pollingInterval, TimeUnit.SECONDS, scheduler).map(events)
+    .doOnError { Throwable err ->
       log.error "Error when fetching events", err
     } retry() map {
       filterEvents(it)
@@ -74,9 +76,6 @@ abstract class AbstractPollingNotificationAgent {
   void shutdown() {
     subscription?.unsubscribe()
   }
-
-  // TODO: can we just use logical names rather than handler classes?
-  abstract Class<? extends NotificationHandler> handlerType()
 
   protected final void notify(Map<String, ?> input) {
     jesqueClient.enqueue(

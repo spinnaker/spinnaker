@@ -25,11 +25,11 @@ class JedisJobRegistry implements JobRegistry {
 
   @Override
   public void register(JobFactory jobFactory) throws DuplicateJobException {
-    throw new UnsupportedOperationException()
+//    throw new UnsupportedOperationException()
   }
 
   @Override public void unregister(String jobName) {
-    throw new UnsupportedOperationException()
+//    throw new UnsupportedOperationException()
   }
 
   @Override public Collection<String> getJobNames() {

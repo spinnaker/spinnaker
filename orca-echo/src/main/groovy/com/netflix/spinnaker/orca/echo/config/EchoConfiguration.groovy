@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.echo.config
 
-import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingPipelineExecutionListener
@@ -24,19 +23,26 @@ import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageExecutionListene
 import com.netflix.spinnaker.orca.notifications.jenkins.BuildJobNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.context.annotation.*
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Scope
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client as RetrofitClient
 import retrofit.converter.GsonConverter
+
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import([RetrofitConfiguration, JesqueConfiguration])
+@Import([RetrofitConfiguration])
 @ConditionalOnProperty(value = 'echo.baseUrl')
 @ComponentScan([
     "com.netflix.spinnaker.orca.echo",
@@ -58,6 +64,7 @@ class EchoConfiguration {
         .setEndpoint(echoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(EchoService))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(EchoService)

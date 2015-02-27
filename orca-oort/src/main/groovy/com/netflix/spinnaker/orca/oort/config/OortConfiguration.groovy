@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.orca.oort.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.oort.OortService
@@ -50,6 +51,7 @@ class OortConfiguration {
         .setEndpoint(oortEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(OortService))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(OortService)

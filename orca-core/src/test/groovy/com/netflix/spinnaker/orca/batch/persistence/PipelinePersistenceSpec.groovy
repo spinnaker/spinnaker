@@ -6,12 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
@@ -32,6 +34,8 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [
+  EmbeddedRedisConfiguration,
+  JesqueConfiguration,
   AsyncJobLauncherConfiguration,
   BatchTestConfiguration,
   OrcaConfiguration

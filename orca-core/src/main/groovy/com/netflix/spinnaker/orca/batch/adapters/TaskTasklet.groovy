@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import org.slf4j.LoggerFactory
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -60,20 +61,33 @@ class TaskTasklet implements Tasklet {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         return cancel(stage)
       } else {
-        def result = executeTask(stage)
+        def result = executeTask(stage, chunkContext)
+        logResult(result, stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
+        long scheduledTime =  stage.scheduledTime
         stage = currentStage(chunkContext)
+        // Setting the scheduledTime if it has been set by the task
+        stage.scheduledTime = scheduledTime
 
         if (result.status == ExecutionStatus.TERMINAL) {
           setStopStatus(chunkContext, ExitStatus.FAILED, result.status)
         }
 
-        stage.context.putAll result.outputs
+        def contextResults = new HashMap(result.outputs)
+        if (result.status.complete) {
+          contextResults.put 'batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id
+        }
+
+        stage.context.putAll contextResults
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
+        if (result.status == ExecutionStatus.SUSPENDED) {
+          chunkContext.stepContext.stepExecution.status = batchStepStatus.batchStatus
+          chunkContext.stepContext.stepExecution.jobExecution.status = batchStepStatus.batchStatus
+        }
         contribution.exitStatus = batchStepStatus.exitStatus
         stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null
 
@@ -107,9 +121,13 @@ class TaskTasklet implements Tasklet {
     }
   }
 
-  private TaskResult executeTask(Stage stage) {
+  protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
+    return task.execute(stage)
+  }
+
+  private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
     try {
-      return task.execute(stage.asImmutable())
+      return doExecuteTask(stage.asImmutable(), chunkContext)
     } catch (RuntimeException e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {
@@ -140,6 +158,22 @@ class TaskTasklet implements Tasklet {
 
   private static String stageId(ChunkContext chunkContext) {
     chunkContext.stepContext.stepName.tokenize(".").first()
+  }
+
+  private static String taskName(ChunkContext chunkContext) {
+    chunkContext.stepContext.stepName.tokenize(".").getAt(2) ?: "Unknown"
+  }
+
+  private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
+    def taskLogger = LoggerFactory.getLogger(task.class)
+    if (result.status.complete || taskLogger.isDebugEnabled()) {
+      def message = "${stage.execution.class.simpleName}:${stage.execution.id} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${result.outputs},  Stage Context: ${stage.context}"
+      if (result.status.complete) {
+        taskLogger.info message
+      } else {
+        taskLogger.debug message
+      }
+    }
   }
 }
 

@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.echo.config
+package com.netflix.spinnaker.orca.config
 
 import groovy.transform.CompileStatic
+import com.netflix.eventbus.spi.EventBus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.JesqueActivator
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import net.greghaines.jesque.client.Client
 import net.greghaines.jesque.client.ClientPoolImpl
+import net.greghaines.jesque.worker.WorkerPool
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -37,11 +41,8 @@ import redis.clients.util.Pool
 class JesqueConfiguration {
   @Bean
   @ConditionalOnProperty("redis.connection")
-  public Pool<Jedis> jedisPool(
-    @Value('${redis.connection:redis://localhost:6379}')
-      String connection) {
+  Pool<Jedis> jedisPool(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
-
     final JedisPool pool
     if (jedisConnection.userInfo != null) {
       pool = new JedisPool(jedisConnection)
@@ -53,8 +54,7 @@ class JesqueConfiguration {
 
   @Bean
   @ConditionalOnProperty("redis.connection")
-  Config jesqueConfig(@Value('${redis.connection:redis://localhost:6379}')
-                        String connection) {
+  Config jesqueConfig(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
     new ConfigBuilder()
       .withHost(jedisConnection.host)
@@ -74,9 +74,20 @@ class JesqueConfiguration {
     })
   }
 
+  @Autowired(required = false) EventBus eventBus
+
   @Bean(initMethod = "init", destroyMethod = "destroy")
   SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
                               @Value('${jesque.numWorkers:1}') int numWorkers) {
-    new SpringWorkerPool(workerFactory, numWorkers)
+    def pool = new SpringWorkerPool(workerFactory, numWorkers)
+    if (eventBus) {
+      pool.togglePause(true)
+    }
+    return pool
+  }
+
+  @Bean
+  JesqueActivator jesqueActivator(WorkerPool workerPool) {
+    new JesqueActivator(workerPool)
   }
 }

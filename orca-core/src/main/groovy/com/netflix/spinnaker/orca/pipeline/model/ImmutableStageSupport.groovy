@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
+import com.google.common.primitives.Primitives
 import com.netflix.spinnaker.orca.ExecutionStatus
 import java.lang.reflect.Method
 import net.sf.cglib.proxy.*
@@ -32,8 +33,8 @@ class ImmutableStageSupport {
     enhancer.callback = new MethodInterceptor() {
       @Override
       Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-        Method proxyMeth = immutableDelegate.getClass()
-          .getDeclaredMethod(method.name, objects.collect { it.class } as Class[])
+        Class[] classes = objects.collect { Primitives.isWrapperType(it.class) ? Primitives.unwrap(it.class) : it.class } as Class[]
+        Method proxyMeth = immutableDelegate.getClass().getDeclaredMethod(method.name, classes)
         proxyMeth.accessible = true
         proxyMeth.invoke(immutableDelegate, objects)
       }
@@ -185,6 +186,14 @@ class ImmutableStageSupport {
     @Override
     void setParentStageId(String id) {
       fail()
+    }
+
+    long getScheduledTime() {
+      this.scheduledTime
+    }
+
+    void setScheduledTime(long scheduledTime) {
+      self.scheduledTime = scheduledTime  // This is needed here as the scheduledTime is set in the task
     }
 
     private static void fail() {

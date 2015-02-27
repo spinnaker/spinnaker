@@ -124,6 +124,10 @@ abstract class StageBuilder implements ApplicationContextAware {
     this.applicationContext = applicationContext
   }
 
+  ApplicationContext getApplicationContext() {
+    return applicationContext
+  }
+
   @VisibleForTesting
   @PackageScope
   List<StepExecutionListener> getTaskListeners() {

@@ -15,6 +15,7 @@
  */
 
 dependencies {
+  compile project(":orca-core")
   compile project(":orca-retrofit")
   compile spinnaker.dependency('bootAutoConfigure')
   testCompile project(":orca-test")

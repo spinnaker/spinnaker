@@ -18,14 +18,18 @@ package com.netflix.spinnaker.orca.config
 
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.persistence.JedisJobRegistry
+import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.notifications.NoopNotificationHandler
+import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -45,15 +49,14 @@ import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Scope
+import org.springframework.context.annotation.*
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
+import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
-@ComponentScan("com.netflix.spinnaker.orca.pipeline")
+@Import(EurekaConfiguration)
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling"])
 @CompileStatic
 class OrcaConfiguration {
 
@@ -102,8 +105,9 @@ class OrcaConfiguration {
     new OrchestrationStarter()
   }
 
-  @Bean NoopNotificationHandler noopNotificationHandler() {
-    new NoopNotificationHandler()
+  @Bean @Scope(SCOPE_PROTOTYPE) // Scope is really important here...
+  SuspendedPipelinesNotificationHandler suspendedPipelinesNotificationHandler(Map input) {
+    new SuspendedPipelinesNotificationHandler(input)
   }
 
   @Bean @Order(Ordered.LOWEST_PRECEDENCE)

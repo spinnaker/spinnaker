@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
-
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
@@ -24,11 +24,10 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
+import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.batch.StageBuilder
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
-
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
@@ -45,6 +44,16 @@ abstract class LinearStage extends StageBuilder {
   JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
     def steps = buildSteps(stage)
     def stageIdx = stage.execution.stages.indexOf(stage)
+    /*
+     * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
+     * is supposed to run only during certain time windows in a day
+     */
+    if (stage.context.containsKey("restrictExecutionDuringTimeWindow") &&
+        stage.syntheticStageOwner == null && stage.parentStageId == null &&
+        stage.execution.stages.find { Stage stg -> stg.parentStageId == stage.id } == null) {
+      injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
+    }
+
     processBeforeStages(jobBuilder, stageIdx, stage)
     wireSteps(jobBuilder, steps)
     processAfterStages(jobBuilder, stage)
@@ -101,4 +110,5 @@ abstract class LinearStage extends StageBuilder {
     stage.syntheticStageOwner = stageOwner
     stage
   }
+
 }

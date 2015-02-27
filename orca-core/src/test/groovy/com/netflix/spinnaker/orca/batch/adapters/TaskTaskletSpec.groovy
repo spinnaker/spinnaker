@@ -146,7 +146,7 @@ class TaskTaskletSpec extends Specification {
 
     then:
     with(pipelineStore.retrieve(pipeline.id)) {
-      stages.first().context == outputs
+      stages.first().context == outputs + (taskStatus == RUNNING ? [:] : ['batch.task.id.task1': stepExecution.id])
     }
 
     where:
@@ -193,7 +193,7 @@ class TaskTaskletSpec extends Specification {
     task.execute(_) >> { throw new RuntimeException() }
 
     expect:
-    with(tasklet.executeTask(tasklet.currentStage(chunkContext))) {
+    with(tasklet.executeTask(tasklet.currentStage(chunkContext), chunkContext)) {
       status == TERMINAL
       outputs.exception.exceptionType == exceptionType
       outputs.exception.operation == operation

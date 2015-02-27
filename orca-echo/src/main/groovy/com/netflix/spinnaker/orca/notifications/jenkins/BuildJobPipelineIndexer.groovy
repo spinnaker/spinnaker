@@ -2,6 +2,8 @@ package com.netflix.spinnaker.orca.notifications.jenkins
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
+
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.core.type.TypeReference
@@ -24,7 +26,7 @@ import static java.util.concurrent.TimeUnit.SECONDS
  */
 @Component
 @CompileStatic
-@Log4j
+@Slf4j
 class BuildJobPipelineIndexer implements PipelineIndexer {
 
   private static final String TRIGGER_KEY = "job"
@@ -74,6 +76,7 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
     Map<Trigger, Collection<Map>> _interestingPipelines = [:]
     for (pipeline in pipelines) {
       def triggers = pipeline.triggers as List<Map>
+      if (!triggers) continue
       for (trigger in triggers) {
         if (trigger.type == TRIGGER_TYPE && trigger.enabled) {
           def key = new Trigger(trigger[TRIGGER_MASTER] as String, trigger[TRIGGER_KEY] as String)

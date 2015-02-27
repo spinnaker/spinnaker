@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
@@ -62,6 +63,7 @@ class KatoConfiguration {
         .setEndpoint(katoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(KatoService))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(KatoService)

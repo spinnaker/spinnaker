@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.config
 
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -54,6 +55,7 @@ class Front50Configuration {
         .setEndpoint(front50Endpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)
+        .setLog(new RetrofitSlf4jLog(Front50Service))
         .setConverter(new GsonConverter(gson))
         .build()
         .create(Front50Service)

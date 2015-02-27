@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.flex.config
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.flex.FlexService
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
+import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -55,6 +56,7 @@ class FlexConfiguration {
       .setEndpoint(flexEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(FlexService))
       .setConverter(new GsonConverter(gson))
       .build()
       .create(FlexService)
