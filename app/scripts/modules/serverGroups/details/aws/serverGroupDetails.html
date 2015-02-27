@@ -183,7 +183,7 @@
             <a href ng-if="!elasticIp.attachedToId" ng-click="disassociateElasticIp(elasticIp.address)"><span class="glyphicon glyphicon-trash"></span></a>
           </td>
           <td ng-if="elasticIp.attachedToId">
-            <a ui-sref="^.instanceDetails({instanceId: elasticIp.attachedToId})">{{elasticIp.attachedToId}}</a>
+            <a ui-sref="^.instanceDetails({instanceId: elasticIp.attachedToId, provider: 'aws'})">{{elasticIp.attachedToId}}</a>
           </td>
           <td ng-if="!elasticIp.attachedToId">
             <em>not assigned</em>

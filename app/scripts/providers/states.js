@@ -117,7 +117,7 @@ angular.module('deckApp.states', [
 
       var securityGroupDetails = {
         name: 'securityGroupDetails',
-        url: '/securityGroupDetails?name&accountId&region&vpcId&provider',
+        url: '/securityGroupDetails/:provider/:accountId/:region/:name?vpcId',
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
