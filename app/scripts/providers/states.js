@@ -23,7 +23,7 @@ angular.module('deckApp.states', [
 
       var instanceDetails = {
         name: 'instanceDetails',
-        url: '/instanceDetails?instanceId',
+        url: '/instanceDetails/:provider/:instanceId',
         views: {
           'detail@home.applications.application.insight': {
             templateUrl: 'scripts/modules/instance/instanceDetails.html',
@@ -48,7 +48,7 @@ angular.module('deckApp.states', [
 
       var serverGroupDetails = {
         name: 'serverGroup',
-        url: '/serverGroupDetails?serverGroup&accountId&region&provider',
+        url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
@@ -82,7 +82,7 @@ angular.module('deckApp.states', [
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails?name&accountId&region&vpcId&provider',
+        url: '/loadBalancerDetails/:provider/:accountId/:region/:name?vpcId',
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
@@ -192,7 +192,7 @@ angular.module('deckApp.states', [
           {
           name: 'clusters',
           reloadOnSearch: false,
-          url: '/clusters?q&primary&secondary&hideInstances&listInstances&hideHealthy&hideDisabled&acct&reg&status&providerType&instanceType&zone&instanceSort',
+          url: '/clusters?q&primary&secondary&hideInstances&listInstances&acct&reg&status&providerType&instanceType&zone&instanceSort',
           views: {
             'nav': {
               templateUrl: 'scripts/modules/clusterFilter/filterNav.html',

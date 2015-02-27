@@ -261,7 +261,7 @@ describe('Service: clusterFilterService', function () {
     });
   });
 
-  xdescribe('filter by disabled status', function () {
+  describe('filter by disabled status', function () {
     it('should filter by disabled status if checked', function () {
       ClusterFilterModel.sortFilter.status = {disabled: true};
       var expected = _.filter(groupedJSON,
@@ -281,6 +281,38 @@ describe('Service: clusterFilterService', function () {
     it('should not filter if the status is unchecked', function () {
       ClusterFilterModel.sortFilter.status = { disabled: false };
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+    });
+  });
+
+  describe('filter by starting status', function() {
+    it('should filter by starting status if checked', function() {
+      var appCopy = _.cloneDeep(applicationJSON);
+      var starting = { health: [ { state: 'Unknown' }]},
+        serverGroup = appCopy.clusters[0].serverGroups[0];
+      serverGroup.instances.push(starting);
+
+      ClusterFilterModel.sortFilter.status = {starting: true};
+      expect(service.updateClusterGroups(appCopy)).toEqual([]);
+
+      starting.health[0].state = 'Starting';
+      serverGroup.startingCount = 1;
+      expect(service.updateClusterGroups(appCopy).length).toBe(1);
+    });
+  });
+
+  describe('filter by out of service status', function() {
+    it('should filter by out of service status if checked', function() {
+      var appCopy = _.cloneDeep(applicationJSON);
+      var starting = { health: [ { state: 'Unknown' }]},
+        serverGroup = appCopy.clusters[0].serverGroups[0];
+      serverGroup.instances.push(starting);
+
+      ClusterFilterModel.sortFilter.status = {outOfService: true};
+      expect(service.updateClusterGroups(appCopy)).toEqual([]);
+
+      starting.health[0].state = 'OutOfService';
+      serverGroup.outOfServiceCount = 1;
+      expect(service.updateClusterGroups(appCopy).length).toBe(1);
     });
   });
 

@@ -13,7 +13,7 @@
   </thead>
   <tbody>
     <tr ng-repeat="instance in viewModel.instances | orderBy: sortFilter.instanceSort.key track by instance.id "
-        ng-click="loadInstanceDetails($event, instance.id)"
+        ng-click="loadInstanceDetails($event, instance.id, instance.provider)"
         class="clickable"
         ng-class="{ active: $state.includes('**.instanceDetails', {instanceId: instance.id}) }">
       <!-- use this when multi-select is a thing -->

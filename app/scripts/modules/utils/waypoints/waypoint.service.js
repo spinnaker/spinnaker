@@ -14,7 +14,6 @@ angular.module('deckApp.utils.waypoints.service', [
       enableWaypointEvent(element, key);
       elementScope.$on('$destroy', function() {
         disableWaypointEvent(key);
-        waypointRegistry[key] = null;
       });
     }
 
@@ -47,6 +46,7 @@ angular.module('deckApp.utils.waypoints.service', [
       if (registry) {
         registry.container.unbind('scroll.waypointEvents resize.waypointEvents');
         registry.scrollEnabled = false;
+        registry.container = null;
       }
     }
 

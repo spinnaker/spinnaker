@@ -48,6 +48,7 @@ angular.module('deckApp')
               launchTime: instance.launchTime,
               availabilityZone: instance.availabilityZone,
               status: instance.isHealthy ? 'up' : instance.hasHealthStatus ? 'down' : 'unknown',
+              provider: instance.provider,
             };
             instances.push(instanceView);
             instance.health.forEach(function(health) {
@@ -79,14 +80,15 @@ angular.module('deckApp')
 
         scope.$state = $rootScope.$state;
 
-        scope.loadInstanceDetails = function(event, id) {
+        scope.loadInstanceDetails = function(event, id, provider) {
           // anything handled by ui-sref or actual links should be ignored
           if (event.isDefaultPrevented() || (event.originalEvent && event.originalEvent.target.href)) {
             return;
           }
           event.preventDefault();
           var params = {
-            instanceId: id
+            instanceId: id,
+            provider: provider,
           };
           // also stolen from uiSref directive
           scope.$state.go('.instanceDetails', params, {relative: base, inherit: true});

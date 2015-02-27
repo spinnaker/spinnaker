@@ -9,10 +9,6 @@ angular
   .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel, _, waypointService) {
 
     function updateQueryParams() {
-      resetParamState();
-
-      var defPrimary = 'account';
-      var defSecondary = 'cluster';
 
       var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
           locationQ = $location.search().q || null;
@@ -20,14 +16,8 @@ angular
         $location.search('q',
             ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : '');
       }
-      $location.search('hideHealth', ClusterFilterModel.sortFilter.hideHealthy ? true : null);
       $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
       $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? 'true' : null);
-      $location.search('hideDisabled', ClusterFilterModel.sortFilter.hideDisabled ? true : null);
-      $location.search('primary',
-        ClusterFilterModel.sortFilter.sortPrimary === defPrimary ? null : ClusterFilterModel.sortFilter.sortPrimary);
-      $location.search('secondary',
-          ClusterFilterModel.sortFilter.sortSecondary === defSecondary ? null : ClusterFilterModel.sortFilter.sortSecondary);
       $location.search('instanceSort',
           ClusterFilterModel.sortFilter.instanceSort.key);
 
@@ -38,18 +28,7 @@ angular
       updateInstanceTypeParams();
       updateZoneParams();
 
-      preserveState();
 
-    }
-
-    function resetParamState() {
-      $stateParams = {};
-    }
-
-    function preserveState() {
-      _.forOwn($location.search(), function(value, key) {
-        $stateParams[key] = value;
-      });
     }
 
     function updateAccountParams() {
@@ -94,21 +73,11 @@ angular
 
     function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroups) {
       return serverGroups
-        .filter(checkAgainstActiveFilters)
         .reduce(function(total, serverGroup) {
           return serverGroup.instances.length + total;
         }, totalInstancesDisplayed);
     }
 
-
-    function checkAgainstActiveFilters(serverGroup) {
-      return [
-          ClusterFilterModel.sortFilter.hideHealthy && serverGroup.downCount === 0,
-          ClusterFilterModel.sortFilter.hideDisabled && serverGroup.isDisabled,
-      ].some(function(x) {
-          return x;
-        }) ? false : true;
-    }
 
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
@@ -146,6 +115,8 @@ angular
         var checkedStatus = getCheckValues(ClusterFilterModel.sortFilter.status);
         return _.contains(checkedStatus, 'healthy') && serverGroup.downCount === 0 ||
                _.contains(checkedStatus, 'unhealthy') && serverGroup.downCount > 0 ||
+               _.contains(checkedStatus, 'outOfService') && serverGroup.outOfServiceCount > 0 ||
+               _.contains(checkedStatus, 'starting') && serverGroup.startingCount > 0 ||
                _.contains(checkedStatus, 'disabled') && serverGroup.isDisabled;
       } else {
         return true;
@@ -188,7 +159,6 @@ angular
             });
           }
         })
-        .filter(checkAgainstActiveFilters)
         .filter(checkAccountFilters)
         .filter(checkRegionFilters)
         .filter(checkStatusFilters)
@@ -204,7 +174,7 @@ angular
 
     function shouldFilterInstances() {
       return isFilterable(ClusterFilterModel.sortFilter.availabilityZone) ||
-        isFilterable(ClusterFilterModel.sortFilter.status);
+        (isFilterable(ClusterFilterModel.sortFilter.status) && !ClusterFilterModel.sortFilter.status.hasOwnProperty('disabled'));
     }
 
     function shouldShowInstance(instance) {
@@ -215,10 +185,14 @@ angular
         }
       }
       if(isFilterable(ClusterFilterModel.sortFilter.status)) {
-        var checkedStatus = getCheckValues(ClusterFilterModel.sortFilter.status);
-        return _.contains(checkedStatus, 'healthy') && instance.isHealthy ||
-          _.contains(checkedStatus, 'unhealthy') && _.any(instance.health, {state: 'Down'}) ||
-          _.contains(checkedStatus, 'disabled') && _.any(instance.health, {state: 'Down'});
+        var checkedStatus = _.without(getCheckValues(ClusterFilterModel.sortFilter.status), 'disabled');
+        if (!checkedStatus.length) {
+          return true;
+        }
+        return (_.contains(checkedStatus, 'healthy') && instance.isHealthy) ||
+          (_.contains(checkedStatus, 'unhealthy') && _.any(instance.health, {state: 'Down'})) ||
+          (_.contains(checkedStatus, 'starting') && _.any(instance.health, {state: 'Starting'})) ||
+          (_.contains(checkedStatus, 'outOfService') && _.any(instance.health, {state: 'OutOfService'}));
       }
       return true;
     }
@@ -291,7 +265,6 @@ angular
       updateClusterGroups: updateClusterGroups,
       filterServerGroupsForDisplay: filterServerGroupsForDisplay,
       incrementTotalInstancesDisplayed: incrementTotalInstancesDisplayed,
-      checkAgainstActiveFilters: checkAgainstActiveFilters,
       setDisplayOptions: setDisplayOptions,
       sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,

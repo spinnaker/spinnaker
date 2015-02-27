@@ -21,8 +21,11 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
     };
 
     function applyAutoScalingProcesses() {
-      var disabled = _.pluck($scope.serverGroup.asg.suspendedProcesses, 'processName');
       $scope.autoScalingProcesses = [];
+      if (!$scope.serverGroup.asg || !$scope.serverGroup.asg.suspendedProcesses) {
+        return;
+      }
+      var disabled = _.pluck($scope.serverGroup.asg.suspendedProcesses, 'processName');
       var allProcesses = autoScalingProcessService.listProcesses();
       allProcesses.forEach(function(process) {
         $scope.autoScalingProcesses.push({
