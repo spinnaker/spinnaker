@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spinnaker.orca.Clock
+import java.time.Clock
+import java.time.Instant
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -36,16 +37,14 @@ import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
 import spock.lang.Unroll
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static java.time.ZoneOffset.UTC
 
 class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
-  @Shared
-    backoffPeriod = 1000L
-  @Shared
-    timeout = 60000L
+  @Shared backoffPeriod = 1000L
+  @Shared timeout = 60000L
 
   def task = Mock(RetryableTask) {
     getBackoffPeriod() >> backoffPeriod
@@ -65,8 +64,8 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
     def step = steps.get("${pipeline.stages[0].id}.retryable.task1")
-      .tasklet(taskFactory.decorate(task))
-      .build()
+                    .tasklet(taskFactory.decorate(task))
+                    .build()
     jobBuilder.start(step).build()
   }
 
@@ -119,12 +118,10 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   @Unroll
   void "should raise TimeoutException if timeout exceeded"() {
     given:
-    def clock = Mock(Clock) {
-      1 * now() >> { return currentTime }
-    }
+    def clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC)
     def chunkContext = new ChunkContext(
-      new StepContext(Mock(StepExecution) {
-        1 * getStartTime() >> { new Date(0) }
+      new StepContext(Stub(StepExecution) {
+        getStartTime() >> { new Date(0) }
       })
     )
 
@@ -144,7 +141,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     where:
     currentTime || expectedException
-    0           || false
+    0L || false
     timeout - 1 || false
     timeout     || false
     timeout + 1 || true

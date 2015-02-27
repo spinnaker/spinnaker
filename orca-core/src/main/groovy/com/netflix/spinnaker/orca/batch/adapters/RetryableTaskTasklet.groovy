@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spinnaker.orca.Clock
+import groovy.transform.CompileStatic
+import java.time.Clock
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -28,6 +29,7 @@ import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
+@CompileStatic
 class RetryableTaskTasklet extends TaskTasklet {
   private final Clock clock
   private final long timeoutMs
@@ -35,7 +37,7 @@ class RetryableTaskTasklet extends TaskTasklet {
   RetryableTaskTasklet(RetryableTask task,
                        ExecutionRepository executionRepository,
                        List<ExceptionHandler> exceptionHandlers,
-                       Clock clock = Clock.WALL) {
+                       Clock clock = Clock.systemUTC()) {
     super(task, executionRepository, exceptionHandlers)
     this.clock = clock
     this.timeoutMs = task.timeout
@@ -52,7 +54,7 @@ class RetryableTaskTasklet extends TaskTasklet {
 
   @Override
   protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
-    def now = clock.now()
+    def now = clock.millis()
     def startTime = chunkContext.stepContext.getStepExecution().startTime.time
     if (now - startTime > timeoutMs) {
       throw new TimeoutException("Operation timed out after ${timeoutMs}ms (startTime: ${startTime}, endTime: ${now})")
