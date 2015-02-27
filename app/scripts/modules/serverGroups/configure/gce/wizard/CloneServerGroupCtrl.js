@@ -88,7 +88,8 @@ angular.module('deckApp.serverGroup.configure.gce')
           var newStateParams = {
             serverGroup: katoTask.resultObjects[0].serverGroupNames[0].split(':')[1],
             accountId: $scope.command.credentials,
-            region: $scope.command.region
+            region: $scope.command.region,
+            provider: 'gce',
           };
           if (!$state.includes('**.clusters.**')) {
             $state.go('^.^.^.clusters.serverGroup', newStateParams);

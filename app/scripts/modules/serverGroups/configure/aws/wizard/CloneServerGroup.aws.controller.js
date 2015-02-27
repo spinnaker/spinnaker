@@ -105,7 +105,8 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
           var newStateParams = {
             serverGroup: katoTask.resultObjects[0].serverGroupNames[0].split(':')[1],
             accountId: $scope.command.credentials,
-            region: $scope.command.region
+            region: $scope.command.region,
+            provider: 'aws',
           };
           var transitionTo = '^.^.^.clusters.serverGroup';
           if ($state.includes('**.clusters.serverGroup')) {  // clone via details, all view
