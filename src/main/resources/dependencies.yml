@@ -1,15 +1,16 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.9.31"
-  amos: "0.23"
+  amazoncomponents: "0.10.1"
+  amos: "0.24"
   cats: "0.14"
   kork: "1.29"
   redbatch: "0.1"
 # third party
   astyanax: "2.0.2"
-  aws: "1.9.17"
+  aws: "1.9.16"
   batch: "3.0.3.RELEASE"
   cglib: "3.1"
+  eddaClient: "1.9.16.2"
   eureka: "1.1.147"
   frigga: "0.13"
   googleHttp: "1.18.0-rc"
@@ -142,6 +143,7 @@ dependencies:
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
   cglib: "cglib:cglib-nodep:${versions.cglib}"
+  eddaClient: "com.netflix.edda-client:edda-client:${versions.eddaClient}"
   eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
   frigga: "com.netflix.frigga:frigga:${versions.frigga}"
   googleCompute: "com.google.apis:google-api-services-compute:${versions.googleCompute}"
