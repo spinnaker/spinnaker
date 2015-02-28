@@ -200,16 +200,17 @@ angular.module('deckApp.tasks.api', [
         },
         failureMessage: {
           get: function() {
+            var generalException = task.getValueFor('exception');
+            if (generalException) {
+              return generalException.details.errors ? generalException.details.errors.join(', ') : 'No reason provided';
+            }
+
             if ((task.isFailed || task.isStopped) && getKatoTasks(task)) {
               var katoTasks = getKatoTasks(task);
               var katoException = katoTasks[katoTasks.length -1].exception;
               return katoException ? katoException.message : 'No reason provided';
             }
 
-            var generalException = task.getValueFor('exception');
-            if (generalException) {
-              return generalException.details.errors ? generalException.details.errors.join(', ') : 'No reason provided';
-            }
             return false;
           }
         },
