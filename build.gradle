@@ -16,7 +16,6 @@
 
 buildscript {
   repositories {
-    mavenLocal()
     jcenter()
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
@@ -32,10 +31,6 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 group = "com.netflix.amazoncomponents"
-
-repositories {
-  mavenLocal()
-}
 
 dependencies {
   compile spinnaker.dependency('aws')
