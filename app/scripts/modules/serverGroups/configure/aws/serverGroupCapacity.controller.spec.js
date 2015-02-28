@@ -30,14 +30,14 @@ describe('Controller: ServerGroupCapacitySelector', function () {
 
     command.viewState.useSimpleCapacity = true;
     command.capacity.desired = 2;
-    scope.$digest();
+    scope.setMinMax(command.capacity.desired);
 
     expect(command.capacity.min).toBe(2);
     expect(command.capacity.max).toBe(2);
 
     command.viewState.useSimpleCapacity = false;
     command.capacity.desired = 1;
-    scope.$digest();
+    scope.setMinMax(command.capacity.desired);
 
     expect(command.capacity.min).toBe(2);
     expect(command.capacity.max).toBe(2);
