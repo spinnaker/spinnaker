@@ -41,6 +41,14 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
   PackerCommandFactory packerCommandFactory
 
   @Override
+  String produceBakeKey(String region, BakeRequest bakeRequest) {
+    // TODO(duftler): Work through definition of uniqueness.
+    bakeRequest.with {
+      return "bake:$cloud_provider_type:$base_os:$package_name"
+    }
+  }
+
+  @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {
     def imageName = imageNameFactory.produceImageName(bakeRequest)
 

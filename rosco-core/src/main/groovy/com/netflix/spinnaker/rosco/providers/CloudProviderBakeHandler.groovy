@@ -21,6 +21,8 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 
 interface CloudProviderBakeHandler {
 
+  String produceBakeKey(String region, BakeRequest bakeRequest)
+
   /**
    * Build provider-specific script command for packer.
    */

@@ -28,11 +28,6 @@ class DefaultCloudProviderBakeHandlerRegistry implements CloudProviderBakeHandle
 
   private Map<BakeRequest.CloudProviderType, CloudProviderBakeHandler> map =
     new ConcurrentHashMap<BakeRequest.CloudProviderType, CloudProviderBakeHandler>()
-  private BakeRequest.CloudProviderType defaultCloudProviderType
-
-  public DefaultCloudProviderBakeHandlerRegistry(BakeRequest.CloudProviderType defaultCloudProviderType) {
-    this.defaultCloudProviderType = defaultCloudProviderType
-  }
 
   @Override
   void register(BakeRequest.CloudProviderType cloudProviderType, CloudProviderBakeHandler cloudProviderBakeHandler) {
@@ -41,10 +36,6 @@ class DefaultCloudProviderBakeHandlerRegistry implements CloudProviderBakeHandle
 
   @Override
   CloudProviderBakeHandler lookup(BakeRequest.CloudProviderType cloudProviderType) {
-    if (!cloudProviderType) {
-      cloudProviderType = defaultCloudProviderType
-    }
-
     return map[cloudProviderType]
   }
 

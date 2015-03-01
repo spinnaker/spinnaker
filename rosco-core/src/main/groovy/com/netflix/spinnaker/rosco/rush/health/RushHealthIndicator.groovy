@@ -55,6 +55,7 @@ class RushHealthIndicator implements HealthIndicator {
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
     try {
+      // TODO(duftler): Use less-expensive health check.
       rushService.listScriptDetails().toBlocking().single()
 
       lastException.set(null)

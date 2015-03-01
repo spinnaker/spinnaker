@@ -41,6 +41,18 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
   PackerCommandFactory packerCommandFactory
 
   @Override
+  String produceBakeKey(String region, BakeRequest bakeRequest) {
+    if (!bakeRequest.vm_type) {
+      bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
+    }
+
+    // TODO(duftler): Work through definition of uniqueness.
+    bakeRequest.with {
+      return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$package_name"
+    }
+  }
+
+  @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {
     def imageName = imageNameFactory.produceImageName(bakeRequest)
 
@@ -96,7 +108,6 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split(" ").last()
-        imageName = imageName.split("\\u001B").first()
       } else if (line =~ "$region:") {
         amiId = line.split(" ").last()
       }
