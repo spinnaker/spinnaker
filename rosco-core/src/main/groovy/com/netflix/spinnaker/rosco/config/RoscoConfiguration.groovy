@@ -34,7 +34,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
-import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 
 @Configuration
@@ -48,8 +47,8 @@ class RoscoConfiguration {
   }
 
   @Bean
-  BakeStore bakeStore(JedisPool jedisPool, JedisCommands jedisCommands) {
-    new RedisBackedBakeStore(jedisPool, jedisCommands)
+  BakeStore bakeStore(JedisPool jedisPool) {
+    new RedisBackedBakeStore(jedisPool)
   }
 
   @Bean

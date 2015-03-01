@@ -21,7 +21,6 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import org.springframework.beans.factory.annotation.Autowired
-import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Transaction
 
@@ -31,11 +30,9 @@ class RedisBackedBakeStore implements BakeStore {
   ObjectMapper mapper
 
   private JedisPool jedisPool;
-  private JedisCommands jedisCommands;
 
-  public RedisBackedBakeStore(JedisPool jedisPool, JedisCommands jedisCommands) {
+  public RedisBackedBakeStore(JedisPool jedisPool) {
     this.jedisPool = jedisPool;
-    this.jedisCommands = jedisCommands;
   }
 
   @Override
@@ -74,10 +71,11 @@ class RedisBackedBakeStore implements BakeStore {
   @Override
   public void updateBakeDetails(Bake bakeDetails) {
     def bakeDetailsJson = mapper.writeValueAsString(bakeDetails)
-    def bakeKey = jedisCommands.hget(bakeDetails.id, "bakeKey")
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
+      def bakeKey = jedis.hget(bakeDetails.id, "bakeKey")
+
       Transaction t = jedis.multi()
 
       t.hset(bakeDetails.id, "bakeDetails", bakeDetailsJson)
@@ -91,10 +89,11 @@ class RedisBackedBakeStore implements BakeStore {
   public void updateBakeStatus(BakeStatus bakeStatus, Map<String, String> logsContent=[:]) {
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def bakeLogsJson = mapper.writeValueAsString(logsContent ?: [:])
-    def bakeKey = jedisCommands.hget(bakeStatus.id, "bakeKey")
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
+      def bakeKey = jedis.hget(bakeStatus.id, "bakeKey")
+
       Transaction t = jedis.multi()
 
       t.hmset(bakeStatus.id, [
@@ -117,10 +116,11 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public void storeBakeError(String bakeId, String error) {
-    def bakeKey = jedisCommands.hget(bakeId, "bakeKey")
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
+      def bakeKey = jedis.hget(bakeId, "bakeKey")
+
       Transaction t = jedis.multi()
 
       t.hset(bakeId, "bakeError", error)
@@ -132,43 +132,64 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public String retrieveRegionById(String bakeId) {
-    return jedisCommands.hget(bakeId, "region")
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      return jedis.hget(bakeId, "region")
+    }
   }
 
   @Override
   public BakeStatus retrieveBakeStatusByKey(String bakeKey) {
-    def bakeStatusJson = jedisCommands.hget(bakeKey, "bakeStatus")
+    def jedis = jedisPool.getResource()
 
-    return bakeStatusJson ? mapper.readValue(bakeStatusJson, BakeStatus) : null
+    jedis.withCloseable {
+      def bakeStatusJson = jedis.hget(bakeKey, "bakeStatus")
+
+      return bakeStatusJson ? mapper.readValue(bakeStatusJson, BakeStatus) : null
+    }
   }
 
   @Override
   public BakeStatus retrieveBakeStatusById(String bakeId) {
-    def bakeStatusJson = jedisCommands.hget(bakeId, "bakeStatus")
+    def jedis = jedisPool.getResource()
 
-    return bakeStatusJson ? mapper.readValue(bakeStatusJson, BakeStatus) : null
+    jedis.withCloseable {
+      def bakeStatusJson = jedis.hget(bakeId, "bakeStatus")
+
+      return bakeStatusJson ? mapper.readValue(bakeStatusJson, BakeStatus) : null
+    }
   }
 
   @Override
   public Bake retrieveBakeDetailsById(String bakeId) {
-    def bakeDetailsJson = jedisCommands.hget(bakeId, "bakeDetails")
+    def jedis = jedisPool.getResource()
 
-    return bakeDetailsJson ? mapper.readValue(bakeDetailsJson, Bake) : null
+    jedis.withCloseable {
+      def bakeDetailsJson = jedis.hget(bakeId, "bakeDetails")
+
+      return bakeDetailsJson ? mapper.readValue(bakeDetailsJson, Bake) : null
+    }
   }
 
   @Override
   public Map<String, String> retrieveBakeLogsById(String bakeId) {
-    def bakeLogsJson = jedisCommands.hget(bakeId, "bakeLogs")
+    def jedis = jedisPool.getResource()
 
-    return bakeLogsJson ? mapper.readValue(bakeLogsJson, Map) : null
+    jedis.withCloseable {
+      def bakeLogsJson = jedis.hget(bakeId, "bakeLogs")
+
+      return bakeLogsJson ? mapper.readValue(bakeLogsJson, Map) : null
+    }
   }
 
   @Override
   public boolean deleteBakeByKey(String bakeKey) {
-    def bakeId = jedisCommands.hget(bakeKey, "id")
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
+      def bakeId = jedis.hget(bakeKey, "id")
+
       Transaction t = jedis.multi()
 
       t.zrem("allBakes", bakeKey)
@@ -190,10 +211,11 @@ class RedisBackedBakeStore implements BakeStore {
                                     state: BakeStatus.State.CANCELLED,
                                     result: BakeStatus.Result.FAILURE)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
-    def bakeKey = jedisCommands.hget(bakeId, "bakeKey")
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
+      def bakeKey = jedis.hget(bakeId, "bakeKey")
+
       Transaction t = jedis.multi()
 
       t.srem("allBakes:incomplete", bakeId)
@@ -210,7 +232,11 @@ class RedisBackedBakeStore implements BakeStore {
 
   @Override
   public Set<String> getIncompleteBakeIds() {
-    return jedisCommands.smembers("allBakes:incomplete")
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      return jedis.smembers("allBakes:incomplete")
+    }
   }
 
 }
