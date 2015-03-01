@@ -19,7 +19,7 @@ package com.netflix.spinnaker.rosco.executor
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import com.netflix.spinnaker.rosco.config.RoscoConfiguration
-import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
+import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.rush.api.RushService
 import com.netflix.spinnaker.rosco.rush.api.ScriptExecution
@@ -52,7 +52,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
   int pollingIntervalSeconds
 
   @Autowired
-  RedisBackedBakeStore bakeStore
+  BakeStore bakeStore
 
   @Autowired
   ScriptRequest baseScriptRequest
