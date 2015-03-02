@@ -12,7 +12,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr ng-repeat="instance in viewModel.instances | instanceSearch:sortFilter.filter track by instance.id | orderBy: sortFilter.instanceSort.key"
+    <tr ng-repeat="instance in viewModel.instances | instanceSearch:sortFilter.filter | orderBy: sortFilter.instanceSort.key track by instance.id"
         ng-click="loadInstanceDetails($event, instance.id, instance.provider)"
         class="clickable"
         ng-class="{ active: $state.includes('**.instanceDetails', {instanceId: instance.id}) }">

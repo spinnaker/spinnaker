@@ -38,11 +38,11 @@
     </div>
     <div class="instance-list" ng-if="displayOptions.showInstances && viewModel.loaded">
       <div ng-if="!displayOptions.listInstances">
-        <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="viewModel.serverGroup.instances"
+        <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="viewModel.instances"
                    render-instances-on-scroll="false"></instances>
       </div>
       <div ng-if="displayOptions.listInstances">
-        <instance-list scroll-target="clusters-content" instances="viewModel.serverGroup.instances"
+        <instance-list scroll-target="clusters-content" instances="viewModel.instances"
                        sort-filter="sortFilter"
                        render-instances-on-scroll="false"></instance-list>
       </div>
