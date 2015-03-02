@@ -8,16 +8,18 @@ angular.module('deckApp.tasks.main', ['deckApp.utils.lodash'])
     self.application = application;
 
     self.sortedTasks = [];
+    self.tasksLoaded = false;
 
     self.sortTasks = function() {
+      if (application.tasks) {
+        self.tasksLoaded = true;
+      }
       var joinedLists = filterRunningTasks().concat(filterNonRunningTasks());
       self.sortedTasks = joinedLists;
       return joinedLists;
     };
 
-    self.sortTasks();
-
-    application.registerAutoRefreshHandler(self.sortTasks, $scope);
+    $scope.$watch('application.tasks', self.sortTasks);
 
     function filterRunningTasks() {
       var running = _.chain(application.tasks)
@@ -26,9 +28,7 @@ angular.module('deckApp.tasks.main', ['deckApp.utils.lodash'])
         })
         .value();
 
-
-      var ordered = running.sort(taskStartTimeComparitor);
-      return ordered;
+      return running.sort(taskStartTimeComparator);
     }
 
     function filterNonRunningTasks() {
@@ -38,11 +38,10 @@ angular.module('deckApp.tasks.main', ['deckApp.utils.lodash'])
         })
         .value();
 
-      var ordered = notRunning.sort(taskStartTimeComparitor);
-      return ordered;
+      return notRunning.sort(taskStartTimeComparator);
     }
 
-    function taskStartTimeComparitor(taskA, taskB) {
+    function taskStartTimeComparator(taskA, taskB) {
       return taskB.startTime > taskA.startTime ? 1 : taskB.startTime < taskA.startTime ? -1 : 0;
     }
 

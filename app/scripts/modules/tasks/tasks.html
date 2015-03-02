@@ -1,5 +1,8 @@
 <div class="row">
-  <div class="col-md-7 tasks">
+  <div class="col-md-7" ng-if="!tasks.tasksLoaded" style="position: relative; height: 300px">
+    <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
+  </div>
+  <div class="col-md-7 tasks" ng-if="tasks.tasksLoaded">
     <div class="row">
       <div class="col-md-9">
         <div class="btn-group">

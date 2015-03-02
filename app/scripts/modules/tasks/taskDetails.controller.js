@@ -2,22 +2,26 @@
 
 
 angular.module('deckApp.tasks.detail.controller', [])
-  .controller('TaskDetailsCtrl', function($scope, $log, taskId, application, $state, notificationsService, tasksWriter) {
+  .controller('TaskDetailsCtrl', function($scope, $log, $state,
+                                          tasksReader, tasksWriter,
+                                          taskId, application) {
 
     var vm = this;
 
     function extractTaskDetails() {
-      var filtered = application.tasks.filter(function(task) {
+      var tasks = application.tasks || [];
+      var filtered = tasks.filter(function(task) {
         return task.id === taskId;
       });
       if (!filtered.length) {
-        notificationsService.create({
-          message: 'No task with id "' + taskId + '" was found.',
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
-        $state.go('^');
+        tasksReader.getOneTaskForApplication(application.name, taskId).then(
+          function(result) {
+            vm.task = result;
+          },
+          function () {
+            $state.go('^');
+          }
+        );
       } else {
         vm.task = filtered[0];
       }
