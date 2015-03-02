@@ -30,17 +30,17 @@
     <h2 ng-if="!applicationsLoaded" class="text-center" style="margin-bottom: 250px">
       <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
     </h2>
-    <table ng-if="applicationsLoaded" class="table table-striped">
+    <table ng-if="applicationsLoaded" class="table table-hover">
       <thead>
         <tr>
-          <th sort-toggle key="name" label="Name" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="createTs" label="Created" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="updateTs" label="Updated" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="name" label="Name" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
           <th sort-toggle key="email" label="Owner" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="application in ctrl.resultPage()">
+        <tr class="clickable" ng-repeat="application in ctrl.resultPage()" ui-sref=".application({ application: application.name.toLowerCase() })">
           <td>
             <a ui-sref=".application({ application: application.name.toLowerCase() })">
               {{ application.name.toLowerCase() }}
