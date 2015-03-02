@@ -80,9 +80,9 @@ class JesqueConfiguration {
   SpringWorkerPool workerPool(SpringWorkerFactory workerFactory,
                               @Value('${jesque.numWorkers:1}') int numWorkers) {
     def pool = new SpringWorkerPool(workerFactory, numWorkers)
-    if (eventBus) {
-      pool.togglePause(true)
-    }
+//    if (eventBus) {
+//      pool.togglePause(true)
+//    }
     return pool
   }
 
