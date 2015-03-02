@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp')
-  .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService) {
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService) {
     return {
       restrict: 'E',
       templateUrl: 'scripts/modules/cluster/serverGroup.html',
@@ -19,6 +19,7 @@ angular.module('deckApp')
         var base = el.parent().inheritedData('$uiView').state;
 
         scope.$state = $rootScope.$state;
+        var filteredInstances = scope.serverGroup.instances.filter(clusterFilterService.shouldShowInstance);
 
         function loadView() {
           scope.$evalAsync(function() {
@@ -29,14 +30,15 @@ angular.module('deckApp')
 
         function calculatePlaceholderHeight() {
           if (scope.displayOptions.showInstances) {
+            var instances = filteredInstances;
             if (scope.displayOptions.listInstances) {
-              var extraLoadBalancers = scope.serverGroup.instances.reduce(function(acc, instance) {
+              var extraLoadBalancers = instances.reduce(function(acc, instance) {
                 var loadBalancerHealths = _.find(instance.health, { type: 'LoadBalancer' });
                 return loadBalancerHealths ? loadBalancerHealths.loadBalancers.length - 1 : 0 + acc;
               }, 0);
-              return scope.serverGroup.instances.length * 29 + extraLoadBalancers * 18 + 34; //34 = header (29) + original padding (5)
+              return instances.length * 29 + extraLoadBalancers * 18 + 34; //34 = header (29) + original padding (5)
             } else {
-              var rows = Math.ceil(scope.serverGroup.instances.length / 60);
+              var rows = Math.ceil(instances.length / 60);
               return rows * 20 + 5;
             }
           }
@@ -49,7 +51,8 @@ angular.module('deckApp')
           waypoint: [serverGroup.account,serverGroup.region,serverGroup.name].join(':'),
           serverGroup: serverGroup,
           serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
-          jenkins: null
+          jenkins: null,
+          instances: filteredInstances,
         };
 
         if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
@@ -96,7 +99,7 @@ angular.module('deckApp')
           if (!scope.displayOptions.showInstances) {
             return false;
           }
-          return scope.serverGroup.instances.length;
+          return filteredInstances.length;
         };
       }
     };
