@@ -104,7 +104,12 @@
         <dt>Current:</dt>
         <dd>{{serverGroup.instances.length}}</dd>
       </dl>
-      <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+      <div>
+        <a href ng-click="ctrl.resizeServerGroup()">Resize Server Group</a>
+      </div>
+      <div>
+        <a href ng-click="ctrl.showScalingActivities()">View Scaling Activities</a>
+      </div>
     </collapsible-section>
     <collapsible-section heading="Health" expanded="true">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup">
