@@ -73,6 +73,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.resizeAsg',
     'deckApp.pipelines.stage.enableAsg',
     'deckApp.pipelines.stage.modifyScalingProcess',
+    'deckApp.pipelines.stage.destroyAsg',
     'deckApp.pipelines.stage.disableAsg',
     'deckApp.pipelines.stage.executionWindows',
     'deckApp.authentication',
