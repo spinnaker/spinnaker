@@ -1,6 +1,6 @@
 <div class="form-group">
   <div class="col-md-2 sm-label-left">
-    <b>Account</b>
+    Account
   </div>
   <div class="col-md-7">
     <account-select-field component="command" field="credentials" accounts="command.backingData.accounts"></account-select-field>
@@ -10,7 +10,7 @@
 <subnet-select-field label-columns="2" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
 <div class="form-group">
   <div class="col-md-2 sm-label-left">
-    <b>Stack</b>
+    Stack
     <help-field key="aws.serverGroup.stack"></help-field>
   </div>
   <div class="col-md-3"><input type="text"
@@ -18,7 +18,7 @@
                                ng-model="command.stack"/></div>
 
   <div class="col-md-2 sm-label-right">
-    <b>Detail</b>
+    Detail
     <help-field key="aws.serverGroup.detail"></help-field>
   </div>
   <div class="col-md-3"><input type="text"
@@ -27,7 +27,7 @@
 </div>
 <div class="form-group" ng-if="!command.viewState.disableImageSelection">
   <div class="col-md-2 sm-label-left">
-    <b>Image</b>
+    Image
     <help-field key="aws.serverGroup.imageName"></help-field>
   </div>
   <div class="col-md-10" ng-if="command.viewState.useAllImageSelection">
