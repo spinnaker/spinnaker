@@ -332,6 +332,15 @@ body > .container {
   color: #fff;
 }
 
+.form-horizontal {
+  .control-label-left {
+    padding-top: 7px;
+    margin-bottom: 0;
+    text-align: left;
+    font-weight: bold;
+  }
+}
+
 .sm-label, .sm-label-left, .sm-label-right {
   line-height: 30px;
   font-weight: bold;
@@ -711,12 +720,10 @@ tfoot .add-new {
 @-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
 @-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
 @keyframes spin {
-  0% {
-    transform: rotate(0);
-  }
   100% {
     transform: rotate(360deg);
-  } }
+  }
+}
 
 .glyphicon-spinning {
   display: inline-block;
