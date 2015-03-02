@@ -3,11 +3,13 @@
 describe('Controller: tasks', function () {
   var controller;
   var controllerInjector;
+  var scope;
 
   controllerInjector = function (appData) {
     appData.registerAutoRefreshHandler = angular.noop;
     return function ($controller, $rootScope) {
-      controller = $controller('TasksCtrl', { application: appData, $scope: $rootScope.$new() });
+      scope = $rootScope.$new();
+      controller = $controller('TasksCtrl', { application: appData, $scope: scope });
     };
   };
 
@@ -19,8 +21,17 @@ describe('Controller: tasks', function () {
     )
   );
 
-  it('should have an injected controller', function () {
-    expect(controller).toBeDefined();
+  describe('initialization', function() {
+    it('tasksLoaded flag should be false', function() {
+      scope.$digest();
+      expect(controller.tasksLoaded).toBe(false);
+    });
+
+    it('tasksLoaded flag should be true if tasks object is present on application', function() {
+      inject(controllerInjector({tasks: [] }));
+      scope.$digest();
+      expect(controller.tasksLoaded).toBe(true);
+    });
   });
 
   describe('Filtering Task list with one running task', function () {
@@ -82,7 +93,7 @@ describe('Controller: tasks', function () {
       )
     );
 
-    it('should sort the tasks in decending order by startTime', function () {
+    it('should sort the tasks in descending order by startTime', function () {
       var sortedList = controller.sortTasks();
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(100);
