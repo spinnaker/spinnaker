@@ -1,18 +1,18 @@
-<div>
+<div ng-controller="BakeExecutionDetailsCtrl">
   <div class="row">
     <div class="col-md-6">
       <h5>Bake Configuration</h5>
       <dl class="dl-narrow dl-horizontal">
         <dt if-multiple-providers>Provider</dt>
-        <dd if-multiple-providers>{{stage.context.cloudProviderType ? stage.context.cloudProviderType : 'aws'}}</dd>
+        <dd if-multiple-providers>{{provider}}</dd>
         <dt>Image</dt>
         <dd>{{stage.context.ami}}</dd>
         <dt>Region</dt>
         <dd>{{stage.context.region}}</dd>
         <dt>Base OS</dt>
         <dd>{{stage.context.baseOs}}</dd>
-        <dt>Store Type</dt>
-        <dd>{{stage.context.storeType}}</dd>
+        <dt ng-if="provider === 'aws'">Store Type</dt>
+        <dd ng-if="provider === 'aws'">{{stage.context.storeType}}</dd>
         <dt>Label</dt>
         <dd>{{stage.context.baseLabel}}</dd>
         <dt>Package</dt>
