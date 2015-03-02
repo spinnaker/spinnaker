@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.initialization
 
+import com.netflix.appinfo.InstanceInfo.InstanceStatus
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
@@ -26,9 +27,9 @@ import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.explore.JobExplorer
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 import static com.google.common.collect.Sets.newHashSet
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static org.apache.commons.lang.math.JVMRandom.nextLong
 
 class PipelineRestarterSpec extends Specification {
@@ -41,7 +42,7 @@ class PipelineRestarterSpec extends Specification {
 
   def "when the application comes up the restarter should look for incomplete jobs and resume them"() {
     when:
-    pipelineRestarter.onApplicationEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
+    pipelineRestarter.onApplicationEvent(statusChangeEvent(STARTING, UP))
 
     then:
     1 * jobExplorer.getJobNames() >> jobNames
@@ -56,5 +57,27 @@ class PipelineRestarterSpec extends Specification {
     executions = jobNames.collect {
       new JobExecution(nextLong(100L), new JobParametersBuilder().addString("pipeline", "pipeline-$it").toJobParameters())
     }
+  }
+
+  @Unroll
+  def "if the application changes state from #from to #to the restarter doesn't attempt to do anything"() {
+    when:
+    pipelineRestarter.onApplicationEvent(statusChangeEvent(from, to))
+
+    then:
+    0 * _
+
+    where:
+    from           | to
+    STARTING       | OUT_OF_SERVICE
+    UP             | OUT_OF_SERVICE
+    UP             | DOWN
+    OUT_OF_SERVICE | DOWN
+  }
+
+  private static EurekaStatusChangedEvent statusChangeEvent(
+    InstanceStatus from,
+    InstanceStatus to) {
+    new EurekaStatusChangedEvent(new StatusChangeEvent(from, to))
   }
 }
