@@ -44,6 +44,7 @@ dependencies {
   compile project(":orca-mayo")
   compile project(":orca-rush")
   compile project(":orca-igor")
+  compile project(":orca-eureka")
 
   spinnaker.group('test')
   testCompile spinnaker.dependency('batchTest')

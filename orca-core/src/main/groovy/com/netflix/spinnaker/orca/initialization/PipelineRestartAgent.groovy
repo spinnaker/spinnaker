@@ -31,13 +31,13 @@ import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 @Component
 @Slf4j
 @CompileStatic
-class PipelineRestarter implements ApplicationListener<EurekaStatusChangedEvent> {
+class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEvent> {
 
   private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
   private final PipelineStarter pipelineStarter
 
-  PipelineRestarter(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
+  PipelineRestartAgent(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
     this.pipelineStarter = pipelineStarter

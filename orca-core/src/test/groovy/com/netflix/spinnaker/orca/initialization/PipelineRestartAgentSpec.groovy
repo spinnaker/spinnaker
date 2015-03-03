@@ -32,13 +32,13 @@ import static com.google.common.collect.Sets.newHashSet
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static org.apache.commons.lang.math.JVMRandom.nextLong
 
-class PipelineRestarterSpec extends Specification {
+class PipelineRestartAgentSpec extends Specification {
 
   def jobExplorer = Mock(JobExplorer)
   def pipelineStarter = Mock(PipelineStarter)
   def executionRepository = Mock(ExecutionRepository)
   @Subject
-    pipelineRestarter = new PipelineRestarter(jobExplorer, executionRepository, pipelineStarter)
+    pipelineRestarter = new PipelineRestartAgent(jobExplorer, executionRepository, pipelineStarter)
 
   def "when the application comes up the restarter should look for incomplete jobs and resume them"() {
     when:
