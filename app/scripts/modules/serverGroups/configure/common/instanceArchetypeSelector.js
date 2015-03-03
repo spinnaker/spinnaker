@@ -11,12 +11,19 @@ angular.module('deckApp.serverGroup.configure.common')
       controller: 'InstanceArchetypeSelectorCtrl as instanceArchetypeCtrl',
     };
   })
-  .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService) {
+  .controller('InstanceArchetypeSelectorCtrl', function($scope, instanceTypeService, _) {
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
+      $scope.command.viewState.instanceProfile = controller.findProfileForInstanceType(categories, $scope.command.instanceType);
       controller.selectInstanceType($scope.command.viewState.instanceProfile);
     });
+
+    this.findProfileForInstanceType = function(categories, instanceType) {
+      var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] } ;
+      var result = _.result(_.findWhere(categories, query), 'type');
+      return result || 'custom';
+    };
 
     this.selectInstanceType = function (type) {
       if ($scope.selectedInstanceProfile && $scope.selectedInstanceProfile.type === type) {
