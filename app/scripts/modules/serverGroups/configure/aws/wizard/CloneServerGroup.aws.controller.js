@@ -45,6 +45,9 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
     });
 
     function initializeWizardState() {
+      if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
+        modalWizardService.getWizard().markComplete('instance-type');
+      }
       if (serverGroupCommand.viewState.mode === 'clone') {
         modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');

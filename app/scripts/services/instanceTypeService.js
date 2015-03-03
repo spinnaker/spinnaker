@@ -27,10 +27,19 @@ angular.module('deckApp.instanceType.service', [
       return getDelegate(selectedProvider).getAvailableTypesForRegions(instanceTypes, selectedRegions);
     }
 
+    function getCategoryForInstanceType(selectedProvider, instanceType) {
+      return getCategories(selectedProvider).then(function(categories) {
+        var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] } ;
+        var result = _.result(_.findWhere(categories, query), 'type');
+        return result || 'custom';
+      });
+    }
+
     return {
       getCategories: getCategories,
       getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAllTypesByRegion: getAllTypesByRegion
+      getAllTypesByRegion: getAllTypesByRegion,
+      getCategoryForInstanceType: getCategoryForInstanceType
     };
   }
 );
