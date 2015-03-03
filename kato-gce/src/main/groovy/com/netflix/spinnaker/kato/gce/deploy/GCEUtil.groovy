@@ -190,6 +190,7 @@ class GCEUtil {
                                         Image sourceImage,
                                         Long diskSizeGb,
                                         String diskType,
+                                        boolean useDiskTypeUrl,
                                         String instanceType,
                                         GceConfig.DeployDefaults deployDefaults) {
     if (!diskSizeGb || !diskType) {
@@ -204,11 +205,13 @@ class GCEUtil {
       }
     }
 
-    def diskTypeUrl = GCEUtil.buildDiskTypeUrl(projectName, zone, diskType)
+    if (useDiskTypeUrl) {
+      diskType = GCEUtil.buildDiskTypeUrl(projectName, zone, diskType)
+    }
 
     def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
                                                                         diskSizeGb: diskSizeGb,
-                                                                        diskType: diskTypeUrl)
+                                                                        diskType: diskType)
 
     return new AttachedDisk(boot: true,
                             autoDelete: true,

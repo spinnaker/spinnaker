@@ -110,6 +110,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                  sourceImage,
                                                  description.diskSizeGb,
                                                  description.diskType,
+                                                 false,
                                                  description.instanceType,
                                                  gceDeployDefaults)
 
