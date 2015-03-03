@@ -26,6 +26,7 @@ import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
 import retrofit.http.QueryMap
+import retrofit.http.Streaming
 
 /**
  * Interface for interacting with a Jenkins Service via Xml
@@ -59,4 +60,9 @@ interface JenkinsClient {
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@Path('jobName') String jobName)
+
+    @Streaming
+    @GET('/job/{jobName}/{buildNumber}/artifact/{fileName}')
+    Response getPropertyFile(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber, @Path(value='fileName', encode=false) String fileName)
+
 }
