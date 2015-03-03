@@ -65,6 +65,24 @@ class BuildController {
         }
     }
 
+    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
+    Map<String, String> getProperties(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        Map<String, String> map = [:]
+        try {
+            Properties properties = new Properties()
+            JenkinsClient jenkinsClient = masters.map[master]
+            String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find{ it.fileName == fileName }?.relativePath
+            properties.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
+            map = map << properties
+        } catch( e ){
+            log.error("Unable to get properties `${job}`", e)
+        }
+        map
+    }
+
     static class BuildJobPoller implements Runnable {
         private final String job
         private final JenkinsClient client
