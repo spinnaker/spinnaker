@@ -36,8 +36,8 @@ class DisableGoogleServerGroupStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "disableAsg", DisableGoogleServerGroupTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+    def step1 = buildStep(stage, "disableServerGroup", DisableGoogleServerGroupTask)
+    def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
     // TODO(duftler): Since we don't have a GCE health indicator for load balancer association, can't wait on 'down' yet.
 //    def step3 = buildStep("waitForDownInstances", WaitForDownInstancesTask)
     [step1, step2]
