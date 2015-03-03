@@ -15,7 +15,7 @@
     <wizard-page key="instance-profile" label="Instance Profile">
       <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/instanceArchetype.html'"></ng-include>
     </wizard-page>
-    <wizard-page key="instance-type" label="Instance Type" render="false">
+    <wizard-page key="instance-type" label="Instance Type" render="command.viewState.instanceProfile && command.viewState.instanceProfile !== 'custom'">
       <ng-include src="'scripts/modules/serverGroups/configure/aws/wizard/instanceType.html'"></ng-include>
     </wizard-page>
     <wizard-page key="capacity" label="Capacity/Zones">

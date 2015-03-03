@@ -2,22 +2,108 @@
 
 describe('Service: instanceTypeService', function () {
 
-  //NOTE: This is only testing the service dependencies. Please add more tests.
+  var instanceTypeService, $q, $scope;
 
-  var instanceTypeService;
+  var generalFamily = {
+    type: 'general',
+    families: [{
+      instanceTypes: [
+        {name: 'm3.medium'},
+        {name: 'm3.large'},
+        {name: 'm3.xlarge'},
+        {name: 'm3.2xlarge'}
+      ]
+    }]
+  };
+
+  var memoryFamily = {
+    type: 'memory',
+    families: [{
+      instanceTypes: [
+        {name: 'r3.large'},
+        {name: 'r3.xlarge'},
+        {name: 'r3.2xlarge'},
+        {name: 'r3.4xlarge'},
+      ]
+    }]
+  };
+
+  var microFamily = {
+    type: 'micro',
+    families: [{
+      instanceTypes: [
+        {name: 't2.small'},
+        {name: 't2.medium'},
+      ]
+    }]
+  };
+
+  var categories = [generalFamily, memoryFamily, microFamily];
 
   beforeEach(
     module('deckApp.instanceType.service')
   );
 
   beforeEach(
-    inject(function (_instanceTypeService_) {
+    inject(function (_instanceTypeService_, _$q_, $rootScope) {
       instanceTypeService = _instanceTypeService_;
+      $q = _$q_;
+      $scope = $rootScope.$new();
     })
   );
 
-  it('should instantiate the controller', function () {
-    expect(instanceTypeService).toBeDefined();
+  describe('find profile name for instance type', function () {
+
+    beforeEach(function() {
+      spyOn(instanceTypeService, 'getCategories').and.returnValue($q.when(categories));
+    });
+
+    generalFamily.families[0].instanceTypes.forEach( function(instanceType) {
+      it('should return "general" if the ' + instanceType.name + ' is in the "general" category', function () {
+        var result = null;
+        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
+          result = category;
+        });
+        $scope.$digest();
+        expect(result).toBe('general');
+      });
+    });
+
+    memoryFamily.families[0].instanceTypes.forEach(function (instanceType) {
+      it('should return "memory" if the ' + instanceType.name + ' is in the "memory" category', function () {
+        var result = null;
+        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
+          result = category;
+        });
+        $scope.$digest();
+        expect(result).toBe('memory');
+      });
+    });
+
+    microFamily.families[0].instanceTypes.forEach(function (instanceType) {
+      it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', function () {
+        var result = null;
+        instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
+          result = category;
+        });
+        $scope.$digest();
+        expect(result).toBe('micro');
+      });
+    });
+
+
+    var customTypes = ['c1.large', 'c3.large', 'c4.large', 'm2.large'];
+    customTypes.forEach(function (instanceType) {
+      it('should return "custom" if the ' + instanceType + ' is not in a category', function () {
+        var result = null;
+        instanceTypeService.getCategoryForInstanceType('aws', instanceType).then(function(category) {
+          result = category;
+        });
+        $scope.$digest();
+        expect(result).toBe('custom');
+      });
+    });
+
   });
 });
 

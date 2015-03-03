@@ -7,7 +7,8 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
   'deckApp.subnet.read.service',
   'deckApp.naming',
 ])
-  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, subnetReader, namingService) {
+  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+                                                     accountService, subnetReader, namingService, instanceTypeService) {
     function buildNewServerGroupCommand(application, account, region) {
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
@@ -48,7 +49,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
           keyPair: keyPair,
           suspendedProcesses: [],
           viewState: {
-            instanceProfile: null,
+            instanceProfile: 'custom',
             allImageSelection: null,
             useAllImageSelection: false,
             useSimpleCapacity: true,
@@ -63,13 +64,15 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
     function buildServerGroupCommandFromPipeline(application, pipelineCluster, account) {
 
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      return buildNewServerGroupCommand(application, account, region).then(function(command) {
-
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', pipelineCluster.instanceType);
+      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, account, region), instanceProfile: instanceTypeCategoryLoader});
+      return asyncLoader.then(function(asyncData) {
+        var command = asyncData.command;
         var zones = pipelineCluster.availabilityZones[region];
         var usePreferredZones = zones.join(',') === command.availabilityZones.join(',');
 
         var viewState = {
-          instanceProfile: 'custom',
+          instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
           useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize,
           usePreferredZones: usePreferredZones,
@@ -93,11 +96,17 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
+
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var subnetsLoader = subnetReader.listSubnets();
-      var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader});
+
+      var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
+
+      var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader, instanceProfile: instanceTypeCategoryLoader});
 
       return asyncLoader.then(function(asyncData) {
+        console.warn('here we go..');
         var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         var zones = serverGroup.asg.availabilityZones.sort();
@@ -134,7 +143,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
           },
           suspendedProcesses: _.pluck(serverGroup.asg.suspendedProcesses, 'processName'),
           viewState: {
-            instanceProfile: 'custom',
+            instanceProfile: asyncData.instanceProfile,
             allImageSelection: null,
             useAllImageSelection: false,
             useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,

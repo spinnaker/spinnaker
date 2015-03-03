@@ -40,7 +40,7 @@ angular.module('deckApp')
       templateUrl: 'views/modal/wizardPage.html',
       link: function($scope, elem, attrs, wizardCtrl) {
         var state = {
-            rendered: attrs.render !== 'false',
+            rendered: !attrs.render || $scope.$eval(attrs.render),
             done: attrs.done === 'true',
             dirty: false,
             blocked: attrs.blocked !== 'false',
