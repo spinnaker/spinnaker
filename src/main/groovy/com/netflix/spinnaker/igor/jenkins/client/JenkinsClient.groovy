@@ -25,6 +25,7 @@ import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
+import retrofit.http.QueryMap
 import retrofit.http.Streaming
 
 /**
@@ -52,7 +53,10 @@ interface JenkinsClient {
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 
     @POST('/job/{jobName}/build')
-    Response build(@Path('jobName') String jobName)
+    Response build(@Path('jobName') String jobName, @QueryMap Map<String,String> queryParams)
+
+    @POST('/job/{jobName}/buildWithParameters')
+    Response buildWithParameters(@Path('jobName') String jobName, @QueryMap Map<String,String> queryParams)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@Path('jobName') String jobName)

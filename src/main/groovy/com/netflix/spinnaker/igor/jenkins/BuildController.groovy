@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.jenkins
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestParam
 import retrofit.RetrofitError
 
 @Slf4j
@@ -51,12 +53,12 @@ class BuildController {
     }
 
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
-    Build build(@PathVariable("name") String master, @PathVariable String job) {
+    Build build(@PathVariable("name") String master, @PathVariable String job,  @RequestParam Map<String,String> requestParams) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
         try {
-            def poller = new BuildJobPoller(job, masters.map[master])
+            def poller = new BuildJobPoller(job, masters.map[master], requestParams)
             executor.submit(poller).get(30, TimeUnit.SECONDS)
             poller.build
         } catch (RuntimeException e) {
@@ -86,16 +88,36 @@ class BuildController {
     static class BuildJobPoller implements Runnable {
         private final String job
         private final JenkinsClient client
-
+        private final Map<String,String> requestParams
+        
         private Build build;
 
         BuildJobPoller(String job, JenkinsClient client) {
             this.job = job
             this.client = client
         }
+        
+        BuildJobPoller(String job, JenkinsClient client, Map<String,String> requestParams) {
+            this.job = job
+            this.client = client
+            this.requestParams = requestParams
+        }
 
         void run() {
-            def response = client.build(job)
+            def response
+            // fetch the build configuration and make sure that it's configured as we expect
+            JobConfig jobConfig = client.getJobConfig(job)
+
+            if(requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+                response = client.buildWithParameters(job, requestParams)
+            } else if(!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)){
+                response = client.build(job, requestParams)
+            } else { // Jenkins will reject the build, so don't even try
+                log.error("job : ${job}, either not passing params to a build job which needs them or passing params to a job which doesn't need them")
+                // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
+                throw new RuntimeException()
+            }
+
             if (response.status != 201) {
                 throw new BuildJobError()
             }
