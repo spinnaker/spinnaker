@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.RequestParam
 import retrofit.RetrofitError
 
 @Slf4j
@@ -51,7 +52,7 @@ class BuildController {
     }
 
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
-    Build build(@PathVariable("name") String master, @PathVariable String job) {
+    Build build(@PathVariable("name") String master, @PathVariable String job,  @RequestParam Map<String,String> requestParams) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
@@ -64,20 +65,50 @@ class BuildController {
             throw e
         }
     }
+/*
+    @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
+    Build build(@PathVariable("name") String master, @PathVariable String job, @RequestParam Map<String,String> requestParams) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        try {
+            def poller = new BuildJobPoller(job, masters.map[master])
+            executor.submit(poller).get(30, TimeUnit.SECONDS)
+            poller.build
+        } catch (RuntimeException e) {
+            log.error("Unable to build job `${job}`", e)
+            throw e
+        }
+    }
+*/
 
     static class BuildJobPoller implements Runnable {
         private final String job
         private final JenkinsClient client
-
+        private final Map<String,String> requestParams
+        
         private Build build;
 
         BuildJobPoller(String job, JenkinsClient client) {
             this.job = job
             this.client = client
         }
+        
+        BuildJobPoller(String job, JenkinsClient clientm, Map<String,String> requestParams) {
+            this.job = job
+            this.client = client
+            this.requestParams = requestParams
+        }
 
         void run() {
-            def response = client.build(job)
+            def response
+            
+            if(requestParams) {
+                response = client.buildWithParameters(job, requestParams)
+            } else {
+                response = client.build(job, requestParams)
+            }
+            
             if (response.status != 201) {
                 throw new BuildJobError()
             }

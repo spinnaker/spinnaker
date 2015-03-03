@@ -186,6 +186,29 @@ class JenkinsClientSpec extends Specification {
         jobConfig.url == "http://jenkins.builds.net/job/My-Build/"
 
     }
+    
+    void 'trigger a build without parameters'() {
+        given:
+        setResponse("")
+        
+        when:
+        def response = client.build("My-Build", null)
+
+        then:
+        response
+
+    }
+    
+    void 'trigger a build with parameters'() {
+        given:
+        setResponse("")
+
+        when:
+        def response = client.build("My-Build", [foo:"bar", key:"value"])
+
+        then:
+        response
+    }
 
     private void setResponse(String body) {
         server.enqueue(
