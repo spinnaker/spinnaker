@@ -98,6 +98,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                              sourceImage,
                                              DISK_SIZE_GB,
                                              DISK_TYPE,
+                                             false,
                                              INSTANCE_TYPE,
                                              new GceConfig.DeployDefaults())
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)

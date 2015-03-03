@@ -75,6 +75,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
                                               sourceImage,
                                               description.diskSizeGb,
                                               description.diskType,
+                                              true,
                                               description.instanceType,
                                               gceDeployDefaults)
 
