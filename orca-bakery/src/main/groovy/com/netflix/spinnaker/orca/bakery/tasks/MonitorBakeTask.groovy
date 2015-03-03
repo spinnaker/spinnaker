@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 @CompileStatic
@@ -43,9 +44,15 @@ class MonitorBakeTask implements RetryableTask {
 
     // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
 
-    def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
-
-    new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
+    try {
+      def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
+      new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      }
+      throw e
+    }
   }
 
   private ExecutionStatus mapStatus(BakeStatus newStatus) {

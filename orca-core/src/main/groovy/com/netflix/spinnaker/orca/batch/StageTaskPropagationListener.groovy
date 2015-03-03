@@ -38,19 +38,20 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
-    def taskName = taskName(stepExecution)
-    def task = stage.tasks.find { it.name == taskName }
-    if (!task) {
-      task = new DefaultTask(name: taskName, status: ExecutionStatus.RUNNING)
-      stage.tasks << task
+    def taskId = taskId(stepExecution)
+    def task = stage.tasks.find { it.id == taskId }
+    if (task.status == ExecutionStatus.NOT_STARTED) {
+      task = (DefaultTask) task
+      task.startTime = System.currentTimeMillis()
+      task.status = ExecutionStatus.RUNNING
       saveStage stage
     }
   }
 
   @Override
   void afterTask(Stage stage, StepExecution stepExecution) {
-    def taskName = taskName(stepExecution)
-    def task = stage.tasks.find { it.name == taskName }
+    def taskId = taskId(stepExecution)
+    def task = stage.tasks.find { it.id == taskId }
     ExecutionStatus executionStatus = mapBatchStatus(stepExecution.status)
     task.status = executionStatus
     task.endTime = System.currentTimeMillis()

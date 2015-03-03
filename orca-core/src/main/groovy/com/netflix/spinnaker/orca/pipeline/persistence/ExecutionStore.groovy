@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 interface ExecutionStore<T extends Execution> {
   public static final String ORCHESTRATION = "orchestration"
@@ -28,12 +29,16 @@ interface ExecutionStore<T extends Execution> {
    */
   void store(T execution)
 
+  void storeStage(Stage<T> stage)
+
   /**
    * @param id The id of the execution to retrievePipeline.
    * @return The execution implementation's instance
    * @throws ExecutionNotFoundException if <code>id</code> does not exist in the store.
    */
   T retrieve(String id) throws ExecutionNotFoundException
+
+  Stage<T> retrieveStage(String id)
 
   List<T> all()
 

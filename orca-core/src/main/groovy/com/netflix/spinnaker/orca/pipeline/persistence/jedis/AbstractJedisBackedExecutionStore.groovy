@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import redis.clients.jedis.JedisCommands
 
@@ -67,13 +68,38 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   }
 
   @Override
+  void storeStage(Stage<T> stage) {
+    def json = mapper.writeValueAsString(stage)
+
+    def key = "${prefix}:stage:${stage.id}"
+    jedis.hset(key, "config", json)
+  }
+
+  @Override
+  Stage<T> retrieveStage(String id) {
+    def key = "${prefix}:stage:${id}"
+    return jedis.exists(key) ? mapper.readValue(jedis.hget(key, "config"), Stage) : null
+  }
+
+  @Override
   T retrieve(String id) throws ExecutionNotFoundException {
     def key = "${prefix}:$id"
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
       Execution execution = mapper.readValue(json, executionClass)
-      for (stage in execution.stages) {
-        stage.execution = execution
+
+      List<Stage> reorderedStages = []
+      execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
+        reorderedStages << parentStage
+
+        execution.stages.findAll { it.parentStageId == parentStage.id}.each {
+          reorderedStages << it
+        }
+      }
+      execution.stages = reorderedStages.collect {
+        def explicitStage = retrieveStage(it.id) ?: it
+        explicitStage.execution = execution
+        return explicitStage
       }
       execution
     } else {
@@ -86,10 +112,9 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     if (jedis.exists(lookupKey)) {
       def keys = jedis.smembers(lookupKey)
       for (id in keys) {
-        def key = "${prefix}:${id}"
-        if (jedis.exists(key)) {
-          results << mapper.readValue(jedis.hget(key, "config"), executionClass)
-        }
+        try {
+          results << retrieve(id)
+        } catch (ExecutionNotFoundException ignored) {}
       }
     }
     results

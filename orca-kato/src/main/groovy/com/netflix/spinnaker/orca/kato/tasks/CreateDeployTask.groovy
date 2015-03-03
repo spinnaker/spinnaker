@@ -26,10 +26,12 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 @CompileStatic
 class CreateDeployTask implements Task {
@@ -59,10 +61,10 @@ class CreateDeployTask implements Task {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"  : "createdeploy",
-        "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
-        "deploy.account.name": deployOperations.credentials,
+      "notification.type"  : "createdeploy",
+      "kato.last.task.id"  : taskId,
+      "kato.task.id"       : taskId, // TODO retire this.
+      "deploy.account.name": deployOperations.credentials,
     ])
   }
 
@@ -73,12 +75,15 @@ class CreateDeployTask implements Task {
     } else {
       operation.putAll(stage.context)
     }
-    // TODO This logic is not great... we should have a mechanism to discriminate on stage type, versus how it was built from config.
-    if (stage.preceding("bake")?.context?.ami) {
-      operation.amiName = stage.preceding("bake").context.ami
-    } else if (stage.preceding("opinionatedBake")?.context?.ami) {
-      operation.amiName = stage.preceding("opinionatedBake").context.ami
+
+    def targetRegion = (operation.availabilityZones as Map<String, Object>).keySet()[0]
+    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+    if (deploymentDetails) {
+      operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
+
+    log.info("Deploying ${operation.amiName} to ${targetRegion}")
+
     if (stage.context.account && !operation.credentials) {
       operation.credentials = stage.context.account
     }

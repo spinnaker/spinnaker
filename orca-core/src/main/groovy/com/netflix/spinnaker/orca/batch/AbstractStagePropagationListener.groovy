@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 
@@ -28,10 +28,10 @@ abstract class AbstractStagePropagationListener extends StageExecutionListener {
   }
 
   protected void saveStage(Stage stage) {
-    if (stage.execution instanceof Pipeline) {
-      executionRepository.store(stage.execution as Pipeline)
+    if (stage instanceof PipelineStage) {
+      executionRepository.storeStage(stage as PipelineStage)
     } else {
-      executionRepository.store(stage.execution as Orchestration)
+      executionRepository.storeStage(stage as OrchestrationStage)
     }
   }
 }

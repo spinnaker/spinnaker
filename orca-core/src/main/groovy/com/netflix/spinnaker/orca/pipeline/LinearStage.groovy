@@ -16,12 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
@@ -99,18 +94,4 @@ abstract class LinearStage extends StageBuilder {
       builder.next(step)
     }
   }
-
-  private static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
-                                Stage parent, SyntheticStageOwner stageOwner) {
-    def stage
-    if (execution instanceof Orchestration) {
-      stage = new OrchestrationStage(execution, type, context)
-    } else {
-      stage = new PipelineStage((Pipeline)execution, type, name, context)
-    }
-    stage.parentStageId = parent.id
-    stage.syntheticStageOwner = stageOwner
-    stage
-  }
-
 }
