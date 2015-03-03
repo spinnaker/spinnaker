@@ -2,10 +2,45 @@
 
 describe('Controller: InstanceArchetypeSelectorCtrl', function () {
 
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
+  var instanceTypeService;
+  var generalFamily = {
+    type: 'general',
+    families: [{
+      instanceTypes: [
+        {name: 'm3.medium'},
+        {name: 'm3.large'},
+        {name: 'm3.xlarge'},
+        {name: 'm3.2xlarge'}
+      ]
+    }]
+  };
+
+  var memoryFamily = {
+    type: 'memory',
+    families: [{
+      instanceTypes: [
+        {name: 'r3.large'},
+        {name: 'r3.xlarge'},
+        {name: 'r3.2xlarge'},
+        {name: 'r3.4xlarge'},
+      ]
+    }]
+  };
+
+  var microFamily = {
+    type: 'micro',
+    families: [{
+      instanceTypes: [
+        {name: 't2.small'},
+        {name: 't2.medium'},
+      ]
+    }]
+  };
+
+  var categories = [generalFamily, memoryFamily, microFamily];
+
 
   beforeEach(
     module(
@@ -15,7 +50,8 @@ describe('Controller: InstanceArchetypeSelectorCtrl', function () {
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    inject(function ($rootScope, $controller, _instanceTypeService_) {
+      instanceTypeService = _instanceTypeService_
       scope = $rootScope.$new();
       scope.command = {
         selectedProvider: {}
@@ -31,47 +67,38 @@ describe('Controller: InstanceArchetypeSelectorCtrl', function () {
     expect(controller).toBeDefined();
   });
 
-  describe('determine the instanceProfile from an instanceType', function () {
+  describe('find profile name for instance type', function () {
 
-    it('should return "custom" if instance type is null', function () {
-      var instanceType = null;
-      var result = controller.determineInstanceProfileFromType(instanceType)
-
-      expect(result).toBe('custom');
+    generalFamily.families[0].instanceTypes.forEach( function(instanceType) {
+      it('should return "general" if the ' + instanceType.name + ' is in the "general" category', function () {
+        var result = controller.findProfileForInstanceType(categories, instanceType.name);
+        expect(result).toBe('general');
+      });
     });
+
+    memoryFamily.families[0].instanceTypes.forEach(function (instanceType) {
+      it('should return "memory" if the ' + instanceType.name + ' is in the "memory" category', function () {
+        var result = controller.findProfileForInstanceType(categories, instanceType.name);
+        expect(result).toBe('memory');
+      });
+    });
+
+    microFamily.families[0].instanceTypes.forEach(function (instanceType) {
+      it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', function () {
+        var result = controller.findProfileForInstanceType(categories, instanceType.name);
+        expect(result).toBe('micro');
+      });
+    });
+
 
     var customTypes = ['c1.large', 'c3.large', 'c4.large', 'm2.large'];
-    customTypes.forEach( function(type) {
-        it('should return "custom" if instance type is ' + type , function () {
-          var result = controller.determineInstanceProfileFromType(type);
-
-          expect(result).toBe('custom');
-        });
-      }
-    );
-
-
-    it('should return "micro" if the instance type is a t2.small', function () {
-      var instanceType = 't2.small';
-      var result = controller.determineInstanceProfileFromType(instanceType);
-
-      expect(result).toBe('micro');
+    customTypes.forEach(function (instanceType) {
+      it('should return "custom" if the ' + instanceType + ' is not in a category', function () {
+        var result = controller.findProfileForInstanceType(categories, instanceType);
+        expect(result).toBe('custom');
+      });
     });
-
-    it('should return "general" if the instance type is a m3.large', function () {
-      var instanceType = 'm3.large';
-      var result = controller.determineInstanceProfileFromType(instanceType);
-
-      expect(result).toBe('general');
-    });
-
-    it('should return "memory" if the instance type is a r3.small', function () {
-      var instanceType = 'r3.small';
-      var result = controller.determineInstanceProfileFromType(instanceType)
-
-      expect(result).toBe('memory');
-    });
-
 
   });
+
 });

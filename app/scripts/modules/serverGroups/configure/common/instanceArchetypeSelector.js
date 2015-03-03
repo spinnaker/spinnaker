@@ -15,24 +15,14 @@ angular.module('deckApp.serverGroup.configure.common')
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
-      $scope.command.viewState.instanceProfile = controller.determineInstanceProfileFromType($scope.command.instanceType);
+      $scope.command.viewState.instanceProfile = controller.findProfileForInstanceType(categories, $scope.command.instanceType);
       controller.selectInstanceType($scope.command.viewState.instanceProfile);
     });
 
-    this.determineInstanceProfileFromType = function(instanceType) {
-      var profilePrefix = instanceType ? _.first(instanceType.split('.')) : null;
-
-      switch(profilePrefix) {
-        case 't2':
-          return 'micro';
-        case 'r3':
-          return 'memory';
-        case 'm3':
-          return 'general';
-        default:
-          return 'custom';
-      }
-
+    this.findProfileForInstanceType = function(categories, instanceType) {
+      var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] } ;
+      var result = _.result(_.findWhere(categories, query), 'type');
+      return result || 'custom';
     };
 
     this.selectInstanceType = function (type) {
