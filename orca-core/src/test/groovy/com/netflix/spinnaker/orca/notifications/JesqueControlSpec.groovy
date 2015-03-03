@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.discovery.StatusChangeEvent
-import com.netflix.eventbus.spi.EventBus
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
@@ -32,7 +31,6 @@ import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import rx.functions.Func1
-import spock.lang.Ignore
 import spock.lang.Specification
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
@@ -44,22 +42,15 @@ class JesqueControlSpec extends Specification {
   @Autowired AbstractApplicationContext applicationContext
   @Autowired WorkerPool workerPool
 
-  def "the application starts with Jesque active"() {
-    expect:
-    !workerPool.isPaused()
-  }
-
-  @Ignore("this is an annoying example of wanting some different condition in application context for one test")
-  def "if there is an event bus bean Jesque starts inactive"() {
-    given:
-    applicationContext.beanFactory.registerSingleton("eventBus", Stub(EventBus))
-    applicationContext.refresh()
-
+  def "Jesque starts inactive"() {
     expect:
     workerPool.isPaused()
   }
 
   def "if the instance shuts down Jesque should stop"() {
+    given:
+    applicationContext.publishEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(STARTING, UP)))
+
     when:
     applicationContext.publishEvent(new EurekaStatusChangedEvent(new StatusChangeEvent(UP, OUT_OF_SERVICE)))
 

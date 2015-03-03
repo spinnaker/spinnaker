@@ -34,6 +34,7 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   @Delegate(includes = "clear", interfaces = false)
   protected final Map<String, String> executions = [:]
   protected final Map<String, List<String>> executionsForApps = [:]
+  protected final Map<String, String> stages = [:]
 
   String prefix
   Class<T> executionClass
@@ -69,16 +70,39 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
       throw new ExecutionNotFoundException("No ${prefix} execution found for $id")
     }
     T execution = (T)mapper.readValue(executions[id], executionClass)
-    for (stage in execution.stages) {
-      ((Stage<T>)stage).execution = execution
+
+    def reorderedStages = []
+    execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
+      reorderedStages << parentStage
+
+      execution.stages.findAll { it.parentStageId == parentStage.id}.each {
+        reorderedStages << it
+      }
+    }
+    execution.stages = reorderedStages.collect {
+      def explicitStage = retrieveStage(it.id) ?: it
+      explicitStage.execution = execution
+      return explicitStage
     }
     execution
   }
 
   @Override
+  void storeStage(Stage<T> stage) {
+    def key = "${prefix}:stage:${stage.id}" as String
+    stages[key] = mapper.writeValueAsString(stage)
+  }
+
+  @Override
+  Stage<T> retrieveStage(String id) {
+    def key = "${prefix}:stage:${id}" as String
+    return stages[key] ? mapper.readValue(stages[key], Stage) : null
+  }
+
+  @Override
   List<T> all() {
-    executions.values().collect {
-      mapper.readValue(it, executionClass)
+    executions.keySet().collect {
+      retrieve(it)
     }
   }
 
@@ -86,7 +110,8 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   List<T> allForApplication(String app) {
     if (executionsForApps.containsKey(app)) {
       executionsForApps[app].collect {
-        mapper.readValue(it, executionClass)
+        def execution = mapper.readValue(it, executionClass) as Execution<T>
+        retrieve(execution.id)
       }
     } else {
       []

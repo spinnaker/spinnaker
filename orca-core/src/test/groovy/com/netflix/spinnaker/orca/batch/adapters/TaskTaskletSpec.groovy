@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -176,6 +177,22 @@ class TaskTaskletSpec extends Specification {
     where:
     key = "foo"
     value = "bar"
+  }
+
+  def "should write values in the job execution context if a task returns them as global outputs"() {
+    given:
+    task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [:], outputs)
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    chunkContext.stepContext.jobExecutionContext == outputs.collect {
+      ["global-${it.key}" as String, it.value]
+    }.collectEntries()
+
+    where:
+    outputs = [foo: "bar", appConfig: [:]]
   }
 
   def "should invoke matching exception handler when task execution fails"() {

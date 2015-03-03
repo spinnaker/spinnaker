@@ -19,8 +19,9 @@ package com.netflix.spinnaker.orca.pipeline.model
 import com.netflix.spinnaker.orca.ExecutionStatus
 
 class DefaultTask implements Task, Serializable {
+  String id
   String name
-  Long startTime = System.currentTimeMillis()
+  Long startTime
   Long endTime
   ExecutionStatus status = ExecutionStatus.NOT_STARTED
 }

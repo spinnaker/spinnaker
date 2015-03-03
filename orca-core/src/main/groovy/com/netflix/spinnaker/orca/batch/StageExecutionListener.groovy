@@ -62,6 +62,10 @@ abstract class StageExecutionListener extends StepExecutionListenerSupport {
     stepExecution.stepName.tokenize(".").get(2)
   }
 
+  protected final String taskId(StepExecution stepExecution) {
+    stepExecution.stepName.tokenize(".").get(3)
+  }
+
   protected final Execution currentExecution(StepExecution stepExecution) {
     if (stepExecution.jobParameters.parameters.containsKey("pipeline")) {
       String id = stepExecution.jobParameters.getString("pipeline")

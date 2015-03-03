@@ -30,14 +30,22 @@ final class DefaultTaskResult implements TaskResult {
 
   final ExecutionStatus status
   final ImmutableMap<String, Object> outputs
+  final ImmutableMap<String, Object> globalOutputs
 
   DefaultTaskResult(ExecutionStatus status) {
-    this(status, [:])
+    this(status, [:], [:])
   }
 
-  DefaultTaskResult(ExecutionStatus status, Map<String, ? extends Object> outputs) {
+  DefaultTaskResult(ExecutionStatus status,
+                    Map<String, ? extends Object> stageOutputs,
+                    Map<String, ? extends Object> globalOutputs = [:]) {
     this.status = status
-    this.outputs = ImmutableMap.copyOf(outputs)
+    this.outputs = ImmutableMap.copyOf(stageOutputs)
+    this.globalOutputs = ImmutableMap.copyOf(globalOutputs)
   }
 
+  @Override
+  ImmutableMap<String, Object> getStageOutputs() {
+    return outputs
+  }
 }

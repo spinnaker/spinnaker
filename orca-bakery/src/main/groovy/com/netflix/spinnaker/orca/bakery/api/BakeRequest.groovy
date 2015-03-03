@@ -56,8 +56,39 @@ class BakeRequest {
     release, candidate, previous, unstable, foundation
   }
 
+  static enum PackageType {
+    RPM('rpm', '-'),
+    DEB('deb', '_')
+
+    private final String packageType
+    private final String versionDelimiter
+
+    private PackageType(String packageType, String versionDelimiter) {
+      this.packageType = packageType
+      this.versionDelimiter = versionDelimiter
+    }
+
+    String getPackageType() {
+      return this.packageType
+    }
+
+    String getVersionDelimiter() {
+      return this.versionDelimiter
+    }
+  }
+
   static enum OperatingSystem {
-    centos, ubuntu, trusty
+
+    centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
+
+    private final PackageType packageType
+    private OperatingSystem(PackageType packageType) {
+      this.packageType = packageType
+    }
+
+    PackageType getPackageType() {
+      return packageType
+    }
   }
 
   static enum VmType {

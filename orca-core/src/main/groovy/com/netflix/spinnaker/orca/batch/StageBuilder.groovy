@@ -24,7 +24,7 @@ import com.google.common.base.Function
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import static java.util.Collections.EMPTY_LIST
+import static java.util.UUID.randomUUID
 
 /**
  * Base class for a component that builds a _stage_ to be run as (part of) a
@@ -94,14 +95,17 @@ abstract class StageBuilder implements ApplicationContextAware {
 
   @CompileStatic(TypeCheckingMode.SKIP)
   private StepBuilder createStepWithListeners(Stage stage, String taskName) {
-    def stepBuilder = steps.get(stepName(stage.id, taskName))
+    def stepBuilder = steps.get(stepName(stage, taskName))
     getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
     } as StepBuilder
   }
 
-  private String stepName(String stageId, String taskName) {
-    "${stageId}.${type}.${taskName}"
+  private String stepName(Stage stage, String taskName) {
+    def task = new DefaultTask(id: randomUUID().toString(), name: taskName)
+    stage.tasks.add(task)
+
+    "${stage.id}.${type}.${taskName}.${task.id}"
   }
 
   @Autowired
@@ -134,5 +138,18 @@ abstract class StageBuilder implements ApplicationContextAware {
     Optional.fromNullable(taskListeners)
             .transform(ImmutableList.&copyOf as Function)
             .or(EMPTY_LIST)
+  }
+
+  static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
+                        Stage parent, Stage.SyntheticStageOwner stageOwner) {
+    def stage
+    if (execution instanceof Orchestration) {
+      stage = new OrchestrationStage(execution, type, context)
+    } else {
+      stage = new PipelineStage((Pipeline) execution, type, name, context)
+    }
+    stage.parentStageId = parent.id
+    stage.syntheticStageOwner = stageOwner
+    stage
   }
 }

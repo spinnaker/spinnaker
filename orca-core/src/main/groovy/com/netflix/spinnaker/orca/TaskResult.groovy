@@ -22,7 +22,11 @@ interface TaskResult {
 
   ExecutionStatus getStatus()
 
+  @Deprecated
   ImmutableMap<String, Serializable> getOutputs()
 
+  ImmutableMap<String, Serializable> getStageOutputs()
+
+  ImmutableMap<String, Serializable> getGlobalOutputs()
 }
 

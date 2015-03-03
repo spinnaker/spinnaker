@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.pipeline.persistence
 
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -41,6 +43,16 @@ class DefaultExecutionRepository implements ExecutionRepository {
   @Override
   void store(Pipeline pipeline) {
     this.pipelineStore.store(pipeline)
+  }
+
+  @Override
+  void storeStage(PipelineStage stage) {
+    this.pipelineStore.storeStage(stage)
+  }
+
+  @Override
+  void storeStage(OrchestrationStage stage) {
+    this.orchestrationStore.storeStage(stage)
   }
 
   @Override
