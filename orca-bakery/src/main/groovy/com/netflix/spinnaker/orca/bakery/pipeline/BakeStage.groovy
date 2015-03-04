@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
+import com.netflix.spinnaker.orca.pipeline.StepProvider
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @CompileStatic
-class BakeStage extends ParallelStage {
+class BakeStage extends ParallelStage implements StepProvider {
 
   public static final String MAYO_CONFIG_TYPE = "bake"
 

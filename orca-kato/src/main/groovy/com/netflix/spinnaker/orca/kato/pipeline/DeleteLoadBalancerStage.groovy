@@ -50,7 +50,7 @@ class DeleteLoadBalancerStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "deleteAmazonLoadBalancer", DeleteAmazonLoadBalancerTask)
     def step2 = buildStep(stage, "forceCacheRefresh", DeleteAmazonLoadBalancerForceRefreshTask)
     def step3 = buildStep(stage, "monitorDelete", MonitorKatoTask)

@@ -40,7 +40,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     [buildStep(stage, "suspendExecutionDuringTimeWindow", SuspendExecutionDuringTimeWindowTask)]
   }
 

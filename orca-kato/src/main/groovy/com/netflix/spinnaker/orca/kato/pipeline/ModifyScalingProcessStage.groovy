@@ -37,7 +37,7 @@ class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     composeTargets(stage)
 
     def data = stage.mapTo(StageData)

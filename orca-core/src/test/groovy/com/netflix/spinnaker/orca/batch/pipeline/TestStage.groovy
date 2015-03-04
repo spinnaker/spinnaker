@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 
+import static java.util.UUID.randomUUID
+
 /**
  * A stub +Stage+ implementation for unit tests that doesn't need to be Spring-wired in order to work. It will
  * just add one or more pre-defined +Tasks+ (probably mocks) to the pipeline.
@@ -54,10 +56,9 @@ class TestStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
-    def i = 1
-    tasks.collect {
-      buildStep stage, "task${i++}", it
+  public List<Step> buildSteps(Stage stage) {
+    tasks.collect { Task task ->
+      buildStep (stage, randomUUID().toString(), task)
     }
   }
 }

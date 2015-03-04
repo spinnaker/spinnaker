@@ -77,7 +77,7 @@ abstract class DeployStrategyStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
     basicSteps(stage)

@@ -29,8 +29,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 
 class ResizeAsgStageSpec extends Specification {
