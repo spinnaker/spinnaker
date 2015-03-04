@@ -24,41 +24,27 @@ import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.FlowBuilder
-import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.job.flow.Flow
 import org.springframework.batch.core.job.flow.support.SimpleFlow
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Component
 
 @Component
 abstract class ParallelStage extends StageBuilder {
+  @Autowired
+  List<StepProvider> stepProviders
+
   ParallelStage(String name) {
     super(name)
   }
 
   @Override
-  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
+  FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
     stage.name = parallelStageName()
     stage.type = "initialization"
 
-    List<Flow> flows = parallelContexts(stage).collect { Map context ->
-      def nextStage = newStage(
-        stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
-      )
-      stage.execution.stages.add(nextStage)
-
-      def flowBuilder = new FlowBuilder<Flow>(context.name as String)
-      buildSteps(nextStage).eachWithIndex { entry, i ->
-        if (i == 0) {
-          flowBuilder.from(entry)
-        } else {
-          flowBuilder.next(entry)
-        }
-      }
-
-      return flowBuilder.end()
-    }
-
+    List<Flow> flows = buildFlows(stage)
     if (stage.execution.stages.indexOf(stage) == 0) {
       jobBuilder = jobBuilder.start(buildStep(stage, "beginParallel", beginParallel()))
     } else {
@@ -79,6 +65,26 @@ abstract class ParallelStage extends StageBuilder {
     return jobBuilder
   }
 
+  protected List<Flow> buildFlows(Stage stage) {
+    return parallelContexts(stage).collect { Map context ->
+      def nextStage = newStage(
+        stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
+      )
+      stage.execution.stages.add(nextStage)
+
+      def flowBuilder = new FlowBuilder<Flow>(context.name as String)
+      buildSteps(nextStage).eachWithIndex { entry, i ->
+        if (i == 0) {
+          flowBuilder.from(entry)
+        } else {
+          flowBuilder.next(entry)
+        }
+      }
+
+      return flowBuilder.end()
+    }
+  }
+
   protected Task beginParallel() {
     return new Task() {
       @Override
@@ -88,11 +94,13 @@ abstract class ParallelStage extends StageBuilder {
     }
   }
 
+  private List<Step> buildSteps(Stage stage) {
+    stepProviders.find {it.type == stage.context.type}.buildSteps(stage)
+  }
+
   abstract String parallelStageName()
 
   abstract Task completeParallel()
-
-  abstract List<Step> buildSteps(Stage stage)
 
   abstract List<Map<String, Object>> parallelContexts(Stage stage)
 }

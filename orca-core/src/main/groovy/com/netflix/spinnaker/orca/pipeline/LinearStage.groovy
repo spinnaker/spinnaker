@@ -23,22 +23,20 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
 import org.springframework.batch.core.Step
-import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.job.builder.FlowBuilder
 
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
 @CompileStatic
-abstract class LinearStage extends StageBuilder {
+abstract class LinearStage extends StageBuilder implements StepProvider {
 
   LinearStage(String name) {
     super(name)
   }
 
-  protected abstract List<Step> buildSteps(Stage stage)
-
   @Override
-  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
+  FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
     def steps = buildSteps(stage)
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*
@@ -69,7 +67,7 @@ abstract class LinearStage extends StageBuilder {
     stage.afterStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
-  private void processBeforeStages(JobFlowBuilder jobBuilder, int stageIdx, Stage stage) {
+  private void processBeforeStages(FlowBuilder jobBuilder, int stageIdx, Stage stage) {
     if (stage.beforeStages) {
       for (beforeStage in stage.beforeStages.reverse()) {
         def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name,
@@ -80,7 +78,7 @@ abstract class LinearStage extends StageBuilder {
     }
   }
 
-  private void processAfterStages(JobFlowBuilder jobBuilder, Stage stage) {
+  private void processAfterStages(FlowBuilder jobBuilder, Stage stage) {
     if (stage.afterStages) {
       for (afterStage in stage.afterStages) {
         def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name,
@@ -91,8 +89,8 @@ abstract class LinearStage extends StageBuilder {
     }
   }
 
-  private JobFlowBuilder wireSteps(JobFlowBuilder jobBuilder, List<Step> steps) {
-    (JobFlowBuilder) steps.inject(jobBuilder) { JobFlowBuilder builder, Step step ->
+  private FlowBuilder wireSteps(FlowBuilder jobBuilder, List<Step> steps) {
+    (FlowBuilder) steps.inject(jobBuilder) { FlowBuilder builder, Step step ->
       builder.next(step)
     }
   }
