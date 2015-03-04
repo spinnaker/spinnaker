@@ -1,4 +1,6 @@
 package com.netflix.spinnaker.orca.notifications
+
+import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
@@ -10,6 +12,7 @@ import com.netflix.spinnaker.orca.notifications.jenkins.Trigger
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import net.greghaines.jesque.client.Client
+import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
 import org.springframework.context.annotation.Bean
@@ -22,11 +25,9 @@ import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import rx.schedulers.Schedulers
 import spock.lang.Specification
-
-import java.util.concurrent.CountDownLatch
-
 import static java.util.concurrent.TimeUnit.SECONDS
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
+
 /**
  * Integration test to ensure the Jesque-based notification workflow hangs
  * together.
@@ -36,6 +37,7 @@ class NotificationSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired BuildJobPollingNotificationAgent notificationAgent
+  @Autowired SpringWorkerPool springWorkerPool
   def pipelineStarter = Mock(PipelineStarter)
   def scheduler = Schedulers.test()
 
@@ -56,6 +58,8 @@ class NotificationSpec extends Specification {
     applicationContext.beanFactory.with {
       registerSingleton "pipelineStarter", pipelineStarter
     }
+
+    springWorkerPool.togglePause(false)
   }
 
   def "jenkins trigger causes a pipeline to start"() {
