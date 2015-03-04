@@ -385,9 +385,15 @@ load-balancers-tag {
 
 .row {
   cluster-pod {
+    .rollup-summary {
+      &:hover {
+        box-shadow: none;
+      }
+    }
     .rollup-entry {
       &:hover {
         box-shadow: none;
+        border-color: #c4c4c4;
       }
     }
     .server-group-sequence {
