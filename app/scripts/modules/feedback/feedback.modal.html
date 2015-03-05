@@ -47,7 +47,7 @@
       <div ng-if="state === states.SUBMITTED">
         <h3>Thanks for your feedback!</h3>
         <p>
-          You can follow the <a target=_blank href="{{issueUrl}}">progress of your issue</a> here.
+          You can follow the progress of your issue <span ng-if="issueId">({{issueId}})</span> <a target=_blank href="{{issueUrl}}">here</a> .
         </p>
       </div>
 
