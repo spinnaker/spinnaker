@@ -31,6 +31,14 @@ angular.module('deckApp.feedback.modal.controller', [
       return $scope.feedback.contact;
     }
 
+    function getUserNameFromContactInfo() {
+      var email = getContactInfo();
+      if (email.indexOf('@') !== -1) {
+        return email.split('@')[0];
+      }
+      return email;
+    }
+
     function buildDescription() {
       return [
         '*Submitted by:*\n' + getContactInfo(),
@@ -42,7 +50,8 @@ angular.module('deckApp.feedback.modal.controller', [
     function buildRequestBody() {
       return {
         title: $scope.feedback.title,
-        description: buildDescription()
+        description: buildDescription(),
+        contact: getUserNameFromContactInfo(),
       };
     }
 
@@ -52,6 +61,7 @@ angular.module('deckApp.feedback.modal.controller', [
         .success(function(result) {
           $scope.state = $scope.states.SUBMITTED;
           $scope.issueUrl = result.url;
+          $scope.issueId = result.id;
         })
         .error(function() {
           $scope.state = $scope.states.ERROR;
