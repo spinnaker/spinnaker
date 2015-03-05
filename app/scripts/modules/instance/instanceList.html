@@ -15,7 +15,7 @@
     <tr ng-repeat="instance in viewModel.instances | instanceSearch:sortFilter.filter | orderBy: sortFilter.instanceSort.key track by instance.id"
         ng-click="loadInstanceDetails($event, instance.id, instance.provider)"
         class="clickable"
-        ng-class="{ active: $state.includes('**.instanceDetails', {instanceId: instance.id}) }">
+        ng-class="{ info: $state.includes('**.instanceDetails', {instanceId: instance.id}) }">
       <!-- use this when multi-select is a thing -->
       <!--<td><input type="checkbox"></td>-->
       <td>
