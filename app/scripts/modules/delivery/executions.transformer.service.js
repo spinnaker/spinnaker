@@ -1,9 +1,10 @@
 'use strict';
 
 angular.module('deckApp.delivery.executionTransformer.service', [
-  'deckApp.orchestratedItem.service'
+  'deckApp.orchestratedItem.service',
+  'deckApp.utils.lodash',
 ])
-  .factory('executionsTransformer', function(orchestratedItem) {
+  .factory('executionsTransformer', function(orchestratedItem, _) {
 
     function transformExecution(execution) {
       var stageSummaries = [];
@@ -43,9 +44,8 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     }
 
     function transformStageSummary(summary) {
-      summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after);
-      summary.stages = _.filter(summary.stages, function(stage) {
-        return stage.type != "initialization";
+      summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after).filter(function(stage) {
+        return stage.type !== 'initialization';
       });
       if (summary.stages.length) {
         var lastStage = summary.stages[summary.stages.length - 1];
