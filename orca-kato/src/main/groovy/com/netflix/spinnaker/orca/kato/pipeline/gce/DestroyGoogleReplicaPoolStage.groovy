@@ -40,8 +40,8 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "destroyAsg", DestroyGoogleReplicaPoolTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+    def step1 = buildStep(stage, "destroyServerGroup", DestroyGoogleReplicaPoolTask)
+    def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
     def step3 = buildStep(stage, "forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
     [step1, step2, step3].flatten().toList()
   }
