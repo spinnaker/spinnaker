@@ -192,7 +192,7 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
         
         when:
-        def response = client.build("My-Build", null)
+        def response = client.build("My-Build")
 
         then:
         response
@@ -204,7 +204,7 @@ class JenkinsClientSpec extends Specification {
         setResponse("")
 
         when:
-        def response = client.build("My-Build", [foo:"bar", key:"value"])
+        def response = client.buildWithParameters("My-Build", [foo:"bar", key:"value"])
 
         then:
         response

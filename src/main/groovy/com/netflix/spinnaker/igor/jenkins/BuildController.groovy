@@ -110,10 +110,13 @@ class BuildController {
 
             if(requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
                 response = client.buildWithParameters(job, requestParams)
+            } else if(!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+                // account for when you just want to fire a job with the default parameter values by adding a dummy param
+                response = client.buildWithParameters(job, ['startedBy' : "igor"])
             } else if(!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)){
-                response = client.build(job, requestParams)
+                response = client.build(job)
             } else { // Jenkins will reject the build, so don't even try
-                log.error("job : ${job}, either not passing params to a build job which needs them or passing params to a job which doesn't need them")
+                log.error("job : ${job}, passing params to a job which doesn't need them")
                 // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
                 throw new RuntimeException()
             }
