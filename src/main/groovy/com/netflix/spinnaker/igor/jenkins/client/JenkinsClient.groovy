@@ -53,7 +53,7 @@ interface JenkinsClient {
     QueuedJob getQueuedItem(@Path('itemNumber') Integer item)
 
     @POST('/job/{jobName}/build')
-    Response build(@Path('jobName') String jobName, @QueryMap Map<String,String> queryParams)
+    Response build(@Path('jobName') String jobName)
 
     @POST('/job/{jobName}/buildWithParameters')
     Response buildWithParameters(@Path('jobName') String jobName, @QueryMap Map<String,String> queryParams)
