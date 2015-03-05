@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 
@@ -33,7 +33,7 @@ class ManualInterventionStage extends StageBuilder {
   }
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
+  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
     def step1 = buildStep(stage, "preIntervention", preInterventionTask)
     def step2 = buildStep(stage, "postIntervention", postInterventionTask)
     def step3 = buildStep(stage, "final", finalTask)

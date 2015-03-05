@@ -15,14 +15,16 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline
+
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
  */
@@ -36,7 +38,7 @@ abstract class LinearStage extends StageBuilder {
   protected abstract List<Step> buildSteps(Stage stage)
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
+  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
     def steps = buildSteps(stage)
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*

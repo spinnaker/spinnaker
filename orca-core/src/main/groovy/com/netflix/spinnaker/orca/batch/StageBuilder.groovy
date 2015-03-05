@@ -51,20 +51,26 @@ abstract class StageBuilder implements ApplicationContextAware {
   private TaskTaskletAdapter taskTaskletAdapter
   private List<StepExecutionListener> taskListeners
   private ApplicationContext applicationContext
+  private ThreadLocal<Integer> taskCounter = new ThreadLocal<>()
 
   StageBuilder(String type) {
     this.type = type
   }
 
   /**
-   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+. This method
-   * is typically called when the stage is not the first in the pipeline.
+   * Implementations should construct any steps necessary for the stage and append them to +jobBuilder+.
    *
    * @param jobBuilder the builder for the job. Implementations should append steps to this.
    * @param stage the stage configuration.
    * @return the resulting builder after any steps are appended.
    */
-  abstract JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage)
+  final JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
+    taskCounter.set(1)
+    buildInternal jobBuilder, stage
+  }
+
+  protected
+  abstract JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage)
 
   /**
    * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming
@@ -101,12 +107,19 @@ abstract class StageBuilder implements ApplicationContextAware {
   }
 
   private String stepName(Stage stage, String taskName) {
-    if (!stage.tasks*.name.contains(taskName)) {
-      def task = new DefaultTask(id: taskName, name: taskName)
+    def id = nextTaskId()
+    if (!stage.tasks*.id.contains(id)) {
+      def task = new DefaultTask(id: id, name: taskName)
       stage.tasks.add(task)
     }
 
-    "${stage.id}.${type}.${taskName}.${taskName}"
+    "${stage.id}.${type}.${taskName}.${id}"
+  }
+
+  private String nextTaskId() {
+    def id = taskCounter.get() ?: 1
+    taskCounter.set(id + 1)
+    return id
   }
 
   @Autowired

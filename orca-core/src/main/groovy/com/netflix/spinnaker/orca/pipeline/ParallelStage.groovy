@@ -37,7 +37,7 @@ abstract class ParallelStage extends StageBuilder {
   }
 
   @Override
-  JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
+  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
     stage.name = parallelStageName()
     stage.type = "initialization"
 
