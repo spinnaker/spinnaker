@@ -48,7 +48,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     String master = stage.context.master
     String job = stage.context.job
-    def buildNumber = (int)stage.context.buildNumber
+    def buildNumber = (int) stage.context.buildNumber
     try {
       Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
       String result = build.result
@@ -56,7 +56,11 @@ class MonitorJenkinsJobTask implements RetryableTask {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
       if (statusMap.containsKey(result)) {
-        return new DefaultTaskResult(statusMap[result], [buildInfo: build])
+        Map<String, String> properties = [:]
+        if (stage.context.propertyFile) {
+          properties = igorService.getPropertyFile(master, job, buildNumber, stage.context.propertyFile)
+        }
+        return new DefaultTaskResult(statusMap[result], [buildInfo: build] + properties)
       } else {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
