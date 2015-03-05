@@ -32,10 +32,15 @@ angular.module('deckApp.executionDetails.controller', [
       $state.go('.', { stage: null });
     };
 
-    controller.getKatoException = function(stage) {
-      if (stage.context && stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
-        var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
-        return lastTask.exception ? lastTask.exception.message : null;
+    controller.getException = function(stage) {
+      if (stage.context) {
+        if (stage.context.exception && stage.context.exception.details.errors.length) {
+          return stage.context.exception.details.errors.join(', ');
+        }
+        if (stage.context['kato.tasks'] && stage.context['kato.tasks'].length) {
+          var lastTask = stage.context['kato.tasks'][stage.context['kato.tasks'].length-1];
+          return lastTask.exception ? lastTask.exception.message : null;
+        }
       }
       return null;
     };
