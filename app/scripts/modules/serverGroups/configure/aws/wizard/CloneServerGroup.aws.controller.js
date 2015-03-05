@@ -23,6 +23,7 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
 
     $scope.state = {
       loaded: false,
+      requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -33,26 +34,34 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
       forceRefreshEnabled: true
     });
 
-    awsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function() {
-      if (!serverGroupCommand.backingData.packageImages.length) {
-        serverGroupCommand.viewState.useAllImageSelection = true;
-      }
-      $scope.state.loaded = true;
-      initializeCommand();
-      initializeWizardState();
-      initializeSelectOptions();
-      initializeWatches();
-    });
+    function configureCommand() {
+      awsServerGroupConfigurationService.configureCommand(application, serverGroupCommand).then(function () {
+        var mode = serverGroupCommand.viewState.mode;
+        if (mode === 'clone' || mode === 'create') {
+          if (!serverGroupCommand.backingData.packageImages.length) {
+            serverGroupCommand.viewState.useAllImageSelection = true;
+          }
+        }
+        $scope.state.loaded = true;
+        initializeCommand();
+        initializeWizardState();
+        initializeSelectOptions();
+        initializeWatches();
+      });
+    }
 
     function initializeWizardState() {
       if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
+        modalWizardService.getWizard().includePage('instance-type');
         modalWizardService.getWizard().markComplete('instance-type');
       }
-      if (serverGroupCommand.viewState.mode === 'clone') {
+      var mode = serverGroupCommand.viewState.mode;
+      if (mode === 'clone' || mode === 'editPipeline') {
         modalWizardService.getWizard().markComplete('location');
         modalWizardService.getWizard().markComplete('load-balancers');
         modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('instance-profile');
+        modalWizardService.getWizard().markComplete('instance-type');
         modalWizardService.getWizard().markComplete('capacity');
         modalWizardService.getWizard().markComplete('advanced');
       }
@@ -142,6 +151,9 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
     };
 
     this.submit = function () {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
+        return $modalInstance.close($scope.command);
+      }
       $scope.taskMonitor.submit(
         function() {
           return serverGroupWriter.cloneServerGroup($scope.command, application);
@@ -152,4 +164,15 @@ angular.module('deckApp.aws.cloneServerGroup.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
+
+    if (!$scope.state.requiresTemplateSelection) {
+      configureCommand();
+    } else {
+      $scope.state.loaded = true;
+    }
+
+    $scope.$on('template-selected', function() {
+      $scope.state.requiresTemplateSelection = false;
+      configureCommand();
+    });
   });

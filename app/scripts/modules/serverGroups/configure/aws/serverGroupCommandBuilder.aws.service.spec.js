@@ -34,7 +34,7 @@ describe('Service: awsServerGroup', function () {
 
       this.cluster = {
         loadBalancers: ['elb-1'],
-        credentials: 'prod',
+        account: 'prod',
         availabilityZones: {
           'us-west-1': ['d','g']
         },
@@ -72,7 +72,7 @@ describe('Service: awsServerGroup', function () {
     it('applies account, region from cluster', function () {
 
       var command = null;
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster, 'prod').then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
         command = result;
       });
 
@@ -84,7 +84,7 @@ describe('Service: awsServerGroup', function () {
 
     it('sets usePreferredZones', function() {
       var command = null;
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster, 'prod').then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
         command = result;
       });
 
@@ -93,7 +93,7 @@ describe('Service: awsServerGroup', function () {
 
       // remove an availability zone, should be false
       this.cluster.availabilityZones['us-west-1'].pop();
-      this.service.buildServerGroupCommandFromPipeline({}, this.cluster, 'prod').then(function(result) {
+      this.service.buildServerGroupCommandFromPipeline({}, this.cluster).then(function(result) {
         command = result;
       });
 

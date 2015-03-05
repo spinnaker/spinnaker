@@ -42,13 +42,14 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       }
     }
 
-    function buildNewServerGroupCommand(application) {
+    function buildNewServerGroupCommand(application, defaults) {
 
     // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
+    defaults = defaults || {};
     return {
       application: application.name,
-      credentials: application.accounts.length > 0 ? application.accounts[0] : 'my-account-name',
-      region: 'us-central1',
+      credentials: defaults.account || application.accounts.length > 0 ? application.accounts[0] : 'my-account-name',
+      region: defaults.region || 'us-central1',
       capacity: {
         min: 0,
         max: 0,
@@ -78,6 +79,15 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       },
     };
   }
+
+    // Only used to prepare view requiring template selecting
+    function buildNewServerGroupCommandForPipeline() {
+      return $q.when({
+        viewState: {
+          requiresTemplateSelection: true,
+        }
+      });
+    }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       mode = mode || 'clone';
@@ -157,6 +167,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
 
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
+      buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildSubmittableCommand: buildSubmittableCommand
     };

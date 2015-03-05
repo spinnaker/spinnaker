@@ -154,7 +154,9 @@ angular.module('deckApp.pipelines')
     };
 
     this.revertPipelineChanges = function() {
-      $scope.pipeline = angular.fromJson($scope.viewState.original);
+      var original = angular.fromJson($scope.viewState.original);
+      $scope.pipeline.stages = original.stages;
+      $scope.pipeline.triggers = original.triggers;
       // if we were looking at a stage that no longer exists, move to the last stage
       if ($scope.viewState.section === 'stage') {
         var lastStage = $scope.pipeline.stages.length - 1;
@@ -165,6 +167,7 @@ angular.module('deckApp.pipelines')
           this.navigateTo('triggers');
         }
       }
+      $scope.$broadcast('pipeline-reverted');
     };
 
     function getPlain(pipeline) {

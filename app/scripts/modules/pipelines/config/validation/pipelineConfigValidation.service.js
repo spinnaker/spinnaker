@@ -8,9 +8,12 @@ angular.module('deckApp.pipelines.config.validator.service', [
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
-        if (index === 0 || pipeline.stages[index - 1].type !== validationConfig.stageType) {
-          messages.push(validationConfig.message);
+        for (var i = 0; i < index; i++) {
+          if (pipeline.stages[i].type === validationConfig.stageType) {
+            return;
+          }
         }
+        messages.push(validationConfig.message);
       },
       stageBeforeMethod: function(pipeline, index, validationConfig, messages) {
         if (index === 0) {

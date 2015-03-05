@@ -1,116 +1,65 @@
-<deploy-initializer ng-if="stage.uninitialized" stage="stage" application="application"></deploy-initializer>
-<deploy-preview stage="stage" ng-if="!stage.uninitialized"></deploy-preview>
-<h4 ng-if="!stage.uninitialized && !viewState.commandInitialized" class="text-center" style="margin-bottom: 25px">
-  <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-  Loading stage details...
-</h4>
-<accordion close-others="false" ng-if="viewState.commandInitialized">
-
-  <accordion-group is-open="viewState.sections.basicSettings.expanded">
-    <accordion-heading>
-      <span class="glyphicon glyphicon-chevron-{{viewState.sections.basicSettings.expanded ? 'down' : 'right'}}"></span> Basic Settings
-    </accordion-heading>
-    <div class="form-horizontal">
-      <div class="col-md-10 col-md-offset-1">
-        <aws-server-group-basic-settings-selector
-          command="command"
-          application="application"
-          hide-cluster-name-preview="true"></aws-server-group-basic-settings-selector>
-      </div>
+<div class="well well-sm clearfix">
+  <div class="row">
+    <div class="col-md-12">
+      <h4 class="text-left">Clusters</h4>
     </div>
-  </accordion-group>
-
-  <accordion-group is-open="viewState.sections.loadBalancers.expanded">
-    <accordion-heading>
-      <span ng-class="{dirty: viewState.sections.loadBalancers.dirty}">
-        <span class="glyphicon glyphicon-chevron-{{viewState.sections.loadBalancers.expanded ? 'down' : 'right'}}"></span>
-        Load Balancers ({{command.loadBalancers.length || '0'}})
-        <span ng-if="viewState.sections.loadBalancers.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
-      </span>
-    </accordion-heading>
-    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.loadBalancers.dirty">
-      <div class="alert alert-warning">
-        <p><span class="glyphicon glyphicon-warning-sign"></span>
-        The following load balancers could not be found in the selected account/region/VPC and were removed:
-        </p>
-        <ul>
-          <li ng-repeat="loadBalancer in viewState.sections.loadBalancers.dirty">{{loadBalancer}}</li>
-        </ul>
-        <p class="text-right">
-        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.loadBalancers.dirty = null">Okay</a>
-        </p>
-      </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-condensed">
+        <thead>
+        <tr>
+          <th>Account</th>
+          <th>Cluster</th>
+          <th>Region</th>
+          <th>Subnet</th>
+          <th>Strategy</th>
+          <th>Capacity</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="cluster in stage.clusters">
+          <td>
+            <account-tag account="cluster.account"></account-tag>
+          </td>
+          <td>
+            {{ deployStageCtrl.getClusterName(cluster) }}
+          </td>
+          <td>
+            {{ deployStageCtrl.getRegion(cluster) }}
+          </td>
+          <td>
+            {{cluster.subnetType || '[none]'}}
+          </td>
+          <td>
+            {{cluster.strategy || '[none]'}}
+          </td>
+          <td>
+            <div ng-if="cluster.capacity.min === cluster.capacity.max">{{cluster.capacity.max}}</div>
+            <div ng-if="cluster.capacity.min !== cluster.capacity.max">
+              Min: {{cluster.capacity.min}},
+              Max: {{cluster.capacity.max}},
+              Desired: {{cluster.capacity.desired}}
+            </div>
+          </td>
+          <td>
+            <a class="btn btn-xs btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">Edit</a>
+            <a class="btn btn-xs btn-link pad-left" href ng-click="deployStageCtrl.removeCluster($index)">Remove</a>
+            <a class="btn btn-xs btn-link pad-left" href ng-click="deployStageCtrl.copyCluster($index)">Duplicate</a>
+          </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add cluster
+            </button>
+          </td>
+        </tr>
+        </tfoot>
+      </table>
     </div>
-    <div class="col-md-10 col-md-offset-1">
-      <aws-server-group-load-balancers-selector command="command"></aws-server-group-load-balancers-selector>
-    </div>
-  </accordion-group>
-  <accordion-group is-open="viewState.sections.securityGroups.expanded">
-    <accordion-heading>
-      <span ng-class="{dirty: viewState.sections.securityGroups.dirty}">
-        <span class="glyphicon glyphicon-chevron-{{viewState.sections.securityGroups.expanded ? 'down' : 'right'}}"></span>
-        Security Groups ({{command.securityGroups.length || '0'}})
-        <span ng-if="viewState.sections.securityGroups.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
-      </span>
-    </accordion-heading>
-    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.securityGroups.dirty">
-      <div class="alert alert-warning">
-        <p><span class="glyphicon glyphicon-warning-sign"></span>
-          The following security groups could not be found in the selected account/region/VPC and were removed:
-        </p>
-        <ul>
-          <li ng-repeat="securityGroup in viewState.sections.securityGroups.dirty">{{securityGroup}}</li>
-        </ul>
-        <p class="text-right">
-          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.securityGroups.dirty = null">Okay</a>
-        </p>
-      </div>
-    </div>
-    <div class="col-md-10 col-md-offset-1">
-      <aws-server-group-security-groups-selector command="command"></aws-server-group-security-groups-selector>
-    </div>
-  </accordion-group>
-  <accordion-group is-open="viewState.sections.instanceType.expanded">
-    <accordion-heading>
-      <span class="glyphicon glyphicon-chevron-{{viewState.sections.instanceType.expanded ? 'down' : 'right'}}"></span> Instance Type
-    </accordion-heading>
-    <div class="col-md-10 col-md-offset-1">
-      <instance-archetype-selector command="command"></instance-archetype-selector>
-      <instance-type-selector command="command"></instance-type-selector>
-    </div>
-  </accordion-group>
-  <accordion-group is-open="viewState.sections.capacityZones.expanded">
-    <accordion-heading>
-      <span ng-class="{dirty: viewState.sections.capacityZones.dirty}">
-        <span class="glyphicon glyphicon-chevron-{{viewState.sections.capacityZones.expanded ? 'down' : 'right'}}"></span>
-        Capacity/Zones
-        <span ng-if="viewState.sections.capacityZones.dirty"><span class="glyphicon glyphicon-warning-sign pulsing"></span></span>
-      </span>
-    </accordion-heading>
-    <div class="col-md-10 col-md-offset-1" ng-if="viewState.sections.capacityZones.dirty">
-      <div class="alert alert-warning">
-        <p><span class="glyphicon glyphicon-warning-sign"></span>
-          Please select new availability zones - or enable automatic zone selection.
-        </p>
-        <p class="text-right">
-          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="viewState.sections.capacityZones.dirty = false">Okay</a>
-        </p>
-      </div>
-    </div>
-    <div class="col-md-10 col-md-offset-1">
-      <aws-server-group-capacity-selector command="command"></aws-server-group-capacity-selector>
-      <hr class="clearfix"/>
-      <availability-zone-selector command="command"></availability-zone-selector>
-    </div>
-  </accordion-group>
-  <accordion-group is-open="viewState.sections.advancedSettings.expanded">
-    <accordion-heading>
-      <span class="glyphicon glyphicon-chevron-{{viewState.sections.advancedSettings.expanded ? 'down' : 'right'}}"></span> Advanced Settings
-    </accordion-heading>
-    <div class="form-horizontal">
-      <div class="col-md-10 col-md-offset-1">
-        <aws-server-group-advanced-settings-selector command="command"></aws-server-group-advanced-settings-selector>
-      </div>
-    </div>
-  </accordion-group>
-</accordion>
+  </div>
+</div>
