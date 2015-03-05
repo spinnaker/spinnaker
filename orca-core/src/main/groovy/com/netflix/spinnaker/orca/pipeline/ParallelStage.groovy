@@ -41,10 +41,10 @@ abstract class ParallelStage extends StageBuilder {
 
   @Override
   FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-    stage.name = parallelStageName()
+    List<Flow> flows = buildFlows(stage)
+    stage.name = parallelStageName(stage, flows.size() > 1)
     stage.type = "initialization"
 
-    List<Flow> flows = buildFlows(stage)
     if (stage.execution.stages.indexOf(stage) == 0) {
       jobBuilder = jobBuilder.start(buildStep(stage, "beginParallel", beginParallel()))
     } else {
@@ -98,7 +98,7 @@ abstract class ParallelStage extends StageBuilder {
     stepProviders.find {it.type == stage.context.type}.buildSteps(stage)
   }
 
-  abstract String parallelStageName()
+  abstract String parallelStageName(Stage stage, boolean hasParallelFlows)
 
   abstract Task completeParallel()
 

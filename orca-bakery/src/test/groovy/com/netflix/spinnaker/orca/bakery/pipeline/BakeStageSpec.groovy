@@ -28,7 +28,7 @@ class BakeStageSpec extends Specification {
     given:
     def pipelineBuilder = new Pipeline().builder()
     deployAvailabilityZones?.each {
-      pipelineBuilder = pipelineBuilder.withStage("deploy", "Deploy!", [cluster: [availabilityZones: it]])
+      pipelineBuilder = pipelineBuilder.withStage("deploy", "Deploy!", it)
     }
     def pipeline = pipelineBuilder.build()
 
@@ -48,13 +48,15 @@ class BakeStageSpec extends Specification {
     parallelContexts == expectedParallelContexts
 
     where:
-    bakeStageContext                       | deployAvailabilityZones                || expectedParallelContexts
-    [:]                                    | [["us-west-1": []], ["us-west-2": []]] || buildContexts("197001010115", "us-west-1", "us-west-2")
-    [region: "us-east-1"]                  | [["us-west-1": []]]                    || buildContexts("197001010115", "us-east-1", "us-west-1")
-    [region: "us-east-1"]                  | []                                     || buildContexts("197001010115", "us-east-1")
-    [region: "us-east-1"]                  | null                                   || buildContexts("197001010115", "us-east-1")
-    [region: "us-east-1", amiSuffix: ""]   | null                                   || buildContexts("197001010115", "us-east-1")
-    [region: "us-east-1", amiSuffix: "--"] | null                                   || buildContexts("--", "us-east-1")
+    bakeStageContext                       | deployAvailabilityZones                       || expectedParallelContexts
+    [:]                                    | deployAz("cluster", "us-west-1", "us-west-2") || expectedContexts("197001010115", "us-west-1", "us-west-2")
+    [region: "us-east-1"]                  | deployAz("cluster", "us-west-1")              || expectedContexts("197001010115", "us-east-1", "us-west-1")
+    [:]                                    | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "us-west-1")
+    [region: "us-east-1"]                  | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "us-east-1", "us-west-1")
+    [region: "us-east-1"]                  | []                                            || expectedContexts("197001010115", "us-east-1")
+    [region: "us-east-1"]                  | null                                          || expectedContexts("197001010115", "us-east-1")
+    [region: "us-east-1", amiSuffix: ""]   | null                                          || expectedContexts("197001010115", "us-east-1")
+    [region: "us-east-1", amiSuffix: "--"] | null                                          || expectedContexts("--", "us-east-1")
   }
 
   def "should include per-region stage contexts as global deployment details"() {
@@ -76,7 +78,34 @@ class BakeStageSpec extends Specification {
     ]
   }
 
-  private static List<Map> buildContexts(String amiSuffix, String... regions) {
+  @Unroll
+  def "should return a different stage name when parallel flows are present"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "type", stageName, [:])
+
+    expect:
+    new BakeStage().parallelStageName(stage, hasParallelFlows) == expectedStageName
+
+    where:
+    stageName | hasParallelFlows || expectedStageName
+    "Default" | false            || "Default"
+    "Default" | true             || "Multi-region Bake"
+  }
+
+  private static List<Map> deployAz(String prefix, String... regions) {
+    if (prefix == "clusters") {
+      return [[clusters: regions.collect { [availabilityZones: [(it): []]] }]]
+    }
+
+    regions.collect {
+      if (prefix == "cluster") {
+        return [cluster: [availabilityZones: [(it): []]]]
+      }
+      return [availabilityZones: [(it): []]]
+    }
+  }
+
+  private static List<Map> expectedContexts(String amiSuffix, String... regions) {
     return regions.collect {
       [amiSuffix: amiSuffix, type: BakeStage.MAYO_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
     }

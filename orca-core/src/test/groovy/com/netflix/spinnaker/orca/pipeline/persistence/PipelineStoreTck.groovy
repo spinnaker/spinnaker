@@ -86,6 +86,33 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
     }
   }
 
+  def "a pipeline has correctly ordered stages after load"() {
+    given:
+    def pipeline = Pipeline.builder()
+      .withStage("one", "one", [:])
+      .withStage("two", "two", [:])
+      .withStage("one-a", "one-1", [:])
+      .withStage("one-b", "one-1", [:])
+      .withStage("one-a-a", "three", [:])
+      .build()
+
+    def one = pipeline.stages.find { it.type == "one"}
+    def oneA = pipeline.stages.find { it.type == "one-a"}
+    def oneAA = pipeline.stages.find { it.type == "one-a-a"}
+    def oneB = pipeline.stages.find { it.type == "one-b"}
+    oneA.parentStageId = one.id
+    oneAA.parentStageId = oneA.id
+    oneB.parentStageId = one.id
+
+    and:
+    pipelineStore.store(pipeline)
+
+    expect:
+    with(((Pipeline)pipelineStore.retrieve(pipeline.id))) {
+      stages*.type == ["one", "one-a", "one-a-a", "one-b", "two"]
+    }
+  }
+
   def "trying to retrieve an invalid id throws an exception"() {
     when:
     pipelineStore.retrieve("invalid")
