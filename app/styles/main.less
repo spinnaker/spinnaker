@@ -717,14 +717,6 @@ tfoot .add-new {
   cursor: pointer;
 }
 
-@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
-@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
-@keyframes spin {
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 .glyphicon-spinning {
   display: inline-block;
   height: 1em;
@@ -732,10 +724,7 @@ tfoot .add-new {
   margin: 0;
   opacity: 0.7;
   text-shadow: 0 0 .25em rgba(255,255,255, .3);
-  transform: translateZ(0);
-  -webkit-animation:spin 4s linear infinite;
-  -moz-animation:spin 4s linear infinite;
-  animation:spin 4s linear infinite;
+  .spinning();
 }
 
 a.help-field {

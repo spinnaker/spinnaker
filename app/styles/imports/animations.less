@@ -32,3 +32,51 @@
      50% { -webkit-box-shadow: 0 30px 30px @glow-mid inset, 0 -30px 30px @glow-mid inset;}
      100% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
 }
+
+.pulsing {
+  -webkit-animation: pulse linear 1.5s infinite;
+  animation: pulse linear 1.5s infinite;
+}
+
+@-webkit-keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: .25; }
+  100% { opacity: 1; }
+}
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: .25; }
+  100% { opacity: 1; }
+}
+
+@-moz-keyframes spin {
+  from {
+    -moz-transform: rotate(0deg);
+  }
+  to {
+    -moz-transform: rotate(360deg);
+  }
+}
+@-webkit-keyframes spin {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+  }
+}
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning(@duration: 4) {
+  transform: translateZ(0);
+  -webkit-animation:spin ~"@{duration}s" steps(45) infinite;
+  -moz-animation:spin ~"@{duration}s" steps(45) infinite;
+  animation:spin ~"@{duration}s" steps(45) infinite;
+}

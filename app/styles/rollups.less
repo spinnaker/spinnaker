@@ -62,7 +62,6 @@
 }
 
 .instances {
-  background-color: #ffffff;
   a.instance {
     border: 1px solid @healthy_green_border;
     border-radius: 2px;
@@ -93,7 +92,7 @@
     &.active {
       border-color: @dark_grey;
       background-color: @healthy_green_border;
-      box-shadow: 0 0 3px 0px #999999;
+      box-shadow: 0 0 4px 2px #999999;
       &.health-status-Unhealthy {
         background-color: @unhealthy_red_border;
       }
@@ -320,9 +319,9 @@ load-balancers-tag {
 
 
 .rollup-details {
+  background-color: #ffffff;
   padding: 0;
   border-top: 1px solid #c4c4c4;
-  background-color: #ffffff;
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
 
@@ -400,9 +399,11 @@ load-balancers-tag {
       text-transform: uppercase;
       font-weight: 600;
     }
+    .subgroup-title {
+      background-color: #ffffff;
+    }
     .server-group-title, .subgroup-title {
-      padding: 5px 10px;
-      background-color: #fff;
+      padding: 5px 10px 2px;
       border-bottom-width: 0;
       &.clickable {
         &:hover, &.active {
@@ -425,8 +426,22 @@ load-balancers-tag {
     }
     border-bottom: 1px solid @mid_light_grey;
     .cluster-pod-server-group {
+      background-color: #ffffff;
+      .server-group-title {
+        background-color: #ffffff;
+      }
+      &.active {
+        background-color: @bootstrap_info;
+        .server-group-title {
+          background-color: @bootstrap_info;
+        }
+      }
+      &:hover {
+        box-shadow: 0 0 3px 0px @mid_grey;
+      }
       .instance-list {
-        padding: 0 10px;
+        padding: 0 10px 0 23px;
+
       }
       &.disabled {
         &:hover, &.active {
@@ -435,7 +450,8 @@ load-balancers-tag {
       }
     }
     .table {
-      margin-bottom: 5px;
+      margin-top: -5px;
+      margin-bottom: 10px;
       font-size: 90%;
     }
   }
