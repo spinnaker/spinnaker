@@ -5,6 +5,8 @@ import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
+import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -57,6 +59,7 @@ class PipelinePersistenceSpec extends Specification {
 
   def setup() {
     def testStage = new TestStage("test", steps, executionRepository, task1, task2)
+    testStage.setTaskListeners([new StageStatusPropagationListener(executionRepository), new StageTaskPropagationListener(executionRepository)])
     applicationContext.beanFactory.registerSingleton("testStage", testStage)
 
     pipelineJobBuilder.initialize()
@@ -88,8 +91,11 @@ class PipelinePersistenceSpec extends Specification {
       new DefaultTaskResult(RUNNING) >>
       {
 //        taskExecutor.shutdown()
-        latch.countDown()
-        throw new RuntimeException()
+        try {
+          throw new RuntimeException()
+        } finally {
+          latch.countDown()
+        }
       }
 
     and:

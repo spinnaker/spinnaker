@@ -50,6 +50,6 @@ class JedisJobRegistry implements JobRegistry {
     def latestExecution = jobExecutions.first()
     def pipelineId = latestExecution.jobParameters.getString("pipeline")
     def pipeline = executionRepository.retrievePipeline(pipelineId)
-    pipelineJobBuilder.build(pipeline.initialConfig, pipeline)
+    pipelineJobBuilder.build(pipeline)
   }
 }

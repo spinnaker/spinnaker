@@ -32,7 +32,7 @@ class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   @Override
   @CompileDynamic
-  Job build(Map<String, Serializable> config, Orchestration orchestration) {
+  Job build(Orchestration orchestration) {
     def jobBuilder = jobs.get(jobNameFor(orchestration))
     jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
     List<Stage<Orchestration>> orchestrationStages = []

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -37,13 +36,8 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
    * @return the pipeline that was created.
    */
   @Override
-  @CompileDynamic
-  Job build(Map<String, Serializable> config, Pipeline pipeline) {
-    def jobBuilder = jobs.get(jobNameFor(pipeline))
-    pipelineListeners.each {
-      jobBuilder = jobBuilder.listener(it)
-    }
-    jobBuilder = jobBuilder.flow(initializationStep(steps, pipeline))
+  Job build(Pipeline pipeline) {
+    def jobBuilder = buildStart(pipeline)
     buildFlow(jobBuilder, pipeline).build().build()
   }
 
@@ -52,10 +46,16 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
     "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}"
   }
 
+  private JobFlowBuilder buildStart(Pipeline pipeline) {
+    def jobBuilder = jobs.get(jobNameFor(pipeline))
+    pipelineListeners.each {
+      jobBuilder = jobBuilder.listener(it)
+    }
+    jobBuilder.flow(initializationStep(steps, pipeline))
+  }
+
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    def stages = []
-    stages.addAll(pipeline.stages)
-    stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
+    pipeline.stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
   }
 
   protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {

@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
-import groovy.transform.TypeCheckingMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.base.Optional
@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import static java.util.Collections.EMPTY_LIST
-import static java.util.UUID.randomUUID
 
 /**
  * Base class for a component that builds a _stage_ to be run as (part of) a
@@ -93,7 +92,7 @@ abstract class StageBuilder implements ApplicationContextAware {
       .build()
   }
 
-  @CompileStatic(TypeCheckingMode.SKIP)
+  @CompileDynamic
   private StepBuilder createStepWithListeners(Stage stage, String taskName) {
     def stepBuilder = steps.get(stepName(stage, taskName))
     getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
@@ -102,10 +101,12 @@ abstract class StageBuilder implements ApplicationContextAware {
   }
 
   private String stepName(Stage stage, String taskName) {
-    def task = new DefaultTask(id: randomUUID().toString(), name: taskName)
-    stage.tasks.add(task)
+    if (!stage.tasks*.name.contains(taskName)) {
+      def task = new DefaultTask(id: taskName, name: taskName)
+      stage.tasks.add(task)
+    }
 
-    "${stage.id}.${type}.${taskName}.${task.id}"
+    "${stage.id}.${type}.${taskName}.${taskName}"
   }
 
   @Autowired

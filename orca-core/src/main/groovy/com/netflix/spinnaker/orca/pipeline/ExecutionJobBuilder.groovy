@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
+import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import org.springframework.batch.core.Job
@@ -53,12 +54,20 @@ abstract class ExecutionJobBuilder<T extends Execution> {
     }
   }
 
-  abstract Job build(Map<String, Serializable> config, T subject)
+  abstract Job build(T subject)
 
   abstract String jobNameFor(T subject)
 
   @Autowired(required = false)
   void setPipelineListeners(List<JobExecutionListener> pipelineListeners) {
     this.pipelineListeners = pipelineListeners
+  }
+
+  protected List<JobExecutionListener> getPipelineListeners() {
+    def listBuilder = ImmutableList.builder()
+    if (pipelineListeners) {
+      listBuilder.addAll(pipelineListeners)
+    }
+    listBuilder.build()
   }
 }

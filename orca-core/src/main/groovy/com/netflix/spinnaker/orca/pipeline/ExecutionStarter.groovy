@@ -44,7 +44,7 @@ abstract class ExecutionStarter<T extends Execution> {
     Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
-    def job = executionJobBuilder.build(config, subject)
+    def job = executionJobBuilder.build(subject)
     persistExecution(subject)
     launcher.run job, createJobParameters(subject)
     subject
