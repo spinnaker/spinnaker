@@ -37,7 +37,7 @@
               ng-repeat="stage in stageSummary.stages" ng-repeat-end
               ng-class="{ info: ctrl.isStageCurrent(stage.index) }"
               ng-click="ctrl.toggleDetails(stage.index)">
-            <td>{{ stage.type | robotToHuman }}</td>
+            <td>{{ (stage.name && stage.name != stage.type) ? stage.name : (stage.type | robotToHuman) }}</td>
             <td>{{ stage.startTime | simpleTime }}</td>
             <td>{{ stage.endTime | simpleTime }}</td>
             <td>

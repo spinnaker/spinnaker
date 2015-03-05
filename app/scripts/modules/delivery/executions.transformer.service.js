@@ -20,6 +20,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
         }
       });
 
+
       execution.stages.forEach(function(stage, index) {
         stage.index = index;
         var owner = stage.syntheticStageOwner;
@@ -43,6 +44,9 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
     function transformStageSummary(summary) {
       summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after);
+      summary.stages = _.filter(summary.stages, function(stage) {
+        return stage.type != "initialization";
+      });
       if (summary.stages.length) {
         var lastStage = summary.stages[summary.stages.length - 1];
         summary.startTime = summary.stages[0].startTime;
