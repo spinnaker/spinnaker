@@ -32,10 +32,10 @@
       {{ taskDetail.task.status}}
       <dl>
         <dt>Started</dt>
-        <dd>{{ taskDetail.task.startTime | relativeTime }}</dd>
+        <dd>{{ taskDetail.task.startTime | timestamp }}</dd>
         <span ng-if="taskDetail.task.isCompleted">
           <dt>Completed</dt>
-          <dd>{{ taskDetail.task.endTime | relativeTime }}</dd>
+          <dd>{{ taskDetail.task.endTime | timestamp }}</dd>
         </span>
         <dt>Running time</dt>
         <dd>{{ taskDetail.task.runningTime }}</dd>
@@ -48,9 +48,9 @@
       </h5>
       <dl class="well" style="padding: 10px;" ng-repeat-end>
         <dt>Started</dt>
-        <dd>{{ step.startTime | relativeTime }}</dd>
+        <dd>{{ step.startTime | timestamp }}</dd>
         <dt>Completed</dt>
-        <dd>{{ step.endTime | relativeTime }}</dd>
+        <dd>{{ step.endTime | timestamp }}</dd>
         <dt>Running time</dt>
         <dd>{{ step.runningTime }}</dd>
       </dl>

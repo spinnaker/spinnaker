@@ -25,8 +25,8 @@
         <tbody>
           <tr ng-repeat-start="stageSummary in execution.stageSummaries" class="stage-summary">
             <td>{{ stageSummary.name }}</td>
-            <td>{{ stageSummary.startTime | simpleTime }}</td>
-            <td>{{ stageSummary.endTime | simpleTime }}</td>
+            <td>{{ stageSummary.startTime | timestamp }}</td>
+            <td>{{ stageSummary.endTime | timestamp }}</td>
             <td>
               <span class="label label-default label-{{ stageSummary.status | lowercase }}">
                 <status-glyph item="stageSummary"></status-glyph>{{ stageSummary.status | lowercase | robotToHuman }}
@@ -38,8 +38,8 @@
               ng-class="{ info: ctrl.isStageCurrent(stage.index) }"
               ng-click="ctrl.toggleDetails(stage.index)">
             <td>{{ (stage.name && stage.name != stage.type) ? stage.name : (stage.type | robotToHuman) }}</td>
-            <td>{{ stage.startTime | simpleTime }}</td>
-            <td>{{ stage.endTime | simpleTime }}</td>
+            <td>{{ stage.startTime | timestamp }}</td>
+            <td>{{ stage.endTime | timestamp }}</td>
             <td>
               <span class="label label-default label-{{ stage.status | lowercase }}">
                 {{ stage.status | lowercase | robotToHuman }}

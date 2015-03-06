@@ -32,9 +32,9 @@
                 Not started
               </div>
               <dl ng-if="!task.hasNotStarted">
-                <dt>Started</dt> <dd>{{ task.startTime | relativeTime }}</dd>
+                <dt>Started</dt> <dd>{{ task.startTime | timestamp }}</dd>
                 <dt ng-if="task.isCompleted && task.endTime">Completed</dt>
-                <dd ng-if="task.isCompleted && task.endTime">{{ task.endTime | relativeTime }}</dd>
+                <dd ng-if="task.isCompleted && task.endTime">{{ task.endTime | timestamp }}</dd>
                 <dt>Running time<dt> <dd>{{ task.runningTime }}</dd>
               </dl>
             </div>
