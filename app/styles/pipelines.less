@@ -133,6 +133,38 @@
   }
 }
 
+.stage-label {
+  .tests-pass-count {
+    color: @healthy_green_icon;
+  }
+  .tests-fail-count {
+    color: @unhealthy_red;
+  }
+  .tests-skip-count {
+    color: @mid_lighter_grey;
+  }
+}
+
+.execution-details {
+  .glyphicon-ok {
+    color: @healthy_green_icon;
+  }
+  .glyphicon-remove {
+    color: @unhealthy_red;
+    &.informational {
+      color: @unhealthy_red !important;
+      cursor: default;
+    }
+  }
+  .test-results {
+    .test-result-section {
+      display: inline-block;
+      text-align: right;
+      width: 45px;
+    }
+  }
+}
+
 .pipeline-grouping {
 }
 .build-timeline {
