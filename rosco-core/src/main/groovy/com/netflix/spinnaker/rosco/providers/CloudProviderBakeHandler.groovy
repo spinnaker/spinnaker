@@ -21,6 +21,11 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 
 interface CloudProviderBakeHandler {
 
+  /**
+   * Build provider-specific key used to determine uniqueness. If a prior (or in-flight) bake exists
+   * with the same bake key, it indicates that that image can be re-used instead of initiating a new
+   * bake.
+   */
   String produceBakeKey(String region, BakeRequest bakeRequest)
 
   /**
