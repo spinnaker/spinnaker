@@ -44,9 +44,10 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
 
     function buildNewServerGroupCommand(application) {
 
+    // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
     return {
       application: application.name,
-      credentials: 'my-account-name',
+      credentials: application.accounts.length > 0 ? application.accounts[0] : 'my-account-name',
       region: 'us-central1',
       capacity: {
         min: 0,
@@ -147,7 +148,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       });
 
       // We use this list of load balancer names when 'Enabling' a server group.
-      if (command.loadBalancers.length > 0) {
+      if (command.loadBalancers && command.loadBalancers.length > 0) {
         transformedInstanceMetadata['load-balancer-names'] = command.loadBalancers.toString();
       }
       command.instanceMetadata = transformedInstanceMetadata;
