@@ -211,7 +211,12 @@ gulp.task('scripts:application', ['jshint', 'clean:scripts:application'], functi
   ]), 'application.js');
 });
 gulp.task('scripts:vendor', ['clean:scripts:vendor'], function() {
-  return prepareJs(gulp.src(['bower_components/jquery/dist/jquery.js'].concat(bowerFiles({filter: /.*\.js/i}))), 'vendor.js');
+  return prepareJs(
+    gulp.src([
+      'bower_components/jquery/dist/jquery.js',
+    ]
+    .concat(bowerFiles({filter: /.*\.js/i}))
+    .concat('bower_components/bootstrap/js/tooltip.js')), 'vendor.js');
 });
 
 gulp.task('scripts:templates', ['clean:scripts:templates'], function() {

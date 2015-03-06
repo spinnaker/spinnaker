@@ -40,9 +40,7 @@
                    render-instances-on-scroll="false"></instances>
       </div>
       <div ng-if="displayOptions.listInstances">
-        <instance-list scroll-target="clusters-content" instances="viewModel.instances"
-                       sort-filter="sortFilter"
-                       render-instances-on-scroll="false"></instance-list>
+        <instance-list instances="viewModel.instances" sort-filter="sortFilter" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instance-list>
       </div>
     </div>
   </div>

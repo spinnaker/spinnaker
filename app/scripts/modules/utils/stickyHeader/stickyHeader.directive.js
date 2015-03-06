@@ -16,7 +16,8 @@ angular.module('deckApp.utils.stickyHeader', [
           var $heading = elem,
             $section = $heading.parent(),
             $scrollableContainer = $heading.closest('[sticky-headers]'),
-            id = parseInt(Math.random() * new Date().getTime());
+            id = parseInt(Math.random() * new Date().getTime()),
+            isSticky = false;
 
           if (!$scrollableContainer.length) {
             $log.warn('No parent container with attribute "sticky-header"; headers will not stick.');
@@ -60,6 +61,7 @@ angular.module('deckApp.utils.stickyHeader', [
                 width: containerWidth + addedOffsetWidth,
                 zIndex: zIndex
               });
+              isSticky = true;
             } else {
               clearStickiness($section, $heading);
             }
@@ -74,12 +76,15 @@ angular.module('deckApp.utils.stickyHeader', [
           }
 
           function clearStickiness($section, $heading) {
-            $section.css({
-              paddingTop: 0,
-            });
-            if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
-              $heading.removeClass('heading-sticky').addClass('not-sticky');
+            if (isSticky) {
+              $section.css({
+                paddingTop: 0,
+              });
+              if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
+                $heading.removeClass('heading-sticky').addClass('not-sticky');
+              }
             }
+            isSticky = false;
           }
 
           function toggleSticky(enabled) {
