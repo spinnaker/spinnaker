@@ -43,7 +43,7 @@ angular.module('deckApp')
         }
 
         function buildLaunchTimeCell(row, instance) {
-          row += '<td>' + $filter('simpleTime')(instance.launchTime) + '</td>';
+          row += '<td>' + $filter('timestamp')(instance.launchTime) + '</td>';
           return row;
         }
 

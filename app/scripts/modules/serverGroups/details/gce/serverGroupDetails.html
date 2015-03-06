@@ -69,7 +69,7 @@
             <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
           </div>
           <div class="col-md-4 text-right">
-            {{step.runningTimeInMs | numericDuration }}
+            {{step.runningTimeInMs | duration }}
           </div>
         </div>
       </div>
@@ -77,7 +77,7 @@
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl>
         <dt>Created:</dt>
-        <dd>{{serverGroup.launchConfig.createdTime | relativeTime}}</dd>
+        <dd>{{serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <dt>In:</dt>
         <dd>
           {{serverGroup.cluster}}:{{serverGroup.region}}

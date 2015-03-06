@@ -57,12 +57,12 @@
     <collapsible-section heading="Instance Information" expanded="true">
       <dl>
         <dt>Launched:</dt>
-        <dd ng-if="instance.launchTime">{{instance.launchTime | relativeTime}}</dd>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
         <dt>In:</dt>
         <dd>
+          <account-tag account="instance.account" pad="right"></account-tag>
           {{instance.placement.availabilityZone || '(Unknown)'}}
-          <account-tag account="instance.account" pad="left"></account-tag>
         </dd>
         <dt>Instance Type:</dt>
         <dd>{{instance.instanceType || '(Unknown)'}}</dd>
