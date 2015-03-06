@@ -101,10 +101,12 @@ class RedisBackedBakeStore implements BakeStore {
         bakeLogs  : bakeLogsJson
       ])
 
-      t.hmset(bakeKey, [
-        bakeStatus: bakeStatusJson,
-        bakeLogs  : bakeLogsJson
-      ])
+      if (bakeKey) {
+        t.hmset(bakeKey, [
+          bakeStatus: bakeStatusJson,
+          bakeLogs  : bakeLogsJson
+        ])
+      }
 
       if (bakeStatus.state != BakeStatus.State.PENDING && bakeStatus.state != BakeStatus.State.RUNNING) {
         t.srem("allBakes:incomplete", bakeStatus.id)
@@ -124,7 +126,10 @@ class RedisBackedBakeStore implements BakeStore {
       Transaction t = jedis.multi()
 
       t.hset(bakeId, "bakeError", error)
-      t.hset(bakeKey, "bakeError", error)
+
+      if (bakeKey) {
+        t.hset(bakeKey, "bakeError", error)
+      }
 
       t.exec()
     }
