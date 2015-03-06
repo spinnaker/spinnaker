@@ -44,32 +44,34 @@
   </div>
   <div ng-if="!state.loading" class="content">
     <collapsible-section heading="Load Balancer Details" expanded="true">
-        <dl class="dl-horizontal dl-narrow">
-          <dt>Created:</dt>
-          <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
-          <dt>Region:</dt>
-          <dd>{{loadBalancer.region}}</dd>
-          <dt>Account:</dt>
-          <dd><account-tag account="loadBalancer.account"></account-tag></dd>
-        </dl>
-        <dl>
-          <dt>Availability Zones:</dt>
-          <dd>
-            <ul>
-              <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
-            </ul>
-          </dd>
-          <dt ng-if="loadBalancer.serverGroupNames">Server Groups:</dt>
-          <dd ng-if="loadBalancer.serverGroupNames">
-            <ul>
-              <li ng-repeat="serverGroup in loadBalancer.serverGroupNames">{{serverGroup}}</li>
-            </ul>
-          </dd>
-          <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
-          <dd><a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a></dd>
-          <dt ng-if="loadBalancer.elb.vpcid">VPC ID</dt>
-          <dd>{{loadBalancer.elb.vpcid}}</dd>
-        </dl>
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Created:</dt>
+        <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
+        <dt>In:</dt>
+        <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
+        <dt>VPC:</dt>
+        <dd>{{loadBalancer.elb.vpcid || 'None (EC2 Classic)'}}</dd>
+      </dl>
+      <dl>
+        <dt>Availability Zones:</dt>
+        <dd>
+          <ul style="margin-left: 30px">
+            <li ng-repeat="availabilityZone in loadBalancer.elb.availabilityZones">{{availabilityZone}}</li>
+          </ul>
+        </dd>
+      </dl>
+      <dl>
+        <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
+        <dd ng-if="loadBalancer.serverGroups">
+          <ul style="margin-left: 30px">
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
+          </ul>
+        </dd>
+      </dl>
+      <dl>
+        <dt ng-if="loadBalancer.elb.dnsname">DNS Name</dt>
+        <dd><a target=_blank href="http://{{loadBalancer.elb.dnsname}}">{{loadBalancer.elb.dnsname}}</a></dd>
+      </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <health-counts class="pull-left" container="loadBalancer.healthCounts"></health-counts>

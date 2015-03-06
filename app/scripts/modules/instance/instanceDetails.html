@@ -55,7 +55,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
-      <dl>
+      <dl class="dl-horizontal dl-narrow">
         <dt>Launched:</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
@@ -64,7 +64,7 @@
           <account-tag account="instance.account" pad="right"></account-tag>
           {{instance.placement.availabilityZone || '(Unknown)'}}
         </dd>
-        <dt>Instance Type:</dt>
+        <dt>Type:</dt>
         <dd>{{instance.instanceType || '(Unknown)'}}</dd>
         <dt ng-if="instance.serverGroup">Server Group:</dt>
         <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
