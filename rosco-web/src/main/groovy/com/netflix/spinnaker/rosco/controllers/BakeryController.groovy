@@ -66,15 +66,43 @@ class BakeryController {
 
       def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
       def scriptRequest = baseScriptRequest.copyWith(command: packerCommand)
-      def scriptId = rushService.runScript(scriptRequest).toBlocking().single()
-      def bakeStatus = new BakeStatus(id: scriptId.id, resource_id: scriptId.id, state: BakeStatus.State.PENDING)
 
-      bakeStore.storeBakeStatus(bakeKey, region, bakeRequest, bakeStatus)
+      if (bakeStore.acquireBakeLock(bakeKey)) {
+        return runBake(bakeKey, region, bakeRequest, scriptRequest)
+      } else {
+        def startTime = System.currentTimeMillis()
 
-      return bakeStatus
+        // Poll for bake status by bake key every 1/2 second for 5 seconds.
+        while (System.currentTimeMillis() - startTime < 5000) {
+          def bakeStatus = bakeStore.retrieveBakeStatusByKey(bakeKey)
+
+          if (bakeStatus) {
+            return bakeStatus
+          } else {
+            Thread.sleep(500)
+          }
+        }
+
+        // Maybe the TTL expired but the bake status wasn't set for some other reason? Let's try again before giving up.
+        if (bakeStore.acquireBakeLock(bakeKey)) {
+          return runBake(bakeKey, region, bakeRequest, scriptRequest)
+        }
+
+        throw new IllegalArgumentException("Unable to acquire lock and unable to determine id of lock holder for bake " +
+                                           "key '$bakeKey'.")
+      }
     } else {
       throw new IllegalArgumentException("Unknown provider type '$bakeRequest.cloud_provider_type'.")
     }
+  }
+
+  private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, ScriptRequest scriptRequest) {
+    def scriptId = rushService.runScript(scriptRequest).toBlocking().single()
+    def bakeStatus = new BakeStatus(id: scriptId.id, resource_id: scriptId.id, state: BakeStatus.State.PENDING)
+
+    bakeStore.storeBakeStatus(bakeKey, region, bakeRequest, bakeStatus)
+
+    return bakeStatus
   }
 
   @RequestMapping(value = "/{region}/status/{statusId}", method = RequestMethod.GET)

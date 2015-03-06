@@ -26,6 +26,11 @@ import com.netflix.spinnaker.rosco.api.BakeStatus
 interface BakeStore {
 
   /**
+   * Used to ensure that only one bake per bake key is initiated at a time.
+   */
+  public boolean acquireBakeLock(String bakeKey)
+
+  /**
    * Store the region, bakeRequest and bakeStatus in association with both the bakeKey and bakeStatus.id.
    * None of the arguments may be null.
    */

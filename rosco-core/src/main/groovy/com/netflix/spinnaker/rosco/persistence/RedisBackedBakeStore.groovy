@@ -36,6 +36,16 @@ class RedisBackedBakeStore implements BakeStore {
   }
 
   @Override
+  public boolean acquireBakeLock(String bakeKey) {
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      // Only set the key if it is not already set and expire it after 5 seconds.
+      return jedis.set("lock:$bakeKey", "locked", "NX", "EX", 5)
+    }
+  }
+
+  @Override
   public void storeBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, BakeStatus bakeStatus) {
     def bakeRequestJson = mapper.writeValueAsString(bakeRequest)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
