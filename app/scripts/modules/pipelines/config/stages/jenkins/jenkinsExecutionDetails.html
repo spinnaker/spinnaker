@@ -19,19 +19,7 @@
 
   </div>
 
-  <div class="row" ng-if="stage.isFailed">
-    <div class="col-md-12">
-      <div class="alert alert-danger">
-        <h5>Exception:</h5>
-        <p ng-if="ctrl.getException(stage)">
-          {{ctrl.getException(stage)}}
-        </p>
-        <p ng-if="!ctrl.getException(stage)">
-          No reason provided.
-        </p>
-      </div>
-    </div>
-  </div>
+  <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
   <div class="row" ng-if="stage.context.execution.logs">
     <div class="col-md-12">

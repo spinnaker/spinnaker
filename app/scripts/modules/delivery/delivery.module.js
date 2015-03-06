@@ -20,6 +20,7 @@ angular.module('deckApp.delivery', [
   'deckApp.delivery.executionGroup.directive',
   'deckApp.delivery.executionGroupHeading.directive',
   'deckApp.delivery.executionStatus.directive',
+  'deckApp.delivery.executionDetails.stageFailureMessage.directive',
 
   'deckApp.executionDetails.controller',
   'deckApp.settings',

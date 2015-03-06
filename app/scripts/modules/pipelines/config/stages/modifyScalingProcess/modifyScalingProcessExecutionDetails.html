@@ -3,18 +3,14 @@
     <div class="col-md-6">
       <h5>Modify Scaling Processes Stage Configuration</h5>
       <dl class="dl-narrow dl-horizontal">
+        <dt>Account</dt>
+        <dd><account-tag account="stage.context.credentials"></account-tag></dd>
+        <dt>Region</dt>
+        <dd>{{stage.context.regions.join(', ')}}</dd>
         <dt>ASG Name</dt>
         <dd>{{stage.context.asgName}}</dd>
-      </dl>
-      <dl class="dl-narrow dl-horizontal">
-        <dt>Regions</dt>
-        <dd>{{stage.context.regions}}</dd>
-      </dl>
-      <dl class="dl-narrow dl-horizontal">
         <dt>Action</dt>
         <dd>{{stage.context.action}}</dd>
-      </dl>
-      <dl class="dl-narrow dl-horizontal">
         <dt>Processes</dt>
         <dd>{{stage.context.processes}}</dd>
       </dl>
@@ -24,19 +20,7 @@
 
   </div>
 
-  <div class="row" ng-if="stage.isFailed">
-    <div class="col-md-12">
-      <div class="alert alert-danger">
-        <h5>Exception:</h5>
-        <p ng-if="ctrl.getException(stage)">
-          {{ctrl.getException(stage)}}
-        </p>
-        <p ng-if="!ctrl.getException(stage)">
-          No reason provided.
-        </p>
-      </div>
-    </div>
-  </div>
+  <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
   <div class="row" ng-if="stage.context.execution.logs">
     <div class="col-md-12">
