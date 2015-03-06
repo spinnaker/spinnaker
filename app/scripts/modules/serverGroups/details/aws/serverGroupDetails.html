@@ -80,8 +80,8 @@
         <dd>{{serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <dt>In:</dt>
         <dd>
-          {{serverGroup.cluster}}:{{serverGroup.region}}
-          <account-tag account="serverGroup.account" pad="left"></account-tag>
+          <account-tag account="serverGroup.account" pad="right"></account-tag>
+          {{serverGroup.region}}
         </dd>
         <dt>Subnet:</dt>
         <dd>{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>

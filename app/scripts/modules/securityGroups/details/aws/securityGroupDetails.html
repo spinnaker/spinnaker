@@ -32,12 +32,12 @@
       <dl class="dl-horizontal dl-narrow">
         <dt>ID:</dt>
         <dd>{{securityGroup.id}}</dd>
+        <dt>Account:</dt>
+        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
         <dt>Region:</dt>
         <dd>{{securityGroup.region}}</dd>
         <dt>VPC:</dt>
-        <dd>{{securityGroup.vpcId}}</dd>
-        <dt>Account:</dt>
-        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dd>{{securityGroup.vpcId || 'None (EC2 Classic)'}}</dd>
         <dt>Description:</dt>
         <dd>{{securityGroup.description}}</dd>
       </dl>

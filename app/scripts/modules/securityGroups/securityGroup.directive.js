@@ -28,7 +28,7 @@ angular.module('deckApp.securityGroup.rollup', [])
               accountId: securityGroup.accountName,
               name: securityGroup.name,
               vpcId: securityGroup.vpcId,
-              provider: securityGroup.provider,
+              provider: securityGroup.provider || 'aws',
             };
             // also stolen from uiSref directive
             scope.$state.go('.securityGroupDetails', params, {relative: base, inherit: true});
