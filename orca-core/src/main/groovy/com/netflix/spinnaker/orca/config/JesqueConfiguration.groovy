@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.config
 
-import groovy.transform.CompileStatic
 import com.netflix.eventbus.spi.EventBus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.JesqueActivator
@@ -37,7 +36,6 @@ import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
 @Configuration
-@CompileStatic
 class JesqueConfiguration {
   @Bean
   @ConditionalOnProperty("redis.connection")
