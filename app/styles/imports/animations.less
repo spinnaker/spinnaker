@@ -17,25 +17,25 @@
 @import "app/styles/imports/colors.less";
 
 .glowing {
-  -webkit-animation: animate-glow 1.5s ease-out infinite;
-  -moz-animation: animate-glow 1.5s ease-out infinite;
+  -webkit-animation: animate-glow 1.75s steps(12) infinite;
+  -moz-animation: animate-glow 1.75s steps(12) infinite;
 }
 
 @-webkit-keyframes animate-glow {
-     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
-     50% { -webkit-box-shadow: 0 30px 30px @glow-mid inset, 0 -30px 30px @glow-mid inset;}
-     100% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
+  0% { opacity: 0.9; }
+  50% { opacity: 0.65; }
+  100% { opacity: 0.9; }
 }
 
 @-moz-keyframes animate-glow {
-     0% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
-     50% { -webkit-box-shadow: 0 30px 30px @glow-mid inset, 0 -30px 30px @glow-mid inset;}
-     100% { -webkit-box-shadow: 0 30px 30px @glow-init inset, 0 -30px 30px @glow-init inset;}
+  0% { opacity: 0.9; }
+  50% { opacity: 0.65; }
+  100% { opacity: 0.9; }
 }
 
 .pulsing {
-  -webkit-animation: pulse linear 1.5s infinite;
-  animation: pulse linear 1.5s infinite;
+  -webkit-animation: pulse 1.5s steps(12) infinite;
+  animation: pulse 1.5s steps(12) infinite;
 }
 
 @-webkit-keyframes pulse {
