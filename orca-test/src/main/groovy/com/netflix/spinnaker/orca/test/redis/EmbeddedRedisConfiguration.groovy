@@ -22,6 +22,7 @@ import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
@@ -30,6 +31,7 @@ import redis.clients.util.Pool
  *
  * @author sthadeshwar
  */
+@Configuration
 class EmbeddedRedisConfiguration {
 
   @Bean
@@ -38,20 +40,16 @@ class EmbeddedRedisConfiguration {
   }
 
   @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  @CompileDynamic
-  Config embeddedJesqueConfig(EmbeddedRedis redis) {
+  Config jesqueConfig() {
     new ConfigBuilder()
         .withHost("localhost")
-        .withPort(redis.redisServer.port)
+        .withPort(redisServer().redisServer.port)
         .build()
   }
 
   @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  @CompileDynamic
-  Pool<Jedis> embeddedJedisPool(EmbeddedRedis redis) {
-    new JedisPool("localhost", redis.redisServer.port)
+  Pool<Jedis> jedisPool() {
+    new JedisPool("localhost", redisServer().redisServer.port)
   }
 
 }
