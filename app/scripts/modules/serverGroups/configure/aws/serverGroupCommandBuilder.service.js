@@ -106,7 +106,6 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader, instanceProfile: instanceTypeCategoryLoader});
 
       return asyncLoader.then(function(asyncData) {
-        console.warn('here we go..');
         var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
 
         var zones = serverGroup.asg.availabilityZones.sort();
