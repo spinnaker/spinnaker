@@ -31,10 +31,10 @@ interface BakeStore {
   public boolean acquireBakeLock(String bakeKey)
 
   /**
-   * Store the region, bakeRequest and bakeStatus in association with both the bakeKey and bakeStatus.id.
-   * None of the arguments may be null.
+   * Store the region, bakeRequest and bakeStatus in association with both the bakeKey and bakeId. If bake key
+   * has already been set, return a bakeStatus with that bake's id instead. None of the arguments may be null.
    */
-  public void storeBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, BakeStatus bakeStatus)
+  public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, String bakeId)
 
   /**
    * Update the completed bake details associated with both the bakeKey and bakeDetails.id. bakeDetails may not be null.

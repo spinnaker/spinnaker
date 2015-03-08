@@ -98,11 +98,8 @@ class BakeryController {
 
   private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, ScriptRequest scriptRequest) {
     def scriptId = rushService.runScript(scriptRequest).toBlocking().single()
-    def bakeStatus = new BakeStatus(id: scriptId.id, resource_id: scriptId.id, state: BakeStatus.State.PENDING)
 
-    bakeStore.storeBakeStatus(bakeKey, region, bakeRequest, bakeStatus)
-
-    return bakeStatus
+    return bakeStore.storeNewBakeStatus(bakeKey, region, bakeRequest, scriptId.id)
   }
 
   @RequestMapping(value = "/{region}/status/{statusId}", method = RequestMethod.GET)

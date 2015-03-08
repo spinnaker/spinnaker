@@ -70,7 +70,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
-      1 * bakeStoreMock.storeBakeStatus(BAKE_KEY, REGION, bakeRequest, new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING))
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
 
@@ -135,7 +135,7 @@ class BakeryControllerSpec extends Specification {
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
-      1 * bakeStoreMock.storeBakeStatus(BAKE_KEY, REGION, bakeRequest, new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING))
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
 
@@ -271,7 +271,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
-      1 * bakeStoreMock.storeBakeStatus(BAKE_KEY, REGION, bakeRequest, new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING))
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
 
@@ -304,7 +304,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
-      1 * bakeStoreMock.storeBakeStatus(BAKE_KEY, REGION, bakeRequest, new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING))
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
 
     where:
