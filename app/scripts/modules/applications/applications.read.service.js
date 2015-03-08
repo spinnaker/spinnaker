@@ -9,15 +9,23 @@ angular
     'deckApp.loadBalancer.read.service',
     'deckApp.loadBalancer.transformer.service',
     'deckApp.securityGroup.read.service',
+    'deckApp.caches.infrastructure',
     'deckApp.scheduler'
   ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
-                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler) {
+                                          loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
+                                          infrastructureCaches) {
 
-    function listApplications() {
-      return Restangular
+    function listApplications(forceRemoteCall) {
+      var endpoint = Restangular
         .all('applications')
-        .getList();
+        .withHttpConfig({cache: infrastructureCaches.applications});
+
+      if (forceRemoteCall) {
+        infrastructureCaches.applications.remove(endpoint.getRestangularUrl());
+      }
+
+      return endpoint.getList();
     }
 
 

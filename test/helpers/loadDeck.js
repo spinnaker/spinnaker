@@ -14,13 +14,18 @@ var loadDeck = function(config) {
       });
     }
 
-    if (config.generateUrls) {
+    if (config.generateUrls || config.enableAuth) {
       var settings = $injector.get('settings');
-      Object.keys(settings).forEach(function(key) {
-        if (key.indexOf('Url') !== -1) {
-          settings[key] = key;
-        }
-      });
+      if (config.generateUrls) {
+        Object.keys(settings).forEach(function (key) {
+          if (key.indexOf('Url') !== -1) {
+            settings[key] = key;
+          }
+        });
+      }
+      if (config.enableAuth) {
+        settings.authEnabled = true;
+      }
       $provide.constant('settings', settings);
     }
 
@@ -41,6 +46,7 @@ var loadDeckWithoutCacheInitializer = function() {
   return loadDeck({
     initializeCache: false,
     generateUrls: true,
-    authenticatedUser: 'kato@example.com'
+    authenticatedUser: 'kato@example.com',
+    enableAuth: false,
   });
 };

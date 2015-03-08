@@ -23,7 +23,7 @@ describe('Service: InstanceType', function () {
   );
 
 
-  beforeEach(inject(function (_instanceTypeService_, _$httpBackend_, _settings_) {
+  beforeEach(inject(function (_instanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches) {
 
     this.instanceTypeService = _instanceTypeService_;
     this.$httpBackend = _$httpBackend_;
@@ -35,6 +35,10 @@ describe('Service: InstanceType', function () {
       {account: "test", region: "eu-west-1", name: "hs1.8xlarge", availabilityZone: "eu-west-1c"},
       {account: "test", region: "eu-west-1", name: "m2.xlarge", availabilityZone: "eu-west-1c"},
     ];
+
+    if (infrastructureCaches.instanceTypes) {
+      infrastructureCaches.instanceTypes.removeAll();
+    }
   }));
 
   afterEach(function () {

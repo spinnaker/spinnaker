@@ -23,7 +23,8 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
         loadBalancer.vpcId = null;
       }
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && test.vpcId === loadBalancer.vpcId;
+        var testVpc = test.vpcId || null;
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
       })[0];
 
       if ($scope.loadBalancer) {

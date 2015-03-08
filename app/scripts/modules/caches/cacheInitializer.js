@@ -11,18 +11,32 @@ angular.module('deckApp.caches.initializer', [
   'deckApp.vpc.read.service',
   'deckApp.keyPairs.read.service',
   'deckApp.loadBalancer.read.service',
+  'deckApp.applications.read.service',
+  'deckApp.caches.infrastructure',
 ])
-  .factory('cacheInitializer', function(accountService, instanceTypeService, securityGroupReader, subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
+  .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches, accountService, instanceTypeService, securityGroupReader, subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
+
+    function initialize() {
+      return $q.all([
+        accountService.getRegionsKeyedByAccount(),
+        accountService.listAccounts(),
+        instanceTypeService.getAllTypesByRegion('aws'),
+        loadBalancerReader.listAWSLoadBalancers(),
+        securityGroupReader.getAllSecurityGroups(),
+        subnetReader.listSubnets(),
+        vpcReader.listVpcs(),
+        keyPairsReader.listKeyPairs(),
+        applicationReader.listApplications(),
+      ]);
+    }
+
+    function refreshCaches() {
+      infrastructureCaches.clearCaches();
+      return initialize();
+    }
+
     return {
-      initialize: function() {
-        accountService.getRegionsKeyedByAccount();
-        accountService.listAccounts();
-        instanceTypeService.getAllTypesByRegion('aws');
-        loadBalancerReader.listAWSLoadBalancers();
-        securityGroupReader.getAllSecurityGroups();
-        subnetReader.listSubnets();
-        vpcReader.listVpcs();
-        keyPairsReader.listKeyPairs();
-      }
+      initialize: initialize,
+      refreshCaches: refreshCaches,
     };
   });

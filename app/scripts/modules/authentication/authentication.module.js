@@ -9,11 +9,9 @@ angular.module('deckApp.authentication', [
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
   })
-  .run(function ($timeout, authenticationService, settings) {
-    // timeout allows initial rerouting to occur; otherwise, we potentially immediately redirect on page load,
-    // which closes the "Authenticating..." modal
+  .run(function (authenticationService, settings) {
     if(settings.authEnabled) {
-      $timeout(authenticationService.authenticateUser);
+      authenticationService.authenticateUser();
     }
   })
   .factory('gateRequestInterceptor', function (settings) {
