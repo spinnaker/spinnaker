@@ -19,14 +19,21 @@ package com.netflix.spinnaker.orca.igor
 import retrofit.http.GET
 import retrofit.http.PUT
 import retrofit.http.Path
+import retrofit.http.QueryMap
 
 interface IgorService {
 
   @PUT("/masters/{name}/jobs/{jobName}")
-  Map<String, Object> build(@Path("name") String master, @Path("jobName") String jobName)
+  Map<String, Object> build(@Path("name") String master, @Path("jobName") String jobName, @QueryMap Map<String,String> queryParams)
 
   @GET("/jobs/{master}/{job}/{buildNumber}")
   Map<String, Object> getBuild(@Path("master") String master,
                                @Path("job") String job,
                                @Path("buildNumber") Integer buildNumber)
+
+  @GET("/jobs/{master}/{job}/{buildNumber}/properties/{fileName}")
+  Map<String, String> getPropertyFile(@Path("master") String master,
+                                      @Path("job") String job,
+                                      @Path("buildNumber") Integer buildNumber,
+                                      @Path("fileName") String fileName)
 }

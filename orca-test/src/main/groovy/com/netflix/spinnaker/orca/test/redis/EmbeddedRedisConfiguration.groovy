@@ -40,20 +40,16 @@ class EmbeddedRedisConfiguration {
   }
 
   @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  @CompileDynamic
-  Config embeddedJesqueConfig(EmbeddedRedis redis) {
+  Config jesqueConfig() {
     new ConfigBuilder()
         .withHost("localhost")
-        .withPort(redis.redisServer.port)
+        .withPort(redisServer().redisServer.port)
         .build()
   }
 
   @Bean
-  @ConditionalOnBean(EmbeddedRedis)
-  @CompileDynamic
-  Pool<Jedis> embeddedJedisPool(EmbeddedRedis redis) {
-    new JedisPool("localhost", redis.redisServer.port)
+  Pool<Jedis> jedisPool() {
+    new JedisPool("localhost", redisServer().redisServer.port)
   }
 
 }

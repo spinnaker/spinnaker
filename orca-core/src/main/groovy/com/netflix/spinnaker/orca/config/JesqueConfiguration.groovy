@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.config
 
 import groovy.transform.CompileStatic
+import com.netflix.eventbus.spi.EventBus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.JesqueActivator
 import net.greghaines.jesque.Config
@@ -27,6 +28,7 @@ import net.greghaines.jesque.worker.WorkerPool
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -35,10 +37,9 @@ import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
 @Configuration
-@CompileStatic
 class JesqueConfiguration {
   @Bean
-  @ConditionalOnProperty("redis.connection")
+  @ConditionalOnMissingBean(Pool)
   Pool<Jedis> jedisPool(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
     final JedisPool pool
@@ -51,7 +52,7 @@ class JesqueConfiguration {
   }
 
   @Bean
-  @ConditionalOnProperty("redis.connection")
+  @ConditionalOnMissingBean(Config)
   Config jesqueConfig(@Value('${redis.connection}') String connection) {
     def jedisConnection = URI.create(connection)
     new ConfigBuilder()

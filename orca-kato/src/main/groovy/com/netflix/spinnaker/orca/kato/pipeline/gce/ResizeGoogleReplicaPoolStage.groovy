@@ -38,8 +38,8 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
 
   @Override
   protected List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "resizeAsg", ResizeGoogleReplicaPoolTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+    def step1 = buildStep(stage, "resizeServerGroup", ResizeGoogleReplicaPoolTask)
+    def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
     def step3 = buildStep(stage, "forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
     def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
     [step1, step2, step3, step4]

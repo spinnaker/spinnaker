@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -65,7 +66,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
 
     and:
     task.igorService = Stub(IgorService) {
-      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [ result : 'SUCCESS', running: running ]
+      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: 'SUCCESS', running: running]
     }
 
     expect:
@@ -114,4 +115,25 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     503        || ExecutionStatus.RUNNING
     400        || null
   }
+
+  def "retrives values from a property file if specified"() {
+
+    given:
+    def stage = new PipelineStage(pipeline, "jenkins", [master: "builds", job: "orca", buildNumber: 4, propertyFile: "sample.properties"]).asImmutable()
+
+    and:
+    task.igorService = Stub(IgorService) {
+      getBuild(stage.context.master, stage.context.job, stage.context.buildNumber) >> [result: 'SUCCESS', running: false]
+      getPropertyFile(stage.context.master, stage.context.job, stage.context.buildNumber, stage.context.propertyFile) >> [val1: "one", val2: "two"]
+    }
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.outputs.val1 == 'one'
+    result.outputs.val2 == 'two'
+
+  }
+
 }
