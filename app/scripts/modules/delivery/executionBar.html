@@ -6,7 +6,7 @@
          ng-style="ctrl.styleStage(stage)">
       <div class="execution-stage-label"
             style="width: 100%">
-        {{ stage.name != "null" ? stage.name : stage.type }}
+        <span ng-include="ctrl.getLabelTemplate(stage)"></span>
       </div>
     </div>
   </div>

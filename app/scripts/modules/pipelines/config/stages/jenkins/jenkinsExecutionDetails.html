@@ -8,10 +8,12 @@
         <dt>Job</dt>
         <dd>{{stage.context.job}}</dd>
         <dt>Build</dt>
-        <dd>{{stage.context.buildNumber}}
-        <a ng-if="stage.context.buildInfo.url"
-           href="{{stage.context.buildInfo.url}}"
-           target="_blank"><strong>(link)</strong></a></dd>
+        <dd>
+          <span ng-if="!stage.context.buildInfo">{{stage.context.buildNumber}}</span>
+          <a ng-if="stage.context.buildInfo.url"
+             href="{{stage.context.buildInfo.url}}"
+             target="_blank">#{{stage.context.buildInfo.number}}</a>
+        </dd>
       </dl>
     </div>
 
@@ -21,13 +23,32 @@
 
   <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
-  <div class="row" ng-if="stage.context.execution.logs">
+  <div class="row" ng-if="stage.context.buildInfo.testResults">
     <div class="col-md-12">
-      <div class="well alert alert-info">
-        <!-- TODO: Move this to config -->
-        <a target="_blank" href="{{stage.context.execution.logs}}">
-          View Execution Logs
-        </a>
+        <div class="stage-details-section-heading">
+          <h4>Test Results</h4>
+        </div>
+        <div class="row" ng-repeat="result in stage.context.buildInfo.testResults">
+          <div class="col-md-3">
+            <p>
+            <a target="_blank" href="{{stage.context.buildInfo.url}}{{result.urlName}}" class="pad-left">
+              {{result.urlName | robotToHuman }}
+            </a>
+            </p>
+          </div>
+          <div class="col-md-4">
+            <p class="test-results">
+              <span class="test-result-section">
+                {{result.totalCount - result.failCount - result.skipCount}} <span class="small glyphicon glyphicon-ok"></span>
+              </span>
+              <span class="test-result-section" ng-if="result.failCount">
+                {{result.failCount}} <span class="small glyphicon glyphicon-remove informational"></span>
+              </span>
+              <span class="test-result-section" ng-if="result.skipCount">
+                {{result.skipCount}} <span class="small glyphicon glyphicon-minus"></span>
+              </span>
+            </p>
+          </div>
       </div>
     </div>
   </div>

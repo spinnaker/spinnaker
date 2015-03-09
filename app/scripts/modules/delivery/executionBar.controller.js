@@ -3,9 +3,10 @@
 angular.module('deckApp.delivery.executionBar.controller', [
   'deckApp.utils.moment',
   'deckApp.scheduler',
-  'deckApp.utils.d3'
+  'deckApp.utils.d3',
+  'deckApp.pipelines.config',
 ])
-  .controller('executionBar', function($scope, d3Service, $filter, momentService, scheduler) {
+  .controller('executionBar', function($scope, d3Service, $filter, momentService, scheduler, pipelineConfig) {
     var controller = this;
     controller.now = momentService().valueOf();
 
@@ -60,4 +61,15 @@ angular.module('deckApp.delivery.executionBar.controller', [
       };
       return style;
     };
+
+    controller.getLabelTemplate = function(stage) {
+      var target = stage.masterStage || stage;
+      var config = pipelineConfig.getStageConfig(target.type);
+      if (config && config.executionLabelTemplateUrl) {
+        return config.executionLabelTemplateUrl;
+      } else {
+        return 'scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
+      }
+    };
+
   });

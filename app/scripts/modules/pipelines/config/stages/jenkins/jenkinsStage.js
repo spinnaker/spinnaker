@@ -7,9 +7,10 @@ angular.module('deckApp.pipelines.stage.jenkins')
       description: 'Runs a Jenkins job',
       key: 'jenkins',
       controller: 'JenkinsStageCtrl',
-      controlelrAs: 'jenkinsStageCtrl',
+      controllerAs: 'jenkinsStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
+      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html'
     });
   }).controller('JenkinsStageCtrl', function($scope, stage, jenkinsService) {
     $scope.stage = stage;
