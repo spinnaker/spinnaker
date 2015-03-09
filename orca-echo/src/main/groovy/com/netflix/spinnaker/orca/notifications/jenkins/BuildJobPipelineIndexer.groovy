@@ -1,9 +1,7 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Log4j
 import groovy.util.logging.Slf4j
-
 import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.core.type.TypeReference
@@ -14,6 +12,7 @@ import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import rx.Observable
 import rx.Scheduler
 import rx.Subscription
 import rx.schedulers.Schedulers
@@ -49,13 +48,14 @@ class BuildJobPipelineIndexer implements PipelineIndexer {
 
   @PostConstruct
   void init() {
-    subscription = rx.Observable.interval(pollingInterval, SECONDS, scheduler).map {
-      poll()
-    } doOnError { Throwable err ->
-      log.error "Error when polling for pipelines", err
-    } retry() distinctUntilChanged() subscribe { Map<Trigger, Collection<Map>> pipelines ->
-      pipelinesByTrigger = pipelines
-    }
+    log.info "Updating pipeline definitions from Mayo every $pollingInterval seconds"
+    subscription = Observable.interval(pollingInterval, SECONDS, scheduler)
+                             .map { poll() }
+                             .doOnError { err -> log.error "Error when polling for pipelines", err }
+                             .retry()
+                             .distinctUntilChanged()
+                             .doOnNext({ pipelines -> log.info "Got updated pipeline definitions from Mayo" })
+                             .subscribe { Map pipelines -> pipelinesByTrigger = pipelines }
   }
 
   @PreDestroy

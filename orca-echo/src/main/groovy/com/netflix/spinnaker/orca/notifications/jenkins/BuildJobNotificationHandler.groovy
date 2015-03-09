@@ -1,10 +1,12 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 
+@Slf4j
 class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
   public static final String TRIGGER_TYPE = "jenkins"
@@ -34,6 +36,7 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
           pipelineConfigClone.trigger = new HashMap(trigger)
           pipelineConfigClone.trigger.buildInfo = input
           def json = objectMapper.writeValueAsString(pipelineConfigClone)
+          log.info "Starting pipeline '$pipelineConfig.name' for application '$pipelineConfig.application' due to Jenkins job '$key.job'"
           pipelineStarter.start(json)
         }
       }
