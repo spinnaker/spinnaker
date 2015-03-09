@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.0.RELEASE"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.1.RELEASE"
     }
 }
 
