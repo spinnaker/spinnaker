@@ -4,11 +4,11 @@
     (
     <span class="tests-pass-count">
     {{result.totalCount - result.failCount - result.skipCount}}</span>
-    <span ng-if="result.failCount || result.skipCount">/</span>
-    <span class="tests-fail-count" ng-if="result.failCount">
+    /
+    <span class="tests-fail-count">
       {{result.failCount}}
     </span>
-    <span ng-if="result.skipCount && result.failCount">/</span>
+    <span ng-if="result.skipCount">/</span>
     <span class="tests-skip-count" ng-if="result.skipCount">
       {{result.skipCount}}
     </span>
