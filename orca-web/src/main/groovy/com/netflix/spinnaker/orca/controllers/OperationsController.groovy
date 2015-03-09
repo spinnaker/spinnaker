@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,11 +33,29 @@ class OperationsController {
   OrchestrationStarter orchestrationStarter
 
   @Autowired
+  IgorService igorService
+
+  @Autowired
   ObjectMapper objectMapper
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
-  Map<String, String> orchestrate(@RequestBody Map pipeline, @RequestParam(value = "user", required = false) String user) {
+  Map<String, String> orchestrate(
+    @RequestBody Map pipeline,
+    @RequestParam(value = "user", required = false) String user,
+    @RequestParam(value = "build.master", required = false) String master,
+    @RequestParam(value = "build.job", required = false) String job,
+    @RequestParam(value = "build.number", required = false) Integer buildNumber) {
+
     pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user]
+
+    if (master && job && buildNumber) {
+      Map build = igorService.getBuild(master, job, buildNumber)
+      if (build) {
+        pipeline.trigger.job = job
+        pipeline.trigger.master = master
+        pipeline.trigger.buildInfo = build
+      }
+    }
     startPipeline(pipeline)
   }
 
