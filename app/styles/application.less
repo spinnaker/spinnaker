@@ -27,6 +27,14 @@
     }
     font-weight: 700;
     display: inline-block;
+    .glyphicon-refresh {
+      &.refresh-enabled {
+        color: @healthy_green_icon;
+      }
+      &.refresh-disabled {
+        opacity: 0.5;
+      }
+    }
   }
   ul {
     display: inline-block;

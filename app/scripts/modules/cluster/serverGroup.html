@@ -7,7 +7,6 @@
      }">
   <div class="cluster-container">
     <div class="server-group-title" sticky-header added-offset-height="69" added-offset-width="-4"
-         ng-style="viewModel.placeholderStyle"
          sticky-if="headerIsSticky()">
       <div class="container-fluid no-padding">
         <div class="row">
@@ -34,13 +33,13 @@
         </div>
       </div>
     </div>
-    <div class="instance-list" ng-if="displayOptions.showInstances && viewModel.loaded">
+    <div class="instance-list" ng-if="displayOptions.showInstances">
       <div ng-if="!displayOptions.listInstances">
         <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="viewModel.instances"
                    render-instances-on-scroll="false"></instances>
       </div>
       <div ng-if="displayOptions.listInstances">
-        <instance-list instances="viewModel.instances" sort-filter="sortFilter" render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instance-list>
+        <instance-list instances="viewModel.instances" sort-filter="sortFilter"></instance-list>
       </div>
     </div>
   </div>

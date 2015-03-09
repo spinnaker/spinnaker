@@ -12,7 +12,17 @@ angular.module('deckApp.application.controller', [
       return;
     }
 
-    application.enableAutoRefresh($scope);
+    function countInstances() {
+      var serverGroups = application.serverGroups || [];
+      return serverGroups
+        .reduce(function(total, serverGroup) {
+          return serverGroup.instances.length + total;
+        }, 0);
+    }
+
+    if (countInstances() < 500) {
+      application.enableAutoRefresh($scope);
+    }
 
     executionsService.getAll().then(function(oldExecutions) {
       $scope.executions = oldExecutions;
