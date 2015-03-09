@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.config
 
 import groovy.transform.CompileStatic
-import com.netflix.eventbus.spi.EventBus
+import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.JesqueActivator
 import net.greghaines.jesque.Config
@@ -29,7 +29,6 @@ import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
@@ -37,6 +36,8 @@ import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
 @Configuration
+@Slf4j
+@CompileStatic
 class JesqueConfiguration {
   @Bean
   @ConditionalOnMissingBean(Pool)
@@ -78,6 +79,7 @@ class JesqueConfiguration {
                               @Value('${jesque.numWorkers:1}') int numWorkers) {
     def pool = new SpringWorkerPool(workerFactory, numWorkers)
     pool.togglePause(true)
+    log.info "Jesque worker pool started dormant"
     return pool
   }
 

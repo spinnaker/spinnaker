@@ -1,6 +1,7 @@
 package com.netflix.spinnaker.orca.echo
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -15,6 +16,7 @@ import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
  */
 @Component
 @ConditionalOnBean(JedisCommands)
+@Slf4j
 @CompileStatic
 class JedisEchoEventPoller implements EchoEventPoller {
 
@@ -32,12 +34,13 @@ class JedisEchoEventPoller implements EchoEventPoller {
   @Override
   Response getEvents(String type) {
     def lastCheck = jedis.get(LAST_CHECK_KEY)?.toLong()
+    log.info "Looking for echo events of type $type since $lastCheck"
     def response = echoService.getEvents(type, lastCheck ?: 0L)
     jedis.set LAST_CHECK_KEY, dateHeaderFrom(response).toString()
     return response
   }
 
-  private static long dateHeaderFrom(Response response) {
+  private static Long dateHeaderFrom(Response response) {
     def header = response.headers.find { it.name == DATE }
     ZonedDateTime.from(RFC_1123_DATE_TIME.parse(header.value))
                  .toInstant()
