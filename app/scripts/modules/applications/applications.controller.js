@@ -76,10 +76,18 @@ angular.module('deckApp.applications.controller', [
 
     var ctrl = this;
 
+    // Get from cache first
     applicationReader.listApplications().then(function(applications) {
       $scope.applications = applications;
       ctrl.filterApplications();
       $scope.applicationsLoaded = true;
+
+      // Then get from server
+      applicationReader.listApplications(true).then(function(applications) {
+        $scope.applications = applications;
+        ctrl.filterApplications();
+      });
+
     });
 
   }

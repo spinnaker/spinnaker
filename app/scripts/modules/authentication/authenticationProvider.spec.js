@@ -5,8 +5,13 @@ describe('authenticationProvider: application startup', function() {
   beforeEach(function() {
     loadDeck({
       initializeCache: false,
-      generateUrls: true
+      generateUrls: true,
+      enableAuth: true,
     });
+  });
+
+  afterEach(function() {
+    this.settings.authEnabled = false;
   });
 
   beforeEach(inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {

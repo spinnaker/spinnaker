@@ -4,9 +4,10 @@
 angular.module('deckApp.aws.instanceType.service', [
   'restangular',
   'deckApp.settings',
-  'deckApp.utils.lodash'
+  'deckApp.utils.lodash',
+  'deckApp.caches.infrastructure',
 ])
-  .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular) {
+  .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
 
     var m3 = {
       type: 'M3',
@@ -252,16 +253,24 @@ angular.module('deckApp.aws.instanceType.service', [
       return $q.when(categories);
     }
 
-    var getAllTypesByRegion = _.memoize(function getAllTypesByRegion() {
-
-      return Restangular.all('instanceTypes').getList().then(function (types) {
-        return _(types)
-          .map(function(type) { return { region: type.region, account: type.account, name: type.name }; })
-          .uniq()
-          .groupBy('region')
-          .valueOf();
-      });
-    });
+    var getAllTypesByRegion = function getAllTypesByRegion() {
+      var cached = infrastructureCaches.instanceTypes.get('aws');
+      if (cached) {
+        return $q.when(cached);
+      }
+      return Restangular.all('instanceTypes')
+        .getList().then(function (types) {
+          var result = _(types)
+            .map(function (type) {
+              return { region: type.region, account: type.account, name: type.name, key: [type.region, type.account, type.name].join(':') };
+            })
+            .uniq('key')
+            .groupBy('region')
+            .valueOf();
+          infrastructureCaches.instanceTypes.put('aws', result);
+          return result;
+        });
+    };
 
     function getAvailableTypesForRegions(availableRegions, selectedRegions) {
       selectedRegions = selectedRegions || [];
