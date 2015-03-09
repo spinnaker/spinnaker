@@ -65,7 +65,7 @@ public class DiscoveryStatusPoller implements ApplicationListener<ContextRefresh
   }
 
   private void publishEvent(StatusChangeEvent event) {
-    log.info("Application status changed from %s to %s", event.getPreviousStatus(), event.getStatus());
+    log.info("Application status changed from {} to {}", event.getPreviousStatus(), event.getStatus());
     applicationContext.publishEvent(new EurekaStatusChangedEvent(event));
   }
 
