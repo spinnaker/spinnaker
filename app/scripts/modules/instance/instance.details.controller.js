@@ -57,7 +57,7 @@ angular.module('deckApp.instance.detail.controller', [
         instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           $scope.instance = angular.extend(details.plain(), instanceSummary);
-          extractHealthMetrics(details);
+          extractHealthMetrics(instanceSummary);
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
