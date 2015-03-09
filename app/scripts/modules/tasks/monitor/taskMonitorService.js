@@ -96,7 +96,7 @@ angular.module('deckApp.tasks.monitor.service', [])
 
       function handleForceRefreshComplete() {
         monitor.startForceRefresh();
-        monitor.application.refreshImmediately().then(handleApplicationRefreshComplete);
+        monitor.application.refreshImmediately(true).then(handleApplicationRefreshComplete);
       }
 
       function handleApplicationRefreshComplete() {

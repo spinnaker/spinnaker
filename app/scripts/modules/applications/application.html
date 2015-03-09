@@ -2,6 +2,21 @@
   <div class="container">
     <h2 style="min-width: 200px">
       {{application.name}}
+      <a href ng-click="application.refreshImmediately(true)">
+        <span class="small glyphicon glyphicon-refresh"
+              tooltip-html-unsafe="
+                <p>Auto refresh is <strong>{{application.refreshing ? 'in progress' : application.autoRefreshEnabled ? 'enabled' : 'disabled'}}</strong>.
+                   <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>
+                <p>Last refresh: {{application.lastRefresh | timestamp }} <br> ({{application.lastRefresh | relativeTime }})</p>
+                <p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>
+                {{!application.autoRefreshEnabled ? '<p class=small>For page performance reasons, we disable auto refresh whenever an application has more than 500 instances.</p>': ''}}"
+              tooltip-placement="bottom"
+              ng-class="{
+              'refresh-enabled': application.autoRefreshEnabled,
+              'refresh-disabled': !application.autoRefreshEnabled,
+              'glyphicon-spinning': application.refreshing,
+              }"></span>
+      </a>
     </h2>
     <div ng-if="application.notFound">
       <h1 class="text-center">&lt;404&gt;</h1>

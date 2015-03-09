@@ -14,7 +14,7 @@ angular
   ])
   .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
-                                          infrastructureCaches) {
+                                          infrastructureCaches, settings, $log, $window) {
 
     function listApplications(forceRemoteCall) {
       var endpoint = Restangular
@@ -34,15 +34,19 @@ angular
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
-        function refreshApplication() {
-          application.reloadTasks();
-          return getApplication(application.name).then(function (newApplication) {
-            deepCopyApplication(application, newApplication);
-            application.autoRefreshHandlers.forEach(function(handler) {
-              handler.call();
+        function refreshApplication(forceRefresh) {
+          if (application.autoRefreshEnabled || forceRefresh) {
+            application.refreshing = true;
+            application.reloadTasks();
+            return getApplication(application.name).then(function (newApplication) {
+              deepCopyApplication(application, newApplication);
+              application.autoRefreshHandlers.forEach(function (handler) {
+                handler.call();
+              });
+              newApplication = null;
+              application.refreshing = false;
             });
-            newApplication = null;
-          });
+          }
         }
 
 
@@ -67,9 +71,41 @@ angular
 
         function disableAutoRefresh () {
           application.autoRefreshEnabled = false;
+          document.removeEventListener('visibilitychange', watchDocumentVisibility);
+          $window.removeEventListener('blur', suspendAutoRefresh);
+          $window.removeEventListener('focus', resumeAutoRefresh);
+        }
+
+        function suspendAutoRefresh() {
+          $log.debug('auto refresh suspended');
+          application.autoRefreshEnabled = false;
+        }
+
+        function resumeAutoRefresh() {
+          application.autoRefreshEnabled = true;
+          $log.debug('auto refresh resumed');
+          var now = new Date().getTime();
+          if (application.lastRefresh && now - application.lastRefresh > settings.pollSchedule) {
+            $log.debug('scheduling immediate refresh, last refresh was', now - application.lastRefresh, 'ms ago');
+            scheduler.scheduleImmediate(refreshApplication);
+          }
+        }
+
+        function watchDocumentVisibility() {
+          $log.debug('document visibilityState changed to: ', document.visibilityState);
+          if (document.visibilityState === 'visible') {
+            resumeAutoRefresh();
+          } else {
+            suspendAutoRefresh();
+          }
         }
 
         function enableAutoRefresh (scope) {
+          document.addEventListener('visibilitychange', watchDocumentVisibility);
+          $window.addEventListener('blur', suspendAutoRefresh);
+          $window.addEventListener('offline', suspendAutoRefresh);
+          $window.addEventListener('online', resumeAutoRefresh);
+          $window.addEventListener('focus', resumeAutoRefresh);
           application.autoRefreshEnabled = true;
           autoRefresh(scope);
         }
@@ -120,6 +156,7 @@ angular
       original.serverGroups = newApplication.serverGroups;
       original.loadBalancers = newApplication.loadBalancers;
       original.securityGroups = newApplication.securityGroups;
+      original.lastRefresh = newApplication.lastRefresh;
       clusterService.addTasksToServerGroups(original);
 
       newApplication.accounts = null;
@@ -145,6 +182,7 @@ angular
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
+          application.lastRefresh = new Date().getTime();
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
           loadBalancerAccounts = _(applicationLoader.loadBalancersFromSearch).pluck('account').unique().value();
           application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
