@@ -90,7 +90,6 @@ class PipelinePersistenceSpec extends Specification {
       new DefaultTaskResult(RUNNING) >>
       new DefaultTaskResult(RUNNING) >>
       {
-//        taskExecutor.shutdown()
         try {
           throw new RuntimeException()
         } finally {
@@ -103,9 +102,6 @@ class PipelinePersistenceSpec extends Specification {
     latch.await()
 
     when:
-//    taskExecutor.initialize()
-//
-//    and:
     pipelineStarter.resume(pipeline)
     sleep 1000
 

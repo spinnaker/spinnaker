@@ -55,11 +55,14 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   }
 
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    pipeline.stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
+    def stages = []
+    stages.addAll(pipeline.stages)
+    stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
   }
 
   protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {
     builderFor(stage).build(jobBuilder, stage)
+    return jobBuilder
   }
 
   protected StageBuilder builderFor(Stage<Pipeline> stage) {

@@ -97,7 +97,7 @@ class BakeStageSpec extends Specification {
       return [[clusters: regions.collect { [availabilityZones: [(it): []]] }]]
     }
 
-    regions.collect {
+    return regions.collect {
       if (prefix == "cluster") {
         return [cluster: [availabilityZones: [(it): []]]]
       }
