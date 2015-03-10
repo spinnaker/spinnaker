@@ -76,6 +76,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.destroyAsg',
     'deckApp.pipelines.stage.disableAsg',
     'deckApp.pipelines.stage.executionWindows',
+    'deckApp.pipelines.stage.findAmi',
     'deckApp.authentication',
     'deckApp.search',
     'deckApp.notifications',
