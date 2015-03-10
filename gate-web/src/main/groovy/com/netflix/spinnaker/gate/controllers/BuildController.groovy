@@ -41,4 +41,9 @@ class BuildController {
   List<String> getJobsForBuildMaster(@PathVariable("buildMaster") String buildMaster) {
     buildService.getJobsForBuildMaster(buildMaster)
   }
+
+  @RequestMapping(value = "/{buildMaster}/{job}/config", method = RequestMethod.GET)
+  Map getJobConfig(@PathVariable("buildMaster") String buildMaster, @PathVariable("job") String job) {
+    buildService.getJobConfig(buildMaster, job)
+  }
 }
