@@ -49,4 +49,13 @@ class BuildService {
       igorService.getJobsForBuildMaster(buildMaster)
     } execute()
   }
+
+  Map getJobConfig(String buildMaster, String job) {
+    if (!igorService) {
+      return [:]
+    }
+    HystrixFactory.newMapCommand(GROUP, "jobConfig",true) {
+      igorService.getJobConfig(buildMaster, job)
+    } execute()
+  }
 }
