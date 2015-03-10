@@ -68,6 +68,7 @@ angular.module('deckApp.pipelines.stage.deploy')
           }
         }).result.then(function(command) {
             var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+            delete stageCluster.credentials;
             $scope.stage.clusters.push(stageCluster);
           });
       });
@@ -91,6 +92,7 @@ angular.module('deckApp.pipelines.stage.deploy')
         }
       }).result.then(function(command) {
           var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+          delete stageCluster.credentials;
           $scope.stage.clusters[index] = stageCluster;
         });
     };
