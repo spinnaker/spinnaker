@@ -126,12 +126,14 @@ class ServerGroupController {
     String id
     List<Map<String, Object>> health
     Boolean isHealthy
+    String healthState
     Long launchTime
     String availabilityZone
 
     InstanceViewModel(Instance instance) {
       id = instance.name
       isHealthy = instance.isHealthy()
+      healthState = instance.getHealthState().toString()
       launchTime = instance.launchTime
       availabilityZone = instance.zone
       health = instance.health.collect { health ->
