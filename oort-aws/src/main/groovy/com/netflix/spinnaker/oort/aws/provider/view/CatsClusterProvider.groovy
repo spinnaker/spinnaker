@@ -209,7 +209,6 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
       AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
       instance.putAll(instanceEntry.attributes)
-      instance.zone = instanceEntry.attributes.placement?.availabilityZone?: null
       [(instanceEntry.id): instance]
     }
     addHealthToInstances(instanceData, instances)

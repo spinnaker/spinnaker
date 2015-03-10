@@ -71,7 +71,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
 
   @Override
   String getZone() {
-    getProperty "zone"
+    getProperty("placement")?.availabilityZone
   }
 
   @Override
