@@ -53,7 +53,7 @@ angular.module('deckApp.utils.waypoints.service', [
     function restoreToWaypoint(key) {
       $timeout(function() {
         var registry = waypointRegistry[key];
-        if (!registry) {
+        if (!registry || !registry.container) {
           return;
         }
 
