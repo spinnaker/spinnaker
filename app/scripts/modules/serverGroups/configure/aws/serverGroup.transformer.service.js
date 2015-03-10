@@ -16,7 +16,6 @@ angular
       command.availabilityZones = {};
       command.availabilityZones[command.region] = base.availabilityZones;
       command.account = command.credentials;
-      delete command.credentials;
       if (!command.ramdiskId) {
         delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
       }
