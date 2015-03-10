@@ -32,7 +32,7 @@ class OperationsController {
   @Autowired
   OrchestrationStarter orchestrationStarter
 
-  @Autowired
+  @Autowired(required = false)
   IgorService igorService
 
   @Autowired
@@ -48,7 +48,7 @@ class OperationsController {
 
     pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user]
 
-    if (master && job && buildNumber) {
+    if (igorService && master && job && buildNumber) {
       Map build = igorService.getBuild(master, job, buildNumber)
       if (build) {
         pipeline.trigger.job = job
