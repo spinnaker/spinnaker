@@ -46,13 +46,17 @@ angular.module('deckApp.pipelines.stage.findAmi')
     };
 
     $scope.selectionStrategies = [{
+      label: 'Largest',
+      val: 'LARGEST',
+      description: 'When multiple ASGs exist, prefer the ASG with the most instances'
+    },{
       label: 'Newest',
       val: 'NEWEST',
       description: 'When multiple ASGs exist, prefer the newest'
     },{
-      label: 'Largest',
-      val: 'LARGEST',
-      description: 'When multiple ASGs exist, prefer the ASG with the most instances'
+      label: 'Oldest',
+      val: 'OLDEST',
+      description: 'When multiple ASGs exist, prefer the oldest'
     },{
       label: 'Fail',
       val: 'FAIL',
