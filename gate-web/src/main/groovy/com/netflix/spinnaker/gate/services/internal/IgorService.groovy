@@ -27,7 +27,7 @@ interface IgorService {
   @GET('/jobs/{buildMaster}')
   List<String> getJobsForBuildMaster(@Path("buildMaster") String buildMaster)
 
-  @GET('/info/jobs/{buildMaster}/{job}')
+  @GET('/jobs/{buildMaster}/{job}')
   Map getJobConfig(@Path("buildMaster") String buildMaster, @Path("job") String job)
 
 }
