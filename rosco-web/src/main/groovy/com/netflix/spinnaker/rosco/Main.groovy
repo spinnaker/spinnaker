@@ -37,7 +37,9 @@ import javax.servlet.Filter
 @ComponentScan([
   "com.netflix.spinnaker.rosco.config",
   "com.netflix.spinnaker.rosco.controllers",
+  "com.netflix.spinnaker.rosco.executor",
   "com.netflix.spinnaker.rosco.filters",
+  "com.netflix.spinnaker.rosco.persistence",
   "com.netflix.spinnaker.rosco.rush"
 ])
 @Import([RoscoAWSConfiguration, RoscoGoogleConfiguration])

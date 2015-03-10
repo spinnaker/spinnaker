@@ -20,7 +20,7 @@ class DefaultPackerCommandFactory implements PackerCommandFactory {
 
   @Override
   String buildPackerCommandString(Map<String, String> parameterMap, String templateFile) {
-    return "packer build " +
+    return "packer build -color=false " +
       parameterMap.collect {
         "-var $it.key=$it.value"
       }.join(" ") + " $templateFile"

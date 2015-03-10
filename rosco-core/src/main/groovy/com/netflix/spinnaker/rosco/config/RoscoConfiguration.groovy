@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.rosco.config
 
-import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.executor.BakePoller
+import com.netflix.spinnaker.rosco.persistence.BakeStore
+import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHandlerRegistry
 import com.netflix.spinnaker.rosco.providers.util.DefaultImageNameFactory
@@ -25,18 +28,32 @@ import com.netflix.spinnaker.rosco.providers.util.DefaultPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import groovy.transform.CompileStatic
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
+import redis.clients.jedis.JedisPool
 
 @Configuration
 @CompileStatic
 class RoscoConfiguration {
 
   @Bean
-  CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry(@Value('${defaultCloudProviderType:aws}') BakeRequest.CloudProviderType defaultCloudProviderType) {
-    return new DefaultCloudProviderBakeHandlerRegistry(defaultCloudProviderType)
+  @ConditionalOnMissingBean(BakePoller)
+  BakePoller bakePoller() {
+    new BakePoller()
+  }
+
+  @Bean
+  BakeStore bakeStore(JedisPool jedisPool) {
+    new RedisBackedBakeStore(jedisPool)
+  }
+
+  @Bean
+  CloudProviderBakeHandlerRegistry cloudProviderBakeHandlerRegistry() {
+    return new DefaultCloudProviderBakeHandlerRegistry()
   }
 
   @Bean
@@ -47,6 +64,12 @@ class RoscoConfiguration {
   @Bean
   PackerCommandFactory packerCommandFactory() {
     return new DefaultPackerCommandFactory()
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ObjectMapper mapper() {
+    return new ObjectMapper()
   }
 
   @Bean
