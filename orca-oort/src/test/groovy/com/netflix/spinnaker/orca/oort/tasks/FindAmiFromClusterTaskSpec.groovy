@@ -63,6 +63,7 @@ class FindAmiFromClusterTaskSpec extends Specification {
     strategy  | expectedAmi
     'NEWEST'  | 'ami-234'
     'LARGEST' | 'ami-123'
+    'OLDEST'  | 'ami-012'
 
     app = 'foo'
     cluster = 'foo-test'

@@ -32,6 +32,16 @@ class FindAmiFromClusterTask implements Task {
 
   static enum SelectionStrategy {
     /**
+     * Choose the server group with the most instances, falling back to newest in the case of a tie
+     */
+    LARGEST({ List<Map<String, Object>> sgs ->
+      sgs.sort { lhs, rhs ->
+        rhs.instances.size() <=> lhs.instances.size() ?:
+          rhs.asg.createdTime <=> lhs.asg.createdTime
+      }.getAt(0)
+    }),
+
+    /**
      * Choose the newest ServerGroup by createdTime
      */
     NEWEST({ List<Map<String, Object>> sgs ->
@@ -41,12 +51,11 @@ class FindAmiFromClusterTask implements Task {
     }),
 
     /**
-     * Choose the server group with the most instances, falling back to newest in the case of a tie
+     * Choose the oldest ServerGroup by createdTime
      */
-    LARGEST({ List<Map<String, Object>> sgs ->
+    OLDEST({ List<Map<String, Object>> sgs ->
       sgs.sort { lhs, rhs ->
-        rhs.instances.size() <=> lhs.instances.size() ?:
-          rhs.asg.createdTime <=> lhs.asg.createdTime
+        lhs.asg.createdTime <=> rhs.asg.createdTime
       }.getAt(0)
     }),
 
