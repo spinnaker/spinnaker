@@ -20,7 +20,7 @@
       </a>
     </div>
     <div class="header-text">
-      <span class="glyphicon glyphicon-hdd {{instance.isHealthy ? 'healthy' : instance.hasHealthStatus ? 'unhealthy' : 'unknown'}}" ng-class="{disabled: instance.healthStatus === 'Disabled'}"></span>
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
       <h3>
         {{instance.instanceId}}
       </h3>
@@ -76,7 +76,7 @@
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'LoadBalancer'">
             <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
-              <span class="glyphicon glyphicon-{{metric.state.toLowerCase()}}-triangle"></span>
+              <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
             </span>
             <span class="pad-left small">

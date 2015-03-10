@@ -26,7 +26,7 @@
     border-color: @unhealthy_red_border;
   }
 
-  &.health-status-UnknownStatus{
+  &.health-status-Unknown{
     background-color: @missing_health;
     border-color: @missing_health_border;
   }
@@ -58,7 +58,7 @@
     border-bottom: 0;
   }
 
-  &.disabled {
+  &.disabled, &.OutOfService {
     .header {
       .header-text {
         .glyphicon, .icon {
@@ -87,13 +87,16 @@
         top: 50%;
         color: @healthy_green;
         font-size: 300%;
-        &.unhealthy {
+        &.Unhealthy {
           color: @unhealthy_red;
         }
-        &.unknown {
+        &.Unknown, &.Starting {
           color: @missing_health;
         }
-        &.disabled {
+        &.Starting {
+          .pulsing(2.5);
+        }
+        &.disabled, &.OutOfService {
           color: @mid_light_grey;
         }
         padding-right: 10px;

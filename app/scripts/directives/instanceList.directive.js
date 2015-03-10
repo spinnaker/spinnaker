@@ -36,8 +36,8 @@ angular.module('deckApp')
         }
 
         function buildInstanceIdCell(row, instance) {
-          var status = instance.isHealthy ? 'up' : instance.hasHealthStatus ? 'down' : 'unknown';
-          row += '<td><span class="glyphicon glyphicon-' + status + '-triangle"></span>' +
+          var status = instance.healthState;
+          row += '<td><span class="glyphicon glyphicon-' + status + '-triangle"></span> ' +
             instance.id + '</td>';
           return row;
         }
@@ -134,7 +134,7 @@ angular.module('deckApp')
         }
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          $('[data-toggle="tooltip"]', elem).removeData().tooltip('destroy');
           elem.unbind('click');
         });
 

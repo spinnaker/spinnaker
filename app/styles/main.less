@@ -177,7 +177,7 @@ body {
   }
 }
 
-.glyphicon-up-triangle {
+.glyphicon-Up-triangle {
   &:before {
     content: "\25B2";
     color: @healthy_green_border;
@@ -185,14 +185,14 @@ body {
   }
 }
 
-.glyphicon-down-triangle {
+.glyphicon-Down-triangle {
   &:before {
     content: "\25BC";
     color: @unhealthy_red;
     font-size: 75%;
   }
 }
-.glyphicon-unknown-triangle {
+.glyphicon-Unknown-triangle, .glyphicon-Starting-triangle {
   &:before {
     content: "\2666";
     font-weight: 900;
@@ -201,6 +201,10 @@ body {
   }
   display: inline-block;
   padding-bottom: 3px;
+}
+
+.glyphicon-Starting-triangle {
+  .pulsing(2.5);
 }
 
 dl {

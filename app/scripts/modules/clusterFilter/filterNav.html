@@ -36,7 +36,7 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.healthy"
+                 ng-model="sortFilter.status.Up"
                  ng-change="clustersFilters.updateClusterGroups()"/>
           Healthy
         </label>
@@ -44,7 +44,7 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.unhealthy"
+                 ng-model="sortFilter.status.Down"
                  ng-change="clustersFilters.updateClusterGroups()"/>
           Unhealthy
         </label>
@@ -52,7 +52,7 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.disabled"
+                 ng-model="sortFilter.status.Disabled"
                  ng-change="clustersFilters.updateClusterGroups()"/>
           Disabled
         </label>
@@ -60,7 +60,7 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.starting"
+                 ng-model="sortFilter.status.Starting"
                  ng-change="clustersFilters.updateClusterGroups()"/>
           Starting
         </label>
@@ -68,9 +68,17 @@
       <div class="checkbox">
         <label>
           <input type="checkbox"
-                 ng-model="sortFilter.status.outOfService"
+                 ng-model="sortFilter.status.OutOfService"
                  ng-change="clustersFilters.updateClusterGroups()"/>
           Out of Service
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.Unknown"
+                 ng-change="clustersFilters.updateClusterGroups()"/>
+          Unknown
         </label>
       </div>
     </div>

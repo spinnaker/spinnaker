@@ -113,11 +113,11 @@ angular
     function checkStatusFilters(serverGroup) {
       if(isFilterable(ClusterFilterModel.sortFilter.status)) {
         var checkedStatus = getCheckValues(ClusterFilterModel.sortFilter.status);
-        return _.contains(checkedStatus, 'healthy') && serverGroup.downCount === 0 ||
-               _.contains(checkedStatus, 'unhealthy') && serverGroup.downCount > 0 ||
-               _.contains(checkedStatus, 'outOfService') && serverGroup.outOfServiceCount > 0 ||
-               _.contains(checkedStatus, 'starting') && serverGroup.startingCount > 0 ||
-               _.contains(checkedStatus, 'disabled') && serverGroup.isDisabled;
+        return _.contains(checkedStatus, 'Up') && serverGroup.downCount === 0 ||
+               _.contains(checkedStatus, 'Down') && serverGroup.downCount > 0 ||
+               _.contains(checkedStatus, 'OutOfService') && serverGroup.outOfServiceCount > 0 ||
+               _.contains(checkedStatus, 'Starting') && serverGroup.startingCount > 0 ||
+               _.contains(checkedStatus, 'Disabled') && serverGroup.isDisabled;
       } else {
         return true;
       }
@@ -174,7 +174,7 @@ angular
 
     function shouldFilterInstances() {
       return isFilterable(ClusterFilterModel.sortFilter.availabilityZone) ||
-        (isFilterable(ClusterFilterModel.sortFilter.status) && !ClusterFilterModel.sortFilter.status.hasOwnProperty('disabled'));
+        (isFilterable(ClusterFilterModel.sortFilter.status) && !ClusterFilterModel.sortFilter.status.hasOwnProperty('Disabled'));
     }
 
     function shouldShowInstance(instance) {
@@ -185,14 +185,16 @@ angular
         }
       }
       if(isFilterable(ClusterFilterModel.sortFilter.status)) {
-        var checkedStatus = _.without(getCheckValues(ClusterFilterModel.sortFilter.status), 'disabled');
+        var allCheckedValues = getCheckValues(ClusterFilterModel.sortFilter.status);
+        var checkedStatus = _.without(allCheckedValues, 'Disabled');
         if (!checkedStatus.length) {
           return true;
         }
-        return (_.contains(checkedStatus, 'healthy') && instance.isHealthy) ||
-          (_.contains(checkedStatus, 'unhealthy') && _.any(instance.health, {state: 'Down'})) ||
-          (_.contains(checkedStatus, 'starting') && _.any(instance.health, {state: 'Starting'})) ||
-          (_.contains(checkedStatus, 'outOfService') && _.any(instance.health, {state: 'OutOfService'}));
+        if (ClusterFilterModel.sortFilter.status.Disabled) {
+          // filtering should be performed on the server group; always show instances
+          return true;
+        }
+        return _.contains(checkedStatus, instance.healthState);
       }
       return true;
     }

@@ -263,7 +263,7 @@ describe('Service: clusterFilterService', function () {
 
   describe('filter by disabled status', function () {
     it('should filter by disabled status if checked', function () {
-      ClusterFilterModel.sortFilter.status = {disabled: true};
+      ClusterFilterModel.sortFilter.status = {Disabled: true};
       var expected = _.filter(groupedJSON,
         {
           subgroups: [{
@@ -279,7 +279,7 @@ describe('Service: clusterFilterService', function () {
     });
 
     it('should not filter if the status is unchecked', function () {
-      ClusterFilterModel.sortFilter.status = { disabled: false };
+      ClusterFilterModel.sortFilter.status = { Disabled: false };
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
     });
   });
@@ -287,14 +287,14 @@ describe('Service: clusterFilterService', function () {
   describe('filter by starting status', function() {
     it('should filter by starting status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
-      var starting = { health: [ { state: 'Unknown' }]},
+      var starting = { healthState: 'Unknown'},
         serverGroup = appCopy.clusters[0].serverGroups[0];
       serverGroup.instances.push(starting);
 
-      ClusterFilterModel.sortFilter.status = {starting: true};
+      ClusterFilterModel.sortFilter.status = {Starting: true};
       expect(service.updateClusterGroups(appCopy)).toEqual([]);
 
-      starting.health[0].state = 'Starting';
+      starting.healthState = 'Starting';
       serverGroup.startingCount = 1;
       expect(service.updateClusterGroups(appCopy).length).toBe(1);
     });
@@ -303,14 +303,14 @@ describe('Service: clusterFilterService', function () {
   describe('filter by out of service status', function() {
     it('should filter by out of service status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
-      var starting = { health: [ { state: 'Unknown' }]},
+      var starting = { healthState: 'Unknown' },
         serverGroup = appCopy.clusters[0].serverGroups[0];
       serverGroup.instances.push(starting);
 
-      ClusterFilterModel.sortFilter.status = {outOfService: true};
+      ClusterFilterModel.sortFilter.status = {OutOfService: true};
       expect(service.updateClusterGroups(appCopy)).toEqual([]);
 
-      starting.health[0].state = 'OutOfService';
+      starting.healthState = 'OutOfService';
       serverGroup.outOfServiceCount = 1;
       expect(service.updateClusterGroups(appCopy).length).toBe(1);
     });

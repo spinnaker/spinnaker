@@ -11,12 +11,14 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
       var instances = loadBalancer.instances;
       loadBalancer.healthCounts = {
         upCount: instances.filter(function (instance) {
-          return instance.isHealthy;
+          return instance.healthState === 'Up';
         }).length,
         downCount: instances.filter(function (instance) {
-          return !instance.isHealthy;
+          return instance.healthState === 'Down' || instance.healthState === 'Starting';
         }).length,
-        unknownCount: 0
+        unknownCount: instances.filter(function (instance) {
+          return instance.healthState === 'Unknown';
+        }).length
       };
     }
 

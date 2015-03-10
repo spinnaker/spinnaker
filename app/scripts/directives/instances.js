@@ -19,14 +19,12 @@ angular.module('deckApp')
 
         var instances = _.sortBy(scope.instances, 'launchTime');
         elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
-          var healthStatus = instance.isHealthy ? 'Healthy' : instance.hasHealthStatus ? 'Unhealthy' : 'UnknownStatus',
-              disabledClass = instance.healthStatus === 'Disabled' ? ' health-status-Unknown' : ' ',
-              activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' active' : ' ',
+          var activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' active' : ' ',
               id = instance.id;
           return '<a title="' + id +
                   '" data-provider="' + instance.provider +
                   '" data-toggle="tooltip" data-instance-id="' + id +
-                  '" class="instance health-status-' + healthStatus + disabledClass + activeClass + '"></a>';
+                  '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
         }).join('') + '</div>';
         $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
 
@@ -51,7 +49,7 @@ angular.module('deckApp')
         });
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          $('[data-toggle="tooltip"]', elem).removeData().tooltip('destroy');
           elem.unbind('click');
         });
       }

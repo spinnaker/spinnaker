@@ -1,14 +1,14 @@
 <span class="counter instance-health-counts" ng-if="healthPercent !== 'n/a'" tooltip-html-unsafe="{{legend}}">
   <span ng-if="container.upCount">
-    {{ container.upCount }} <span class="glyphicon glyphicon-up-triangle healthy"></span>
+    {{ container.upCount }} <span class="glyphicon glyphicon-Up-triangle healthy"></span>
   </span>
   <span ng-if="container.downCount && container.downCount !== container.missingHealthCount">
     <span ng-if="container.upCount">/</span>
-    {{ container.downCount }} <span class="glyphicon glyphicon-down-triangle dead"></span>
+    {{ container.downCount }} <span class="glyphicon glyphicon-Down-triangle dead"></span>
   </span>
   <span ng-if="container.unknownCount">
     <span ng-if="container.upCount || container.downCount">/</span>
-    {{ container.unknownCount }} <span class="glyphicon glyphicon-unknown-triangle unknown"></span>
+    {{ container.unknownCount }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
   </span>
   <span ng-if="container.unknownCount !== container.totalCount">
   : <span ng-class="{healthy: healthPercent === 100, unhealthy: healthPercent < 100 && healthPercent > 0, dead: healthPercent === 0}">

@@ -30,7 +30,7 @@ angular.module('deckApp.cluster.service', [
       serverGroup.totalCount = serverGroup.instanceCounts.total;
       serverGroup.upCount = serverGroup.instanceCounts.up;
       serverGroup.downCount = serverGroup.instanceCounts.down;
-      serverGroup.unknownCount = serverGroup.instanceCounts.unknown;
+      serverGroup.unknownCount = serverGroup.instanceCounts.unknown + serverGroup.instanceCounts.starting;
       serverGroup.startingCount = serverGroup.instanceCounts.starting;
       serverGroup.outOfServiceCount = serverGroup.instanceCounts.outOfService;
     }
@@ -139,14 +139,6 @@ angular.module('deckApp.cluster.service', [
       });
     }
 
-    function setInstancesDisabled(serverGroups) {
-      _.filter(serverGroups, 'isDisabled').forEach(function(serverGroup) {
-        serverGroup.instances.forEach(function(instance) {
-          instance.healthStatus = 'Disabled';
-        });
-      });
-    }
-
     function collateServerGroupsIntoClusters(serverGroups) {
       var clusters = [];
       var groupedByAccount = _.groupBy(serverGroups, 'account');
@@ -159,7 +151,6 @@ angular.module('deckApp.cluster.service', [
         });
       });
       addProvidersToInstances(serverGroups);
-      setInstancesDisabled(serverGroups);
       return clusters;
     }
 
