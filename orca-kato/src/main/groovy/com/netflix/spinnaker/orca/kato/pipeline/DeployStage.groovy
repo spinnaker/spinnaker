@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DeployStage extends DeployStrategyStage {
-  public static final String MAYO_CONFIG_TYPE = "deploy"
+  public static final String MAYO_CONFIG_TYPE = "linearDeploy"
 
   DeployStage() {
     super(MAYO_CONFIG_TYPE)
