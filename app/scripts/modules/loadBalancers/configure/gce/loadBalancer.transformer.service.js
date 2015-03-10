@@ -14,9 +14,11 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
           return instance.isHealthy;
         }).length,
         downCount: instances.filter(function (instance) {
-          return !instance.isHealthy;
+          return instance.healthState === 'Down';
         }).length,
-        unknownCount: 0
+        unknownCount: instances.filter(function (instance) {
+          return instance.healthState === 'Unknown' || instance.healthState === 'Starting';
+        }).length
       };
     }
 

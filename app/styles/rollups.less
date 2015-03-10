@@ -71,41 +71,42 @@
     height: 15px;
     background-color: @healthy_green;
 
-    &.health-status-Healthy {
+    &.health-status-Up {
       background-color: @healthy_green;
       border-color: @healthy_green_border;
     }
-    &.health-status-Unhealthy {
+    &.health-status-Down{
       background-color: @unhealthy_red;
       border-color: @unhealthy_red_border;
     }
-    &.health-status-Unknown {
+    &.health-status-OutOfService {
       background-color: @light_grey;
       border-color: @mid_grey;
     }
 
-    &.health-status-UnknownStatus{
+    &.health-status-Unknown {
       background-color: @missing_health;
       border-color: @missing_health_border;
     }
 
+    &.health-status-Starting {
+      background-color: @missing_health;
+      border-color: @missing_health_border;
+      .pulsing(2.5);
+    }
+
     &.active {
       border-color: @dark_grey;
-      background-color: @healthy_green_border;
       box-shadow: 0 0 4px 2px #999999;
-      &.health-status-Unhealthy {
+      &.health-status-Down {
         background-color: @unhealthy_red_border;
       }
-      &.health-status-Unknown {
+      &.health-status-OutOfService {
         background-color: @mid_grey;
         border-color: @dark_grey;
       }
 
-      &.health-status-MissingHealthStatus{
-        background-color: @missing_health_border;
-      }
-
-      &.health-status-UnknownStatus{
+      &.health-status-Unknown, &.health-status-Starting {
         background-color: @missing_health_border;
       }
     }

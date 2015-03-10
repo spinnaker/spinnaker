@@ -3,8 +3,8 @@
       ng-click="ctrl.setSortKey(key, $event)">
   {{ label }} <a>
     <span ng-if="!ctrl.isReverse() || !ctrl.isSortKey(key)"
-          class="glyphicon glyphicon-down-triangle"></span>
+          class="glyphicon glyphicon-Down-triangle"></span>
     <span ng-if="ctrl.isReverse() && ctrl.isSortKey(key)"
-          class="glyphicon glyphicon-up-triangle"></span>
+          class="glyphicon glyphicon-Up-triangle"></span>
   </a>
 </span>

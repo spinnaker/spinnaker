@@ -16,9 +16,9 @@
 
 @import "app/styles/imports/colors.less";
 
-.glowing {
-  -webkit-animation: animate-glow 1.75s steps(12) infinite;
-  -moz-animation: animate-glow 1.75s steps(12) infinite;
+.glowing(@duration: 1.75) {
+  -webkit-animation: animate-glow ~"@{duration}s" steps(12) infinite;
+  -moz-animation: animate-glow ~"@{duration}s" steps(12) infinite;
 }
 
 @-webkit-keyframes animate-glow {
@@ -33,9 +33,9 @@
   100% { opacity: 0.9; }
 }
 
-.pulsing {
-  -webkit-animation: pulse 1.5s steps(12) infinite;
-  animation: pulse 1.5s steps(12) infinite;
+.pulsing(@duration: 1.5) {
+  -webkit-animation: pulse ~"@{duration}s" steps(12) infinite;
+  animation: pulse ~"@{duration}s"  steps(12) infinite;
 }
 
 @-webkit-keyframes pulse {
