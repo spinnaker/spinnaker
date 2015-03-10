@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
@@ -52,7 +53,7 @@ class ParallelDeployStage extends ParallelStage {
       def nextStage = newStage(
         stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
       )
-      ((PipelineStage)nextStage).type = MAYO_CONFIG_TYPE
+      ((AbstractStage)nextStage).type = MAYO_CONFIG_TYPE
       stage.execution.stages.add(nextStage)
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String).start(
