@@ -61,7 +61,7 @@ angular.module('deckApp')
           row += '<td>';
           loadBalancers.forEach(function (loadBalancer) {
             var tooltip = loadBalancer.state === 'OutOfService' ? loadBalancer.description.replace(/"/g, '&quot;') : null;
-            var icon = loadBalancer.state === 'InService' ? 'up' : 'down';
+            var icon = loadBalancer.state === 'InService' ? 'Up' : 'Down';
             if (tooltip) {
               row += '<div data-toggle="tooltip" title="' + tooltip + '">';
             } else {
