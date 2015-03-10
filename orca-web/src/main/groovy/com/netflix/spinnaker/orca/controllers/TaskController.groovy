@@ -30,7 +30,9 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application) {
-    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }.sort { it.startTime ?: it.id }.reverse()
+    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }.sort {
+      it.startTime ?: it.id
+    }.reverse()
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
@@ -77,13 +79,24 @@ class TaskController {
 
   private OrchestrationViewModel convert(Orchestration orchestration) {
     def variables = [:]
-      for (stage in orchestration.stages) {
-        for (entry in stage.context.entrySet()) {
-          variables[entry.key] = entry.value
-        }
+    for (stage in orchestration.stages) {
+      for (entry in stage.context.entrySet()) {
+        variables[entry.key] = entry.value
       }
-    new OrchestrationViewModel(id: orchestration.id, name: orchestration.description, status: orchestration.getStatus(),
-      variables: variables.entrySet(), steps: orchestration.stages.tasks.flatten(), startTime: orchestration.startTime,
-      endTime: orchestration.endTime)
+    }
+    new OrchestrationViewModel(
+      id: orchestration.id,
+      name: orchestration.description,
+      status: orchestration.getStatus(),
+      variables: variables.collect { key, value ->
+        [
+          "key": key,
+          "value": value
+        ]
+      },
+      steps: orchestration.stages.tasks.flatten(),
+      startTime: orchestration.startTime,
+      endTime: orchestration.endTime
+    )
   }
 }
