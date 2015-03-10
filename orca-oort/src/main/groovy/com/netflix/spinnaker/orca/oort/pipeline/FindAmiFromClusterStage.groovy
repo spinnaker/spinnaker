@@ -30,7 +30,7 @@ class FindAmiFromClusterStage extends LinearStage {
   }
 
   @Override
-  protected List<Stage> buildSteps(Stage stage) {
+  public List<Stage> buildSteps(Stage stage) {
     [buildStep(stage, "findAmi", FindAmiFromClusterTask)]
   }
 

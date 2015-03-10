@@ -100,11 +100,8 @@ class FindAmiFromClusterTask implements Task {
     }
 
     Map<String, Map<String, Object>> byRegion = sgs
-      .groupBy        { it.region }
-      .collectEntries { String region, List<Map<String, Object>> regionGroups ->
-        [(region): clusterSelectionStrategy.apply(regionGroups)]
-      }
-
+      .groupBy { it.region }
+      .collectEntries { r, g -> [(r): clusterSelectionStrategy.apply(g)] }
 
     List<Map> deploymentDetails = byRegion.findResults { region, serverGroup ->
       if (serverGroup == null) {
@@ -124,7 +121,7 @@ class FindAmiFromClusterTask implements Task {
 
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [
-            deploymentDetails: deploymentDetails
+      deploymentDetails: deploymentDetails
     ])
   }
 }
