@@ -84,7 +84,7 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
 
   @Override
   String getZone() {
-    getProperty("availabilityZone")?.availabilityZone
+    getProperty("placement")?.availabilityZone
   }
 
   @Override
