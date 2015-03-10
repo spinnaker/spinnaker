@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.orca.oort.config
 
+import com.netflix.spinnaker.orca.oort.pipeline.FindAmiFromClusterStage
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
@@ -35,7 +37,11 @@ import retrofit.converter.GsonConverter
 import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
-@Import(RetrofitConfiguration)
+@Import([RetrofitConfiguration])
+@ComponentScan([
+  "com.netflix.spinnaker.orca.oort.pipeline",
+  "com.netflix.spinnaker.orca.oort.tasks"
+])
 @CompileStatic
 class OortConfiguration {
 
