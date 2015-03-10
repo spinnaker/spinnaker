@@ -28,7 +28,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+     <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Property File</b>
       <help-field key="pipeline.config.jenkins.propertyFile"></help-field>
     </div>
@@ -36,5 +36,23 @@
       <input type="text" class="form-control input-sm" ng-model="stage.propertyFile"/>
     </div>
   </div>
-</form>
 
+  <div class="well well-sm clearfix ng-scope" ng-show="jobParams">
+    <h4 class="text-left" >Job Parameters</h4>
+      <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
+        <div class="col-md-3 sm-label-left">
+          <b>{{parameter.name}}</b>
+        </div>
+        <div class="col-md-5">
+          <input ng-disabled="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
+        </div>
+        <div class="checkbox col-md-4" ng-if="parameter.defaultValue">
+          <label>
+            <input type="checkbox" ng-model="useDefaultParameters[parameter.name]" ng-change="updateParam(parameter.name)">Use default ({{parameter.defaultValue}})
+          </label>
+        </div>
+        </ng-if>
+      </div>
+
+  </div>
+</form>
