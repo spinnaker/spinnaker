@@ -136,6 +136,48 @@ describe('pipelineConfigValidator', function() {
         messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(0);
       });
+
+      it('validates against multiple types if present', function() {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+          if (type === 'withValidation') {
+            return {
+              validators: [
+                {
+                  type: 'stageBeforeType',
+                  stageTypes: ['one', 'two'],
+                  message: 'need a prereq',
+                },
+              ]
+            };
+          } else {
+            return {};
+          }
+        });
+
+        var pipeline = {
+          stages: [
+            {type: 'three'},
+            {type: 'withValidation'}
+          ]
+        };
+
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('need a prereq');
+
+        pipeline.stages[0].type = 'one';
+        messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+
+        pipeline.stages = [
+          {type: 'two'},
+          {type: 'somethingElse'},
+          {type: 'withValidation'}
+        ];
+
+        messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
     });
 
     describe('checkRequiredField', function() {

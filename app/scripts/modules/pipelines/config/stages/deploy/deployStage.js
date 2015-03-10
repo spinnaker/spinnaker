@@ -13,8 +13,8 @@ angular.module('deckApp.pipelines.stage.deploy')
       validators: [
         {
           type: 'stageBeforeType',
-          stageType: 'bake',
-          message: 'You must have a bake stage immediately before any deploy stage.'
+          stageTypes: ['bake', 'findAmi'],
+          message: 'You must have a Bake or Find AMI stage before any deploy stage.'
         },
       ],
     });

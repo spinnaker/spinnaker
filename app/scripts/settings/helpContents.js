@@ -74,5 +74,7 @@ angular.module('deckApp.help')
       '<li>For <b>GCE</b>, a server group is an <b>Instance Group</b>.</li>' +
       '</ul>',
 
+    'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.'
+
 
   });
