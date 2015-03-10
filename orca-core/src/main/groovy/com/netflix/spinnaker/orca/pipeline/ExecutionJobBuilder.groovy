@@ -41,6 +41,10 @@ abstract class ExecutionJobBuilder<T extends Execution> {
 
   protected final Map<String, StageBuilder> stages = [:]
 
+  boolean isValidStage(String name) {
+    stages.containsKey(name)
+  }
+
   @PostConstruct
   void initialize() {
     applicationContext.getBeansOfType(StageBuilder).values().each {

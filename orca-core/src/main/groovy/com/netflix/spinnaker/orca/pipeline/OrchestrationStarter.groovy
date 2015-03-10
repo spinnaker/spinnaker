@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class OrchestrationStarter extends ExecutionStarter<Orchestration> {
 
   @Autowired ExecutionRepository executionRepository
@@ -54,7 +56,7 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
         type += "_$context.providerType"
       }
 
-      if (stages.containsKey(type)) {
+      if (executionJobBuilder.isValidStage(type)) {
         def stage = new OrchestrationStage(orchestration, type, context)
         orchestration.stages << stage
       } else {
