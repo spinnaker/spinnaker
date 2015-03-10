@@ -15,6 +15,7 @@ angular.module('deckApp.serverGroup.configure.gce')
 
     $scope.state = {
       loaded: false,
+      requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -25,15 +26,21 @@ angular.module('deckApp.serverGroup.configure.gce')
       forceRefreshEnabled: true
     });
 
-    gceServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function() {
-      $scope.state.loaded = true;
-      initializeWizardState();
-      initializeSelectOptions();
-      initializeWatches();
-    });
+    function configureCommand() {
+      gceServerGroupConfigurationService.configureCommand(serverGroupCommand).then(function () {
+        $scope.state.loaded = true;
+        initializeWizardState();
+        initializeSelectOptions();
+        initializeWatches();
+      });
+    }
 
     function initializeWizardState() {
-      if (serverGroupCommand.viewState.mode === 'clone') {
+      if (serverGroupCommand.viewState.instanceProfile && serverGroupCommand.viewState.instanceProfile !== 'custom') {
+        modalWizardService.getWizard().markComplete('instance-type');
+      }
+      var mode = serverGroupCommand.viewState.mode;
+      if (mode === 'clone' || mode === 'editPipeline') {
         if ($scope.command.image) {
           modalWizardService.getWizard().markComplete('location');
         }
@@ -109,6 +116,9 @@ angular.module('deckApp.serverGroup.configure.gce')
     };
 
     this.clone = function () {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
+        return $modalInstance.close($scope.command);
+      }
       $scope.taskMonitor.submit(
         function() {
           var command = gceServerGroupCommandBuilder.buildSubmittableCommand($scope.command);
@@ -121,4 +131,15 @@ angular.module('deckApp.serverGroup.configure.gce')
     this.cancel = function () {
       $modalInstance.dismiss();
     };
+
+    if (!$scope.state.requiresTemplateSelection) {
+      configureCommand();
+    } else {
+      $scope.state.loaded = true;
+    }
+
+    $scope.$on('template-selected', function() {
+      $scope.state.requiresTemplateSelection = false;
+      configureCommand();
+    });
   });

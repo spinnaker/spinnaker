@@ -9,7 +9,7 @@ execution-windows {
     position: relative;
     margin: 20px 0;
 
-    @label-height: 22px;
+    @label-height: 20px;
     @divider-height: @graph_height - @label-height;
 
     .execution-window {
@@ -23,7 +23,7 @@ execution-windows {
         width: calc(~"100% + 2px");
         border: 1px solid darken(@mid_lighter_grey, 20%);
         border-bottom-width: 0;
-        height: @graph_height - @label-height + 11;
+        height: @graph_height - @label-height + 10;
         position: absolute;
         top: 0;
         left: -1px;
@@ -45,15 +45,15 @@ execution-windows {
         position: absolute;
         width: 100%*(1/24);
         top: 0;
-        height: @divider-height;
-        margin-top: @graph_height - @divider-height - 2;
+        height: @graph_height;
+        margin-top: 0;
         &:first-child {
           border-left-width: 0;
         }
         .divider-filler {
           width: 100%;
           position: absolute;
-          height: @divider-height - @label-height;
+          height: @divider-height;
           z-index: 2;
           border-right: 1px solid @mid_light_grey;
         }
@@ -62,7 +62,7 @@ execution-windows {
           color: @mid_grey;
           width: 100%;
           position: absolute;
-          bottom: 0;
+          bottom: 1px;
           padding: 3px;
           border-top: 1px solid @mid_lighter_grey;
           border-right: 1px solid @mid_lighter_grey;

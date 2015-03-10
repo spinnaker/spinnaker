@@ -2,7 +2,7 @@
 
 describe('DeployInitializerCtrl', function() {
 
-  beforeEach(module('deckApp.pipelines.stage.deploy'));
+  beforeEach(module('deckApp.serverGroup.configure.aws.deployInitialization.controller'));
 
   beforeEach(inject(function ($controller, $rootScope, _, $q) {
     this.$controller = $controller;
@@ -61,6 +61,8 @@ describe('DeployInitializerCtrl', function() {
       };
 
       this.$scope.application = application;
+      this.$scope.command = { viewState: {} };
+      this.$scope.state = {};
 
       this.initializeController();
 

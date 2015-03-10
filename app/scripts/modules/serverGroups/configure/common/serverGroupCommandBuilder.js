@@ -16,18 +16,28 @@ angular.module('deckApp.serverGroup.configure.common.service', [
       return serviceDelegate.getDelegate(provider, 'ServerGroupCommandBuilder');
     }
 
-    function buildNewServerGroupCommand(application, provider) {
-      return getDelegate(provider).buildNewServerGroupCommand(application);
+    function buildNewServerGroupCommand(application, provider, options) {
+      return getDelegate(provider).buildNewServerGroupCommand(application, options);
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
       return getDelegate(serverGroup.type).buildServerGroupCommandFromExisting(application, serverGroup, mode);
     }
 
+    function buildNewServerGroupCommandForPipeline(provider) {
+      return getDelegate(provider).buildNewServerGroupCommandForPipeline();
+    }
+
+    function buildServerGroupCommandFromPipeline(application, cluster) {
+      return getDelegate(cluster.provider).buildServerGroupCommandFromPipeline(application, cluster);
+    }
+
     return {
       getServerGroup: getServerGroup,
       buildNewServerGroupCommand: buildNewServerGroupCommand,
-      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting
+      buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
+      buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
 });
 

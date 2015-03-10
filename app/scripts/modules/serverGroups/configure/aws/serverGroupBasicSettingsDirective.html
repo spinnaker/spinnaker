@@ -60,7 +60,7 @@
     <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
   </div>
 </div>
-<deployment-strategy-selector command="command"></deployment-strategy-selector>
+<deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection" command="command"></deployment-strategy-selector>
 <div class="form-group" ng-if="!hideClusterNamePreview">
   <div class="col-md-9 col-md-offset-2">
     <div class="well-compact" ng-class="basicSettingsCtrl.createsNewCluster() ? 'alert alert-warning' : 'well'">

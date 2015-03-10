@@ -235,7 +235,6 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
-          serverGroup: function() { return serverGroup; },
           serverGroupCommand: function() { return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
         }
       });

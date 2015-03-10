@@ -5,18 +5,20 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
   'restangular',
   'deckApp.account.service',
   'deckApp.subnet.read.service',
+  'deckApp.instanceType.service',
   'deckApp.naming',
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService) {
-    function buildNewServerGroupCommand(application, account, region) {
+    function buildNewServerGroupCommand(application, defaults) {
+      defaults = defaults || {};
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, regionsKeyedByAccount: regionsKeyedByAccountLoader});
 
       return asyncLoader.then(function(asyncData) {
-        var defaultCredentials = account || settings.defaults.account;
-        var defaultRegion = region || settings.defaults.region;
+        var defaultCredentials = defaults.account || settings.defaults.account;
+        var defaultRegion = defaults.region || settings.defaults.region;
 
         var defaultZones = asyncData.preferredZones[defaultCredentials];
         if (!defaultZones) {
@@ -54,18 +56,20 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
             useAllImageSelection: false,
             useSimpleCapacity: true,
             usePreferredZones: true,
-            mode: 'create',
-            isNew: true,
+            mode: defaults.mode || 'create',
+            disableStrategySelection: true,
           },
         };
       });
     }
 
-    function buildServerGroupCommandFromPipeline(application, pipelineCluster, account) {
+    function buildServerGroupCommandFromPipeline(application, pipelineCluster) {
 
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', pipelineCluster.instanceType);
-      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, account, region), instanceProfile: instanceTypeCategoryLoader});
+      var commandOptions = { account: pipelineCluster.account, region: region };
+      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+
       return asyncLoader.then(function(asyncData) {
         var command = asyncData.command;
         var zones = pipelineCluster.availabilityZones[region];
@@ -76,13 +80,13 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
           disableImageSelection: true,
           useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize,
           usePreferredZones: usePreferredZones,
-          mode: 'clone',
-          isNew: false,
+          mode: 'editPipeline',
+          submitButtonLabel: 'Done',
         };
 
         var viewOverrides = {
           region: region,
-          credentials: account,
+          credentials: pipelineCluster.account,
           availabilityZones: pipelineCluster.availabilityZones[region],
           viewState: viewState,
         };
@@ -92,6 +96,15 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
         return angular.extend({}, command, pipelineCluster, viewOverrides);
       });
 
+    }
+
+    // Only used to prepare view requiring template selecting
+    function buildNewServerGroupCommandForPipeline() {
+      return $q.when({
+        viewState: {
+          requiresTemplateSelection: true,
+        }
+      });
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
@@ -186,6 +199,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
+      buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
 });

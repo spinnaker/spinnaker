@@ -110,7 +110,7 @@ describe('Controller: awsCloneServerGroup', function () {
     function setupMocks() {
       var resolve = this.resolve;
 
-      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
+      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -223,7 +223,7 @@ describe('Controller: awsCloneServerGroup', function () {
     function setupMocks() {
       var resolve = this.resolve;
 
-      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
+      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
@@ -378,7 +378,7 @@ describe('Controller: awsCloneServerGroup', function () {
       var resolve = this.resolve,
           spec = this;
 
-      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete']);
+      this.wizard = jasmine.createSpyObj('wizard', ['markDirty', 'markComplete', 'includePage']);
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.callFake(resolve(AccountServiceFixture.preferredZonesByAccount));
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.callFake(resolve(AccountServiceFixture.regionsKeyedByAccount));
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));

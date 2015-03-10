@@ -11,7 +11,8 @@ angular.module('deckApp')
         onClick: '&',
         isDisabled: '=',
         isNew: '=',
-        submitting: '='
+        submitting: '=',
+        label: '=',
       }
     };
   }

@@ -8,9 +8,9 @@ angular.module('deckApp.pipelines.stageConfig', [
       restrict: 'E',
       require: '^pipelineConfigurer',
       scope: {
-        stage: '=',
         viewState: '=',
-        application: '='
+        application: '=',
+        pipeline: '=',
       },
       controller: 'StageConfigCtrl as stageConfigCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/stage.html',
@@ -20,7 +20,8 @@ angular.module('deckApp.pipelines.stageConfig', [
     };
   })
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, pipelineConfig) {
-    var stageTypes = pipelineConfig.getConfigurableStageTypes();
+    var stageTypes = pipelineConfig.getConfigurableStageTypes(),
+        lastStageScope;
     $scope.options = stageTypes;
 
     function getConfig(type) {
@@ -31,12 +32,21 @@ angular.module('deckApp.pipelines.stageConfig', [
     }
 
     this.selectStage = function(newVal, oldVal) {
+      $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
+
       var type = $scope.stage.type,
           stageScope = $scope.$new();
 
       // clear existing contents
       $element.find('.stage-details').html('');
       $scope.description = '';
+      if (lastStageScope) {
+        lastStageScope.$destroy();
+      }
+      lastStageScope = stageScope;
+      $scope.$on('$destroy', function() {
+        stageScope.$destroy();
+      });
 
       if (type) {
         var config = getConfig(type);
@@ -79,6 +89,7 @@ angular.module('deckApp.pipelines.stageConfig', [
       }
     }
 
+    $scope.$on('pipeline-reverted', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   });

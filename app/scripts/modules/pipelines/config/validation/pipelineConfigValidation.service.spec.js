@@ -127,6 +127,14 @@ describe('pipelineConfigValidator', function() {
         messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(0);
 
+        pipeline.stages = [
+          {type: 'prereq'},
+          {type: 'somethingElse'},
+          {type: 'withValidation'}
+        ];
+
+        messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
       });
     });
 
