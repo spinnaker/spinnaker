@@ -33,7 +33,7 @@ class DisableAsgStage extends TargetReferenceLinearStageSupport {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     composeTargets(stage)
 
     def step1 = buildStep(stage, "disableAsg", DisableAsgTask)

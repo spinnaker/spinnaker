@@ -35,7 +35,7 @@ class ShrinkClusterStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     if (!stage.context.containsKey("application")) {
       stage.context.application = stage.execution.application
     }

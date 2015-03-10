@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,9 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.Task
 import org.springframework.batch.core.Step
 
-@CompileStatic
-class SimpleStage extends LinearStage {
-
-  private final Task task
-
-  SimpleStage(String name, Task task) {
-    super(name)
-    this.task = task
-  }
-
-  @Override
-  public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "task", task)]
-  }
+interface StepProvider {
+  String getType()
+  List<Step> buildSteps(Stage stage)
 }

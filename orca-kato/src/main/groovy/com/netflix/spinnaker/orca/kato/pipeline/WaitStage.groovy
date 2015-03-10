@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.kato.tasks.WaitTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @CompileStatic
@@ -32,7 +33,7 @@ class WaitStage extends LinearStage {
   }
 
   @Override
-  protected List<Stage> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     [buildStep(stage, "wait", WaitTask)]
   }
 }

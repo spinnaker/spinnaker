@@ -127,7 +127,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
 
     @Override
-    protected List<Step> buildSteps(Stage stage) {
+    public List<Step> buildSteps(Stage stage) {
       return [buildStep(stage, "step", task)]
     }
   }
@@ -149,7 +149,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
 
     @Override
-    protected List<Step> buildSteps(Stage stage) {
+    public List<Step> buildSteps(Stage stage) {
       injectBefore(stage, "before", stageBuilder1, ctx1)
       injectAfter(stage, "after", stageBuilder2, ctx2)
       [buildStep(stage, "myTask", task2)]

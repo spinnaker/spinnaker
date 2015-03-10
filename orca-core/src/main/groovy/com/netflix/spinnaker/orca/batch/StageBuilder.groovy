@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.*
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -64,13 +64,12 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param stage the stage configuration.
    * @return the resulting builder after any steps are appended.
    */
-  final JobFlowBuilder build(JobFlowBuilder jobBuilder, Stage stage) {
+  final FlowBuilder build(FlowBuilder jobBuilder, Stage stage) {
     taskCounter.set(1)
     buildInternal jobBuilder, stage
   }
 
-  protected
-  abstract JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage)
+  protected abstract FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage)
 
   /**
    * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming

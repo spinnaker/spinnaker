@@ -21,7 +21,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
+import com.netflix.spinnaker.orca.pipeline.StepProvider
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.bakery.tasks.CompletedBakeTask
 import com.netflix.spinnaker.orca.bakery.tasks.CreateBakeTask
@@ -33,7 +35,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @CompileStatic
-class BakeStage extends ParallelStage {
+class BakeStage extends ParallelStage implements StepProvider {
 
   public static final String MAYO_CONFIG_TYPE = "bake"
 
@@ -50,11 +52,17 @@ class BakeStage extends ParallelStage {
   }
 
   @Override
+  @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
     def deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
     stage.execution.stages.findAll { it.type == "deploy" }.each {
-      def context = it.context.cluster ?: it.context
-      deployRegions.addAll((context["availabilityZones"] as Map<String, List<String>>).keySet())
+      ((it.context?.clusters?.availabilityZones ?: []) + [
+        it.context.availabilityZones as Map,
+        it.context?.cluster?.availabilityZones as Map
+      ]).findAll { it }.each {
+        // check each permutation of cluster config for target availability zones
+        deployRegions << it.keySet()[0]
+      }
     }
 
     log.info("Preparing package `${stage.context.package}` for bake in ${deployRegions.join(", ")}")
@@ -71,8 +79,8 @@ class BakeStage extends ParallelStage {
   }
 
   @Override
-  String parallelStageName() {
-    return "Parallel Bake"
+  String parallelStageName(Stage stage, boolean hasParallelFlows) {
+    return hasParallelFlows ? "Multi-region Bake" : stage.name
   }
 
   @Override

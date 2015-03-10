@@ -35,7 +35,7 @@ class DeleteApplicationStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "verifyNoDependencies", VerifyApplicationHasNoDependenciesTask)
     def step2 = buildStep(stage, "deleteApplication", DeleteApplicationTask)
     def step3 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)

@@ -16,13 +16,10 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
-import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
@@ -44,7 +41,7 @@ class ResizeAsgStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     configureTargets(stage)
 
     def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)

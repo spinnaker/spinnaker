@@ -92,8 +92,11 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
       execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
         reorderedStages << parentStage
 
-        execution.stages.findAll { it.parentStageId == parentStage.id}.each {
-          reorderedStages << it
+        def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
+        while (!children.isEmpty()) {
+          def child = children.remove(0)
+          children.addAll(0, execution.stages.findAll { it.parentStageId == child.id})
+          reorderedStages << child
         }
       }
       execution.stages = reorderedStages.collect {

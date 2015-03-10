@@ -54,10 +54,10 @@ class TestStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     def i = 1
-    tasks.collect {
-      buildStep stage, "task${i++}", it
+    tasks.collect { Task task ->
+      buildStep (stage, "task${i++}", task)
     }
   }
 }

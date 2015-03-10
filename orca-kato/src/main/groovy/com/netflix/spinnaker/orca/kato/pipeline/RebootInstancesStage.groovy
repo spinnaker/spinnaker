@@ -37,7 +37,7 @@ class RebootInstancesStage extends LinearStage {
   }
 
   @Override
-  protected List<Step> buildSteps(Stage stage) {
+  public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "rebootInstances", RebootInstancesTask)
     def step2 = buildStep(stage, "monitorReboot", MonitorKatoTask)
     def step3 = buildStep(stage, "waitForDownInstances", WaitForDownInstanceHealthTask)

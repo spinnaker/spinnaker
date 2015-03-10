@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.job.builder.FlowBuilder
 
 @CompileStatic
 class FailureRecoveryStage extends StageBuilder {
@@ -33,12 +33,12 @@ class FailureRecoveryStage extends StageBuilder {
   }
 
   @Override
-  JobFlowBuilder buildInternal(JobFlowBuilder jobBuilder, Stage stage) {
+  FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
     def step1 = buildStep(stage, "startStep", startTask)
     def step2 = buildStep(stage, "recovery", recoveryTask)
     def step3 = buildStep(stage, "end", endTask)
-    (JobFlowBuilder) jobBuilder.next(step1)
-                               .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
-                               .from(step1).next(step3)
+    jobBuilder.next(step1)
+      .on(ExitStatus.FAILED.exitCode).to(step2).next(step3)
+      .from(step1).next(step3)
   }
 }
