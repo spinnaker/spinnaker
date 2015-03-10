@@ -11,6 +11,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.echo.JedisEchoEventPoller.LAST_CHECK_KEY
+import static java.lang.System.currentTimeMillis
 import static java.time.temporal.ChronoField.MILLI_OF_SECOND
 
 class JedisEchoEventPollerSpec extends Specification {
@@ -58,7 +59,7 @@ class JedisEchoEventPollerSpec extends Specification {
 
     where:
     eventType = "foo"
-    timestamp = random.nextLong()
+    timestamp = currentTimeMillis()
   }
 
   def "stores the timestamp from the response"() {
