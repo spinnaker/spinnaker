@@ -428,17 +428,23 @@ load-balancers-tag {
     border-bottom: 1px solid @mid_light_grey;
     .cluster-pod-server-group {
       background-color: #ffffff;
+      border: 1.5px solid transparent;
       .server-group-title {
         background-color: #ffffff;
       }
       &.active {
-        background-color: @bootstrap_info;
+        background-color: @active_pod_blue;
         .server-group-title {
-          background-color: @bootstrap_info;
+          background-color: @active_pod_blue;
+        }
+      }
+      .active {
+        td {
+          background-color: @active_pod_blue;
         }
       }
       &:hover {
-        box-shadow: 0 0 3px 0px @mid_grey;
+        border-color: @glow-init;
       }
       .instance-list {
         clear: both;

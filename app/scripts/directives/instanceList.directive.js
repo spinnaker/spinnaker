@@ -29,7 +29,7 @@ angular.module('deckApp')
         var base = elem.parent().inheritedData('$uiView').state;
 
         function buildTableRowOpenTag(instance) {
-          var activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' info' : ' ';
+          var activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' active' : ' ';
           return '<tr class="clickable instance-row ' + activeClass + '"' +
             ' data-provider="' + instance.provider + '"' +
             ' data-instance-id="' + instance.id + '">';
@@ -156,8 +156,8 @@ angular.module('deckApp')
               };
               // also stolen from uiSref directive
               $state.go('.instanceDetails', params, {relative: base, inherit: true});
-              $('tr.instance-row').removeClass('info');
-              targetRow.className += ' info';
+              $('tr.instance-row').removeClass('active');
+              targetRow.className += ' active';
               event.preventDefault();
             }
           });
