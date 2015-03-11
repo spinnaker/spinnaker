@@ -22,8 +22,8 @@ import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.Instance
-import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
@@ -38,10 +38,10 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
   }
 
   def mockAutoScaling = Mock(AmazonAutoScaling)
-  def mockElasticLoadBalancing = Mock(AmazonElasticLoadBalancing)
+  def mockEC2 = Mock(AmazonEC2)
   def provider = Mock(AmazonClientProvider) {
     getAutoScaling(_, _) >> mockAutoScaling
-    getAmazonElasticLoadBalancing(_, _) >> mockElasticLoadBalancing
+    getAmazonEC2(_, _) >> mockEC2
   }
 
   void "should not fail delete when ASG does not exist"() {
@@ -59,10 +59,9 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     then:
     1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [])
     0 * mockAutoScaling._
-    0 * mockElasticLoadBalancing._
   }
 
-  void "should delete ASG and Launch Config"() {
+  void "should delete ASG and Launch Config and terminate instances"() {
     setup:
     def op = new DestroyAsgAtomicOperation(
             new DestroyAsgDescription(
@@ -85,8 +84,8 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
             new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
     1 * mockAutoScaling.deleteLaunchConfiguration(
             new DeleteLaunchConfigurationRequest(launchConfigurationName: "launchConfig-v000"))
+    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
     0 * mockAutoScaling._
-    0 * mockElasticLoadBalancing._
   }
 
   void "should not delete launch config when not available"() {
@@ -109,7 +108,36 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     ])
     1 * mockAutoScaling.deleteAutoScalingGroup(
         new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+    1 * mockEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: ["i-123456"]))
     0 * mockAutoScaling._
-    0 * mockElasticLoadBalancing._
+  }
+
+  void "should paginate instance terminations"() {
+    setup:
+    def op = new DestroyAsgAtomicOperation(
+      new DestroyAsgDescription(
+        asgName: "my-stack-v000",
+        regions: ["us-east-1"],
+        credentials: TestCredential.named('baz')))
+    op.amazonClientProvider = provider
+    def instances = (100..315).collect { new Instance(instanceId: "i-123${it}") }
+    Set<String> remaining = instances*.instanceId
+
+    when:
+    op.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(autoScalingGroups: [
+      new AutoScalingGroup(instances: instances)
+    ])
+    1 * mockAutoScaling.deleteAutoScalingGroup(
+      new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
+    3 * mockEC2.terminateInstances(_) >> { TerminateInstancesRequest req ->
+      assert req.instanceIds.size() <= DestroyAsgAtomicOperation.MAX_SIMULTANEOUS_TERMINATIONS
+      assert remaining.removeAll(req.instanceIds)
+    }
+
+    remaining.isEmpty()
+    0 * mockAutoScaling._
   }
 }

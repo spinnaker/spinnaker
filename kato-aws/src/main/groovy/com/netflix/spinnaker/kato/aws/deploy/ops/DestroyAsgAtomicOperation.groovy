@@ -20,6 +20,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
+  protected static final MAX_SIMULTANEOUS_TERMINATIONS = 100
   private static final String BASE_PHASE = "DESTROY_ASG"
 
   private static Task getTask() {
@@ -60,6 +62,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
                 "There should only be one ASG in ${description.credentials}:${region} named ${description.asgName}")
       }
       AutoScalingGroup autoScalingGroup = result.autoScalingGroups[0]
+      List<String> instanceIds = autoScalingGroup.instances.instanceId
 
       task.updateStatus BASE_PHASE, "Force deleting $description.asgName in $region."
       autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
@@ -69,6 +72,13 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
         task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
         autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
             launchConfigurationName: autoScalingGroup.launchConfigurationName))
+      }
+      def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+
+      for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
+        int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
+        task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
+        ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
       }
     }
 
