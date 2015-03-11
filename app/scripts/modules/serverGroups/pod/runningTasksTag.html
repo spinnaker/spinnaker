@@ -1,4 +1,4 @@
-<span ng-if="tasks.length">
+<span ng-if="tasks.length || runningExecutions().length">
   <button class="btn btn-link no-padding"
           ng-click="popover.show = !popover.show; $event.stopPropagation();"
           tooltip="{{popover.show ? 'Hide' : 'Show'}} running task{{tasks.length > 1 ? 's' : ''}}">
@@ -22,5 +22,24 @@
         </div>
       </div>
     </div>
+
+    <div class="container-fluid" ng-repeat="execution in runningExecutions()">
+      <div class="row">
+        <div class="col-md-12">
+          <strong>
+            Pipeline: {{execution.name}}
+          </strong>
+        </div>
+      </div>
+      <div class="row" ng-repeat="stage in execution.stages">
+        <div class="col-md-7 col-md-offset-0">
+          <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name}}
+        </div>
+        <div class="col-md-4 text-right">
+          {{stage.runningTimeInMs | duration }}
+        </div>
+      </div>
+    </div>
+
   </div>
 </span>

@@ -131,6 +131,39 @@ angular.module('deckApp.cluster.service', [
       });
     }
 
+
+    function findDeployStageWithServerGroupInfo(stages) {
+      var deployStagesWithServerGroups = _.filter(stages, function (stage) {
+         return stage.type === 'deploy' && _.has(stage.context, 'deploy.server.groups');
+      });
+
+      return _.first(deployStagesWithServerGroups);
+    }
+
+
+    function addExecutionsToServerGroups(application) {
+      if(!application.serverGroups) {
+        return;
+      }
+
+      var executions = application.executions || [];
+
+      application.serverGroups.forEach(function(serverGroup, index){
+        application.serverGroups[index].executions = [];
+        executions.forEach(function (execution) {
+          var stage = findDeployStageWithServerGroupInfo(execution.stages);
+          var stageServerGroup = stage ? _.first(_.values(stage.context['deploy.server.groups'])) : undefined;
+          if(_.includes(stageServerGroup, serverGroup.name)){
+            application.serverGroups[index].executions.push(execution);
+          }
+        });
+      });
+
+      return application;
+    }
+
+
+
     function addProvidersToInstances(serverGroups) {
       serverGroups.forEach(function(serverGroup) {
         serverGroup.instances.forEach(function(instance) {
@@ -170,7 +203,8 @@ angular.module('deckApp.cluster.service', [
       loadServerGroups: loadServerGroups,
       createServerGroupClusters: collateServerGroupsIntoClusters,
       normalizeServerGroupsWithLoadBalancers: normalizeServerGroupsWithLoadBalancers,
-      addTasksToServerGroups: addTasksToServerGroups
+      addTasksToServerGroups: addTasksToServerGroups,
+      addExecutionsToServerGroups: addExecutionsToServerGroups
     };
 
   });

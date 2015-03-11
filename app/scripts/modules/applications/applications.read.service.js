@@ -10,11 +10,12 @@ angular
     'deckApp.loadBalancer.transformer.service',
     'deckApp.securityGroup.read.service',
     'deckApp.caches.infrastructure',
-    'deckApp.scheduler'
+    'deckApp.scheduler',
+    'deckApp.delivery.executions.service',
   ])
-  .factory('applicationReader', function ($q, $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
+  .factory('applicationReader', function ($q,$log, $window,  $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
-                                          infrastructureCaches, settings, $log, $window) {
+                                          infrastructureCaches, settings, executionsService) {
 
     function listApplications(forceRemoteCall) {
       var endpoint = Restangular
@@ -38,6 +39,7 @@ angular
           if (application.autoRefreshEnabled || forceRefresh) {
             application.refreshing = true;
             application.reloadTasks();
+            application.reloadExecutions();
             return getApplication(application.name).then(function (newApplication) {
               deepCopyApplication(application, newApplication);
               application.autoRefreshHandlers.forEach(function (handler) {
@@ -124,6 +126,13 @@ angular
           });
         }
 
+        function reloadExecutions() {
+          executionsService.getAll(application.name).then(function(execution) {
+            addExecutionsToApplication(application, execution);
+          });
+        }
+
+
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.autoRefreshHandlers = [];
         application.refreshImmediately = refreshApplication;
@@ -131,6 +140,7 @@ angular
         application.enableAutoRefresh = enableAutoRefresh;
         application.getCluster = getCluster;
         application.reloadTasks = reloadTasks;
+        application.reloadExecutions = reloadExecutions;
 
         if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
@@ -149,6 +159,11 @@ angular
       clusterService.addTasksToServerGroups(application);
     }
 
+    function addExecutionsToApplication(application, executions) {
+      application.executions = angular.isArray(executions) ? executions : [];
+      clusterService.addExecutionsToServerGroups(application);
+    }
+
     function deepCopyApplication(original, newApplication) {
       // tasks are handled out of band and will not be part of the newApplication
       original.accounts = newApplication.accounts;
@@ -158,6 +173,7 @@ angular
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
       clusterService.addTasksToServerGroups(original);
+      clusterService.addExecutionsToServerGroups(original);
 
       newApplication.accounts = null;
       newApplication.clusters = null;
@@ -207,8 +223,15 @@ angular
               serverGroups = results.serverGroups.plain();
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
-
               application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
+
+              if(options && options.executions) {
+                executionsService.getAll(applicationName).then(function (executions) {
+                  addExecutionsToApplication(application, executions);
+                });
+              }
+
+
               loadBalancerTransformer.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               // If the tasks were loaded already, add them to the server groups

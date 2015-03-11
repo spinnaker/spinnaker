@@ -11,7 +11,7 @@ angular.module('deckApp.delivery.executions.service', [
 ])
   .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, RxService, appendTransform, executionsTransformer) {
 
-    function getExecutions() {
+    function getExecutions(applicationName) {
       var deferred = $q.defer();
       $http({
         method: 'GET',
@@ -34,7 +34,7 @@ angular.module('deckApp.delivery.executions.service', [
         url: [
           settings.gateUrl,
           'applications',
-          $stateParams.application,
+          applicationName,
           'pipelines',
         ].join('/'),
       }).then(
@@ -50,7 +50,8 @@ angular.module('deckApp.delivery.executions.service', [
 
     function waitUntilNewTriggeredPipelineAppears(pipelineName, ignoreList) {
 
-      return getExecutions().then(function(executions) {
+      var appName = $stateParams.application;
+      return getExecutions(appName).then(function(executions) {
         var match = executions.filter(function(execution) {
           return (execution.status === 'RUNNING' || execution.status === 'NOT_STARTED') &&
             execution.name === pipelineName &&
@@ -100,7 +101,7 @@ angular.module('deckApp.delivery.executions.service', [
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getExecutions());
+            return RxService.Observable.fromPromise(getExecutions($stateParams.applications));
           })
           .subscribe(fn);
       },
