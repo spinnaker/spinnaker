@@ -88,7 +88,7 @@ angular.module('deckApp.cluster.service', [
       'createdeploy': function(task, serverGroup) {
         var account = task.getValueFor('deploy.account.name'),
             region = task.getValueFor('deploy.server.groups') ? Object.keys(task.getValueFor('deploy.server.groups'))[0] : null,
-            serverGroupName = serverGroup ? task.getValueFor('deploy.server.groups')[region][0] : null;
+            serverGroupName = (serverGroup && region) ? task.getValueFor('deploy.server.groups')[region][0] : null;
 
         if (account && serverGroup && region) {
           return serverGroup.account === account && serverGroup.region === region && serverGroup.name === serverGroupName;

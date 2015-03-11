@@ -83,7 +83,7 @@ angular
         description = 'Create Cloned Server Group from ' + command.source.asgName;
         command.type = 'copyLastAsg';
       } else {
-        command.type = 'deploy';
+        command.type = 'linearDeploy';
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
