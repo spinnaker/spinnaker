@@ -120,7 +120,7 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
         regions: ["us-east-1"],
         credentials: TestCredential.named('baz')))
     op.amazonClientProvider = provider
-    def instances = (10..35).collect { new Instance(instanceId: it) }
+    def instances = (100..315).collect { new Instance(instanceId: "i-123${it}") }
     Set<String> remaining = instances*.instanceId
 
     when:
@@ -132,8 +132,8 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
     ])
     1 * mockAutoScaling.deleteAutoScalingGroup(
       new DeleteAutoScalingGroupRequest(autoScalingGroupName: "my-stack-v000", forceDelete: true))
-    2 * mockEC2.terminateInstances(_) >> { TerminateInstancesRequest req ->
-      assert req.instanceIds.size() <= 20
+    3 * mockEC2.terminateInstances(_) >> { TerminateInstancesRequest req ->
+      assert req.instanceIds.size() <= DestroyAsgAtomicOperation.MAX_SIMULTANEOUS_TERMINATIONS
       assert remaining.removeAll(req.instanceIds)
     }
 

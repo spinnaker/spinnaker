@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
+  protected static final MAX_SIMULTANEOUS_TERMINATIONS = 100
   private static final String BASE_PHASE = "DESTROY_ASG"
 
   private static Task getTask() {
@@ -74,10 +75,8 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
       }
       def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
 
-
-      final int killsPerCall = 20
-      for (int i = 0; i < instanceIds.size(); i += killsPerCall) {
-        int end = Math.min(instanceIds.size(), i + killsPerCall)
+      for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
+        int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
         task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
         ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
       }
