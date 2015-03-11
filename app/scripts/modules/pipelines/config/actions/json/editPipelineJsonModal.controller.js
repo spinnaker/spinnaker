@@ -15,6 +15,9 @@ angular.module('deckApp.pipelines.rename')
       if (obj.hasOwnProperty('appConfig')) {
         delete obj.appConfig;
       }
+      if (obj.hasOwnProperty('index')) {
+        delete obj.index;
+      }
     }
 
     this.initialize = function() {

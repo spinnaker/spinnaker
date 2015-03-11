@@ -9,9 +9,23 @@
     <create-pipeline-button application="application"></create-pipeline-button>
   </div>
 </div>
-<div class="row pipeline-configurer" ng-repeat="pipeline in application.pipelines" ng-class="{'new-pipeline': pipeline.isNew}">
-  <div class="col-md-8">
-    <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
+<div class="row">
+  <div class="col-md-12">
+    <p style="margin-top: 10px">
+      <strong>Tip:</strong>
+      Pipelines and stages are sortable - just drag them into the desired position.
+    </p>
+  </div>
+</div>
+<div class="row"
+       ui-sortable="pipelineSortOptions"
+       ng-model="application.pipelines">
+  <div class="row pipeline-configurer"
+       ng-repeat="pipeline in application.pipelines"
+       ng-class="{'new-pipeline': pipeline.isNew}">
+    <div class="col-md-8">
+      <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
+    </div>
   </div>
 </div>
   <div class="row" ng-if="!state.pipelinesLoaded" style="min-height: 300px">

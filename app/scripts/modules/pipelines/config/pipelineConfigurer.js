@@ -171,7 +171,9 @@ angular.module('deckApp.pipelines')
     };
 
     function getPlain(pipeline) {
-      return pipeline.fromServer ? pipeline.plain() : pipeline;
+      var base = pipeline.fromServer ? pipeline.plain() : angular.copy(pipeline);
+      base.index = null;
+      return base;
     }
 
     var markDirty = function markDirty() {
