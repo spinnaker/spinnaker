@@ -26,7 +26,7 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
       var serverGroups = application.serverGroups.filter(function(serverGroup) {
         return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
       });
-      loadBalancer.serverGroups = serverGroups;
+      loadBalancer.serverGroups = _.sortBy(serverGroups, 'name');
       loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
       updateHealthCounts(loadBalancer);
     }
