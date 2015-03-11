@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.display.tasks.tag', [])
+angular.module('deckApp.serverGroup.display.tasks.tag', [
+  'deckApp.executionFilter.service'
+])
   .directive('runningTasksTag', function() {
     return {
       restrict: 'E',
@@ -13,11 +15,10 @@ angular.module('deckApp.serverGroup.display.tasks.tag', [])
       controller: 'RunningTaskTagController',
     };
   })
-  .controller('RunningTaskTagController', function ($scope) {
+  .controller('RunningTaskTagController', function ($scope, executionFilterService) {
     $scope.popover = { show : false };
     $scope.runningExecutions = function() {
-      return _.filter($scope.executions, function(exe){
-        return exe.isRunning || exe.hasNotStarted;
-      });
+      return executionFilterService.filterRunningExecutions($scope.executions);
     };
+
   });

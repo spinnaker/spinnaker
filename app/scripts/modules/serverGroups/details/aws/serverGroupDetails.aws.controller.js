@@ -11,10 +11,11 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
   'deckApp.serverGroup.details.aws.autoscaling.process',
   'deckApp.serverGroup.read.service',
   'deckApp.aws.serverGroupCommandBuilder.service',
+  'deckApp.executionFilter.service',
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
-                                                     subnetReader, autoScalingProcessService) {
+                                                     subnetReader, autoScalingProcessService, executionFilterService) {
 
     $scope.state = {
       loading: true
@@ -52,6 +53,9 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
+        $scope.runningExecutions = function() {
+          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
+        };
 
         if (!_.isEmpty($scope.serverGroup)) {
 
