@@ -22,6 +22,9 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
   @Override
   void handle(Map input) {
+    if (input.lastBuild?.result == "SUCCESS") {
+      log.debug "Detected build $input.master $input.name ${input.lastBuild?.number}"
+    }
     try {
       def pipelines = pipelineIndexer.pipelines
       def key = new Trigger(input.master as String, input.name as String)
