@@ -90,6 +90,7 @@ angular.module('deckApp.pipelines.stageConfig', [
     }
 
     $scope.$on('pipeline-reverted', this.selectStage);
+    $scope.$on('pipeline-json-edited', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   });

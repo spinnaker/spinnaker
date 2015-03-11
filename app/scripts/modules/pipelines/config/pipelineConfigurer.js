@@ -96,7 +96,9 @@ angular.module('deckApp.pipelines')
         resolve: {
           pipeline: function() { return $scope.pipeline; },
         }
-      });
+      }).result.then(function() {
+          $scope.$broadcast('pipeline-json-edited');
+        });
     };
 
     this.navigateToStage = function(index, event) {
