@@ -1,20 +1,36 @@
 <div class="row" ng-if="application.pipelines.length">
-  <div class="col-md-4">
+  <div class="col-md-3">
     <a class="btn btn-link" ui-sref="^.executions">
       <span class="small glyphicon glyphicon glyphicon-circle-arrow-left"></span>
       Pipeline Executions
     </a>
   </div>
-  <div class="col-md-4 text-right">
-    <create-pipeline-button application="application"></create-pipeline-button>
+  <div class="col-md-5 text-right">
+    <p class="form-control-static">
+      <strong>Tip:</strong>
+      Pipelines and stages are sortable - just drag them into the desired position.
+    </p>
   </div>
 </div>
-<div class="row pipeline-configurer" ng-repeat="pipeline in application.pipelines" ng-class="{'new-pipeline': pipeline.isNew}">
-  <div class="col-md-8">
-    <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
+<div class="row"
+       ui-sortable="pipelineSortOptions"
+       ng-model="application.pipelines">
+  <div class="row pipeline-configurer"
+       ng-repeat="pipeline in application.pipelines"
+       ng-class="{'new-pipeline': pipeline.isNew}">
+    <div class="col-md-8">
+      <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
+    </div>
   </div>
 </div>
-  <div class="row" ng-if="!state.pipelinesLoaded" style="min-height: 300px">
+<div class="row">
+  <div class="row">
+    <div class="col-md-8">
+      <create-pipeline-button application="application"></create-pipeline-button>
+    </div>
+  </div>
+</div>
+<div class="row" ng-if="!state.pipelinesLoaded" style="min-height: 300px">
     <h4 class="text-center">
       <span us-spinner="{radius:20, width:6, length: 12}"></span>
     </h4>

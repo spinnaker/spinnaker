@@ -20,7 +20,7 @@ describe('Controller: Applications', function () {
 
     // Initialize the controller and a mock scope
     beforeEach(inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
-                                urlBuilder, $state, $timeout, settings, applicationReader) {
+                                $state, $timeout, settings, applicationReader) {
 
       this.$scope = $rootScope.$new();
       this.settings = settings;
@@ -42,7 +42,6 @@ describe('Controller: Applications', function () {
         $log: $log,
         $filter: $filter,
         accountService: accountService,
-        urlBuilder: urlBuilder,
         $state: $state,
         $timeout: $timeout
       });

@@ -4,17 +4,21 @@ describe('Controller: createPipelineModal', function() {
 
   beforeEach(module('deckApp.pipelines.create'));
 
-  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
+  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, scrollToService, $timeout) {
     this.$q = $q;
     this.initializeController = function(application) {
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
       this.$modalInstance = { close: angular.noop };
+      this.scrollToService = scrollToService;
+      this.$timeout = $timeout;
       this.controller = $controller('CreatePipelineModalCtrl', {
         $scope: this.$scope,
         application: application,
         pipelineConfigService: this.pipelineConfigService,
         $modalInstance: this.$modalInstance,
+        scrollToService: this.scrollToService,
+        timeout: this.$timeout,
         _: _,
         $log: $log
       });
@@ -115,7 +119,7 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.isPlainNow).toBe(true);
     });
 
-    it('should insert new pipeline as first one in application', function() {
+    it('should insert new pipeline as last one in application, set its index, and scroll to it, then delete the tempId', function() {
       var $q = this.$q;
       var submitted = null;
       var application = {name:'the_app', pipelines: [ {name: 'a'}]};
@@ -125,6 +129,7 @@ describe('Controller: createPipelineModal', function() {
         return $q.when(null);
       });
       spyOn(this.$modalInstance, 'close');
+      spyOn(this.scrollToService, 'scrollTo');
 
       this.$scope.command.name = 'new pipeline';
 
@@ -132,7 +137,13 @@ describe('Controller: createPipelineModal', function() {
       this.$scope.$digest();
 
       expect(application.pipelines.length).toBe(2);
-      expect(application.pipelines[0]).toBe(submitted);
+      expect(application.pipelines[1]).toBe(submitted);
+      expect(submitted.index).toBe(1);
+      expect(this.scrollToService.scrollTo).toHaveBeenCalled();
+      expect(submitted.tempId).not.toBeUndefined();
+
+      this.$timeout.flush();
+      expect(submitted.tempId).toBeUndefined();
     });
 
     it('sets error flag, message when save is rejected', function() {

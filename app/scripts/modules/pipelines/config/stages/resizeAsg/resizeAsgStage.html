@@ -12,12 +12,15 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Account</label>
     <div class="col-md-6">
-      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="accountUpdated" required></account-select-field>
+      <account-select-field component="stage" field="credentials" accounts="accounts" on-change="resizeAsgStageCtrl.accountUpdated()" required></account-select-field>
     </div>
   </div>
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-6">
+    <div class="col-md-6" ng-if="!stage.credentials">
+      <p class="form-control-static">(Select an Account)</p>
+    </div>
+    <div class="col-md-6" ng-if="stage.credentials">
       <label class="checkbox-inline" ng-repeat="r in regions">
         <input
           type="checkbox"
@@ -25,7 +28,7 @@
           value="{{r}}"
           ng-disabled="!regionsLoaded"
           ng-checked="stage.regions.indexOf(r) > -1"
-          ng-click="toggleRegion(r)">
+          ng-click="resizeAsgStageCtrl.toggleRegion(r)">
         {{r}}
       </label>
     </div>
@@ -59,6 +62,7 @@
       <select class="form-control input-sm"
               required
               ng-model="stage.resizeType"
+              ng-change="resizeAsgStageCtrl.updateResizeType()"
               ng-options="t.val as t.label for t in resizeTypes">
         <option>Select an action...</option>
       </select>
@@ -100,6 +104,7 @@
         </div>
         <div class="col-md-4">
           <input type="number" ng-model="stage.capacity.max" placeholder="Max"
+                 ng-change="resizeAsgStageCtrl.updateCapacity()"
             class="form-control input-sm" />
         </div>
       </div>

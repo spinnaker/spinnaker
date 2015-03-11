@@ -7,11 +7,14 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
       description: 'Resizes an ASG',
       key: 'resizeAsg',
       controller: 'ResizeAsgStageCtrl',
-      controlelrAs: 'resizeAsgStageCtrl',
+      controllerAs: 'resizeAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
     });
   }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService) {
+
+    var ctrl = this;
+
     $scope.stage = stage;
 
     $scope.state = {
@@ -26,14 +29,14 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
     $scope.regionsLoaded = false;
 
-    $scope.accountUpdated = function() {
+    ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
         $scope.regionsLoaded = true;
       });
     };
 
-    $scope.toggleRegion = function(region) {
+    ctrl.toggleRegion = function(region) {
       var idx = $scope.stage.regions.indexOf(region);
       if (idx > -1) {
         $scope.stage.regions.splice(idx,1);
@@ -87,7 +90,7 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
         $scope.stage.regions = [];
       }
       if ($scope.stage.credentials) {
-        $scope.accountUpdated();
+        ctrl.accountUpdated();
       }
       if (!$scope.stage.target) {
         $scope.stage.target = $scope.resizeTargets[0].val;
@@ -101,18 +104,15 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
     })();
 
 
-    function updateCapacity() {
+    ctrl.updateCapacity = function() {
       $scope.stage.capacity.desired = $scope.stage.capacity.max;
-    }
+    };
 
-    $scope.updateResizeType = function(type) {
+    ctrl.updateResizeType = function() {
       $scope.stage.capacity = {};
       delete $scope.stage.scalePct;
       delete $scope.stage.scaleNum;
-      $scope.resizeType = type;
-      $scope.stage.resizeType = type.val;
     };
 
-    $scope.$watch('stage.capacity.max', updateCapacity);
   });
 

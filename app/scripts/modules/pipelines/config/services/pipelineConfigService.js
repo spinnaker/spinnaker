@@ -16,9 +16,11 @@ angular.module('deckApp.pipelines.config.service', [
       return Restangular.all('pipelines').one(applicationName, pipelineName).remove();
     }
 
-    function savePipeline(pipeline) {
+    function savePipeline(pipeline, retainIsNewFlags) {
       pipeline.stages.forEach(function(stage) {
-        delete stage.isNew;
+        if (!retainIsNewFlags) {
+          delete stage.isNew;
+        }
         if (!stage.name) {
           delete stage.name;
         }
