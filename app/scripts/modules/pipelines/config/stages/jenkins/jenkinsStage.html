@@ -42,6 +42,7 @@
       <div class="form-group" ng-repeat="parameter in jobParams | orderBy:'name' ">
         <div class="col-md-3 sm-label-left">
           <b>{{parameter.name}}</b>
+          <help-field content="{{parameter.description}}" ng-show="parameter.description"></help-field>
         </div>
         <div class="col-md-5">
           <input ng-disabled="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
