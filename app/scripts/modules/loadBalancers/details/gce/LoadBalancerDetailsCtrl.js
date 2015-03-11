@@ -12,7 +12,7 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
   'deckApp.confirmationModal.service'
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
-                                                      _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
+                                                      _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
       loading: true
@@ -33,6 +33,10 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
+
+            accountService.getRegionsKeyedByAccount('gce').then(function(regionsKeyedByAccount) {
+              $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region];
+            });
           }
         });
       }
