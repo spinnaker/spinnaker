@@ -23,7 +23,7 @@ angular.module('deckApp.utils.scrollTo', ['deckApp.utils.jQuery'])
       $timeout(function() {
         var elem = $('#' + elementId);
         if (elem.length) {
-          var content = elem.closest(scrollableContainer);
+          var content = scrollableContainer ? elem.closest(scrollableContainer) : $('body');
           if (content.length) {
             var top = elem.offset().top - offset;
             content.animate({scrollTop: top + 'px'}, 200);
