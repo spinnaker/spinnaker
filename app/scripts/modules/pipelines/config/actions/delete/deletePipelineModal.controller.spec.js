@@ -25,9 +25,9 @@ describe('Controller: deletePipelineModal', function() {
 
     beforeEach(function() {
       this.pipelines = [
-        {name: 'a'},
-        {name: 'b'},
-        {name: 'c'}
+        {name: 'a', index: 0},
+        {name: 'b', index: 1},
+        {name: 'c', index: 2}
       ];
 
       this.application = { name: 'the_app', pipelines: [this.pipelines[0], this.pipelines[1], this.pipelines[2]]};
@@ -35,7 +35,7 @@ describe('Controller: deletePipelineModal', function() {
 
     });
 
-    it('deletes pipeline, removes it from application, and closes modal', function() {
+    it('deletes pipeline, removes it from application, reindexes latter pipelines, and closes modal', function() {
       var $q = this.$q;
       var submittedPipeline = null,
           submittedApplication = null;
@@ -45,6 +45,7 @@ describe('Controller: deletePipelineModal', function() {
         submittedApplication = applicationName;
         return $q.when(null);
       });
+      spyOn(this.pipelineConfigService, 'savePipeline');
       spyOn(this.$modalInstance, 'close');
 
       this.controller.deletePipeline();
@@ -53,6 +54,9 @@ describe('Controller: deletePipelineModal', function() {
       expect(submittedPipeline).toBe('b');
       expect(submittedApplication).toBe('the_app');
       expect(this.application.pipelines).toEqual([this.pipelines[0], this.pipelines[2]]);
+      expect(this.pipelineConfigService.savePipeline).toHaveBeenCalledWith(this.pipelines[2]);
+      expect(this.pipelineConfigService.savePipeline.calls.count()).toEqual(1);
+      expect(this.pipelines[2].index).toBe(1);
     });
 
     it('sets error flag, message when save is rejected', function() {
