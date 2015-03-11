@@ -137,6 +137,6 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
 
     $q.all({
       configurations: pipelineConfigService.getPipelinesForApplication($scope.application.name),
-      executions: executionsService.getAll()
+      executions: executionsService.getAll($scope.application.name),
     }).then(dataInitializationSuccess, dataInitializationFailure);
   });

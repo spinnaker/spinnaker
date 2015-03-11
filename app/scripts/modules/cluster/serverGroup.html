@@ -27,7 +27,7 @@
               <health-counts container="viewModel.serverGroup"></health-counts>
             </span>
             <span ng-if="viewModel.serverGroup.isDisabled" class="badge-disabled">disabled</span>
-            <running-tasks-tag application="application" tasks="viewModel.serverGroup.runningTasks"></running-tasks-tag>
+            <running-tasks-tag application="application" tasks="viewModel.serverGroup.runningTasks" executions="viewModel.serverGroup.executions"></running-tasks-tag>
             <load-balancers-tag load-balancers="viewModel.serverGroup.loadBalancers" max-display="1"></load-balancers-tag>
           </div>
         </div>

@@ -6,11 +6,18 @@ angular.module('deckApp.serverGroup.display.tasks.tag', [])
       restrict: 'E',
       scope: {
         application: '=',
-        tasks: '='
+        tasks: '=',
+        executions: '='
       },
       templateUrl: 'scripts/modules/serverGroups/pod/runningTasksTag.html',
-      link: function(scope) {
-        scope.popover = { show: false };
-      }
+      controller: 'RunningTaskTagController',
+    };
+  })
+  .controller('RunningTaskTagController', function ($scope) {
+    $scope.popover = { show : false };
+    $scope.runningExecutions = function() {
+      return _.filter($scope.executions, function(exe){
+        return exe.isRunning || exe.hasNotStarted;
+      });
     };
   });

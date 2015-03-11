@@ -24,7 +24,7 @@ angular.module('deckApp.application.controller', [
       application.enableAutoRefresh($scope);
     }
 
-    executionsService.getAll().then(function(oldExecutions) {
+    executionsService.getAll(application.name).then(function(oldExecutions) {
       $scope.executions = oldExecutions;
       var subscription = executionsService.subscribeAll(function(newExecutions) {
         taskTracker.handleTaskUpdates(oldExecutions, newExecutions);

@@ -377,7 +377,7 @@ angular.module('deckApp.states', [
         },
         resolve: {
           application: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-            return applicationReader.getApplication($stateParams.application, {tasks: true})
+            return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true})
               .then(
               function(app) { return app; },
               function() { return {notFound: true, name: $stateParams.application}; }
