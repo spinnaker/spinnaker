@@ -38,6 +38,11 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
           if (filtered.length) {
             $scope.loadBalancer.elb = filtered[0];
             $scope.loadBalancer.account = loadBalancer.accountId;
+
+            if ($scope.loadBalancer.elb.availabilityZones) {
+              $scope.loadBalancer.elb.availabilityZones.sort();
+            }
+
             $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
               var match = securityGroupReader.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
               if (match) {

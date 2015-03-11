@@ -35,7 +35,7 @@ angular.module('deckApp.loadBalancer.gce.details.controller',[
             $scope.loadBalancer.account = loadBalancer.accountId;
 
             accountService.getRegionsKeyedByAccount('gce').then(function(regionsKeyedByAccount) {
-              $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region];
+              $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region].sort();
             });
           }
         });
