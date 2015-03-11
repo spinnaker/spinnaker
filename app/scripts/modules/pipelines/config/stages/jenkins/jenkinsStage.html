@@ -48,7 +48,7 @@
           <input disabled ng-if="useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" value="{{parameter.defaultValue}}"/>
           <input ng-if="!useDefaultParameters[parameter.name]" type="text" class="form-control input-sm" ng-model="userSuppliedParameters[parameter.name]" ng-change="updateParam(parameter.name)"/>
         </div>
-        <div class="checkbox col-md-4" ng-if="parameter.defaultValue || parameter.defaultValue===false">
+        <div class="checkbox col-md-4" ng-if="parameter.defaultValue!==null">
           <label>
             <input type="checkbox" ng-model="useDefaultParameters[parameter.name]" ng-change="jenkinsStageCtrl.updateParam(parameter.name)">Use default
           </label>

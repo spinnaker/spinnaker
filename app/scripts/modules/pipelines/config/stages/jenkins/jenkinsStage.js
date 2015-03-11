@@ -48,6 +48,7 @@ angular.module('deckApp.pipelines.stage.jenkins')
     function updateJobConfig() {
       if ($scope.stage && $scope.stage.master && $scope.stage.job) {
          jenkinsService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
+          $scope.stage.parameters = {};
           $scope.jobParams = config.parameterDefinitionList;
           $scope.userSuppliedParameters = $scope.stage.parameters;
           $scope.useDefaultParameters = {};
