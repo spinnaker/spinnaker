@@ -8,6 +8,8 @@ angular
   ])
   .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel, _, waypointService) {
 
+    var lastApplication = null;
+
     function updateQueryParams() {
 
       var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
@@ -200,6 +202,13 @@ angular
     }
 
     function updateClusterGroups(application) {
+        if (!application) {
+          application = lastApplication;
+          if (!lastApplication) {
+            return null;
+          }
+        }
+
         var groups = [],
           totalInstancesDisplayed = 0,
           primarySort = ClusterFilterModel.sortFilter.sortPrimary,
@@ -233,6 +242,7 @@ angular
         sortGroupsByHeading(groups);
         setDisplayOptions(totalInstancesDisplayed);
         waypointService.restoreToWaypoint(application.name);
+        lastApplication = application;
         return groups;
     }
 
