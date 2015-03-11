@@ -11,7 +11,7 @@ angular.module('deckApp.delivery.executionGroups.filter', [
           return Object.keys(timeBoundaries.groupByTimeBoundary(executions));
         case 'name':
           configurations = configurations || [];
-          return _.unique(_.pluck(_.sortBy(executions, 'index').concat(configurations), filter.execution.groupBy));
+          return _.unique(_.pluck(_.sortBy(configurations, 'index').concat(executions), filter.execution.groupBy));
         default:
           configurations = configurations || [];
           return _.unique(_.pluck(executions.concat(configurations), filter.execution.groupBy)).sort();
