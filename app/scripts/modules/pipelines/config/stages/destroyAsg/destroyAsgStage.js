@@ -7,11 +7,13 @@ angular.module('deckApp.pipelines.stage.destroyAsg')
       description: 'Destroys an ASG',
       key: 'destroyAsg',
       controller: 'DestroyAsgStageCtrl',
-      controlelrAs: 'destroyAsgStageCtrl',
+      controllerAs: 'destroyAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
     });
   }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService) {
+    var ctrl = this;
+
     $scope.stage = stage;
 
     $scope.state = {
@@ -26,14 +28,14 @@ angular.module('deckApp.pipelines.stage.destroyAsg')
 
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
-    $scope.accountUpdated = function() {
+    ctrl.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
-        $scope.regionsLoaded = true;
+        $scope.state.regionsLoaded = true;
       });
     };
 
-    $scope.toggleRegion = function(region) {
+    ctrl.toggleRegion = function(region) {
       if (!$scope.stage.regions) {
         $scope.stage.regions = [];
       }
@@ -58,13 +60,12 @@ angular.module('deckApp.pipelines.stage.destroyAsg')
 
     (function() {
       if ($scope.stage.credentials) {
-        $scope.accountUpdated();
+        ctrl.accountUpdated();
       }
       if (!$scope.stage.target) {
         $scope.stage.target = $scope.targets[0].val;
       }
     })();
 
-    $scope.$watch('stage.credentials', $scope.accountUpdated);
   });
 
