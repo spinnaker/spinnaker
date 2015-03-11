@@ -11,8 +11,13 @@ angular.module('deckApp.pipelines.stage.jenkins')
       return Restangular.one('builds', master).all('jobs').getList();
     }
 
+    function getJobConfig(master, job){
+      return Restangular.one('builds', master).one('job', job).get();
+    }
+
     return {
       listMasters: listMasters,
-      listJobsForMaster: listJobsForMaster
+      listJobsForMaster: listJobsForMaster,
+      getJobConfig: getJobConfig
     };
 });
