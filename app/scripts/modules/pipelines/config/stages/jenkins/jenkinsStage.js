@@ -13,6 +13,9 @@ angular.module('deckApp.pipelines.stage.jenkins')
       executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html'
     });
   }).controller('JenkinsStageCtrl', function($scope, stage, jenkinsService) {
+
+    var ctrl = this;
+
     $scope.stage = stage;
 
     $scope.viewState = {
@@ -63,7 +66,7 @@ angular.module('deckApp.pipelines.stage.jenkins')
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
 
-    $scope.updateParam = function(parameter){
+    ctrl.updateParam = function(parameter){
       if($scope.useDefaultParameters[parameter] === true){
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.stage.parameters[parameter];
