@@ -28,7 +28,7 @@
     <span us-spinner="{radius:20, width:6, length: 12}"></span>
   </h4>
 </div>
-<div class="row">
+<div class="row" ng-if="state.pipelinesLoaded">
   <div class="row">
     <div class="col-md-8">
       <h4 ng-if="!application.pipelines.length" class="text-center">You don't have any pipelines configured for {{application.name}}.</h4>

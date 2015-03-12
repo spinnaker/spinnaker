@@ -26,7 +26,7 @@
       <li>
         <a ui-sref=".executions"
            analytics-on="click" analytics-category="Application View" analytics-label="Delivery tab selected"
-           ng-class="{active: $state.includes('**.executions.**')}">
+           ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
           Delivery <span class="badge"
                          ng-if="( application.executions | filter:{isRunning:'true'}).length > 0">
             {{ (executions | filter:{isRunning:'true'}).length }}
