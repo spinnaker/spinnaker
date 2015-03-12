@@ -19,21 +19,23 @@ package com.netflix.spinnaker.orca.notifications
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.util.concurrent.TimeUnit
-import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
+import org.springframework.context.ApplicationListener
 import rx.Observable
 import rx.Scheduler
 import rx.Subscription
 import rx.functions.Func1
 import rx.schedulers.Schedulers
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 @Slf4j
 @CompileStatic
-abstract class AbstractPollingNotificationAgent {
+abstract class AbstractPollingNotificationAgent implements ApplicationListener<EurekaStatusChangedEvent> {
 
   protected final ObjectMapper objectMapper
   private final Client jesqueClient
@@ -60,8 +62,7 @@ abstract class AbstractPollingNotificationAgent {
   // TODO: can we just use logical names rather than handler classes?
   abstract Class<? extends NotificationHandler> handlerType()
 
-  @PostConstruct
-  void init() {
+  void startPolling() {
     subscription = Observable.interval(pollingInterval, TimeUnit.SECONDS, scheduler).map(events)
     .doOnError { Throwable err ->
       log.error "Error when fetching events", err
@@ -73,7 +74,7 @@ abstract class AbstractPollingNotificationAgent {
   }
 
   @PreDestroy
-  void shutdown() {
+  void stopPolling() {
     subscription?.unsubscribe()
   }
 
@@ -87,5 +88,18 @@ abstract class AbstractPollingNotificationAgent {
   @VisibleForTesting
   void setScheduler(Scheduler scheduler) {
     this.scheduler = scheduler
+  }
+
+  @Override
+  void onApplicationEvent(EurekaStatusChangedEvent event) {
+    event.statusChangeEvent.with {
+      if (it.status == UP) {
+        log.info("Instance is $it.status... starting polling for $notificationType events")
+        startPolling()
+      } else if (it.previousStatus == UP) {
+        log.warn("Instance is $it.status... stopping polling for $notificationType events")
+        stopPolling()
+      }
+    }
   }
 }

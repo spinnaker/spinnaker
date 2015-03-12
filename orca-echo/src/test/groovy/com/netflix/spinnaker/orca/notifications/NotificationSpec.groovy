@@ -52,7 +52,7 @@ class NotificationSpec extends Specification {
   }
 
   def setup() {
-    notificationAgent.shutdown()
+    notificationAgent.stopPolling()
     notificationAgent.scheduler = scheduler
 
     applicationContext.beanFactory.with {
@@ -68,7 +68,7 @@ class NotificationSpec extends Specification {
     pipelineStarter.start(*_) >> { latch.countDown() }
 
     and:
-    notificationAgent.init()
+    notificationAgent.startPolling()
 
     when:
     tick()
