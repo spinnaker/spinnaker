@@ -28,7 +28,7 @@
            analytics-on="click" analytics-category="Application View" analytics-label="Delivery tab selected"
            ng-class="{active: $state.includes('**.executions.**')}">
           Delivery <span class="badge"
-                         ng-if="( executions | filter:{isRunning:'true'}).length > 0">
+                         ng-if="( application.executions | filter:{isRunning:'true'}).length > 0">
             {{ (executions | filter:{isRunning:'true'}).length }}
           </span>
         </a>

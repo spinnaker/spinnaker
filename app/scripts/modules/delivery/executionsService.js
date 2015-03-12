@@ -101,7 +101,7 @@ angular.module('deckApp.delivery.executions.service', [
         return scheduler
           .get()
           .flatMap(function() {
-            return RxService.Observable.fromPromise(getExecutions($stateParams.applications));
+            return RxService.Observable.fromPromise(getExecutions($stateParams.application));
           })
           .subscribe(fn);
       },
