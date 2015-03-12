@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DeployGoogleServerGroupStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "deploy_gce"
+  public static final String MAYO_CONFIG_TYPE = "linearDeploy_gce"
 
   DeployGoogleServerGroupStage() {
     super(MAYO_CONFIG_TYPE)
