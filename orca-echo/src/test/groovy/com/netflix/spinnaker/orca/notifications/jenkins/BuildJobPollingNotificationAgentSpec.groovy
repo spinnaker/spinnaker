@@ -56,7 +56,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
   }
 
   def cleanup() {
-    notificationAgent.shutdown()
+    notificationAgent.stopPolling()
   }
 
   def "processes a single event"() {
@@ -64,7 +64,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
     echoEventPoller.getEvents(_) >> echoEventResponse(jenkinsEvent)
 
     and:
-    notificationAgent.init()
+    notificationAgent.startPolling()
 
     when:
     nextPoll()
@@ -78,7 +78,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
     echoEventPoller.getEvents(_) >> echoEventResponse(jenkinsEvent, jenkinsEvent)
 
     and:
-    notificationAgent.init()
+    notificationAgent.startPolling()
 
     when:
     nextPoll()
@@ -93,7 +93,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
     echoEventPoller.getEvents(_) >> echoEventResponse(event)
 
     and:
-    notificationAgent.init()
+    notificationAgent.startPolling()
 
     when:
     nextPoll()
@@ -109,7 +109,7 @@ class BuildJobPollingNotificationAgentSpec extends Specification {
     } >> echoEventResponse(jenkinsEvent)
 
     and:
-    notificationAgent.init()
+    notificationAgent.startPolling()
     nextPoll()
 
     when:
