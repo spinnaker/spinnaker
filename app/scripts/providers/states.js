@@ -26,8 +26,13 @@ angular.module('deckApp.states', [
         url: '/instanceDetails/:provider/:instanceId',
         views: {
           'detail@home.applications.application.insight': {
-            templateUrl: 'scripts/modules/instance/instanceDetails.html',
-            controller: 'InstanceDetailsCtrl',
+            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return $templateCache.get('scripts/modules/instance/details/' + provider + '/instanceDetails.html'); }],
+            controllerProvider: ['$stateParams', function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'InstanceDetailsCtrl';
+            }],
             controllerAs: 'ctrl'
           }
         },

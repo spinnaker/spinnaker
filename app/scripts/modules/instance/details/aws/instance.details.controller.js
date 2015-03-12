@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp.instance.detail.controller', [
+angular.module('deckApp.instance.detail.aws.controller', [
   'ui.router',
   'deckApp.notifications.service',
   'deckApp.instance.write.service',
   'deckApp.instance.read.service',
   'deckApp.confirmationModal.service'
 ])
-  .controller('InstanceDetailsCtrl', function ($scope, $state, notificationsService,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, notificationsService,
                                                instanceWriter, confirmationModalService,
                                                instanceReader,instance, application) {
 
