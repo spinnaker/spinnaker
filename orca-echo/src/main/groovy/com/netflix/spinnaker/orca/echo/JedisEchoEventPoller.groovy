@@ -3,7 +3,6 @@ package com.netflix.spinnaker.orca.echo
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.time.Instant
-import java.time.ZoneId
 import java.time.ZonedDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component
 import redis.clients.jedis.JedisCommands
 import retrofit.client.Response
 import static com.google.common.net.HttpHeaders.DATE
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
+import static java.time.ZoneOffset.UTC
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
 
 /**
@@ -37,7 +36,7 @@ class JedisEchoEventPoller implements EchoEventPoller {
   @Override
   Response getEvents(String type) {
     def lastCheck = jedis.get(LAST_CHECK_KEY)?.toLong()
-    log.info "Looking for echo events of type $type since ${asLocalTime(lastCheck)}"
+    log.info "Last check ---------> ${asDateHeader(lastCheck)}"
     def response = echoService.getEvents(type, lastCheck ?: 0L)
     jedis.set LAST_CHECK_KEY, dateHeaderFrom(response).toString()
     return response
@@ -45,21 +44,15 @@ class JedisEchoEventPoller implements EchoEventPoller {
 
   private static Long dateHeaderFrom(Response response) {
     def header = response.headers.find { it.name == DATE }
-    log.info "Got echo response generated at $header.value"
+    log.info "Echo date header ---> $header.value"
     ZonedDateTime.from(RFC_1123_DATE_TIME.parse(header.value))
                  .toInstant()
                  .toEpochMilli()
   }
 
-  public static final ZoneId TZ = ZoneId.of("America/Los_Angeles")
-
-  private String asLocalTime(Long lastCheck) {
-    if (lastCheck) {
-      Instant.ofEpochMilli(lastCheck)
-             .atZone(TZ)
-             .format(ISO_OFFSET_DATE_TIME)
-    } else {
-      "like, whenever"
-    }
+  private String asDateHeader(Long lastCheck) {
+    Instant.ofEpochMilli(lastCheck ?: 0L)
+           .atOffset(UTC)
+           .format(RFC_1123_DATE_TIME)
   }
 }
