@@ -46,9 +46,11 @@ class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEve
   @Override
   void onApplicationEvent(EurekaStatusChangedEvent event) {
     if (event.statusChangeEvent.status == UP) {
+      log.info "Application is UP... checking for incomplete pipelines"
       jobExplorer.getJobNames().each { jobName ->
         def executions = jobExplorer.findRunningJobExecutions(jobName)
         executionsToPipelines(executions).each { pipeline ->
+          log.warn "Resuming execution of pipeline $pipeline.application:$pipeline.name"
           pipelineStarter.resume pipeline
         }
       }
