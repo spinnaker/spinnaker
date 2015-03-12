@@ -42,42 +42,59 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       }
     }
 
+    function findFirstGCEAccount(application, defaults, command) {
+      return accountService.listAccounts('gce').then(function(gceAccounts) {
+        var gceAccountNames = _.pluck(gceAccounts, 'name');
+        var firstGCEAccount = null;
+
+        if (application.accounts.length) {
+          firstGCEAccount = _.find(application.accounts, function (applicationAccount) {
+            return gceAccountNames.indexOf(applicationAccount) !== -1;
+          });
+        }
+
+        command.credentials = defaults.account || (firstGCEAccount ? firstGCEAccount : 'my-account-name');
+      });
+    }
+
     function buildNewServerGroupCommand(application, defaults) {
+      // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
+      defaults = defaults || {};
+      var command = {
+        application: application.name,
+        region: defaults.region || 'us-central1',
+        capacity: {
+          min: 0,
+          max: 0,
+          desired: 1
+        },
+        instanceMetadata: [],
+        cooldown: 10,
+        healthCheckType: 'EC2',
+        healthCheckGracePeriod: 600,
+        instanceMonitoring: false,
+        ebsOptimized: false,
+        providerType: 'gce',
+        selectedProvider: 'gce',
+        iamRole: 'BaseIAMRole',       // should not be hard coded here
 
-    // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
-    defaults = defaults || {};
-    return {
-      application: application.name,
-      credentials: defaults.account || application.accounts.length > 0 ? application.accounts[0] : 'my-account-name',
-      region: defaults.region || 'us-central1',
-      capacity: {
-        min: 0,
-        max: 0,
-        desired: 1
-      },
-      instanceMetadata: [],
-      cooldown: 10,
-      healthCheckType: 'EC2',
-      healthCheckGracePeriod: 600,
-      instanceMonitoring: false,
-      ebsOptimized: false,
-      providerType: 'gce',
-      selectedProvider: 'gce',
-      iamRole: 'BaseIAMRole',       // should not be hard coded here
+        terminationPolicies: ['Default'],
+        vpcId: null,
+        availabilityZones: [],
+        keyPair: 'nf-test-keypair-a', // should not be hard coded here
+        viewState: {
+          instanceProfile: null,
+          allImageSelection: null,
+          useAllImageSelection: false,
+          useSimpleCapacity: true,
+          usePreferredZones: true,
+          mode: 'create'
+        }
+      };
 
-      terminationPolicies: ['Default'],
-      vpcId: null,
-      availabilityZones: [],
-      keyPair: 'nf-test-keypair-a', // should not be hard coded here
-      viewState: {
-        instanceProfile: null,
-        allImageSelection: null,
-        useAllImageSelection: false,
-        useSimpleCapacity: true,
-        usePreferredZones: true,
-        mode: 'create',
-      },
-    };
+      findFirstGCEAccount(application, defaults, command);
+
+      return command;
   }
 
     // Only used to prepare view requiring template selecting
