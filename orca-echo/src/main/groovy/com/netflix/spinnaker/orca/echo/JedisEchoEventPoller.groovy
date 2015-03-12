@@ -45,6 +45,7 @@ class JedisEchoEventPoller implements EchoEventPoller {
 
   private static Long dateHeaderFrom(Response response) {
     def header = response.headers.find { it.name == DATE }
+    log.info "Got echo response generated at $header.value"
     ZonedDateTime.from(RFC_1123_DATE_TIME.parse(header.value))
                  .toInstant()
                  .toEpochMilli()
