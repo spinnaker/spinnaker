@@ -9,32 +9,36 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     function transformExecution(execution) {
       var stageSummaries = [];
 
+      execution.stages.forEach(function(stage, index) {
+        stage.before = stage.before || [];
+        stage.after = stage.after || [];
+        stage.index = index;
+        orchestratedItem.defineProperties(stage);
+      });
+
+      execution.stages.forEach(function(stage) {
+        var owner = stage.syntheticStageOwner;
+        var parent = _.find(execution.stages, { id: stage.parentStageId });
+        if (parent) {
+          if (owner === 'STAGE_BEFORE') {
+            parent.before.push(stage);
+          }
+          if (owner === 'STAGE_AFTER') {
+            parent.after.push(stage);
+          }
+        }
+      });
+
       execution.stages.forEach(function(stage) {
         if (!stage.syntheticStageOwner) {
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
             masterStage: stage,
-            before: [],
-            after: []
+            before: stage.before,
+            after: stage.after,
+            status: stage.status
           });
-        }
-      });
-
-
-      execution.stages.forEach(function(stage, index) {
-        stage.index = index;
-        var owner = stage.syntheticStageOwner;
-        var parent = _.find(stageSummaries, { id: stage.parentStageId });
-        if (owner === 'STAGE_BEFORE') {
-          if (parent) {
-            parent.before.push(stage);
-          }
-        }
-        if (owner === 'STAGE_AFTER') {
-          if (parent) {
-            parent.after.push(stage);
-          }
         }
       });
 
@@ -43,17 +47,26 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
     }
 
+    function transformStage(stage) {
+      var stages = stage.before.concat([stage.masterStage || stage]).concat(stage.after).filter(function(stage) {
+        return stage.type !== 'initialization';
+      });
+
+      var lastStage = stages[stages.length - 1];
+      stage.startTime = stages[0].startTime;
+      var currentStage = _(stages).findLast(function(childStage) { return !childStage.hasNotStarted; }) || lastStage;
+      stage.status = currentStage.status;
+      stage.endTime = lastStage.endTime;
+      stage.stages = stages;
+
+    }
+
     function transformStageSummary(summary) {
       summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after).filter(function(stage) {
         return stage.type !== 'initialization';
       });
-      if (summary.stages.length) {
-        var lastStage = summary.stages[summary.stages.length - 1];
-        summary.startTime = summary.stages[0].startTime;
-        var currentStage = _(summary.stages).findLast(function(stage) { return !stage.hasNotStarted; }) || lastStage;
-        summary.status = currentStage.status;
-        summary.endTime = lastStage.endTime;
-      }
+      summary.stages.forEach(transformStage);
+      transformStage(summary);
       orchestratedItem.defineProperties(summary);
     }
 

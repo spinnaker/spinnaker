@@ -39,6 +39,10 @@ body, html {
     opacity: .5;
   }
   .execution-details {
+    background-color: @light_grey;
+    padding: 5px 30px 5px 30px;
+    border: 1px solid @mid_light_grey;
+
     tbody {
       tr.stage-summary {
         font-weight: 600;
@@ -58,17 +62,23 @@ body, html {
         }
       }
     }
-    background-color: @light_grey;
     .glyphicon-remove {
       cursor: pointer;
       color: @mid_grey;
     }
-    padding: 5px 30px 5px 30px;
-    border: 1px solid @mid_light_grey;
     h5 {
       font-weight: bold;
       font-size: 1.1em;
       padding-bottom: 10px;
+    }
+    .stage-name {
+      margin-top: 5px;
+      .task-label {
+        font-weight: 600;
+      }
+    }
+    .well {
+      margin-top: 10px;
     }
   }
   .execution-group-container {

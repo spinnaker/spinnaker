@@ -71,5 +71,34 @@ describe('executionsService', function() {
       expect(execution.stageSummaries[2].startTime).toBeUndefined();
       expect(execution.stageSummaries[2].endTime).toBeUndefined();
     });
+
+    it('should set stage status, start/end times based on child stages on non-summary stages', function() {
+      var execution = {
+        stages: [
+          { id: '1', name: 'bake', status: 'COMPLETED', startTime: 7, endTime: 8 },
+          { id: '2', parentStageId: '1', syntheticStageOwner: 'STAGE_AFTER', status: 'COMPLETED', startTime: 8, endTime: 9},
+          { id: '3', parentStageId: '2', syntheticStageOwner: 'STAGE_BEFORE', status: 'COMPLETED', startTime: 7, endTime: 8},
+          { id: '4', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'RUNNING', startTime: 11 },
+          { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
+        ]
+      };
+      this.transformer.transformExecution(execution);
+
+      var summary = execution.stageSummaries[0];
+
+      expect(execution.stageSummaries.length).toBe(1);
+
+      expect(summary.status).toBe('RUNNING');
+      expect(summary.startTime).toBe(7);
+      expect(summary.endTime).toBeUndefined();
+
+      expect(summary.stages.length).toBe(2);
+
+      var nested = summary.stages[1];
+
+      expect(nested.status).toBe('RUNNING');
+      expect(nested.startTime).toBe(7);
+      expect(nested.endTime).toBeUndefined();
+    });
   });
 });

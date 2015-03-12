@@ -7,6 +7,10 @@ angular.module('deckApp')
 
       var formattedInput = input.charAt(0).toUpperCase() + input.substr(1);
 
+      if (/\s/g.test(formattedInput)) {
+        return formattedInput;
+      }
+
       // clear camel case.
       formattedInput = formattedInput.replace(/[A-Z]/g, ' $&');
 
