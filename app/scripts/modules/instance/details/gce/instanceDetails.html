@@ -1,0 +1,159 @@
+<div class="details-panel">
+
+  <div class="header" ng-if="state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
+      <h3>
+        {{instance.instanceId}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
+        <div class="dropdown">
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled">
+            Instance Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Down')">Enable in Discovery</a></li>
+            <li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="instance.loadBalancers.length > 0 && ctrl.hasHealthState('LoadBalancer', 'Up')">Deregister from Load Balancer</a></li>
+            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
+            <li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="instance.loadBalancers.length > 0 && !ctrl.hasHealthState('LoadBalancer', 'Up')">Register with Load Balancer</a></li>
+            <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
+            <li><a href ng-click="ctrl.rebootInstance()">Reboot Instance</a></li>
+            <li><a href ng-click="ctrl.terminateInstance()">Terminate Instance</a></li>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="instance.insightActions.length > 0">
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Instance Information" expanded="true">
+      <dl class="dl-horizontal dl-narrow">
+        <dt>Launched:</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+        <dt>In:</dt>
+        <dd>
+          <account-tag account="instance.account" pad="right"></account-tag>
+          {{instance.placement.availabilityZone || '(Unknown)'}}
+        </dd>
+        <dt>Type:</dt>
+        <dd>{{instance.instanceType || '(Unknown)'}}</dd>
+        <dt ng-if="instance.serverGroup">Server Group:</dt>
+        <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <dl>
+        <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
+        <dd ng-repeat-end>
+          <div ng-if="metric.type !== 'LoadBalancer'">
+            <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+              <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
+              {{metric.state | robotToHuman}}
+            </span>
+            <span class="pad-left small">
+              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
+              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
+              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+            </span>
+          </div>
+          <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
+            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <div class="content-section" ng-if="instance.notFound">
+      <div class="content-body">
+        <p>Could not find the instance. No other details provided.</p>
+      </div>
+    </div>
+    <collapsible-section heading="DNS" ng-if="!instance.notFound">
+      <dl>
+        <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
+        <dd ng-if="instance.privateDnsName"><a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a></dd>
+        <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>
+        <dd ng-if="instance.publicDnsName"><a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a></dd>
+        <dt ng-if="instance.privateIpAddress">Private IP Address:</dt>
+        <dd ng-if="instance.privateIpAddress"><a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a></dd>
+        <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
+        <dd ng-if="instance.publicIpAddress"><a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a></dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
+        <ul>
+          <li ng-repeat="securityGroup in instance.securityGroups | orderBy:'groupName'">
+            <a ui-sref="^.securityGroupDetails({name:securityGroup.groupName, accountId: instance.account, region: instance.region, vpcId: instance.vpcId, provider: instance.provider})">
+              {{securityGroup.groupName}} ({{securityGroup.groupId}})
+            </a>
+          </li>
+        </ul>
+    </collapsible-section>
+    <collapsible-section heading="Logs" ng-if="baseIpAddress">
+      <ul>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
+        </li>
+      </ul>
+    </collapsible-section>
+    <collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">
+      <ul>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/baseserver#view=props" target="_blank">Properties Console</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/baseserver#view=jars" target="_blank">Libraries Console</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/machineReadableProps" target="_blank">Machine Readable Properties</a>
+        </li>
+        <li>
+          <a href="http://{{baseIpAddress}}:8077/AdminNetflixConfiguration/webapp/META-INF/MANIFEST.MF" target="_blank">Manifest</a>
+        </li>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>

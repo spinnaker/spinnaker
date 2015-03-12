@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: InstanceDetailsCtrl', function () {
+describe('Controller: awsInstanceDetailsCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
@@ -8,13 +8,13 @@ describe('Controller: InstanceDetailsCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.instance.detail.controller')
+    module('deckApp.instance.detail.aws.controller')
   );
 
   beforeEach(
     inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('InstanceDetailsCtrl', {
+      controller = $controller('awsInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
         application: {
