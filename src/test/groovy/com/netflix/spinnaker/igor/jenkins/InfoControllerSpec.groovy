@@ -78,7 +78,11 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * cache.getJobNames('master1') >> JOBS
+        1 * masters.map >> [ 'master1' : [ projects : [ list: [
+            ['name': 'blah'],
+            ['name': 'blip'],
+            ['name': 'bum']
+        ] ] ] ]
         response.contentAsString == '["blah","blip","bum"]'
     }
 
