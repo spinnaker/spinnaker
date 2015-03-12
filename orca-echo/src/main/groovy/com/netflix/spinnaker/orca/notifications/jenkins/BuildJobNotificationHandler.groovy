@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.notifications.jenkins
 
+import com.netflix.spinnaker.orca.igor.IgorService
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.notifications.PipelineIndexer
@@ -15,6 +16,9 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
 
   @Autowired @Qualifier("buildJobPipelineIndexer")
   PipelineIndexer pipelineIndexer
+
+  @Autowired(required = false)
+  IgorService igorService
 
   BuildJobNotificationHandler(Map input) {
     super(input)
@@ -38,6 +42,9 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
           def pipelineConfigClone = new HashMap(pipelineConfig)
           pipelineConfigClone.trigger = new HashMap(trigger)
           pipelineConfigClone.trigger.buildInfo = input
+          if(igorService && pipelineConfigClone.trigger.propertyFile ){
+            pipelineConfigClone.trigger.properties = igorService.getPropertyFile(input.master, input.name, input.lastBuild?.number, pipelineConfigClone.trigger.propertyFile)
+          }
           def json = objectMapper.writeValueAsString(pipelineConfigClone)
           log.info "Starting pipeline '$pipelineConfig.name' for application '$pipelineConfig.application' due to Jenkins job '$key.job'"
           pipelineStarter.start(json)
