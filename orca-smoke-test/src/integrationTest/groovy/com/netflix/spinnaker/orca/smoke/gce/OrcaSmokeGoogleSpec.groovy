@@ -36,6 +36,7 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
@@ -61,6 +62,9 @@ class OrcaSmokeGoogleSpec extends Specification {
   @Autowired ObjectMapper mapper
   @Autowired JobExplorer jobExplorer
 
+  // Fail the test after 60 seconds. Don't want to let the pollUntilCompletion() method poll indefinitely if something
+  // goes wrong.
+  @Timeout(60)
   def "can create application"() {
     def configJson = mapper.writeValueAsString(config)
 
@@ -71,12 +75,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     then:
     jobExplorer.getJobInstanceCount(jobName) == 1
 
-    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
-    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+    def jobExecution = OrcaSmokeUtils.pollUntilCompletion(jobExplorer, jobName)
 
-    jobExecutions.size == 1
-
-    with (jobExecutions[0]) {
+    with (jobExecution) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
@@ -102,6 +103,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     ]
   }
 
+  // Fail the test after 300 seconds. Don't want to let the pollUntilCompletion() method poll indefinitely if something
+  // goes wrong.
+  @Timeout(300)
   def "can deploy server group"() {
     def configJson = mapper.writeValueAsString(config)
 
@@ -112,12 +116,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     then:
     jobExplorer.getJobInstanceCount(jobName) == 1
 
-    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
-    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+    def jobExecution = OrcaSmokeUtils.pollUntilCompletion(jobExplorer, jobName)
 
-    jobExecutions.size == 1
-
-    with (jobExecutions[0]) {
+    with (jobExecution) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
