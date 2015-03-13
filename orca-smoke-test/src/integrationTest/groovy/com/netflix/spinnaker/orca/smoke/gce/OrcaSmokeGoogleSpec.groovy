@@ -15,14 +15,18 @@
  */
 
 package com.netflix.spinnaker.orca.smoke.gce
+
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.smoke.OrcaSmokeUtils
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.explore.JobExplorer
@@ -35,10 +39,11 @@ import spock.lang.Specification
 
 import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
+
 // Only runs if the gcs-kms server is listening on port 7909 on the same machine.
 @IgnoreIf({ notReachable("http://localhost:7909") })
 @ContextConfiguration(classes = [OrcaConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration,
-                                 Front50Configuration])
+                                 EmbeddedRedisConfiguration, Front50Configuration, JesqueConfiguration, MortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeGoogleSpec extends Specification {
 
