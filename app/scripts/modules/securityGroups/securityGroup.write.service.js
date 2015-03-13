@@ -19,11 +19,7 @@ angular
         description: descriptor + ' Security Group: ' + command.name
       });
 
-      // Tempting as it is to write this as:
-      //   operation.then(infrastructureCaches.securityGroups.removeAll);
-      // it will fail because there is some unfortunate issue with the cacher not knowing what "this" is.
-      // So we are stuck with an anonymous function.
-      operation.then(function() { infrastructureCaches.securityGroups.removeAll(); });
+      infrastructureCaches.clearCache('securityGroups');
 
       return operation;
     }
@@ -44,11 +40,7 @@ angular
         description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountName + ':' + securityGroup.region
       });
 
-      // Tempting as it is to write this as:
-      //   operation.then(infrastructureCaches.securityGroups.removeAll);
-      // it will fail because there is some unfortunate issue with the cacher not knowing what "this" is.
-      // So we are stuck with an anonymous function.
-      operation.then(function() { infrastructureCaches.securityGroups.removeAll(); });
+      infrastructureCaches.clearCache('securityGroups');
 
       return operation;
     }

@@ -6,8 +6,10 @@ angular
     'deckApp.applications.write.service',
     'deckApp.confirmationModal.service',
     'deckApp.caches.initializer',
+    'deckApp.caches.infrastructure',
   ])
-  .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,  application, cacheInitializer) {
+  .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
+                                            cacheInitializer, infrastructureCaches, application) {
     var vm = this;
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
@@ -59,6 +61,24 @@ angular
           $log.error('Error refreshing caches:', e);
           vm.clearingCaches = false;
         });
+    };
+
+    vm.getCacheInfo = function(cache) {
+      return infrastructureCaches[cache].getStats();
+    };
+
+    vm.refreshCache = function(key) {
+      vm.clearingCache = vm.clearingCache || {};
+      vm.clearingCache[key] = true;
+      cacheInitializer.refreshCache(key).then(
+        function() {
+          vm.clearingCache[key] = false;
+        },
+        function(e) {
+          $log.error('Error refreshing caches:', e);
+          vm.clearingCaches = false;
+        }
+      );
     };
 
     return vm;

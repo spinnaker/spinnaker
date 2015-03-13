@@ -59,6 +59,7 @@ angular
     function listGCELoadBalancers() {
       return Restangular
         .all('loadBalancers')
+        .withHttpConfig({cache: infrastructureCaches.loadBalancers})
         .getList({provider: 'gce'});
     }
 

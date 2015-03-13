@@ -16,27 +16,52 @@ angular.module('deckApp.caches.initializer', [
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches, accountService, instanceTypeService, securityGroupReader, subnetReader, vpcReader, keyPairsReader, loadBalancerReader) {
 
+    var initializers = {
+      credentials: [accountService.getRegionsKeyedByAccount, accountService.listAccounts],
+      instanceTypes: [ function() { instanceTypeService.getAllTypesByRegion('aws'); }],
+      loadBalancers: [loadBalancerReader.listAWSLoadBalancers],
+      securityGroups: [securityGroupReader.getAllSecurityGroups],
+      subnets: [subnetReader.listSubnets],
+      vpcs: [vpcReader.listVpcs],
+      keyPairs: [keyPairsReader.listKeyPairs],
+      applications: [applicationReader.listApplications],
+    };
+
     function initialize() {
-      return $q.all([
-        accountService.getRegionsKeyedByAccount(),
-        accountService.listAccounts(),
-        instanceTypeService.getAllTypesByRegion('aws'),
-        loadBalancerReader.listAWSLoadBalancers(),
-        securityGroupReader.getAllSecurityGroups(),
-        subnetReader.listSubnets(),
-        vpcReader.listVpcs(),
-        keyPairsReader.listKeyPairs(),
-        applicationReader.listApplications(),
-      ]);
+      var all = [];
+      Object.keys(initializers).forEach(function(key) {
+        all.push(initializeCache(key));
+      });
+      return $q.all(all);
+    }
+
+    function initializeCache(key) {
+      if (initializers[key]) {
+        var initializer = initializers[key];
+        var all = [];
+        initializer.forEach(function(method) {
+          all.push(method());
+        });
+        return $q.all(all);
+      }
+    }
+
+    function refreshCache(key) {
+      infrastructureCaches.clearCache(key);
+      return initializeCache(key);
     }
 
     function refreshCaches() {
-      infrastructureCaches.clearCaches();
-      return initialize();
+      var all = [];
+      Object.keys(initializers).forEach(function(key) {
+        all.push(refreshCache(key));
+      });
+      return $q.all(all);
     }
 
     return {
       initialize: initialize,
       refreshCaches: refreshCaches,
+      refreshCache: refreshCache,
     };
   });
