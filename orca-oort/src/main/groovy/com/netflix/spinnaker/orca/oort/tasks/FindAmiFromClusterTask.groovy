@@ -129,7 +129,9 @@ class FindAmiFromClusterTask implements Task {
     }
 
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+      amiDetails: deploymentDetails
+    ], [
       deploymentDetails: deploymentDetails
     ])
   }
