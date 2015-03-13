@@ -262,6 +262,8 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
         var results =configureVpcId(command);
         angular.extend(results.dirty, configureSecurityGroupOptions(command).dirty);
         angular.extend(results.dirty, configureLoadBalancerOptions(command).dirty);
+        command.dirty = command.dirty || {};
+        angular.extend(command.dirty, results.dirty);
         return results;
       };
 
