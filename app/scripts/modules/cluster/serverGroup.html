@@ -35,8 +35,7 @@
     </div>
     <div class="instance-list" ng-if="displayOptions.showInstances">
       <div ng-if="!displayOptions.listInstances">
-        <instances highlight="displayOptions.filter" scroll-target="clusters-content" instances="viewModel.instances"
-                   render-instances-on-scroll="false"></instances>
+        <instances highlight="displayOptions.filter" instances="viewModel.instances"></instances>
       </div>
       <div ng-if="displayOptions.listInstances">
         <instance-list instances="viewModel.instances" sort-filter="sortFilter"></instance-list>
