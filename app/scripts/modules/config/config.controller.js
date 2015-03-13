@@ -64,8 +64,21 @@ angular
     };
 
     vm.getCacheInfo = function(cache) {
-      console.warn('stats:', infrastructureCaches[cache].getStats());
       return infrastructureCaches[cache].getStats();
+    };
+
+    vm.refreshCache = function(key) {
+      vm.clearingCache = vm.clearingCache || {};
+      vm.clearingCache[key] = true;
+      cacheInitializer.refreshCache(key).then(
+        function() {
+          vm.clearingCache[key] = false;
+        },
+        function(e) {
+          $log.error('Error refreshing caches:', e);
+          vm.clearingCaches = false;
+        }
+      );
     };
 
     return vm;
