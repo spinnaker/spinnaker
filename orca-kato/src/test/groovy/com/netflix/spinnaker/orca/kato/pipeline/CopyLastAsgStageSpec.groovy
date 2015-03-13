@@ -64,6 +64,8 @@ class CopyLastAsgStageSpec extends Specification {
     def config = [
         application: "deck",
         availabilityZones: [(region): []],
+        stack: stack,
+        account: account,
         source  : [
             account: account,
             asgName: asgNames.last(),
@@ -81,7 +83,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-prestaging", "aws") >> {
+    1 * oort.getCluster("deck", account, "deck-${stack}", "aws") >> {
       def responseBody = [
           serverGroups: asgNames.collect { name ->
             [name: name, region: region]
@@ -109,6 +111,7 @@ class CopyLastAsgStageSpec extends Specification {
 
     where:
     strategy = "highlander"
+    stack = "main"
     asgNames = ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"]
     region = "us-east-1"
     account = "prod"
@@ -119,6 +122,8 @@ class CopyLastAsgStageSpec extends Specification {
     def config = [
       application: "deck",
       availabilityZones: [(region): []],
+      stack: stack,
+      account: account,
       source  : [
         account: account,
         asgName: asgNames.last(),
@@ -136,7 +141,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-prestaging", "aws") >> {
+    1 * oort.getCluster("deck", account, "deck-${stack}", "aws") >> {
       def responseBody = [
         serverGroups: asgNames.collect { name ->
           [name: name, region: region]
@@ -164,6 +169,7 @@ class CopyLastAsgStageSpec extends Specification {
 
     where:
     strategy = "redblack"
+    stack = "main"
     asgNames = ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"]
     region = "us-east-1"
     account = "prod"
@@ -203,7 +209,7 @@ class CopyLastAsgStageSpec extends Specification {
     account = "prod"
   }
 
-  def "should only highlander ASGs in source region"() {
+  def "should only highlander ASGs in target region"() {
     given:
     def stage = new PipelineStage(
       new Pipeline(),
@@ -211,8 +217,10 @@ class CopyLastAsgStageSpec extends Specification {
       [
         "application"      : application,
         "availabilityZones": [(region): ["${region}a", "${region}b", "${region}c"].collect { it.toString() }],
+        "stack": stack,
+        "account": targetAccount,
         "source"           : [
-          "account": account,
+          "account": sourceAccount,
           "region": region,
           "asgName": asgName
         ]
@@ -223,7 +231,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.composeHighlanderFlow(stage)
 
     then:
-    1 * oort.getCluster(application, account, "${application}-${account}", "aws") >> {
+    1 * oort.getCluster(application, targetAccount, "${application}-${stack}", "aws") >> {
       def responseBody = [
         serverGroups: ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
           [region: it, name: asgName]
@@ -244,7 +252,9 @@ class CopyLastAsgStageSpec extends Specification {
     stage.afterStages[0].context["regions"] == [region]
 
     where:
-    account = "test"
+    sourceAccount = "test"
+    targetAccount = "prod"
+    stack = "main"
     region = "us-west-2"
     application = "myapp"
     asgName = "${application}-test-v000" as String
