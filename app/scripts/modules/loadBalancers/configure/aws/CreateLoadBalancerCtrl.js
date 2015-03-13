@@ -8,12 +8,16 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
   'deckApp.securityGroup.read.service',
   'deckApp.modalWizard',
   'deckApp.tasks.monitor.service',
-  'deckApp.subnet.read.service'
+  'deckApp.subnet.read.service',
+  'deckApp.caches.initializer',
+  'deckApp.caches.infrastructure',
 ])
-  .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
-                                                 application, loadBalancer, isNew,
-                                                 accountService, awsLoadBalancerTransformer, securityGroupReader,
-                                                 _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService, subnetReader) {
+  .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
+                                                    accountService, awsLoadBalancerTransformer, securityGroupReader,
+                                                    cacheInitializer, infrastructureCaches, searchService,
+                                                    modalWizardService, loadBalancerWriter, taskMonitorService,
+                                                    subnetReader,
+                                                    application, loadBalancer, isNew) {
 
     var ctrl = this;
 
@@ -176,6 +180,20 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
     initializeController();
 
     // Controller API
+
+    this.refreshSecurityGroups = function () {
+      $scope.state.refreshingSecurityGroups = true;
+      cacheInitializer.refreshCache('securityGroups').then(function() {
+        $scope.state.refreshingSecurityGroups = false;
+        preloadSecurityGroups().then(function() {
+          updateAvailableSecurityGroups($scope.loadBalancer.vpcId);
+        });
+      });
+    };
+
+    this.getSecurityGroupRefreshTime = function() {
+      return infrastructureCaches.securityGroups.getStats().ageMax;
+    };
 
     this.requiresHealthCheckPath = function () {
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;

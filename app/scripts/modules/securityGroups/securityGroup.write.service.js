@@ -19,7 +19,7 @@ angular
         description: descriptor + ' Security Group: ' + command.name
       });
 
-      infrastructureCaches.securityGroups.removeAll();
+      infrastructureCaches.clearCache('securityGroups');
 
       return operation;
     }
@@ -40,7 +40,7 @@ angular
         description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountName + ':' + securityGroup.region
       });
 
-      infrastructureCaches.securityGroups.removeAll();
+      infrastructureCaches.clearCache('securityGroups');
 
       return operation;
     }

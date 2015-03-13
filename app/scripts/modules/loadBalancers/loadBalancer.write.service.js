@@ -23,7 +23,7 @@ angular
         description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
       });
 
-      infrastructureCaches.loadBalancers.removeAll();
+      infrastructureCaches.clearCache('loadBalancers');
 
       return operation;
     }
@@ -51,7 +51,7 @@ angular
         description: descriptor + ' Load Balancer: ' + name
       });
 
-      infrastructureCaches.loadBalancers.removeAll();
+      infrastructureCaches.clearCache('loadBalancers');
 
       return operation;
     }

@@ -7,10 +7,11 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
   'deckApp.instanceType.service',
   'deckApp.subnet.read.service',
   'deckApp.keyPairs.read.service',
-  'deckApp.loadBalancer.read.service'
+  'deckApp.loadBalancer.read.service',
+  'deckApp.caches.initializer',
 ])
   .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
-                                                          instanceTypeService,
+                                                          instanceTypeService, cacheInitializer,
                                                           subnetReader, keyPairsReader, loadBalancerReader) {
 
 
@@ -197,6 +198,15 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
       return results;
     }
 
+    function refreshSecurityGroups(command) {
+      return cacheInitializer.refreshCache('securityGroups').then(function() {
+        return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
+          command.backingData.securityGroups = securityGroups;
+          configureSecurityGroupOptions(command);
+        });
+      });
+    }
+
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
@@ -225,6 +235,15 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
       }
       command.backingData.filtered.loadBalancers = newLoadBalancers;
       return results;
+    }
+
+    function refreshLoadBalancers(command) {
+      return cacheInitializer.refreshCache('loadBalancers').then(function() {
+        return loadBalancerReader.listAWSLoadBalancers().then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          configureLoadBalancerOptions(command);
+        });
+      });
     }
 
     function configureVpcId(command) {
@@ -316,6 +335,8 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
       configureSecurityGroupOptions: configureSecurityGroupOptions,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
       configureVpcId: configureVpcId,
+      refreshLoadBalancers: refreshLoadBalancers,
+      refreshSecurityGroups: refreshSecurityGroups,
     };
 
 
