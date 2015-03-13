@@ -55,7 +55,7 @@ class GCEOperationUtil {
     // zero. In that case, we still want to pass that value. So we use null comparison here instead.
     return handleFinishedAsyncDeleteOperation(
         waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
-                         timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC,
+                         Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
   }
 
@@ -64,7 +64,7 @@ class GCEOperationUtil {
     // See above comment for why we don't use an Elvis operator here.
     return handleFinishedAsyncDeleteOperation(
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
-                         timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC,
+                         Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
   }
 
