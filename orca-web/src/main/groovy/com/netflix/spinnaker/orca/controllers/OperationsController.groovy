@@ -44,7 +44,8 @@ class OperationsController {
     @RequestParam(value = "user", required = false) String user,
     @RequestParam(value = "build.master", required = false) String master,
     @RequestParam(value = "build.job", required = false) String job,
-    @RequestParam(value = "build.number", required = false) Integer buildNumber) {
+    @RequestParam(value = "build.number", required = false) Integer buildNumber,
+    @RequestParam(value = "build.propertyFile", required = false) String propertyFile) {
 
     pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user]
 
@@ -54,6 +55,10 @@ class OperationsController {
         pipeline.trigger.job = job
         pipeline.trigger.master = master
         pipeline.trigger.buildInfo = build
+        if(propertyFile){
+          pipeline.trigger.propertyFile = propertyFile
+          pipeline.trigger.properties = igorService.getPropertyFile(master, job, buildNumber, propertyFile)
+        }
       }
     }
     startPipeline(pipeline)
