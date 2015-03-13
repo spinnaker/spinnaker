@@ -7,7 +7,7 @@ describe('Controller: GlobalSearch', function () {
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $window, $q, _) {
+    beforeEach(inject(function ($controller, $rootScope, $window, $q, _, ClusterFilterModel, clusterFilterService) {
       var inputSpy = jasmine.createSpyObj('input', ['focus']),
           infrastructureSearchService = jasmine.createSpy('infrastructureSearchService');
       this.$scope = $rootScope.$new();
@@ -25,7 +25,9 @@ describe('Controller: GlobalSearch', function () {
         $scope: this.$scope,
         $element: this.$element,
         _ : _,
-        infrastructureSearchService: function() { return infrastructureSearchService; }
+        infrastructureSearchService: function() { return infrastructureSearchService; },
+        ClusterFilterModel: ClusterFilterModel,
+        clusterFilterService: clusterFilterService,
       });
 
       this.$scope.showSearchResults = true;

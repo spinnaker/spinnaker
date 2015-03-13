@@ -2,7 +2,7 @@
 
 
 angular.module('deckApp.search.global')
-  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, _) {
+  .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
@@ -64,6 +64,16 @@ angular.module('deckApp.search.global')
       });
     }, 200);
 
+    ctrl.clearFilters = function(result) {
+      if (result.href.indexOf('/clusters') !== -1) {
+        ClusterFilterModel.clearFilters();
+        ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
+          result.cluster ? 'cluster:' + result.cluster : '';
+        if ($stateParams.application === result.application) {
+          clusterFilterService.updateClusterGroups();
+        }
+      }
+    };
 
     this.focusFirstSearchResult = function focusFirstSearchResult(event) {
       try {
