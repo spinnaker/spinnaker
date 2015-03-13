@@ -46,18 +46,4 @@ class CopyLastAsgStage extends DeployStrategyStage {
     def step5 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     [step1, step2, step3, step4, step5]
   }
-
-  @Override
-  protected CleanupConfig determineClusterForCleanup(Stage stage) {
-    // if may be copying from a different region (OR EVEN CLUSTER!), so use the provided "source" map instead of the
-    // target configuration.
-    def source = stage.mapTo("/source", Source)
-    return new CleanupConfig(source.account, Names.parseName(source.asgName).cluster, [source.region])
-  }
-
-  static class Source {
-    String account
-    String asgName
-    String region
-  }
 }
