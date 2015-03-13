@@ -23,14 +23,39 @@
 
         <p>We use local storage to speed up performance of the following items:
         </p>
-        <ul>
-          <li>Accounts</li>
-          <li>Applications</li>
-          <li>Instance Types</li>
-          <li>Security Groups</li>
-          <li>Subnets</li>
-          <li>VPCs</li>
-        </ul>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1"><strong>Type</strong></div>
+          <div class="col-md-3"><strong>Last Updated</strong></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Accounts</div>
+          <div class="col-md-3">{{config.getCacheInfo('credentials').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Applications</div>
+          <div class="col-md-3">{{config.getCacheInfo('applications').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Instance Types</div>
+          <div class="col-md-3">{{config.getCacheInfo('instanceTypes').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Load Balancers</div>
+          <div class="col-md-3">{{config.getCacheInfo('loadBalancers').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Security Groups</div>
+          <div class="col-md-3">{{config.getCacheInfo('securityGroups').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Subnets</div>
+          <div class="col-md-3">{{config.getCacheInfo('subnets').ageMax | timestamp}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">VPCs</div>
+          <div class="col-md-3">{{config.getCacheInfo('vpcs').ageMax | timestamp}}</div>
+        </div>
+
         <p>If you're not seeing one of those in a dropdown, it may be because our cached versions are too old.</p>
         <button class="btn btn-link" ng-if="!config.clearingCaches" ng-click="config.refreshCaches()"><span
           class="glyphicon glyphicon-refresh"></span>

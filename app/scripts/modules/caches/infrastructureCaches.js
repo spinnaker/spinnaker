@@ -28,6 +28,26 @@ angular.module('deckApp.caches.infrastructure', [
         storageMode: 'localStorage',
       });
       caches[cacheId] = DSCacheFactory.get(cacheId);
+      caches[cacheId].getStats = getStats.bind(null, caches[cacheId]);
+    }
+
+    function getStats(cache) {
+        var keys = cache.keys(),
+          ageMin = new Date().getTime(),
+          ageMax = 0;
+
+        keys.forEach(function (key) {
+          var info = cache.info(key);
+          ageMin = Math.min(ageMin, info.created);
+          ageMax = Math.max(ageMax, info.created);
+        });
+
+        return {
+          keys: keys.length,
+          ageMin: ageMin || null,
+          ageMax: ageMax || null
+        };
+
     }
 
     function createCaches() {

@@ -23,11 +23,7 @@ angular
         description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
       });
 
-      // Tempting as it is to write this as:
-      //   operation.then(infrastructureCaches.loadBalancers.removeAll);
-      // it will fail because there is some unfortunate issue with the cacher not knowing what "this" is.
-      // So we are stuck with an anonymous function.
-      operation.then(function() { infrastructureCaches.loadBalancers.removeAll(); });
+      infrastructureCaches.loadBalancers.removeAll();
 
       return operation;
     }
@@ -55,11 +51,7 @@ angular
         description: descriptor + ' Load Balancer: ' + name
       });
 
-      // Tempting as it is to write this as:
-      //   operation.then(infrastructureCaches.loadBalancers.removeAll);
-      // it will fail because there is some unfortunate issue with the cacher not knowing what "this" is.
-      // So we are stuck with an anonymous function.
-      operation.then(function() { infrastructureCaches.loadBalancers.removeAll(); });
+      infrastructureCaches.loadBalancers.removeAll();
 
       return operation;
     }
