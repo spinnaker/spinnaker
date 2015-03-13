@@ -6,17 +6,18 @@ angular.module('deckApp.instance.detail.aws.controller', [
   'deckApp.notifications.service',
   'deckApp.instance.write.service',
   'deckApp.instance.read.service',
-  'deckApp.confirmationModal.service'
+  'deckApp.confirmationModal.service',
+  'deckApp.utils.lodash',
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, notificationsService,
                                                instanceWriter, confirmationModalService,
-                                               instanceReader,instance, application) {
+                                               instanceReader, _, instance, application) {
 
     $scope.state = {
       loading: true,
     };
 
-    function extractHealthMetrics(instance) {
+    function extractHealthMetrics(instance, latest) {
       if (!instance.health) {
         $scope.healthMetrics = [];
         return;
@@ -24,7 +25,20 @@ angular.module('deckApp.instance.detail.aws.controller', [
       var displayableMetrics = instance.health.filter(
         function(metric) {
           return metric.type !== 'Amazon' || metric.state !== 'Unknown';
+        }
+      );
+      // backfill details where applicable
+      if (latest.health) {
+        displayableMetrics.forEach(function (metric) {
+          var detailsMatch = latest.health.filter(function (latestHealth) {
+            return latestHealth.type === metric.type;
+          });
+          if (detailsMatch.length) {
+            _.defaults(metric, detailsMatch[0]);
+          }
         });
+      }
+
       $scope.healthMetrics = displayableMetrics;
     }
 
@@ -55,9 +69,10 @@ angular.module('deckApp.instance.detail.aws.controller', [
 
       if (instanceSummary && account && region) {
         instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+          details = details.plain();
           $scope.state.loading = false;
-          $scope.instance = angular.extend(details.plain(), instanceSummary);
-          extractHealthMetrics(instanceSummary);
+          extractHealthMetrics(instanceSummary, details);
+          $scope.instance = _.defaults(details, instanceSummary);
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
