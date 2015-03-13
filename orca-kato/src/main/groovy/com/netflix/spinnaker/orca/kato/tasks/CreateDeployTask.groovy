@@ -78,7 +78,7 @@ class CreateDeployTask implements Task {
 
     def targetRegion = (operation.availabilityZones as Map<String, Object>).keySet()[0]
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
-    if (deploymentDetails) {
+    if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
 

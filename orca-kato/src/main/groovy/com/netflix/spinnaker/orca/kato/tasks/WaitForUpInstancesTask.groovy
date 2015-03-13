@@ -26,7 +26,12 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     if (asg.minSize > instances.size()) {
       return false
     }
-    instances.every {
+
+    if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
+      return true
+    }
+
+    int healthyCount = instances.count {
       def healths = interestingHealthProviderNames ? it.health.findAll { health ->
         health.type in interestingHealthProviderNames
       } : it.health
@@ -34,6 +39,8 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       boolean noneAreDown = !healths.any { it.state == 'Down' }
       someAreUp && noneAreDown
     }
+
+    return healthyCount >= asg.minSize
   }
 
 }

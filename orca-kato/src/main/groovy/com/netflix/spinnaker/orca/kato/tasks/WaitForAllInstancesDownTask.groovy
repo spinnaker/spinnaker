@@ -19,12 +19,12 @@ package com.netflix.spinnaker.orca.kato.tasks
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForDownInstancesTask extends AbstractWaitingForInstancesTask {
+class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
 
   @Override
   protected boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames) {
-    if (asg.minSize > instances.size()) {
-      return false
+    if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
+      return true
     }
     instances.every {
       def healths = interestingHealthProviderNames ? it.health.findAll { health ->

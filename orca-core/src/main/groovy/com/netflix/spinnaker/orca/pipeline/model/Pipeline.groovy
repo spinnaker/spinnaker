@@ -24,7 +24,6 @@ class Pipeline extends Execution<Pipeline> {
   String application
   String name
   final Map<String, Object> trigger = [:]
-  final Map<String, Serializable> appConfig = [:]
   final Map<String, Serializable> initialConfig = [:]
 
   static Builder builder() {
@@ -36,9 +35,17 @@ class Pipeline extends Execution<Pipeline> {
     private final Pipeline pipeline = new Pipeline()
 
     Builder withTrigger(Map<String, Object> trigger = [:]) {
+      pipeline.@trigger.clear()
       if (trigger) {
-        pipeline.@trigger.clear()
         pipeline.@trigger.putAll(trigger)
+      }
+      return this
+    }
+
+    Builder withAppConfig(Map<String, Serializable> appConfig = [:]) {
+      pipeline.@appConfig.clear()
+      if (appConfig) {
+        pipeline.@appConfig.putAll(appConfig)
       }
       return this
     }

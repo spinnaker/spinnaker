@@ -29,7 +29,7 @@ import spock.lang.Unroll
  * Created by aglover on 7/10/14.
  */
 class WaitForDownInstancesTaskSpec extends Specification {
-  @Subject task = new WaitForDownInstancesTask()
+  @Subject task = new WaitForAllInstancesDownTask()
 
   def mapper = new OrcaObjectMapper()
 

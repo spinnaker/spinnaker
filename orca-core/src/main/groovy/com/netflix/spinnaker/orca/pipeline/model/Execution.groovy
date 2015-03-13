@@ -33,6 +33,7 @@ abstract class Execution<T> implements Serializable {
   String application
   Long startTime
   Long endTime
+  final Map<String, Serializable> appConfig = [:]
   List<Stage<T>> stages = []
   boolean canceled
 
