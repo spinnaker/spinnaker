@@ -31,6 +31,7 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
 
     function applyCommandToScope(command) {
       command.viewState.disableImageSelection = true;
+      command.viewState.disableStrategySelection = false;
       command.viewState.imageId = null;
       command.viewState.submitButtonLabel = 'Add';
       angular.copy(command, $scope.command);
