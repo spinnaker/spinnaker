@@ -132,14 +132,18 @@ angular.module('deckApp.cluster.service', [
     }
 
 
-    function findDeployStageWithServerGroupInfo(stages) {
-      var deployStagesWithServerGroups = _.filter(stages, function (stage) {
-         return stage.type === 'deploy' && _.has(stage.context, 'deploy.server.groups');
+    function findStagesWithServerGroupInfo(stages) {
+      var stagesWithServerGroups = _.filter(stages, function (stage) {
+         return ( _.includes(['deploy', 'destroyAsg', 'resizeAsg'], stage.type)  &&  _.has(stage.context, 'deploy.server.groups') ) ||
+           ( stage.type === 'disableAsg'  && _.has(stage.context, 'targetop.asg.disableAsg.name') );
       });
 
-      return _.first(deployStagesWithServerGroups);
+      return stagesWithServerGroups;
     }
 
+    function extractServerGroupNameFromContext(context) {
+      return _.first(_.values(context['deploy.server.groups'])) || [context['targetop.asg.disableAsg.name']] || undefined;
+    }
 
     function addExecutionsToServerGroups(application) {
       if(!application.serverGroups) {
@@ -151,11 +155,17 @@ angular.module('deckApp.cluster.service', [
       application.serverGroups.forEach(function(serverGroup, index){
         application.serverGroups[index].executions = [];
         executions.forEach(function (execution) {
-          var stage = findDeployStageWithServerGroupInfo(execution.stages);
-          var stageServerGroup = stage ? _.first(_.values(stage.context['deploy.server.groups'])) : undefined;
-          if(_.includes(stageServerGroup, serverGroup.name)){
-            application.serverGroups[index].executions.push(execution);
-          }
+
+          var stages = findStagesWithServerGroupInfo(execution.stages);
+
+          _.forEach(stages, function(stage) {
+            var stageServerGroup = stages ? extractServerGroupNameFromContext(stage.context): undefined;
+
+            if(_.includes(stageServerGroup, serverGroup.name)){
+              application.serverGroups[index].executions.push(execution);
+            }
+
+          });
         });
       });
 
