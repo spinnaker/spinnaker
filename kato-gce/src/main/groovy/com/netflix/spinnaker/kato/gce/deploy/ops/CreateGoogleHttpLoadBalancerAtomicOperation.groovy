@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.Backend
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HostRule
+import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.PathMatcher
 import com.google.api.services.compute.model.PathRule
 import com.google.api.services.compute.model.TargetHttpProxy
@@ -27,6 +28,7 @@ import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -76,8 +78,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
 
     def httpHealthChecksResourceLinks = new ArrayList<String>();
     def httpHealthCheck = GCEUtil.makeHttpHealthCheck(healthCheckName, description.healthCheck)
-    def httpHealthCheckResourceLink = compute.httpHealthChecks().insert(project, httpHealthCheck).execute().getTargetLink()
-    httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
+    def createHttpLoadBalancerOperation = compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
+    httpHealthChecksResourceLinks.add(createHttpLoadBalancerOperation.getTargetLink())
 
     // Make backend service.
     def backends = new ArrayList<Backend>();
@@ -103,6 +105,10 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
         portName: BACKEND_PORT_NAME,
         protocol: IP_PROTOCOL,
     )
+
+    GCEOperationUtil.waitForGlobalOperation(compute, project, createHttpLoadBalancerOperation.getName(),
+        null, task, "http health check" + forwardingRuleName, BASE_PHASE)
+
     def backendServiceLink = compute.backendServices().insert(project, backendService).execute().getTargetLink()
 
     // Make URL map.
