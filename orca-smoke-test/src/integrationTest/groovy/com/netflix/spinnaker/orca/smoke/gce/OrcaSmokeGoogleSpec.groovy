@@ -129,7 +129,7 @@ class OrcaSmokeGoogleSpec extends Specification {
       name       : "my-pipeline",
       stages     : [
         [
-          type         : "deploy",
+          type         : "linearDeploy",
           providerType : "gce",
           zone         : "us-central1-b",
           image        : "debian-7-wheezy-v20141021",
