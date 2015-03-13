@@ -21,16 +21,14 @@ angular.module('deckApp')
       scope: {
         instances: '=',
         sortFilter: '=',
-        renderInstancesOnScroll: '=',
       },
       link: function (scope, elem) {
-        scope.rendered = false;
+        scope.activeInstance = null;
 
         var base = elem.parent().inheritedData('$uiView').state;
 
-        function buildTableRowOpenTag(instance) {
-          var activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' active' : ' ';
-          return '<tr class="clickable instance-row ' + activeClass + '"' +
+        function buildTableRowOpenTag(instance, activeClass) {
+          return '<tr class="clickable instance-row' + activeClass + '"' +
             ' data-provider="' + instance.provider + '"' +
             ' data-instance-id="' + instance.id + '">';
         }
@@ -88,7 +86,13 @@ angular.module('deckApp')
             var loadBalancers = [],
               discoveryState = '',
               discoveryStatus = '-',
-              loadBalancerSort = '';
+              loadBalancerSort = '',
+              activeClass = ' ',
+              params = {instanceId: instance.id, provider: instance.provider };
+            if ($state.includes('**.instanceDetails', params)) {
+              activeClass = ' active';
+              scope.activeInstance = params;
+            }
 
             instance.health.forEach(function (health) {
               if (health.type === 'LoadBalancer') {
@@ -106,7 +110,7 @@ angular.module('deckApp')
               }
             });
 
-            var row = buildTableRowOpenTag(instance);
+            var row = buildTableRowOpenTag(instance, activeClass);
             row = buildInstanceIdCell(row, instance);
             row = buildLaunchTimeCell(row, instance);
             row = buildZoneCell(row, instance);
@@ -127,16 +131,7 @@ angular.module('deckApp')
           });
         }
 
-        if (scope.renderInstancesOnScroll) {
-          scrollTriggerService.register(scope, elem, scope.scrollTarget, renderInstances);
-        } else {
-          renderInstances();
-        }
-
-        scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).removeData().tooltip('destroy');
-          elem.unbind('click');
-        });
+        renderInstances();
 
         elem.click(function(event) {
           $timeout(function() {
@@ -154,17 +149,24 @@ angular.module('deckApp')
                 instanceId: targetRow.getAttribute('data-instance-id'),
                 provider: targetRow.getAttribute('data-provider')
               };
+              scope.activeInstance = params;
               // also stolen from uiSref directive
               $state.go('.instanceDetails', params, {relative: base, inherit: true});
-              $('tr.instance-row').removeClass('active');
-              targetRow.className += ' active';
+              $targetRow.addClass('active');
               event.preventDefault();
             }
           });
         });
 
+        scope.$on('$locationChangeSuccess', function() {
+          if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
+            $('tr[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+            scope.activeInstance = null;
+          }
+        });
+
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy');
+          $('[data-toggle="tooltip"]', elem).removeData().tooltip('destroy');
           elem.unbind('click');
         });
 

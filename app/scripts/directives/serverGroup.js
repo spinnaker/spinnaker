@@ -57,12 +57,6 @@ angular.module('deckApp')
           });
         };
 
-        if (scope.serverGroup.isDisabled) {
-          scope.serverGroup.instances.forEach(function(instance) {
-            instance.healthStatus = 'Disabled';
-          });
-        }
-
         scope.headerIsSticky = function() {
           if (!scope.displayOptions.showInstances) {
             return false;

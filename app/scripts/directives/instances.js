@@ -7,20 +7,24 @@ angular.module('deckApp')
       restrict: 'E',
       scope: {
         instances: '=',
-        renderInstancesOnScroll: '=',
         highlight: '=',
-        scrollTarget: '@',
       },
       link: function (scope, elem) {
         var $state = scope.$parent.$state;
-        scope.rendered = true;
+        scope.activeInstance = null;
 
         var base = elem.parent().inheritedData('$uiView').state;
 
         var instances = _.sortBy(scope.instances, 'launchTime');
         elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
-          var activeClass = $state.includes('**.instanceDetails', {instanceId: instance.id, provider: instance.provider }) ? ' active' : ' ',
-              id = instance.id;
+          var id = instance.id,
+              activeClass = '';
+          var params = {instanceId: instance.id, provider: instance.provider };
+          if ($state.includes('**.instanceDetails', params)) {
+            activeClass = ' active';
+            scope.activeInstance = params;
+          }
+
           return '<a title="' + id +
                   '" data-provider="' + instance.provider +
                   '" data-toggle="tooltip" data-instance-id="' + id +
@@ -39,13 +43,20 @@ angular.module('deckApp')
                 instanceId: event.target.getAttribute('data-instance-id'),
                 provider: event.target.getAttribute('data-provider')
               };
+              scope.activeInstance = params;
               // also stolen from uiSref directive
               $state.go('.instanceDetails', params, {relative: base, inherit: true});
-              $('a.instance').removeClass('active');
               event.target.className += ' active';
               event.preventDefault();
             }
           });
+        });
+
+        scope.$on('$locationChangeSuccess', function() {
+          if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
+            $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+            scope.activeInstance = null;
+          }
         });
 
         scope.$on('$destroy', function() {
