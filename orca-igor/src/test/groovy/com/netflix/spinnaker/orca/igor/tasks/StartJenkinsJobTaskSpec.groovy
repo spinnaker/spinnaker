@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -30,6 +31,12 @@ class StartJenkinsJobTaskSpec extends Specification {
   @Subject
   StartJenkinsJobTask task = new StartJenkinsJobTask()
 
+  void setup(){
+    task.objectMapper = Mock(ObjectMapper) {
+      convertValue(_,_) >> [:]
+    }
+  }
+
   @Shared
   Pipeline pipeline = new Pipeline()
 
@@ -39,7 +46,7 @@ class StartJenkinsJobTaskSpec extends Specification {
 
         and:
         task.igorService = Stub(IgorService) {
-            build(stage.context.master, stage.context.job, stage.context.parameters) >> [ result : 'SUCCESS', running: true, number: 4 ]
+           build(stage.context.master, stage.context.job, stage.context.parameters) >> [result: 'SUCCESS', running: true, number: 4]
         }
 
         when:
