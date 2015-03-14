@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -32,14 +35,25 @@ class StartJenkinsJobTask implements Task {
   @Autowired
   IgorService igorService
 
+  @Autowired
+  ObjectMapper objectMapper
+
   @Override
   TaskResult execute(Stage stage) {
     String master = stage.context.master
     String job = stage.context.job
+
+    Map context = objectMapper.convertValue(stage.context, Map)
+
+    if(stage.execution instanceof Pipeline) {
+      context.trigger = ((Pipeline) stage.execution).trigger
+    }
+
     Map<String,String> parameters = stage.context.parameters
+    Map parsedParameters = ContextParameterProcessor.process(parameters, context)
 
     try {
-      Map<String, Object> build = igorService.build(master, job, parameters)
+      Map<String, Object> build = igorService.build(master, job, parsedParameters)
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
     } catch (RetrofitError e) {
       new DefaultTaskResult(ExecutionStatus.TERMINAL)
