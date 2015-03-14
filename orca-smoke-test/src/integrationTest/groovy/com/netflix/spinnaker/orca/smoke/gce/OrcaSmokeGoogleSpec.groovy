@@ -15,14 +15,18 @@
  */
 
 package com.netflix.spinnaker.orca.smoke.gce
+
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
+import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.smoke.OrcaSmokeUtils
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.explore.JobExplorer
@@ -32,13 +36,15 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Timeout
 
 import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
+
 // Only runs if the gcs-kms server is listening on port 7909 on the same machine.
 @IgnoreIf({ notReachable("http://localhost:7909") })
 @ContextConfiguration(classes = [OrcaConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration,
-                                 Front50Configuration])
+                                 EmbeddedRedisConfiguration, Front50Configuration, JesqueConfiguration, MortConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeGoogleSpec extends Specification {
 
@@ -56,6 +62,9 @@ class OrcaSmokeGoogleSpec extends Specification {
   @Autowired ObjectMapper mapper
   @Autowired JobExplorer jobExplorer
 
+  // Fail the test after 60 seconds. Don't want to let the pollUntilCompletion() method poll indefinitely if something
+  // goes wrong.
+  @Timeout(60)
   def "can create application"() {
     def configJson = mapper.writeValueAsString(config)
 
@@ -66,12 +75,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     then:
     jobExplorer.getJobInstanceCount(jobName) == 1
 
-    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
-    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+    def jobExecution = OrcaSmokeUtils.pollUntilCompletion(jobExplorer, jobName)
 
-    jobExecutions.size == 1
-
-    with (jobExecutions[0]) {
+    with (jobExecution) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
@@ -97,6 +103,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     ]
   }
 
+  // Fail the test after 300 seconds. Don't want to let the pollUntilCompletion() method poll indefinitely if something
+  // goes wrong.
+  @Timeout(300)
   def "can deploy server group"() {
     def configJson = mapper.writeValueAsString(config)
 
@@ -107,12 +116,9 @@ class OrcaSmokeGoogleSpec extends Specification {
     then:
     jobExplorer.getJobInstanceCount(jobName) == 1
 
-    def jobInstance = jobExplorer.getJobInstances(jobName, 0, 1)[0]
-    def jobExecutions = jobExplorer.getJobExecutions(jobInstance)
+    def jobExecution = OrcaSmokeUtils.pollUntilCompletion(jobExplorer, jobName)
 
-    jobExecutions.size == 1
-
-    with (jobExecutions[0]) {
+    with (jobExecution) {
       status == BatchStatus.COMPLETED
       exitStatus == ExitStatus.COMPLETED
     }
@@ -123,7 +129,7 @@ class OrcaSmokeGoogleSpec extends Specification {
       name       : "my-pipeline",
       stages     : [
         [
-          type         : "deploy",
+          type         : "linearDeploy",
           providerType : "gce",
           zone         : "us-central1-b",
           image        : "debian-7-wheezy-v20141021",

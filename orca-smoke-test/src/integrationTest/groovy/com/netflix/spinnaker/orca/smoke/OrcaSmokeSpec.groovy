@@ -18,11 +18,13 @@ package com.netflix.spinnaker.orca.smoke
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
+import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.explore.JobExplorer
@@ -35,7 +37,8 @@ import static com.netflix.spinnaker.orca.test.net.Network.notReachable
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS
 
 @IgnoreIf({ notReachable("http://bakery.test.netflix.net:7001") })
-@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, MortConfiguration, OortConfiguration])
+@ContextConfiguration(classes = [BakeryConfiguration, KatoConfiguration, BatchTestConfiguration, MortConfiguration, OortConfiguration,
+                                 EmbeddedRedisConfiguration, JesqueConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeSpec extends Specification {
 
