@@ -10,6 +10,7 @@ angular.module('deckApp')
         accounts: '=',
         component: '=',
         field: '@',
+        provider: '=',
         loading: '=',
         onChange: '&',
         labelColumns: '@',
@@ -25,7 +26,7 @@ angular.module('deckApp')
           }
           if (accounts && accounts.length) {
             scope.primaryAccounts = accounts.filter(function(account) {
-                return settings.primaryAccounts.indexOf(account) !== -1;
+                return settings.providers[scope.provider].primaryAccounts.indexOf(account) !== -1;
             }).sort();
             scope.secondaryAccounts = _.xor(accounts, scope.primaryAccounts).sort();
           }

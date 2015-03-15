@@ -3,10 +3,10 @@
     Account
   </div>
   <div class="col-md-7">
-    <account-select-field component="command" field="credentials" accounts="command.backingData.accounts"></account-select-field>
+    <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'aws'"></account-select-field>
   </div>
 </div>
-<region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></region-select-field>
+<region-select-field label-columns="2" component="command" field="region" account="command.credentials" provider="'aws'" regions="command.backingData.filtered.regions"></region-select-field>
 <subnet-select-field label-columns="2" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
 <div class="form-group">
   <div class="col-md-2 sm-label-left">

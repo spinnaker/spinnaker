@@ -44,8 +44,8 @@ describe('Service: awsServerGroup', function () {
         }
       };
 
-      this.settings.defaults.account = 'test';
-      this.settings.defaults.region = 'us-east-1';
+      this.settings.providers.aws.defaults.account = 'test';
+      this.settings.providers.aws.defaults.region = 'us-east-1';
 
       spyOn(this.accountService, 'getPreferredZonesByAccount').and.returnValue(
         this.$q.when({

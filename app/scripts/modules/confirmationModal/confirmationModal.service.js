@@ -49,7 +49,7 @@ angular.module('deckApp.confirmationModal.service', [
     }
 
     $scope.verification = {
-      requireAccountEntry: accountService.challengeDestructiveActions(params.account),
+      requireAccountEntry: accountService.challengeDestructiveActions(params.provider, params.account),
       verifyAccount: ''
     };
 

@@ -11,6 +11,7 @@ angular.module('deckApp')
         component: '=',
         field: '@',
         account: '=',
+        provider: '=',
         onChange: '&',
         labelColumns: '@'
       },
@@ -22,7 +23,7 @@ angular.module('deckApp')
           }
           if (regionNames && regionNames.length) {
             scope.primaryRegions = regionNames.filter(function(region) {
-              return settings.primaryRegions.indexOf(region) !== -1;
+              return settings.providers[scope.provider].primaryRegions.indexOf(region) !== -1;
             }).sort();
             scope.secondaryRegions = _.xor(regionNames, scope.primaryRegions).sort();
           }
