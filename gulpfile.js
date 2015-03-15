@@ -81,6 +81,10 @@ gulp.task('clean:fonts', function(done) {
   del([dist, fonts].join('/'), done);
 });
 
+gulp.task('clean:images', function(done) {
+  del([dist, images].join('/'), done);
+});
+
 // clean individual files by naming convention
 ['vendor', 'application'].forEach(function(item) {
   gulp.task('clean:'+styles+':'+item, function(done) {
@@ -121,6 +125,12 @@ gulp.task('fonts', ['clean:fonts'], function() {
     [app, fonts, '*/**'].join('/'),
     'bower_components/boostrap/dist/fonts/*.*',
   ]).pipe(gulp.dest([dist, fonts].join('/')));
+});
+
+gulp.task('images', ['clean:images'], function() {
+  return gulp.src([
+    [app, images, '*/**'].join('/'),
+  ]).pipe(gulp.dest([dist, images].join('/')));
 });
 
 gulp.task('static:bower', ['clean:static:bower'], function() {
@@ -246,7 +256,7 @@ gulp.task('connect', function() {
   });
 });
 
-gulp.task('build:prepare', ['scripts', 'css', 'fonts', 'static']);
+gulp.task('build:prepare', ['scripts', 'css', 'fonts', 'images', 'static']);
 gulp.task('build', ['clean'], function(done) {
   if (development) {
     run('build:prepare', 'html', done);
