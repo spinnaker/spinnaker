@@ -42,7 +42,7 @@ angular.module('deckApp.applications.controller', [
     ];
 
     this.filterApplications = function filterApplications() {
-      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.applicationFilter, email: $scope.applicationFilter}),
+      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.applicationFilter, email: $scope.applicationFilter, accounts: $scope.applicationFilter}),
         sorted = $filter('orderBy')(filtered, $scope.sortModel.key);
       $scope.filteredApplications = sorted;
       this.resetPaginator();
@@ -75,14 +75,22 @@ angular.module('deckApp.applications.controller', [
 
     var ctrl = this;
 
+    function fixAccount(application) {
+      if (application.accounts) {
+        application.accounts = application.accounts.split(',').sort().join(', ');
+      }
+    }
+
     // Get from cache first
     applicationReader.listApplications().then(function(applications) {
+      applications.forEach(fixAccount);
       $scope.applications = applications;
       ctrl.filterApplications();
       $scope.applicationsLoaded = true;
 
       // Then get from server
       applicationReader.listApplications(true).then(function(applications) {
+        applications.forEach(fixAccount);
         $scope.applications = applications;
         ctrl.filterApplications();
       });
