@@ -18,6 +18,8 @@ angular.module('deckApp.tasks.tracker', [
     };
 
     that.getTasksMatchingPred = function getTasksMatchingPred(oldTasks, newTasks, pred) {
+      oldTasks = oldTasks || [];
+      newTasks = newTasks || [];
       return newTasks.filter(pred)
         .filter(function(task) {
           var hasNotBeenSeen = oldTasks.every(function(oldTask) {

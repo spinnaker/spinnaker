@@ -6,6 +6,7 @@ describe('Controller: pipelineExecutions', function () {
 
   var controller;
   var scope;
+  var rootScope;
   var $state;
   var pipelineConfigService;
   var executionsService;
@@ -16,33 +17,51 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _executionsService_, _$q_) {
+    inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_) {
+      rootScope = $rootScope;
       scope = $rootScope.$new();
       $state = { go: angular.noop };
       pipelineConfigService = _pipelineConfigService_;
-      executionsService = _executionsService_;
       $q = _$q_;
-      scope.application = {name: 'foo'};
 
-      this.initializeController = function() {
+      this.initializeController = function(application) {
+        scope.application = application;
         controller = $controller('pipelineExecutions', {
           $scope: scope,
           $state: $state,
           pipelineConfigService: pipelineConfigService,
-          executionsService: executionsService,
         });
       };
     })
   );
 
   it('should reroute to pipeline config when no execution history or configurations', function () {
+    var application = {
+      name: 'foo',
+      executionsLoaded: true,
+      executions: []
+    };
     spyOn($state, 'go');
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: angular.noop, length: 0 }));
-    spyOn(executionsService, 'getAll').and.returnValue($q.when([]));
-    this.initializeController();
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function() { return []; } }));
+    this.initializeController(application);
     scope.$digest();
 
     expect($state.go).toHaveBeenCalledWith('^.pipelineConfig');
+  });
+
+  it('should not set loading flag to false until executions have been loaded', function() {
+    var application = {
+      name: 'foo',
+      executionsLoaded: false
+    };
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function() { return []; } }));
+    this.initializeController(application);
+    scope.$digest();
+
+    expect(scope.viewState.loading).toBe(true);
+
+    rootScope.$broadcast('executions-loaded');
+    expect(scope.viewState.loading).toBe(false);
   });
 });
 

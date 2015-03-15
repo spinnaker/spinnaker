@@ -13,9 +13,8 @@ describe('Controller: ExecutionGroupHeading', function () {
   describe('triggerPipeline', function() {
     beforeEach(function() {
       var $q = this.$q;
-      this.$stateParams = {
-        application: 'app'
-      };
+
+      this.$scope.application = {};
 
       this.initializeController = function() {
         this.pipelineConfigService = {
@@ -32,7 +31,7 @@ describe('Controller: ExecutionGroupHeading', function () {
           $scope: this.$scope,
           pipelineConfigService: this.pipelineConfigService,
           executionsService: this.executionsService,
-          $stateParams: this.$stateParams
+          application: this.$scope.application,
         });
       };
     });
@@ -49,15 +48,13 @@ describe('Controller: ExecutionGroupHeading', function () {
       this.initializeController();
 
       spyOn(this.executionsService, 'waitUntilNewTriggeredPipelineAppears').and.returnValue(this.$q.when(null));
-      spyOn(this.executionsService, 'forceRefresh');
 
       this.controller.triggerPipeline();
       expect(this.$scope.viewState.triggeringExecution).toBe(true);
 
       this.$scope.$digest();
 
-      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith('pipeline name a', ['exec-1', 'exec-2']);
-      expect(this.executionsService.forceRefresh).toHaveBeenCalled();
+      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith(this.$scope.application, 'pipeline name a', ['exec-1', 'exec-2']);
       expect(this.$scope.viewState.triggeringExecution).toBe(false);
 
     });

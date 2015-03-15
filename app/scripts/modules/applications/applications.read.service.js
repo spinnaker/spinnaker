@@ -13,7 +13,7 @@ angular
     'deckApp.scheduler',
     'deckApp.delivery.executions.service',
   ])
-  .factory('applicationReader', function ($q,$log, $window,  $exceptionHandler, Restangular, _, clusterService, taskTracker, tasksReader,
+  .factory('applicationReader', function ($q,$log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
                                           infrastructureCaches, settings, executionsService) {
 
@@ -120,15 +120,26 @@ angular
         }
 
         function reloadTasks() {
-          tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
-            taskTracker.handleTaskUpdates(application.tasks, tasks);
+          return tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
             addTasksToApplication(application, tasks);
+            if (!application.tasksLoaded) {
+              application.tasksLoaded = true;
+              $rootScope.$broadcast('tasks-loaded', application);
+            } else {
+              $rootScope.$broadcast('tasks-reloaded', application);
+            }
           });
         }
 
         function reloadExecutions() {
-          executionsService.getAll(application.name).then(function(execution) {
+          return executionsService.getAll(application.name).then(function(execution) {
             addExecutionsToApplication(application, execution);
+            if (!application.executionsLoaded) {
+              application.executionsLoaded = true;
+              $rootScope.$broadcast('executions-loaded', application);
+            } else {
+              $rootScope.$broadcast('executions-reloaded', application);
+            }
           });
         }
 
@@ -208,9 +219,11 @@ angular
             .value();
 
           if (options && options.tasks) {
-            tasksReader.listAllTasksForApplication(applicationName).then(function(tasks) {
-              addTasksToApplication(application, tasks);
-            });
+            application.reloadTasks();
+          }
+
+          if (options && options.executions) {
+            application.reloadExecutions();
           }
 
           securityGroupLoader = securityGroupReader.loadSecurityGroups(application);
@@ -224,13 +237,6 @@ angular
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
               application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
-
-              if(options && options.executions) {
-                executionsService.getAll(applicationName).then(function (executions) {
-                  addExecutionsToApplication(application, executions);
-                });
-              }
-
 
               loadBalancerTransformer.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);

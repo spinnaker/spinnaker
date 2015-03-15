@@ -14,6 +14,9 @@ angular.module('deckApp.delivery.executionTransformer.service', [
         stage.after = stage.after || [];
         stage.index = index;
         orchestratedItem.defineProperties(stage);
+        if (stage.tasks && stage.tasks.length) {
+          stage.tasks.forEach(orchestratedItem.defineProperties);
+        }
       });
 
       execution.stages.forEach(function(stage) {
@@ -41,6 +44,8 @@ angular.module('deckApp.delivery.executionTransformer.service', [
           });
         }
       });
+
+      orchestratedItem.defineProperties(execution);
 
       stageSummaries.forEach(transformStageSummary);
       execution.stageSummaries = stageSummaries;
