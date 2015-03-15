@@ -35,10 +35,11 @@ class ParallelDeployStageSpec extends Specification {
     parallelContexts == expectedParallelContexts
 
     where:
-    stageContext                                         || expectedParallelContexts
-    deployStageContext("prod", "us-west-1")              || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
-    deployStageContext("prod", "us-west-1", "us-east-1") || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
-                                                             [account: "prod", cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
+    stageContext                                            || expectedParallelContexts
+    deployStageContext("prod", "us-west-1")                 || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
+    deployStageContext("prod", "us-west-1", "us-east-1")    || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
+                                                                [account: "prod", cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
+    [availabilityZones: ["us-west-1": []], account: "prod"] || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []], account: "prod"], type: "linearDeploy", name: "Deploy in us-west-1"]]
   }
 
   @Unroll

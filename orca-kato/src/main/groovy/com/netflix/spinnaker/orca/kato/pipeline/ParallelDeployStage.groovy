@@ -81,6 +81,11 @@ class ParallelDeployStage extends ParallelStage {
       clusters.addAll(stage.context.clusters as List<Map<String, Object>>)
     }
 
+    if (!stage.context.cluster && !stage.context.clusters) {
+      // support invoking this stage as an orchestration without nested target cluster details
+      clusters.add(stage.context)
+    }
+
     return clusters.collect {
       return [
         account: it.account ?: stage.context.account,
