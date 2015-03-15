@@ -36,7 +36,8 @@
           <th width="20%" sort-toggle key="name" label="Name" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
           <th width="20%" sort-toggle key="createTs" label="Created" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
           <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="email" label="Owner" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="25%" sort-toggle key="email" label="Owner" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="accounts" label="Account(s)" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
         </tr>
       </thead>
       <tbody>
@@ -54,6 +55,9 @@
           </td>
           <td>
             {{ application.email }}
+          </td>
+          <td>
+            {{ application.accounts }}
           </td>
         </tr>
       </tbody>
