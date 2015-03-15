@@ -29,7 +29,7 @@
            ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
           Delivery <span class="badge"
                          ng-if="( application.executions | filter:{isRunning:'true'}).length > 0">
-            {{ (executions | filter:{isRunning:'true'}).length }}
+            {{ (application.executions | filter:{isRunning:'true'}).length }}
           </span>
         </a>
       </li>

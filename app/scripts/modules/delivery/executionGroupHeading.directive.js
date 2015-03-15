@@ -11,6 +11,7 @@ angular.module('deckApp.delivery.executionGroupHeading.directive', [])
         filter: '=',
         executions: '=',
         configurations: '=',
+        application: '=',
       },
       templateUrl: 'scripts/modules/delivery/executionGroupHeading.html',
       controller: 'executionGroupHeading as ctrl',

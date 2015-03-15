@@ -6,7 +6,7 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.utils.scrollTo'
 ])
-  .controller('pipelineExecutions', function($scope, $q, $state, executionsService, d3Service, pipelineConfigService, scrollToService) {
+  .controller('pipelineExecutions', function($scope, $state, d3Service, pipelineConfigService, scrollToService) {
     var controller = this;
 
     $scope.viewState = {
@@ -96,7 +96,8 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       });
     };
 
-    function updateExecutions(executions) {
+    function updateExecutions() {
+      var executions = $scope.application.executions || [];
       $scope.filter.stage.max = executions.reduce(function(acc, execution) {
         return execution.stageSummaries.length > acc ? execution.stageSummaries.length : acc;
       }, 0);
@@ -111,20 +112,15 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       $scope.detailsTarget = toParams.executionId;
     });
 
-    function dataInitializationSuccess(results) {
+    function dataInitializationSuccess() {
+      updateExecutions();
       $scope.viewState.loading = false;
-      $scope.configurations = results.configurations.plain();
-      updateExecutions(results.executions);
-      var subscription = executionsService.subscribeAll(updateExecutions);
-      $scope.$on('$destroy', function() {
-        subscription.dispose();
-      });
       // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
-        scrollToService.scrollTo('execution-' + $scope.detailsTarget, '.execution-groups', 415);
+        scrollToService.scrollTo('execution-' + $scope.detailsTarget, '.execution-groups', 300);
       }
-      var noExecutions = !results.executions || !results.executions.length;
-      var noConfigurations = !results.configurations.length;
+      var noExecutions = !$scope.executions || !$scope.executions.length;
+      var noConfigurations = !$scope.configurations.length;
       if(noExecutions && noConfigurations) {
         $state.go('^.pipelineConfig');
       }
@@ -135,8 +131,16 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       $scope.viewState.initializationError = true;
     }
 
-    $q.all({
-      configurations: pipelineConfigService.getPipelinesForApplication($scope.application.name),
-      executions: executionsService.getAll($scope.application.name),
-    }).then(dataInitializationSuccess, dataInitializationFailure);
+    pipelineConfigService.getPipelinesForApplication($scope.application.name).then(function(configurations) {
+        $scope.configurations = configurations.plain();
+        if ($scope.application.executionsLoaded) {
+          dataInitializationSuccess();
+        } else {
+          $scope.$on('executions-loaded', dataInitializationSuccess);
+        }
+      },
+      dataInitializationFailure);
+
+    $scope.$on('executions-reloaded', updateExecutions);
+
   });

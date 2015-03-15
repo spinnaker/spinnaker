@@ -19,16 +19,7 @@ angular.module('deckApp.delivery.executions.service', [
           if (!executions || !executions.length) {
             return [];
           }
-          executions.forEach(function(execution) {
-            orchestratedItem.defineProperties(execution);
-            execution.stages.forEach(function(stage) {
-              orchestratedItem.defineProperties(stage);
-              if (stage.tasks && stage.tasks.length) {
-                stage.tasks.forEach(orchestratedItem.defineProperties);
-              }
-            });
-            executionsTransformer.transformExecution(execution);
-          });
+          executions.forEach(executionsTransformer.transformExecution);
           return executions;
         }),
         url: [
@@ -48,10 +39,10 @@ angular.module('deckApp.delivery.executions.service', [
       return deferred.promise;
     }
 
-    function waitUntilNewTriggeredPipelineAppears(pipelineName, ignoreList) {
+    function waitUntilNewTriggeredPipelineAppears(application, pipelineName, ignoreList) {
 
-      var appName = $stateParams.application;
-      return getExecutions(appName).then(function(executions) {
+      return application.reloadExecutions().then(function() {
+        var executions = application.executions;
         var match = executions.filter(function(execution) {
           return (execution.status === 'RUNNING' || execution.status === 'NOT_STARTED') &&
             execution.name === pipelineName &&
@@ -63,7 +54,7 @@ angular.module('deckApp.delivery.executions.service', [
           return deferred.promise;
         } else {
           return $timeout(function() {
-            return waitUntilNewTriggeredPipelineAppears(pipelineName, ignoreList);
+            return waitUntilNewTriggeredPipelineAppears(application, pipelineName, ignoreList);
           }, 1000);
         }
       });

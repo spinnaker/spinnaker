@@ -1,11 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp.application.controller', [
-  'deckApp.delivery.executions.service',
-  'deckApp.tasks.tracker'
-])
-  .controller('ApplicationCtrl', function($scope, application, executionsService, taskTracker) {
+angular.module('deckApp.application.controller', [])
+  .controller('ApplicationCtrl', function($scope, application) {
     $scope.application = application;
     $scope.insightTarget = application;
     if (application.notFound) {
@@ -23,19 +20,6 @@ angular.module('deckApp.application.controller', [
     if (countInstances() < 500) {
       application.enableAutoRefresh($scope);
     }
-
-    executionsService.getAll(application.name).then(function(oldExecutions) {
-      $scope.executions = oldExecutions;
-      var subscription = executionsService.subscribeAll(function(newExecutions) {
-        taskTracker.handleTaskUpdates(oldExecutions, newExecutions);
-        $scope.executions = newExecutions;
-        oldExecutions = newExecutions;
-      });
-      $scope.$on('$destroy', function() {
-        subscription.dispose();
-      });
-    });
-
   }
 );
 

@@ -5,7 +5,7 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.delivery.executions.service'
 ])
-  .controller('executionGroupHeading', function($scope, $stateParams, $timeout, pipelineConfigService, executionsService, _ ) {
+  .controller('executionGroupHeading', function($scope, $timeout, pipelineConfigService, executionsService, _) {
     var controller = this;
 
     $scope.viewState = {
@@ -34,11 +34,10 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
         return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
       });
       var ignoreList = _.pluck(toIgnore, 'id');
-      pipelineConfigService.triggerPipeline($stateParams.application, $scope.value).then(
+      pipelineConfigService.triggerPipeline($scope.application.name, $scope.value).then(
         function() {
-          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.value, ignoreList);
+          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
           monitor.then(function() {
-            executionsService.forceRefresh();
             $scope.viewState.triggeringExecution = false;
           });
           $scope.viewState.poll = monitor;
