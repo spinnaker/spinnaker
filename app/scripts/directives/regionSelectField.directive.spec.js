@@ -26,7 +26,7 @@ describe('Directives: regionSelectField', function () {
         };
       });
       $provide.constant('settings', {
-        primaryRegions: ['us-east-1', 'us-east-2','us-west-1']
+        providers: { aws: { primaryRegions: ['us-east-1', 'us-east-2','us-west-1'] } }
       });
     });
   });
@@ -46,7 +46,7 @@ describe('Directives: regionSelectField', function () {
 
     scope.model = { regionField: 'sa-east-1', accountField: 'a'};
 
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" label-columns="2"></region-select-field>';
+    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
 
     var elem = this.compile(html)(scope);
     scope.$digest();
@@ -69,7 +69,7 @@ describe('Directives: regionSelectField', function () {
 
     scope.model = { regionField: 'us-east-1', accountField: 'a'};
 
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" label-columns="2"></region-select-field>';
+    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
 
     var elem = this.compile(html)(scope);
     scope.$digest();
@@ -90,7 +90,7 @@ describe('Directives: regionSelectField', function () {
 
     scope.model = { regionField: 'us-east-1', accountField: 'a'};
 
-    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" label-columns="2"></region-select-field>';
+    var html = '<region-select-field regions="regions" component="model" field="regionField" account="model.accountField" provider="\'aws\'" label-columns="2"></region-select-field>';
 
     var elem = this.compile(html)(scope);
     scope.$digest();

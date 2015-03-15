@@ -94,8 +94,8 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
       return {
         stack: '',
         detail: 'frontend',
-        credentials: settings.defaults.account,
-        region: settings.defaults.region,
+        credentials: settings.providers.aws.defaults.account,
+        region: settings.providers.aws.defaults.region,
         vpcId: null,
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,

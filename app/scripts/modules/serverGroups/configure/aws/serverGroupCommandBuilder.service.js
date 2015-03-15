@@ -17,8 +17,8 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
       var asyncLoader = $q.all({preferredZones: preferredZonesLoader, regionsKeyedByAccount: regionsKeyedByAccountLoader});
 
       return asyncLoader.then(function(asyncData) {
-        var defaultCredentials = defaults.account || settings.defaults.account;
-        var defaultRegion = defaults.region || settings.defaults.region;
+        var defaultCredentials = defaults.account || settings.providers.aws.defaults.account;
+        var defaultRegion = defaults.region || settings.providers.aws.defaults.region;
 
         var defaultZones = asyncData.preferredZones[defaultCredentials];
         if (!defaultZones) {

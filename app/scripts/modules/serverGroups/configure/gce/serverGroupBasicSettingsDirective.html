@@ -3,7 +3,7 @@
     <b>Account</b>
   </div>
   <div class="col-md-7">
-    <account-select-field component="command" field="credentials" accounts="command.backingData.accounts"></account-select-field>
+    <account-select-field component="command" field="credentials" accounts="command.backingData.accounts" provider="'gce'"></account-select-field>
   </div>
 </div>
 <gce-region-select-field label-columns="2" component="command" field="region" account="command.credentials" regions="command.backingData.filtered.regions"></gce-region-select-field>

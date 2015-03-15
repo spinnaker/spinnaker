@@ -113,8 +113,11 @@ angular.module('deckApp.account.service', [
       });
     }
 
-    function challengeDestructiveActions(account) {
-      return account && settings.accounts[account] && Boolean(settings.accounts[account].challengeDestructiveActions);
+    function challengeDestructiveActions(provider, account) {
+      return account &&
+        settings.providers[provider] &&
+        settings.providers[provider].challengeDestructiveActions &&
+        settings.providers[provider].challengeDestructiveActions.indexOf(account) > -1;
     }
 
     return {

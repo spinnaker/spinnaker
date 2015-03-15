@@ -97,7 +97,8 @@
       <div class="form-group row">
         <div class="col-md-3 sm-label-left">Account</div>
         <div class="col-md-9">
-          <account-select-field component="newAppModal.application" field="account" accounts="accounts"></account-select-field>
+          <!-- TODO: We need to rethink the "account" field for a multi-platform system -->
+          <account-select-field component="newAppModal.application" field="account" accounts="accounts" provider="'aws'"></account-select-field>
         </div>
       </div>
     </div>
