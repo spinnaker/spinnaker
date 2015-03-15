@@ -4,15 +4,23 @@
       <h3>Pick your provider:</h3>
     </div>
     <div class="modal-body">
-      <select
-        class="form-control input"
-        ng-model="command.provider">
-        <option ng-repeat="provider in providerOptions" value="{{provider}}">{{provider}}</option>
-      </select>
+      <div class="row">
+        <div class="col-md-4 col-narrow" ng-repeat="provider in providerOptions" ng-class="{'col-md-offset-1' : providerOptions.length < 3}">
+          <button class="instance-profile"
+                  ng-class="{active: command.provider === provider}"
+                  ng-click="command.provider = provider">
+              <span is-visible="command.provider === provider"
+                    class="glyphicon glyphicon-ok-circle selected-indicator"></span>
+            <div class="panel-heading">
+              <h4><img height="98px" width="150px" ng-src="images/providers/logo_{{provider}}.png" alt="{{provider}}"/></h4>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-      <button class="btn btn-primary" ng-click="ctrl.selectProvider()">
+      <button class="btn btn-primary" ng-click="ctrl.selectProvider()" ng-disabled="!command.provider">
         <span class="glyphicon glyphicon-chevron-right"></span>
         Next
       </button>
