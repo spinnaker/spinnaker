@@ -173,6 +173,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         destructive: true,
+        provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -217,6 +218,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         destructive: true,
+        provider: 'gce',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod

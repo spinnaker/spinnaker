@@ -76,6 +76,7 @@ angular.module('deckApp.securityGroup.aws.details.controller', [
         header: 'Really delete ' + securityGroup.name + '?',
         buttonText: 'Delete ' + securityGroup.name,
         destructive: true,
+        provider: 'aws',
         account: securityGroup.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,

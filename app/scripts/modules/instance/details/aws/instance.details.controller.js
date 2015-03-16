@@ -188,6 +188,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         destructive: true,
+        provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
@@ -232,6 +233,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
         header: 'Really disable ' + instance.instanceId + ' in discovery?',
         buttonText: 'Disable ' + instance.instanceId,
         destructive: true,
+        provider: 'aws',
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
