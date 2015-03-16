@@ -8,6 +8,7 @@ angular.module('deckApp.utils', [
   'deckApp.utils.lodash',
   'deckApp.utils.moment',
   'deckApp.utils.scrollTrigger',
+  'deckApp.utils.selectOnDblClick',
   'deckApp.utils.rx',
   'deckApp.utils.stickyHeader',
 ]);
