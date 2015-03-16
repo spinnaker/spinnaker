@@ -40,7 +40,7 @@
             value="{{r}}"
             ng-disabled="!state.regionsLoaded"
             ng-checked="stage.regions.indexOf(r) > -1"
-            ng-click="toggleRegion(r)"
+            ng-click="destroyAsgStageCtrl.toggleRegion(r)"
           > {{r}}
         </label>
       </div>
