@@ -178,6 +178,7 @@ class CreateDeployTaskSpec extends Specification {
 
   def "can use the AMI supplied by deployment details"() {
     given:
+    stage.context.amiName = null
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {

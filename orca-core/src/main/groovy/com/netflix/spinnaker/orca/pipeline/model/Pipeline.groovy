@@ -35,17 +35,17 @@ class Pipeline extends Execution<Pipeline> {
     private final Pipeline pipeline = new Pipeline()
 
     Builder withTrigger(Map<String, Object> trigger = [:]) {
-      pipeline.@trigger.clear()
+      pipeline.trigger.clear()
       if (trigger) {
-        pipeline.@trigger.putAll(trigger)
+        pipeline.trigger.putAll(trigger)
       }
       return this
     }
 
     Builder withAppConfig(Map<String, Serializable> appConfig = [:]) {
-      pipeline.@appConfig.clear()
+      pipeline.appConfig.clear()
       if (appConfig) {
-        pipeline.@appConfig.putAll(appConfig)
+        pipeline.appConfig.putAll(appConfig)
       }
       return this
     }
@@ -80,12 +80,12 @@ class Pipeline extends Execution<Pipeline> {
     }
 
     Builder withApplication(String application) {
-      pipeline.@application = application
+      pipeline.application = application
       return this
     }
 
     Builder withName(String name) {
-      pipeline.@name = name
+      pipeline.name = name
       return this
     }
   }
