@@ -128,6 +128,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         buttonText: 'Destroy ' + serverGroup.name,
         destructive: true,
         account: serverGroup.account,
+        provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
         body: this.getBodyTemplate(serverGroup, application),
@@ -178,6 +179,7 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
         buttonText: 'Disable ' + serverGroup.name,
         destructive: true,
         account: serverGroup.account,
+        provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
       });

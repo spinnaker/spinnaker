@@ -102,6 +102,7 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
         header: 'Really delete ' + loadBalancer.name + '?',
         buttonText: 'Delete ' + loadBalancer.name,
         destructive: true,
+        provider: 'aws',
         account: loadBalancer.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,

@@ -46,6 +46,7 @@ angular
         header: 'Really delete ' + application.name + '?',
         buttonText: 'Delete ' + application.name,
         destructive: true,
+        provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
       });

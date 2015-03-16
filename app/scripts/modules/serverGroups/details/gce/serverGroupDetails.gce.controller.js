@@ -86,6 +86,7 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
         header: 'Really destroy ' + serverGroup.name + '?',
         buttonText: 'Destroy ' + serverGroup.name,
         destructive: true,
+        provider: 'gce',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
@@ -118,6 +119,7 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
         header: 'Really disable ' + serverGroup.name + '?',
         buttonText: 'Disable ' + serverGroup.name,
         destructive: true,
+        provider: 'gce',
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
