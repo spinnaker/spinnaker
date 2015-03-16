@@ -7,7 +7,7 @@
         <dd><account-tag account="stage.context.account"></account-tag></dd>
         <dt>Region</dt>
         <dd>{{stage.context.regions.join(', ')}}</dd>
-        <dt>Cluster Name</dt>
+        <dt>Cluster</dt>
         <dd>{{stage.context.cluster}}</dd>
       </dl>
     </div>
@@ -18,13 +18,14 @@
 
   <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
-  <div class="row" ng-if="stage.context.execution.logs">
+  <div class="row" ng-if="stage.context.amiDetails">
     <div class="col-md-12">
-      <div class="well alert alert-info">
-        <!-- TODO: Move this to config -->
-        <a target="_blank" href="{{stage.context.execution.logs}}">
-          View Execution Logs
-        </a>
+      <div class="well alert alert-text">
+        <dl ng-repeat="ami in stage.context.amiDetails" class="dl-narrow dl-horizontal">
+          <h4>{{ami.region}}</h4>
+          <dt>AMI:</dt><dd>{{ami.ami}}</dd>
+          <dt>Name:</dt><dd>{{ami.imageName}}</dd>
+        </dl>
       </div>
     </div>
   </div>
