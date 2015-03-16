@@ -60,7 +60,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
         if (stage.context.propertyFile) {
           properties = igorService.getPropertyFile(master, job, buildNumber, stage.context.propertyFile)
         }
-        return new DefaultTaskResult(statusMap[result], [buildInfo: build] + properties)
+        return new DefaultTaskResult(statusMap[result], [buildInfo: build] + properties, [buildInfo: build] + properties)
       } else {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
