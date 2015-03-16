@@ -41,6 +41,7 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should delete global application if it was only associated with a single account"() {
     given:
     task.front50Service = Mock(Front50Service) {
+      1 * get("test", config.application.name) >> new Application(accounts: "test")
       1 * delete(config.account, config.application.name)
       1 * getCredentials() >> [new Front50Credential(name: "global", global: true)]
       1 * get("global", config.application.name) >> new Application(accounts: "test")
@@ -58,6 +59,7 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should de-associate global application if it was associated with multiple accounts"() {
     given:
     task.front50Service = Mock(Front50Service) {
+      1 * get("test", config.application.name) >> new Application(accounts: "test")
       1 * delete(config.account, config.application.name)
       1 * getCredentials() >> [new Front50Credential(name: "global", global: true)]
       1 * get("global", config.application.name) >> new Application(accounts: "prod,test")

@@ -23,7 +23,13 @@ import retrofit.RetrofitError
 @Component
 class DeleteApplicationTask extends AbstractFront50Task {
   @Override
-  void performRequest(String account, Application application) {
+  Map<String, Object> performRequest(String account, Application application) {
+    Map<String, Object> outputs = [:]
+    def previousState = fetchApplication(account, application.name)
+    if(previousState) {
+      outputs.previousState = previousState
+    }
+
     front50Service.delete(account, application.name)
 
     front50Service.credentials.findAll { it.global }.collect {
@@ -48,6 +54,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
         throw e
       }
     }
+    outputs
   }
 
   @Override
