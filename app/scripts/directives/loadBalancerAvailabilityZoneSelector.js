@@ -23,7 +23,7 @@ angular.module('deckApp')
       var defaultCredentials = $scope.model.credentials;
       var defaultRegion = $scope.region;
 
-      accountService.getAvailabilityZonesForAccountAndRegion($scope.provider, defaultCredentials, defaultRegion).then(
+      accountService.getAvailabilityZonesForAccountAndRegion(defaultCredentials, defaultRegion).then(
         function(preferredZones) {
           $scope.model.regionZones = angular.copy(preferredZones);
         }
