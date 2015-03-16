@@ -9,61 +9,27 @@ angular.module('deckApp.account.service', [
 ])
   .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
 
-    var preferredZonesByAccount = {
-      prod: {
-        'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
-        'us-west-1': ['us-west-1a', 'us-west-1c'],
-        'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
-        'eu-west-1': ['eu-west-1a', 'eu-west-1b', 'eu-west-1c'],
-        'ap-northeast-1': ['ap-northeast-1a', 'ap-northeast-1b', 'ap-northeast-1c'],
-        'ap-southeast-1': ['ap-southeast-1a', 'ap-southeast-1b'],
-        'ap-southeast-2': ['ap-southeast-2a', 'ap-southeast-2b'],
-        'sa-east-1': ['sa-east-1a', 'sa-east-1b']
-      },
-      test: {
-        'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
-        'us-west-1': ['us-west-1a', 'us-west-1c'],
-        'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
-        'eu-west-1': ['eu-west-1a', 'eu-west-1b', 'eu-west-1c'],
-        'ap-northeast-1': ['ap-northeast-1a', 'ap-northeast-1b', 'ap-northeast-1c'],
-        'ap-southeast-1': ['ap-southeast-1a', 'ap-southeast-1b'],
-        'ap-southeast-2': ['ap-southeast-2a', 'ap-southeast-2b'],
-        'sa-east-1': ['sa-east-1a', 'sa-east-1b']
-      },
-      mceprod: {
-        'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1e'],
-        'us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c'],
-        'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
-        'eu-west-1': ['eu-west-1a', 'eu-west-1b', 'eu-west-1c'],
-        'ap-northeast-1': ['ap-northeast-1a', 'ap-northeast-1b', 'ap-northeast-1c'],
-        'ap-southeast-1': ['ap-southeast-1a', 'ap-southeast-1b'],
-        'ap-southeast-2': ['ap-southeast-2a', 'ap-southeast-2b'],
-        'sa-east-1': ['sa-east-1a', 'sa-east-1b']
-      },
-      mcetest: {
-        'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d'],
-        'us-west-1': ['us-west-1b', 'us-west-1c'],
-        'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
-        'eu-west-1': ['eu-west-1a', 'eu-west-1b', 'eu-west-1c'],
-        'ap-northeast-1': ['ap-northeast-1a', 'ap-northeast-1b', 'ap-northeast-1c'],
-        'ap-southeast-1': ['ap-southeast-1a', 'ap-southeast-1b'],
-        'ap-southeast-2': ['ap-southeast-2a', 'ap-southeast-2b'],
-        'sa-east-1': ['sa-east-1a', 'sa-east-1b']
-      },
-      default: {
-        'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c', 'us-east-1d', 'us-east-1e'],
-        'us-west-1': ['us-west-1a', 'us-west-1b', 'us-west-1c'],
-        'us-west-2': ['us-west-2a', 'us-west-2b', 'us-west-2c'],
-        'eu-west-1': ['eu-west-1a', 'eu-west-1b', 'eu-west-1c'],
-        'ap-northeast-1': ['ap-northeast-1a', 'ap-northeast-1b', 'ap-northeast-1c'],
-        'ap-southeast-1': ['ap-southeast-1a', 'ap-southeast-1b'],
-        'ap-southeast-2': ['ap-southeast-2a', 'ap-southeast-2b'],
-        'sa-east-1': ['sa-east-1a', 'sa-east-1b']
-      }
-    };
-
     function getPreferredZonesByAccount() {
-      return $q.when(preferredZonesByAccount);
+      return $q.when(settings.preferredZonesByAccount);
+    }
+
+    function getAvailabilityZonesForAccountAndRegion(accountName, regionName) {
+
+      return getPreferredZonesByAccount().then( function(defaults) {
+        return {preferredZones: defaults[accountName][regionName]};
+      })
+      .then(function(zonesCollection) {
+        return getRegionsForAccount(accountName).then(function(regions){
+          zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
+          return zonesCollection;
+        });
+      })
+      .then(function(zonesCollection) {
+        return _.intersection(zonesCollection.preferredZones, zonesCollection.actualZones);
+      })
+      .catch(function() {
+         return settings.preferredZonesByAccount.default[regionName];
+      });
     }
 
     function listAccounts(provider) {
@@ -127,6 +93,7 @@ angular.module('deckApp.account.service', [
       getAccountDetails: getAccountDetails,
       getRegionsForAccount: getRegionsForAccount,
       getRegionsKeyedByAccount: getRegionsKeyedByAccount,
-      getPreferredZonesByAccount: getPreferredZonesByAccount
+      getPreferredZonesByAccount: getPreferredZonesByAccount,
+      getAvailabilityZonesForAccountAndRegion: getAvailabilityZonesForAccountAndRegion
     };
   });

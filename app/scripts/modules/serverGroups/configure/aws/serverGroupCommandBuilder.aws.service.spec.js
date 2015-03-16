@@ -20,7 +20,8 @@ describe('Service: awsServerGroup', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function (awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
+  beforeEach(inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
+    this.$httpBackend = _$httpBackend_;
     this.service = awsServerGroupCommandBuilder;
     this.accountService = _accountService_;
     this.$q = _$q_;
@@ -47,19 +48,27 @@ describe('Service: awsServerGroup', function () {
       this.settings.providers.aws.defaults.account = 'test';
       this.settings.providers.aws.defaults.region = 'us-east-1';
 
-      spyOn(this.accountService, 'getPreferredZonesByAccount').and.returnValue(
-        this.$q.when({
-          test: {
-            'us-west-1': ['a', 'b'],
-            'us-east-1': ['d', 'e'],
-          },
-          prod: {
-            'us-west-1': ['d','g'],
-            'us-east-1': ['d','e'],
-            'eu-west-1': ['a','m']
-          }
-        })
+      this.settings.preferredZonesByAccount = {
+        test: {
+          'us-west-1': ['a', 'b'],
+          'us-east-1': ['d', 'e'],
+        },
+        prod: {
+          'us-west-1': ['d','g'],
+          'us-east-1': ['d','e'],
+          'eu-west-1': ['a','m']
+        },
+        default: {
+          'us-west-1': ['a','c'],
+          'us-east-1': ['d','e'],
+          'eu-west-1': ['a','m']
+        }
+      };
+
+      spyOn(this.accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(
+        this.$q.when(['d','g'])
       );
+
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.returnValue(
         this.$q.when({
           test: ['us-east-1','us-west-1'],

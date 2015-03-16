@@ -13,6 +13,9 @@ describe('serverGroupCommandBuilder', function() {
     spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when(AccountServiceFixture.preferredZonesByAccount));
     spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when(AccountServiceFixture.regionsKeyedByAccount));
     spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
+    spyOn(accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(
+      this.$q.when(['a', 'b', 'c'])
+    );
   }));
 
   describe('create server group commands', function() {
