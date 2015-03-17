@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.fasterxml.jackson.annotation.JsonBackReference
 import groovy.transform.CompileStatic
 
 /**
@@ -38,18 +37,5 @@ class PipelineStage extends AbstractStage<Pipeline> {
 
   PipelineStage(Pipeline pipeline, String type, Map<String, Object> context) {
     super(pipeline, type, context)
-  }
-
-  @JsonBackReference
-  public Pipeline getPipeline() {
-    (Pipeline)execution
-  }
-
-  @Override
-  Stage<Pipeline> asImmutable() {
-    if (pipeline?.appConfig) {
-      context.appConfig = pipeline.appConfig
-    }
-    super.asImmutable()
   }
 }

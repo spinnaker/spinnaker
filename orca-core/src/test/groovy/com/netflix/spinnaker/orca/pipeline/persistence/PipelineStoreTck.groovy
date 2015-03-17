@@ -77,7 +77,7 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
       name == pipeline.name
       trigger == pipeline.trigger
       stages.type == pipeline.stages.type
-      stages.pipeline.every {
+      stages.execution.every {
         it.id == pipeline.id
       }
       stages.every {

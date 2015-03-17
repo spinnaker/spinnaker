@@ -56,13 +56,13 @@ class CreateDeployTaskSpec extends Specification {
     task.mapper = mapper
     task.defaultBakeAccount = "test"
 
-    stage.pipeline.stages.add(stage)
+    stage.execution.stages.add(stage)
     stage.context = deployConfig
   }
 
   def cleanup() {
-    stage.pipeline.stages.clear()
-    stage.pipeline.stages.add(stage)
+    stage.execution.stages.clear()
+    stage.execution.stages.add(stage)
   }
 
   def "creates a deployment based on job parameters"() {

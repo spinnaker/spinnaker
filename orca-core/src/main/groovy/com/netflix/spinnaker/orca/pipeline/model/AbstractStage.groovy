@@ -39,7 +39,7 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   Long endTime
   ExecutionStatus status = NOT_STARTED
   @JsonBackReference
-  Execution execution
+  T execution
   Map<String, Object> context = [:]
   boolean immutable = false
   List<Task> tasks = []
@@ -89,6 +89,9 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   }
 
   Stage<T> asImmutable() {
+    if (execution?.appConfig) {
+      context.appConfig = execution.appConfig
+    }
     ImmutableStageSupport.toImmutable(this)
   }
 

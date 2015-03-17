@@ -45,7 +45,7 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
     task.mapper = mapper
 
-    stage.pipeline.stages.add(stage)
+    stage.execution.stages.add(stage)
     stage.context = copyLastAsgConfig
   }
 
@@ -127,9 +127,9 @@ class CreateCopyLastAsgTaskSpec extends Specification {
 
   def "amiName uses value from bake"() {
     given:
-    def bakeStage = new PipelineStage(stage.pipeline, "bake", [ami: amiName])
-    stage.pipeline.stages.removeAll()
-    stage.pipeline.stages.addAll([bakeStage, stage])
+    def bakeStage = new PipelineStage(stage.execution, "bake", [ami: amiName])
+    stage.execution.stages.removeAll()
+    stage.execution.stages.addAll([bakeStage, stage])
 
 
     def operations
