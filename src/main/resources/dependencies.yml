@@ -112,6 +112,12 @@ groups:
       - objenesis
       - junit
       - hamcrestCore
+  lombok:
+    compile:
+      - lombok
+    testCompile:
+      - groovy
+      - spock
 
 dependencies:
 # spinnaker libs
