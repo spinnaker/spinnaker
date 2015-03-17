@@ -51,7 +51,7 @@ describe('Service: accountService ', function () {
       var accountName = 'prod';
       var regionName = 'us-east-1' ;
 
-      settings.preferredZonesByAccount = {
+      settings.providers.aws.preferredZonesByAccount = {
         prod: {
           'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
         }
@@ -78,7 +78,7 @@ describe('Service: accountService ', function () {
         expect(result).toEqual(['us-east-1c', 'us-east-1d', 'us-east-1e']);
       };
 
-      accountService.getAvailabilityZonesForAccountAndRegion(accountName, regionName).then(test);
+      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
 
       $http.flush();
     });
@@ -89,7 +89,7 @@ describe('Service: accountService ', function () {
       var accountName = 'prod';
       var regionName = 'us-east-1' ;
 
-      settings.preferredZonesByAccount = {
+      settings.providers.aws.preferredZonesByAccount = {
         prod: {
           'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c'],
         }
@@ -112,7 +112,7 @@ describe('Service: accountService ', function () {
         expect(result).toEqual(['us-east-1a']);
       };
 
-      accountService.getAvailabilityZonesForAccountAndRegion(accountName, regionName).then(test);
+      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
 
       $http.flush();
     });
@@ -122,7 +122,7 @@ describe('Service: accountService ', function () {
       var accountName = 'prod';
       var regionName = 'us-east-1' ;
 
-      settings.preferredZonesByAccount = {
+      settings.providers.aws.preferredZonesByAccount = {
         prod: {
           'us-east-1': ['us-east-1a', 'us-east-1b', 'us-east-1c'],
         }
@@ -143,7 +143,7 @@ describe('Service: accountService ', function () {
         expect(result).toEqual(['us-east-1a', 'us-east-1b', 'us-east-1c']);
       };
 
-      accountService.getAvailabilityZonesForAccountAndRegion(accountName, regionName).then(test);
+      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
 
       $http.flush();
     });
@@ -153,7 +153,7 @@ describe('Service: accountService ', function () {
       var accountName = 'prod';
       var regionName = 'us-east-1' ;
 
-      settings.preferredZonesByAccount = {
+      settings.providers.aws.preferredZonesByAccount = {
         prod: {
           'us-east-1': ['us-east-1a'],
         }
@@ -174,7 +174,7 @@ describe('Service: accountService ', function () {
         expect(result).toEqual([]);
       };
 
-      accountService.getAvailabilityZonesForAccountAndRegion(accountName, regionName).then(test);
+      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
 
       $http.flush();
     });
@@ -185,7 +185,7 @@ describe('Service: accountService ', function () {
       var accountName = 'prod';
       var regionName = 'us-east-1' ;
 
-      settings.preferredZonesByAccount = {
+      settings.providers.aws.preferredZonesByAccount = {
         prod: {
           'us-east-1': ['us-east-1b'],
         },
@@ -197,10 +197,10 @@ describe('Service: accountService ', function () {
       $http.whenGET('/credentials/' + accountName).respond(500);
 
       var test = function(result) {
-        expect(result).toEqual(settings.preferredZonesByAccount.default[regionName]);
+        expect(result).toEqual(settings.providers.aws.preferredZonesByAccount.default[regionName]);
       };
 
-      accountService.getAvailabilityZonesForAccountAndRegion(accountName, regionName).then(test);
+      accountService.getAvailabilityZonesForAccountAndRegion('aws', accountName, regionName).then(test);
 
       $http.flush();
     });

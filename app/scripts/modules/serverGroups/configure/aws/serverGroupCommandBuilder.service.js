@@ -17,7 +17,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
       var defaultCredentials = defaults.account || settings.providers.aws.defaults.account;
       var defaultRegion = defaults.region || settings.providers.aws.defaults.region;
 
-      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion(defaultCredentials, defaultRegion);
+      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
 
       return $q.all({
         preferredZones: preferredZonesLoader,

@@ -9,13 +9,14 @@ angular.module('deckApp.account.service', [
 ])
   .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
 
-    function getPreferredZonesByAccount() {
-      return $q.when(settings.preferredZonesByAccount);
+    function getPreferredZonesByAccount(providerName) {
+      var _providerName = providerName || 'aws';
+      return $q.when(settings.providers[_providerName].preferredZonesByAccount);
     }
 
-    function getAvailabilityZonesForAccountAndRegion(accountName, regionName) {
+    function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {
 
-      return getPreferredZonesByAccount().then( function(defaults) {
+      return getPreferredZonesByAccount(providerName).then( function(defaults) {
         return {preferredZones: defaults[accountName][regionName]};
       })
       .then(function(zonesCollection) {
@@ -28,7 +29,7 @@ angular.module('deckApp.account.service', [
         return _.intersection(zonesCollection.preferredZones, zonesCollection.actualZones);
       })
       .catch(function() {
-         return settings.preferredZonesByAccount.default[regionName];
+         return settings.providers[providerName].preferredZonesByAccount.default[regionName];
       });
     }
 
