@@ -39,6 +39,9 @@ angular.module('deckApp')
               if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
                 return;
               }
+              if (scope.activeInstance) {
+                $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
+              }
               var params = {
                 instanceId: event.target.getAttribute('data-instance-id'),
                 provider: event.target.getAttribute('data-provider')
@@ -52,15 +55,17 @@ angular.module('deckApp')
           });
         });
 
-        scope.$on('$locationChangeSuccess', function() {
+        function clearActiveState() {
           if (scope.activeInstance && !$state.includes('**.instanceDetails', scope.activeInstance)) {
             $('a[data-instance-id="' + scope.activeInstance.instanceId+'"]', elem).removeClass('active');
             scope.activeInstance = null;
           }
-        });
+        }
+
+        scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).removeData().tooltip('destroy');
+          $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
           elem.unbind('click');
         });
       }
