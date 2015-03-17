@@ -71,6 +71,10 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
+      <p ng-if="instance.healthState === 'Starting' && !healthMetrics.length">
+        <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
+      </p>
+
       <dl>
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
