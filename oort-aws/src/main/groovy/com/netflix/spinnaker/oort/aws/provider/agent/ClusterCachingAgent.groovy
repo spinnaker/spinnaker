@@ -263,13 +263,17 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         cache(cacheResults["launchConfigs"], launchConfigs)
         cache(cacheResults["instances"], instances)
       } else {
-        AsgData data = new AsgData(asg, account.name, region, subnetMap)
-        cacheApplication(data, applications)
-        cacheCluster(data, clusters)
-        cacheServerGroup(data, serverGroups)
-        cacheLaunchConfig(data, launchConfigs)
-        cacheInstances(data, instances)
-        cacheLoadBalancers(data, loadBalancers)
+        try {
+          AsgData data = new AsgData(asg, account.name, region, subnetMap)
+          cacheApplication(data, applications)
+          cacheCluster(data, clusters)
+          cacheServerGroup(data, serverGroups)
+          cacheLaunchConfig(data, launchConfigs)
+          cacheInstances(data, instances)
+          cacheLoadBalancers(data, loadBalancers)
+        } catch (Exception ex) {
+          log.warn("Failed to cache ${asg.autoScalingGroupName} in ${account.name}/${region}", ex)
+        }
       }
     }
 
@@ -378,7 +382,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         String[] subnets = asg.getVPCZoneIdentifier().split(',')
         Set<String> vpcIds = subnets.collect { subnetMap[it] }
         if (vpcIds.size() != 1) {
-          throw new RuntimeException("failed to resolve one vpc (found ${vpcIds}) for subnets ${subnets}")
+          throw new RuntimeException("failed to resolve one vpc (found ${vpcIds}) for subnets ${subnets} in ASG ${asg.autoScalingGroupName} account ${account} region ${region}")
         }
         vpcId = vpcIds.first()
       }
