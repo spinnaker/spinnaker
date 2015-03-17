@@ -10,57 +10,58 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService) {
-    function buildNewServerGroupCommand(application, defaults) {
+    function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
-      var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
-      var asyncLoader = $q.all({preferredZones: preferredZonesLoader, regionsKeyedByAccount: regionsKeyedByAccountLoader});
 
-      return asyncLoader.then(function(asyncData) {
-        var defaultCredentials = defaults.account || settings.providers.aws.defaults.account;
-        var defaultRegion = defaults.region || settings.providers.aws.defaults.region;
+      var defaultCredentials = defaults.account || settings.providers.aws.defaults.account;
+      var defaultRegion = defaults.region || settings.providers.aws.defaults.region;
 
-        var defaultZones = asyncData.preferredZones[defaultCredentials];
-        if (!defaultZones) {
-          defaultZones = asyncData.preferredZones['default'];
-        }
-        var availabilityZones = defaultZones[defaultRegion];
-        var regions = asyncData.regionsKeyedByAccount[defaultCredentials];
-        var keyPair = regions ? regions.defaultKeyPair : null;
+      var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
 
-        return {
-          application: application.name,
-          credentials: defaultCredentials,
-          region: defaultRegion,
-          capacity: {
-            min: 1,
-            max: 1,
-            desired: 1
-          },
-          cooldown: 10,
-          healthCheckType: 'EC2',
-          healthCheckGracePeriod: 600,
-          instanceMonitoring: false,
-          ebsOptimized: false,
-          selectedProvider: 'aws',
-          iamRole: 'BaseIAMRole', // should not be hard coded here
+      return $q.all({
+        preferredZones: preferredZonesLoader,
+        regionsKeyedByAccount: regionsKeyedByAccountLoader,
+      })
+        .then(function (asyncData) {
+          var availabilityZones = asyncData.preferredZones;
 
-          terminationPolicies: ['Default'],
-          vpcId: null,
-          availabilityZones: availabilityZones,
-          keyPair: keyPair,
-          suspendedProcesses: [],
-          viewState: {
-            instanceProfile: 'custom',
-            allImageSelection: null,
-            useAllImageSelection: false,
-            useSimpleCapacity: true,
-            usePreferredZones: true,
-            mode: defaults.mode || 'create',
-            disableStrategySelection: true,
-          },
-        };
-      });
+          var regions = asyncData.regionsKeyedByAccount[defaultCredentials];
+          var keyPair = regions ? regions.defaultKeyPair : null;
+
+          return {
+            application: application.name,
+            credentials: defaultCredentials,
+            region: defaultRegion,
+            capacity: {
+              min: 1,
+              max: 1,
+              desired: 1
+            },
+            cooldown: 10,
+            healthCheckType: 'EC2',
+            healthCheckGracePeriod: 600,
+            instanceMonitoring: false,
+            ebsOptimized: false,
+            selectedProvider: 'aws',
+            iamRole: 'BaseIAMRole', // should not be hard coded here
+
+            terminationPolicies: ['Default'],
+            vpcId: null,
+            availabilityZones: availabilityZones,
+            keyPair: keyPair,
+            suspendedProcesses: [],
+            viewState: {
+              instanceProfile: 'custom',
+              allImageSelection: null,
+              useAllImageSelection: false,
+              useSimpleCapacity: true,
+              usePreferredZones: true,
+              mode: defaults.mode || 'create',
+              disableStrategySelection: true,
+            },
+          };
+        });
     }
 
     function buildServerGroupCommandFromPipeline(application, pipelineCluster) {

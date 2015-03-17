@@ -65,7 +65,8 @@
       model="loadBalancer"
       region="loadBalancer.region"
       availability-zones="availabilityZones"
-      use-preferred-zones="loadBalancer.usePreferredZones">
+      use-preferred-zones="loadBalancer.usePreferredZones"
+      provider="'aws'" >
     </load-balancer-availability-zone-selector>
 
     <subnet-select-field label-columns="3" help-key="aws.loadBalancer.subnet" component="loadBalancer" field="subnetType" region="loadBalancer.region" subnets="subnets" on-change="ctrl.subnetUpdated()"></subnet-select-field>

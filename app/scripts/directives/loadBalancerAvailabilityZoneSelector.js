@@ -8,7 +8,8 @@ angular.module('deckApp')
         availabilityZones: '=',
         region: '=',
         model: '=',
-        usePreferredZones: '='
+        usePreferredZones: '=',
+        provider: '='
       },
       templateUrl: 'views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html',
       controller: 'LoadBalancerAvailabilityZoneSelectorCtrl as availabilityZoneCtrl',
@@ -18,16 +19,13 @@ angular.module('deckApp')
     $scope.model.usePreferredZones = angular.isDefined($scope.model.usePreferredZones) ? $scope.model.usePreferredZones : true;
 
     function setDefaultZones() {
-      accountService.getPreferredZonesByAccount().then(
-        function(preferredZonesLoader) {
-          var defaultCredentials = $scope.model.credentials;
-          var defaultRegion = $scope.region;
 
-          var defaultZones = preferredZonesLoader[defaultCredentials];
-          if (!defaultZones) {
-            defaultZones = preferredZonesLoader['default'];
-          }
-          $scope.model.regionZones = angular.copy(defaultZones[defaultRegion]);
+      var defaultCredentials = $scope.model.credentials;
+      var defaultRegion = $scope.region;
+
+      accountService.getAvailabilityZonesForAccountAndRegion($scope.provider, defaultCredentials, defaultRegion).then(
+        function(preferredZones) {
+          $scope.model.regionZones = angular.copy(preferredZones);
         }
       );
     }
