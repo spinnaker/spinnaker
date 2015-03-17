@@ -25,10 +25,7 @@ class DeleteApplicationTask extends AbstractFront50Task {
   @Override
   Map<String, Object> performRequest(String account, Application application) {
     Map<String, Object> outputs = [:]
-    def previousState = fetchApplication(account, application.name)
-    if(previousState) {
-      outputs.previousState = previousState
-    }
+    outputs.previousState = fetchApplication(account, application.name) ?: [:]
 
     front50Service.delete(account, application.name)
 

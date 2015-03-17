@@ -73,4 +73,21 @@ class DeleteApplicationTaskSpec extends Specification {
     then:
     taskResult.status == ExecutionStatus.SUCCEEDED
   }
+
+  void "should keep track of previous state"() {
+    given:
+    Application application = new Application(accounts: "test")
+    task.front50Service = Mock(Front50Service) {
+      1 * get("test", config.application.name) >> application
+      1 * delete(config.account, config.application.name)
+      1 * getCredentials() >> []
+      0 * _._
+    }
+
+    when:
+    def taskResult = task.execute(new PipelineStage(new Pipeline(), "DeleteApplication", config))
+
+    then:
+    taskResult.stageOutputs.previousState == application
+  }
 }

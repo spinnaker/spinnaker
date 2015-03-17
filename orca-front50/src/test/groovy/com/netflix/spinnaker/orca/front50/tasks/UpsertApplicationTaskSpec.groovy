@@ -24,10 +24,10 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class UpsertApplicationTaskSpec extends Specification {
   @Subject
@@ -158,5 +158,29 @@ class UpsertApplicationTaskSpec extends Specification {
     target.email == source.email
     target.description == source.description
     target.owner == "targetOwner"
+  }
+
+  @Unroll
+  void "should keep track of previous and new state during #operation"() {
+    given:
+    Application application = new Application(config.application)
+    task.front50Service = Mock(Front50Service) {
+      3 * get(config.account, config.application.name) >> initialState >> initialState >> application
+      1 * getCredentials() >> []
+      1 * "${operation}"(*_)
+      0 * _._
+    }
+
+    when:
+    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+
+    then:
+    result.stageOutputs.previousState == (initialState ?: [:])
+    result.stageOutputs.newState == application
+
+    where:
+    initialState      | operation
+    null              | 'create'
+    new Application() | 'update'
   }
 }
