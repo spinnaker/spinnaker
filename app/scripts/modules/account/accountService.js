@@ -33,25 +33,6 @@ angular.module('deckApp.account.service', [
       });
     }
 
-    function getAvailabilityZonesForAccountAndRegion(accountName, regionName) {
-
-      return getPreferredZonesByAccount().then( function(defaults) {
-        return {preferredZones: defaults[accountName][regionName]};
-      })
-      .then(function(zonesCollection) {
-        return getRegionsForAccount(accountName).then(function(regions){
-          zonesCollection.actualZones = _.find(regions, {name: regionName}).availabilityZones;
-          return zonesCollection;
-        });
-      })
-      .then(function(zonesCollection) {
-        return _.intersection(zonesCollection.preferredZones, zonesCollection.actualZones);
-      })
-      .catch(function() {
-         return settings.preferredZonesByAccount.default[regionName];
-      });
-    }
-
     function listAccounts(provider) {
       if (provider) {
         return listAccounts().then(function(accounts) {
