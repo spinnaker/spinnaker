@@ -95,6 +95,7 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
+        loadBalancer.vpcId = $scope.loadBalancer.elb.vpcid || null;
         return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application);
       };
 
