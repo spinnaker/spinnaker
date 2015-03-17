@@ -36,10 +36,11 @@ class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
   TaskResult execute(Stage stage) {
     String account = stage.context.credentials
     String name = stage.context.loadBalancerName
+    String vpcId = stage.context.vpcId ?: ''
     List<String> regions = stage.context.regions
 
     regions.each { region ->
-      def model = [loadBalancerName: name, region: region, account: account, evict: true]
+      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true]
       oort.forceCacheUpdate(REFRESH_TYPE, model)
     }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
