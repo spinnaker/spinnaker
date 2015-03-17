@@ -20,21 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.bind.annotation.RequestParam
 import retrofit.RetrofitError
+
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 
 @Slf4j
 @RestController
@@ -53,9 +54,9 @@ class BuildController {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber),Map)
+        Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
         Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
-        if(scm?.action.lastBuiltRevision?.branch.name){
+        if (scm?.action.lastBuiltRevision?.branch.name) {
             result.scm = [
                 ref: scm?.action.lastBuiltRevision?.branch.name,
                 branch: scm?.action.lastBuiltRevision?.branch.name.split('/').last(),
@@ -65,8 +66,20 @@ class BuildController {
         result
     }
 
+    @RequestMapping(value = '/jobs/{master}/{job}/builds')
+    List<Build> getBuilds(@PathVariable String master, @PathVariable String job) {
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        def lists = masters.map[master].getBuilds(job)
+
+        masters.map[master].getBuilds(job).list
+    }
+
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
-    Build build(@PathVariable("name") String master, @PathVariable String job,  @RequestParam Map<String,String> requestParams) {
+    Build build(
+        @PathVariable("name") String master,
+        @PathVariable String job, @RequestParam Map<String, String> requestParams) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
@@ -81,7 +94,9 @@ class BuildController {
     }
 
     @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
-    Map<String, String> getProperties(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
+    Map<String, String> getProperties(
+        @PathVariable String master,
+        @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
@@ -89,10 +104,12 @@ class BuildController {
         try {
             Properties properties = new Properties()
             JenkinsClient jenkinsClient = masters.map[master]
-            String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find{ it.fileName == fileName }?.relativePath
+            String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find {
+                it.fileName == fileName
+            }?.relativePath
             properties.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
             map = map << properties
-        } catch( e ){
+        } catch (e) {
             log.error("Unable to get properties `${job}`", e)
         }
         map
@@ -101,7 +118,7 @@ class BuildController {
     static class BuildJobPoller implements Runnable {
         private final String job
         private final JenkinsClient client
-        private final Map<String,String> requestParams
+        private final Map<String, String> requestParams
 
         private Build build;
 
@@ -110,7 +127,7 @@ class BuildController {
             this.client = client
         }
 
-        BuildJobPoller(String job, JenkinsClient client, Map<String,String> requestParams) {
+        BuildJobPoller(String job, JenkinsClient client, Map<String, String> requestParams) {
             this.job = job
             this.client = client
             this.requestParams = requestParams
@@ -121,12 +138,12 @@ class BuildController {
             // fetch the build configuration and make sure that it's configured as we expect
             JobConfig jobConfig = client.getJobConfig(job)
 
-            if(requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+            if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
                 response = client.buildWithParameters(job, requestParams)
-            } else if(!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+            } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
                 // account for when you just want to fire a job with the default parameter values by adding a dummy param
-                response = client.buildWithParameters(job, ['startedBy' : "igor"])
-            } else if(!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)){
+                response = client.buildWithParameters(job, ['startedBy': "igor"])
+            } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
                 response = client.build(job)
             } else { // Jenkins will reject the build, so don't even try
                 log.error("job : ${job}, passing params to a job which doesn't need them")

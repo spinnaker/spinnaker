@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
-
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
+import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import retrofit.client.Response
@@ -39,8 +39,8 @@ interface JenkinsClient {
     @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]&exclude=/*/*/*/action[not(totalCount)]')
     ProjectsList getProjects()
 
-    @GET('/job/{jobName}/api/xml?tree=builds[number,url,duration,timestamp,result,culprits[fullName],actions[failCount,skipCount,totalCount,causes[*]]]')
-    List<Build> getBuilds(@Path('jobName') String jobName)
+    @GET('/job/{jobName}/api/xml?exclude=/*/build/action[not(totalCount)]&tree=builds[number,url,duration,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath],actions[failCount,skipCount,totalCount]]')
+    BuildsList getBuilds(@Path('jobName') String jobName)
 
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
     BuildDependencies getDependencies(@Path('jobName') String jobName)
@@ -61,13 +61,15 @@ interface JenkinsClient {
     Response build(@Path('jobName') String jobName)
 
     @POST('/job/{jobName}/buildWithParameters')
-    Response buildWithParameters(@Path('jobName') String jobName, @QueryMap Map<String,String> queryParams)
+    Response buildWithParameters(@Path('jobName') String jobName, @QueryMap Map<String, String> queryParams)
 
     @GET('/job/{jobName}/api/xml?exclude=/*/action&exclude=/*/build&exclude=/*/property[not(parameterDefinition)]')
     JobConfig getJobConfig(@Path('jobName') String jobName)
 
     @Streaming
     @GET('/job/{jobName}/{buildNumber}/artifact/{fileName}')
-    Response getPropertyFile(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber, @Path(value='fileName', encode=false) String fileName)
+    Response getPropertyFile(
+        @Path('jobName') String jobName,
+        @Path('buildNumber') Integer buildNumber, @Path(value = 'fileName', encode = false) String fileName)
 
 }

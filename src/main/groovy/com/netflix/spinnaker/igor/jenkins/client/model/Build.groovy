@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.igor.jenkins.client.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
-import org.simpleframework.xml.Transient
 
 /**
  * Represents a build in Jenkins
  */
 @Default
 @CompileStatic
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Root(strict = false)
 class Build {
     boolean building
@@ -44,13 +45,13 @@ class Build {
     String url
     @Element(required = false)
     String builtOn
-    @ElementList(required = false, name="artifact", inline = true)
+    @ElementList(required = false, name = "artifact", inline = true)
     List<BuildArtifact> artifacts
     /*
     We need to dump this into a list first since the Jenkins query returns
     multiple action elements, with all but the test run one empty.  We then filter it into a testResults var
      */
-    @ElementList(required = false, name="action", inline = true)
+    @ElementList(required = false, name = "action", inline = true)
     List<TestResults> testResults
 }
 
