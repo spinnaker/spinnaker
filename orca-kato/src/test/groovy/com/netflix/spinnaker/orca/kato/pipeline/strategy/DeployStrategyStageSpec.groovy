@@ -52,20 +52,50 @@ class DeployStrategyStageSpec extends Specification {
     "myapp"     | null         | null            || "myapp"
   }
 
+  @Unroll
+  void "stage data should favor account over credentials"() {
+    given:
+    def stage = new PipelineStage(
+      new Pipeline(),
+      "deploy",
+      [
+        account    : account,
+        credentials: credentials
+      ]
+    )
+
+    when:
+    def mappedAccount
+    try {
+      mappedAccount = stage.mapTo(DeployStrategyStage.StageData).getAccount()
+    } catch (Exception e) {
+      mappedAccount = e.class.simpleName
+    }
+
+    then:
+    mappedAccount == expectedAccount
+
+    where:
+    account | credentials || expectedAccount
+    "test"  | "prod"      || "IllegalStateException"
+    "test"  | null        || "test"
+    null    | "test"      || "test"
+  }
+
   void "should handle only when there are existing clusters"() {
     given:
     Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
-      account: 'test',
-      application: 'foo',
-      stack: 'test',
-      strategy: 'redblack', //Strategy.RED_BLACK.key, -- y u no work
+      account          : 'test',
+      application      : 'foo',
+      stack            : 'test',
+      strategy         : 'redblack', //Strategy.RED_BLACK.key, -- y u no work
       availabilityZones: ['us-east-1': [], 'us-west-2': []]])
 
     TypedByteArray oortClusters = new TypedByteArray('application/json', new ObjectMapper().writeValueAsBytes([
-            serverGroups: [
-                    [region: 'us-east-1', name: 'foo-test-v000'],
-                    [region: 'us-east-1', name: 'foo-test-v001']
-            ]
+      serverGroups: [
+        [region: 'us-east-1', name: 'foo-test-v000'],
+        [region: 'us-east-1', name: 'foo-test-v001']
+      ]
     ]))
 
     def oort = Mock(OortService)

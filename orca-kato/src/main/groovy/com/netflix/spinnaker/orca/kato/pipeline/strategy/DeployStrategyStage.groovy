@@ -187,6 +187,7 @@ abstract class DeployStrategyStage extends LinearStage {
   static class StageData {
     String strategy
     String account
+    String credentials
     String freeFormDetails
     String application
     String stack
@@ -202,6 +203,13 @@ abstract class DeployStrategyStage extends LinearStage {
       builder.detail = freeFormDetails
 
       return builder.buildGroupName()
+    }
+
+    String getAccount() {
+      if (account && credentials && account != credentials) {
+        throw new IllegalStateException("Cannot specify different values for 'account' and 'credentials' (${application})")
+      }
+      return account ?: credentials
     }
   }
 
