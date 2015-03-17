@@ -134,7 +134,7 @@ class ServerGroupController {
       id = instance.name
       isHealthy = instance.isHealthy()
       healthState = instance.getHealthState().toString()
-      launchTime = instance.launchTime
+      launchTime = instance.getLaunchTime()
       availabilityZone = instance.getZone()
       health = instance.health.collect { health ->
         Map healthMetric = [type: health.type]

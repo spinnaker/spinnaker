@@ -21,6 +21,8 @@ import com.netflix.spinnaker.oort.model.Instance
 
 class AmazonInstance extends HashMap implements Instance, Serializable {
 
+  static final long START_TIME_DRIFT = 180000
+
   AmazonInstance(String name) {
     setProperty "name", name
     setProperty "health", []
@@ -43,7 +45,8 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
       anyStarting(healthList) ? HealthState.Starting :
         anyDown(healthList) ? HealthState.Down :
           anyOutOfService(healthList) ? HealthState.OutOfService :
-            HealthState.Unknown
+            getLaunchTime() > System.currentTimeMillis() - START_TIME_DRIFT ? HealthState.Starting :
+              HealthState.Unknown
 
   }
 
@@ -66,7 +69,7 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
 
   @Override
   Long getLaunchTime() {
-    ((Map) getProperty("instance")).get("launchTime")
+    getProperty "launchTime"
   }
 
   @Override
