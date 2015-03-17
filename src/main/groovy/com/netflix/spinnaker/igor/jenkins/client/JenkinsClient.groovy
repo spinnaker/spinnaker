@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.igor.jenkins.client
 
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
+
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
+import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
 import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.POST
@@ -45,6 +47,9 @@ interface JenkinsClient {
 
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]')
     Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
+
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(lastBuiltRevision)]&tree=actions[remoteUrl,lastBuiltRevision[branch[name,SHA1]]]')
+    ScmDetails getGitDetails(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/lastCompletedBuild/api/xml')
     Build getLatestBuild(@Path('jobName') String jobName)

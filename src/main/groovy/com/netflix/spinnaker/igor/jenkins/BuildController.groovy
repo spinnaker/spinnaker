@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
@@ -44,12 +45,24 @@ class BuildController {
     @Autowired
     ExecutorService executor
 
+    @Autowired
+    ObjectMapper objectMapper
+
     @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}')
-    Build getJobStatus(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
+    Map getJobStatus(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        masters.map[master].getBuild(job, buildNumber)
+        Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber),Map)
+        Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
+        if(scm?.action.lastBuiltRevision?.branch.name){
+            result.scm = [
+                ref: scm?.action.lastBuiltRevision?.branch.name,
+                branch: scm?.action.lastBuiltRevision?.branch.name.split('/').last(),
+                sha1: scm?.action.lastBuiltRevision?.branch.sha1
+            ]
+        }
+        result
     }
 
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
@@ -89,14 +102,14 @@ class BuildController {
         private final String job
         private final JenkinsClient client
         private final Map<String,String> requestParams
-        
+
         private Build build;
 
         BuildJobPoller(String job, JenkinsClient client) {
             this.job = job
             this.client = client
         }
-        
+
         BuildJobPoller(String job, JenkinsClient client, Map<String,String> requestParams) {
             this.job = job
             this.client = client
