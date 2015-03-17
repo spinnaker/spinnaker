@@ -28,7 +28,10 @@ import retrofit.RetrofitError
 @CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
-  void performRequest(String account, Application application) {
+  Map<String, Object> performRequest(String account, Application application) {
+    Map<String, Object> outputs = [:]
+    outputs.previousState = fetchApplication(account, application.name) ?: [:]
+
     /*
      * Upsert application to all global registries.
      */
@@ -87,6 +90,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
       log.info("Creating application (name: ${application.name}, account: ${account})")
       front50Service.create(account, application.name, application)
     }
+
+    outputs.newState = fetchApplication(account, application.name) ?: [:]
+    outputs
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)

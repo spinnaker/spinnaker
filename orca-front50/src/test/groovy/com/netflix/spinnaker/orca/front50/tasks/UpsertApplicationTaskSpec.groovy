@@ -24,10 +24,10 @@ import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import retrofit.client.Response
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class UpsertApplicationTaskSpec extends Specification {
   @Subject
@@ -48,7 +48,7 @@ class UpsertApplicationTaskSpec extends Specification {
   void "should not create an application in a global registry if no global credentials are available"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.account, config.application.name) >> null
+      3 * get(config.account, config.application.name) >> null
       1 * getCredentials() >> []
       1 * create(config.account, config.application.name, {
         it.properties == new Application(config.application).properties
@@ -67,7 +67,7 @@ class UpsertApplicationTaskSpec extends Specification {
     given:
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> null
-      1 * get(config.account, config.application.name) >> null
+      3 * get(config.account, config.application.name) >> null
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * create(globalAccount, config.application.name, {
         it.properties == new Application(config.application + [accounts: config.account]).properties
@@ -90,7 +90,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> existingGlobalApplication
       1 * get(existingGlobalApplicationAccount, config.application.name) >> existingGlobalApplication
-      1 * get(config.account, config.application.name) >> null
+      3 * get(config.account, config.application.name) >> null
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * update(globalAccount, {
         // assert that the global application is updated w/ new application attributes and merged accounts
@@ -128,7 +128,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> new Application(accounts: "prod")
       1 * get("prod", config.application.name) >> null
-      1 * get(config.account, config.application.name) >> new Application()
+      3 * get(config.account, config.application.name) >> new Application()
       1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * update(globalAccount, {
         it.properties == new Application(config.application + [accounts: "prod,test"]).properties
@@ -158,5 +158,29 @@ class UpsertApplicationTaskSpec extends Specification {
     target.email == source.email
     target.description == source.description
     target.owner == "targetOwner"
+  }
+
+  @Unroll
+  void "should keep track of previous and new state during #operation"() {
+    given:
+    Application application = new Application(config.application)
+    task.front50Service = Mock(Front50Service) {
+      3 * get(config.account, config.application.name) >> initialState >> initialState >> application
+      1 * getCredentials() >> []
+      1 * "${operation}"(*_)
+      0 * _._
+    }
+
+    when:
+    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
+
+    then:
+    result.stageOutputs.previousState == (initialState ?: [:])
+    result.stageOutputs.newState == application
+
+    where:
+    initialState      | operation
+    null              | 'create'
+    new Application() | 'update'
   }
 }
