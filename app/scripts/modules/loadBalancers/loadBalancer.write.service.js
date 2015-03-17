@@ -16,7 +16,8 @@ angular
             loadBalancerName: loadBalancer.name,
             regions: [loadBalancer.region],
             credentials: loadBalancer.accountId,
-            providerType: loadBalancer.providerType
+            providerType: loadBalancer.providerType,
+            vpcId: loadBalancer.vpcId || '',
           }
         ],
         application: application,
