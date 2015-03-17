@@ -42,11 +42,14 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
     if (config.containsKey("application")) {
       orchestration.application = config.application
     }
+    if (config.containsKey("name")) {
+      orchestration.description = config.name
+    }
     if (config.containsKey("description")) {
       orchestration.description = config.description
     }
-    if (config.containsKey("name")) {
-      orchestration.description = config.name
+    if (config.appConfig) {
+      orchestration.appConfig.putAll(config.appConfig as Map)
     }
 
     for (context in ((List<Map<String, Object>>) config.stages)) {

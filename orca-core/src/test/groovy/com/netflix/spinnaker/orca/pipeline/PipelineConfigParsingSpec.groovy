@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
@@ -82,7 +81,7 @@ class PipelineConfigParsingSpec extends Specification {
     with(pipeline) {
       application == "front50"
       stages.type == ["jenkins", "bake", "deploy"]
-      stages.pipeline.every { it == pipeline }
+      stages.execution.every { it == pipeline }
       stages[2].context.cluster.application == "front50"
       stages[2].context.cluster.securityGroups == [
         "nf-infrastructure-vpc",

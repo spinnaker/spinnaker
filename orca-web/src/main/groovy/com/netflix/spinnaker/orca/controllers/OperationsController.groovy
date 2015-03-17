@@ -47,7 +47,10 @@ class OperationsController {
     @RequestParam(value = "build.number", required = false) Integer buildNumber,
     @RequestParam(value = "build.propertyFile", required = false) String propertyFile) {
 
-    pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user]
+    if (!(pipeline.trigger instanceof Map)) {
+      pipeline.trigger = [:]
+    }
+    pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user] + pipeline.trigger
 
     if (igorService && master && job && buildNumber) {
       Map build = igorService.getBuild(master, job, buildNumber)
@@ -66,12 +69,12 @@ class OperationsController {
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody List<Map> input) {
-    startTask([application: null, name: null, stages: input])
+    startTask([application: null, name: null, appConfig: null, stages: input])
   }
 
   @RequestMapping(value = "/ops", consumes = "application/context+json", method = RequestMethod.POST)
   Map<String, String> ops(@RequestBody Map input) {
-    startTask([application: input.application, name: input.description, stages: input.job])
+    startTask([application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job])
   }
 
   @RequestMapping(value = "/health", method = RequestMethod.GET)

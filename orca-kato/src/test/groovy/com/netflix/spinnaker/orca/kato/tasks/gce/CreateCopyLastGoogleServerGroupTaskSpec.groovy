@@ -53,7 +53,7 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
   ]
 
   def setup() {
-    stage.pipeline.stages.add(stage)
+    stage.execution.stages.add(stage)
     stage.context = copyLastAsgConfig
   }
 
