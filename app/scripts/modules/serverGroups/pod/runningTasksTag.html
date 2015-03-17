@@ -2,7 +2,7 @@
   <button class="btn btn-link no-padding"
           ng-click="popover.show = !popover.show; $event.stopPropagation();"
           tooltip="{{popover.show ? 'Hide' : 'Show'}} running task{{tasks.length > 1 ? 's' : ''}}">
-    <span class="icon"><span class="icon-spinner glyphicon-spinning"></span></span>
+    <span class="icon"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
   </button>
   <div class="menu-running-tasks" ng-if="popover.show">
     <div class="container-fluid" ng-repeat="task in tasks | orderBy:'-startTime'">
