@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.aws.model
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import spock.lang.Specification
+import spock.lang.Unroll
 
 /**
  * Created by zthrash on 1/7/15.
@@ -119,4 +120,22 @@ class AmazonInstanceSpec extends Specification {
     then:
       heathState == HealthState.Down
   }
+
+  @Unroll
+  def "getHealthState for no health, drift offset: #drift ms"() {
+    given:
+      instance.health = []
+      instance.launchTime = System.currentTimeMillis() - AmazonInstance.START_TIME_DRIFT - drift
+
+    when:
+      HealthState healthState = instance.getHealthState()
+    then:
+      healthState == expected
+
+    where:
+    drift  || expected
+    -10000 || HealthState.Starting
+    10000  || HealthState.Unknown
+  }
+
 }
