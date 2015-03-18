@@ -63,4 +63,39 @@
       </label>
     </div>
   </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Name</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.baseName"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Ami</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.baseAmi"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Name</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.amiName"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Suffix</label>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.amiSuffix"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Use Enhanced Networking</label>
+    <div class="col-md-6">
+      <input type="checkbox"
+             ng-model="stage.enhancedNetworking"/>
+    </div>
+  </div>
 </form>
