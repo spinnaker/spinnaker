@@ -30,15 +30,17 @@ import org.simpleframework.xml.Root
 @CompileStatic
 @Root(strict = false)
 class ScmDetails {
-
+    @Element(required = false)
     Action action
 }
 
 class Action{
+    @Element(required = false)
     LastBuiltRevision lastBuiltRevision
 }
 
 class LastBuiltRevision{
+    @Element(required = false)
     Branch branch
 }
 
