@@ -35,15 +35,15 @@ class GCEOperationUtil {
   private static handleFinishedAsyncDeleteOperation(Operation operation, Task task, String resourceString,
                                                     String basePhase) {
     if (!operation) {
-      GCEUtil.updateStatusAndThrowException("Delete operation of $resourceString timed out. The resource " +
+      GCEUtil.updateStatusAndThrowException("Operation on $resourceString timed out. The resource " +
           "may still exist.", task, basePhase)
     }
     if (operation.getError()) {
       def error = operation.getError().getErrors().get(0)
-      GCEUtil.updateStatusAndThrowException("Failed to delete $resourceString with error: $error", task,
+      GCEUtil.updateStatusAndThrowException("Failed to complete operation on $resourceString with error: $error", task,
           basePhase)
     }
-    task.updateStatus basePhase, "Done deleting $resourceString."
+    task.updateStatus basePhase, "Done operating on $resourceString."
   }
 
   // The methods below are used to wait on the operation specified in |operationName|. This is used in practice to
