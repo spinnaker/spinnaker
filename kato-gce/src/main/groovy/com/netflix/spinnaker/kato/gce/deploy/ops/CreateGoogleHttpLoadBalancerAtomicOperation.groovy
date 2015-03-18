@@ -174,7 +174,6 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
     def targetHttpProxyOperation = compute.targetHttpProxies().insert(project, targetHttpProxy).execute()
     def targetHttpProxyUrl = targetHttpProxyOperation.getTargetLink()
 
-
     // Finally, make forwarding rule.
     task.updateStatus BASE_PHASE, "Creating forwarding rule $description.loadBalancerName..."
 
