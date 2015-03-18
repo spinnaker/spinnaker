@@ -155,7 +155,7 @@ angular.module('deckApp.tasks.api', [
         }
         if (task.isCompleted || task.isRunning) {
           var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'forceCacheRefresh'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'RUNNING') {
+          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'RUNNING' && forceRefreshStep[0].status !== 'NOT_STARTED') {
             var forceRefreshStatus = forceRefreshStep[0].status;
             if (forceRefreshStatus === 'COMPLETED') {
               deferred.resolve(task);
