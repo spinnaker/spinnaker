@@ -52,7 +52,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
     try {
       Map<String, Object> build = igorService.getBuild(master, job, buildNumber)
       String result = build.result
-      if (build.running && build.running != 'false') {
+      if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
       if (statusMap.containsKey(result)) {
