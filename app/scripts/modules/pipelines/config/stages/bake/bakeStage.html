@@ -64,38 +64,55 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Name</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.baseName"/>
+    <div class="col-md-9 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="stage.showAdvancedOptions">
+          <strong>Show Advanced Options</strong>
+        </label>
+      </div>
     </div>
   </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base Ami</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.baseAmi"/>
+  <div ng-class="{collapse: stage.showAdvancedOptions !== true, collapse.in: stage.showAdvancedOptions === true}">
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Base Name</label>
+
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.baseName"/>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Name</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.amiName"/>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Base Ami</label>
+
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.baseAmi"/>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Suffix</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.amiSuffix"/>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Name</label>
+
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.amiName"/>
+      </div>
     </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Use Enhanced Networking</label>
-    <div class="col-md-6">
-      <input type="checkbox"
-             ng-model="stage.enhancedNetworking"/>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Ami Suffix</label>
+
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.amiSuffix"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Use Enhanced Networking</label>
+
+      <div class="col-md-6">
+        <input type="checkbox"
+               ng-model="stage.enhancedNetworking"/>
+      </div>
     </div>
   </div>
 </form>
