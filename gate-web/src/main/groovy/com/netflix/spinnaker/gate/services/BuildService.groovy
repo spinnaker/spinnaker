@@ -58,4 +58,22 @@ class BuildService {
       igorService.getJobConfig(buildMaster, job)
     } execute()
   }
+
+  List getBuilds(String buildMaster, String job) {
+    if (!igorService) {
+      return []
+    }
+    HystrixFactory.newListCommand(GROUP, "buildsForJob",true) {
+      igorService.getBuilds(buildMaster, job)
+    } execute()
+  }
+
+  Map getBuild(String buildMaster, String job, String number) {
+    if (!igorService) {
+      return [:]
+    }
+    HystrixFactory.newMapCommand(GROUP, "buildDetails",true) {
+      igorService.getBuild(buildMaster, job, number)
+    } execute()
+  }
 }
