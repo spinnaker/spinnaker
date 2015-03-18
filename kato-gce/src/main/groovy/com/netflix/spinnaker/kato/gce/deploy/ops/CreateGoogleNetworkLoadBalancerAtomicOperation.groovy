@@ -106,7 +106,7 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
 
     // Before building the forwarding rule we must check and wait until the target pool is built.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, targetPoolResourceOperation.getName(),
+    GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
         null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
 
     compute.forwardingRules().insert(project, region, forwarding_rule).execute()
