@@ -20,6 +20,7 @@ import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.gate.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.gate.services.EurekaLookupService
+import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.client.OkClient
 import retrofit.client.Request
@@ -38,7 +39,8 @@ class EurekaOkClient extends OkClient {
   private final Id discoveryId;
 
   @Autowired
-  EurekaOkClient(ExtendedRegistry registry, String name, EurekaLookupService eureka) {
+  EurekaOkClient(OkHttpClient okHttpClient, ExtendedRegistry registry, String name, EurekaLookupService eureka) {
+    super(okHttpClient)
     this.registry = registry
     this.eureka = eureka
     this.metricId = registry.createId("EurekaOkClient_Request").withTag("service", name)

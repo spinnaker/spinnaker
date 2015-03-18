@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -88,6 +89,9 @@ class GateConfig {
 
   @Autowired
   ServiceConfiguration serviceConfiguration
+
+  @Autowired
+  OkHttpClientConfig okHttpClientConfig
 
   @Bean
   OortService oortDeployService() {
@@ -189,7 +193,7 @@ class GateConfig {
         newFixedEndpoint("niws://${service.vipAddress}")
         : newFixedEndpoint(service.baseUrl)
 
-    def client = new EurekaOkClient(extendedRegistry, serviceName, eurekaLookupService)
+    def client = new EurekaOkClient(okHttpClientConfig.create(), extendedRegistry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
         .setEndpoint(endpoint)
@@ -222,6 +226,11 @@ class GateConfig {
 
       public void destroy() {}
     }
+  }
+
+  @Bean
+  Filter authenticatedRequestFilter() {
+    new AuthenticatedRequestFilter()
   }
 
   @Component
