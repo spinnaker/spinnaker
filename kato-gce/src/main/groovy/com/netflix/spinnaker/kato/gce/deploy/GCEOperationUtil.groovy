@@ -50,7 +50,7 @@ class GCEOperationUtil {
   // turn the asynchronous GCE client operations into synchronous calls. Will poll the state of the operation until
   // either state is DONE or |timeoutMillis| is reached.
   static Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
-                                            long timeoutSeconds, Task task, String resourceString, String basePhase) {
+                                            Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     // Note that we cannot use an Elvis operator here because we might have a timeoutSeconds value of
     // zero. In that case, we still want to pass that value. So we use null comparison here instead.
     return handleFinishedAsyncDeleteOperation(
@@ -60,7 +60,7 @@ class GCEOperationUtil {
   }
 
   static Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
-                                          long timeoutSeconds, Task task, String resourceString, String basePhase) {
+                                          Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     // See above comment for why we don't use an Elvis operator here.
     return handleFinishedAsyncDeleteOperation(
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},

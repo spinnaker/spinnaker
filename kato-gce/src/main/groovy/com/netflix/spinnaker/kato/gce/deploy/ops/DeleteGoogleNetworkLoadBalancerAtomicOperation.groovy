@@ -89,14 +89,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         compute.forwardingRules().delete(project, region, forwardingRuleName).execute()
 
     GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
-        timeoutSeconds, task, "forwarding rule" + forwardingRuleName, BASE_PHASE)
+        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
     Operation deleteTargetPoolOperation =
         compute.targetPools().delete(project, region, targetPoolName).execute()
 
     GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
-        timeoutSeconds, task, "target pool" + targetPoolName, BASE_PHASE)
+        timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
 
     // Now make a list of the delete operations for health checks.
     List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
@@ -113,7 +113,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     // Finally, wait on this list of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          timeoutSeconds, task, "health check" + asyncOperation.healthCheckName,
+          timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }
 

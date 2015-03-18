@@ -130,19 +130,19 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
         compute.globalForwardingRules().delete(project, forwardingRuleName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
-        timeoutSeconds, task, "forwarding rule" + forwardingRuleName, BASE_PHASE)
+        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target HTTP proxy $targetHttpProxyName..."
     Operation deleteTargetHttpProxyOperation = compute.targetHttpProxies().delete(project, targetHttpProxyName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
-        timeoutSeconds, task, "target http proxy" + targetHttpProxyName, BASE_PHASE)
+        timeoutSeconds, task, "target http proxy " + targetHttpProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
-        timeoutSeconds, task, "url map" + urlMapName, BASE_PHASE)
+        timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
 
     // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
@@ -159,7 +159,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     // Wait on all of these deletes to complete.
     for (BackendServiceAsyncDeleteOperation asyncOperation : deleteBackendServiceAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          timeoutSeconds, task, "backend service" + asyncOperation.backendServiceName, BASE_PHASE)
+          timeoutSeconds, task, "backend service " + asyncOperation.backendServiceName, BASE_PHASE)
     }
 
     // Now make a list of the delete operations for health checks.
@@ -177,7 +177,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     // Finally, wait on all of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          timeoutSeconds, task, "health check" + asyncOperation.healthCheckName,
+          timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }
 
