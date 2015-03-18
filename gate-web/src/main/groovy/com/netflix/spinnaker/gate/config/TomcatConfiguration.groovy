@@ -5,6 +5,8 @@ import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.Http11NioProtocol
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.Ssl
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory
@@ -21,57 +23,39 @@ class TomcatConfiguration {
   @Value('${default.apiPort:-1}')
   int apiPort
 
-  @Value('${server.ssl.keyStore}')
-  String keyStore
-
-  @Value('${server.ssl.keyStorePassword}')
-  String keyStorePassword
-
-  @Value('${server.ssl.keyStoreType}')
-  String keyStoreType
-
-  @Value('${server.ssl.trustStore}')
-  String trustStore
-
-  @Value('${server.ssl.trustStorePassword}')
-  String trustStorePassword
-
-  @Value('${server.ssl.trustStoreType}')
-  String trustStoreType
-
   /**
    * Setup multiple connectors:
    * - an https connector requiring client auth that will service API requests
    * - an http connector that will service legacy non-https requests
    */
   @Bean
-  public EmbeddedServletContainerFactory servletContainer() {
-    TomcatEmbeddedServletContainerFactory tomcat = new TomcatEmbeddedServletContainerFactory()
+  EmbeddedServletContainerCustomizer containerCustomizer() throws Exception {
+    return { ConfigurableEmbeddedServletContainer container ->
+      TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
 
-    if (legacyServerPort > 0) {
-      def httpConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
-      httpConnector.setScheme("http")
-      httpConnector.setPort(legacyServerPort)
-      tomcat.addAdditionalTomcatConnectors(httpConnector)
-    }
+      if (legacyServerPort > 0) {
+        def httpConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
+        httpConnector.setScheme("http")
+        httpConnector.setPort(legacyServerPort)
+        tomcat.addAdditionalTomcatConnectors(httpConnector)
+      }
 
-    if (apiPort > 0) {
-      def apiConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
-      apiConnector.setScheme("https")
-      apiConnector.setPort(apiPort)
+      if (apiPort > 0) {
+        def apiConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
+        apiConnector.setScheme("https")
+        apiConnector.setPort(apiPort)
 
-      tomcat.configureSsl(apiConnector.getProtocolHandler() as Http11NioProtocol, new Ssl(
-        keyStore: keyStore,
-        keyStorePassword: keyStorePassword,
-        keyStoreType: keyStoreType,
-        trustStore: trustStore,
-        trustStorePassword: trustStorePassword,
-        trustStoreType: trustStoreType,
-        clientAuth: Ssl.ClientAuth.NEED
-      ))
-      tomcat.addAdditionalTomcatConnectors(apiConnector)
-    }
+        def ssl = new Ssl()
+        tomcat.ssl.properties.each { k, v ->
+          try {
+            ssl."${k}" = v
+          } catch (ReadOnlyPropertyException ignored) {}
+        }
+        ssl.clientAuth = Ssl.ClientAuth.NEED
 
-    return tomcat
+        tomcat.configureSsl(apiConnector.getProtocolHandler() as Http11NioProtocol, ssl)
+        tomcat.addAdditionalTomcatConnectors(apiConnector)
+      }
+    } as EmbeddedServletContainerCustomizer
   }
 }
