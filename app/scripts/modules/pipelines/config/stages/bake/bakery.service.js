@@ -12,7 +12,7 @@ angular.module('deckApp.pipelines.stage.bake')
     }
 
     function getBaseLabelOptions() {
-      return $q.when(['release', 'candidate', 'unstable']);
+      return $q.when(['release', 'candidate', 'previous', 'unstable']);
     }
 
     function getVmTypes() {
