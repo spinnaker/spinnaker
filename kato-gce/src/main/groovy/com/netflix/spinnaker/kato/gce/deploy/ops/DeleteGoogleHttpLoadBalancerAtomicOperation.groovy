@@ -119,8 +119,6 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     }
     healthCheckUrls.unique()
 
-    // Note that we cannot use an Elvis operator here because we might have a deleteOperationTimeoutSeconds value
-    // of zero. In that case, we still want to pass that value. So we use null comparison here instead. MOVE THIS////////
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
     // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
