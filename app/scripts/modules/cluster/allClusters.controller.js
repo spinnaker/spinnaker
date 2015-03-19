@@ -12,33 +12,22 @@ angular.module('clusters.all', [
   'deckApp.serverGroup.configure.common.service',
   'deckApp.utils.waypoints.container.directive',
 ])
-  .controller('AllClustersCtrl', function($scope, application, $modal,
+  .controller('AllClustersCtrl', function($scope, application, $modal, $location,
                                           securityGroupReader, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
-    // Because we use reloadOnSearch: false for this state, and reloadOnSearch doesn't discriminate parameters,
-    // we won't change state when the application changes in the URL via global search or manually changing the URL
-    // if the current view is 'clusters'. So we must brutally reload the entire page.
-    $scope.$on('$locationChangeStart', function(event, newLocation, currentLocation) {
-      var pattern = /applications\/(.+)\/clusters([^\/]?)/;
-      var newLocationMatch = pattern.exec(newLocation),
-          currentLocationMatch = pattern.exec(currentLocation);
-      if (newLocationMatch && currentLocationMatch && newLocationMatch[1] !== currentLocationMatch[1]) {
-        $window.location.reload();
+    var searchCache = null;
+
+    $scope.$on('$stateChangeStart', function() {
+      searchCache = $location.search();
+    });
+    $scope.$on('$stateChangeSuccess', function() {
+      if (searchCache) {
+        $location.search(searchCache);
       }
     });
-
-    this.updateSorting = function updateSorting() {
-      var sortFilter = $scope.sortFilter;
-      if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
-        sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
-      }
-      this.updateClusterGroups();
-    }.bind(this);
-
-    $scope.$watch('sortFilter.sortPrimary', this.updateSorting);
 
     function addSearchFields() {
       application.clusters.forEach(function(cluster) {

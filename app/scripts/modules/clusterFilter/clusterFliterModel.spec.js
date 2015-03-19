@@ -2,15 +2,25 @@
 
 describe('Model: ClusterFilterModel', function () {
 
+
   var ClusterFilterModel;
-  var $stateParams;
+  var $location;
+  var searchParams;
 
   beforeEach(module('cluster.filter.model'));
   beforeEach(
     inject(
-      function (_ClusterFilterModel_, _$stateParams_) {
+      function (_ClusterFilterModel_, _$location_) {
         ClusterFilterModel = _ClusterFilterModel_;
-        $stateParams = _$stateParams_;
+        $location = _$location_;
+        spyOn($location, 'search').and.callFake(function(key, val) {
+          if (key) {
+            searchParams[key] = val;
+          } else {
+            return searchParams;
+          }
+        });
+        searchParams = {};
       }
     )
   );
@@ -30,7 +40,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('only one account in the query string', function () {
       it('should set the prod account to the model', function () {
-        $stateParams.acct = 'prod';
+        searchParams.acct = 'prod';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.account).toEqual({'prod' : true});
       });
@@ -38,7 +48,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('multiple accounts in the query string', function () {
       it('should set the prod account to the model', function () {
-        $stateParams.acct = 'prod,test';
+        searchParams.acct = 'prod,test';
         ClusterFilterModel.activate()
         expect(ClusterFilterModel.sortFilter.account).toEqual({'prod' : true, test: true});
       });
@@ -55,7 +65,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('one regions in the query string', function () {
       it('should set the us-west-1 region on the model', function () {
-        $stateParams.reg = 'us-west-1';
+        searchParams.reg = 'us-west-1';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true})
       });
@@ -63,7 +73,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('multiple regions in the query string', function () {
       it('should set the all the regions region on the model', function () {
-        $stateParams.reg = 'us-west-1,eu-west-1,us-east-2';
+        searchParams.reg = 'us-west-1,eu-west-1,us-east-2';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true, 'eu-west-1': true, 'us-east-2': true})
       });
@@ -74,13 +84,13 @@ describe('Model: ClusterFilterModel', function () {
   describe('status filters', function () {
 
     beforeEach(function () {
-      $stateParams.status = undefined;
+      searchParams.status = undefined;
     });
 
     describe('status healthy server groups', function () {
       describe('healthy as status on query string', function () {
         it('should set the healthy status on the model', function () {
-          $stateParams.status = 'healthy';
+          searchParams.status = 'healthy';
           ClusterFilterModel.activate();
           expect(ClusterFilterModel.sortFilter.status).toEqual({'healthy': true});
         });
@@ -98,7 +108,7 @@ describe('Model: ClusterFilterModel', function () {
     describe('status: unhealthy server groups', function () {
       describe('healthy as status on query string', function () {
         it('should set the unhealthy status on the model', function () {
-          $stateParams.status = 'unhealthy';
+          searchParams.status = 'unhealthy';
           ClusterFilterModel.activate();
           expect(ClusterFilterModel.sortFilter.status).toEqual({'unhealthy': true});
         });
@@ -114,7 +124,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('status: disabled ', function () {
       it('should set the disabled status on the model', function () {
-        $stateParams.status = 'disabled';
+        searchParams.status = 'disabled';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.status).toEqual({disabled: true});
       });
@@ -122,7 +132,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('status: unknown', function () {
       it('should set the unknown status on the model', function () {
-        $stateParams.status = 'unknown';
+        searchParams.status = 'unknown';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.status).toEqual({unknown: true});
       });
@@ -131,12 +141,12 @@ describe('Model: ClusterFilterModel', function () {
 
   describe('provider types', function () {
     beforeEach(function () {
-      $stateParams.providerType = undefined;
+      searchParams.providerType = undefined;
     });
 
     describe('setting aws', function () {
       it('should set the provider type of aws on the model', function () {
-        $stateParams.providerType = 'aws';
+        searchParams.providerType = 'aws';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.providerType).toEqual({aws: true});
       });
@@ -149,7 +159,7 @@ describe('Model: ClusterFilterModel', function () {
 
     describe('setting multiple provider types', function () {
       it('should set all selected provider types on the model', function () {
-        $stateParams.providerType = 'aws,gce';
+        searchParams.providerType = 'aws,gce';
         ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.providerType).toEqual({aws: true, gce: true});
       });
@@ -159,11 +169,11 @@ describe('Model: ClusterFilterModel', function () {
 
   describe('instance types', function () {
     beforeEach(function () {
-      $stateParams.instanceType = undefined;
+      searchParams.instanceType = undefined;
     });
 
     it('should set the instance type of m3.large on the model', function () {
-      $stateParams.instanceType = 'm3.large';
+      searchParams.instanceType = 'm3.large';
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.instanceType).toEqual({'m3.large': true});
     });
@@ -174,7 +184,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should set multiple instance types on the model', function () {
-      $stateParams.instanceType = 'm3.large,m3.medium';
+      searchParams.instanceType = 'm3.large,m3.medium';
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.instanceType).toEqual({'m3.large': true, 'm3.medium': true});
     });
@@ -188,7 +198,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should set the primary sort if set on the query string', function () {
-      $stateParams.primary= 'cluster';
+      searchParams.primary= 'cluster';
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.sortPrimary).toBe('cluster');
     });
@@ -198,7 +208,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should set the secondary sort to the region set on the query string', function () {
-      $stateParams.secondary = 'not-region';
+      searchParams.secondary = 'not-region';
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.sortSecondary).toBe('not-region');
     });
@@ -208,7 +218,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should set the filter to what is on the query string', function () {
-      $stateParams.q = 'us-west';
+      searchParams.q = 'us-west';
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.filter).toBe('us-west');
     });
@@ -218,19 +228,19 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should NOT show all the instances if the param IS on the query string', function () {
-      $stateParams.hideInstances  = true
+      searchParams.hideInstances  = true
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(false);
     });
 
     it('should hide the health clusters if the param is on the query string', function () {
-      $stateParams.hideHealthy = true;
+      searchParams.hideHealthy = true;
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(true);
     });
 
     it('should show the healthy clustes if the param is NOT on the query string', function () {
-      $stateParams.hideHealthy = false;
+      searchParams.hideHealthy = false;
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.hideHealthy).toBe(false);
     });
@@ -240,7 +250,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should hide the disabled if the param is on the query string', function () {
-      $stateParams.hideDisabled = true;
+      searchParams.hideDisabled = true;
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.hideDisabled).toBe(true);
     });

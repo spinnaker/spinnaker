@@ -87,7 +87,13 @@ angular.module('deckApp.states', [
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails/:provider/:accountId/:region/:name?vpcId',
+        url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
+        params: {
+          vpcId: {
+            value: null,
+            squash: 'ec2-classic',
+          },
+        },
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
@@ -122,7 +128,13 @@ angular.module('deckApp.states', [
 
       var securityGroupDetails = {
         name: 'securityGroupDetails',
-        url: '/securityGroupDetails/:provider/:accountId/:region/:name?vpcId',
+        url: '/securityGroupDetails/:provider/:accountId/:region/:vpcId/:name',
+        params: {
+          vpcId: {
+            value: null,
+            squash: 'ec2-classic',
+          },
+        },
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
@@ -196,8 +208,7 @@ angular.module('deckApp.states', [
         children: [
           {
           name: 'clusters',
-          reloadOnSearch: false,
-          url: '/clusters?q&primary&secondary&hideInstances&listInstances&acct&reg&status&providerType&instanceType&zone&instanceSort',
+          url: '/clusters',
           views: {
             'nav': {
               templateUrl: 'scripts/modules/clusterFilter/filterNav.html',
