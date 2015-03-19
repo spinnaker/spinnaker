@@ -175,6 +175,77 @@ class CopyLastAsgStageSpec extends Specification {
     account = "prod"
   }
 
+  @Unroll
+  def "configures destroy ASG task #calledDestroyAsgNumTimes times if maxRemainingAsgs is defined"() {
+    given:
+    def config = [
+      application: "deck",
+      availabilityZones: [(region): []],
+      stack: "main",
+      account: account,
+      source  : [
+        account: account,
+        asgName: asgNames.last(),
+        region : region
+      ],
+      strategy: "redblack",
+      maxRemainingAsgs: maxRemainingAsgs
+    ]
+
+    and:
+    def stage = new PipelineStage(null, "copyLastAsg", config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
+
+    when:
+    copyLastAsgStage.buildSteps(stage)
+
+    then:
+    1 * oort.getCluster("deck", account, "deck-main", "aws") >> {
+      def responseBody = [
+        serverGroups: asgNames.collect { name ->
+          [name: name, region: region]
+        }
+      ]
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(responseBody)
+        )
+      )
+    }
+
+    and:
+    calledDestroyAsgNumTimes + 1  == stage.afterStages.size()
+
+    and:
+    if(calledDestroyAsgNumTimes > 0) {
+      def index = 0
+      stage.afterStages[1..calledDestroyAsgNumTimes].context.every { it ->
+        it == [asgName: asgNames.get(index++), regions: [region.toString()], credentials: account.toString()]
+      }
+      stage.afterStages[1..calledDestroyAsgNumTimes].stageBuilder.every { it ->
+        it == destroyAsgStage
+      }
+    }
+
+    where:
+    asgNames | region | account | maxRemainingAsgs | calledDestroyAsgNumTimes
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 3 | 1
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 2 | 2
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 1 | 3
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 0 | 0
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | -1 | 0
+
+    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 0 | 0
+    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 1 | 1
+    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 2 | 0
+
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 4 | 0
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 5 | 0
+  }
+
   def "doesn't configure any cleanup steps if no strategy is specified"() {
     given:
     def config = [

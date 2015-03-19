@@ -33,6 +33,7 @@ import retrofit.mime.TypedByteArray
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DeployStageSpec extends Specification {
 
@@ -209,6 +210,65 @@ class DeployStageSpec extends Specification {
     }
     4 == stage.afterStages.size()
     stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage, shrinkClusterStage]
+  }
+
+  @Unroll
+  void "should create stages of deploy, disableAsg, and destroyAsg stages when strategy is redblack and maxRemainingAsgs is defined"() {
+    setup:
+    def pipeline = new Pipeline()
+    def config = mapper.readValue(configJson, Map)
+    config.cluster.strategy = "redblack"
+    config.cluster.maxRemainingAsgs = maxRemainingAsgs
+
+    def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
+    stage.beforeStages = new NeverClearedArrayList()
+    stage.afterStages = new NeverClearedArrayList()
+
+    when:
+    deployStage.buildSteps(stage)
+
+    then:
+    "should call to oort to get the last ASG so that we know what to disable"
+    1 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      def cluster = [serverGroups: asgs]
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          objectMapper.writeValueAsBytes(cluster)
+        )
+      )
+    }
+
+    and:
+    stage.afterStages[0].stageBuilder == disableAsgStage
+    1 + calledDestroyAsgNumTimes  == stage.afterStages.size()
+
+    and:
+    if(calledDestroyAsgNumTimes > 0) {
+      def index = 0
+      stage.afterStages[1..calledDestroyAsgNumTimes].context.every { it ->
+        it == [asgName: asgs.get(index++).name, regions: ["us-west-1"], credentials: config.account]
+      }
+      stage.afterStages[1..calledDestroyAsgNumTimes].stageBuilder.every { it ->
+        it == destroyAsgStage
+      }
+    }
+
+    where:
+    asgs | maxRemainingAsgs | calledDestroyAsgNumTimes
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 3 | 1
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 2 | 2
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 1 | 3
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 0 | 0
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | -1 | 0
+
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 0 | 0
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 1 | 1
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 2 | 0
+
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [ name: "pond-prestaging-v304", region: "us-west-1" ]] | 4 | 0
+    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name :"pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 5 | 0
   }
 
   void "should create stages of deploy and destroyAsg when strategy is highlander"() {

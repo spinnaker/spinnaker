@@ -100,7 +100,6 @@ class DeployStrategyStageSpec extends Specification {
 
     def oort = Mock(OortService)
 
-
     when:
     new TestDeployStrategyStage(oort: oort, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
 
@@ -113,6 +112,35 @@ class DeployStrategyStageSpec extends Specification {
       name == 'disable'
       context.asgName == 'foo-test-v001'
     }
+  }
+
+  @Unroll
+  void "sortAsgs works as expected for (#inputAsgs => #expectedSortedAsgs)"() {
+    when:
+    def testDeployStrategyStage = new TestDeployStrategyStage()
+    def sorted = testDeployStrategyStage.sortAsgs(inputAsgs)
+
+    then:
+    sorted == expectedSortedAsgs
+
+    where:
+    inputAsgs | expectedSortedAsgs
+    ["asgard-test","asgard-test-v000"] | ["asgard-test","asgard-test-v000"]
+    ["asgard-test-v000","asgard-test"] | ["asgard-test","asgard-test-v000"]
+    ["asgard-test","asgard-test-v999"] | ["asgard-test-v999","asgard-test"]
+    ["asgard-test-v999","asgard-test"] | ["asgard-test-v999","asgard-test"]
+    ["asgard-test-v999","asgard-test-v002"] | ["asgard-test-v999","asgard-test-v002"]
+    ["asgard-test-v002","asgard-test-v999"] | ["asgard-test-v999","asgard-test-v002"]
+    ["asgard-test-v999","asgard-test-v002", "asgard-test"] | ["asgard-test-v999","asgard-test", "asgard-test-v002"]
+    ["asgard-test-v999","asgard-test", "asgard-test-v002"] | ["asgard-test-v999","asgard-test", "asgard-test-v002"]
+    ["asgard-test-v001","asgard-test-v002"] | ["asgard-test-v001","asgard-test-v002"]
+    ["asgard-test-v002","asgard-test-v001"] | ["asgard-test-v001","asgard-test-v002"]
+    ["asgard-test-v002","asgard-test-v003","asgard-test-v001"] | ["asgard-test-v001","asgard-test-v002","asgard-test-v003"]
+    ["asgard-test-v000","asgard-test-v999","asgard-test-v998"] | ["asgard-test-v998","asgard-test-v999","asgard-test-v000"]
+    ["asgard-test-v000","asgard-test-v999","asgard-test-v001"] | ["asgard-test-v999","asgard-test-v000","asgard-test-v001"]
+    ["asgard-test-v001","asgard-test-v000","asgard-test-v002"] |  ["asgard-test-v000","asgard-test-v001","asgard-test-v002"]
+    ["asgard-test-v001","asgard-test-v000","asgard-test"] |  ["asgard-test","asgard-test-v000","asgard-test-v001"]
+    ["asgard-test-v000","asgard-test-v999","asgard-test"] |  ["asgard-test-v999","asgard-test","asgard-test-v000"]
   }
 
   static class TestDeployStrategyStage extends DeployStrategyStage {

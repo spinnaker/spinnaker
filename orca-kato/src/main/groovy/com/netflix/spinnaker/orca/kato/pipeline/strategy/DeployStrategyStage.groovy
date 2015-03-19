@@ -110,11 +110,13 @@ abstract class DeployStrategyStage extends LinearStage {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
-        def latestAsg = existingAsgs.findAll { it.region == region }.sort { a, b -> b.name <=> a.name }?.getAt(0)
+        def asgs = sortAsgs(existingAsgs.findAll { it.region == region }.collect { it.name})
+        def latestAsg = asgs.size() > 0 ? asgs?.last() : null
+
         if (!latestAsg) {
           continue
         }
-        def nextStageContext = [asgName: latestAsg.name, regions: [region], credentials: cleanupConfig.account]
+        def nextStageContext = [asgName: latestAsg, regions: [region], credentials: cleanupConfig.account]
 
         if (nextStageContext.asgName) {
           def names = Names.parseName(nextStageContext.asgName as String)
@@ -134,10 +136,18 @@ abstract class DeployStrategyStage extends LinearStage {
           injectAfter(stage, "enableTerminate", modifyScalingProcessStage, nextStageContext)
         }
         if (stageData.shrinkCluster) {
-          Names names = Names.parseName(latestAsg.name as String)
+          Names names = Names.parseName(latestAsg as String)
           def shrinkContext = [application: names.app, clusterName: names.cluster,
                                forceDelete: true, regions: [region], credentials: cleanupConfig.account]
           injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
+        }
+        // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
+        if(stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
+          asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
+            logger.info("Injecting destroyAsg stage (${region}:${asg})")
+            nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
+            injectAfter(stage, "destroyAsg", destroyAsgStage, nextStageContext)
+          }
         }
       }
     }
@@ -173,6 +183,34 @@ abstract class DeployStrategyStage extends LinearStage {
     }
   }
 
+  protected List sortAsgs(List asgs) {
+    def mc = [
+        compare: {
+          String a, String b ->
+            // cases where there is no version
+            if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
+              1
+            } else if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
+              -1
+            } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900) {
+              1
+            } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900) {
+              -1
+              // cases where versions cross 999
+            } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
+              1
+            } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
+              -1
+            } else { // normal case
+              int aNum = Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2))
+              int bNum = Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2))
+              aNum.equals(bNum) ? 0 : Math.abs(aNum) < Math.abs(bNum) ? -1 : 1
+            }
+        }
+      ] as Comparator
+    return asgs.sort(true, mc)
+  }
+
   private List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
     try {
       def response = oort.getCluster(app, account, cluster, providerType)
@@ -195,6 +233,7 @@ abstract class DeployStrategyStage extends LinearStage {
     boolean scaleDown
     boolean shrinkCluster
     Map<String, List<String>> availabilityZones
+    int maxRemainingAsgs
 
     String getCluster() {
       def builder = new AutoScalingGroupNameBuilder()
