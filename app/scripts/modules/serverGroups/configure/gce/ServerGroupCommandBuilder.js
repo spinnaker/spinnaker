@@ -63,6 +63,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       var command = {
         application: application.name,
         region: defaults.region || 'us-central1',
+        strategy: 'redblack',
         capacity: {
           min: 0,
           max: 0,
@@ -113,6 +114,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
 
       var command = {
         application: application.name,
+        strategy: 'redblack',
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
