@@ -33,6 +33,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
             application: application.name,
             credentials: defaultCredentials,
             region: defaultRegion,
+            strategy: 'redblack',
             capacity: {
               min: 1,
               max: 1,
@@ -132,7 +133,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
 
         var command = {
           application: application.name,
-          strategy: '',
+          strategy: 'redblack',
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
