@@ -2,16 +2,22 @@ package com.netflix.spinnaker.gate.config
 
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Configuration
 
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
+import java.security.AccessController
 import java.security.KeyStore
+import java.security.NoSuchAlgorithmException
+import java.security.PrivilegedAction
 import java.security.SecureRandom
+import java.security.Security
 import java.util.concurrent.TimeUnit
 
+@Slf4j
 @CompileStatic
 @Configuration
 @ConfigurationProperties(prefix="okHttpClient")
@@ -52,7 +58,24 @@ class OkHttpClientConfig {
     }
     trustManagerFactory.init(ts)
 
-    sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, SecureRandom.getInstanceStrong())
+    String strongAlgorithms = AccessController.doPrivileged(
+      new PrivilegedAction<String>() {
+        @Override
+        public String run() {
+          return Security.getProperty(
+            "securerandom.strongAlgorithms");
+        }
+      });
+    log.info("Available strong algorithms: ${strongAlgorithms}")
+
+    def secureRandom = new SecureRandom()
+    try {
+      secureRandom = SecureRandom.getInstanceStrong()
+    } catch (NoSuchAlgorithmException e) {
+      log.error("Unable to fetch strong secure random instance", e)
+    }
+
+    sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, secureRandom)
     okHttpClient.setSslSocketFactory(sslContext.socketFactory)
 
     return okHttpClient

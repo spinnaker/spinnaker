@@ -46,7 +46,9 @@ class AuthenticatedRequestFilter implements Filter {
       }
     }
 
-    MDC.put(AUTHENTICATED_USER, authenticatedUser)
+    if (authenticatedUser) {
+      MDC.put(AUTHENTICATED_USER, authenticatedUser)
+    }
     try {
       chain.doFilter(request, response)
     } finally {

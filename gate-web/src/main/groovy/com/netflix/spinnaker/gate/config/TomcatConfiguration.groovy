@@ -28,6 +28,7 @@ class TomcatConfiguration {
    * - an http connector that will service legacy non-https requests
    */
   @Bean
+  @ConditionalOnExpression('${server.ssl.enabled:false}')
   EmbeddedServletContainerCustomizer containerCustomizer() throws Exception {
     return { ConfigurableEmbeddedServletContainer container ->
       TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
