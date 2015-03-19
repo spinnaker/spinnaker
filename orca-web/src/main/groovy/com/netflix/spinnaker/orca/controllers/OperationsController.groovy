@@ -50,7 +50,7 @@ class OperationsController {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
-    pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user] + pipeline.trigger
+    pipeline.trigger = [type: "manual", user: user] + pipeline.trigger
 
     if (igorService) {
       if (master && job && buildNumber) {

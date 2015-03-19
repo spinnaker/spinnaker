@@ -16,67 +16,44 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import groovy.json.JsonSlurper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import org.springframework.batch.core.JobInstance
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import spock.lang.Ignore
 import spock.lang.Specification
+import spock.lang.Unroll
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
-@Ignore
 class OperationsControllerSpec extends Specification {
+
   MockMvc mockMvc
-  PipelineStarter pipelineStarter
-  List jobs
+  def pipelineStarter = Mock(PipelineStarter)
 
   void setup() {
-    pipelineStarter = Mock(PipelineStarter)
     mockMvc = MockMvcBuilders.standaloneSetup(
       new OperationsController(objectMapper: new OrcaObjectMapper(), pipelineStarter: pipelineStarter)
     ).build()
-    jobs = [
-      [instance: new JobInstance(0, 'jobOne'), name: 'jobOne', id: 0],
-      [instance: new JobInstance(1, 'jobTwo'), name: 'jobTwo', id: 1]
-    ]
   }
 
-  void '/ops accepts application/context+json'() {
-    setup:
-    def pipeline = Mock(Pipeline)
-    pipeline.getId() >> "1"
-
+  @Unroll
+  void '/orchestrate accepts #contentType'() {
     when:
-    MockHttpServletResponse response = mockMvc.perform(
-      post('/ops')
-        .contentType(MediaType.valueOf('application/context+json'))
-        .content('{}')
+    def resp = mockMvc.perform(
+      post('/orchestrate').contentType(contentType).content('{}')
     ).andReturn().response
 
     then:
-    pipelineStarter.start(_) >> rx.Observable.from(pipeline)
-    response.status == 200
-  }
+    1 * pipelineStarter.start(_) >> pipeline
 
-  void '/ops accepts application/json'() {
-    setup:
-    def jobExecution = Mock(Pipeline)
-
-    when:
-    MockHttpServletResponse resp = mockMvc.perform(
-      post('/ops')
-        .contentType(MediaType.APPLICATION_JSON)
-        .content('[]')
-    ).andReturn().response
-
-    then:
-    pipelineStarter.start(_) >> rx.Observable.from(jobExecution)
-    jobExecution.id >> 1
+    and:
     resp.status == 200
+    new JsonSlurper().parseText(resp.contentAsString).ref == "/pipelines/$pipeline.id"
+
+    where:
+    contentType << [MediaType.APPLICATION_JSON, MediaType.valueOf('application/context+json')]
+    pipeline = new Pipeline(id: "1")
   }
 }
