@@ -54,28 +54,31 @@ class OperationsController {
 
     if (igorService) {
       if (master && job && buildNumber) {
-        def build = igorService.getBuild(master, job, buildNumber)
-        if (build) {
-          pipeline.trigger.job = job
-          pipeline.trigger.master = master
-          pipeline.trigger.buildNumber = buildNumber
-          pipeline.trigger.buildInfo = build
-          if (propertyFile) {
-            pipeline.trigger.propertyFile = propertyFile
-          }
+        pipeline.trigger.job = job
+        pipeline.trigger.master = master
+        pipeline.trigger.buildNumber = buildNumber
+        if (propertyFile) {
+          pipeline.trigger.propertyFile = propertyFile
         }
       }
 
-      if (pipeline.trigger?.propertyFile) {
-        pipeline.trigger.properties = igorService.getPropertyFile(
-          pipeline.trigger.master as String,
-          pipeline.trigger.job as String,
-          pipeline.trigger.buildNumber as Integer,
-          pipeline.trigger.propertyFile as String
+      getBuildInfo(pipeline.trigger)
+    }
+    startPipeline(pipeline)
+  }
+
+  private void getBuildInfo(Map trigger) {
+    if (trigger.master && trigger.job && trigger.buildNumber) {
+      trigger.buildInfo = igorService.getBuild(trigger.master, trigger.job, trigger.buildNumber)
+      if (trigger.propertyFile) {
+        trigger.properties = igorService.getPropertyFile(
+          trigger.master as String,
+          trigger.job as String,
+          trigger.buildNumber as Integer,
+          trigger.propertyFile as String
         )
       }
     }
-    startPipeline(pipeline)
   }
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)

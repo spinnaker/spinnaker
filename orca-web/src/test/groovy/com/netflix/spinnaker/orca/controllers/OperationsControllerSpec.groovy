@@ -69,34 +69,42 @@ class OperationsControllerSpec extends Specification {
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
+    igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
     controller.orchestrate(requestedPipeline, null, null, null, null, null)
 
     then:
-    with(startedPipeline.trigger) {
-      type == requestedPipeline.trigger.type
-      master == requestedPipeline.trigger.master
-      job == requestedPipeline.trigger.job
+    with(startedPipeline) {
+      trigger.type == requestedPipeline.trigger.type
+      trigger.master == master
+      trigger.job == job
+      trigger.buildNumber == buildNumber
+      trigger.buildInfo == buildInfo
     }
 
     where:
+    master = "master"
+    job = "job"
+    buildNumber = 1337
     requestedPipeline = [
       trigger: [
-        type  : "jenkins",
-        master: "master",
-        job   : "job"
+        type       : "jenkins",
+        master     : master,
+        job        : job,
+        buildNumber: buildNumber
       ]
     ]
+    buildInfo = [result: "SUCCESS"]
   }
 
-  def "uses trigger details from query string parameters if present"() {
+  def "uses trigger details from query string if present"() {
     given:
     Pipeline startedPipeline = null
     pipelineStarter.start(_) >> { String json ->
       startedPipeline = mapper.readValue(json, Pipeline)
     }
-    igor.getBuild(master, job, buildNumber) >> [foo: "bar"]
+    igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
     controller.orchestrate([:], user, master, job, buildNumber, null)
@@ -108,6 +116,7 @@ class OperationsControllerSpec extends Specification {
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
+      trigger.buildInfo == buildInfo
     }
 
     where:
@@ -115,6 +124,7 @@ class OperationsControllerSpec extends Specification {
     master = "master"
     job = "job"
     buildNumber = 1337
+    buildInfo = [result: "SUCCESS"]
   }
 
   def "query string trigger details override those from the pipeline"() {
