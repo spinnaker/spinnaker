@@ -141,7 +141,7 @@ angular.module('deckApp.pipelines')
           viewState = $scope.viewState;
 
       $scope.viewState.saving = true;
-      pipelineConfigService.savePipeline(pipeline, viewState.originalPipelineName).then(
+      pipelineConfigService.savePipeline(pipeline).then(
         function() {
           viewState.original = angular.toJson(getPlain(pipeline));
           viewState.originalPipelineName = pipeline.name;
