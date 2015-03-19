@@ -1,6 +1,6 @@
 <div class="stage-label">
-  <span>{{stage.name}}</span>
-  <span ng-repeat="result in stage.masterStage.context.buildInfo.testResults" class="pad-left">
+  <div>{{stage.name}}</div>
+  <div ng-repeat="result in stage.masterStage.context.buildInfo.testResults" class="test-results-label">
     (
     <span class="tests-pass-count">
     {{result.totalCount - result.failCount - result.skipCount}}</span>
@@ -13,5 +13,5 @@
       {{result.skipCount}}
     </span>
     )
-  </span>
+  </div>
 </div>
