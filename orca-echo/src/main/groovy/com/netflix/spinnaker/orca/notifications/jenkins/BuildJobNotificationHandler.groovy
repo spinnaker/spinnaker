@@ -42,8 +42,11 @@ class BuildJobNotificationHandler extends AbstractNotificationHandler {
           def pipelineConfigClone = new HashMap(pipelineConfig)
           pipelineConfigClone.trigger = new HashMap(trigger)
           pipelineConfigClone.trigger.buildInfo = input
-          if(igorService && pipelineConfigClone.trigger.propertyFile ){
-            pipelineConfigClone.trigger.properties = igorService.getPropertyFile(input.master, input.name, input.lastBuild?.number, pipelineConfigClone.trigger.propertyFile)
+          if(igorService && input.lastBuild?.number){
+            pipelineConfigClone.trigger.buildInfo = igorService.getBuild(input.master, input.name, input.lastBuild?.number)
+            if( pipelineConfigClone.trigger.propertyFile ) {
+              pipelineConfigClone.trigger.properties = igorService.getPropertyFile(input.master, input.name, input.lastBuild?.number, pipelineConfigClone.trigger.propertyFile)
+            }
           }
           def json = objectMapper.writeValueAsString(pipelineConfigClone)
           log.info "Starting pipeline '$pipelineConfig.name' for application '$pipelineConfig.application' due to Jenkins job '$key.job'"
