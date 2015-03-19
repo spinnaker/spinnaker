@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @Slf4j
-@ConditionalOnExpression('${server.ssl.enabled:false}')
 class TomcatConfiguration {
   @Value('${default.legacyServerPort:7101}')
   int legacyServerPort
