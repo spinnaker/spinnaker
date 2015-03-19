@@ -39,7 +39,7 @@ ext {
         retrofit: "1.6.1",
         rx      : "0.20.2",
         slf4j   : "1.7.5",
-        spock   : "1.0-groovy-2.3-SNAPSHOT",
+        spock   : "1.0-groovy-2.3",
         spring  : "4.0.6.RELEASE"
     ]
 
