@@ -17,32 +17,33 @@
 package com.netflix.spinnaker.orca.controllers
 
 import groovy.json.JsonSlurper
+import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class OperationsControllerSpec extends Specification {
 
-  MockMvc mockMvc
   def pipelineStarter = Mock(PipelineStarter)
-
-  void setup() {
-    mockMvc = MockMvcBuilders.standaloneSetup(
-      new OperationsController(objectMapper: new OrcaObjectMapper(), pipelineStarter: pipelineStarter)
-    ).build()
-  }
+  def igor = Stub(IgorService)
+  def mapper = new OrcaObjectMapper()
+  @Subject
+    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, igorService: igor)
 
   @Unroll
-  void '/orchestrate accepts #contentType'() {
+  void '#endpoint accepts #contentType'() {
+    given:
+    def mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+
     when:
     def resp = mockMvc.perform(
-      post('/orchestrate').contentType(contentType).content('{}')
+      post(endpoint).contentType(contentType).content('{}')
     ).andReturn().response
 
     then:
@@ -50,10 +51,172 @@ class OperationsControllerSpec extends Specification {
 
     and:
     resp.status == 200
-    new JsonSlurper().parseText(resp.contentAsString).ref == "/pipelines/$pipeline.id"
+    slurp(resp.contentAsString).ref == "/pipelines/$pipeline.id"
 
     where:
     contentType << [MediaType.APPLICATION_JSON, MediaType.valueOf('application/context+json')]
+    endpoint = "/orchestrate"
     pipeline = new Pipeline(id: "1")
+  }
+
+  private Map slurp(String json) {
+    new JsonSlurper().parseText(json)
+  }
+
+  def "uses trigger details from pipeline if present"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    when:
+    controller.orchestrate(requestedPipeline, null, null, null, null, null)
+
+    then:
+    with(startedPipeline.trigger) {
+      type == requestedPipeline.trigger.type
+      master == requestedPipeline.trigger.master
+      job == requestedPipeline.trigger.job
+    }
+
+    where:
+    requestedPipeline = [
+      trigger: [
+        type  : "jenkins",
+        master: "master",
+        job   : "job"
+      ]
+    ]
+  }
+
+  def "uses trigger details from query string parameters if present"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    igor.getBuild(master, job, buildNumber) >> [foo: "bar"]
+
+    when:
+    controller.orchestrate([:], user, master, job, buildNumber, null)
+
+    then:
+    with(startedPipeline) {
+      trigger.type == "manual"
+      trigger.user == user
+      trigger.master == master
+      trigger.job == job
+      trigger.buildNumber == buildNumber
+    }
+
+    where:
+    user = "fzlem"
+    master = "master"
+    job = "job"
+    buildNumber = 1337
+  }
+
+  def "query string trigger details override those from the pipeline"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
+
+    when:
+    controller.orchestrate(requestedPipeline, user, master, job, buildNumber, null)
+
+    then:
+    with(startedPipeline) {
+      trigger.type == requestedPipeline.trigger.type
+      trigger.user == user
+      trigger.master == master
+      trigger.job == job
+      trigger.buildNumber == buildNumber
+    }
+
+    where:
+    requestedPipeline = [
+      trigger: [
+        type  : "jenkins",
+        master: "master",
+        job   : "job"
+      ]
+    ]
+    user = "fzlem"
+    master = "qs-master"
+    job = "qs-job"
+    buildNumber = 1337
+  }
+
+  def "gets properties file from igor if specified in query string"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
+    igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
+
+    when:
+    controller.orchestrate(requestedPipeline, user, master, job, buildNumber, propertyFile)
+
+    then:
+    with(startedPipeline) {
+      trigger.propertyFile == propertyFile
+      trigger.properties == propertyFileContent
+    }
+
+    where:
+    requestedPipeline = [
+      trigger: [
+        type  : "jenkins",
+        master: "master",
+        job   : "job"
+      ]
+    ]
+    user = "fzlem"
+    master = "qs-master"
+    job = "qs-job"
+    buildNumber = 1337
+    propertyFile = "foo.properties"
+    propertyFileContent = [foo: "bar"]
+  }
+
+  def "gets properties file from igor if specified in pipeline"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
+    igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
+
+    when:
+    controller.orchestrate(requestedPipeline, null, null, null, null, null)
+
+    then:
+    with(startedPipeline) {
+      trigger.propertyFile == propertyFile
+      trigger.properties == propertyFileContent
+    }
+
+    where:
+    master = "qs-master"
+    job = "qs-job"
+    buildNumber = 1337
+    propertyFile = "foo.properties"
+    requestedPipeline = [
+      trigger: [
+        type        : "jenkins",
+        master      : master,
+        job         : job,
+        buildNumber : buildNumber,
+        propertyFile: propertyFile
+      ]
+    ]
+    propertyFileContent = [foo: "bar"]
   }
 }

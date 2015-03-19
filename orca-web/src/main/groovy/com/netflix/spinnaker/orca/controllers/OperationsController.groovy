@@ -58,6 +58,7 @@ class OperationsController {
         if (build) {
           pipeline.trigger.job = job
           pipeline.trigger.master = master
+          pipeline.trigger.buildNumber = buildNumber
           pipeline.trigger.buildInfo = build
           if (propertyFile) {
             pipeline.trigger.propertyFile = propertyFile
