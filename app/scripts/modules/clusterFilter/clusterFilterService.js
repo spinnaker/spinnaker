@@ -6,22 +6,21 @@ angular
     'deckApp.utils.lodash',
     'deckApp.utils.waypoints.service',
   ])
-  .factory('clusterFilterService', function ($location, $stateParams, ClusterFilterModel, _, waypointService) {
+  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService) {
 
     var lastApplication = null;
 
     function updateQueryParams() {
-
       var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
           locationQ = $location.search().q || null;
       if (filter !== locationQ) {
         $location.search('q',
-            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : '');
+            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : null);
       }
       $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
       $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? 'true' : null);
       $location.search('instanceSort',
-          ClusterFilterModel.sortFilter.instanceSort.key);
+          ClusterFilterModel.sortFilter.instanceSort.key !== 'launchTime' ? ClusterFilterModel.sortFilter.instanceSort.key : null);
 
       updateAccountParams();
       updateRegionParams();

@@ -66,9 +66,14 @@ angular.module('deckApp.search.global')
 
     ctrl.clearFilters = function(result) {
       if (result.href.indexOf('/clusters') !== -1) {
-        ClusterFilterModel.clearFilters();
-        ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
-          result.cluster ? 'cluster:' + result.cluster : '';
+          ClusterFilterModel.clearFilters();
+          ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
+            result.cluster ? 'cluster:' + result.cluster : '';
+        if (result.account) {
+          var acct = {};
+          acct[result.account] = true;
+          ClusterFilterModel.sortFilter.account = acct;
+        }
         if ($stateParams.application === result.application) {
           clusterFilterService.updateClusterGroups();
         }

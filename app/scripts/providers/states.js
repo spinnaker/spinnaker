@@ -87,7 +87,13 @@ angular.module('deckApp.states', [
 
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
-        url: '/loadBalancerDetails/:provider/:accountId/:region/:name?vpcId',
+        url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
+        ownParams: {
+          vpcId: {
+            value: null,
+            squash: true,
+          },
+        },
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
@@ -197,7 +203,7 @@ angular.module('deckApp.states', [
           {
           name: 'clusters',
           reloadOnSearch: false,
-          url: '/clusters?q&primary&secondary&hideInstances&listInstances&acct&reg&status&providerType&instanceType&zone&instanceSort',
+          url: '/clusters',
           views: {
             'nav': {
               templateUrl: 'scripts/modules/clusterFilter/filterNav.html',

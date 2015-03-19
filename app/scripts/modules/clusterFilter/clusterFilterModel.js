@@ -2,13 +2,18 @@
 
 angular
   .module('cluster.filter.model', ['ui.router', 'deckApp.utils.lodash'])
-  .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, _) {
+  .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, $location, _) {
 
     var sortFilter = {
       instanceSort: { key: 'launchTime' }
     };
 
+    var savedClusterState = {};
+    var savedClusterStateParams = {};
+    var savedClusterStateFilters = {};
+
     function convertParamsToObject(paramList) {
+      paramList = paramList ? paramList + '' : paramList;
       if(paramList) {
         return _.reduce(paramList.split(','), function (acc, value) {
           acc[value] = true;
@@ -30,27 +35,27 @@ angular
     }
 
     function setSelectedAccounts() {
-      return convertParamsToObject($stateParams.acct);
+      return convertParamsToObject($location.search().acct);
     }
 
     function setSelectedRegions() {
-      return convertParamsToObject($stateParams.reg);
+      return convertParamsToObject($location.search().reg);
     }
 
     function setStatus() {
-      return convertParamsToObject($stateParams.status);
+      return convertParamsToObject($location.search().status);
     }
 
     function setProviderType() {
-      return convertParamsToObject($stateParams.providerType);
+      return convertParamsToObject($location.search().providerType);
     }
 
     function setInstanceType() {
-      return convertParamsToObject($stateParams.instanceType);
+      return convertParamsToObject($location.search().instanceType);
     }
 
     function setZone() {
-      return convertParamsToObject($stateParams.zone);
+      return convertParamsToObject($location.search().zone);
     }
 
     function clearSideFilters() {
@@ -92,20 +97,22 @@ angular
     function activate() {
       var defPrimary = 'account', defSecondary = 'cluster';
 
-      sortFilter.sortPrimary = $stateParams.primary || defPrimary;
-      sortFilter.sortSecondary = $stateParams.secondary || defSecondary;
-      sortFilter.filter = $stateParams.q || '';
-      sortFilter.showAllInstances = ($stateParams.hideInstances ? false : true);
-      sortFilter.listInstances = ($stateParams.listInstances ? true : false);
-      sortFilter.hideHealthy = ($stateParams.hideHealthy === 'true' || $stateParams.hideHealthy === true);
-      sortFilter.hideDisabled = ($stateParams.hideDisabled === 'true' || $stateParams.hideDisabled === true);
+      var params = $location.search();
+
+      sortFilter.sortPrimary = params.primary || defPrimary;
+      sortFilter.sortSecondary = params.secondary || defSecondary;
+      sortFilter.filter = params.q || '';
+      sortFilter.showAllInstances = (params.hideInstances ? false : true);
+      sortFilter.listInstances = (params.listInstances ? true : false);
+      sortFilter.hideHealthy = (params.hideHealthy === 'true' || params.hideHealthy === true);
+      sortFilter.hideDisabled = (params.hideDisabled === 'true' || params.hideDisabled === true);
       sortFilter.account = setSelectedAccounts();
       sortFilter.region = setSelectedRegions();
       sortFilter.status = setStatus();
       sortFilter.providerType = setProviderType();
       sortFilter.instanceType = setInstanceType();
       sortFilter.availabilityZone = setZone();
-      sortFilter.instanceSort.key = $stateParams.instanceSort || 'launchTime';
+      sortFilter.instanceSort.key = params.instanceSort || 'launchTime';
 
       sortFilter.sortOptions = [
         { label: 'Account', key: 'account' },
@@ -137,8 +144,10 @@ angular
 
     function saveClusterState(fromState, fromParams) {
       if(fromParams.application) {
-        savedClusterState[fromParams.application] = fromState;
-        savedClusterStateParams[fromParams.application] = fromParams;
+        var application = fromParams.application;
+        savedClusterState[application] = fromState;
+        savedClusterStateParams[application] = fromParams;
+        savedClusterStateFilters[application] = $location.search();
       }
     }
 
@@ -151,14 +160,11 @@ angular
       return fromState.name === 'home.applications.application';
     }
 
-    var savedClusterState = {};
-    var savedClusterStateParams = {};
-
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
-
       if(movingFromClusterState(toState, fromState)) {
-        setParams(fromParams);
         saveClusterState(fromState, fromParams);
+        setParams(fromParams);
+
       }
 
       if(movingToClusterState(toState)) {
@@ -168,6 +174,7 @@ angular
 
         if(fromApplicationListState(fromState) && hasSavedClusterState(toParams)) {
           angular.copy(savedClusterStateParams[toParams.application], $stateParams);
+          $location.search(angular.extend($location.search(), savedClusterStateFilters[toParams.application]));
           activate();
         }
 
@@ -176,7 +183,9 @@ angular
         }
 
         if(isClusterState(toState.name) && isClusterState(fromState.name)) {
-          setParams(toParams);
+          if (toParams.application !== fromParams.application) {
+            setParams(toParams);
+          }
         }
 
       }
