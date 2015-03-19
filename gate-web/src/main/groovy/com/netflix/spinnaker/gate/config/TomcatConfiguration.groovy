@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer
-import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.Ssl
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory
 import org.springframework.context.annotation.Bean
@@ -34,6 +33,7 @@ class TomcatConfiguration {
       TomcatEmbeddedServletContainerFactory tomcat = (TomcatEmbeddedServletContainerFactory) container
 
       if (legacyServerPort > 0) {
+        log.info("Creating legacy connector on port ${legacyServerPort}")
         def httpConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
         httpConnector.setScheme("http")
         httpConnector.setPort(legacyServerPort)
@@ -41,6 +41,7 @@ class TomcatConfiguration {
       }
 
       if (apiPort > 0) {
+        log.info("Creating api connector on port ${apiPort}")
         def apiConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
         apiConnector.setScheme("https")
         apiConnector.setPort(apiPort)
