@@ -29,16 +29,6 @@ angular.module('clusters.all', [
       }
     });
 
-    this.updateSorting = function updateSorting() {
-      var sortFilter = $scope.sortFilter;
-      if (sortFilter.sortPrimary === sortFilter.sortSecondary) {
-        sortFilter.sortSecondary = this.getSortOptions(sortFilter.sortPrimary)[0].key;
-      }
-      this.updateClusterGroups();
-    }.bind(this);
-
-    $scope.$watch('sortFilter.sortPrimary', this.updateSorting);
-
     function addSearchFields() {
       application.clusters.forEach(function(cluster) {
         cluster.serverGroups.forEach(function(serverGroup) {

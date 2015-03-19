@@ -12,8 +12,8 @@ angular
     var savedClusterStateParams = {};
     var savedClusterStateFilters = {};
 
-    function convertParamsToObject(paramList) {
-      paramList = paramList ? paramList + '' : paramList;
+    function convertParamsToObject(key) {
+      var paramList = $location.search()[key];
       if(paramList) {
         return _.reduce(paramList.split(','), function (acc, value) {
           acc[value] = true;
@@ -35,27 +35,27 @@ angular
     }
 
     function setSelectedAccounts() {
-      return convertParamsToObject($location.search().acct);
+      return convertParamsToObject('acct');
     }
 
     function setSelectedRegions() {
-      return convertParamsToObject($location.search().reg);
+      return convertParamsToObject('reg');
     }
 
     function setStatus() {
-      return convertParamsToObject($location.search().status);
+      return convertParamsToObject('status');
     }
 
     function setProviderType() {
-      return convertParamsToObject($location.search().providerType);
+      return convertParamsToObject('providerType');
     }
 
     function setInstanceType() {
-      return convertParamsToObject($location.search().instanceType);
+      return convertParamsToObject('instanceType');
     }
 
     function setZone() {
-      return convertParamsToObject($location.search().zone);
+      return convertParamsToObject('zone');
     }
 
     function clearSideFilters() {
@@ -158,7 +158,7 @@ angular
     }
 
     function fromApplicationListState(fromState) {
-      return fromState.name === 'home.applications.application';
+      return fromState.name === 'home.applications';
     }
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {

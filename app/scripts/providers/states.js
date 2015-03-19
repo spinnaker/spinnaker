@@ -128,7 +128,13 @@ angular.module('deckApp.states', [
 
       var securityGroupDetails = {
         name: 'securityGroupDetails',
-        url: '/securityGroupDetails/:provider/:accountId/:region/:name?vpcId',
+        url: '/securityGroupDetails/:provider/:accountId/:region/:vpcId/:name',
+        params: {
+          vpcId: {
+            value: null,
+            squash: 'ec2-classic',
+          },
+        },
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {

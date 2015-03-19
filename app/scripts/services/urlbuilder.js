@@ -6,7 +6,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
     var lookup = {
       // url for a single serverGroup
       'serverGroups': function(input) {
-        return $state.href(
+        var href = $state.href(
           'home.applications.application.insight.clusters.serverGroup',
           {
             application: input.application,
@@ -14,12 +14,12 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
             account: input.account,
             accountId: input.account,
             region: input.region,
-            q: input.serverGroup,
             serverGroup: input.serverGroup,
             provider: input.provider,
           },
           { inherit: false }
         );
+        return buildUrl(href, {q: input.serverGroup});
       },
       // url for a single instance
       'instances': function(input) {
@@ -49,17 +49,14 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       },
       // url for a single cluster
       'clusters': function(input) {
-        console.log(input);
-        return $state.href(
+        var href = $state.href(
           'home.applications.application.insight.clusters',
           {
             application: input.application,
-            q: ['cluster:', input.cluster].join(''),
-            acct:input.account,
-            account: input.account,
           },
           { inherit: false }
         );
+        return buildUrl(href, {q: ['cluster:', input.cluster].join(''), acct: input.account });
       },
       // url for a single application
       'applications': function(input) {
@@ -188,6 +185,67 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
       } else {
         return '/';
       }
+    }
+
+    /**
+     * Internals copied from Angular source
+     */
+    function forEachSorted(obj, iterator, context) {
+      var keys = sortedKeys(obj);
+      for (var i = 0; i < keys.length; i++) {
+        iterator.call(context, obj[keys[i]], keys[i]);
+      }
+      return keys;
+    }
+
+    function sortedKeys(obj) {
+      var keys = [];
+      for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          keys.push(key);
+        }
+      }
+      return keys.sort();
+    }
+
+    function buildUrl(url, params) {
+      if (!params) {
+        return url;
+      }
+      var parts = [];
+      forEachSorted(params, function(value, key) {
+        if (value === null || angular.isUndefined(value)) {
+          return;
+        }
+        if (!angular.isArray(value)) {
+          value = [value];
+        }
+
+        angular.forEach(value, function(v) {
+          if (angular.isObject(v)) {
+            if (angular.isDate(v)){
+              v = v.toISOString();
+            } else {
+              v = angular.toJson(v);
+            }
+          }
+          parts.push(encodeUriQuery(key) + '=' +
+            encodeUriQuery(v));
+        });
+      });
+      if(parts.length > 0) {
+        url += ((url.indexOf('?') === -1) ? '?' : '&') + parts.join('&');
+      }
+      return url;
+    }
+
+    function encodeUriQuery(val, pctEncodeSpaces) {
+      return encodeURIComponent(val).
+        replace(/%40/gi, '@').
+        replace(/%3A/gi, ':').
+        replace(/%24/g, '$').
+        replace(/%2C/gi, ',').
+        replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
     }
 
     return {

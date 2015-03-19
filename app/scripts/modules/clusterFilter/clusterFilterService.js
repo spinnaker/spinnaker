@@ -11,55 +11,19 @@ angular
     var lastApplication = null;
 
     function updateQueryParams() {
-      var filter = ClusterFilterModel.sortFilter.filter.length ? ClusterFilterModel.sortFilter.filter : null,
-          locationQ = $location.search().q || null;
-      if (filter !== locationQ) {
-        $location.search('q',
-            ClusterFilterModel.sortFilter.filter.length > 0 ? ClusterFilterModel.sortFilter.filter : null);
-      }
+      $location.search('q', ClusterFilterModel.sortFilter.filter || null);
       $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
-      $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? 'true' : null);
+      $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? true : null);
       $location.search('instanceSort',
           ClusterFilterModel.sortFilter.instanceSort.key !== 'launchTime' ? ClusterFilterModel.sortFilter.instanceSort.key : null);
 
-      updateAccountParams();
-      updateRegionParams();
-      updateStatusParams();
-      updateProviderTypeParams();
-      updateInstanceTypeParams();
-      updateZoneParams();
+      $location.search('acct', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.account).join() || null);
+      $location.search('reg', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.region).join() || null);
+      $location.search('status', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.status).join() || null);
+      $location.search('providerType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.providerType).join() || null);
+      $location.search('instanceType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.instanceType).join() || null);
+      $location.search('zone', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.availabilityZone).join() || null);
 
-
-    }
-
-    function updateAccountParams() {
-      var acct = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.account);
-      $location.search('acct', acct.length ? acct.join() : null);
-    }
-
-    function updateRegionParams() {
-      var reg = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.region);
-      $location.search('reg', reg.length ? reg.join() : null);
-    }
-
-    function updateStatusParams() {
-      var status = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.status);
-      $location.search('status', status.length ? status.join() : null);
-    }
-
-    function updateProviderTypeParams() {
-      var providerTypes = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.providerType);
-      $location.search('providerType', providerTypes.length ? providerTypes.join() : null);
-    }
-
-    function updateInstanceTypeParams() {
-      var instanceTypes = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.instanceType);
-      $location.search('instanceType', instanceTypes.length ? instanceTypes.join() : null);
-    }
-
-    function updateZoneParams() {
-      var zones = convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.availabilityZone);
-      $location.search('zone', zones.length ? zones.join() : null);
     }
 
     function convertTrueModelValuesToArray(modelObject) {
