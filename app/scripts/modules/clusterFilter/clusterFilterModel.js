@@ -65,6 +65,7 @@ angular
       sortFilter.providerType = undefined;
       sortFilter.instanceType = undefined;
       sortFilter.filter = '';
+      sortFilter.availabilityZone = undefined;
     }
 
     function clearFilterParams(params) {

@@ -88,10 +88,10 @@ angular.module('deckApp.states', [
       var loadBalancerDetails = {
         name: 'loadBalancerDetails',
         url: '/loadBalancerDetails/:provider/:accountId/:region/:vpcId/:name',
-        ownParams: {
+        params: {
           vpcId: {
             value: null,
-            squash: true,
+            squash: 'ec2-classic',
           },
         },
         views: {
@@ -202,7 +202,6 @@ angular.module('deckApp.states', [
         children: [
           {
           name: 'clusters',
-          reloadOnSearch: false,
           url: '/clusters',
           views: {
             'nav': {

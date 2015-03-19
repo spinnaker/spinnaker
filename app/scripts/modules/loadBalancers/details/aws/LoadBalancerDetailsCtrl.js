@@ -18,10 +18,7 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
       loading: true
     };
 
-    $scope.$on('$locationChangeStart', function() { debugger; });
-
     function extractLoadBalancer() {
-      debugger;
       if (!loadBalancer.vpcId) {
         loadBalancer.vpcId = null;
       }
