@@ -52,16 +52,26 @@ class OperationsController {
     }
     pipeline.trigger = [type: "manual", invocation: "manual orchestration", user: user] + pipeline.trigger
 
-    if (igorService && master && job && buildNumber) {
-      Map build = igorService.getBuild(master, job, buildNumber)
-      if (build) {
-        pipeline.trigger.job = job
-        pipeline.trigger.master = master
-        pipeline.trigger.buildInfo = build
-        if(propertyFile){
-          pipeline.trigger.propertyFile = propertyFile
-          pipeline.trigger.properties = igorService.getPropertyFile(master, job, buildNumber, propertyFile)
+    if (igorService) {
+      if (master && job && buildNumber) {
+        def build = igorService.getBuild(master, job, buildNumber)
+        if (build) {
+          pipeline.trigger.job = job
+          pipeline.trigger.master = master
+          pipeline.trigger.buildInfo = build
+          if (propertyFile) {
+            pipeline.trigger.propertyFile = propertyFile
+          }
         }
+      }
+
+      if (pipeline.trigger?.propertyFile) {
+        pipeline.trigger.properties = igorService.getPropertyFile(
+          pipeline.trigger.master as String,
+          pipeline.trigger.job as String,
+          pipeline.trigger.buildNumber as Integer,
+          pipeline.trigger.propertyFile as String
+        )
       }
     }
     startPipeline(pipeline)
