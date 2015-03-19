@@ -21,7 +21,7 @@ angular.module('deckApp.applications.controller', [
 
     function routeToApplication(app) {
       $state.go(
-        'home.applications.application', {
+        'home.applications.application.insight.clusters', {
           application: app.name,
         }
       );

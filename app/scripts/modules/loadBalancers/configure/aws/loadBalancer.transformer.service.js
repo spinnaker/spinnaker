@@ -77,7 +77,11 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
           var protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
 
-          if (protocolIndex !== -1 && pathIndex !== -1) {
+          if (pathIndex === -1) {
+            pathIndex = healthCheck.length;
+          }
+
+          if (protocolIndex !== -1) {
             toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);
             toEdit.healthCheckPort = healthCheck.substring(protocolIndex + 1, pathIndex);
             toEdit.healthCheckPath = healthCheck.substring(pathIndex);
