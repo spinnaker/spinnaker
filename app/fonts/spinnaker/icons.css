@@ -31,3 +31,8 @@
   content: "\e600";
 }
 
+.icon-bubbles:before {
+  content: "\e96d";
+}
+
+
