@@ -28,12 +28,11 @@ class GCEOperationUtil {
     }
   }
   public static OPERATIONS_POLLING_INTERVAL_FRACTION = 5
-  // The resources will probably get deleted but we should verify that the operation succeeded. 15 seconds was the
-  // minimum duration it took the operation to finish while writing this code.
-  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 15
+  // We verify that the operation succeeded with a timeout. 15 seconds was the minimum duration it took the operation
+  // to finish while writing this code, so we use 20 as the timeout. This can be updated later as needed.
+  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 20
 
-  private static handleFinishedAsyncDeleteOperation(Operation operation, Task task, String resourceString,
-                                                    String basePhase) {
+  private static handleFinishedAsyncOperation(Operation operation, Task task, String resourceString, String basePhase) {
     if (!operation) {
       GCEUtil.updateStatusAndThrowException("Operation on $resourceString timed out. The resource " +
           "may still exist.", task, basePhase)
@@ -53,7 +52,7 @@ class GCEOperationUtil {
                                             Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     // Note that we cannot use an Elvis operator here because we might have a timeoutSeconds value of
     // zero. In that case, we still want to pass that value. So we use null comparison here instead.
-    return handleFinishedAsyncDeleteOperation(
+    return handleFinishedAsyncOperation(
         waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
                          Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
@@ -62,7 +61,7 @@ class GCEOperationUtil {
   static Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
                                           Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     // See above comment for why we don't use an Elvis operator here.
-    return handleFinishedAsyncDeleteOperation(
+    return handleFinishedAsyncOperation(
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
                          Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
