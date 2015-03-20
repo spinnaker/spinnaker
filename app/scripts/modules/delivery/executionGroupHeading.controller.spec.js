@@ -15,6 +15,9 @@ describe('Controller: ExecutionGroupHeading', function () {
       var $q = this.$q;
 
       this.$scope.application = {};
+      this.$scope.filter = {
+        execution: { groupBy: 'name' }
+      };
 
       this.initializeController = function() {
         this.pipelineConfigService = {
@@ -24,7 +27,8 @@ describe('Controller: ExecutionGroupHeading', function () {
         };
         this.executionsService = {
           waitUntilNewTriggeredPipelineAppears: angular.noop,
-          forceRefresh: angular.noop
+          forceRefresh: angular.noop,
+          getSectionCacheKey: function() { return 'key'; },
         };
 
         this.controller = this.$controller('executionGroupHeading', {

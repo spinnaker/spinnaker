@@ -19,6 +19,7 @@ describe('Controller: createPipelineModal', function() {
         $modalInstance: this.$modalInstance,
         scrollToService: this.scrollToService,
         timeout: this.$timeout,
+        target: null,
         _: _,
         $log: $log
       });

@@ -4,9 +4,11 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
   'deckApp.delivery.executions.service',
   'deckApp.utils.d3',
   'deckApp.pipelines.config.service',
-  'deckApp.utils.scrollTo'
+  'deckApp.utils.scrollTo',
+  'deckApp.caches.collapsibleSectionState',
 ])
-  .controller('pipelineExecutions', function($scope, $state, d3Service, pipelineConfigService, scrollToService) {
+  .controller('pipelineExecutions', function($scope, $state, d3Service,
+                                             pipelineConfigService, scrollToService, executionsService, collapsibleSectionStateCache) {
     var controller = this;
 
     $scope.viewState = {
@@ -117,7 +119,16 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       $scope.viewState.loading = false;
       // if we detected the loading of a details section, scroll it into view
       if ($scope.detailsTarget) {
-        scrollToService.scrollTo('execution-' + $scope.detailsTarget, '.execution-groups', 300);
+        // make sure it's expanded
+        var pipelines = $scope.executions.filter(function(execution) {
+          return execution.id === $scope.detailsTarget;
+        });
+        if (pipelines.length) {
+          collapsibleSectionStateCache.setExpanded(
+            executionsService.getSectionCacheKey($scope.filter.execution.groupBy, $scope.application.name, pipelines[0].name),
+            true);
+          scrollToService.scrollTo('execution-' + $scope.detailsTarget, '.execution-groups', 300);
+        }
       }
       var noExecutions = !$scope.executions || !$scope.executions.length;
       var noConfigurations = !$scope.configurations.length;

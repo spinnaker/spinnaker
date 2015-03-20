@@ -84,6 +84,10 @@ angular.module('deckApp.delivery.executions.service', [
       return deferred.promise;
     }
 
+    function getSectionCacheKey(groupBy, application, heading) {
+      return ['pipeline', groupBy, application, heading].join('#');
+    }
+
     return {
       getAll: getExecutions,
       cancelExecution: cancelExecution,
@@ -97,5 +101,6 @@ angular.module('deckApp.delivery.executions.service', [
           .subscribe(fn);
       },
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
+      getSectionCacheKey: getSectionCacheKey,
     };
   });

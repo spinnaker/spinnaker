@@ -1,19 +1,29 @@
 'use strict';
 
-angular.module('deckApp.caches.collapsibleSectionState', [])
-  .factory('collapsibleSectionStateCache', function() {
+/* jshint newcap: false */
+angular.module('deckApp.caches.collapsibleSectionState', [
+  'angular-data.DSCacheFactory',
+])
+  .factory('collapsibleSectionStateCache', function(DSCacheFactory) {
 
-    var stateCache = {};
+    var cacheId = 'collapsibleSectionStateCache';
+    DSCacheFactory(cacheId, {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      deleteOnExpire: 'aggressive',
+      storageMode: 'localStorage',
+    });
+
+    var stateCache = DSCacheFactory.get(cacheId);
 
     return {
       isSet: function(heading) {
-        return stateCache[heading] !== undefined;
+        return stateCache.get(heading) !== undefined;
       },
       isExpanded: function(heading) {
-        return stateCache[heading] === true;
+        return stateCache.get(heading) === true;
       },
       setExpanded: function(heading, expanded) {
-        stateCache[heading] = !!expanded;
+        stateCache.put(heading, !!expanded);
       }
     };
   });
