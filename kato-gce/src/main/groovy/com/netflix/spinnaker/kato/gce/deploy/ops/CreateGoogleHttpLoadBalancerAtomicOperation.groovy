@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.Backend
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HostRule
+import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.PathMatcher
 import com.google.api.services.compute.model.PathRule
 import com.google.api.services.compute.model.TargetHttpProxy
@@ -27,6 +28,7 @@ import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -76,8 +78,9 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
 
     def httpHealthChecksResourceLinks = new ArrayList<String>();
     def httpHealthCheck = GCEUtil.makeHttpHealthCheck(healthCheckName, description.healthCheck)
-    def httpHealthCheckResourceLink = compute.httpHealthChecks().insert(project, httpHealthCheck).execute().getTargetLink()
-    httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
+    def createHttpHealthCheckOperation = compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
+    def httpHealthCheckUrl = createHttpHealthCheckOperation.getTargetLink()
+    httpHealthChecksResourceLinks.add(httpHealthCheckUrl)
 
     // Make backend service.
     def backends = new ArrayList<Backend>();
@@ -103,7 +106,13 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
         portName: BACKEND_PORT_NAME,
         protocol: IP_PROTOCOL,
     )
-    def backendServiceLink = compute.backendServices().insert(project, backendService).execute().getTargetLink()
+
+    // Before building the backend service we must check and wait until the health check is built.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, createHttpHealthCheckOperation.getName(),
+        null, task, "http health check " + GCEUtil.getLocalName(httpHealthCheckUrl), BASE_PHASE)
+
+    def backendServiceOperation = compute.backendServices().insert(project, backendService).execute()
+    def backendServiceUrl = backendServiceOperation.getTargetLink()
 
     // Make URL map.
     def pathMatchers = new ArrayList<PathMatcher>();
@@ -138,9 +147,15 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
         name: urlMapName,
         pathMatchers: pathMatchers,
         hostRules: hostRules,
-        defaultService: backendServiceLink
+        defaultService: backendServiceUrl
     )
-    def urlMapLink = compute.urlMaps().insert(project, urlMap).execute().getTargetLink()
+
+    // Before building the url map we must check and wait until the backend service is built.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, backendServiceOperation.getName(),
+        null, task, "backend service " + GCEUtil.getLocalName(backendServiceUrl), BASE_PHASE)
+
+    def urlMapOperation = compute.urlMaps().insert(project, urlMap).execute()
+    def urlMapUrl = urlMapOperation.getTargetLink()
 
     // Make target HTTP proxy.
     def targetHttpProxyName = String.format("%s-%s-%d", description.loadBalancerName, TARGET_HTTP_PROXY_NAME_PREFIX, System.currentTimeMillis())
@@ -149,9 +164,15 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
 
     def targetHttpProxy = new TargetHttpProxy(
         name: targetHttpProxyName,
-        urlMap: urlMapLink
+        urlMap: urlMapUrl
     )
-    def targetHttpProxyLink = compute.targetHttpProxies().insert(project, targetHttpProxy).execute().getTargetLink()
+
+    // Before building the target http proxy we must check and wait until the url map is built.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, urlMapOperation.getName(),
+        null, task, "url map " + GCEUtil.getLocalName(urlMapUrl), BASE_PHASE)
+
+    def targetHttpProxyOperation = compute.targetHttpProxies().insert(project, targetHttpProxy).execute()
+    def targetHttpProxyUrl = targetHttpProxyOperation.getTargetLink()
 
     // Finally, make forwarding rule.
     task.updateStatus BASE_PHASE, "Creating forwarding rule $description.loadBalancerName..."
@@ -167,8 +188,13 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
         name: description.loadBalancerName,
         iPAddress: description.ipAddress,
         portRange: portRange,
-        target: targetHttpProxyLink
+        target: targetHttpProxyUrl
     )
+
+    // Before building the forwarding rule we must check and wait until the target http proxy is built.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, targetHttpProxyOperation.getName(),
+        null, task, "target http proxy " + GCEUtil.getLocalName(targetHttpProxyUrl), BASE_PHASE)
+
     compute.globalForwardingRules().insert(project, forwardingRule).execute()
 
     task.updateStatus BASE_PHASE, "Done."

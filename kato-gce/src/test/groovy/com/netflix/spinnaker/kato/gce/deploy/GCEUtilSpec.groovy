@@ -162,7 +162,7 @@ class GCEUtilSpec extends Specification {
       def clockMock = Mock(GCEOperationUtil.Clock)
 
     when:
-      GCEOperationUtil.waitForOperation(getOperationMock, 5000, clockMock)
+      GCEOperationUtil.waitForOperation(getOperationMock, 5, clockMock)
 
     then:
       1 * clockMock.currentTimeMillis() >> 0

@@ -28,42 +28,49 @@ class GCEOperationUtil {
     }
   }
   public static OPERATIONS_POLLING_INTERVAL_FRACTION = 5
+  // We verify that the operation succeeded with a timeout. 15 seconds was the minimum duration it took the operation
+  // to finish while writing this code, so we use 20 as the timeout. This can be updated later as needed.
+  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 20
 
-  private static handleFinishedAsyncDeleteOperation(Operation operation, Task task, String resourceString,
-                                                    String basePhase) {
+  private static handleFinishedAsyncOperation(Operation operation, Task task, String resourceString, String basePhase) {
     if (!operation) {
-      GCEUtil.updateStatusAndThrowException("Delete operation of $resourceString timed out. The resource " +
+      GCEUtil.updateStatusAndThrowException("Operation on $resourceString timed out. The resource " +
           "may still exist.", task, basePhase)
     }
     if (operation.getError()) {
       def error = operation.getError().getErrors().get(0)
-      GCEUtil.updateStatusAndThrowException("Failed to delete $resourceString with error: $error", task,
+      GCEUtil.updateStatusAndThrowException("Failed to complete operation on $resourceString with error: $error", task,
           basePhase)
     }
-    task.updateStatus basePhase, "Done deleting $resourceString."
+    task.updateStatus basePhase, "Done operating on $resourceString."
   }
 
   // The methods below are used to wait on the operation specified in |operationName|. This is used in practice to
   // turn the asynchronous GCE client operations into synchronous calls. Will poll the state of the operation until
   // either state is DONE or |timeoutMillis| is reached.
   static Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
-                                            long timeoutMillis, Task task, String resourceString, String basePhase) {
-    return handleFinishedAsyncDeleteOperation(
-        waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()}, timeoutMillis,
+                                            Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    // Note that we cannot use an Elvis operator here because we might have a timeoutSeconds value of
+    // zero. In that case, we still want to pass that value. So we use null comparison here instead.
+    return handleFinishedAsyncOperation(
+        waitForOperation({compute.regionOperations().get(projectName, region, operationName).execute()},
+                         Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
   }
 
   static Operation waitForGlobalOperation(Compute compute, String projectName, String operationName,
-                                          long timeoutMillis, Task task, String resourceString, String basePhase) {
-    return handleFinishedAsyncDeleteOperation(
-        waitForOperation({compute.globalOperations().get(projectName, operationName).execute()}, timeoutMillis,
+                                          Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    // See above comment for why we don't use an Elvis operator here.
+    return handleFinishedAsyncOperation(
+        waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
+                         Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
   }
 
   // TODO(bklingher): implement a more accurate way to achieve timeouts with polling.
-  private static Operation waitForOperation(Closure getOperation, long timeoutMillis, Clock clock) {
-    def deadline = clock.currentTimeMillis() + timeoutMillis
-    long sleepIntervalMillis = timeoutMillis / OPERATIONS_POLLING_INTERVAL_FRACTION
+  private static Operation waitForOperation(Closure getOperation, long timeoutSeconds, Clock clock) {
+    def deadline = clock.currentTimeMillis() + timeoutSeconds * 1000
+    long sleepIntervalMillis = timeoutSeconds * 1000 / OPERATIONS_POLLING_INTERVAL_FRACTION
     while (true) {
       Operation operation = getOperation()
       if (operation.getStatus() == "DONE") {

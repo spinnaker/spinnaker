@@ -28,9 +28,6 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_NETWORK_LOAD_BALANCER"
-  // The resources will probably get deleted but we should verify that the operation succeeded. 15 seconds was the
-  // minimum duration it took the operation to finish while writing this code.
-  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 15
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -83,11 +80,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     }
     def healthCheckUrls = targetPool.getHealthChecks()
 
-    // Note that we cannot use an Elvis operator here because we might have a deleteOperationTimeoutSeconds value
-    // of zero. In that case, we still want to pass that value. So we use null comparison here instead.
-    def timeoutSeconds = description.deleteOperationTimeoutSeconds != null ?
-        description.deleteOperationTimeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-    def deadline = System.currentTimeMillis() + timeoutSeconds * 1000
+    def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
     // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
     // delete its dependencies.
@@ -96,14 +89,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         compute.forwardingRules().delete(project, region, forwardingRuleName).execute()
 
     GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
-        Math.max(deadline - System.currentTimeMillis(), 0), task, "forwarding rule" + forwardingRuleName, BASE_PHASE)
+        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
     Operation deleteTargetPoolOperation =
         compute.targetPools().delete(project, region, targetPoolName).execute()
 
     GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
-        Math.max(deadline - System.currentTimeMillis(), 0), task, "target pool" + targetPoolName, BASE_PHASE)
+        timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
 
     // Now make a list of the delete operations for health checks.
     List<HealthCheckAsyncDeleteOperation> deleteHealthCheckAsyncOperations =
@@ -120,7 +113,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     // Finally, wait on this list of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          Math.max(deadline - System.currentTimeMillis(), 0), task, "health check" + asyncOperation.healthCheckName,
+          timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }
 

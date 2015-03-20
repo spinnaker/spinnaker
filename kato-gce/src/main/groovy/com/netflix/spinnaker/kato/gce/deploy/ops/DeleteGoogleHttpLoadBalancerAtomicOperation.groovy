@@ -32,9 +32,6 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_HTTP_LOAD_BALANCER"
-  // The resources will probably get deleted but we should verify that the operation succeeded. 15 seconds was the
-  // minimum duration it took the operation to totally finish while writing this code. (Maybe add some buffer time.)
-  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 15
 
   static class HealthCheckAsyncDeleteOperation {
     String healthCheckName
@@ -122,11 +119,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     }
     healthCheckUrls.unique()
 
-    // Note that we cannot use an Elvis operator here because we might have a deleteOperationTimeoutSeconds value
-    // of zero. In that case, we still want to pass that value. So we use null comparison here instead.
-    def timeoutSeconds = description.deleteOperationTimeoutSeconds != null ?
-        description.deleteOperationTimeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-    def deadline = System.currentTimeMillis() + timeoutSeconds * 1000
+    def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
     // Start deleting these objects. Wait between each delete operation for it to complete before continuing on to
     // delete its dependencies.
@@ -135,19 +128,19 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
         compute.globalForwardingRules().delete(project, forwardingRuleName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
-        Math.max(deadline - System.currentTimeMillis(), 0), task, "forwarding rule" + forwardingRuleName, BASE_PHASE)
+        timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target HTTP proxy $targetHttpProxyName..."
     Operation deleteTargetHttpProxyOperation = compute.targetHttpProxies().delete(project, targetHttpProxyName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
-        Math.max(deadline - System.currentTimeMillis(), 0), task, "target http proxy" + targetHttpProxyName, BASE_PHASE)
+        timeoutSeconds, task, "target http proxy " + targetHttpProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
 
     GCEOperationUtil.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
-        Math.max(deadline - System.currentTimeMillis(), 0), task, "url map" + urlMapName, BASE_PHASE)
+        timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
 
     // We make a list of the delete operations for backend services.
     List<BackendServiceAsyncDeleteOperation> deleteBackendServiceAsyncOperations =
@@ -164,8 +157,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     // Wait on all of these deletes to complete.
     for (BackendServiceAsyncDeleteOperation asyncOperation : deleteBackendServiceAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          Math.max(deadline - System.currentTimeMillis(), 0), task,
-          "backend service" + asyncOperation.backendServiceName, BASE_PHASE)
+          timeoutSeconds, task, "backend service " + asyncOperation.backendServiceName, BASE_PHASE)
     }
 
     // Now make a list of the delete operations for health checks.
@@ -183,7 +175,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     // Finally, wait on all of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
       GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
-          Math.max(deadline - System.currentTimeMillis(), 0), task, "health check" + asyncOperation.healthCheckName,
+          timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }
 

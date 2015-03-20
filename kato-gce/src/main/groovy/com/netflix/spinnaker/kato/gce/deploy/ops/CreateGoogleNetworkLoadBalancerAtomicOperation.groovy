@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
@@ -58,14 +59,18 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     def project = description.credentials.project
     def region = description.region
 
+    def httpHealthCheckResourceOperation
+    def httpHealthCheckResourceLink
+
     def httpHealthChecksResourceLinks = new ArrayList<String>()
     if (description.healthCheck) {
       def health_check_name = String.format("%s-%s-%d", description.networkLoadBalancerName, HEALTH_CHECK_NAME_PREFIX,
           System.currentTimeMillis())
       task.updateStatus BASE_PHASE, "Creating health check $health_check_name..."
       def httpHealthCheck = GCEUtil.buildHttpHealthCheck(health_check_name, description.healthCheck)
-      def httpHealthCheckResourceLink =
-          compute.httpHealthChecks().insert(project, httpHealthCheck).execute().getTargetLink()
+      httpHealthCheckResourceOperation =
+          compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
+      httpHealthCheckResourceLink = httpHealthCheckResourceOperation.getTargetLink()
       httpHealthChecksResourceLinks.add(httpHealthCheckResourceLink)
     }
 
@@ -80,7 +85,15 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         // and query them to get the URLs.
         instances: description.instances
     )
-    def targetPoolResourceLink = compute.targetPools().insert(project, region, targetPool).execute().getTargetLink()
+
+    if (description.healthCheck) {
+      // Before building the target pool we must check and wait until the health check is built.
+      GCEOperationUtil.waitForGlobalOperation(compute, project, httpHealthCheckResourceOperation.getName(),
+          null, task, "health check " + GCEUtil.getLocalName(httpHealthCheckResourceLink), BASE_PHASE)
+    }
+
+    def targetPoolResourceOperation = compute.targetPools().insert(project, region, targetPool).execute()
+    def targetPoolResourceLink = targetPoolResourceOperation.getTargetLink()
 
     task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLoadBalancerName to " +
         "$target_pool_name in $region..."
@@ -90,6 +103,12 @@ class CreateGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
                                              IPProtocol: IP_PROTOCOL,
                                              IPAddress: description.ipAddress,
                                              portRange: description.portRange)
+
+
+    // Before building the forwarding rule we must check and wait until the target pool is built.
+    GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
+        null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
+
     compute.forwardingRules().insert(project, region, forwarding_rule).execute()
 
     task.updateStatus BASE_PHASE, "Done creating network load balancer $description.networkLoadBalancerName in $region."
