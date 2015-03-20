@@ -6,7 +6,7 @@ angular.module('deckApp.deploymentStrategy.redblack', [])
       label: 'Red/Black',
       description: 'Disables previous server group as soon as new server group passes health checks',
       key: 'redblack',
-      additionalFields: ['scaleDown'],
+      additionalFields: ['scaleDown', 'maxRemainingAsgs'],
       additionalFieldsTemplateUrl: 'scripts/modules/deploymentStrategy/strategies/redblack/additionalFields.html',
     });
   });
