@@ -60,7 +60,7 @@ class CreateBakeTask implements Task {
 
   @CompileDynamic
   private String findPackage(Map trigger, BakeRequest request) {
-    List<Map> artifacts = trigger.buildInfo?.lastBuild?.artifacts
+    List<Map> artifacts = trigger.buildInfo?.artifacts
     if (!artifacts) {
       return request.packageName
     }
