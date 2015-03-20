@@ -52,10 +52,12 @@ describe('authenticationProvider: application startup', function() {
       this.$timeout.flush();
       this.$http.flush();
 
+      var callback = encodeURIComponent(this.$location.absUrl());
+
       expect(this.$rootScope.authenticating).toBe(true);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
-      expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + this.$window.location.origin + '&path=' + this.$location.path());
+      expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + callback);
       expect(this.$modal.open.calls.count()).toBe(1);
       expect(this.modal.dismiss.calls.count()).toBe(0);
     });

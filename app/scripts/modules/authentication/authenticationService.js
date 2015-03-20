@@ -40,7 +40,8 @@ angular.module('deckApp.authentication.service', [
               backdrop: 'static',
               keyboard: false
             });
-            redirectService.redirect(settings.gateUrl + redirect + '?callback=' + $window.location.origin + '&path=' + $location.path());
+            var callback = encodeURIComponent($location.absUrl());
+            redirectService.redirect(settings.gateUrl + redirect + '?callback=' + callback);
           } else {
             $rootScope.authenticating = false;
           }
