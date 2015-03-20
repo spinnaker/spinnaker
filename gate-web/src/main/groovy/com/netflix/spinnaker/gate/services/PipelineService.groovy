@@ -56,12 +56,13 @@ class PipelineService {
     mayoService.move(moveCommand)
   }
 
-  Map trigger(String application, String pipelineName, String user) {
+  Map trigger(String application, String pipelineName, Map trigger) {
     def pipelineConfig = applicationService.getPipelineConfig(application, pipelineName)
     if (!pipelineConfig) {
       throw new PipelineConfigNotFoundException()
     }
-    orcaService.startPipeline(pipelineConfig, user)
+    pipelineConfig.trigger = trigger
+    orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
   }
 
   Map cancelPipeline(String id) {

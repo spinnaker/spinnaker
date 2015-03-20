@@ -117,12 +117,22 @@ class ApplicationController {
    * @deprecated  Use PipelineController instead for pipeline operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST, params = ['user'])
+  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("name") String application,
                                   @PathVariable("pipelineName") String pipelineName,
-                                  @RequestParam("user") String user) {
+                                  @RequestBody(required = false) Map trigger,
+                                  @RequestParam(required = false, value = "user") String user) {
+    //TODO(cfieber) - remove the request param and make the body required once this is rolled all the way
+    if (trigger == null) {
+      trigger = [:]
+    }
+
+    if (!trigger.user) {
+      trigger.user = (user ?: 'anonymous')
+    }
+
     try {
-      def body = pipelineService.trigger(application, pipelineName, user)
+      def body = pipelineService.trigger(application, pipelineName, trigger)
       new ResponseEntity(body, HttpStatus.ACCEPTED)
     } catch (e) {
       new ResponseEntity([message: e.message], new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY)
