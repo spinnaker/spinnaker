@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component
 class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
 
     private static final String METADATA_TAG_KEY = 'immutable_metadata'
+    private static final String NAME_TAG_KEY = 'name'
 
     @Autowired
     CacheService cacheService
@@ -47,6 +48,15 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
               purpose = metadata?.purpose
               target = metadata?.target
           }
+
+          def name = subnet.tags.find { it.key.equalsIgnoreCase(NAME_TAG_KEY) }?.value
+          if (name && !purpose) {
+              def splits = name.split('\\.')
+              if (splits.length == 3) {
+                  purpose = "${splits[1]} (${splits[0]})"
+              }
+          }
+
           new AmazonSubnet(id: subnet.subnetId,
                   state: subnet.state,
                   vpcId: subnet.vpcId,
