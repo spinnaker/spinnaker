@@ -36,11 +36,12 @@ angular.module('deckApp.pipelines.config.service', [
       });
     }
 
-    function triggerPipeline(applicationName, pipelineName) {
-      return Restangular.one('applications', applicationName).all('pipelineConfigs')
-        .customPOST(
-          {}, pipelineName, { user: authenticationService.getAuthenticatedUser().name }
-      );
+    function triggerPipeline(applicationName, pipelineName, body) {
+      body = body || {};
+      body.user = authenticationService.getAuthenticatedUser().name;
+      console.warn(body);
+      return Restangular.one('pipelines', applicationName)
+        .customPOST(body, pipelineName);
     }
 
     return {
@@ -48,7 +49,7 @@ angular.module('deckApp.pipelines.config.service', [
       savePipeline: savePipeline,
       deletePipeline: deletePipeline,
       renamePipeline: renamePipeline,
-      triggerPipeline: triggerPipeline,
+      triggerPipeline: triggerPipeline
     };
 
   });

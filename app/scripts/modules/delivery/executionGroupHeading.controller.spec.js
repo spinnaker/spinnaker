@@ -40,7 +40,7 @@ describe('Controller: ExecutionGroupHeading', function () {
       };
     });
 
-    it('sets flag, waits for new execution to appear, ignoring any currently enqueued or running pipelines', function() {
+    xit('sets flag, waits for new execution to appear, ignoring any currently enqueued or running pipelines', function() {
       this.$scope.executions = [
         { status: 'RUNNING', id: 'exec-1' },
         { status: 'NOT_STARTED', id: 'exec-2' },

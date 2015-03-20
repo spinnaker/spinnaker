@@ -5,8 +5,10 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.delivery.executions.service',
   'deckApp.caches.collapsibleSectionState',
+  'deckApp.delivery.manualPipelineExecution.controller',
+  'deckApp.confirmationModal.service'
 ])
-  .controller('executionGroupHeading', function($scope, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
+  .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;
 
     function getSectionCacheKey() {
@@ -35,22 +37,37 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
     };
 
     controller.triggerPipeline = function() {
-      $scope.viewState.triggeringExecution = true;
-      var toIgnore = ($scope.executions || []).filter(function(execution) {
-        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
-      });
-      var ignoreList = _.pluck(toIgnore, 'id');
-      pipelineConfigService.triggerPipeline($scope.application.name, $scope.value).then(
-        function() {
-          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
-          monitor.then(function() {
-            $scope.viewState.triggeringExecution = false;
+      pipelineConfigService.getPipelinesForApplication($scope.application.name).then(function (pipelines) {
+        var pipeline = _.find(pipelines, {name: $scope.value});
+
+        var pipelineRunner = function(trigger) {
+          $scope.viewState.triggeringExecution = true;
+          var toIgnore = ($scope.executions || []).filter(function(execution) {
+            return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
           });
-          $scope.viewState.poll = monitor;
-        },
-        function() {
-          $scope.viewState.triggeringExecution = false;
+          var ignoreList = _.pluck(toIgnore, 'id');
+          return pipelineConfigService.triggerPipeline($scope.application.name, $scope.value, trigger).then(
+            function() {
+              var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
+              monitor.then(function() {
+                $scope.viewState.triggeringExecution = false;
+              });
+              $scope.viewState.poll = monitor;
+            },
+            function() {
+              $scope.viewState.triggeringExecution = false;
+            });
+        };
+
+        $modal.open({
+          templateUrl: 'scripts/modules/delivery/manualPipelineExecution.html',
+          controller: 'ManualPipelineExecutionCtrl as ctrl',
+          resolve: {
+            pipeline: function() { return pipeline; },
+            pipelineRunner: function() { return pipelineRunner; }
+          }
         });
+      });
     };
   });
 

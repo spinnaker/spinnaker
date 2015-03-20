@@ -1,24 +1,19 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines.trigger.jenkins.service', [
-  'deckApp.caches.infrastructure',
-])
-  .factory('igorService', function (settings, Restangular, infrastructureCaches) {
+angular.module('deckApp.pipelines.trigger.jenkins')
+  .factory('igorService', function (settings, Restangular) {
 
     function listMasters() {
-      return Restangular
-        .one('builds')
-        .withHttpConfig({cache: infrastructureCaches.buildMasters})
-        .getList();
+      return Restangular.one('builds').getList();
     }
 
     function listJobsForMaster(master) {
-      return Restangular
-        .one('builds', master)
-        .all('jobs')
-        .withHttpConfig({cache: infrastructureCaches.buildJobs})
-        .getList();
+      return Restangular.one('builds', master).all('jobs').getList();
+    }
+
+    function listBuildsForJob(master, job) {
+      return Restangular.one('builds', master).one('jobs', job).all('builds').getList();
     }
 
     function getJobConfig(master, job){
@@ -28,6 +23,7 @@ angular.module('deckApp.pipelines.trigger.jenkins.service', [
     return {
       listMasters: listMasters,
       listJobsForMaster: listJobsForMaster,
+      listBuildsForJob: listBuildsForJob,
       getJobConfig: getJobConfig,
     };
 
