@@ -86,10 +86,10 @@ class CreateBakeTaskSpec extends Specification {
 
   def "finds package details from the pipeline trigger"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[lastBuild:[artifacts:[
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[artifacts:[
             [fileName: 'hodor_1.0_all.deb'],
             [fileName: 'hodor-1.0.noarch.rpm']
-    ]]]]).build()
+    ]]]).build()
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
     def bake
     task.bakery = Mock(BakeryService) {
@@ -108,10 +108,10 @@ class CreateBakeTaskSpec extends Specification {
 
   def "fails if pipeline trigger includes artifacts but no artifact for the bake package"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[lastBuild:[artifacts:[
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[artifacts:[
       [fileName: 'hodorhooodor_1.0_all.deb'],
       [fileName: 'hodor-1.0.noarch.rpm']
-    ]]]]).build()
+    ]]]).build()
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
 
     when:

@@ -41,27 +41,19 @@ class OperationsController {
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, String> orchestrate(
     @RequestBody Map pipeline,
-    @RequestParam(value = "user", required = false) String user,
-    @RequestParam(value = "build.master", required = false) String master,
-    @RequestParam(value = "build.job", required = false) String job,
-    @RequestParam(value = "build.number", required = false) Integer buildNumber,
-    @RequestParam(value = "build.propertyFile", required = false) String propertyFile) {
+    @RequestParam(value = "user", required = false) String user) {
 
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
-    pipeline.trigger = [type: "manual", user: user] + pipeline.trigger
+    if (!pipeline.trigger.type) {
+      pipeline.trigger.type = "manual"
+    }
+    if (!pipeline.trigger.user) {
+      pipeline.trigger.user = (user ?: '[anonymous]')
+    }
 
     if (igorService) {
-      if (master && job && buildNumber) {
-        pipeline.trigger.job = job
-        pipeline.trigger.master = master
-        pipeline.trigger.buildNumber = buildNumber
-        if (propertyFile) {
-          pipeline.trigger.propertyFile = propertyFile
-        }
-      }
-
       getBuildInfo(pipeline.trigger)
     }
     startPipeline(pipeline)
