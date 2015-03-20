@@ -26,7 +26,6 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
     $scope.builds = [];
 
     $scope.triggerUpdated = function() {
-      console.log($scope.trigger);
       if (angular.isDefined($scope.trigger)) {
         igorService.listBuildsForJob($scope.trigger.master, $scope.trigger.job).then(function(builds) {
           $scope.builds = _.pluck(builds, 'number');
@@ -50,7 +49,6 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
 
     this.execute = function() {
       $scope.viewState.triggering = true;
-      console.log($scope.trigger);
 
       pipelineRunner($scope.trigger).then(
         function() {

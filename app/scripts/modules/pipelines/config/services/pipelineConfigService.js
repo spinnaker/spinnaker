@@ -39,7 +39,6 @@ angular.module('deckApp.pipelines.config.service', [
     function triggerPipeline(applicationName, pipelineName, body) {
       body = body || {};
       body.user = authenticationService.getAuthenticatedUser().name;
-      console.warn(body);
       return Restangular.one('pipelines', applicationName)
         .customPOST(body, pipelineName);
     }
