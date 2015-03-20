@@ -85,7 +85,7 @@ class BuildController {
         }
         try {
             def poller = new BuildJobPoller(job, masters.map[master], requestParams)
-            executor.submit(poller).get(30, TimeUnit.SECONDS)
+            executor.submit(poller).get(900, TimeUnit.SECONDS)
             poller.build
         } catch (RuntimeException e) {
             log.error("Unable to build job `${job}`", e)
