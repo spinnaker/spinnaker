@@ -12,9 +12,14 @@ angular.module('deckApp.pipelines.trigger.jenkins')
       return Restangular.one('builds', master).all('jobs').getList();
     }
 
+    function listBuildsForJob(master, job) {
+      return Restangular.one('builds', master).one('jobs', job).all('builds').getList();
+    }
+
     return {
       listMasters: listMasters,
-      listJobsForMaster: listJobsForMaster
+      listJobsForMaster: listJobsForMaster,
+      listBuildsForJob: listBuildsForJob
     };
 
 });
