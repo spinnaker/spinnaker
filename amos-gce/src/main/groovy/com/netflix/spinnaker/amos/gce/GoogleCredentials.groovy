@@ -32,18 +32,22 @@ class GoogleCredentials {
 
   private final HttpTransport httpTransport
   private final JsonFactory jsonFactory
-  private final String email
-  private final PrivateKey privateKey
+  private final String jsonKey
 
   GoogleCredential.Builder createCredentialBuilder(String... serviceAccountScopes) {
-    if (email && privateKey) {
-      new GoogleCredential.Builder().setTransport(httpTransport)
-              .setJsonFactory(jsonFactory)
-              .setServiceAccountId(email)
-              .setServiceAccountScopes(Arrays.asList(serviceAccountScopes))
-              .setServiceAccountPrivateKey(privateKey)
+    GoogleCredential.Builder builder
+
+    if (jsonKey) {
+      builder = new GoogleCredential.Builder() {
+        @Override
+        public GoogleCredential build() {
+          GoogleCredential credential = GoogleCredential.fromStream(new ByteArrayInputStream(jsonKey.bytes))
+
+          credential.createScoped(serviceAccountScopes as Set)
+        }
+      }
     } else {
-      new GoogleCredential.Builder() {
+      builder = new GoogleCredential.Builder() {
         @Override
         public GoogleCredential build() {
           GoogleCredential credential = GoogleCredential.getApplicationDefault()
@@ -51,8 +55,8 @@ class GoogleCredentials {
           credential.createScoped(serviceAccountScopes as Set)
         }
       }
-              .setTransport(httpTransport)
-              .setJsonFactory(jsonFactory)
     }
+
+    builder.setTransport(httpTransport).setJsonFactory(jsonFactory)
   }
 }
