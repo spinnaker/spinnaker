@@ -12,7 +12,8 @@ angular.module('deckApp.pipelines')
       templateUrl: 'scripts/modules/pipelines/config/pipelineConfigurer.html'
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, pipelineConfigService, $modal, $timeout, _) {
+  .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
+                                                 dirtyPipelineTracker, pipelineConfigService) {
 
     $scope.viewState = {
       expanded: true,
@@ -178,14 +179,26 @@ angular.module('deckApp.pipelines')
       return base;
     }
 
+    function pipelineUpdated(newVal, oldVal) {
+      if (newVal && oldVal && newVal.name !== oldVal.name) {
+        $scope.viewState.original = null;
+      }
+      markDirty();
+    }
+
     var markDirty = function markDirty() {
       if (!$scope.viewState.original) {
         $scope.viewState.original = angular.toJson(getPlain($scope.pipeline));
       }
       $scope.viewState.isDirty = $scope.viewState.original !== angular.toJson(getPlain($scope.pipeline));
+      if ($scope.viewState.isDirty) {
+        dirtyPipelineTracker.add($scope.pipeline.name);
+      } else {
+        dirtyPipelineTracker.remove($scope.pipeline.name);
+      }
     };
 
-    $scope.$watch('pipeline', markDirty, true);
+    $scope.$watch('pipeline', pipelineUpdated, true);
     $scope.$watch('viewState.original', markDirty, true);
 
   });

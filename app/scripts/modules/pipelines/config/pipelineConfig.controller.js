@@ -4,11 +4,14 @@ angular.module('deckApp.pipelines.config.controller', [
   'ui.router',
   'deckApp.pipelines.config.service',
   'deckApp.utils.lodash',
+  'deckApp.pageTitle',
+  'deckApp.pipelines.dirtyTracker.service',
 ])
-  .controller('PipelineConfigCtrl', function($scope, $timeout, $stateParams, pipelineConfigService, _, $q) {
+  .controller('PipelineConfigCtrl', function($scope, $rootScope, $timeout, $stateParams, _, $q, $window,
+                                             pageTitleService, dirtyPipelineTracker, pipelineConfigService) {
 
     $scope.state = {
-      pipelinesLoaded: false
+      pipelinesLoaded: false,
     };
 
     var ctrl = this;
@@ -50,5 +53,39 @@ angular.module('deckApp.pipelines.config.controller', [
         ctrl.updatePipelines(dirty);
       }
     };
+
+    function constructBaseWarningMessage() {
+      var message = 'You have unsaved changes in the following pipelines:\n\n';
+      dirtyPipelineTracker.list().forEach(function(pipeline) {
+        message += '    * ' + pipeline + '\n';
+      });
+      return message;
+    }
+
+    var confirmPageLeave = $rootScope.$on('$stateChangeStart', function(event) {
+      if (dirtyPipelineTracker.hasDirtyPipelines()) {
+        var message = constructBaseWarningMessage();
+        message += '\nAre you sure you want to navigate away from this page?';
+        if (!$window.confirm(message)) {
+          event.preventDefault();
+          pageTitleService.handleRoutingSuccess({
+            pageTitleMain: { label: $stateParams.application },
+            pageTitleSection: { title: 'pipeline config' },
+          });
+          return false;
+        }
+      }
+    });
+
+    $window.onbeforeunload = function() {
+      if (dirtyPipelineTracker.hasDirtyPipelines()) {
+        return constructBaseWarningMessage();
+      }
+    };
+
+    $scope.$on('$destroy', function() {
+      confirmPageLeave();
+      $window.onbeforeunload = undefined;
+    });
 
   });

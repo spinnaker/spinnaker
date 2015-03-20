@@ -1,7 +1,9 @@
 'use strict';
 
 angular.module('deckApp.pipelines.delete')
-  .controller('DeletePipelineModalCtrl', function($scope, application, pipeline, pipelineConfigService, $modalInstance, $log) {
+  .controller('DeletePipelineModalCtrl', function($scope, $modalInstance, $log,
+                                                  dirtyPipelineTracker, pipelineConfigService,
+                                                  application, pipeline) {
 
     this.cancel = $modalInstance.dismiss;
 
@@ -19,7 +21,7 @@ angular.module('deckApp.pipelines.delete')
               pipelineConfigService.savePipeline(pipeline);
             }
           });
-
+          dirtyPipelineTracker.remove(pipeline.name);
           $modalInstance.close();
         },
         function(response) {

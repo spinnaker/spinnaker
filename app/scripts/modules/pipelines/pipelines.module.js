@@ -5,7 +5,7 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.config.controller',
   'deckApp.pipelines.create.controller',
   'deckApp.pipelines.config.validator.directive',
-
+  'deckApp.pipelines.dirtyTracker.service',
 
   'restangular',
   'deckApp.pipelines.stage',
