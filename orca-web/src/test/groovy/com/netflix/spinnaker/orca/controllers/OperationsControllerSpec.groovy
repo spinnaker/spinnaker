@@ -72,7 +72,7 @@ class OperationsControllerSpec extends Specification {
     igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
-    controller.orchestrate(requestedPipeline, null, null, null, null, null)
+    controller.orchestrate(requestedPipeline, null)
 
     then:
     with(startedPipeline) {
@@ -98,7 +98,7 @@ class OperationsControllerSpec extends Specification {
     buildInfo = [result: "SUCCESS"]
   }
 
-  def "uses trigger details from query string if present"() {
+  def "trigger user takes precidence over query parameter"() {
     given:
     Pipeline startedPipeline = null
     pipelineStarter.start(_) >> { String json ->
@@ -107,92 +107,38 @@ class OperationsControllerSpec extends Specification {
     igor.getBuild(master, job, buildNumber) >> buildInfo
 
     when:
-    controller.orchestrate([:], user, master, job, buildNumber, null)
-
-    then:
-    with(startedPipeline) {
-      trigger.type == "manual"
-      trigger.user == user
-      trigger.master == master
-      trigger.job == job
-      trigger.buildNumber == buildNumber
-      trigger.buildInfo == buildInfo
-    }
-
-    where:
-    user = "fzlem"
-    master = "master"
-    job = "job"
-    buildNumber = 1337
-    buildInfo = [result: "SUCCESS"]
-  }
-
-  def "query string trigger details override those from the pipeline"() {
-    given:
-    Pipeline startedPipeline = null
-    pipelineStarter.start(_) >> { String json ->
-      startedPipeline = mapper.readValue(json, Pipeline)
-    }
-    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
-
-    when:
-    controller.orchestrate(requestedPipeline, user, master, job, buildNumber, null)
+    controller.orchestrate(requestedPipeline, queryUser)
 
     then:
     with(startedPipeline) {
       trigger.type == requestedPipeline.trigger.type
-      trigger.user == user
       trigger.master == master
       trigger.job == job
       trigger.buildNumber == buildNumber
+      trigger.buildInfo == buildInfo
+      trigger.user == expectedUser
     }
 
     where:
+    triggerUser   | queryUser   | expectedUser
+    null          | "fromQuery" | "fromQuery"
+    null          | null        | "[anonymous]"
+    "fromTrigger" | "fromQuery" | "fromTrigger"
+
+    master = "master"
+    job = "job"
+    buildNumber = 1337
     requestedPipeline = [
       trigger: [
-        type  : "jenkins",
-        master: "master",
-        job   : "job"
+        type       : "jenkins",
+        master     : master,
+        job        : job,
+        buildNumber: buildNumber,
+        user: triggerUser
       ]
     ]
-    user = "fzlem"
-    master = "qs-master"
-    job = "qs-job"
-    buildNumber = 1337
-  }
+    buildInfo = [result: "SUCCESS"]
 
-  def "gets properties file from igor if specified in query string"() {
-    given:
-    Pipeline startedPipeline = null
-    pipelineStarter.start(_) >> { String json ->
-      startedPipeline = mapper.readValue(json, Pipeline)
-    }
-    igor.getBuild(master, job, buildNumber) >> [result: "SUCCESS"]
-    igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
-
-    when:
-    controller.orchestrate(requestedPipeline, user, master, job, buildNumber, propertyFile)
-
-    then:
-    with(startedPipeline) {
-      trigger.propertyFile == propertyFile
-      trigger.properties == propertyFileContent
-    }
-
-    where:
-    requestedPipeline = [
-      trigger: [
-        type  : "jenkins",
-        master: "master",
-        job   : "job"
-      ]
-    ]
-    user = "fzlem"
-    master = "qs-master"
-    job = "qs-job"
-    buildNumber = 1337
-    propertyFile = "foo.properties"
-    propertyFileContent = [foo: "bar"]
   }
 
   def "gets properties file from igor if specified in pipeline"() {
@@ -205,7 +151,7 @@ class OperationsControllerSpec extends Specification {
     igor.getPropertyFile(master, job, buildNumber, propertyFile) >> propertyFileContent
 
     when:
-    controller.orchestrate(requestedPipeline, null, null, null, null, null)
+    controller.orchestrate(requestedPipeline, null)
 
     then:
     with(startedPipeline) {

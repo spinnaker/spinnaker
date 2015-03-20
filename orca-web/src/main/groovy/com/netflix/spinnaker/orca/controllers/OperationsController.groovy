@@ -46,7 +46,12 @@ class OperationsController {
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
-    pipeline.trigger = [type: "manual", user: user] + pipeline.trigger
+    if (!pipeline.trigger.type) {
+      pipeline.trigger.type = "manual"
+    }
+    if (!pipeline.trigger.user) {
+      pipeline.trigger.user = (user ?: '[anonymous]')
+    }
 
     if (igorService) {
       getBuildInfo(pipeline.trigger)
