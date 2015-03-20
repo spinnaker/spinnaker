@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('deckApp.pipelines.rename')
-  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, pipelineConfigService, $modalInstance, $log) {
+  .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $modalInstance, $log,
+                                                  dirtyPipelineTracker, pipelineConfigService) {
 
     this.cancel = $modalInstance.dismiss;
 
@@ -20,6 +21,7 @@ angular.module('deckApp.pipelines.rename')
       return pipelineConfigService.renamePipeline(application.name, currentName, $scope.command.newName).then(
         function() {
           $scope.pipeline.name = $scope.command.newName;
+          dirtyPipelineTracker.remove(currentName);
           $modalInstance.close();
         },
         function(response) {
