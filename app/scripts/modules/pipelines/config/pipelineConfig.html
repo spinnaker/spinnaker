@@ -12,6 +12,13 @@
     </p>
   </div>
 </div>
+<div class="row" ng-if="application.pipelines.length">
+  <div class="row">
+    <div class="col-md-8" style="margin-top: 20px">
+      <create-pipeline-button application="application"></create-pipeline-button>
+    </div>
+  </div>
+</div>
 <div class="row"
        ui-sortable="pipelineSortOptions"
        ng-model="application.pipelines">

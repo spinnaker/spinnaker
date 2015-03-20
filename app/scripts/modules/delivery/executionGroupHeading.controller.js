@@ -3,14 +3,19 @@
 angular.module('deckApp.delivery.executionGroupHeading.controller', [
   'deckApp.utils.lodash',
   'deckApp.pipelines.config.service',
-  'deckApp.delivery.executions.service'
+  'deckApp.delivery.executions.service',
+  'deckApp.caches.collapsibleSectionState',
 ])
-  .controller('executionGroupHeading', function($scope, $timeout, pipelineConfigService, executionsService, _) {
+  .controller('executionGroupHeading', function($scope, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;
+
+    function getSectionCacheKey() {
+      return executionsService.getSectionCacheKey($scope.filter.execution.groupBy, $scope.application.name, $scope.value);
+    }
 
     $scope.viewState = {
       triggeringExecution: false,
-      open: true,
+      open: !collapsibleSectionStateCache.isSet(getSectionCacheKey()) || collapsibleSectionStateCache.isExpanded(getSectionCacheKey()),
       poll: null
     };
 
@@ -22,6 +27,7 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
 
     controller.toggle = function() {
       $scope.viewState.open = !$scope.viewState.open;
+      collapsibleSectionStateCache.setExpanded(getSectionCacheKey(), $scope.viewState.open);
     };
 
     controller.canTriggerPipelineManually = function() {
