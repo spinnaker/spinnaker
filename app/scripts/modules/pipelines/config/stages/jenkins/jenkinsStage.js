@@ -12,28 +12,50 @@ angular.module('deckApp.pipelines.stage.jenkins')
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
       executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html'
     });
-  }).controller('JenkinsStageCtrl', function($scope, stage, jenkinsService) {
-
-    var ctrl = this;
+  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches) {
 
     $scope.stage = stage;
 
     $scope.viewState = {
       mastersLoaded: false,
-      jobsLoaded: false
+      mastersRefreshing: false,
+      mastersLastRefreshed: null,
+      jobsLoaded: false,
+      jobsRefreshing: false,
+      jobsLastRefreshed: null,
     };
 
-    jenkinsService.listMasters().then(function(masters) {
-      $scope.masters = masters;
-      $scope.viewState.mastersLoaded = true;
-    });
+    function initializeMasters() {
+      igorService.listMasters().then(function (masters) {
+        $scope.masters = masters;
+        $scope.viewState.mastersLoaded = true;
+        $scope.viewState.mastersRefreshing = false;
+        $scope.viewState.mastersLastRefreshed = $filter('timestamp')(infrastructureCaches.buildMasters.getStats().ageMax);
+      });
+    }
+
+    this.refreshMasters = function() {
+      $scope.viewState.mastersRefreshing = true;
+      $scope.viewState.mastersLastRefreshed = null;
+      infrastructureCaches.clearCache('buildMasters');
+      initializeMasters();
+    };
+
+    this.refreshJobs = function() {
+      $scope.viewState.jobsRefreshing = true;
+      $scope.viewState.jobsLastRefreshed = null;
+      infrastructureCaches.clearCache('buildJobs');
+      updateJobsList();
+    };
 
     function updateJobsList() {
       if ($scope.stage && $scope.stage.master) {
         $scope.viewState.jobsLoaded = false;
         $scope.jobs = [];
-        jenkinsService.listJobsForMaster($scope.stage.master).then(function(jobs) {
+        igorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
+          $scope.viewState.jobsLastRefreshed = $filter('timestamp')(infrastructureCaches.buildJobs.getStats().ageMax);
           $scope.viewState.jobsLoaded = true;
+          $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;
           if ($scope.jobs.indexOf($scope.stage.job) === -1) {
             $scope.stage.job = '';
@@ -47,29 +69,26 @@ angular.module('deckApp.pipelines.stage.jenkins')
 
     function updateJobConfig() {
       if ($scope.stage && $scope.stage.master && $scope.stage.job) {
-         jenkinsService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
-          if(!$scope.stage.parameters) {
-            $scope.stage.parameters = {};
-          }
-          $scope.jobParams = config.parameterDefinitionList;
-          $scope.userSuppliedParameters = $scope.stage.parameters;
-          $scope.useDefaultParameters = {};
-           _.each($scope.jobParams, function(property){
-              if(!(property.name in $scope.stage.parameters) && (property.defaultValue!==null)){
-                $scope.useDefaultParameters[property.name] = true;
-              }
-           });
+        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
+        if(!$scope.stage.parameters) {
+          $scope.stage.parameters = {};
+        }
+        $scope.jobParams = config.parameterDefinitionList;
+        $scope.userSuppliedParameters = $scope.stage.parameters;
+        $scope.useDefaultParameters = {};
+         _.each($scope.jobParams, function(property){
+            if(!(property.name in $scope.stage.parameters) && (property.defaultValue!==null)){
+              $scope.useDefaultParameters[property.name] = true;
+            }
          });
+       });
       }
     }
-
-    $scope.$watch('stage.master', updateJobsList);
-    $scope.$watch('stage.job', updateJobConfig);
 
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
 
-    ctrl.updateParam = function(parameter){
+    this.updateParam = function(parameter){
       if($scope.useDefaultParameters[parameter] === true){
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.stage.parameters[parameter];
@@ -77,6 +96,11 @@ angular.module('deckApp.pipelines.stage.jenkins')
         $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
     };
+
+    initializeMasters();
+
+    $scope.$watch('stage.master', updateJobsList);
+    $scope.$watch('stage.job', updateJobConfig);
 
   });
 

@@ -9,6 +9,17 @@
         </ui-select-choices>
       </ui-select>
     </div>
+    <div class="col-md-1 text-center">
+      <a href
+         ng-click="jenkinsTriggerCtrl.refreshMasters()"
+         tooltip-placement="right"
+         tooltip-html-unsafe="Masters {{viewState.mastersRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.mastersLastRefreshed}}
+                              <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>"
+        >
+              <span ng-class="{'glyphicon-spinning':viewState.mastersRefreshing}"
+                    class="glyphicon glyphicon-refresh"></span>
+      </a>
+    </div>
   </div>
   <div class="form-group">
     <label class="col-md-3 sm-label-left">Job</label>
@@ -24,6 +35,17 @@
       <div class="text-center" ng-if="trigger.master && !viewState.jobsLoaded">
         <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
       </div>
+    </div>
+    <div class="col-md-1 text-center">
+      <a href
+         ng-click="jenkinsTriggerCtrl.refreshJobs()"
+         tooltip-placement="right"
+         tooltip-html-unsafe="Jobs {{viewState.jobsRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.jobsLastRefreshed}}
+                              <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>"
+        >
+              <span ng-class="{'glyphicon-spinning':viewState.jobsRefreshing}"
+                    class="glyphicon glyphicon-refresh"></span>
+      </a>
     </div>
   </div>
   <div class="form-group">

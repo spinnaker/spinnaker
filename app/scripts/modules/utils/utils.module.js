@@ -11,4 +11,5 @@ angular.module('deckApp.utils', [
   'deckApp.utils.selectOnDblClick',
   'deckApp.utils.rx',
   'deckApp.utils.stickyHeader',
+  'deckApp.utils.timeFormatters',
 ]);

@@ -19,8 +19,16 @@ angular.module('deckApp.caches.infrastructure', [
         maxAge: 60 * 60 * 1000
       },
       securityGroups: {},
-      instanceTypes: 7 * 24 * 60 * 60 * 1000,
+      instanceTypes: {
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      },
       keyPairs: {},
+      buildMasters: {
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      },
+      buildJobs: {
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      }
     };
 
     function clearCache(key) {

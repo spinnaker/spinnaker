@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('deckApp.utils.timeFormatters', [])
   .filter('timestamp', function(momentService) {
     return function(input) {
       var moment = momentService(isNaN(parseInt(input)) ? input : parseInt(input));
