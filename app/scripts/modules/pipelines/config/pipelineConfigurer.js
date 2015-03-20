@@ -179,8 +179,10 @@ angular.module('deckApp.pipelines')
 
     function getPlain(pipeline) {
       var base = pipeline.fromServer ? pipeline.plain() : angular.copy(pipeline);
-      base.index = null;
-      return base;
+      return {
+        stages: base.stages,
+        triggers: base.triggers
+      };
     }
 
     function pipelineUpdated(newVal, oldVal) {
@@ -203,6 +205,8 @@ angular.module('deckApp.pipelines')
     };
 
     function cacheViewState() {
+      var toCache = angular.copy($scope.viewState);
+      delete toCache.original;
       pipelineViewStateCache.cacheViewState($scope.application.name, $scope.pipeline.name, $scope.viewState);
     }
 

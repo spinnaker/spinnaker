@@ -8,7 +8,8 @@ angular.module('deckApp.pipelines.create')
         controller: 'CreatePipelineModalCtrl',
         controllerAs: 'createPipelineModalCtrl',
         resolve: {
-          application: function() { return $scope.application; }
+          application: function() { return $scope.application; },
+          target: function() { return $scope.target; }
         }
       });
     };
