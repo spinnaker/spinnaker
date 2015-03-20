@@ -78,7 +78,7 @@ class InfoControllerSpec extends Specification {
             .accept(MediaType.APPLICATION_JSON)).andReturn().response
 
         then:
-        1 * masters.map >> [ 'master1' : [ projects : [ list: [
+        1 * masters.map >> [ 'master1' : [ jobs : [ list: [
             ['name': 'blah'],
             ['name': 'blip'],
             ['name': 'bum']

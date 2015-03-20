@@ -49,7 +49,7 @@ class InfoController {
     @RequestMapping(value = '/jobs/{master}', method = RequestMethod.GET)
     List<String> getJobs(@PathVariable String master) {
         log.info('Getting list of jobs for master: {}', master)
-        masters.map[master].projects.list.collect{ it.name }
+        masters.map[master].jobs.list.collect{it.name}
     }
 
     @RequestMapping(value = '/typeahead')

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildDependencies
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.jenkins.client.model.JobList
 import com.netflix.spinnaker.igor.jenkins.client.model.ProjectsList
 import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import com.netflix.spinnaker.igor.jenkins.client.model.ScmDetails
@@ -38,6 +39,9 @@ interface JenkinsClient {
 
     @GET('/api/xml?tree=jobs[name,lastBuild[actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]]]&exclude=/*/*/*/action[not(totalCount)]')
     ProjectsList getProjects()
+
+    @GET('/api/xml?tree=jobs[name]')
+    JobList getJobs()
 
     @GET('/job/{jobName}/api/xml?exclude=/*/build/action[not(totalCount)]&tree=builds[number,url,duration,timestamp,result,building,url,actions[failCount,skipCount,totalCount]]')
     BuildsList getBuilds(@Path('jobName') String jobName)
