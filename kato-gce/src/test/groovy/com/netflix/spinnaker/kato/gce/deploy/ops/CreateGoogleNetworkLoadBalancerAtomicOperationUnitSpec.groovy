@@ -45,8 +45,9 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
     setup:
       def computeMock = Mock(Compute)
       def globalOperations = Mock(Compute.GlobalOperations)
+      def regionOperations = Mock(Compute.RegionOperations)
       def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
-      def globalTargetPoolOperationGet = Mock(Compute.GlobalOperations.Get)
+      def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
       def httpHealthChecksInsertOp = new com.google.api.services.compute.model.Operation(
@@ -87,19 +88,21 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * forwardingRules.insert(PROJECT_NAME, REGION, {it.IPAddress == IP_ADDRESS && it.portRange == null}) >> forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
 
-      2 * computeMock.globalOperations() >> globalOperations
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
-      1 * globalOperations.get(PROJECT_NAME, TARGET_POOL_OP_NAME) >> globalTargetPoolOperationGet
-      1 * globalTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
   void "should create a Network Load Balancer with port range and health checks"() {
     setup:
       def computeMock = Mock(Compute)
       def globalOperations = Mock(Compute.GlobalOperations)
+      def regionOperations = Mock(Compute.RegionOperations)
       def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
-      def globalTargetPoolOperationGet = Mock(Compute.GlobalOperations.Get)
+      def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
       def httpHealthChecksInsertOp = new com.google.api.services.compute.model.Operation(
@@ -141,18 +144,19 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * forwardingRules.insert(PROJECT_NAME, REGION, {it.IPAddress == IP_ADDRESS && it.portRange == PORT_RANGE}) >> forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
 
-      2 * computeMock.globalOperations() >> globalOperations
+      1 * computeMock.globalOperations() >> globalOperations
+      1 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
-      1 * globalOperations.get(PROJECT_NAME, TARGET_POOL_OP_NAME) >> globalTargetPoolOperationGet
-      1 * globalTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
-  void "should create a Network Load Balancer without health checks if non are specified"() {
+  void "should create a Network Load Balancer without health checks if none are specified"() {
     setup:
       def computeMock = Mock(Compute)
-      def globalOperations = Mock(Compute.GlobalOperations)
-      def globalTargetPoolOperationGet = Mock(Compute.GlobalOperations.Get)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsInsert = Mock(Compute.TargetPools.Insert)
       def targetPoolsInsertOp = new com.google.api.services.compute.model.Operation(
@@ -182,8 +186,8 @@ class CreateGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
 
-      1 * computeMock.globalOperations() >> globalOperations
-      1 * globalOperations.get(PROJECT_NAME, TARGET_POOL_OP_NAME) >> globalTargetPoolOperationGet
-      1 * globalTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * computeMock.regionOperations() >> regionOperations
+      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 }
