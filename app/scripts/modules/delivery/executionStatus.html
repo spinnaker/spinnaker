@@ -3,6 +3,12 @@
     <h5 ng-if="filter.execution.groupBy !== 'name'">{{execution.name}}</h5>
     <span ng-switch="execution.trigger.type" ng-class="{subheading: filter.execution.groupBy !== 'name'}">
       <h5 ng-switch-when="jenkins">
+        <a ng-if="execution.trigger.buildInfo.url"
+           href="{{ execution.trigger.buildInfo.url }}"
+           target="_blank"
+           ng-click="$event.stopPropagation()">
+          Build #{{ execution.trigger.buildInfo.number }}
+        </a>
         <a ng-if="execution.trigger.buildInfo.lastBuild.url"
            href="{{ execution.trigger.buildInfo.lastBuild.url }}"
            target="_blank"
@@ -20,7 +26,7 @@
     <ul>
       <span ng-switch="execution.trigger.type">
         <li ng-switch-when="jenkins">
-          {{ execution.trigger.buildInfo.name }}
+         {{ execution.trigger.job}}
         </li>
         <li ng-switch-when="manual">
           {{ execution.trigger.user || 'unknown user'}}
