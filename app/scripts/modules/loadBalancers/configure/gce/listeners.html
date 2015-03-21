@@ -14,7 +14,7 @@
           <tr ng-repeat="listener in loadBalancer.listeners">
             <!-- TODO(duftler): Add support for UDP. -->
             <td><select class="form-control input-sm" ng-model="listener.protocol"
-                        ng-options="protocol for protocol in ['TCP']"></select></td>
+                        ng-options="protocol for protocol in ['TCP', 'UDP']"></select></td>
             <td><input class="form-control input-sm" ng-model="listener.portRange"/></td>
           </tr>
           <tr>
