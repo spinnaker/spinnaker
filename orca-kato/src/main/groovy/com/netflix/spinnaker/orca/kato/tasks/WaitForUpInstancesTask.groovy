@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
-  protected boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames) {
-    if (asg.minSize > instances.size()) {
+  protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+    // favor using configured target capacity whenever available (rather than in-progress asg's minSize)
+    def targetMinSize = (stage.context.capacity?.min != null) ? stage.context.capacity.min : asg.minSize
+    if (targetMinSize > instances.size()) {
       return false
     }
 
@@ -40,7 +43,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       someAreUp && noneAreDown
     }
 
-    return healthyCount >= asg.minSize
+    return healthyCount >= targetMinSize
   }
 
 }

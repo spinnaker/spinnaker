@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
 @Component
 class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
 
   @Override
-  protected boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }

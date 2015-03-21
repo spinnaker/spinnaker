@@ -24,9 +24,12 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
+@Slf4j
 abstract class AbstractInstancesCheckTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 3600000
@@ -40,7 +43,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   abstract
   protected Map<String, List<String>> getServerGroups(Stage stage)
 
-  abstract protected boolean hasSucceeded(Map asg, List instances, Collection<String> interestingHealthProviderNames)
+  abstract protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames)
 
   @Override
   TaskResult execute(Stage stage) {
@@ -82,7 +85,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
 
         seenServerGroup[name] = true
         Collection<String> interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
-        def isComplete = hasSucceeded(asg, instances, interestingHealthProviderNames)
+        def isComplete = hasSucceeded(stage, asg, instances, interestingHealthProviderNames)
         if (!isComplete) {
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
         }
@@ -93,11 +96,15 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
     } catch (RetrofitError e) {
+      def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
       if (e.response.status == 404) {
-        new DefaultTaskResult(ExecutionStatus.RUNNING)
-      } else {
-        new DefaultTaskResult(ExecutionStatus.FAILED)
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      } else if (e.response.status >= 500) {
+        log.error("Unexpected retrofit error (${retrofitErrorResponse})")
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
       }
+
+      throw e
     }
   }
 

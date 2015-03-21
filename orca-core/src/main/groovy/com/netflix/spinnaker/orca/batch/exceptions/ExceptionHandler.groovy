@@ -26,9 +26,21 @@ interface ExceptionHandler<T extends RuntimeException> {
 
   @Canonical
   static class Response {
+    private final Date timestamp = new Date()
     String exceptionType
     String operation
     ResponseDetails details
+
+
+    @Override
+    public String toString() {
+      return "Response{" +
+        "timestamp=" + timestamp +
+        ", exceptionType='" + exceptionType + '\'' +
+        ", operation='" + operation + '\'' +
+        ", details=" + details +
+        '}';
+    }
   }
 
   @Canonical
