@@ -53,7 +53,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
     credentials: "test-account-name",
     listeners  : [
       [
-        protocol: "TCP",
+        protocol: "UDP",
         portRange: "4040-5050",
         healthCheck: false
       ]
@@ -150,7 +150,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       }
   }
 
-  def "creates an upsert load balancer task with port range"() {
+  def "creates an upsert load balancer task with port range and IP protocol"() {
     setup:
       stage.context.putAll(upsertGoogleLoadBalancerConfigWithPortRange)
       def operations
@@ -172,6 +172,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
         region == this.upsertGoogleLoadBalancerConfigWithPortRange.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRange.credentials
         portRange == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].portRange
+        ipProtocol == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].protocol
         !healthCheck
       }
   }

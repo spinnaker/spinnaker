@@ -71,6 +71,10 @@ class UpsertGoogleLoadBalancerTask implements Task {
 
     def listener = context.listeners?.get(0)
 
+    if (listener?.protocol) {
+      operation.ipProtocol = listener.protocol;
+    }
+
     if (listener?.portRange) {
       operation.portRange = listener.portRange;
     }
