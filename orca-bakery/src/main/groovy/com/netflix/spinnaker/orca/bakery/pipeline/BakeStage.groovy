@@ -71,7 +71,7 @@ class BakeStage extends ParallelStage implements StepProvider {
     }
     return deployRegions.collect {
       stage.context + ([
-        type: MAYO_CONFIG_TYPE,
+        type  : MAYO_CONFIG_TYPE,
         region: it,
         name  : "Bake in ${it}" as String
       ] as Map<String, Object>)
@@ -87,9 +87,24 @@ class BakeStage extends ParallelStage implements StepProvider {
   Task completeParallel() {
     return new Task() {
       TaskResult execute(Stage stage) {
-        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [
-            deploymentDetails: stage.execution.stages.findAll { it.type == MAYO_CONFIG_TYPE }.collect { it.context }
-        ])
+        def bakeInitializationStages = stage.execution.stages.findAll {
+          it.parentStageId == stage.parentStageId && it.status == ExecutionStatus.RUNNING
+        }
+
+        def globalContext = [
+          deploymentDetails: stage.execution.stages.findAll {
+            it.type == MAYO_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && it.context.ami
+          }.collect { Stage bakeStage ->
+            def deploymentDetails = [:]
+            ["ami", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package"].each {
+              if (bakeStage.context.containsKey(it)) {
+                deploymentDetails.put(it, bakeStage.context.get(it))
+              }
+            }
+            return deploymentDetails
+          }
+        ]
+        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
       }
     }
   }

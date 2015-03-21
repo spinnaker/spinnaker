@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import groovy.time.TimeCategory
@@ -67,8 +69,15 @@ class BakeStageSpec extends Specification {
       .withStage(BakeStage.MAYO_CONFIG_TYPE, "Bake", ["ami": 3])
       .build()
 
+    def pipelineStage = new PipelineStage(pipeline, "bake")
+    pipeline.stages.each {
+      it.status = ExecutionStatus.RUNNING
+      it.parentStageId = pipelineStage.parentStageId
+      ((AbstractStage)it).id = pipelineStage.parentStageId
+    }
+
     when:
-    def taskResult = new BakeStage().completeParallel().execute(new PipelineStage(pipeline, "bake"))
+    def taskResult = new BakeStage().completeParallel().execute(pipelineStage)
 
     then:
     taskResult.globalOutputs == [
