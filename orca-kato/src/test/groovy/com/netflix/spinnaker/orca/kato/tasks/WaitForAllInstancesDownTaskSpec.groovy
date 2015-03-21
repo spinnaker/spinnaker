@@ -74,8 +74,11 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
 
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "")
+
     expect:
-    hasSucceeded == task.hasSucceeded([minSize: 0], instances, healthProviderNames)
+    hasSucceeded == task.hasSucceeded(stage, [minSize: 0], instances, healthProviderNames)
 
     where:
     hasSucceeded || healthProviderNames | instances

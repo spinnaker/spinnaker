@@ -107,7 +107,12 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
-    hasSucceeded == task.hasSucceeded([minSize: minSize], instances, healthProviderNames)
+    hasSucceeded == task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", [capacity: [min: minSize]]), null, instances, healthProviderNames
+    )
+    hasSucceeded == task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", [:]), [minSize: minSize], instances, healthProviderNames
+    )
 
     where:
     hasSucceeded || minSize | healthProviderNames | instances
