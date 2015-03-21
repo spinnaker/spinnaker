@@ -110,6 +110,26 @@
             </a>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Build Masters</div>
+          <div class="col-md-3">{{config.getCacheInfo('igorMasters').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="config.refreshCache('igorMasters')">
+              <span ng-class="{'glyphicon-spinning':config.clearingCache['buildMasters']}"
+                    class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-3 col-md-offset-1">Build Jobs</div>
+          <div class="col-md-3">{{config.getCacheInfo('igorJobs').ageMax | timestamp}}</div>
+          <div class="col-md-1 text-center">
+            <a href ng-click="config.refreshCache('igorJobs')">
+              <span ng-class="{'glyphicon-spinning':config.clearingCache['buildJobs']}"
+                    class="glyphicon glyphicon-refresh"></span>
+            </a>
+          </div>
+        </div>
         <div class="row" style="margin-top:20px">
           <div class="col-md-10">
             <button class="btn btn-link" ng-if="!config.clearingCaches" ng-click="config.refreshCaches()"><span
