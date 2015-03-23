@@ -29,6 +29,7 @@ import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.model.SubnetData
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -144,7 +145,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   String getPurposeForSubnet(String region, String subnetId) {
     def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
     def result = amazonEC2.describeSubnets(new DescribeSubnetsRequest().withSubnetIds(subnetId))
-    def json = result.subnets?.getAt(0)?.tags?.find { it.key == AutoScalingWorker.SUBNET_METADATA_KEY }?.value
+    def json = result.subnets?.getAt(0)?.tags?.find { it.key == SubnetData.METADATA_TAG_KEY }?.value
     def metadata = objectMapper.readValue(json, Map)
     (metadata && metadata.purpose) ? metadata.purpose : null
   }

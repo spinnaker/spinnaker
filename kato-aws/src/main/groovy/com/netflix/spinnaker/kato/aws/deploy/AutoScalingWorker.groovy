@@ -26,6 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.model.SubnetData
+import com.netflix.spinnaker.kato.aws.model.SubnetTarget
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -42,16 +44,12 @@ import org.joda.time.LocalDateTime
  * @author Dan Woods
  */
 class AutoScalingWorker {
-  static final String SUBNET_METADATA_KEY = "immutable_metadata"
-  private static final String SUBNET_TARGET = "ec2"
   private static final String AWS_PHASE = "AWS_DEPLOY"
   private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
-
-  private final ObjectMapper objectMapper = new ObjectMapper()
 
   private String application
   private String region
@@ -206,12 +204,9 @@ class AutoScalingWorker {
       if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
         continue
       }
-      def metadataJson = subnet.tags.find { it.key == SUBNET_METADATA_KEY }?.value
-      if (metadataJson) {
-        Map metadata = objectMapper.readValue metadataJson, Map
-        if (metadata.containsKey("purpose") && metadata.purpose == subnetType && ((metadata.target != null && metadata.target == SUBNET_TARGET) || metadata.target == null)) {
-          mySubnets << subnet
-        }
+      SubnetData sd = SubnetData.from(subnet)
+      if (sd.purpose == subnetType && (sd.target == null || sd.target == SubnetTarget.EC2)) {
+        mySubnets << subnet
       }
     }
     mySubnets

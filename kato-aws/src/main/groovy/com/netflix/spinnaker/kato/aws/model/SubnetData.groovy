@@ -28,7 +28,7 @@ import groovy.transform.Immutable
 @Immutable
 class SubnetData {
 
-  private static final String METADATA_TAG_KEY = 'immutable_metadata'
+  static final String METADATA_TAG_KEY = 'immutable_metadata'
 
   /** {@link com.amazonaws.services.ec2.model.Subnet#subnetId} */
   String subnetId
@@ -74,6 +74,12 @@ class SubnetData {
       purpose = subnetMetaData.purpose
       String targetName = subnetMetaData.target
       target = SubnetTarget.forText(targetName)
+    } else {
+      String[] splits = subnet.tags.find { it.key.equalsIgnoreCase('name') }?.value?.split(/\./)
+      if (splits && splits.length == 3) {
+        purpose = "${splits[1]} (${splits[0]})"
+        target = null
+      }
     }
 
     new SubnetData(purpose: purpose, target: target,
