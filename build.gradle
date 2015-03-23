@@ -20,12 +20,12 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.55'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.51'
   }
 }
 
 apply plugin: 'spinnaker-gradle-project'
-apply plugin: 'java'
+apply plugin: 'groovy'
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -33,8 +33,13 @@ targetCompatibility = 1.7
 group = "com.netflix.amazoncomponents"
 
 dependencies {
+  spinnaker.group('jackson')
   compile spinnaker.dependency('aws')
   compile spinnaker.dependency('amosAws')
-  compile spinnaker.dependency('eddaClient')
+  compile spinnaker.dependency('httpclient')
+  compile spinnaker.dependency('httpcore')
+  spinnaker.group('spockBase')
 }
+
+tasks.compileGroovy.enabled = false
 
