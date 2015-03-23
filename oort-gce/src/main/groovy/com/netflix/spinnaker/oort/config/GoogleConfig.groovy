@@ -45,7 +45,6 @@ class GoogleConfig {
   static class ManagedAccount {
     String name
     String project
-    String pkcs12Password
   }
 
   static class GoogleConfigurationProperties {
@@ -65,7 +64,7 @@ class GoogleConfig {
     def config = googleConfigurationProperties()
     for (managedAccount in config.accounts) {
       try {
-        accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(config.kmsServer, managedAccount.pkcs12Password, managedAccount.name, managedAccount.project))
+        accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(config.kmsServer, managedAccount.name, managedAccount.project))
       } catch (e) {
         log.info "Could not load account ${managedAccount.name} for Google", e
       }
