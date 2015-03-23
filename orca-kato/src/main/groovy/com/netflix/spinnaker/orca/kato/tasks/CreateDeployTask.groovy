@@ -95,7 +95,8 @@ class CreateDeployTask implements Task {
   private TaskId deploy(Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
 
-    if (deployOperation.subnetType) {
+    //TODO(cfieber)- remove the VPC special case asap
+    if (deployOperation.subnetType && !deployOperation.subnetType.contains('vpc0')) {
       addAllNonEmpty(deployOperation.securityGroups, defaultVpcSecurityGroups)
     } else {
       addAllNonEmpty(deployOperation.securityGroups, defaultSecurityGroups)
