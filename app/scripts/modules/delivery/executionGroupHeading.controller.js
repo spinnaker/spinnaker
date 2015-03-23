@@ -36,38 +36,44 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
       return $scope.filter.execution.groupBy === 'name' && _.find($scope.configurations, { name: $scope.value });
     };
 
-    controller.triggerPipeline = function() {
-      pipelineConfigService.getPipelinesForApplication($scope.application.name).then(function (pipelines) {
-        var pipeline = _.find(pipelines, {name: $scope.value});
 
-        var pipelineRunner = function(trigger) {
-          $scope.viewState.triggeringExecution = true;
-          var toIgnore = ($scope.executions || []).filter(function(execution) {
-            return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
+    function startPipeline(trigger) {
+      $scope.viewState.triggeringExecution = true;
+      var ignoreList = _.pluck(getCurrentlyRunningExecutions(), 'id');
+      return pipelineConfigService.triggerPipeline($scope.application.name, $scope.value, trigger).then(
+        function () {
+          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
+          monitor.then(function () {
+            $scope.viewState.triggeringExecution = false;
           });
-          var ignoreList = _.pluck(toIgnore, 'id');
-          return pipelineConfigService.triggerPipeline($scope.application.name, $scope.value, trigger).then(
-            function() {
-              var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
-              monitor.then(function() {
-                $scope.viewState.triggeringExecution = false;
-              });
-              $scope.viewState.poll = monitor;
-            },
-            function() {
-              $scope.viewState.triggeringExecution = false;
-            });
-        };
-
-        $modal.open({
-          templateUrl: 'scripts/modules/delivery/manualPipelineExecution.html',
-          controller: 'ManualPipelineExecutionCtrl as ctrl',
-          resolve: {
-            pipeline: function() { return pipeline; },
-            pipelineRunner: function() { return pipelineRunner; }
-          }
+          $scope.viewState.poll = monitor;
+        },
+        function () {
+          $scope.viewState.triggeringExecution = false;
         });
+    }
+
+    function getCurrentlyRunningExecutions() {
+      return ($scope.executions || []).filter(function (execution) {
+        if (execution.name !== $scope.value) {
+          return false;
+        }
+        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
       });
+    }
+
+    controller.triggerPipeline = function() {
+      var pipeline = _.find($scope.configurations, {name: $scope.value});
+      var currentlyRunningExecutions = getCurrentlyRunningExecutions();
+
+      $modal.open({
+        templateUrl: 'scripts/modules/delivery/manualPipelineExecution.html',
+        controller: 'ManualPipelineExecutionCtrl as ctrl',
+        resolve: {
+          pipeline: function () { return pipeline; },
+          currentlyRunningExecutions: function() { return currentlyRunningExecutions; },
+        }
+      }).result.then(startPipeline);
     };
   });
 

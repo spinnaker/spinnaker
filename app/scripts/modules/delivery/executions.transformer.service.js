@@ -49,7 +49,24 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
       stageSummaries.forEach(transformStageSummary);
       execution.stageSummaries = stageSummaries;
+      execution.currentStages = getCurrentStages(execution);
 
+    }
+
+    function getCurrentStages(execution) {
+      var currentStages = execution.stageSummaries.filter(function(stage) {
+        return stage.isRunning;
+      });
+      // if there are no running stages, find the first enqueued stage
+      if (!currentStages.length) {
+        var enqueued = execution.stageSummaries.filter(function(stage) {
+          return stage.hasNotStarted;
+        });
+        if (enqueued && enqueued.length) {
+          currentStages = [enqueued[0]];
+        }
+      }
+      return currentStages;
     }
 
     function transformStage(stage) {

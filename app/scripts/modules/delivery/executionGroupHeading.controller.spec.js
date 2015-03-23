@@ -8,6 +8,7 @@ describe('Controller: ExecutionGroupHeading', function () {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
     this.$q = $q;
+    this.$modal = { open: angular.noop };
   }));
 
   describe('triggerPipeline', function() {
@@ -36,30 +37,41 @@ describe('Controller: ExecutionGroupHeading', function () {
           pipelineConfigService: this.pipelineConfigService,
           executionsService: this.executionsService,
           application: this.$scope.application,
+          $modal: this.$modal,
         });
       };
     });
 
-    xit('sets flag, waits for new execution to appear, ignoring any currently enqueued or running pipelines', function() {
-      this.$scope.executions = [
-        { status: 'RUNNING', id: 'exec-1' },
-        { status: 'NOT_STARTED', id: 'exec-2' },
-        { status: 'COMPLETED', id: 'exec-3' },
-      ];
+    it('sets flag, waits for new execution to appear, ignoring any currently enqueued or running pipelines', function() {
+      var $scope = this.$scope,
+          name = 'pipeline name a',
+          executions = [
+            { name: name, status: 'RUNNING', id: 'exec-1' },
+            { name: name, status: 'NOT_STARTED', id: 'exec-2' },
+            { name: name, status: 'COMPLETED', id: 'exec-3' },
+          ];
 
-      this.$scope.value = 'pipeline name a';
+      $scope.executions = executions;
+      $scope.value = name;
 
       this.initializeController();
+
+      spyOn(this.$modal, 'open').and.returnValue({
+        result: {
+          then: function(arg) {
+            arg();
+          }
+        }
+      });
 
       spyOn(this.executionsService, 'waitUntilNewTriggeredPipelineAppears').and.returnValue(this.$q.when(null));
 
       this.controller.triggerPipeline();
-      expect(this.$scope.viewState.triggeringExecution).toBe(true);
+      expect($scope.viewState.triggeringExecution).toBe(true);
 
-      this.$scope.$digest();
-
-      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith(this.$scope.application, 'pipeline name a', ['exec-1', 'exec-2']);
-      expect(this.$scope.viewState.triggeringExecution).toBe(false);
+      $scope.$digest();
+      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith($scope.application, 'pipeline name a', ['exec-1', 'exec-2']);
+      expect($scope.viewState.triggeringExecution).toBe(false);
 
     });
   });

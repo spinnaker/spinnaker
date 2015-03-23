@@ -1,7 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines.trigger.jenkins')
+angular.module('deckApp.pipelines.trigger.jenkins.service', [
+  'restangular',
+  'deckApp.settings',
+])
   .factory('igorService', function (settings, Restangular) {
 
     function listMasters() {
