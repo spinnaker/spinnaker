@@ -115,7 +115,7 @@ class ImmutableStageSupport {
       if (!this.context) {
         def validContext = [:]
         for (entry in self.context) {
-          if (entry.key && entry.value) {
+          if (entry.key && entry.value != null) {
             validContext[entry.key] = entry.value
           }
         }
