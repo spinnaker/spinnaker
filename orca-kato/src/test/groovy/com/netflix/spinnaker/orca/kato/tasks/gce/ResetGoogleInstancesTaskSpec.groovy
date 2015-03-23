@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class ResetGoogleInstancesTaskSpec extends Specification {
-
   @Subject task = new ResetGoogleInstancesTask()
   def stage = new PipelineStage(type: "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())

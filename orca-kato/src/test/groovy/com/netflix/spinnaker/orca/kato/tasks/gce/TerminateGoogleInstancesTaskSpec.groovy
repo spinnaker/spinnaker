@@ -24,7 +24,6 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class TerminateGoogleInstancesTaskSpec extends Specification {
-
   @Subject task = new TerminateGoogleInstancesTask()
   def stage = new PipelineStage(type: "whatever")
   def taskId = new TaskId(UUID.randomUUID().toString())
