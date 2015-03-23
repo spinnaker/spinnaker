@@ -1,0 +1,100 @@
+<!--
+  ~ Copyright 2015 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div modal-page>
+  <task-monitor monitor="taskMonitor"></task-monitor>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3 ng-if="triggers.length">Select Execution Parameters</h3>
+    <h3 ng-if="!triggers.length">Confirm Execution</h3>
+  </div>
+  <form role="form">
+    <div class="modal-body container-fluid form-horizontal">
+      <div class="form-group" ng-if="!triggers.length">
+        <div class="col-md-10">
+          <p>This will start a new run of <strong>{{pipeline.name}}</strong>.</p>
+        </div>
+      </div>
+      <div class="alert alert-warning"
+           ng-if="currentlyRunningExecutions.length">
+        <p><strong>
+          <span class="glyphicon glyphicon-warning-sign"></span>
+          This pipeline is currently executing!
+        </strong></p>
+        <div ng-repeat="execution in currentlyRunningExecutions" class="pad-left">
+          <strong>Execution started: </strong>{{execution.startTime | timestamp }}
+          <div>
+            <strong>Current stage:</strong>
+            <span ng-repeat="stage in execution.currentStages">
+              {{stage.name}}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="form-group" ng-if="triggers.length">
+        <div class="form-group">
+          <label class="col-md-2 col-md-offset-1 sm-label-left">Trigger</label>
+          <div class="col-md-6">
+            <p class="form-control-static"
+               ng-if="triggers.length === 1">{{trigger.description}}</p>
+            <select class="form-control input-sm"
+                    ng-if="triggers.length > 1"
+                    ng-model="trigger"
+                    ng-options="trigger as trigger.description for trigger in triggers"
+                    ng-change="triggerUpdated()">
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-md-2 col-md-offset-1 sm-label-left">Build</label>
+          <div class="col-md-6" ng-if="viewState.buildsLoading">
+            <p class="form-control-static text-center" >
+              <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+            </p>
+          </div>
+          <div class="col-md-7" ng-if="!viewState.buildsLoading">
+            <ui-select class="form-control input-sm"
+                       ng-model="selectedBuild">
+              <ui-select-match placeholder="Select...">
+                <span>
+                  <strong>Build {{$select.selected.number}}</strong>
+                  ({{$select.selected.timestamp | timestamp}} -
+                  {{$select.selected.result}})
+                </span>
+              </ui-select-match>
+              <ui-select-choices repeat="build in builds | anyFieldFilter: {number: $select.search, status: $select.search}">
+              <span>
+                  <strong>Build {{build.number}}</strong>
+                  ({{build.timestamp | timestamp}} -
+                  {{build.result}})
+                </span>
+              </ui-select-choices>
+            </ui-select>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-click="ctrl.execute()">
+        <span class="glyphicon glyphicon-play"></span> Run
+      </button>
+    </div>
+  </form>
+</div>

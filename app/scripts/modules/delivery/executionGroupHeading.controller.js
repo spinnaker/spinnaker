@@ -5,8 +5,10 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.delivery.executions.service',
   'deckApp.caches.collapsibleSectionState',
+  'deckApp.delivery.manualPipelineExecution.controller',
+  'deckApp.confirmationModal.service'
 ])
-  .controller('executionGroupHeading', function($scope, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
+  .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;
 
     function getSectionCacheKey() {
@@ -34,23 +36,44 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
       return $scope.filter.execution.groupBy === 'name' && _.find($scope.configurations, { name: $scope.value });
     };
 
-    controller.triggerPipeline = function() {
+
+    function startPipeline(trigger) {
       $scope.viewState.triggeringExecution = true;
-      var toIgnore = ($scope.executions || []).filter(function(execution) {
-        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
-      });
-      var ignoreList = _.pluck(toIgnore, 'id');
-      pipelineConfigService.triggerPipeline($scope.application.name, $scope.value).then(
-        function() {
+      var ignoreList = _.pluck(getCurrentlyRunningExecutions(), 'id');
+      return pipelineConfigService.triggerPipeline($scope.application.name, $scope.value, trigger).then(
+        function () {
           var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
-          monitor.then(function() {
+          monitor.then(function () {
             $scope.viewState.triggeringExecution = false;
           });
           $scope.viewState.poll = monitor;
         },
-        function() {
+        function () {
           $scope.viewState.triggeringExecution = false;
         });
+    }
+
+    function getCurrentlyRunningExecutions() {
+      return ($scope.executions || []).filter(function (execution) {
+        if (execution.name !== $scope.value) {
+          return false;
+        }
+        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
+      });
+    }
+
+    controller.triggerPipeline = function() {
+      var pipeline = _.find($scope.configurations, {name: $scope.value});
+      var currentlyRunningExecutions = getCurrentlyRunningExecutions();
+
+      $modal.open({
+        templateUrl: 'scripts/modules/delivery/manualPipelineExecution.html',
+        controller: 'ManualPipelineExecutionCtrl as ctrl',
+        resolve: {
+          pipeline: function () { return pipeline; },
+          currentlyRunningExecutions: function() { return currentlyRunningExecutions; },
+        }
+      }).result.then(startPipeline);
     };
   });
 

@@ -1,0 +1,59 @@
+'use strict';
+
+angular.module('deckApp.delivery.manualPipelineExecution.controller', [
+  'deckApp.utils.lodash',
+  'deckApp.pipelines.trigger.jenkins',
+])
+  .controller('ManualPipelineExecutionCtrl', function($scope, $filter, _, igorService, $modalInstance, pipeline, currentlyRunningExecutions) {
+
+    $scope.pipeline = pipeline;
+    $scope.currentlyRunningExecutions = currentlyRunningExecutions;
+
+    $scope.triggers = _.chain(pipeline.triggers)
+      .filter('type', 'jenkins')
+      .sortBy('enabled')
+      .map(function(trigger) {
+        var copy = _.clone(trigger);
+        copy.buildNumber = null;
+        copy.type = 'manual';
+        copy.description = copy.master + ': ' + copy.job;
+        return copy;
+      })
+      .value();
+
+    $scope.viewState = {
+      triggering: false,
+      buildsLoading: true,
+    };
+
+    $scope.trigger  = _.first($scope.triggers);
+    $scope.builds = [];
+
+    $scope.triggerUpdated = function() {
+      if (angular.isDefined($scope.trigger)) {
+        $scope.viewState.buildsLoading = true;
+        igorService.listBuildsForJob($scope.trigger.master, $scope.trigger.job).then(function(builds) {
+          $scope.builds = _.filter(builds, {building: false});
+          if (!angular.isDefined($scope.trigger.build)) {
+            $scope.selectedBuild = $scope.builds[0];
+          }
+          $scope.viewState.buildsLoading = false;
+        });
+      } else {
+        $scope.builds = [];
+        $scope.viewState.buildsLoading = false;
+      }
+    };
+
+    this.cancel = function() {
+      $modalInstance.dismiss();
+    };
+
+    this.execute = function() {
+      $scope.trigger.buildNumber = $scope.selectedBuild.number;
+      $modalInstance.close($scope.trigger);
+    };
+
+    $scope.triggerUpdated();
+
+  });
