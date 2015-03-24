@@ -35,7 +35,6 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
 
-
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
