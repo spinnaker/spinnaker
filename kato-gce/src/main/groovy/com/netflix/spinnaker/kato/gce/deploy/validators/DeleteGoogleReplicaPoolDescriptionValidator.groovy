@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,26 +30,10 @@ class DeleteGoogleReplicaPoolDescriptionValidator extends DescriptionValidator<D
 
   @Override
   void validate(List priorDescriptions, DeleteGoogleReplicaPoolDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("deleteGoogleReplicaPoolDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "deleteGoogleReplicaPoolDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "deleteGoogleReplicaPoolDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.replicaPoolName) {
-      errors.rejectValue "replicaPoolName", "deleteGoogleReplicaPoolDescription.replicaPoolName.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "deleteGoogleReplicaPoolDescription.zone.empty"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateZone(description.zone)
   }
 }

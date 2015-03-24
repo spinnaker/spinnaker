@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,32 +31,10 @@ class TerminateGoogleInstancesDescriptionValidator extends DescriptionValidator<
 
   @Override
   void validate(List priorDescriptions, TerminateGoogleInstancesDescription description, Errors errors) {
-    def credentials = null
+    StandardGceAttributeValidator helper = new StandardGceAttributeValidator("terminateGoogleInstancesDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "terminateGoogleInstancesDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "terminateGoogleInstancesDescription.credentials.invalid")
-      }
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "terminateGoogleInstancesDescription.zone.empty"
-    }
-
-    if (!description.instanceIds) {
-      errors.rejectValue("instanceIds", "terminateGoogleInstancesDescription.instanceIds.empty")
-    }
-
-    description.instanceIds.each {
-      if (!it) {
-        errors.rejectValue("instanceIds", "terminateGoogleInstancesDescription.instanceId.invalid")
-      }
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateZone(description.zone)
+    helper.validateInstanceIds(description.instanceIds)
   }
 }

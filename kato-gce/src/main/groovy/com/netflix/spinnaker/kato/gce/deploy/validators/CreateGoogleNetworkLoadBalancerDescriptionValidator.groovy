@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,27 +31,10 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidator extends
 
   @Override
   void validate(List priorDescriptions, CreateGoogleNetworkLoadBalancerDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("createGoogleNetworkLoadBalancerDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "createGoogleNetworkLoadBalancerDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "createGoogleNetworkLoadBalancerDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.networkLoadBalancerName) {
-      errors.rejectValue("networkLoadBalancerName",
-          "createGoogleNetworkLoadBalancerDescription.networkLoadBalancerName.empty")
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE regions.
-    if (!description.region) {
-      errors.rejectValue "region", "createGoogleNetworkLoadBalancerDescription.region.empty"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateRegion(description.region)
+    helper.validateName(description.networkLoadBalancerName, "networkLoadBalancerName")
   }
 }

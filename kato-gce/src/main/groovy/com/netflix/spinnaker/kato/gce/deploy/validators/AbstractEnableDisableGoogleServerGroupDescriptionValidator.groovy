@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,26 +28,10 @@ abstract class AbstractEnableDisableGoogleServerGroupDescriptionValidator extend
 
   @Override
   void validate(List priorDescriptions, EnableDisableGoogleServerGroupDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("enableDisableGoogleServerGroupDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "enableDisableGoogleServerGroupDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "enableDisableGoogleServerGroupDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.replicaPoolName) {
-      errors.rejectValue "replicaPoolName", "enableDisableGoogleServerGroupDescription.replicaPoolName.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "enableDisableGoogleServerGroupDescription.zone.empty"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateZone(description.zone)
   }
 }

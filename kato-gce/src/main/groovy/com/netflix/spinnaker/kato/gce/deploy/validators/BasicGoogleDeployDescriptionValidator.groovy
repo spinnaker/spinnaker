@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,48 +30,18 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
 
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("basicGoogleDeployDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "basicGoogleDeployDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "basicGoogleDeployDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.application) {
-      errors.rejectValue "application", "basicGoogleDeployDescription.application.empty"
-    }
-
-    if (!description.stack) {
-      errors.rejectValue "stack", "basicGoogleDeployDescription.stack.empty"
-    }
-
-    if (description.initialNumReplicas < 0) {
-      errors.rejectValue "initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateImage(description.image)
+    helper.validateInstanceType(description.instanceType)
+    helper.validateZone(description.zone)
+    helper.validateName(description.application, "application")
+    helper.validateNonNegativeInt(description.initialNumReplicas, "initialNumReplicas")
+    helper.validateNotEmpty(description.stack, "stack")
 
     if (description.diskSizeGb != null && description.diskSizeGb < 10) {
       errors.rejectValue "diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE images.
-    if (!description.image) {
-      errors.rejectValue "image", "basicGoogleDeployDescription.image.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE types.
-    if (!description.instanceType) {
-      errors.rejectValue "instanceType", "basicGoogleDeployDescription.instanceType.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "basicGoogleDeployDescription.zone.empty"
     }
   }
 }
