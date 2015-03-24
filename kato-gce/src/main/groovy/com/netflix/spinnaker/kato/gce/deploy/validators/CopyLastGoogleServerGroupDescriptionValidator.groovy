@@ -30,7 +30,7 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
 
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
-    def helper = new StandardGceAttributeValidator("copyLastGoogleServerGroupDescription", errors)
+    def helper = new StandardGceAttributeValidator("basicGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
   }
