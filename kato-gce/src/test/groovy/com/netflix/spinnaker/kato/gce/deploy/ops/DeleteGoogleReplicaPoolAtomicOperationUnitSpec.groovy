@@ -49,7 +49,6 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def zoneOperations = Mock(Replicapool.ZoneOperations)
       def zoneOperationsGet = Mock(Replicapool.ZoneOperations.Get)
       def instanceGroupManager = new InstanceGroupManager()
-      instanceGroupManager.setName(REPLICA_POOL_NAME)
       instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
       def instanceGroupManagersDeleteOp = new com.google.api.services.replicapool.model.Operation(
