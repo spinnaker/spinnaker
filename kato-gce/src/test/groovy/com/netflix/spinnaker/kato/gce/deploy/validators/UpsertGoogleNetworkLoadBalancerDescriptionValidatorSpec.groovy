@@ -20,22 +20,22 @@ import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specification {
+class UpsertGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specification {
   private static final NETWORK_LOAD_BALANCER_NAME = "spinnaker-test-v000"
   private static final REGION = "us-central1"
   private static final ACCOUNT_NAME = "auto"
   private static final INSTANCE = "inst"
 
   @Shared
-  CreateGoogleNetworkLoadBalancerDescriptionValidator validator
+  UpsertGoogleNetworkLoadBalancerDescriptionValidator validator
 
   void setupSpec() {
-    validator = new CreateGoogleNetworkLoadBalancerDescriptionValidator()
+    validator = new UpsertGoogleNetworkLoadBalancerDescriptionValidator()
     def credentialsRepo = new MapBackedAccountCredentialsRepository()
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
@@ -47,7 +47,7 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new CreateGoogleNetworkLoadBalancerDescription(
+      def description = new UpsertGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -61,6 +61,7 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
               requestPath: "/"
           ],
           ipAddress: "1.1.1.1",
+          ipProtocol: "TCP",
           portRange: "80-82")
       def errors = Mock(Errors)
 
@@ -71,9 +72,9 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
       0 * errors._
   }
 
-  void "pass validation without health checks"() {
+  void "pass validation without health checks and without IP protocol"() {
     setup:
-      def description = new CreateGoogleNetworkLoadBalancerDescription(
+      def description = new UpsertGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -87,9 +88,36 @@ class CreateGoogleNetworkLoadBalancerDescriptionValidatorSpec extends Specificat
       0 * errors._
   }
 
+  void "improper IP protocol fails validation"() {
+    setup:
+      def description = new UpsertGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION,
+          accountName: ACCOUNT_NAME,
+          instances: [INSTANCE],
+          healthCheck: [
+              port: 8080,
+              checkIntervalSec: 5,
+              healthyThreshold: 2,
+              unhealthyThreshold: 2,
+              timeoutSec: 5,
+              requestPath: "/"
+          ],
+          ipAddress: "1.1.1.1",
+          ipProtocol: "ABC",
+          portRange: "80-82")
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('ipProtocol', "upsertGoogleNetworkLoadBalancerDescription.ipProtocol.notSupported")
+  }
+
   void "null input fails validation"() {
     setup:
-      def description = new CreateGoogleNetworkLoadBalancerDescription()
+      def description = new UpsertGoogleNetworkLoadBalancerDescription()
       def errors = Mock(Errors)
 
     when:

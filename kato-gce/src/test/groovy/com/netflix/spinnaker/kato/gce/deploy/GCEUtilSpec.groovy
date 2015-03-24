@@ -24,6 +24,9 @@ import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
+import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceAggregatedList
+import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -33,8 +36,13 @@ import spock.lang.Specification
 
 class GCEUtilSpec extends Specification {
   private static final PROJECT_NAME = "my-project"
+  private static final REGION = "us-central1"
   private static final IMAGE_NAME = "some-image-name"
   private static final PHASE = "SOME-PHASE"
+  private static final INSTANCE_LOCAL_NAME_1 = "some-instance-name-1"
+  private static final INSTANCE_LOCAL_NAME_2 = "some-instance-name-2"
+  private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
+  private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
 
   @Shared
   def taskMock
@@ -245,5 +253,128 @@ class GCEUtilSpec extends Specification {
 
     then:
       networkLoadBalancerNames == []
+  }
+
+  void "queryInstanceUrls should return matching instances from one zone"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def instancesMock = Mock(Compute.Instances)
+      def instancesAggregatedListMock = Mock(Compute.Instances.AggregatedList)
+      def zoneToInstancesMap = [
+        "zones/asia-east1-a": new InstancesScopedList(),
+        "zones/asia-east1-b": new InstancesScopedList(),
+        "zones/asia-east1-c": new InstancesScopedList(),
+        "zones/europe-west1-b": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/us-central1-a": new InstancesScopedList(),
+        "zones/us-central1-b": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_1, selfLink: INSTANCE_URL_1),
+                                                                   new Instance(name: INSTANCE_LOCAL_NAME_2, selfLink: INSTANCE_URL_2)]),
+        "zones/us-central1-c": new InstancesScopedList(),
+        "zones/us-central1-f": new InstancesScopedList()
+      ]
+      def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+
+    when:
+      def instanceUrls =
+        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+
+    then:
+      1 * computeMock.instances() >> instancesMock
+      1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
+      1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
+      instanceUrls == [INSTANCE_URL_1, INSTANCE_URL_2]
+  }
+
+  void "queryInstanceUrls should return matching instances from two zones"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def instancesMock = Mock(Compute.Instances)
+      def instancesAggregatedListMock = Mock(Compute.Instances.AggregatedList)
+      def zoneToInstancesMap = [
+        "zones/asia-east1-a": new InstancesScopedList(),
+        "zones/asia-east1-b": new InstancesScopedList(),
+        "zones/asia-east1-c": new InstancesScopedList(),
+        "zones/europe-west1-b": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/us-central1-a": new InstancesScopedList(),
+        "zones/us-central1-b": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_1, selfLink: INSTANCE_URL_1)]),
+        "zones/us-central1-c": new InstancesScopedList(),
+        "zones/us-central1-f": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_2, selfLink: INSTANCE_URL_2)])
+      ]
+      def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+
+    when:
+      def instanceUrls =
+        GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+
+    then:
+      1 * computeMock.instances() >> instancesMock
+      1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
+      1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
+      instanceUrls == [INSTANCE_URL_1, INSTANCE_URL_2]
+  }
+
+  void "queryInstanceUrls should throw exception when instance cannot be found"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def instancesMock = Mock(Compute.Instances)
+      def instancesAggregatedListMock = Mock(Compute.Instances.AggregatedList)
+      def zoneToInstancesMap = [
+        "zones/asia-east1-a": new InstancesScopedList(),
+        "zones/asia-east1-b": new InstancesScopedList(),
+        "zones/asia-east1-c": new InstancesScopedList(),
+        "zones/europe-west1-b": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/us-central1-a": new InstancesScopedList(),
+        "zones/us-central1-b": new InstancesScopedList(),
+        "zones/us-central1-c": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_1, selfLink: INSTANCE_URL_1)]),
+        "zones/us-central1-f": new InstancesScopedList()
+      ]
+      def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+
+    when:
+      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+
+    then:
+      1 * computeMock.instances() >> instancesMock
+      1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
+      1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
+
+      def exc = thrown GCEResourceNotFoundException
+      exc.message == "Instances [$INSTANCE_LOCAL_NAME_2] not found."
+  }
+
+  void "queryInstanceUrls should throw exception when instance is found but in a different region"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def instancesMock = Mock(Compute.Instances)
+      def instancesAggregatedListMock = Mock(Compute.Instances.AggregatedList)
+      def zoneToInstancesMap = [
+        "zones/asia-east1-a": new InstancesScopedList(),
+        "zones/asia-east1-b": new InstancesScopedList(),
+        "zones/asia-east1-c": new InstancesScopedList(),
+        "zones/europe-west1-b": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_1, selfLink: INSTANCE_URL_1)]),
+        "zones/europe-west1-c": new InstancesScopedList(),
+        "zones/europe-west1-c": new InstancesScopedList(instances: [new Instance(name: INSTANCE_LOCAL_NAME_2, selfLink: INSTANCE_URL_2)]),
+        "zones/us-central1-a": new InstancesScopedList(),
+        "zones/us-central1-b": new InstancesScopedList(),
+        "zones/us-central1-c": new InstancesScopedList(),
+        "zones/us-central1-f": new InstancesScopedList()
+      ]
+      def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+
+    when:
+      GCEUtil.queryInstanceUrls(PROJECT_NAME, REGION, ["some-instance-name-1", "some-instance-name-2"], computeMock, taskMock, PHASE)
+
+    then:
+      1 * computeMock.instances() >> instancesMock
+      1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
+      1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
+
+      def exc = thrown GCEResourceNotFoundException
+      exc.message == "Instances [$INSTANCE_LOCAL_NAME_1, $INSTANCE_LOCAL_NAME_2] not found."
   }
 }

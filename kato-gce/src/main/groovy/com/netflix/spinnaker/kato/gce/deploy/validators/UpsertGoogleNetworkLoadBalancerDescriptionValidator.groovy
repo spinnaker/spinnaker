@@ -18,23 +18,31 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("createGoogleNetworkLoadBalancerDescriptionValidator")
-class CreateGoogleNetworkLoadBalancerDescriptionValidator extends
-    DescriptionValidator<CreateGoogleNetworkLoadBalancerDescription> {
+@Component("upsertGoogleNetworkLoadBalancerDescriptionValidator")
+class UpsertGoogleNetworkLoadBalancerDescriptionValidator extends
+    DescriptionValidator<UpsertGoogleNetworkLoadBalancerDescription> {
+  private static final List<String> SUPPORTED_IP_PROTOCOLS = ["TCP", "UDP"]
+
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
 
   @Override
-  void validate(List priorDescriptions, CreateGoogleNetworkLoadBalancerDescription description, Errors errors) {
+  void validate(List priorDescriptions, UpsertGoogleNetworkLoadBalancerDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("createGoogleNetworkLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateRegion(description.region)
     helper.validateName(description.networkLoadBalancerName, "networkLoadBalancerName")
+
+    // If the IP protocol is specified, it must be contained in the list of supported protocols.
+    if (description.ipProtocol && !SUPPORTED_IP_PROTOCOLS.contains(description.ipProtocol)) {
+      errors.rejectValue("ipProtocol",
+        "upsertGoogleNetworkLoadBalancerDescription.ipProtocol.notSupported")
+    }
   }
 }

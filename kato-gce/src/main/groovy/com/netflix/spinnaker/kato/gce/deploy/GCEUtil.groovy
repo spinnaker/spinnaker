@@ -32,7 +32,7 @@ import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 
 class GCEUtil {
@@ -119,6 +119,33 @@ class GCEUtil {
     }
   }
 
+  static ForwardingRule queryRegionalForwardingRule(
+    String projectName, String region, String forwardingRuleName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (forwarding rule) $forwardingRuleName..."
+
+    return compute.forwardingRules().list(projectName, region).execute().items.find { existingForwardingRule ->
+      existingForwardingRule.name == forwardingRuleName
+    }
+  }
+
+  static TargetPool queryTargetPool(
+    String projectName, String region, String targetPoolName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (target pool) $targetPoolName..."
+
+    return compute.targetPools().list(projectName, region).execute().items.find { existingTargetPool ->
+      existingTargetPool.name == targetPoolName
+    }
+  }
+
+  static HttpHealthCheck queryHttpHealthCheck(
+    String projectName, String httpHealthCheckName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (http health check) $httpHealthCheckName..."
+
+    return compute.httpHealthChecks().list(projectName).execute().items.find { existingHealthCheck ->
+      existingHealthCheck.name == httpHealthCheckName
+    }
+  }
+
   static List<ForwardingRule> queryForwardingRules(
           String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up network load balancers $forwardingRuleNames..."
@@ -133,6 +160,33 @@ class GCEUtil {
       def foundNames = foundForwardingRules.collect { it.name }
 
       updateStatusAndThrowException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
+    }
+  }
+
+  static List<String> queryInstanceUrls(String projectName,
+                                        String region,
+                                        List<String> instanceLocalNames,
+                                        Compute compute,
+                                        Task task,
+                                        String phase) {
+    task.updateStatus phase, "Looking up instances $instanceLocalNames..."
+
+    Map<String, InstancesScopedList> zoneToInstancesMap = compute.instances().aggregatedList(projectName).execute().items
+
+    def foundInstances = zoneToInstancesMap.collect { zone, instanceList ->
+      if (zone.startsWith("zones/$region-") && instanceList.instances) {
+        return instanceList.instances.findAll { instance ->
+          return instanceLocalNames.contains(instance.name)
+        }
+      }
+    }.flatten() - null
+
+    if (foundInstances.size == instanceLocalNames.size) {
+      return foundInstances.collect { it.selfLink }
+    } else {
+      def foundNames = foundInstances.collect { it.name }
+
+      updateStatusAndThrowException("Instances ${instanceLocalNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -313,7 +367,7 @@ class GCEUtil {
     return urlParts[urlParts.length - 1]
   }
 
-  static def buildHttpHealthCheck(String name, CreateGoogleNetworkLoadBalancerDescription.HealthCheck healthCheckDescription) {
+  static def buildHttpHealthCheck(String name, UpsertGoogleNetworkLoadBalancerDescription.HealthCheck healthCheckDescription) {
     return new HttpHealthCheck(
         name: name,
         checkIntervalSec: healthCheckDescription.checkIntervalSec,

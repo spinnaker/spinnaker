@@ -18,13 +18,13 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
-class CreateGoogleNetworkLoadBalancerDescription {
+class UpsertGoogleNetworkLoadBalancerDescription {
   String networkLoadBalancerName
   HealthCheck healthCheck
-  // The URLs of the instances.
-  // TODO(odedmeri): change the instances to local names and not URLs.
+  // The local names of the instances.
   List<String> instances
   String ipAddress
+  String ipProtocol
   String portRange
   String region
   String accountName
