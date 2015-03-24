@@ -66,7 +66,11 @@ class AmazonNamedImageLookupController {
       throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
     }
 
-    String glob = "*${lookupOptions.q}*"
+    String glob = lookupOptions.q
+    // Wrap in '*' if there are no glob-style characters in the query string
+    if (!glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
+      glob = "*${glob}*"
+    }
 
     def namedImageSearch = Keys.getNamedImageKey(lookupOptions.account ?: '*', glob)
     def imageSearch = Keys.getImageKey(glob, lookupOptions.account ?: '*', lookupOptions.region ?: '*')
