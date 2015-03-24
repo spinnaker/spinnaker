@@ -1,6 +1,9 @@
 dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('spectatorApi')
+  compile spinnaker.dependency('groovy')
 
   spinnaker.group('spockBase')
 }
+
+apply plugin: 'groovy'
