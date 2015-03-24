@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DestroyAsgStage extends LinearStage {
+class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
   static final String MAYO_CONFIG_TYPE = "destroyAsg"
 
@@ -40,6 +40,8 @@ class DestroyAsgStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
+    composeTargets(stage)
+
     def step1 = buildStep(stage, "destroyAsg", DestroyAsgTask)
     def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
     def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
