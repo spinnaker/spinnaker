@@ -305,11 +305,13 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLoadBalancerName to " +
         "$targetPoolName in $region..."
 
-      def forwardingRule = new ForwardingRule(name: description.networkLoadBalancerName,
+      def forwardingRule = new ForwardingRule(
+        name: description.networkLoadBalancerName,
         target: targetPoolResourceLink,
         IPProtocol: description.ipProtocol,
         IPAddress: description.ipAddress,
-        portRange: description.portRange)
+        portRange: description.portRange
+      )
 
       // We won't block on this operation since nothing else depends on its completion.
       compute.forwardingRules().insert(project, region, forwardingRule).execute()

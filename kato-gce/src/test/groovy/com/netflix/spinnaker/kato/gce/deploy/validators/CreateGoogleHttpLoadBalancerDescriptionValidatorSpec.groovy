@@ -25,7 +25,7 @@ import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static com.netflix.spinnaker.kato.gce.deploy.CreateGoogleHttpLoadBalancerTestConstants.*
+import static com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class CreateGoogleHttpLoadBalancerDescriptionValidatorSpec extends Specification {
   @Shared

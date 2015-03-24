@@ -33,7 +33,7 @@ class UpsertGoogleNetworkLoadBalancerDescriptionValidator extends
 
   @Override
   void validate(List priorDescriptions, UpsertGoogleNetworkLoadBalancerDescription description, Errors errors) {
-    def helper = new StandardGceAttributeValidator("createGoogleNetworkLoadBalancerDescription", errors)
+    def helper = new StandardGceAttributeValidator("upsertGoogleNetworkLoadBalancerDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateRegion(description.region)

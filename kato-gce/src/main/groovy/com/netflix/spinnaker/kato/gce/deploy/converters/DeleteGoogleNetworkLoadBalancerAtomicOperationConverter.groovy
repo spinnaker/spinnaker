@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleNetworkLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.deploy.ops.DeleteGoogleNetworkLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.DeleteGoogleNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
