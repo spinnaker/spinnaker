@@ -29,8 +29,9 @@ class GCEOperationUtil {
     }
   }
   public static OPERATIONS_POLLING_INTERVAL_FRACTION = 5
-  // We verify that the operation succeeded with a timeout. 15 seconds was the minimum duration it took the operation
-  // to finish while writing this code, so we use 20 as the timeout. This can be updated later as needed.
+  // We verify that the operation succeeded with a timeout. 40 seconds was the minimum duration it took
+  // all operations to finish while writing this code, so we use 60 as the timeout. This can be updated
+  // later as needed.
   private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 60
 
   private static handleFinishedAsyncOperation(Operation operation, Task task, String resourceString, String basePhase) {
