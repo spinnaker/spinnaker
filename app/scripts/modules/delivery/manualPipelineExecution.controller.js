@@ -50,7 +50,7 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
     };
 
     this.execute = function() {
-      if ($scope.trigger && $scope.selected) {
+      if ($scope.trigger && $scope.selectedBuild) {
         $scope.trigger.buildNumber = $scope.selectedBuild.number;
       }
       $modalInstance.close($scope.trigger);
