@@ -3,7 +3,7 @@
 angular.module('deckApp.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'http://spinnaker-api-prestaging.prod.netflix.net',
+    gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',
     pollSchedule: 30000,
     providers: {
       aws: {

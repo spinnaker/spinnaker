@@ -79,6 +79,7 @@ angular.module('deckApp.pipelines')
 
     this.renamePipeline = function() {
       var original = angular.fromJson($scope.viewState.original);
+      original.name = $scope.pipeline.name;
       $modal.open({
         templateUrl: 'scripts/modules/pipelines/config/actions/rename/renamePipelineModal.html',
         controller: 'RenamePipelineModalCtrl',

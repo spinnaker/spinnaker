@@ -41,7 +41,7 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="renamePipelineModalCtrl.cancel()">Cancel</button>
     <button class="btn btn-primary"
-            ng-disabled="form.$invalid || pipeline.name === newName"
+            ng-disabled="form.$invalid || pipeline.name === command.newName"
             ng-click="renamePipelineModalCtrl.renamePipeline()">
       <span class="glyphicon glyphicon-ok-circle"></span> Rename Pipeline
     </button>
