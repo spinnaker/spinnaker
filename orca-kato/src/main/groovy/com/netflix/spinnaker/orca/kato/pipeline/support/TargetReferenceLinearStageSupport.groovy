@@ -35,7 +35,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   void composeTargets(Stage stage) {
     def targets = targetReferenceSupport.getTargetAsgReferences(stage)
     if (!targets) {
-      throw new RuntimeException("Could not ascertain targets! ${objectMapper.writeValueAsString(stage.context)}")
+      throw new TargetReferenceNotFoundException("Could not ascertain targets! ${objectMapper.writeValueAsString(stage.context)}")
     }
 
     Map<String, Map<String, Object>> descriptions = [:]

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceNotFoundException
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
@@ -40,11 +41,14 @@ class DestroyAsgStage extends TargetReferenceLinearStageSupport {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    composeTargets(stage)
-
-    def step1 = buildStep(stage, "destroyAsg", DestroyAsgTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3].flatten().toList()
+    try {
+      composeTargets(stage)
+      def step1 = buildStep(stage, "destroyAsg", DestroyAsgTask)
+      def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+      def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      [step1, step2, step3].flatten().toList()
+    } catch (TargetReferenceNotFoundException ignored) {
+      [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)].flatten().toList()
+    }
   }
 }
