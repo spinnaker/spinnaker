@@ -26,6 +26,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 
 @CompileStatic
 abstract class Execution<T> implements Serializable {
@@ -69,16 +70,21 @@ abstract class Execution<T> implements Serializable {
     if (canceled) {
       return CANCELED
     }
-    def status = stages.status.reverse().find {
+
+    if(stages.status.any{ it == TERMINAL }) {
+      return TERMINAL
+    }
+
+    def lastStartedStatus = stages.status.reverse().find {
       it != NOT_STARTED
     }
 
-    if (!status) {
+    if (!lastStartedStatus) {
       NOT_STARTED
-    } else if (status == SUCCEEDED && stages.last().status != SUCCEEDED) {
+    } else if (lastStartedStatus == SUCCEEDED && stages.last().status != SUCCEEDED) {
       RUNNING
     } else {
-      status
+      lastStartedStatus
     }
   }
 

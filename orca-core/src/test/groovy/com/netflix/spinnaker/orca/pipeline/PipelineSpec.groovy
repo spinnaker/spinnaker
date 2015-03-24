@@ -29,28 +29,34 @@ class PipelineSpec extends Specification {
                               .withTrigger(name: "SPINNAKER-build-job", lastBuildLabel: 1)
                               .withStage("stage1")
                               .withStage("stage2")
+                              .withStage("stage3")
                               .build()
 
   def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
     given:
     pipeline.stages[0].status = stage1Status
     pipeline.stages[1].status = stage2Status
+    pipeline.stages[2].status = stage3Status
 
     expect:
     pipeline.status == expectedStatus
 
     where:
-    stage1Status | stage2Status | expectedStatus
-    NOT_STARTED  | NOT_STARTED  | NOT_STARTED
-    RUNNING      | NOT_STARTED  | RUNNING
-    SUCCEEDED    | NOT_STARTED  | RUNNING
-    SUCCEEDED    | RUNNING      | RUNNING
-    SUCCEEDED    | SUCCEEDED    | SUCCEEDED
-    FAILED       | NOT_STARTED  | FAILED
-    SUCCEEDED    | FAILED       | FAILED
-    SUSPENDED    | NOT_STARTED  | SUSPENDED
-    SUCCEEDED    | SUSPENDED    | SUSPENDED
+        stage1Status | stage2Status | stage3Status | expectedStatus
+        NOT_STARTED  | NOT_STARTED  | NOT_STARTED  | NOT_STARTED
+        SUCCEEDED    | RUNNING      | NOT_STARTED  | RUNNING
+        SUCCEEDED    | SUCCEEDED    | NOT_STARTED  | RUNNING
+        SUCCEEDED    | SUCCEEDED    | RUNNING      | RUNNING
+        SUCCEEDED    | SUCCEEDED    | SUCCEEDED    | SUCCEEDED
+        SUCCEEDED    | FAILED       | NOT_STARTED  | FAILED
+        SUCCEEDED    | SUCCEEDED    | FAILED       | FAILED
+        SUCCEEDED    | SUSPENDED    | NOT_STARTED  | SUSPENDED
+        SUCCEEDED    | SUCCEEDED    | SUSPENDED    | SUSPENDED
+        TERMINAL     | SUCCEEDED    | NOT_STARTED  | TERMINAL //BUG: WAS RETURNING RUNNING
+        SUCCEEDED    | TERMINAL     | NOT_STARTED  | TERMINAL
+        SUCCEEDED    | SUCCEEDED    | TERMINAL     | TERMINAL
   }
+
 
   def "can get a previous stage from a stage by type"() {
     expect:
@@ -70,6 +76,9 @@ class PipelineSpec extends Specification {
     pipeline.stages[1].startTime = stage1StartTime
     pipeline.stages[1].endTime   = stage1EndTime
     pipeline.stages[1].status    = stage1Status
+    pipeline.stages[2].startTime = stage1StartTime
+    pipeline.stages[2].endTime   = stage1EndTime
+    pipeline.stages[2].status    = stage1Status
 
     then:
     pipeline.startTime == pipelineStart
