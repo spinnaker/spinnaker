@@ -185,8 +185,8 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
     if (description.subnetType) {
       task.updateStatus BASE_PHASE, "Subnet type: ${description.subnetType} = [$subnetIds]"
       request.withSubnets(subnetIds)
-      if (description.subnetType == "internal") {
-        request.scheme = description.subnetType
+      if (description.subnetType.contains('internal')) {
+        request.scheme = 'internal'
       }
     } else {
       request.withAvailabilityZones(availabilityZones)
