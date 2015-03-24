@@ -23,6 +23,9 @@ dependencies {
   compile project(":oort-core")
   compile project(":oort-aws")
   compile project(":oort-gce")
+
+  runtime spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkWeb")
   spinnaker.group("bootWeb")
 
   compile spinnaker.dependency('eurekaClient')
@@ -44,7 +47,7 @@ sourceSets {
 }
 
 jar {
-  doFirst { 
+  doFirst {
     exclude "${rootProject.name}.yml"
   }
 }

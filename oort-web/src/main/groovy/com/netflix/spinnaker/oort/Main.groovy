@@ -30,7 +30,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter
 import javax.servlet.Filter
 
 @Configuration
-@ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters"])
+@ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
