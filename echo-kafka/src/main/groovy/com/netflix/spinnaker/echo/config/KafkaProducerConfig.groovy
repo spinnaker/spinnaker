@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-elasticsearch', 'echo-kafka'
+package com.netflix.spinnaker.echo.config
 
-rootProject.name = 'echo'
+import org.springframework.context.annotation.Configuration
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
+/**
+ * Enables Cassandra for this project
+ */
+@Configuration
+@SuppressWarnings('GStringExpressionWithinString')
+class KafkaProducerConfig {
 
-rootProject.children.each {
-    setBuildFile it
 }

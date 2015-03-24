@@ -9,3 +9,9 @@ search:
   index: 'event_history'
 # server:
   # port: 8120
+
+kafka:
+  prefix: 'suro'
+  hostname: 'echo.prod.netflix.com'
+  app: 'spinnaker'
+  rowid: 'events'

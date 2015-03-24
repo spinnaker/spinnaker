@@ -16,44 +16,42 @@
 
 package com.netflix.spinnaker.echo.events
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.Event
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.messaging.simp.SimpMessagingTemplate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 /**
- * Event listener for stomp
+ * Event listener for echo events
  */
 @Component
-class StompEventListener implements EchoEventListener {
+class KafkaEventListener implements EchoEventListener {
 
-    @Autowired
-    SimpMessagingTemplate template
+    ObjectMapper mapper = new ObjectMapper()
+
+    @Value('${kafka.prefix}')
+    String prefix
+
+    @Value('${kafka.hostname}')
+    String hostname
+
+    @Value('${kafka.app}')
+    String app
+
+    @Value('${kafka.rowid}')
+    String rowid
 
     @Override
     void processEvent(Event event) {
 
-        if (event.details.application) {
-            template.convertAndSend(
-                '/topic/application/' + event.details.application,
-                event
-            )
-        }
+        Map eventAsMap = mapper.convertValue(event, Map)
 
-        template.convertAndSend(
-            '/topic/source/' + event.details.source,
-            event
-        )
+        eventAsMap."${prefix}_ts" = new Date().time
+        eventAsMap."${prefix}_app" = app
+        eventAsMap."${prefix}_hostname" = hostname
+        eventAsMap."${prefix}_rowid" = rowid
 
-        template.convertAndSend(
-            '/topic/type/' + event.details.type,
-            event
-        )
-
-        template.convertAndSend(
-            '/topic/events',
-            event
-        )
+        println eventAsMap
 
     }
 
