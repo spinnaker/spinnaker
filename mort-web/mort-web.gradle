@@ -24,6 +24,8 @@ dependencies {
   compile project(":mort-aws")
   spinnaker.group('bootWeb')
   runtime spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkWeb")
+  compile spinnaker.dependency("korkSwagger")
 }
 
 applicationName = 'mort'
@@ -41,7 +43,7 @@ sourceSets {
 }
 
 jar {
-  doFirst { 
+  doFirst {
     exclude "${rootProject.name}.yml"
   }
 }

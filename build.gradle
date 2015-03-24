@@ -5,12 +5,12 @@ buildscript {
     mavenLocal()
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.48'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.64'
   }
 }
 
 ext {
-  springBootVersion = "1.1.9.RELEASE"
+  springBootVersion = '1.2.1.RELEASE'
 }
 
 allprojects {

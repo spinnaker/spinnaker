@@ -30,7 +30,7 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter
 import javax.servlet.Filter
 
 @Configuration
-@ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters'])
+@ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters', 'com.netflix.spinnaker.config'])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
 
