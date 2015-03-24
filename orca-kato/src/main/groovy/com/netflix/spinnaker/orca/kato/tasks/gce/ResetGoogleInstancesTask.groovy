@@ -42,7 +42,7 @@ class ResetGoogleInstancesTask implements Task {
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"  : "resetgoogleinstances",
         "reset.account.name" : stage.context.credentials,
-        "reset.region"       : stage.context.zone,  // !!! Terminate has this as a zone too. Looks wrong.
+        "reset.region"       : stage.context.zone,
         "kato.last.task.id"  : taskId,
         "kato.task.id"       : taskId, // TODO retire this.
         "reset.instance.ids" : stage.context.instanceIds,

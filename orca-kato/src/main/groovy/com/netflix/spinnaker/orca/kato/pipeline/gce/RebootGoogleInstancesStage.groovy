@@ -38,7 +38,8 @@ class RebootGoogleInstancesStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "rebootInstances", ResetGoogleInstancesTask)
     def step2 = buildStep(stage, "monitorReset", MonitorKatoTask)
-    // TODO: Determine if there is a way to verify that a GCE instance has been reset
+    // TODO(ewiseblatt): 20150322
+    // Determine if there is a way to verify that a GCE instance has been reset
     [step1, step2]
   }
 }

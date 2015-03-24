@@ -39,7 +39,7 @@ class ResetGoogleInstancesTaskSpec extends Specification {
     stage.context.putAll(resetInstancesConfig)
   }
 
-  def "creates a reset google Instance task based on job parameters"() {
+  def "creates a reset google instance task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
