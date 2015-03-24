@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
@@ -125,11 +126,16 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)
-    def instanceTemplateUrl = compute.instanceTemplates().insert(project, instanceTemplate).execute().targetLink
+    def instanceTemplateCreateOperation = compute.instanceTemplates().insert(project, instanceTemplate).execute()
+    def instanceTemplateUrl = instanceTemplateCreateOperation.targetLink
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
     def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+
+    // Before building the managed instance group we must check and wait until the instance template is built.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, instanceTemplateCreateOperation.getName(),
+        null, task, "instance template " + GCEUtil.getLocalName(instanceTemplateUrl), BASE_PHASE)
 
     replicapool.instanceGroupManagers().insert(project,
                                                zone,

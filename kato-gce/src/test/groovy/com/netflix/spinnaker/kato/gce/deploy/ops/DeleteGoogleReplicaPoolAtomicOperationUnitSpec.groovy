@@ -31,7 +31,9 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final PROJECT_NAME = "my_project"
   private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
   private static final INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-${System.currentTimeMillis()}"
+  private static final INSTANCE_GROUP_OP_NAME = "spinnaker-test-v000-op"
   private static final ZONE = "us-central1-b"
+  private static final DONE = "DONE"
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -44,9 +46,14 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def replicaPoolMock = Mock(Replicapool)
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def zoneOperations = Mock(Replicapool.ZoneOperations)
+      def zoneOperationsGet = Mock(Replicapool.ZoneOperations.Get)
       def instanceGroupManager = new InstanceGroupManager()
       instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
+      def instanceGroupManagersDeleteOp = new com.google.api.services.replicapool.model.Operation(
+          name: INSTANCE_GROUP_OP_NAME,
+          status: DONE)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -67,7 +74,11 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
 
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersDeleteMock
-      1 * instanceGroupManagersDeleteMock.execute()
+      1 * instanceGroupManagersDeleteMock.execute() >> instanceGroupManagersDeleteOp
+
+      1 * replicaPoolMock.zoneOperations() >> zoneOperations
+      1 * zoneOperations.get(PROJECT_NAME, ZONE, INSTANCE_GROUP_OP_NAME) >> zoneOperationsGet
+      1 * zoneOperationsGet.execute() >> instanceGroupManagersDeleteOp
 
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
