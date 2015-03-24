@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,39 +30,16 @@ class CreateGoogleInstanceDescriptionValidator extends DescriptionValidator<Crea
 
   @Override
   void validate(List priorDescriptions, CreateGoogleInstanceDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("createGoogleInstanceDescription", errors)
 
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "createGoogleInstanceDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "createGoogleInstanceDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.instanceName) {
-      errors.rejectValue "instanceName", "createGoogleInstanceDescription.instanceName"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateInstanceName(description.instanceName)
+    helper.validateImage(description.image)
+    helper.validateInstanceType(description.instanceType)
+    helper.validateZone(description.zone)
 
     if (description.diskSizeGb != null && description.diskSizeGb < 10) {
       errors.rejectValue "diskSizeGb", "createGoogleInstanceDescription.diskSizeGb.invalid"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE images.
-    if (!description.image) {
-      errors.rejectValue "image", "createGoogleInstanceDescription.image.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE types.
-    if (!description.instanceType) {
-      errors.rejectValue "instanceType", "createGoogleInstanceDescription.instanceType.empty"
-    }
-
-    // TODO(duftler): Also validate against set of supported GCE zones.
-    if (!description.zone) {
-      errors.rejectValue "zone", "createGoogleInstanceDescription.zone.empty"
     }
   }
 }

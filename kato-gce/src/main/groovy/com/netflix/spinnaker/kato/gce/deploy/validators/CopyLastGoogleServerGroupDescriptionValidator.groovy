@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,17 +30,8 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
 
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("copyLastGoogleServerGroupDescription", errors)
 
-    // TODO(duftler): Once we're happy with this routine, move it to a common base class.
-    if (!description.accountName) {
-      errors.rejectValue "credentials", "basicGoogleDeployDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "basicGoogleDeployDescription.credentials.invalid")
-      }
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
   }
 }

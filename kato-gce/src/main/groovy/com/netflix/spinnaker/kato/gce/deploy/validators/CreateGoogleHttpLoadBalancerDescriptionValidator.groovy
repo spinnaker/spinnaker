@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -31,21 +30,10 @@ class CreateGoogleHttpLoadBalancerDescriptionValidator extends DescriptionValida
 
   @Override
   void validate(List priorDescriptions, CreateGoogleHttpLoadBalancerDescription description, Errors errors) {
-    def credentials = null
+    def helper = new StandardGceAttributeValidator("createGoogleHttpLoadBalancerDescription", errors)
 
-    if (!description.accountName) {
-     errors.rejectValue "credentials", "CreateGoogleHttpLoadBalancerDescription.credentials.empty"
-    } else {
-      credentials = accountCredentialsProvider.getCredentials(description.accountName)
-
-      if (!(credentials?.credentials instanceof GoogleCredentials)) {
-        errors.rejectValue("credentials", "CreateGoogleHttpLoadBalancerDescription.credentials.invalid")
-      }
-    }
-
-    if (!description.loadBalancerName) {
-      errors.rejectValue "loadBalancerName", "createGoogleHttpLoadBalancerDescription.loadBalancerName.empty"
-    }
+    helper.validateCredentials(description.accountName, accountCredentialsProvider)
+    helper.validateName(description.loadBalancerName, "loadBalancerName")
 
     // An HTTP load balancer must have a health check, but all needed health check fields have defaults. So, it
     // is not necessary to specify one in the description. Thus, we don't enforce it here. Also, HTTP load

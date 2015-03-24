@@ -69,7 +69,7 @@ class ResizeGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
       validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("numReplicas", "resizeGoogleReplicaPoolDescription.numReplicas.invalid")
+      1 * errors.rejectValue("numReplicas", "resizeGoogleReplicaPoolDescription.numReplicas.negative")
   }
 
   void "null input fails validation"() {

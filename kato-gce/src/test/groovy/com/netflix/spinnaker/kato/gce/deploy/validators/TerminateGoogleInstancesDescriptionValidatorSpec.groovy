@@ -68,7 +68,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
       validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("instanceIds", "terminateGoogleInstancesDescription.instanceId.invalid")
+      1 * errors.rejectValue("instanceIds", "terminateGoogleInstancesDescription.instanceId0.empty")
   }
 
   void "null input fails validation"() {

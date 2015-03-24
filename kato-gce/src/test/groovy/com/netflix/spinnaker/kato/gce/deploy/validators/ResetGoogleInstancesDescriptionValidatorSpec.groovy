@@ -68,7 +68,7 @@ class ResetGoogleInstancesDescriptionValidatorSpec extends Specification {
       validator.validate([], description, errors)
 
     then:
-      1 * errors.rejectValue("instanceIds", "resetGoogleInstancesDescription.instanceId.invalid")
+      1 * errors.rejectValue("instanceIds", "resetGoogleInstancesDescription.instanceId0.empty")
   }
 
   void "null input fails validation"() {

@@ -100,7 +100,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.invalid")
+    1 * errors.rejectValue("initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.negative")
   }
 
   void "invalid diskSizeGb fails validation"() {
