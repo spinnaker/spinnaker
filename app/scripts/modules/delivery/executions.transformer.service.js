@@ -79,7 +79,20 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       }
       var lastStage = stages[stages.length - 1];
       stage.startTime = stages[0].startTime;
-      var currentStage = _(stages).findLast(function(childStage) { return !childStage.hasNotStarted; }) || lastStage;
+
+      var lastNotStartedStage = _(stages).findLast(
+          function(childStage) {
+            return !childStage.hasNotStarted;
+          }
+        );
+
+      var lastFailedStage = _(stages).findLast(
+        function(childStage) {
+          return childStage.isFailed;
+        }
+      );
+
+      var currentStage = lastFailedStage || lastNotStartedStage || lastStage;
       stage.status = currentStage.status;
       stage.endTime = lastStage.endTime;
       stage.stages = stages;
