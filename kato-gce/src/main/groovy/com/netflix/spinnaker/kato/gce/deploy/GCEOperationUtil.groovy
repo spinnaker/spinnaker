@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.gce.deploy
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
+import com.google.api.services.replicapool.Replicapool
 import com.netflix.spinnaker.kato.data.task.Task
 import java.util.concurrent.TimeUnit
 
@@ -30,7 +31,7 @@ class GCEOperationUtil {
   public static OPERATIONS_POLLING_INTERVAL_FRACTION = 5
   // We verify that the operation succeeded with a timeout. 15 seconds was the minimum duration it took the operation
   // to finish while writing this code, so we use 20 as the timeout. This can be updated later as needed.
-  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 20
+  private static final int DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC = 60
 
   private static handleFinishedAsyncOperation(Operation operation, Task task, String resourceString, String basePhase) {
     if (!operation) {
@@ -65,6 +66,17 @@ class GCEOperationUtil {
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
                          Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
                          new GCEOperationUtil.Clock()), task, resourceString, basePhase)
+  }
+
+  // This method is like the two above except that it operates using a Replicapool object (rather than Compute), which
+  // is the base class for operations relating to managed instance groups.
+  static void waitForZoneOperation(Replicapool replicapool, String projectName, String zone, String operationName,
+                                   Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    // See above comment for why we don't use an Elvis operator here.
+    handleFinishedAsyncOperation(
+        waitForOperation({replicapool.zoneOperations().get(projectName, zone, operationName).execute()},
+            Math.max(timeoutSeconds != null ? timeoutSeconds : DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC, 0),
+            new GCEOperationUtil.Clock()), task, resourceString, basePhase)
   }
 
   // TODO(bklingher): implement a more accurate way to achieve timeouts with polling.
