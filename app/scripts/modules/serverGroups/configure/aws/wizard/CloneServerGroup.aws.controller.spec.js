@@ -279,7 +279,7 @@ describe('Controller: awsCloneServerGroup', function () {
       serverGroup.region = 'us-east-1';
 
       spyOn(this.imageService, 'findImages').and.callFake(function (params) {
-        if (params.q === 'something') {
+        if (params.q === 'something-*') {
           return context.resolve(packageBasedImages).call();
         } else {
           return context.resolve([]).call();
@@ -294,7 +294,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
       expect(this.imageService.getAmi).toHaveBeenCalledWith('aws', serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect(this.imageService.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something'});
+      expect(this.imageService.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
 
       expect($scope.command.backingData.filtered.images.length).toBe(1);
       expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});

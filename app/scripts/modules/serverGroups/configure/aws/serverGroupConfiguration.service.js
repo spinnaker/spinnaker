@@ -43,7 +43,7 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
     function loadImagesFromApplicationName(application, provider) {
       return imageService.findImages({
         provider: provider,
-        q: application.name
+        q: application.name.replace(/_/g, '[_\\-]') + '*',
       });
     }
 
@@ -64,7 +64,7 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
 
           return imageService.findImages({
             provider: command.selectedProvider,
-            q: packageBase
+            q: packageBase + '-*',
           });
         },
         function() {
