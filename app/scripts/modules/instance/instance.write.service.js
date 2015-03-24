@@ -31,6 +31,7 @@ angular
             type: 'rebootInstances',
             instanceIds: [instance.instanceId],
             region: instance.region,
+            zone: instance.placement.availabilityZone,
             credentials: instance.account,
             providerType: instance.providerType
           }
