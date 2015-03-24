@@ -104,8 +104,9 @@ angular.module('deckApp.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really terminate ' + instance.instanceId + '?',
         buttonText: 'Terminate ' + instance.instanceId,
-        destructive: false,
+        destructive: true,
         account: instance.account,
+        provider: 'gce',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
       });
@@ -126,8 +127,9 @@ angular.module('deckApp.instance.detail.gce.controller', [
       confirmationModalService.confirm({
         header: 'Really reboot ' + instance.instanceId + '?',
         buttonText: 'Reboot ' + instance.instanceId,
-        destructive: false,
+        destructive: true,
         account: instance.account,
+        provider: 'gce',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
       });
