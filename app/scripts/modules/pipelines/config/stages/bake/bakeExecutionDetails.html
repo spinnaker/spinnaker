@@ -11,8 +11,10 @@
         <dd>{{stage.context.region}}</dd>
         <dt>Base OS</dt>
         <dd>{{stage.context.baseOs}}</dd>
+        <dt>VM Type</dt>
+        <dd>{{stage.context.vmType | uppercase}}</dd>
         <dt ng-if="provider === 'aws'">Store Type</dt>
-        <dd ng-if="provider === 'aws'">{{stage.context.storeType}}</dd>
+        <dd ng-if="provider === 'aws'">{{stage.context.storeType | uppercase}}</dd>
         <dt>Label</dt>
         <dd>{{stage.context.baseLabel}}</dd>
         <dt>Package</dt>
