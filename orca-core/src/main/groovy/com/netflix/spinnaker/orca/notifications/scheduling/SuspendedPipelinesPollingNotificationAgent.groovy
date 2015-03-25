@@ -48,10 +48,12 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
   @Override
   protected List<Map> filterEvents(List<Map> pipelines) {
     long now = new Date().time
-    return pipelines.findAll {
+    def filteredEvents = pipelines.findAll {
       it.status == ExecutionStatus.SUSPENDED.name() &&
-      it.stages.find { Map stage -> now >= extractScheduledTime(stage) != null }
+      it.stages.find { Map stage -> now >= extractScheduledTime(stage) } != null
     } as List<Map>
+
+    return filteredEvents
   }
 
   @Override

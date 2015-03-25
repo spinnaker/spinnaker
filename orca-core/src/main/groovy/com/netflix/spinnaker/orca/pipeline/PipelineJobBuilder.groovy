@@ -56,7 +56,10 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
 
   private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
     def stages = []
-    stages.addAll(pipeline.stages)
+    stages.addAll(pipeline.stages.findAll {
+      // only consider non-synthetic stages when building the flow
+      return it.parentStageId == null
+    })
     stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
   }
 

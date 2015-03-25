@@ -47,8 +47,8 @@ class RetrofitConfiguration {
     return new OkClient(okHttpClient)
   }
 
-  @Bean LogLevel retrofitLogLevel() {
-    LogLevel.NONE
+  @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
+    return LogLevel.valueOf(retrofitLogLevel)
   }
 
   @Bean Gson gson() {

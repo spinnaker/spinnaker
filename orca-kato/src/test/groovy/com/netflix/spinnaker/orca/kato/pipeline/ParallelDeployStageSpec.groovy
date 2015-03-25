@@ -36,9 +36,9 @@ class ParallelDeployStageSpec extends Specification {
 
     where:
     stageContext                                            || expectedParallelContexts
-    deployStageContext("prod", "us-west-1")                 || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
-    deployStageContext("prod", "us-west-1", "us-east-1")    || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
-                                                                [account: "prod", cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
+    deployStageContext("prod", "us-west-1")                 || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
+    deployStageContext("prod", "us-west-1", "us-east-1")    || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
+                                                                [account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
     [availabilityZones: ["us-west-1": []], account: "prod"] || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []], account: "prod"], type: "linearDeploy", name: "Deploy in us-west-1"]]
   }
 
@@ -57,7 +57,7 @@ class ParallelDeployStageSpec extends Specification {
   }
 
   Map deployStageContext(String account, String... availabilityZones) {
-    def context = ["account": account]
+    def context = ["account": account, restrictedExecutionWindow: [:]]
     if (availabilityZones.size() == 1) {
       context.cluster = ["availabilityZones": [(availabilityZones[0]): []]]
     } else {

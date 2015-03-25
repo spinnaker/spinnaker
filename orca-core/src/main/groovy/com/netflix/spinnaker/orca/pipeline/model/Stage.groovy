@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
+import java.util.concurrent.atomic.AtomicInteger
+
 @CompileStatic
 interface Stage<T extends Execution> {
 
@@ -88,6 +90,22 @@ interface Stage<T extends Execution> {
    * @return
    */
   boolean isImmutable()
+
+  /**
+   * Returns a flag indicating if the stage is a parallel initialization stage
+   * @return
+   */
+  boolean isInitializationStage()
+
+  /**
+   * @param initializationStage
+   */
+  void setInitializationStage(boolean initializationStage)
+
+  /**
+   * @return
+   */
+  AtomicInteger getTaskCounter()
 
   /**
    * Returns the stage as an immutable object. Stage state can be discovered through {@link #isImmutable()}
