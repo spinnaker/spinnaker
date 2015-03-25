@@ -71,7 +71,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
     function transformStage(stage) {
       var stages = stage.before.concat([stage.masterStage || stage]).concat(stage.after).filter(function(stage) {
-        return stage.type !== 'initialization';
+        return stage.type !== 'initialization' && stage.initializationStage !== true;
       });
 
       if (!stages.length) {
@@ -101,7 +101,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
     function transformStageSummary(summary) {
       summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after).filter(function(stage) {
-        return stage.type !== 'initialization';
+        return stage.type !== 'initialization' && stage.initializationStage !== true;
       });
       summary.stages.forEach(transformStage);
       transformStage(summary);
