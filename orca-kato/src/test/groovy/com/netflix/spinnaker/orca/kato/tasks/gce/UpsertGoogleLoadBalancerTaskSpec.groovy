@@ -114,7 +114,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfig.name
         region == this.upsertGoogleLoadBalancerConfig.region
@@ -140,7 +140,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.name
         region == this.upsertGoogleLoadBalancerConfigWithPort.region
@@ -166,7 +166,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRange.region
@@ -193,7 +193,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.region
@@ -226,7 +226,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.region
