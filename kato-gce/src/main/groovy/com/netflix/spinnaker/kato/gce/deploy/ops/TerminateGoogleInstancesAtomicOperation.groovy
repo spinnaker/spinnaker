@@ -20,6 +20,22 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
+/**
+ * Terminate and delete an instance.
+ *
+ * This is an alternative to {@link RecreateGoogleReplicaPoolInstancesAtomicOperation} using
+ * the API described in {@link https://cloud.google.com/compute/docs/instances#deleting_an_instance}
+ * and {@link https://cloud.google.com/compute/docs/reference/latest/instances/delete}.
+ *
+ * This operation only explicitly deletes and removes an instance. However, if the instance is in a
+ * replica pool then the replica pool will automatically recreate and restart the instance once it sees
+ * that it is missing. The net effect is to recreate the instance (if it was in a replica pool).
+ *
+ * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation},
+ * however that is currently a beta API so is not guaranteed to remain available in future GCE releases.
+ *
+ * @see RecreateGoogleReplicaPoolInstancesAtomicOperation
+ */
 class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_INSTANCES"
 
