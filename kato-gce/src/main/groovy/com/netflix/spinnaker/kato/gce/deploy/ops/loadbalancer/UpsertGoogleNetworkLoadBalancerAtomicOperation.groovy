@@ -104,7 +104,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     if (existingForwardingRule) {
       // If any of these properties are different, we'll need to update the forwarding rule.
       needToUpdateForwardingRule =
-        (description.ipAddress
+        ((description.ipAddress && description.ipAddress != existingForwardingRule.IPAddress)
           || description.ipProtocol != existingForwardingRule.IPProtocol
           || description.portRange != existingForwardingRule.portRange)
 
@@ -186,6 +186,9 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     def targetPoolResourceOperation
     def targetPoolResourceLink
 
+    // There's a chance that the target pool doesn't in fact get updated. If needToUpdateTargetPool was set because
+    // the description.instances property was specified, but the specified set matches the existing set of instances,
+    // no updates will be made to the target pool.
     if (needToUpdateTargetPool) {
       targetPoolName = existingTargetPool.name
       task.updateStatus BASE_PHASE, "Updating target pool $targetPoolName in $region..."
