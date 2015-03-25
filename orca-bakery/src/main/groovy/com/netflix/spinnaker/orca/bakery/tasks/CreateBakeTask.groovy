@@ -99,7 +99,7 @@ class CreateBakeTask implements Task {
   @CompileDynamic
   private Map filterArtifacts(List<Map> artifacts, String prefix, String fileExtension) {
     artifacts.find {
-      it.fileName.startsWith(prefix) && it.fileName.endsWith(fileExtension)
+      it.fileName?.startsWith(prefix) && it.fileName?.endsWith(fileExtension)
     }
   }
 

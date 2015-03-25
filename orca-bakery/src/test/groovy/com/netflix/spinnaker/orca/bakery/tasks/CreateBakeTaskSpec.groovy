@@ -27,19 +27,20 @@ import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
 import static java.util.UUID.randomUUID
 
-import spock.lang.Unroll
-
 class CreateBakeTaskSpec extends Specification {
 
-  @Subject task = new CreateBakeTask()
+  @Subject
+    task = new CreateBakeTask()
   Stage stage
   def mapper = new OrcaObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
-  @Shared Pipeline pipeline = new Pipeline()
+  @Shared
+  Pipeline pipeline = new Pipeline()
 
   def bakeConfig = [
     region   : "us-west-1",
@@ -62,6 +63,14 @@ class CreateBakeTaskSpec extends Specification {
     artifacts: [
       [fileName: 'hodornodor_1.1_all.deb'],
       [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
+  def invalidArtifactList = [
+    artifacts: [
+      [yolo: 'blinky'],
+      [hulk: 'hogan']
     ]
   ]
 
@@ -147,10 +156,12 @@ class CreateBakeTaskSpec extends Specification {
     ise.message.startsWith("Unable to find deployable artifact starting with hodor_ and ending with .deb in")
 
     where:
-    contextInfo      | triggerInfo
-    null             | buildInfoNoMatch
-    buildInfoNoMatch | null
-    buildInfoNoMatch | buildInfoNoMatch
+    contextInfo         | triggerInfo
+    null                | buildInfoNoMatch
+    buildInfoNoMatch    | null
+    buildInfoNoMatch    | buildInfoNoMatch
+    buildInfoNoMatch    | invalidArtifactList
+    invalidArtifactList | buildInfoNoMatch
   }
 
   @Unroll
