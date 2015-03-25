@@ -30,6 +30,8 @@ import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Repository
 
+import java.text.SimpleDateFormat
+
 /**
  * Repository for history
  */
@@ -41,7 +43,7 @@ class HistoryRepository implements ApplicationListener<ContextRefreshedEvent> {
     Keyspace keyspace
 
     static ColumnFamily<String, String> CF_HISTORY
-    static final String CF_NAME = 'history'
+    static final String CF_NAME = 'eventslog'
     ObjectMapper mapper = new ObjectMapper()
 
     @Override
@@ -53,41 +55,27 @@ class HistoryRepository implements ApplicationListener<ContextRefreshedEvent> {
         }
     }
 
-    List<Map> listHistory() {
-        List<Map> history = []
-        ColumnList<String> result = keyspace.prepareQuery(CF_HISTORY)
-            .getKey(CF_NAME)
-            .execute().result
-        if (result != null) {
-            history = result.collect { mapper.readValue(Zip.decompress(it.byteArrayValue), Map) }
-        }
-        history
-    }
-
-    Map getHistory(String name) {
-        Map history
-        try {
-            Column<String> result = keyspace.prepareQuery(CF_HISTORY)
-                .getKey(CF_NAME)
-                .getColumn(name)
-                .execute().result
-            history = mapper.readValue(Zip.decompress(result.byteArrayValue), Map)
-        } catch (NotFoundException ignored) {
-            history = null
-        }
-        history
-    }
-
     void saveHistory(String name, String history) {
         MutationBatch m = keyspace.prepareMutationBatch()
-        m.withRow(CF_HISTORY, CF_NAME).putColumn(name, Zip.compress(history))
+        String dateString = new SimpleDateFormat("yyyyMMdd").format(new Date())
+        m.withRow(CF_HISTORY, CF_NAME + '_' + dateString).putColumn(name, Zip.compress(history))
         m.execute()
     }
 
-    void deleteHistory(String name) {
-        MutationBatch m = keyspace.prepareMutationBatch()
-        m.withRow(CF_HISTORY, CF_NAME).deleteColumn(name)
-        m.execute()
-    }
+    List<Map> today() {
+        List<Map> history = []
+        ColumnList<String> result = keyspace.prepareQuery(CF_HISTORY)
+            .getKey(CF_NAME + '_' + new SimpleDateFormat("yyyyMMdd").format(new Date()))
+            .execute().result
+        if (result != null) {
+            result.each {
+                try {
+                    history << mapper.readValue(Zip.decompress(it.byteArrayValue), Map)
+                } catch( Exception e ){
 
+                }
+            }
+        }
+        history
+    }
 }
