@@ -4,7 +4,7 @@ angular.module('deckApp.pipelines.stage.deploy')
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
-      description: 'Deploys the previously baked AMI',
+      description: 'Deploys the previously baked or found AMI',
       key: 'deploy',
       templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
