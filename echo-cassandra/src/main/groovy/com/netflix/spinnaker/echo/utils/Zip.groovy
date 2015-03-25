@@ -25,7 +25,7 @@ import java.util.zip.Inflater
 class Zip {
 
     static byte[] compress(String str) throws IOException {
-        byte[] output = new byte[4096]
+        byte[] output = new byte[65088]
         Deflater compresser = new Deflater()
         compresser.setInput(str.getBytes('UTF-8'))
         compresser.finish()
@@ -37,7 +37,7 @@ class Zip {
     static String decompress(byte[] bytes) throws IOException {
         Inflater decompresser = new Inflater()
         decompresser.setInput(bytes, 0, bytes.length)
-        byte[] result = new byte[4096]
+        byte[] result = new byte[65088]
         int resultLength = decompresser.inflate(result)
         decompresser.end()
         new String(result, 0, resultLength, 'UTF-8')

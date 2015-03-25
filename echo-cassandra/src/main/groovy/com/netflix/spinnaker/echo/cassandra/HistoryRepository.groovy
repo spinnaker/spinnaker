@@ -19,8 +19,6 @@ package com.netflix.spinnaker.echo.cassandra
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.MutationBatch
-import com.netflix.astyanax.connectionpool.exceptions.NotFoundException
-import com.netflix.astyanax.model.Column
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.serializers.StringSerializer
@@ -29,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Repository
+
+import java.text.SimpleDateFormat
 
 /**
  * Repository for history
@@ -41,7 +41,7 @@ class HistoryRepository implements ApplicationListener<ContextRefreshedEvent> {
     Keyspace keyspace
 
     static ColumnFamily<String, String> CF_HISTORY
-    static final String CF_NAME = 'history'
+    static final String CF_NAME = 'eventslog'
     ObjectMapper mapper = new ObjectMapper()
 
     @Override
@@ -53,41 +53,26 @@ class HistoryRepository implements ApplicationListener<ContextRefreshedEvent> {
         }
     }
 
-    List<Map> listHistory() {
-        List<Map> history = []
-        ColumnList<String> result = keyspace.prepareQuery(CF_HISTORY)
-            .getKey(CF_NAME)
-            .execute().result
-        if (result != null) {
-            history = result.collect { mapper.readValue(Zip.decompress(it.byteArrayValue), Map) }
-        }
-        history
-    }
-
-    Map getHistory(String name) {
-        Map history
-        try {
-            Column<String> result = keyspace.prepareQuery(CF_HISTORY)
-                .getKey(CF_NAME)
-                .getColumn(name)
-                .execute().result
-            history = mapper.readValue(Zip.decompress(result.byteArrayValue), Map)
-        } catch (NotFoundException ignored) {
-            history = null
-        }
-        history
-    }
-
     void saveHistory(String name, String history) {
         MutationBatch m = keyspace.prepareMutationBatch()
-        m.withRow(CF_HISTORY, CF_NAME).putColumn(name, Zip.compress(history))
+        String dateString = new SimpleDateFormat('yyyyMMdd').format(new Date())
+        m.withRow(CF_HISTORY, CF_NAME + '_' + dateString).putColumn(name, Zip.compress(history))
         m.execute()
     }
 
-    void deleteHistory(String name) {
-        MutationBatch m = keyspace.prepareMutationBatch()
-        m.withRow(CF_HISTORY, CF_NAME).deleteColumn(name)
-        m.execute()
+    List<Map> get(date) {
+        List<Map> history = []
+        ColumnList<String> result = keyspace.prepareQuery(CF_HISTORY)
+            .getKey("${CF_NAME}_${date}")
+            .execute().result
+        if (result != null) {
+            result.each {
+                try {
+                    history << mapper.readValue(Zip.decompress(it.byteArrayValue), Map)
+                } catch (Exception e) {
+                }
+            }
+        }
+        history
     }
-
 }
