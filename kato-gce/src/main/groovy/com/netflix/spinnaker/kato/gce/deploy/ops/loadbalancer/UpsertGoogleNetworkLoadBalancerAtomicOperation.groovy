@@ -105,8 +105,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       // If any of these properties are different, we'll need to update the forwarding rule.
       needToUpdateForwardingRule =
         ((description.ipAddress && description.ipAddress != existingForwardingRule.IPAddress)
-          || description.ipProtocol != existingForwardingRule.IPProtocol
-          || description.portRange != existingForwardingRule.portRange)
+           || description.ipProtocol != existingForwardingRule.IPProtocol
+           || description.portRange != existingForwardingRule.portRange)
 
       existingTargetPool = GCEUtil.queryTargetPool(
         project, region, GCEUtil.getLocalName(existingForwardingRule.target), compute, task, BASE_PHASE)
@@ -117,8 +117,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         // description.
         needToUpdateTargetPool =
           (description.instances != null
-            || description.healthCheck && !existingTargetPool.healthChecks
-            || !description.healthCheck && existingTargetPool.healthChecks)
+             || description.healthCheck && !existingTargetPool.healthChecks
+             || !description.healthCheck && existingTargetPool.healthChecks)
 
         if (existingTargetPool.healthChecks) {
           existingHttpHealthCheck = GCEUtil.queryHttpHealthCheck(
@@ -128,11 +128,11 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
             // If any of these properties are different, we'll need to update the http health check.
             needToUpdateHttpHealthCheck =
               (description.healthCheck.checkIntervalSec != existingHttpHealthCheck.checkIntervalSec
-                || description.healthCheck.healthyThreshold != existingHttpHealthCheck.healthyThreshold
-                || description.healthCheck.unhealthyThreshold != existingHttpHealthCheck.unhealthyThreshold
-                || description.healthCheck.port != existingHttpHealthCheck.port
-                || description.healthCheck.timeoutSec != existingHttpHealthCheck.timeoutSec
-                || description.healthCheck.requestPath != existingHttpHealthCheck.requestPath)
+                 || description.healthCheck.healthyThreshold != existingHttpHealthCheck.healthyThreshold
+                 || description.healthCheck.unhealthyThreshold != existingHttpHealthCheck.unhealthyThreshold
+                 || description.healthCheck.port != existingHttpHealthCheck.port
+                 || description.healthCheck.timeoutSec != existingHttpHealthCheck.timeoutSec
+                 || description.healthCheck.requestPath != existingHttpHealthCheck.requestPath)
           } else {
             // If there is an existing http health check, but the description does not specify one, we want to make
             // sure we delete the existing one after disassociating it from the target pool.
