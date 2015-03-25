@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component
  * Event listener for echo events
  */
 @Component
+@SuppressWarnings('GStringExpressionWithinString')
 class KafkaEventListener implements EchoEventListener {
 
     ObjectMapper mapper = new ObjectMapper()

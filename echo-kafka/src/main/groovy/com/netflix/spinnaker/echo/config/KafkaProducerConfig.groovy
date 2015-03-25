@@ -37,12 +37,12 @@ class KafkaProducerConfig {
         @Value('${kafka.acks}') String acks
     ) {
         Properties props = new Properties()
-        props.put("client.id", clientId)
-        props.put("bootstrap.servers", bootStrapServers)
-        props.put("acks", acks)
-        props.put("compression.type", compression)
-        props.put("block.on.buffer.full", Boolean.FALSE)
-        KafkaProducer producer = new KafkaProducer<>(props, new ByteArraySerializer(), new ByteArraySerializer());
+        props.put('client.id', clientId)
+        props.put('bootstrap.servers', bootStrapServers)
+        props.put('acks', acks)
+        props.put('compression.type', compression)
+        props.put('block.on.buffer.full', Boolean.FALSE)
+        KafkaProducer producer = new KafkaProducer<>(props, new ByteArraySerializer(), new ByteArraySerializer())
         producer
     }
 

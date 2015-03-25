@@ -15,3 +15,10 @@ kafka:
   hostname: 'echo.prod.netflix.com'
   app: 'spinnaker'
   rowid: 'events'
+  client:
+    id: 'surorouter-kafkacr-useast1'
+  bootstrap:
+    servers: 'kafka-default.us-west-2.dyntest.netflix.net:7101'
+  compression:
+    type: 'snappy'
+  acks: '1'
