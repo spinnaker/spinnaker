@@ -27,17 +27,20 @@ import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.bakery.api.BakeStatus.State.RUNNING
 import static java.util.UUID.randomUUID
 
 class CreateBakeTaskSpec extends Specification {
 
-  @Subject task = new CreateBakeTask()
+  @Subject
+    task = new CreateBakeTask()
   Stage stage
   def mapper = new OrcaObjectMapper()
   def runningStatus = new BakeStatus(id: randomUUID(), state: RUNNING)
 
-  @Shared Pipeline pipeline = new Pipeline()
+  @Shared
+  Pipeline pipeline = new Pipeline()
 
   def bakeConfig = [
     region   : "us-west-1",
@@ -45,6 +48,30 @@ class CreateBakeTaskSpec extends Specification {
     user     : "bran",
     baseOs   : BakeRequest.OperatingSystem.ubuntu.name(),
     baseLabel: BakeRequest.Label.release.name()
+  ]
+
+  @Shared
+  def buildInfo = [
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
+  def buildInfoNoMatch = [
+    artifacts: [
+      [fileName: 'hodornodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
+  def invalidArtifactList = [
+    artifacts: [
+      [yolo: 'blinky'],
+      [hulk: 'hogan']
+    ]
   ]
 
   def setup() {
@@ -84,12 +111,12 @@ class CreateBakeTaskSpec extends Specification {
     bake.baseLabel.name() == bakeConfig.baseLabel
   }
 
-  def "finds package details from the pipeline trigger"() {
+  @Unroll
+  def "finds package details from context and trigger"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[artifacts:[
-            [fileName: 'hodor_1.0_all.deb'],
-            [fileName: 'hodor-1.0.noarch.rpm']
-    ]]]).build()
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
     def bake
     task.bakery = Mock(BakeryService) {
@@ -103,16 +130,23 @@ class CreateBakeTaskSpec extends Specification {
     task.execute(stage)
 
     then:
-    bake.packageName == 'hodor_1.0_all'
+    bake.packageName == 'hodor_1.1_all'
+
+    where:
+    triggerInfo      | contextInfo
+    null             | buildInfo
+    buildInfo        | null
+    buildInfo        | buildInfo
+    buildInfo        | buildInfoNoMatch
+    buildInfoNoMatch | buildInfo
   }
 
-  def "fails if pipeline trigger includes artifacts but no artifact for the bake package"() {
+  @Unroll
+  def "fails if pipeline trigger or context includes artifacts but no artifact for the bake package"() {
     given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo:[artifacts:[
-      [fileName: 'hodorhooodor_1.0_all.deb'],
-      [fileName: 'hodor-1.0.noarch.rpm']
-    ]]]).build()
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    bakeConfig.buildInfo = contextInfo
 
     when:
     task.execute(stage)
@@ -120,6 +154,34 @@ class CreateBakeTaskSpec extends Specification {
     then:
     IllegalStateException ise = thrown(IllegalStateException)
     ise.message.startsWith("Unable to find deployable artifact starting with hodor_ and ending with .deb in")
+
+    where:
+    contextInfo         | triggerInfo
+    null                | buildInfoNoMatch
+    buildInfoNoMatch    | null
+    buildInfoNoMatch    | buildInfoNoMatch
+    buildInfoNoMatch    | invalidArtifactList
+    invalidArtifactList | buildInfoNoMatch
+  }
+
+  @Unroll
+  def "fails if pipeline trigger and context includes artifacts have a different match"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: buildInfo]).build()
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    bakeConfig.buildInfo = [
+      artifacts: [
+        [fileName: 'hodor_1.2_all.deb'],
+        [fileName: 'hodor-1.2.noarch.rpm']
+      ]
+    ]
+
+    when:
+    task.execute(stage)
+
+    then:
+    IllegalStateException ise = thrown(IllegalStateException)
+    ise.message.startsWith("Found build artifact in Jenkins")
   }
 
   def "outputs the status of the bake"() {

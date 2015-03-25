@@ -52,28 +52,55 @@ class CreateBakeTask implements Task {
     BakeRequest request = mapper.convertValue(stage.context, BakeRequest)
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
+      Map buildInfo = [:]
+      if (stage.context.buildInfo) {
+        buildInfo = mapper.convertValue(stage.context.buildInfo, Map)
+      }
 
-      return request.copyWith( packageName : findPackage(trigger, request) )
+      return request.copyWith(packageName: findPackage(trigger, buildInfo, request))
     }
     return request
   }
 
   @CompileDynamic
-  private String findPackage(Map trigger, BakeRequest request) {
-    List<Map> artifacts = trigger.buildInfo?.artifacts
-    if (!artifacts) {
+  private String findPackage(Map trigger, Map buildInfo, BakeRequest request) {
+    List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
+    List<Map> buildArtifacts = buildInfo.artifacts
+    if (!triggerArtifacts && !buildArtifacts) {
       return request.packageName
     }
 
     String prefix = "${request.packageName}${request.baseOs.packageType.versionDelimiter}"
     String fileExtension = ".${request.baseOs.packageType.packageType}"
 
-    Map artifact = artifacts.find { it.fileName.startsWith(prefix) && it.fileName.endsWith(fileExtension) }
+    Map triggerArtifact = filterArtifacts(triggerArtifacts, prefix, fileExtension)
+    Map buildArtifact = filterArtifacts(buildArtifacts, prefix, fileExtension)
 
-    if (artifact) {
-      return artifact.fileName.substring(0, artifact.fileName.lastIndexOf(fileExtension))
+    if (triggerArtifact && buildArtifact && triggerArtifact.fileName != buildArtifact.fileName) {
+      throw new IllegalStateException("Found build artifact in Jenkins stage and Pipeline Trigger")
     }
 
-    throw new IllegalStateException("Unable to find deployable artifact starting with ${prefix} and ending with ${fileExtension} in ${artifacts}")
+    if (triggerArtifact) {
+      return extractPackageName(triggerArtifact, fileExtension)
+    }
+
+    if (buildArtifact) {
+      return extractPackageName(buildArtifact, fileExtension)
+    }
+
+    throw new IllegalStateException("Unable to find deployable artifact starting with ${prefix} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}")
   }
+
+  @CompileDynamic
+  private String extractPackageName(Map artifact, String fileExtension) {
+    artifact.fileName.substring(0, artifact.fileName.lastIndexOf(fileExtension))
+  }
+
+  @CompileDynamic
+  private Map filterArtifacts(List<Map> artifacts, String prefix, String fileExtension) {
+    artifacts.find {
+      it.fileName?.startsWith(prefix) && it.fileName?.endsWith(fileExtension)
+    }
+  }
+
 }
