@@ -22,6 +22,7 @@ var gulp = require('gulp'),
     del = require('del'),
     bowerFiles = require('main-bower-files'),
     run = require('run-sequence'),
+    templateCache = require('gulp-angular-templatecache'),
 
     dist = 'dist',
     app = 'app',
@@ -231,16 +232,14 @@ gulp.task('scripts:vendor', ['clean:scripts:vendor'], function() {
 
 gulp.task('scripts:templates', ['clean:scripts:templates'], function() {
   return gulp.src([
-      [app, views, '**/*.html'].join('/'),
-      [app, scripts, '**/*.html'].join('/')
+      [app, '**/*.html'].join('/'),
     ])
     .pipe($.if(release, min))
-    .pipe($.html2js({
-      outputModuleName: 'deckApp.templates',
-      useStrict: true,
-      base: app,
+    .pipe(templateCache('templates.js', {
+      standalone: true,
+      module: 'deckApp.templates',
+      root: '',
     }))
-    .pipe($.concat('templates.js'))
     .pipe($.rev())
     .pipe(gulp.dest([dist, scripts].join('/')));
 });
