@@ -13,11 +13,20 @@ angular.module('deckApp.instance.detail.aws.controller', [
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, application) {
 
+    // needed for standalone instances
+    $scope.provider = 'aws';
+
     $scope.state = {
       loading: true,
     };
 
     function extractHealthMetrics(instance, latest) {
+      // do not backfill on standalone instances
+      if (application.isStandalone) {
+        $scope.healthMetrics = latest.health;
+        return;
+      }
+
       instance.health = instance.health || [];
       var displayableMetrics = instance.health.filter(
         function(metric) {

@@ -12,6 +12,9 @@ angular.module('deckApp.instance.detail.gce.controller', [
                                                instanceWriter, confirmationModalService,
                                                instanceReader,instance, application) {
 
+    // needed for standalone instances
+    $scope.provider = 'gce';
+
     $scope.state = {
       loading: true,
     };
