@@ -72,7 +72,7 @@ class TimeSeriesRepository implements ApplicationListener<ContextRefreshedEvent>
     }
 
     List<Map> eventsByType(String type, long startTime) {
-        def result = runQuery """SELECT keys_and_values, inserted_time FROM events_time_series WHERE inserted_time >= ${startTime} and type = '${type}';"""
+        def result = runQuery """SELECT keys_and_values, inserted_time FROM events_time_series WHERE inserted_time > ${startTime} and type = '${type}';"""
 
         result.result.rows.collect {
             Map event = mapper.readValue(it.columns.getColumnByName('keys_and_values').stringValue, Map)
