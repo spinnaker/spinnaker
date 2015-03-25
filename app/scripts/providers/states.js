@@ -454,11 +454,14 @@ angular.module('deckApp.states', [
 
       var standaloneInstance = {
         name: 'standaloneInstance',
-        url: '/instance/:account/:region/:instanceId',
+        url: '/instance/:provider/:account/:region/:instanceId',
         views: {
           'main@': {
             templateUrl: 'scripts/modules/instance/standalone.html',
-            controller: 'InstanceDetailsCtrl',
+            controllerProvider: ['$stateParams', function($stateParams) {
+              var provider = $stateParams.provider || 'aws';
+              return provider + 'InstanceDetailsCtrl';
+            }],
             controllerAs: 'ctrl'
           }
         },
@@ -474,7 +477,8 @@ angular.module('deckApp.states', [
           application: function() {
             return {
               name: '(standalone instance)',
-              registerAutoRefreshHandler: angular.noop
+              registerAutoRefreshHandler: angular.noop,
+              isStandalone: true,
             };
           }
         },
