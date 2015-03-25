@@ -17,10 +17,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
     };
 
     function extractHealthMetrics(instance) {
-      if (!instance.health) {
-        $scope.healthMetrics = [];
-        return;
-      }
+      instance.health = instance.health || [];
       var displayableMetrics = instance.health.filter(
         function(metric) {
           return metric.type !== 'Amazon' || metric.state !== 'Unknown';
@@ -81,6 +78,28 @@ angular.module('deckApp.instance.detail.gce.controller', [
         $state.go('^');
       }
     }
+
+    this.canRegisterWithLoadBalancer = function() {
+      var instance = $scope.instance;
+      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+        return false;
+      }
+      var outOfService = instance.health.some(function(health) {
+        return health.type === 'LoadBalancer' && health.state === 'OutOfService';
+      });
+      var hasLoadBalancerHealth = instance.health.some(function(health) {
+        return health.type === 'LoadBalancer';
+      });
+      return outOfService || !hasLoadBalancerHealth;
+    };
+
+    this.canRegisterWithDiscovery = function() {
+      var instance = $scope.instance;
+      var discoveryHealth = instance.health.filter(function(health) {
+        return health.type === 'Discovery';
+      });
+      return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
+    };
 
     this.terminateInstance = function terminateInstance() {
       var instance = $scope.instance;
