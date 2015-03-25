@@ -71,7 +71,6 @@ ext {
 
 allprojects {
     apply plugin: "spinnaker-gradle-project"
-    apply plugin: 'codenarc'
     apply plugin: 'jacoco'
     group = "com.netflix.spinnaker.echo"
 
@@ -96,11 +95,6 @@ subprojects {
     plugins.withType(JavaPlugin) {
         sourceCompatibility = "1.7"
         targetCompatibility = "1.7"
-    }
-
-    codenarc {
-        toolVersion = '0.21'
-        configFile = rootProject.file('config/codenarc/rules.groovy')
     }
 
     jacoco {

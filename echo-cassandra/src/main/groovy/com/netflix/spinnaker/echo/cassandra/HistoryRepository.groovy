@@ -19,8 +19,6 @@ package com.netflix.spinnaker.echo.cassandra
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.MutationBatch
-import com.netflix.astyanax.connectionpool.exceptions.NotFoundException
-import com.netflix.astyanax.model.Column
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.serializers.StringSerializer
@@ -57,22 +55,21 @@ class HistoryRepository implements ApplicationListener<ContextRefreshedEvent> {
 
     void saveHistory(String name, String history) {
         MutationBatch m = keyspace.prepareMutationBatch()
-        String dateString = new SimpleDateFormat("yyyyMMdd").format(new Date())
+        String dateString = new SimpleDateFormat('yyyyMMdd').format(new Date())
         m.withRow(CF_HISTORY, CF_NAME + '_' + dateString).putColumn(name, Zip.compress(history))
         m.execute()
     }
 
-    List<Map> today() {
+    List<Map> get(date) {
         List<Map> history = []
         ColumnList<String> result = keyspace.prepareQuery(CF_HISTORY)
-            .getKey(CF_NAME + '_' + new SimpleDateFormat("yyyyMMdd").format(new Date()))
+            .getKey("${CF_NAME}_${date}")
             .execute().result
         if (result != null) {
             result.each {
                 try {
                     history << mapper.readValue(Zip.decompress(it.byteArrayValue), Map)
-                } catch( Exception e ){
-
+                } catch (Exception e) {
                 }
             }
         }
