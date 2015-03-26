@@ -24,13 +24,25 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskState
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
 
 class DiscoverySupportUnitSpec extends Specification {
+  def mockRestTemplate = Mock(RestTemplate)
+
   @Subject
-  def discoverySupport = new DiscoverySupport(restTemplate: Mock(RestTemplate))
+  def discoverySupport = new DiscoverySupport() {
+    {
+      this.restTemplate = mockRestTemplate
+    }
+
+    @Override
+    protected long getDiscoveryRetryMs() {
+      return 0
+    }
+  }
 
   void "should fail if discovery is not enabled"() {
     given:
@@ -94,5 +106,66 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123", "i-456"]
+  }
+
+  void "should retry on NOT_FOUND from discovery up to DISCOVERY_RETRY_MAX times"() {
+    given:
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
+    )
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+
+    then: "should retry on NOT_FOUND"
+    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+    instanceIds.each {
+      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> {
+        throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
+      }
+      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
+        [
+          instance: [
+            app: appName
+          ]
+        ], HttpStatus.OK
+      )
+      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
+    }
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+
+    then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
+    DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+    instanceIds.each {
+      DiscoverySupport.DISCOVERY_RETRY_MAX * discoverySupport.restTemplate.getForEntity(*_) >> {
+        throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
+      }
+    }
+    thrown(HttpClientErrorException)
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+
+    then: "should never retry on BAD_REQUEST"
+    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+    instanceIds.each {
+      1 * discoverySupport.restTemplate.getForEntity(*_) >> {
+        throw new HttpClientErrorException(HttpStatus.BAD_REQUEST)
+      }
+    }
+    thrown(HttpClientErrorException)
+
+    where:
+    discoveryUrl = "http://us-west-1.discovery.netflix.net"
+    region = "us-west-1"
+    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    appName = "kato"
+    instanceIds = ["i-123"]
   }
 }

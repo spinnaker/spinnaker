@@ -26,8 +26,10 @@ import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<Void> {
   private static final long THROTTLE_MS = 150
 
@@ -90,12 +92,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
           task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
           discoverySupport.updateDiscoveryStatusForInstances(
-              description, task, phaseName, region, status, asg.instances*.instanceId
+            description, task, phaseName, region, status, asg.instances*.instanceId
           )
         }
         task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
       } catch (e) {
-        task.updateStatus phaseName, "Could not ${verb} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+        def errorMessage = "Could not ${verb} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+        log.error(errorMessage, e)
+
+        task.updateStatus phaseName, errorMessage
         failures = true
       }
     }
