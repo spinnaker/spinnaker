@@ -17,17 +17,21 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.discovery
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.kato.aws.deploy.description.AbstractAmazonCredentialsDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 
 @Component
 class DiscoverySupport {
   private static final long THROTTLE_MS = 150
+
+  static final int DISCOVERY_RETRY_MAX = 10
+  private static final long DEFAULT_DISCOVERY_RETRY_MS = 500
 
   @Autowired
   RestTemplate restTemplate
@@ -49,19 +53,36 @@ class DiscoverySupport {
         sleep THROTTLE_MS
       }
 
-      if (!task.status.isFailed()) {
-        task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery."
-        def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
-        def applicationName = instanceDetails?.body?.instance?.app
-        if (applicationName) {
-          restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
-          task.updateStatus phaseName, "Marked ${instanceId} as '${discoveryStatus.value}' in discovery."
-        } else {
-          task.updateStatus phaseName, "Instance '${instanceId}' does not exist in discovery, unable to mark as '${discoveryStatus.value}'"
-          task.fail()
+      def retryCount = 0
+      while (true) {
+        try {
+          if (!task.status.isFailed()) {
+            task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
+            def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
+            def applicationName = instanceDetails?.body?.instance?.app
+            if (applicationName) {
+              restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
+              task.updateStatus phaseName, "Marked ${instanceId} as '${discoveryStatus.value}' in discovery."
+            } else {
+              task.updateStatus phaseName, "Instance '${instanceId}' does not exist in discovery, unable to mark as '${discoveryStatus.value}'"
+              task.fail()
+            }
+          }
+          break
+        } catch (HttpClientErrorException e) {
+          if (e.statusCode != HttpStatus.NOT_FOUND || retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
+            throw e
+          }
+
+          retryCount++
+          sleep(getDiscoveryRetryMs())
         }
       }
     }
+  }
+
+  protected long getDiscoveryRetryMs() {
+    return DEFAULT_DISCOVERY_RETRY_MS
   }
 
   enum DiscoveryStatus {
