@@ -60,9 +60,12 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
     function buildNewServerGroupCommand(application, defaults) {
       // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
       defaults = defaults || {};
+
+      var defaultRegion = defaults.region || settings.providers.gce.defaults.region;
+
       var command = {
         application: application.name,
-        region: defaults.region || 'us-central1',
+        region: defaultRegion,
         strategy: 'redblack',
         capacity: {
           min: 0,
