@@ -17,11 +17,12 @@
 package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
@@ -48,7 +49,8 @@ class TaskTaskletSpec extends Specification {
   def stage = pipeline.stages.first()
   def task = Mock(Task)
 
-  @Subject tasklet = new TaskTasklet(task, executionRepository, [])
+  @Subject
+  def tasklet = new TaskTasklet(task, executionRepository, [])
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -56,7 +58,8 @@ class TaskTaskletSpec extends Specification {
   StepContribution stepContribution
   ChunkContext chunkContext
 
-  @Shared random = Random.newInstance()
+  @Shared
+  def random = Random.newInstance()
 
   void setup() {
     pipelineStore.store(pipeline)
@@ -195,33 +198,39 @@ class TaskTaskletSpec extends Specification {
     outputs = [foo: "bar", appConfig: [:]]
   }
 
+  @Unroll
   def "should invoke matching exception handler when task execution fails"() {
-    given:
+    expect:
+    with(sourceTasklet.executeTask(new PipelineStage(), chunkContext)) {
+      status == expectedStatus
+    }
+
+    where:
+    sourceTasklet                     || expectedStatus
+    buildTasklet(Task, false)         || TERMINAL
+    buildTasklet(Task, true)          || TERMINAL
+    buildTasklet(RetryableTask, true) || RUNNING
+
+    exceptionType = "E1"
+    operation = "E2"
+    error = "E3"
+    errors = ["E4", "E5"]
+  }
+
+  private buildTasklet(Class taskType, boolean shouldRetry) {
+    def task = Mock(taskType)
+    task.execute(_) >> { throw new RuntimeException() }
+
+    def tasklet = new TaskTasklet(task, executionRepository, [])
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true
       }
       1 * handle(_, _) >> {
-        new ExceptionHandler.Response(exceptionType, operation, new ExceptionHandler.ResponseDetails(error, errors))
+        return new ExceptionHandler.Response([shouldRetry: shouldRetry])
       }
     }
 
-    and:
-    task.execute(_) >> { throw new RuntimeException() }
-
-    expect:
-    with(tasklet.executeTask(tasklet.currentStage(chunkContext), chunkContext)) {
-      status == TERMINAL
-      outputs.exception.exceptionType == exceptionType
-      outputs.exception.operation == operation
-      outputs.exception.details.error == error
-      outputs.exception.details.errors == errors
-    }
-
-    where:
-    exceptionType = "exceptionType"
-    operation = "operation"
-    error = "error"
-    errors = ["error1", "error2"]
+    return tasklet
   }
 }

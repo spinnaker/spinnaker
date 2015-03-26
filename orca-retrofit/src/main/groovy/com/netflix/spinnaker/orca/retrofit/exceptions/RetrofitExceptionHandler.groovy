@@ -54,6 +54,7 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       response.details.kind = e.kind
       response.details.status = properties.status ?: null
       response.details.url = properties.url ?: null
+      response.shouldRetry = (e.kind == RetrofitError.Kind.NETWORK)
       return response
     }
   }
