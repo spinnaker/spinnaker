@@ -18,12 +18,13 @@
 
 describe('Service: InstanceType', function () {
 
-  beforeEach(
-    module('deckApp.instanceType.service')
-  );
+  beforeEach(function() {
+      module('deckApp.instanceType.service');
+      module('deckApp.caches.initializer');
+  });
 
 
-  beforeEach(inject(function (_instanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches) {
+  beforeEach(inject(function (_instanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches, cacheInitializer) {
 
     this.instanceTypeService = _instanceTypeService_;
     this.$httpBackend = _$httpBackend_;
@@ -36,6 +37,7 @@ describe('Service: InstanceType', function () {
       {account: "test", region: "eu-west-1", name: "m2.xlarge", availabilityZone: "eu-west-1c"},
     ];
 
+    infrastructureCaches.createCache('instanceTypes', {});
     if (infrastructureCaches.instanceTypes) {
       infrastructureCaches.instanceTypes.removeAll();
     }
