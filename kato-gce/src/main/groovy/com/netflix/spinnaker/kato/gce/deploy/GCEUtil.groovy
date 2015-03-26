@@ -173,6 +173,11 @@ class GCEUtil {
 
     Map<String, InstancesScopedList> zoneToInstancesMap = compute.instances().aggregatedList(projectName).execute().items
 
+    // Build up a list of all instances in the specified region with a name specified  in instanceLocalNames:
+    //   1) Build a list of lists where each sublist represents the matching instances in one zone.
+    //   2) Flatten the list of lists into a one-level list.
+    //   3) Remove any null entries (null entries are possible because .collect() still accumulates an element even if
+    //      the conditional evaluates to false; it's just a null element.
     def foundInstances = zoneToInstancesMap.collect { zone, instanceList ->
       if (zone.startsWith("zones/$region-") && instanceList.instances) {
         return instanceList.instances.findAll { instance ->
