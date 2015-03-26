@@ -54,6 +54,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
 
     expect:
     with(handler.handle(stepName, retrofitError)) {
+      shouldRetry == false
       exceptionType == "RetrofitError"
       operation == stepName
       details.url == url
@@ -84,6 +85,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
 
     expect:
     with(handler.handle(stepName, retrofitError)) {
+      shouldRetry == false
       exceptionType == "RetrofitError"
       operation == stepName
       details.url == url
@@ -101,5 +103,21 @@ class RetrofitExceptionHandlerSpec extends Specification {
     error = reason
     rootException = "java.lang.RuntimeException"
     message = "Something bad happened"
+  }
+
+  def "should retry on NETWORK errors"() {
+    given:
+    def retrofitError = RetrofitError.networkError(
+      url, new IOException()
+    )
+
+    expect:
+    with(handler.handle(stepName, retrofitError)) {
+      shouldRetry == true
+    }
+
+    where:
+    stepName = "Step"
+    url = "http://www.google.com"
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
@@ -136,8 +137,10 @@ class TaskTasklet implements Tasklet {
       }
 
       def taskName = (!stage.tasks.isEmpty() ? stage.tasks[-1].name : null) as String
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL, [
-        "exception": exceptionHandler.handle(taskName, e)
+      def exceptionDetails = exceptionHandler.handle(taskName, e)
+      def isRetryable = exceptionDetails.shouldRetry && task instanceof RetryableTask
+      return new DefaultTaskResult(isRetryable ? ExecutionStatus.RUNNING : ExecutionStatus.TERMINAL, [
+        "exception": exceptionDetails
       ])
     }
   }

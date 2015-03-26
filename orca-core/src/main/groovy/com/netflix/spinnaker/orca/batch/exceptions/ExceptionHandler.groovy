@@ -30,6 +30,7 @@ interface ExceptionHandler<T extends RuntimeException> {
     String exceptionType
     String operation
     ResponseDetails details
+    boolean shouldRetry = false
 
 
     @Override
