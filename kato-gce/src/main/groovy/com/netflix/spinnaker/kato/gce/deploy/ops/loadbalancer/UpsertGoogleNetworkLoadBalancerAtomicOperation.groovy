@@ -242,6 +242,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         targetPoolsRemoveHealthCheckRequest.healthChecks =
           [new HealthCheckReference(healthCheck: existingTargetPool.healthChecks[0])]
 
+        // The http health check will be deleted down below, once this operation has completed.
         targetPoolResourceOperation =
           compute.targetPools().removeHealthCheck(
             project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest).execute()
