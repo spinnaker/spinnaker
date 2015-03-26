@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HealthCheckReference
 import com.google.api.services.compute.model.HttpHealthCheck
 import com.google.api.services.compute.model.InstanceReference
+import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
 import com.google.api.services.compute.model.TargetPoolsAddHealthCheckRequest
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
@@ -159,27 +161,9 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     def httpHealthChecksResourceLinks = []
 
     if (needToUpdateHttpHealthCheck) {
-      def healthCheckName = existingHttpHealthCheck.name
-      task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
-
-      def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
-      // We won't block on this operation since nothing else depends on its completion.
-      compute.httpHealthChecks().update(project, healthCheckName, httpHealthCheck).execute()
+      updateHttpHealthCheck(existingHttpHealthCheck, compute, project)
     } else if (needToCreateNewHttpHealthCheck) {
-      def healthCheckName = String.format("%s-%s-%d", description.networkLoadBalancerName,
-        Constants.HEALTH_CHECK_NAME_PREFIX, System.currentTimeMillis())
-      task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
-
-      def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
-      def httpHealthCheckResourceOperation =
-        compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
-      def httpHealthCheckResourceLink = httpHealthCheckResourceOperation.targetLink
-
-      httpHealthChecksResourceLinks << httpHealthCheckResourceLink
-
-      // If the http health check was created from scratch we need to wait until that operation completes.
-      GCEOperationUtil.waitForGlobalOperation(compute, project, httpHealthCheckResourceOperation.getName(),
-        null, task, "health check " + GCEUtil.getLocalName(httpHealthCheckResourceLink), BASE_PHASE)
+      createNewHttpHealthCheck(httpHealthChecksResourceLinks, compute, project)
     }
 
     def targetPoolName
@@ -198,87 +182,173 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       //   2) The target pool has a health check but it should be updated to not have one.
       //   3) The target pool does not have a health check but it should be updated to have one.
 
+      // Handles (1).
       if (description.instances != null) {
-        def instancesToAdd = (description.instances as Set) - (existingTargetPool.instances as Set)
+        def instancesToAdd =
+          (description.instances as Set) - (existingTargetPool.instances as Set)
         def instancesToRemove =
           existingTargetPool.instances ? (existingTargetPool.instances as Set) - (description.instances as Set) : []
 
-        if (instancesToAdd) {
-          def instanceLocalNamesToAdd = instancesToAdd.collect { instanceUrl ->
-            GCEUtil.getLocalName(instanceUrl)
-          }
+        addInstancesToTargetPoolIfNecessary(targetPoolName, instancesToAdd, region, compute, project)
 
-          task.updateStatus BASE_PHASE, "Adding instances $instanceLocalNamesToAdd..."
-
-          def targetPoolsAddInstanceRequest = new TargetPoolsAddInstanceRequest()
-          targetPoolsAddInstanceRequest.instances = instancesToAdd.collect { instanceUrl ->
-            new InstanceReference(instance: instanceUrl)
-          }
-          // We won't block on this operation since nothing else depends on its completion.
-          compute.targetPools().addInstance(project, region, targetPoolName, targetPoolsAddInstanceRequest).execute()
-        }
-
-        if (instancesToRemove) {
-          def instanceLocalNamesToRemove = instancesToRemove.collect { instanceUrl ->
-            GCEUtil.getLocalName(instanceUrl)
-          }
-
-          task.updateStatus BASE_PHASE, "Removing instances $instanceLocalNamesToRemove..."
-
-          def targetPoolsRemoveInstanceRequest = new TargetPoolsRemoveInstanceRequest()
-          targetPoolsRemoveInstanceRequest.instances = instancesToRemove.collect { instanceUrl ->
-            new InstanceReference(instance: instanceUrl)
-          }
-          // We won't block on this operation since nothing else depends on its completion.
-          compute.targetPools().removeInstance(project, region, targetPoolName, targetPoolsRemoveInstanceRequest).execute()
-        }
+        removeInstancesFromTargetPoolIfNecessary(targetPoolName, instancesToRemove, region, compute, project)
       }
 
       if (!description.healthCheck && existingTargetPool.healthChecks) {
-        task.updateStatus BASE_PHASE, "Removing health check $existingHttpHealthCheck.name..."
-
-        def targetPoolsRemoveHealthCheckRequest = new TargetPoolsRemoveHealthCheckRequest()
-
-        targetPoolsRemoveHealthCheckRequest.healthChecks =
-          [new HealthCheckReference(healthCheck: existingTargetPool.healthChecks[0])]
-
-        // The http health check will be deleted down below, once this operation has completed.
-        targetPoolResourceOperation =
-          compute.targetPools().removeHealthCheck(
-            project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest).execute()
+        // Handles (2).
+        targetPoolResourceOperation = removeHttpHealthCheckFromTargetPool(
+          targetPoolName, targetPoolResourceOperation, existingTargetPool, existingHttpHealthCheck, region, compute,
+          project)
+        targetPoolResourceLink = targetPoolResourceOperation.targetLink
       } else if (description.healthCheck && !existingTargetPool.healthChecks) {
-        task.updateStatus BASE_PHASE, "Adding health check ${GCEUtil.getLocalName(httpHealthChecksResourceLinks[0])}..."
-
-        def targetPoolsAddHealthCheckRequest = new TargetPoolsAddHealthCheckRequest()
-
-        targetPoolsAddHealthCheckRequest.healthChecks =
-          [new HealthCheckReference(healthCheck: httpHealthChecksResourceLinks[0])]
-
-        targetPoolResourceOperation =
-          compute.targetPools().addHealthCheck(project, region, targetPoolName, targetPoolsAddHealthCheckRequest).execute()
+        // Handles (3).
+        targetPoolResourceOperation = addHttpHealthCheckToTargetPool(
+          targetPoolName, targetPoolResourceOperation, httpHealthChecksResourceLinks, region, compute, project)
+        targetPoolResourceLink = targetPoolResourceOperation.targetLink
       }
     } else if (needToCreateNewTargetPool) {
-      targetPoolName = String.format("%s-%s-%d", description.networkLoadBalancerName, GCEUtil.TARGET_POOL_NAME_PREFIX,
-        System.currentTimeMillis())
-      task.updateStatus BASE_PHASE, "Creating target pool $targetPoolName in $region..."
-
-      def targetPool = new TargetPool(
-        name: targetPoolName,
-        healthChecks: httpHealthChecksResourceLinks,
-        instances: description.instances
-      )
-
-      targetPoolResourceOperation = compute.targetPools().insert(project, region, targetPool).execute()
+      (targetPoolResourceOperation, targetPoolName) = createNewTargetPool(
+        targetPoolName, targetPoolResourceOperation, httpHealthChecksResourceLinks, region, compute, project)
+      targetPoolResourceLink = targetPoolResourceOperation.targetLink
     } else {
       // We'll need these set just in case a new forwarding rule will be created.
       targetPoolName = existingTargetPool.name
       targetPoolResourceLink = existingTargetPool.selfLink
     }
 
-    if (targetPoolResourceOperation) {
-      // If the target pool was created from scratch or updated we need to wait until that operation completes.
-      targetPoolResourceLink = targetPoolResourceOperation.targetLink
+    blockAndDeleteHttpHealthCheckIfNecessary(
+      targetPoolResourceOperation, targetPoolResourceLink, existingHttpHealthCheck, needToDeleteHttpHealthCheck, region,
+      compute, project)
 
+    updateForwardingRuleIfNecessary(
+      needToUpdateForwardingRule, targetPoolName, targetPoolResourceLink, region, compute, project)
+
+    createNewForwardingRuleIfNecessary(
+      needToCreateNewForwardingRule, targetPoolName, targetPoolResourceLink, region, compute, project)
+
+    task.updateStatus BASE_PHASE, "Done upserting network load balancer $description.networkLoadBalancerName in $region."
+    null
+  }
+
+  private void updateHttpHealthCheck(HttpHealthCheck existingHttpHealthCheck, Compute compute, String project) {
+    def healthCheckName = existingHttpHealthCheck.name
+    task.updateStatus BASE_PHASE, "Updating health check $healthCheckName..."
+
+    def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
+    // We won't block on this operation since nothing else depends on its completion.
+    compute.httpHealthChecks().update(project, healthCheckName, httpHealthCheck).execute()
+  }
+
+  private void createNewHttpHealthCheck(List<String> httpHealthChecksResourceLinks, Compute compute, String project) {
+    def healthCheckName = String.format("%s-%s-%d", description.networkLoadBalancerName,
+      Constants.HEALTH_CHECK_NAME_PREFIX, System.currentTimeMillis())
+    task.updateStatus BASE_PHASE, "Creating health check $healthCheckName..."
+
+    def httpHealthCheck = GCEUtil.buildHttpHealthCheck(healthCheckName, description.healthCheck)
+    def httpHealthCheckResourceOperation =
+      compute.httpHealthChecks().insert(project, httpHealthCheck).execute()
+    def httpHealthCheckResourceLink = httpHealthCheckResourceOperation.targetLink
+
+    httpHealthChecksResourceLinks << httpHealthCheckResourceLink
+
+    // If the http health check was created from scratch we need to wait until that operation completes.
+    GCEOperationUtil.waitForGlobalOperation(compute, project, httpHealthCheckResourceOperation.getName(),
+      null, task, "health check " + GCEUtil.getLocalName(httpHealthCheckResourceLink), BASE_PHASE)
+  }
+
+  private void addInstancesToTargetPoolIfNecessary(String targetPoolName, Set<String> instancesToAdd, String region,
+                                                   Compute compute, String project) {
+    if (instancesToAdd) {
+      def instanceLocalNamesToAdd = instancesToAdd.collect { instanceUrl ->
+        GCEUtil.getLocalName(instanceUrl)
+      }
+
+      task.updateStatus BASE_PHASE, "Adding instances $instanceLocalNamesToAdd..."
+
+      def targetPoolsAddInstanceRequest = new TargetPoolsAddInstanceRequest()
+      targetPoolsAddInstanceRequest.instances = instancesToAdd.collect { instanceUrl ->
+        new InstanceReference(instance: instanceUrl)
+      }
+      // We won't block on this operation since nothing else depends on its completion.
+      compute.targetPools().addInstance(project, region, targetPoolName, targetPoolsAddInstanceRequest).execute()
+    }
+  }
+
+  private void removeInstancesFromTargetPoolIfNecessary(String targetPoolName, Collection instancesToRemove, String region,
+                                                        Compute compute, String project) {
+    if (instancesToRemove) {
+      def instanceLocalNamesToRemove = instancesToRemove.collect { instanceUrl ->
+        GCEUtil.getLocalName(instanceUrl)
+      }
+
+      task.updateStatus BASE_PHASE, "Removing instances $instanceLocalNamesToRemove..."
+
+      def targetPoolsRemoveInstanceRequest = new TargetPoolsRemoveInstanceRequest()
+      targetPoolsRemoveInstanceRequest.instances = instancesToRemove.collect { instanceUrl ->
+        new InstanceReference(instance: instanceUrl)
+      }
+      // We won't block on this operation since nothing else depends on its completion.
+      compute.targetPools().removeInstance(project, region, targetPoolName, targetPoolsRemoveInstanceRequest).execute()
+    }
+  }
+
+  private Operation removeHttpHealthCheckFromTargetPool(String targetPoolName, Operation targetPoolResourceOperation,
+                                                        TargetPool existingTargetPool,
+                                                        HttpHealthCheck existingHttpHealthCheck, String region,
+                                                        Compute compute, String project) {
+    task.updateStatus BASE_PHASE, "Removing health check $existingHttpHealthCheck.name..."
+
+    def targetPoolsRemoveHealthCheckRequest = new TargetPoolsRemoveHealthCheckRequest()
+
+    targetPoolsRemoveHealthCheckRequest.healthChecks =
+      [new HealthCheckReference(healthCheck: existingTargetPool.healthChecks[0])]
+
+    // The http health check will be deleted down below, once this operation has completed.
+    targetPoolResourceOperation =
+      compute.targetPools().removeHealthCheck(
+        project, region, targetPoolName, targetPoolsRemoveHealthCheckRequest).execute()
+    targetPoolResourceOperation
+  }
+
+  private Operation addHttpHealthCheckToTargetPool(String targetPoolName, Operation targetPoolResourceOperation,
+                                                   List<String> httpHealthChecksResourceLinks, String region,
+                                                   Compute compute, String project) {
+    task.updateStatus BASE_PHASE, "Adding health check ${GCEUtil.getLocalName(httpHealthChecksResourceLinks[0])}..."
+
+    def targetPoolsAddHealthCheckRequest = new TargetPoolsAddHealthCheckRequest()
+
+    targetPoolsAddHealthCheckRequest.healthChecks =
+      [new HealthCheckReference(healthCheck: httpHealthChecksResourceLinks[0])]
+
+    targetPoolResourceOperation =
+      compute.targetPools().addHealthCheck(project, region, targetPoolName, targetPoolsAddHealthCheckRequest).execute()
+    targetPoolResourceOperation
+  }
+
+  private List createNewTargetPool(String targetPoolName, Operation targetPoolResourceOperation,
+                                   List<String> httpHealthChecksResourceLinks, String region, Compute compute,
+                                   String project) {
+    targetPoolName = String.format("%s-%s-%d", description.networkLoadBalancerName, GCEUtil.TARGET_POOL_NAME_PREFIX,
+      System.currentTimeMillis())
+    task.updateStatus BASE_PHASE, "Creating target pool $targetPoolName in $region..."
+
+    def targetPool = new TargetPool(
+      name: targetPoolName,
+      healthChecks: httpHealthChecksResourceLinks,
+      instances: description.instances
+    )
+
+    targetPoolResourceOperation = compute.targetPools().insert(project, region, targetPool).execute()
+    [targetPoolResourceOperation, targetPoolName]
+  }
+
+  private void blockAndDeleteHttpHealthCheckIfNecessary(Operation targetPoolResourceOperation,
+                                                        String targetPoolResourceLink,
+                                                        HttpHealthCheck existingHttpHealthCheck,
+                                                        boolean needToDeleteHttpHealthCheck, String region, Compute compute,
+                                                        String project) {
+    // If the target pool was created from scratch or updated we need to wait until that operation completes.
+    if (targetPoolResourceOperation) {
       GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
         null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
 
@@ -290,7 +360,11 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         compute.httpHealthChecks().delete(project, healthCheckName).execute()
       }
     }
+  }
 
+  private boolean updateForwardingRuleIfNecessary(boolean needToUpdateForwardingRule, String targetPoolName,
+                                                  String targetPoolResourceLink, String region, Compute compute,
+                                                  String project) {
     if (needToUpdateForwardingRule) {
       // These properties of the forwarding rule can't be updated, so we must do a delete and create.
       task.updateStatus BASE_PHASE, "Deleting forwarding rule $description.networkLoadBalancerName..."
@@ -302,9 +376,13 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       GCEOperationUtil.waitForRegionalOperation(compute, project, region, forwardingRuleResourceOperation.getName(),
         null, task, "forwarding rule " + GCEUtil.getLocalName(forwardingRuleResourceLink), BASE_PHASE)
 
-      needToCreateNewForwardingRule = true
+      createNewForwardingRuleIfNecessary(true, targetPoolName, targetPoolResourceLink, region, compute, project)
     }
+  }
 
+  private void createNewForwardingRuleIfNecessary(boolean needToCreateNewForwardingRule, String targetPoolName,
+                                                  String targetPoolResourceLink, String region, Compute compute,
+                                                  String project) {
     if (needToCreateNewForwardingRule) {
       task.updateStatus BASE_PHASE, "Creating forwarding rule $description.networkLoadBalancerName to " +
         "$targetPoolName in $region..."
@@ -320,8 +398,5 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       // We won't block on this operation since nothing else depends on its completion.
       compute.forwardingRules().insert(project, region, forwardingRule).execute()
     }
-
-    task.updateStatus BASE_PHASE, "Done upserting network load balancer $description.networkLoadBalancerName in $region."
-    null
   }
 }
