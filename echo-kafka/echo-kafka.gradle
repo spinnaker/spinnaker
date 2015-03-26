@@ -18,7 +18,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 ext {
     kafkaVersion = '0.8.2.1'
-    scalaVersion = '2.10'
+    scalaVersion = '2.11'
 }
 
 dependencies {

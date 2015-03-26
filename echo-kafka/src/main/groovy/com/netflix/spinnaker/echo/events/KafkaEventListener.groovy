@@ -18,6 +18,9 @@ package com.netflix.spinnaker.echo.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.echo.model.Event
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
@@ -42,18 +45,26 @@ class KafkaEventListener implements EchoEventListener {
     @Value('${kafka.rowid}')
     String rowid
 
+    @Value('${kafka.topic}')
+    String topic
+
+    @Autowired
+    KafkaProducer producer
+
     @Override
     void processEvent(Event event) {
-
         Map eventAsMap = mapper.convertValue(event, Map)
-
         eventAsMap."${prefix}_ts" = new Date().time
         eventAsMap."${prefix}_app" = app
         eventAsMap."${prefix}_hostname" = hostname
         eventAsMap."${prefix}_rowid" = rowid
 
-        println eventAsMap
-
+        try {
+            ProducerRecord data = new ProducerRecord(topic, mapper.writeValueAsString(eventAsMap).bytes);
+            producer.send(data)
+        } catch (e) {
+            e.printStackTrace()
+        }
     }
 
 }

@@ -18,7 +18,8 @@ kafka:
   client:
     id: 'surorouter-kafkacr-useast1'
   bootstrap:
-    servers: 'kafka-default.us-west-2.dyntest.netflix.net:7101'
+    servers: 'kafka.default.us-east-1.dyntest.netflix.net:7001'
   compression:
     type: 'snappy'
   acks: '1'
+  topic: 'spinnaker_events'
