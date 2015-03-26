@@ -127,10 +127,11 @@ class CreateBakeTaskSpec extends Specification {
     }
 
     when:
-    task.execute(stage)
+    def result = task.execute(stage)
 
     then:
     bake.packageName == 'hodor_1.1_all'
+    result.outputs.bakePackageName == 'hodor_1.1_all'
 
     where:
     triggerInfo      | contextInfo
@@ -198,6 +199,20 @@ class CreateBakeTaskSpec extends Specification {
       id == runningStatus.id
       state == runningStatus.state
     }
+  }
+
+
+  def "outputs the packageName of the bake"() {
+    given:
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(runningStatus)
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.bakePackageName == bakeConfig.package
   }
 
 }
