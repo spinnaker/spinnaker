@@ -42,7 +42,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       }
     }
 
-    function findFirstGCEAccount(application, defaults, command) {
+    function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return accountService.listAccounts('gce').then(function(gceAccounts) {
         var gceAccountNames = _.pluck(gceAccounts, 'name');
         var firstGCEAccount = null;
@@ -53,16 +53,22 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
           });
         }
 
-        command.credentials = defaults.account || (firstGCEAccount ? firstGCEAccount : 'my-account-name');
+        var defaultCredentialsAreValid = defaultCredentials && gceAccountNames.indexOf(defaultCredentials) !== -1;
+
+        command.credentials =
+          defaultCredentialsAreValid ? defaultCredentials : (firstGCEAccount ? firstGCEAccount : 'my-account-name');
       });
     }
 
     function buildNewServerGroupCommand(application, defaults) {
-      // TODO(duftler): Fetch default account from settings once it's refactored to support defaults for multiple providers.
       defaults = defaults || {};
+
+      var defaultCredentials = defaults.account || settings.providers.gce.defaults.account;
+      var defaultRegion = defaults.region || settings.providers.gce.defaults.region;
+
       var command = {
         application: application.name,
-        region: defaults.region || 'us-central1',
+        region: defaultRegion,
         strategy: 'redblack',
         capacity: {
           min: 0,
@@ -93,7 +99,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
         }
       };
 
-      findFirstGCEAccount(application, defaults, command);
+      attemptToSetValidCredentials(application, defaultCredentials, command);
 
       return command;
   }
