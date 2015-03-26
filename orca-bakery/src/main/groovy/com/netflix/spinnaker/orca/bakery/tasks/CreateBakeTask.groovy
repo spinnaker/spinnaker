@@ -44,7 +44,7 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: bakeStatus])
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: bakeStatus, bakePackageName: bake.packageName])
   }
 
   @CompileDynamic
