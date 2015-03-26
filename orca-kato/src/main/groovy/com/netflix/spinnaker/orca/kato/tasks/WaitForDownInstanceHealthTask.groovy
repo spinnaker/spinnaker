@@ -25,10 +25,12 @@ import org.springframework.stereotype.Component
 class WaitForDownInstanceHealthTask extends AbstractWaitForInstanceHealthChangeTask {
   @Override
   boolean hasSucceeded(List<Map> healthProviders) {
-    if (healthProviders?.any { it.state != "Down"}) {
-      return false
+    if (!healthProviders) {
+      return true
     }
 
-    return true
+    boolean someAreDown = healthProviders.any { it.state == 'Down' || it.state == 'OutOfService' }
+    boolean noneAreUp = !healthProviders.any { it.state == 'Up' }
+    someAreDown && noneAreUp
   }
 }
