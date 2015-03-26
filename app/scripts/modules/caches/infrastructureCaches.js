@@ -4,32 +4,9 @@
 angular.module('deckApp.caches.infrastructure', [
   'angular-data.DSCacheFactory',
 ])
-  .factory('infrastructureCaches', function($cacheFactory, DSCacheFactory) {
+  .factory('infrastructureCaches', function(DSCacheFactory) {
 
     var caches = Object.create(null);
-
-    var cacheConfig = {
-      credentials: {},
-      vpcs: {},
-      subnets: {},
-      applications: {
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days - it gets refreshed every time the user goes to the application list, anyway
-      },
-      loadBalancers: {
-        maxAge: 60 * 60 * 1000
-      },
-      securityGroups: {},
-      instanceTypes: {
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      },
-      keyPairs: {},
-      buildMasters: {
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      },
-      buildJobs: {
-        maxAge: 7 * 24 * 60 * 60 * 1000
-      }
-    };
 
     function clearCache(key) {
       if (caches[key] && caches[key].destroy) {
@@ -42,12 +19,8 @@ angular.module('deckApp.caches.infrastructure', [
       Object.keys(caches).forEach(clearCache);
     }
 
-    function createCache(key) {
-      addLocalStorageCache(key, cacheConfig[key].maxAge);
-    }
-
-    function createCaches() {
-      Object.keys(cacheConfig).forEach(createCache);
+    function createCache(key, config) {
+      addLocalStorageCache(key, config);
     }
 
     // Provides number of keys and min/max age of all keys in the cache
@@ -69,21 +42,53 @@ angular.module('deckApp.caches.infrastructure', [
       };
     }
 
-    function addLocalStorageCache(cacheId, maxAge) {
-      maxAge = maxAge || 2 * 24 * 60 * 60 * 1000;
-      DSCacheFactory(cacheId, {
+    function getStoragePrefix(cacheId, version) {
+      return 'angular-cache.caches.' + cacheId + ':' + version + '.';
+    }
+
+    function addLocalStorageCache(cacheId, cacheConfig) {
+      var cacheFactory = cacheConfig.cacheFactory || DSCacheFactory;
+      var maxAge = cacheConfig.maxAge || 2 * 24 * 60 * 60 * 1000,
+          currentVersion = cacheConfig.version || 1;
+
+      clearPreviousVersions(cacheId, currentVersion, cacheFactory);
+
+      cacheFactory(cacheId, {
         maxAge: maxAge,
         deleteOnExpire: 'aggressive',
         storageMode: 'localStorage',
+        storagePrefix: getStoragePrefix(cacheId, currentVersion),
+        recycleFreq: 5000, // ms
       });
-      caches[cacheId] = DSCacheFactory.get(cacheId);
+      caches[cacheId] = cacheFactory.get(cacheId);
       caches[cacheId].getStats = getStats.bind(null, caches[cacheId]);
+    }
+
+    function clearPreviousVersions(cacheId, currentVersion, cacheFactory) {
+      if (currentVersion) {
+
+        // clear non-versioned cache
+        cacheFactory(cacheId, { storageMode: 'localStorage', });
+        cacheFactory.get(cacheId).removeAll();
+        cacheFactory.get(cacheId).destroy();
+
+        // clear previous versions
+        for (var i = 1; i < currentVersion; i++) {
+          cacheFactory(cacheId, {
+            storageMode: 'localStorage',
+            storagePrefix: getStoragePrefix(cacheId, i),
+          });
+          cacheFactory.get(cacheId).removeAll();
+          cacheFactory.get(cacheId).destroy();
+        }
+      }
+
     }
 
     caches.clearCaches = clearCaches;
     caches.clearCache = clearCache;
-
-    createCaches();
+    caches.createCache = createCache;
+    caches.getStoragePrefix = getStoragePrefix;
 
     return caches;
   });

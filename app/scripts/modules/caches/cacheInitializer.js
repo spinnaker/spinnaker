@@ -14,11 +14,12 @@ angular.module('deckApp.caches.initializer', [
   'deckApp.applications.read.service',
   'deckApp.pipelines.trigger.jenkins.service',
   'deckApp.caches.infrastructure',
+  'deckApp.caches.infrastructure.config',
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, instanceTypeService, securityGroupReader,
                                          subnetReader, vpcReader, keyPairsReader, loadBalancerReader,
-                                         igorService) {
+                                         igorService, infrastructureCacheConfig) {
 
     var initializers = {
       credentials: [accountService.getRegionsKeyedByAccount, accountService.listAccounts],
@@ -34,13 +35,14 @@ angular.module('deckApp.caches.initializer', [
 
     function initialize() {
       var all = [];
-      Object.keys(initializers).forEach(function(key) {
+      Object.keys(infrastructureCacheConfig).forEach(function(key) {
         all.push(initializeCache(key));
       });
       return $q.all(all);
     }
 
     function initializeCache(key) {
+      infrastructureCaches.createCache(key, infrastructureCacheConfig[key]);
       if (initializers[key]) {
         var initializer = initializers[key];
         var all = [];

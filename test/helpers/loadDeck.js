@@ -36,7 +36,7 @@ var loadDeck = function(config) {
           getAuthenticatedUser: function() {
             return { name: config.authenticatedUser, authenticated: true };
           }
-        }
+        };
       });
     }
   });
