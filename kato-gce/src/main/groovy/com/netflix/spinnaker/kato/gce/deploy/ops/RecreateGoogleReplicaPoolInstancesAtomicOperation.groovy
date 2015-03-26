@@ -26,17 +26,16 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 
 /**
- * Terminate and re-create instances in a managed group.
+ * Terminate and re-create instances in a managed instance group.
  *
- * This is an alternative to {@link TerminateGoogleInstancesAtomicOperation} using the beta API
+ * This is an alternative to {@link TerminateGoogleInstancesAtomicOperation} using the API
  * described in {@link https://cloud.google.com/compute/docs/instance-groups/manager/#recreating_instances}
  * and {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/recreateInstances}.
  *
  * This is a first-class explicit operation on a managed instance group where-as the Terminate
  * alternative operates on any instance and relies on the side effect of an external manager to
  * restart the instance when it sees that it has been deleted. The net effect is the same,
- * but this way is more clear and the intent is explicit so should be 'safer' longer term, although
- * the beta API isnt guaranteed at present.
+ * but this way is more clear and the intent is explicit so should be 'safer' longer term.
  *
  * @see TerminateGoogleInstancesAtomicOperation
  */

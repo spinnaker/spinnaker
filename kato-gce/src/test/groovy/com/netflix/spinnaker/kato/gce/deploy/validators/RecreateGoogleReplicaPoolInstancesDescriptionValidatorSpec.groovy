@@ -68,8 +68,8 @@ class RecreateGoogleReplicaPoolInstancesDescriptionValidatorSpec extends Specifi
     when:
       validator.validate([], description, errors)
     then:
-      // The exact errors dont really matter, but we're explicitly testing them here
-      // to verify that we have the right context and property names.
+      // The point of being explicit here is only to verify the context and property names.
+      // We'll assume the policies are covered by the tests on the underlying validator.
       1 * errors.rejectValue('credentials', "recreateGoogleReplicaPoolInstancesDescription.credentials.empty")
       1 * errors.rejectValue('replicaPoolName', "recreateGoogleReplicaPoolInstancesDescription.replicaPoolName.empty")
       1 * errors.rejectValue('zone', "recreateGoogleReplicaPoolInstancesDescription.zone.empty")

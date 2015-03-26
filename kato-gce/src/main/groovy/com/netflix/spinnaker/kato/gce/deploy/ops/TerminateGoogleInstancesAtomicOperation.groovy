@@ -32,7 +32,6 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
  * that it is missing. The net effect is to recreate the instance (if it was in a replica pool).
  *
  * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation},
- * however that is currently a beta API so is not guaranteed to remain available in future GCE releases.
  *
  * @see RecreateGoogleReplicaPoolInstancesAtomicOperation
  */
