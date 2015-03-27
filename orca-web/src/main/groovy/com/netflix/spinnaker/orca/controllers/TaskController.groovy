@@ -30,9 +30,13 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application) {
-    executionRepository.retrieveOrchestrationsForApplication(application).collect { convert it }.sort {
-      it.startTime ?: it.id
-    }.reverse()
+    def twoWeeksAgo = System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000)
+    executionRepository.retrieveOrchestrationsForApplication(application)
+      .findAll {
+        !it.startTime || it.startTime > twoWeeksAgo
+      }
+      .collect { convert it }
+      .sort(startTimeOrId)
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
@@ -74,7 +78,18 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
+    def twoWeeksAgo = System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000)
     executionRepository.retrievePipelinesForApplication(application)
+      .findAll {
+        !it.startTime || it.startTime > twoWeeksAgo
+      }
+      .sort(startTimeOrId)
+  }
+
+  private static Closure startTimeOrId = { a, b ->
+    a.startTime && b.startTime ? a.startTime - b.startTime
+      : a.startTime ? 1 : b.startTime ? -1
+      : b.id <=> a.id
   }
 
   private OrchestrationViewModel convert(Orchestration orchestration) {
