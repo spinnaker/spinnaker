@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
 import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
@@ -46,8 +47,19 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final PENDING = "PENDING"
   private static final DONE = "DONE"
 
+  // Used to restore the polling interval fraction in cleanupSpec()
+  private static int restoreIntervalFraction = GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION
+
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+
+    // Change the default polling so that the interval will be 1 ms
+    // Ideally we'd just change the default timeout value, but it is declared final so we cannot.
+    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = 1000 * GCEOperationUtil.DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
+  }
+
+  def cleanupSpec() {
+    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = restoreIntervalFraction
   }
 
   void "should delete Http Load Balancer with one backend service"() {
