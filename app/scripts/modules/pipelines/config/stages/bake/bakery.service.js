@@ -20,7 +20,7 @@ angular.module('deckApp.pipelines.stage.bake')
     }
 
     function getStoreTypes() {
-      return $q.when(['ebs', 's3']);
+      return $q.when(['ebs', 's3', 'docker']);
     }
 
     return {
