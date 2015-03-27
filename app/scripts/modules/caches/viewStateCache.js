@@ -17,7 +17,7 @@ angular.module('deckApp.caches.viewStateCache', [
   function clearCache(key) {
     if (caches[key] && caches[key].destroy) {
       caches[key].destroy();
-      createCache(key);
+      createCache(key, caches[key].config);
     }
   }
 
