@@ -8,7 +8,7 @@ angular.module('deckApp.pipelines.stage.bake')
     }
 
     function getBaseOsOptions() {
-      return $q.when(['ubuntu', 'centos', 'trusty']);
+      return $q.when(['trusty', 'ubuntu', 'centos']);
     }
 
     function getBaseLabelOptions() {
