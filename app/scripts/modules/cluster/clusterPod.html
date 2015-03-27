@@ -1,5 +1,5 @@
 <div class="row rollup-entry sub-group">
-  <div sticky-header class="rollup-summary" added-offset-width="-2">
+  <div sticky-header class="rollup-summary">
     <div class="container-fluid no-padding">
       <div class="row">
         <div class="col-md-12">
@@ -17,7 +17,7 @@
   <div class="rollup-details cluster-pod-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <h6 class="subgroup-title"
-          sticky-header added-offset-height="39" added-offset-width="-2">{{subgroup.heading}}</h6>
+          sticky-header added-offset-height="39">{{subgroup.heading}}</h6>
       <server-group
         ng-repeat="serverGroup in subgroup.serverGroups | orderBy:'-name'"
         server-group="serverGroup"
