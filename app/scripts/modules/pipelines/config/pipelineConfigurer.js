@@ -15,11 +15,13 @@ angular.module('deckApp.pipelines')
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
                                                  dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
 
+    var configViewStateCache = viewStateCache.pipelineConfig;
+
     function buildCacheKey() {
-      return pipelineConfigService.buildViewStateCacheKey($scope.pipeline.name);
+      return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.name);
     }
 
-    $scope.viewState = viewStateCache.getCachedViewState($scope.application.name, buildCacheKey()) || {
+    $scope.viewState = configViewStateCache.get(buildCacheKey()) || {
       expanded: true,
       section: 'triggers',
       stageIndex: 0,
@@ -208,7 +210,7 @@ angular.module('deckApp.pipelines')
     function cacheViewState() {
       var toCache = angular.copy($scope.viewState);
       delete toCache.original;
-      viewStateCache.cacheViewState($scope.application.name, buildCacheKey(), toCache);
+      configViewStateCache.put(buildCacheKey(), toCache);
     }
 
     $scope.$watch('pipeline', pipelineUpdated, true);

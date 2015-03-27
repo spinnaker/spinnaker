@@ -2,14 +2,11 @@
 
 describe('Controller: pipelineExecutions', function () {
 
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
-
   var controller;
   var scope;
   var rootScope;
   var $state;
   var pipelineConfigService;
-  var executionsService;
   var $q;
 
   beforeEach(

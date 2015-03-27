@@ -9,8 +9,10 @@ angular.module('deckApp.pipelines.config.service', [
 ])
   .factory('pipelineConfigService', function (settings, Restangular, authenticationService, viewStateCache) {
 
-    function buildViewStateCacheKey(pipelineName) {
-      return ['pipelineConfig', pipelineName].join(':');
+    var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
+
+    function buildViewStateCacheKey(applicationName, pipelineName) {
+      return [applicationName, pipelineName].join(':');
     }
 
     function getPipelinesForApplication(applicationName) {
@@ -34,7 +36,7 @@ angular.module('deckApp.pipelines.config.service', [
     }
 
     function renamePipeline(applicationName, currentName, newName) {
-      viewStateCache.clearViewState(applicationName, buildViewStateCacheKey(currentName));
+      configViewStateCache.remove(buildViewStateCacheKey(applicationName, currentName));
       return Restangular.all('pipelines').all('move').post({
         application: applicationName,
         from: currentName,
