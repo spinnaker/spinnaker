@@ -67,6 +67,11 @@ angular.module('deckApp.help')
     'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.disableAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
+    'pipeline.config.bake.package': '<p>String or uri, strings are resolved to uri by api service</p>',
+    'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
+    'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
+    'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
+    'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
 
     'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
       '<ul>' +

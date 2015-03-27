@@ -13,7 +13,10 @@
     </div>
   </div>
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Package</label>
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Package</b>
+      <help-field key="pipeline.config.bake.package"></help-field>
+    </div>
     <div class="col-md-6">
       <input type="text" class="form-control input-sm"
              ng-model="stage.package"/>
@@ -83,32 +86,40 @@
       </div>
     </div>
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Base AMI</label>
-
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Base AMI</b>
+        <help-field key="pipeline.config.bake.baseAmi"></help-field>
+      </div>
       <div class="col-md-6">
         <input type="text" class="form-control input-sm"
                ng-model="stage.baseAmi"/>
       </div>
     </div>
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">AMI Name</label>
-
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>AMI Name</b>
+        <help-field key="pipeline.config.bake.amiName"></help-field>
+      </div>
       <div class="col-md-6">
         <input type="text" class="form-control input-sm"
                ng-model="stage.amiName"/>
       </div>
     </div>
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">AMI Suffix</label>
-
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>AMI Suffix</b>
+        <help-field key="pipeline.config.bake.amiSuffix"></help-field>
+      </div>
       <div class="col-md-6">
         <input type="text" class="form-control input-sm"
                ng-model="stage.amiSuffix"/>
       </div>
     </div>
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Use Enhanced Networking</label>
-
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Use Enhanced Networking</b>
+        <help-field key="pipeline.config.bake.enhancedNetworking"></help-field>
+      </div>
       <div class="col-md-6">
         <input type="checkbox"
                ng-model="stage.enhancedNetworking"/>
