@@ -11,15 +11,13 @@ search:
   # port: 8120
 
 kafka:
-  prefix: 'suro'
+  prefix: '_suro'
   hostname: 'echo.prod.netflix.com'
   app: 'spinnaker'
   rowid: 'events'
   client:
-    id: 'surorouter-kafkacr-useast1'
+    id: 'spinnaker-echo'
   bootstrap:
-    servers: 'kafka.default.us-east-1.dyntest.netflix.net:7001'
-  compression:
-    type: 'snappy'
+    servers: 'default.kafka.us-east-1.dyntest.netflix.net:7101'
   acks: '1'
   topic: 'spinnaker_events'

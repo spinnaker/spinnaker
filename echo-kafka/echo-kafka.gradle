@@ -16,11 +16,6 @@
 
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
-ext {
-    kafkaVersion = '0.8.2.1'
-    scalaVersion = '2.11'
-}
-
 dependencies {
     compile project(':echo-model')
     compile spinnaker.dependency('bootWeb')
@@ -29,12 +24,7 @@ dependencies {
     testCompile commonDependencies.spockSpring
     testCompile commonDependencies.springTest
 
-    compile("org.apache.kafka:kafka_$scalaVersion:$kafkaVersion") {
-        exclude module: 'jms'
-        exclude module: 'jmxtools'
-        exclude module: 'jmxri'
-    }
-
+    compile 'org.apache.kafka:kafka-clients:0.8.2.1'
 }
 
 

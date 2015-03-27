@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.echo.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.echo.config.KafkaProducerConfig
 import com.netflix.spinnaker.echo.model.Event
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -53,18 +55,27 @@ class KafkaEventListener implements EchoEventListener {
 
     @Override
     void processEvent(Event event) {
-        Map eventAsMap = mapper.convertValue(event, Map)
-        eventAsMap."${prefix}_ts" = new Date().time
-        eventAsMap."${prefix}_app" = app
-        eventAsMap."${prefix}_hostname" = hostname
-        eventAsMap."${prefix}_rowid" = rowid
 
+       //
+       //     KafkaProducer producer = new KafkaProducer<>(producerProperties, new ByteArraySerializer(), new ByteArraySerializer())
+       //
+       Map eventAsMap = mapper.convertValue(event, Map)
+
+        println "${event.content?.master}${event.content?.project?.name}"
+
+            eventAsMap."${prefix}_ts" = new Date().time
+            eventAsMap."${prefix}_app" = app
+            eventAsMap."${prefix}_hostname" = hostname
+            eventAsMap."${prefix}_rowid" = UUID.randomUUID()
         try {
-            ProducerRecord data = new ProducerRecord(topic, mapper.writeValueAsString(eventAsMap).bytes);
-            producer.send(data)
+            ProducerRecord data = new ProducerRecord(topic, mapper.writeValueAsBytes(eventAsMap))
+            producer.send(data).get()
+         //   producer.close()
         } catch (e) {
+            println eventAsMap
             e.printStackTrace()
         }
+
     }
 
 }
