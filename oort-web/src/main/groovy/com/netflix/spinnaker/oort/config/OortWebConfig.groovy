@@ -26,7 +26,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 @Configuration
 @ComponentScan
-public class MortWebConfig extends WebMvcConfigurerAdapter {
+public class OortWebConfig extends WebMvcConfigurerAdapter {
   @Autowired
   ExtendedRegistry extendedRegistry
 
