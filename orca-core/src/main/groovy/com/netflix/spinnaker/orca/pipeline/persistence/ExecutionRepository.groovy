@@ -29,9 +29,11 @@ interface ExecutionRepository {
   void storeStage(PipelineStage stage)
 
   Pipeline retrievePipeline(String id)
+  void deletePipeline(String id)
   List<Pipeline> retrievePipelines()
   List<Pipeline> retrievePipelinesForApplication(String application)
   Orchestration retrieveOrchestration(String id)
+  void deleteOrchestration(String id)
   List<Orchestration> retrieveOrchestrations()
   List<Orchestration> retrieveOrchestrationsForApplication(String application)
 }

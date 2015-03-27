@@ -76,6 +76,20 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   }
 
   @Override
+  void delete(String id) {
+    def key = "${prefix}:$id"
+    def storePrefix = prefix
+    try {
+      T item = retrieve(id)
+      jedis.hdel(key, "config")
+      item.stages.each { Stage stage ->
+        def stageKey = "${storePrefix}:stage:${stage.id}"
+        jedis.hdel(stageKey, "config")
+      }
+    } catch (ExecutionNotFoundException ignored) { }
+  }
+
+  @Override
   Stage<T> retrieveStage(String id) {
     def key = "${prefix}:stage:${id}"
     return jedis.exists(key) ? mapper.readValue(jedis.hget(key, "config"), Stage) : null

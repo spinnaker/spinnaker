@@ -120,4 +120,44 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
     then:
     thrown ExecutionNotFoundException
   }
+
+  def "trying to delete a non-existent id does not throw an exception"() {
+    when:
+    pipelineStore.delete("invalid")
+
+    then:
+    notThrown ExecutionNotFoundException
+  }
+
+  def "deleting a pipeline removes pipeline and stages"() {
+    given:
+    def pipeline = Pipeline.builder()
+      .withStage("one", "one", [:])
+      .withStage("two", "two", [:])
+      .withStage("one-a", "one-1", [:])
+      .withStage("one-b", "one-1", [:])
+      .withStage("one-a-a", "three", [:])
+      .build()
+
+    def one = pipeline.stages.find { it.type == "one"}
+    def oneA = pipeline.stages.find { it.type == "one-a"}
+    def oneAA = pipeline.stages.find { it.type == "one-a-a"}
+    def oneB = pipeline.stages.find { it.type == "one-b"}
+
+    and:
+    pipelineStore.store(pipeline)
+    pipelineStore.delete(pipeline.id)
+
+    expect:
+    pipelineStore.retrieveStage(one.id) == null
+    pipelineStore.retrieveStage(oneA.id) == null
+    pipelineStore.retrieveStage(oneAA.id) == null
+    pipelineStore.retrieveStage(oneB.id) == null
+
+    when:
+    pipelineStore.retrieve(pipeline.id)
+
+    then:
+    thrown ExecutionNotFoundException
+  }
 }

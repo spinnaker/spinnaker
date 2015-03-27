@@ -61,6 +61,11 @@ class DefaultExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  void deletePipeline(String id) {
+    this.pipelineStore.delete(id)
+  }
+
+  @Override
   List<Pipeline> retrievePipelines() {
     this.pipelineStore.all()
   }
@@ -73,6 +78,11 @@ class DefaultExecutionRepository implements ExecutionRepository {
   @Override
   Orchestration retrieveOrchestration(String id) {
     this.orchestrationStore.retrieve(id)
+  }
+
+  @Override
+  void deleteOrchestration(String id) {
+    this.orchestrationStore.delete(id)
   }
 
   @Override
