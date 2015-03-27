@@ -34,8 +34,9 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client as RetrofitClient
-import retrofit.converter.GsonConverter
 import static retrofit.Endpoints.newFixedEndpoint
+
+import retrofit.converter.JacksonConverter
 
 @Configuration
 @Import([RetrofitConfiguration])
@@ -58,7 +59,7 @@ class EchoConfiguration {
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(EchoService))
-      .setConverter(new GsonConverter(gson))
+      .setConverter(new JacksonConverter())
       .build()
       .create(EchoService)
   }
