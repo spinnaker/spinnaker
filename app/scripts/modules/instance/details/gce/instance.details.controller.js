@@ -17,6 +17,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
 
     $scope.state = {
       loading: true,
+      standalone: application.isStandalone,
     };
 
     function extractHealthMetrics(instance) {

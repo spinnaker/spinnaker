@@ -18,6 +18,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
 
     $scope.state = {
       loading: true,
+      standalone: application.isStandalone,
     };
 
     function extractHealthMetrics(instance, latest) {
