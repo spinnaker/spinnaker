@@ -62,6 +62,8 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
       });
     }
 
+    controller.getCurrentlyRunningExecutions = getCurrentlyRunningExecutions;
+
     controller.triggerPipeline = function() {
       var pipeline = _.find($scope.configurations, {name: $scope.value});
       var currentlyRunningExecutions = getCurrentlyRunningExecutions();
