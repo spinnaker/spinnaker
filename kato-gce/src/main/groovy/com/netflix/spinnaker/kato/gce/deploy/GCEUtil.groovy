@@ -119,6 +119,33 @@ class GCEUtil {
     }
   }
 
+  static ForwardingRule queryRegionalForwardingRule(
+    String projectName, String region, String forwardingRuleName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (forwarding rule) $forwardingRuleName..."
+
+    return compute.forwardingRules().list(projectName, region).execute().items.find { existingForwardingRule ->
+      existingForwardingRule.name == forwardingRuleName
+    }
+  }
+
+  static TargetPool queryTargetPool(
+    String projectName, String region, String targetPoolName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (target pool) $targetPoolName..."
+
+    return compute.targetPools().list(projectName, region).execute().items.find { existingTargetPool ->
+      existingTargetPool.name == targetPoolName
+    }
+  }
+
+  static HttpHealthCheck queryHttpHealthCheck(
+    String projectName, String httpHealthCheckName, Compute compute, Task task, String phase) {
+    task.updateStatus phase, "Checking for existing network load balancer (http health check) $httpHealthCheckName..."
+
+    return compute.httpHealthChecks().list(projectName).execute().items.find { existingHealthCheck ->
+      existingHealthCheck.name == httpHealthCheckName
+    }
+  }
+
   static List<ForwardingRule> queryForwardingRules(
           String projectName, String region, List<String> forwardingRuleNames, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Looking up network load balancers $forwardingRuleNames..."
@@ -133,6 +160,38 @@ class GCEUtil {
       def foundNames = foundForwardingRules.collect { it.name }
 
       updateStatusAndThrowException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
+    }
+  }
+
+  static List<String> queryInstanceUrls(String projectName,
+                                        String region,
+                                        List<String> instanceLocalNames,
+                                        Compute compute,
+                                        Task task,
+                                        String phase) {
+    task.updateStatus phase, "Looking up instances $instanceLocalNames..."
+
+    Map<String, InstancesScopedList> zoneToInstancesMap = compute.instances().aggregatedList(projectName).execute().items
+
+    // Build up a list of all instances in the specified region with a name specified  in instanceLocalNames:
+    //   1) Build a list of lists where each sublist represents the matching instances in one zone.
+    //   2) Flatten the list of lists into a one-level list.
+    //   3) Remove any null entries (null entries are possible because .collect() still accumulates an element even if
+    //      the conditional evaluates to false; it's just a null element).
+    def foundInstances = zoneToInstancesMap.collect { zone, instanceList ->
+      if (zone.startsWith("zones/$region-") && instanceList.instances) {
+        return instanceList.instances.findAll { instance ->
+          return instanceLocalNames.contains(instance.name)
+        }
+      }
+    }.flatten() - null
+
+    if (foundInstances.size == instanceLocalNames.size) {
+      return foundInstances.collect { it.selfLink }
+    } else {
+      def foundNames = foundInstances.collect { it.name }
+
+      updateStatusAndThrowException("Instances ${instanceLocalNames - foundNames} not found.", task, phase)
     }
   }
 
