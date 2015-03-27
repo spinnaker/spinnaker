@@ -26,9 +26,7 @@ angular.module('deckApp.utils.stickyHeader', [
 
           $scrollableContainer.css({position: 'relative'});
 
-          var addedOffsetHeight = attrs.addedOffsetHeight ? parseInt(attrs.addedOffsetHeight) : 0,
-              addedOffsetWidth = attrs.addedOffsetWidth ? parseInt(attrs.addedOffsetWidth) : 0;
-
+          var addedOffsetHeight = attrs.addedOffsetHeight ? parseInt(attrs.addedOffsetHeight) : 0;
           var positionHeader = _.throttle(function () {
 
             var sectionRect = $section.get(0).getBoundingClientRect(),
@@ -45,8 +43,9 @@ angular.module('deckApp.utils.stickyHeader', [
                 top = sectionTop - containerTop - addedOffsetHeight;
 
             if (top < 0 && bottom > containerTop + addedOffsetHeight) {
-              var containerWidth = $scrollableContainer.width(),
-                  headingHeight = $heading.outerHeight();
+              var headingRect = $heading.get(0).getBoundingClientRect(),
+                  headingWidth = headingRect.width,
+                  headingHeight = headingRect.height;
               var topBase = containerTop,
                   zIndex = 3;
               if (containerTop + headingHeight + addedOffsetHeight > bottom) {
@@ -58,7 +57,7 @@ angular.module('deckApp.utils.stickyHeader', [
               });
               $heading.addClass('heading-sticky').css({
                 top: topBase + addedOffsetHeight,
-                width: containerWidth + addedOffsetWidth,
+                width: headingWidth,
                 zIndex: zIndex
               });
               isSticky = true;
