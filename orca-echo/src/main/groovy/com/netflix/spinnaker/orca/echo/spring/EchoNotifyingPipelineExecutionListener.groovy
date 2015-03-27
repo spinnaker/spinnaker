@@ -29,7 +29,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
             application: execution.application,
         ],
         content: [
-            pipeline: executionRepository.retrievePipeline(execution.id)
+            pipeline: executionRepository.retrievePipeline(execution.id),
             executionId: execution.id
         ]
     )
@@ -45,7 +45,7 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
             application: execution.application,
         ],
         content: [
-            pipeline: executionRepository.retrievePipeline(execution.id)
+            pipeline: executionRepository.retrievePipeline(execution.id),
             executionId: execution.id
         ]
     )
