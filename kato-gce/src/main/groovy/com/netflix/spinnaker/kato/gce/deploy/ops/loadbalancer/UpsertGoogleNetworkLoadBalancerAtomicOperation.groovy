@@ -216,9 +216,13 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
       targetPoolResourceLink = existingTargetPool.selfLink
     }
 
-    blockAndDeleteHttpHealthCheckIfNecessary(
-      targetPoolResourceOperation, targetPoolResourceLink, existingHttpHealthCheck, needToDeleteHttpHealthCheck, region,
-      compute, project)
+    // If the target pool was created from scratch or updated we need to wait until that operation completes.
+    if (targetPoolResourceOperation) {
+      GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
+        null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
+
+      deleteHttpHealthCheckIfNecessary(existingHttpHealthCheck, needToDeleteHttpHealthCheck, compute, project)
+    }
 
     updateForwardingRuleIfNecessary(
       needToUpdateForwardingRule, targetPoolName, targetPoolResourceLink, region, compute, project)
@@ -342,23 +346,14 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     [targetPoolResourceOperation, targetPoolName]
   }
 
-  private void blockAndDeleteHttpHealthCheckIfNecessary(Operation targetPoolResourceOperation,
-                                                        String targetPoolResourceLink,
-                                                        HttpHealthCheck existingHttpHealthCheck,
-                                                        boolean needToDeleteHttpHealthCheck, String region, Compute compute,
-                                                        String project) {
-    // If the target pool was created from scratch or updated we need to wait until that operation completes.
-    if (targetPoolResourceOperation) {
-      GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
-        null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
+  private void deleteHttpHealthCheckIfNecessary(HttpHealthCheck existingHttpHealthCheck,
+                                                boolean needToDeleteHttpHealthCheck, Compute compute, String project) {
+    if (needToDeleteHttpHealthCheck) {
+      def healthCheckName = existingHttpHealthCheck.name
+      task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName..."
 
-      if (needToDeleteHttpHealthCheck) {
-        def healthCheckName = existingHttpHealthCheck.name
-        task.updateStatus BASE_PHASE, "Deleting health check $healthCheckName..."
-
-        // We won't block on this operation since nothing else depends on its completion.
-        compute.httpHealthChecks().delete(project, healthCheckName).execute()
-      }
+      // We won't block on this operation since nothing else depends on its completion.
+      compute.httpHealthChecks().delete(project, healthCheckName).execute()
     }
   }
 
