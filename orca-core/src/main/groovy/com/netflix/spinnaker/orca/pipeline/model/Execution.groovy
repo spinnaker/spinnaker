@@ -32,8 +32,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 abstract class Execution<T> implements Serializable {
   String id
   String application
-  Long startTime
-  Long endTime
   final Map<String, Object> appConfig = [:]
   List<Stage<T>> stages = []
   boolean canceled

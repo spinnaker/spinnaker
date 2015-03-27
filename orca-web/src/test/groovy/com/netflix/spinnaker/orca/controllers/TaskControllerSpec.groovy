@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
@@ -123,6 +124,25 @@ class TaskControllerSpec extends Specification {
     app = "test"
   }
 
+  void '/applications/{application}/tasks only returns unstarted and tasks from the past two weeks, sorted newest first'() {
+    given:
+    def tasks = [
+      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000) - 1)], id: 'too-old' ] as Orchestration,
+      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000))], id: 'not-too-old' ] as Orchestration,
+      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (60 * 1000))], id: 'pretty-new' ] as Orchestration,
+      [ stages: [new OrchestrationStage()], id: 'not-started-1' ] as Orchestration,
+      [ stages: [new OrchestrationStage()], id: 'not-started-2' ] as Orchestration
+    ]
+    def app = 'test'
+
+    when:
+    def response = new ObjectMapper().readValue(mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
+
+    then:
+    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> tasks
+    response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
+  }
+
   void '/pipelines should return a list of pipelines'() {
     when:
     def response = mockMvc.perform(get("/pipelines")).andReturn().response
@@ -149,6 +169,24 @@ class TaskControllerSpec extends Specification {
     then:
     1 * executionRepository.retrievePipelines() >> pipelines
     results.id == [ 'b', 'a', 'd', 'c']
+  }
 
+  void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
+    given:
+    def pipelines = [
+      [ startTime: System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000) - 1, id: 'old' ],
+      [ startTime: System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000), id: 'newer' ],
+      [ id: 'not-started' ],
+      [ id: 'also-not-started' ]
+    ]
+    def app = 'test'
+
+    when:
+    def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
+    List results = new ObjectMapper().readValue(response.contentAsString, List)
+
+    then:
+    1 * executionRepository.retrievePipelinesForApplication(app) >> pipelines
+    results.id == [ 'not-started', 'also-not-started', 'newer']
   }
 }
