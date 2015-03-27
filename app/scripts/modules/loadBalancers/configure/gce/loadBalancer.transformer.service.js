@@ -59,10 +59,9 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
           toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             var listener = description.listener;
             return {
-              internalProtocol: listener.instanceProtocol,
-              internalPort: listener.instancePort,
-              externalProtocol: listener.protocol,
-              externalPort: listener.loadBalancerPort
+              protocol: listener.protocol,
+              portRange: listener.loadBalancerPort,
+              healthCheck: elb.healthCheck !== undefined
             };
           });
         }
@@ -85,6 +84,14 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
               toEdit.healthCheckPort = Number(toEdit.healthCheckPort);
             }
           }
+        } else {
+          toEdit.healthCheckProtocol = 'HTTP';
+          toEdit.healthCheckPort = 80;
+          toEdit.healthCheckPath = '/';
+          toEdit.healthTimeout = 5;
+          toEdit.healthInterval = 10;
+          toEdit.healthyThreshold = 10;
+          toEdit.unhealthyThreshold = 2;
         }
       }
       return toEdit;
