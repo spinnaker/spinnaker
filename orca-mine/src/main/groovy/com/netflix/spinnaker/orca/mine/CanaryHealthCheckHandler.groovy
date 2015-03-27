@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,8 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-eureka",
-  "orca-igor",
-  "orca-kato",
-  "orca-mayo",
-  "orca-mine",
-  "orca-mort",
-  "orca-oort",
-  "orca-test",
-  "orca-rush",
-  "orca-flex",
-  "orca-web",
-  "orca-smoke-test"
+package com.netflix.spinnaker.orca.mine
 
-rootProject.name = "orca"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
+class CanaryHealthCheckHandler {
+  int minimumCanaryResultScore
 }

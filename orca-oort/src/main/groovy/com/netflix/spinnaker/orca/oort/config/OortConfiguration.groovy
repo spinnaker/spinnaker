@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.orca.oort.config
 
-import com.netflix.spinnaker.orca.oort.pipeline.FindAmiFromClusterStage
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import com.google.gson.Gson
