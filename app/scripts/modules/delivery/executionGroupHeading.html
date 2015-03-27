@@ -9,6 +9,9 @@
             </span>
             <span class="execution-group-title">
             {{ value }}
+              <span ng-if="ctrl.getCurrentlyRunningExecutions().length" class="badge" style="margin-left: 10px">
+                {{ctrl.getCurrentlyRunningExecutions().length}}
+              </span>
             </span>
           </h4>
         </div>
