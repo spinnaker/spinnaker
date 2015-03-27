@@ -25,6 +25,7 @@ import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleNetworkLoadBalancerDescription
@@ -53,7 +54,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  void "should register additional instances"() {
+  void "should register instances"() {
     setup:
       def computeMock = Mock(Compute)
       def forwardingRulesMock = Mock(Compute.ForwardingRules)
@@ -101,5 +102,38 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
       1 * computeMock.targetPools() >> targetPoolsMock
       1 * targetPoolsMock.addInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME, request) >> addInstanceMock
       1 * addInstanceMock.execute()
+  }
+
+  void "throws ResourceNotFound with unknown load balancer"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def forwardingRulesMock = Mock(Compute.ForwardingRules)
+      def listForwardingRulesMock = Mock(Compute.ForwardingRules.List)
+      def forwardingRulesListReal = new ForwardingRuleList(items:[
+        new ForwardingRule(
+          name: "AnotherLoadBalancerName",
+          target: TARGET_POOL_NAME
+        )
+      ])
+
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new RegisterInstancesWithGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: LOAD_BALANCER_NAME,
+          instanceIds: INSTANCE_IDS,
+          region: REGION,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperation(description)
+
+      def request = new TargetPoolsAddInstanceRequest()
+      request.instances = INSTANCE_URLS.collect { url -> new InstanceReference(instance: url) }
+
+    when:
+      operation.operate([])
+    then:
+      1 * computeMock.forwardingRules() >> forwardingRulesMock
+      1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> listForwardingRulesMock
+      1 * listForwardingRulesMock.execute() >> forwardingRulesListReal
+      thrown GCEResourceNotFoundException
   }
 }

@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
+import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
@@ -57,6 +58,12 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperation implements A
     task.updateStatus BASE_PHASE, "Initializing register instances (${instanceIds.join(", ")}) with load balancer '$lbName'."
 
     def forwardingRule = GCEUtil.queryRegionalForwardingRule(project, region, lbName, compute, task, BASE_PHASE)
+    if (!forwardingRule) {
+      def errorMsg = "Unknown forwarding rule for load balancer '$lbName'."
+      task.updateStatus BASE_PHASE, errorMsg
+      throw new GCEResourceNotFoundException(errorMsg)
+    }
+
     def targetPoolName = GCEUtil.getLocalName(forwardingRule.target)
     def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
     task.updateStatus BASE_PHASE, "Adding urls=(${instanceUrls.join(", ")}) to pool=$targetPoolName."
