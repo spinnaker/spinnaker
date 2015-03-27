@@ -151,6 +151,12 @@ class GateConfig {
   }
 
   @Bean
+  @ConditionalOnProperty('services.mahe.enabled')
+  MaheService maheService() {
+    createClient "mahe", MaheService
+  }
+
+  @Bean
   @ConditionalOnMissingBean(FlexService)
   FlexService noopFlexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
                               EurekaLookupService eurekaLookupService) {
