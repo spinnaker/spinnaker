@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy
+package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 class CreateGoogleHttpLoadBalancerTestConstants {
   static final LOAD_BALANCER_NAME = "spinnaker-test-v000"

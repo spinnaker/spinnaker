@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy.ops
+package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation

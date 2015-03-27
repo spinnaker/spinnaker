@@ -36,8 +36,7 @@ class GCEOperationUtil {
 
   private static handleFinishedAsyncOperation(Operation operation, Task task, String resourceString, String basePhase) {
     if (!operation) {
-      GCEUtil.updateStatusAndThrowException("Operation on $resourceString timed out. The resource " +
-          "may still exist.", task, basePhase)
+      GCEUtil.updateStatusAndThrowException("Operation on $resourceString timed out.", task, basePhase)
     }
     if (operation.getError()) {
       def error = operation.getError().getErrors().get(0)

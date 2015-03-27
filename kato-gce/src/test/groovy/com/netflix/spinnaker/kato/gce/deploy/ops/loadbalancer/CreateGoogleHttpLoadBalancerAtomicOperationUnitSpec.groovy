@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy.ops
+package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -25,7 +24,7 @@ import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBal
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static com.netflix.spinnaker.kato.gce.deploy.CreateGoogleHttpLoadBalancerTestConstants.*
+import static com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerTestConstants.*
 
 class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final PROJECT_NAME = "my_project"

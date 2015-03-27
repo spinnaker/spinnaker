@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.deploy.ops.CreateGoogleHttpLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.CreateGoogleHttpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component

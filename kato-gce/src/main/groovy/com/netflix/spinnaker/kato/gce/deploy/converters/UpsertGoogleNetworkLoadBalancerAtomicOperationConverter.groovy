@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
-import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleNetworkLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.deploy.ops.CreateGoogleNetworkLoadBalancerAtomicOperation
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer.UpsertGoogleNetworkLoadBalancerAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("createGoogleNetworkLoadBalancerDescription")
-class CreateGoogleNetworkLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@Component("upsertGoogleNetworkLoadBalancerDescription")
+class UpsertGoogleNetworkLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
-    new CreateGoogleNetworkLoadBalancerAtomicOperation(convertDescription(input))
+    new UpsertGoogleNetworkLoadBalancerAtomicOperation(convertDescription(input))
   }
 
-  CreateGoogleNetworkLoadBalancerDescription convertDescription(Map input) {
-    GoogleAtomicOperationConverterHelper.convertDescription(input, this, CreateGoogleNetworkLoadBalancerDescription)
+  UpsertGoogleNetworkLoadBalancerDescription convertDescription(Map input) {
+    GoogleAtomicOperationConverterHelper.convertDescription(input, this, UpsertGoogleNetworkLoadBalancerDescription)
   }
 }
