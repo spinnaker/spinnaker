@@ -14,17 +14,17 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
 
     var controller = this;
 
-    var viewStateCacheKey = 'executions';
+    var executionsViewStateCache = viewStateCache.createCache('executions', { version: 1 });
 
     function cacheViewState() {
-      viewStateCache.cacheViewState($scope.application.name, viewStateCacheKey, $scope.filter);
+      executionsViewStateCache.put($scope.application.name, $scope.filter);
     }
 
     $scope.viewState = {
       loading: true
     };
 
-    $scope.filter = viewStateCache.getCachedViewState($scope.application.name, viewStateCacheKey) || {
+    $scope.filter = executionsViewStateCache.get($scope.application.name) || {
       count: 5,
       execution: {
         status: {

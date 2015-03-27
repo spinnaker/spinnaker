@@ -2,38 +2,38 @@
 
 /* jshint newcap: false */
 angular.module('deckApp.caches.viewStateCache', [
-  'deckApp.caches.infrastructure',
+  'deckApp.caches.core',
 
-]).factory('viewStateCache', function(infrastructureCaches) {
+]).factory('viewStateCache', function(deckCacheFactory) {
 
   // TODO: Remove the next line any time after 5/1/15 - just a legacy bit to clear out old, pre-versioned LS
-  infrastructureCaches.createCache('pipelineViewStateCache', {});
+  deckCacheFactory.createCache(null, 'pipelineViewStateCache', {});
 
 
-  var cacheId = 'viewStateCache';
-  infrastructureCaches.createCache(cacheId, {
-    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
-    version: 1,
-  });
+  var caches = Object.create(null);
 
-  var stateCache = infrastructureCaches[cacheId];
+  var namespace = 'viewStateCache';
 
-  function buildCacheKey(application, viewStateKey) {
-    return [application, viewStateKey].join('#');
+  function clearCache(key) {
+    if (caches[key] && caches[key].destroy) {
+      caches[key].destroy();
+      createCache(key);
+    }
   }
 
-  return {
-    hasCachedViewState: function(application, viewStateKey) {
-      return stateCache.get(buildCacheKey(application, viewStateKey)) !== undefined;
-    },
-    getCachedViewState: function(application, viewStateKey) {
-      return stateCache.get(buildCacheKey(application, viewStateKey));
-    },
-    cacheViewState: function(application, viewStateKey, viewState) {
-      return stateCache.put(buildCacheKey(application, viewStateKey), viewState);
-    },
-    clearViewState: function(application, viewStateKey) {
-      stateCache.remove(buildCacheKey(application, viewStateKey));
-    }
-  };
+  function clearCaches() {
+    Object.keys(caches).forEach(clearCache);
+  }
+
+  function createCache(key, config) {
+    deckCacheFactory.createCache(namespace, key, config);
+    caches[key] = deckCacheFactory.getCache(namespace, key);
+    return caches[key];
+  }
+
+  caches.clearCaches = clearCaches;
+  caches.clearCache = clearCache;
+  caches.createCache = createCache;
+
+  return caches;
 });
