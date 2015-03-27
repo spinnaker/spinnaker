@@ -5,8 +5,13 @@ angular.module('deckApp.pipelines.config.service', [
   'restangular',
   'deckApp.settings',
   'deckApp.authentication.service',
+  'deckApp.caches.viewStateCache'
 ])
-  .factory('pipelineConfigService', function (settings, Restangular, authenticationService) {
+  .factory('pipelineConfigService', function (settings, Restangular, authenticationService, viewStateCache) {
+
+    function buildViewStateCacheKey(pipelineName) {
+      return ['pipelineConfig', pipelineName].join(':');
+    }
 
     function getPipelinesForApplication(applicationName) {
       return Restangular.one('applications', applicationName).all('pipelineConfigs').getList();
@@ -29,6 +34,7 @@ angular.module('deckApp.pipelines.config.service', [
     }
 
     function renamePipeline(applicationName, currentName, newName) {
+      viewStateCache.clearViewState(applicationName, buildViewStateCacheKey(currentName));
       return Restangular.all('pipelines').all('move').post({
         application: applicationName,
         from: currentName,
@@ -48,7 +54,8 @@ angular.module('deckApp.pipelines.config.service', [
       savePipeline: savePipeline,
       deletePipeline: deletePipeline,
       renamePipeline: renamePipeline,
-      triggerPipeline: triggerPipeline
+      triggerPipeline: triggerPipeline,
+      buildViewStateCacheKey: buildViewStateCacheKey,
     };
 
   });
