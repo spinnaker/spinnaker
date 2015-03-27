@@ -13,19 +13,19 @@ angular.module('deckApp.pipelines')
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, pipelineViewStateCache) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
 
-    if (pipelineViewStateCache.hasCachedViewState($scope.application.name, $scope.pipeline.name)) {
-      $scope.viewState = pipelineViewStateCache.getCachedViewState($scope.application.name, $scope.pipeline.name);
-    } else {
-      $scope.viewState = {
-        expanded: true,
-        section: 'triggers',
-        stageIndex: 0,
-        originalPipelineName: $scope.pipeline.name,
-        saving: false,
-      };
+    function buildCacheKey() {
+      return pipelineConfigService.buildViewStateCacheKey($scope.pipeline.name);
     }
+
+    $scope.viewState = viewStateCache.getCachedViewState($scope.application.name, buildCacheKey()) || {
+      expanded: true,
+      section: 'triggers',
+      stageIndex: 0,
+      originalPipelineName: $scope.pipeline.name,
+      saving: false,
+    };
 
     this.deletePipeline = function() {
       $modal.open({
@@ -208,11 +208,12 @@ angular.module('deckApp.pipelines')
     function cacheViewState() {
       var toCache = angular.copy($scope.viewState);
       delete toCache.original;
-      pipelineViewStateCache.cacheViewState($scope.application.name, $scope.pipeline.name, $scope.viewState);
+      viewStateCache.cacheViewState($scope.application.name, buildCacheKey(), toCache);
     }
 
     $scope.$watch('pipeline', pipelineUpdated, true);
     $scope.$watch('viewState.original', markDirty, true);
     $scope.$watch('viewState', cacheViewState, true);
+    $scope.$watch('pipeline.name', cacheViewState);
 
   });

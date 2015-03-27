@@ -6,16 +6,25 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.utils.scrollTo',
   'deckApp.caches.collapsibleSectionState',
+  'deckApp.caches.viewStateCache',
 ])
   .controller('pipelineExecutions', function($scope, $state, d3Service,
-                                             pipelineConfigService, scrollToService, executionsService, collapsibleSectionStateCache) {
+                                             pipelineConfigService, scrollToService, executionsService,
+                                             viewStateCache, collapsibleSectionStateCache) {
+
     var controller = this;
+
+    var viewStateCacheKey = 'executions';
+
+    function cacheViewState() {
+      viewStateCache.cacheViewState($scope.application.name, viewStateCacheKey, $scope.filter);
+    }
 
     $scope.viewState = {
       loading: true
     };
 
-    $scope.filter = {
+    $scope.filter = viewStateCache.getCachedViewState($scope.application.name, viewStateCacheKey) || {
       count: 5,
       execution: {
         status: {
@@ -153,5 +162,6 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       dataInitializationFailure);
 
     $scope.$on('executions-reloaded', updateExecutions);
+    $scope.$watch('filter', cacheViewState, true);
 
   });

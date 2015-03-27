@@ -6,7 +6,7 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.create.controller',
   'deckApp.pipelines.config.validator.directive',
   'deckApp.pipelines.dirtyTracker.service',
-  'deckApp.pipelines.services.viewStateCache',
+  'deckApp.caches.viewStateCache',
 
   'restangular',
   'deckApp.pipelines.stage',
