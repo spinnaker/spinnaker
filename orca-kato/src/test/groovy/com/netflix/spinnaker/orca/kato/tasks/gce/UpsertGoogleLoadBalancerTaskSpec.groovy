@@ -53,7 +53,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
     credentials: "test-account-name",
     listeners  : [
       [
-        protocol: "TCP",
+        protocol: "UDP",
         portRange: "4040-5050",
         healthCheck: false
       ]
@@ -114,7 +114,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfig.name
         region == this.upsertGoogleLoadBalancerConfig.region
@@ -140,7 +140,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.name
         region == this.upsertGoogleLoadBalancerConfigWithPort.region
@@ -150,7 +150,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       }
   }
 
-  def "creates an upsert load balancer task with port range"() {
+  def "creates an upsert load balancer task with port range and IP protocol"() {
     setup:
       stage.context.putAll(upsertGoogleLoadBalancerConfigWithPortRange)
       def operations
@@ -166,12 +166,13 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRange.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRange.credentials
         portRange == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].portRange
+        ipProtocol == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].protocol
         !healthCheck
       }
   }
@@ -192,7 +193,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.region
@@ -225,7 +226,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].createGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.name
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.region

@@ -39,7 +39,7 @@ class UpsertGoogleLoadBalancerTask implements Task {
   TaskResult execute(Stage stage) {
     def operation = convert(stage)
 
-    def taskId = kato.requestOperations([[createGoogleNetworkLoadBalancerDescription: operation]])
+    def taskId = kato.requestOperations([[upsertGoogleNetworkLoadBalancerDescription: operation]])
                      .toBlocking()
                      .first()
 
@@ -70,6 +70,10 @@ class UpsertGoogleLoadBalancerTask implements Task {
     operation.credentials = context.credentials
 
     def listener = context.listeners?.get(0)
+
+    if (listener?.protocol) {
+      operation.ipProtocol = listener.protocol;
+    }
 
     if (listener?.portRange) {
       operation.portRange = listener.portRange;
