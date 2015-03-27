@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -61,7 +62,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperation implements A
     task.updateStatus BASE_PHASE, "Adding urls=(${instanceUrls.join(", ")}) to pool=$targetPoolName."
 
     def addInstanceRequest = new TargetPoolsAddInstanceRequest()
-    addInstanceRequest.instances = instanceUrls
+    addInstanceRequest.instances = instanceUrls.collect{ url -> new InstanceReference(instance: url) }
     compute.targetPools().addInstance(project, region, targetPoolName, addInstanceRequest).execute()
 
     task.updateStatus BASE_PHASE, "Done executing register instances (${instanceIds.join(", ")})."

@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
+import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
@@ -84,7 +85,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
       @Subject def operation = new RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperation(description)
 
       def request = new TargetPoolsAddInstanceRequest()
-      request.instances = INSTANCE_URLS
+      request.instances = INSTANCE_URLS.collect { url -> new InstanceReference(instance: url) }
 
     when:
       operation.operate([])
