@@ -7,8 +7,10 @@ angular.module('deckApp.tasks.main', [
   'deckApp.caches.viewStateCache',
   'deckApp.tasks.write.service',
   'deckApp.confirmationModal.service',
+  'ui.router',
+  'deckApp.settings',
 ])
-  .controller('TasksCtrl', function ($scope, application, _, viewStateCache, tasksWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, settings, application, _, viewStateCache, tasksWriter, confirmationModalService) {
     var controller = this;
 
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
@@ -16,6 +18,8 @@ angular.module('deckApp.tasks.main', [
     function cacheViewState() {
       tasksViewStateCache.put(application.name, $scope.viewState);
     }
+
+    $scope.tasksUrl = [settings.gateUrl, 'applications', application.name, 'tasks/'].join('/');
 
     $scope.viewState = tasksViewStateCache.get(application.name) || {
       taskStateFilter: '',
@@ -60,6 +64,18 @@ angular.module('deckApp.tasks.main', [
         controller.sortedTasks = _.filter(controller.sortedTasks, { status: $scope.viewState.taskStateFilter });
       }
       controller.resetPaginator();
+    };
+
+    controller.clearNameFilter = function() {
+      $scope.viewState.nameFilter = '';
+      controller.nameFilterUpdated();
+    };
+
+    controller.nameFilterUpdated = function() {
+      if ($state.includes('**.taskDetails')) {
+        $state.go('^');
+      }
+      controller.sortTasks();
     };
 
     controller.cancelTask = function(taskId) {
@@ -144,6 +160,7 @@ angular.module('deckApp.tasks.main', [
       }
       $scope.viewState.nameFilter = taskId;
       $scope.viewState.taskStateFilter = '';
+      controller.sortTasks();
     });
 
   }
