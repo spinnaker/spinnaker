@@ -8,8 +8,9 @@ describe('Controller: tasks', function () {
   controllerInjector = function (appData) {
     appData.registerAutoRefreshHandler = angular.noop;
     return function ($controller, $rootScope) {
+      var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
       scope = $rootScope.$new();
-      controller = $controller('TasksCtrl', { application: appData, $scope: scope });
+      controller = $controller('TasksCtrl', { application: appData, $scope: scope, viewStateCache: viewStateCache });
     };
   };
 
@@ -49,9 +50,9 @@ describe('Controller: tasks', function () {
     );
 
     it('should sort the tasks with the RUNNING status at the top', function () {
-       var sortedList = controller.sortTasks();
-      expect(sortedList.length).toBe(2);
-      expect(sortedList[0].status).toEqual('RUNNING');
+      controller.sortTasks();
+      expect(controller.sortedTasks.length).toBe(2);
+      expect(controller.sortedTasks[0].status).toEqual('RUNNING');
     });
   });
 
@@ -70,7 +71,8 @@ describe('Controller: tasks', function () {
     );
 
     it('should sort the tasks with the RUNNING status at the top', function () {
-       var sortedList = controller.sortTasks();
+      controller.sortTasks();
+      var sortedList = controller.sortedTasks;
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(99);
       sortedList.forEach(function(task) {
@@ -94,7 +96,8 @@ describe('Controller: tasks', function () {
     );
 
     it('should sort the tasks in descending order by startTime', function () {
-      var sortedList = controller.sortTasks();
+      controller.sortTasks();
+      var sortedList = controller.sortedTasks;
       expect(sortedList.length).toBe(2);
       expect(sortedList[0].startTime).toBe(100);
       sortedList.forEach(function(task) {

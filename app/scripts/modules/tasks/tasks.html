@@ -1,27 +1,30 @@
 <div class="row">
-  <div class="col-md-7" ng-if="!tasks.tasksLoaded" style="position: relative; height: 300px">
+  <div class="col-md-12" ng-if="!tasks.tasksLoaded" style="position: relative; height: 300px">
     <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
   </div>
-  <div class="col-md-7 tasks" ng-if="tasks.tasksLoaded">
-    <div class="row">
-      <div class="col-md-9">
+  <div class="col-md-12 tasks" ng-if="tasks.tasksLoaded">
+    <div class="row tasks-header">
+      <div class="col-md-3">
+        <h3>Task History</h3>
+      </div>
+      <div class="col-md-6">
         <div class="btn-group">
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'All'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="''">
             All
           </label>
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Not Started'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'NOT_STARTED'">
             <status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started
           </label>
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Running'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'RUNNING'">
             <status-glyph item="{isRunning: true}"></status-glyph> Running
           </label>
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Completed'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'COMPLETED'">
             <status-glyph item="{isCompleted: true}"></status-glyph> Completed
           </label>
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Errored'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'FAILED'">
             <status-glyph item="{isFailed: true}"></status-glyph> Failed
           </label>
-          <label class="btn btn-default" ng-model="tasks.taskStateFilter" btn-radio="'Canceled'">
+          <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'CANCELED'">
             <status-glyph item="{isCanceled: true}"></status-glyph> Canceled
           </label>
         </div>
@@ -31,17 +34,109 @@
           <label class="sr-only" for="task-filter">Filter tasks</label>
             <input type="search"
                    id="task-filter"
-                   class="form-control"
+                   class="form-control input-sm"
                    placeholder="Filter tasks"
-                   ng-model="tasks.taskFilter">
+                   ng-change="tasks.sortTasks()"
+                   ng-model="viewState.nameFilter">
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
         </div>
       </div>
     </div>
-    <div class="row padding" ng-repeat="task in tasks.sortedTasks | taskFilter:tasks.taskStateFilter | filter:tasks.taskFilter">
-      <task-view task="task"></task-view>
+    <div class="row tasks-content">
+      <div class="col-md-12">
+        <table class="table table-condensed">
+          <thead>
+            <tr>
+              <th width="36%">Task</th>
+              <th width="12%">Progress</th>
+              <th width="12%">Started</th>
+              <th width="12%">Ended</th>
+              <th width="12%">Running Time</th>
+              <th>User</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="clickable" ng-click="tasks.toggleDetails(task.id)" ng-repeat-start="task in tasks.resultPage()">
+              <td>
+                <a id="task-{{task.id}}"></a>
+                <div class="task-name">
+                  <span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'up'}}"></span>
+                  {{task.name}}
+                </div>
+              </td>
+              <td>
+                <task-progress-bar task="task"></task-progress-bar>
+              </td>
+              <td>
+                {{ task.startTime | timestamp }}
+              </td>
+              <td>
+                {{ task.endTime | timestamp }}
+              </td>
+              <td>
+                <span ng-if="!task.isCanceled">
+                  {{ task.runningTimeInMs | duration }}
+                </span>
+                <span ng-if="task.isCanceled">
+                  -
+                </span>
+              </td>
+              <td>
+                {{ task.getValueFor('user') || '-' }}
+              </td>
+              <td class="small">
+                <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">Cancel</a>
+              </td>
+            </tr>
+            <tr ng-repeat="step in task.steps" ng-repeat-end
+                ng-if="tasks.isExpanded(task.id)"
+                class="task-step">
+              <td colspan="2">
+                <status-glyph item="step"></status-glyph>
+                {{step.name | robotToHuman }}
+              </td>
+              <td>
+                {{ step.startTime | timestamp }}
+              </td>
+              <td>
+                {{ step.endTime | timestamp }}
+              </td>
+              <td colspan="3">
+                {{ step.runningTimeInMs | duration }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-  <div class="col-md-5 task-details" ui-view="task-details">
+    <div class="row pagination-footer">
+      <div class="col-md-9">
+        <pagination ng-if="tasks.tasksLoaded"
+                    items-per-page="pagination.itemsPerPage"
+                    total-items="tasks.sortedTasks.length"
+                    max-size="pagination.maxSize"
+                    ng-model="pagination.currentPage"
+                    class="pagination-sm"
+          ></pagination>
+      </div>
+      <div class="col-md-3 text-right">
+          <div class="form-group">
+            Show
+            <select class="input input-sm"
+                    ng-model="viewState.itemsPerPage"
+                    ng-change="tasks.sortTasks()"
+                    style="width: 50px">
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="200">200</option>
+            </select>
+            per page
+        </div>
+      </div>
+    </div>
   </div>
 </div>
