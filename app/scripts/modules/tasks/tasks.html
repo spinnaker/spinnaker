@@ -7,40 +7,47 @@
       <div class="col-md-3">
         <h3>Task History</h3>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-5">
         <div class="btn-group">
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="''">
-            All
+            <a href>All</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'NOT_STARTED'">
-            <status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started
+            <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Not Started</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'RUNNING'">
-            <status-glyph item="{isRunning: true}"></status-glyph> Running
+            <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'COMPLETED'">
-            <status-glyph item="{isCompleted: true}"></status-glyph> Completed
+            <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'FAILED'">
-            <status-glyph item="{isFailed: true}"></status-glyph> Failed
+            <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
           </label>
           <label class="btn btn-sm btn-default" ng-model="viewState.taskStateFilter" btn-radio="'CANCELED'">
-            <status-glyph item="{isCanceled: true}"></status-glyph> Canceled
+            <a href><status-glyph item="{isCanceled: true}"></status-glyph> Canceled</a>
           </label>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-1 text-right" style="padding-right: 0">
+        <a class="btn btn-link" ng-click="tasks.clearNameFilter()" style="
+        padding-right: 5px" ng-if="viewState.nameFilter.length > 0">
+          <span class="glyphicon glyphicon-remove" tooltip="clear search filter"></span>
+        </a>
+      </div>
+      <div class="col-md-3 text-right" style="padding-left: 0">
         <div class="form-group has-feedback">
-          <label class="sr-only" for="task-filter">Filter tasks</label>
-            <input type="search"
-                   id="task-filter"
-                   class="form-control input-sm"
-                   placeholder="Filter tasks"
-                   ng-change="tasks.sortTasks()"
-                   ng-model="viewState.nameFilter">
+          <label class="sr-only" for="task-filter">Filter tasks by name or ID</label>
+          <input type="search"
+                 id="task-filter"
+                 class="form-control input-sm"
+                 placeholder="Filter tasks by name or ID"
+                 ng-change="tasks.nameFilterUpdated()"
+                 ng-model="viewState.nameFilter">
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
         </div>
       </div>
+
     </div>
     <div class="row tasks-content">
       <div class="col-md-12">
@@ -59,9 +66,8 @@
           <tbody>
             <tr class="clickable" ng-click="tasks.toggleDetails(task.id)" ng-repeat-start="task in tasks.resultPage()">
               <td>
-                <a id="task-{{task.id}}"></a>
                 <div class="task-name">
-                  <span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'up'}}"></span>
+                  <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'up'}}"></span></a>
                   {{task.name}}
                 </div>
               </td>
@@ -89,7 +95,7 @@
                 <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">Cancel</a>
               </td>
             </tr>
-            <tr ng-repeat="step in task.steps" ng-repeat-end
+            <tr ng-repeat="step in task.steps"
                 ng-if="tasks.isExpanded(task.id)"
                 class="task-step">
               <td colspan="2">
@@ -106,6 +112,12 @@
                 {{ step.runningTimeInMs | duration }}
               </td>
             </tr>
+            <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
+              <td colspan="7" class="small text-right">
+                <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
+              </td>
+            </tr>
+
           </tbody>
         </table>
       </div>
