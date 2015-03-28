@@ -79,7 +79,12 @@ angular.module('deckApp.help')
       '<li>For <b>GCE</b>, a server group is an <b>Instance Group</b>.</li>' +
       '</ul>',
 
-    'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.'
+    'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
 
+    'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
+      '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
+    'strategy.redblack.maxRemainingAsgs': '<p>Indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
+      '<p>If you wish to destroy all ASGs except the newly created one, select "Highlander" as the strategy.</p>' +
+      '<p><strong>Minimum value:</strong> 2</p>',
 
   });
