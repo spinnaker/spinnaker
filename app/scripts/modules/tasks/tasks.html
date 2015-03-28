@@ -37,11 +37,11 @@
       </div>
       <div class="col-md-3 text-right" style="padding-left: 0">
         <div class="form-group has-feedback">
-          <label class="sr-only" for="task-filter">Filter tasks by name or ID</label>
+          <label class="sr-only" for="task-filter">Filter tasks by name, user, or task ID</label>
           <input type="search"
                  id="task-filter"
                  class="form-control input-sm"
-                 placeholder="Filter tasks by name or ID"
+                 placeholder="Filter tasks by name, user, or task ID"
                  ng-change="tasks.nameFilterUpdated()"
                  ng-model="viewState.nameFilter">
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
@@ -50,7 +50,19 @@
 
     </div>
     <div class="row tasks-content">
-      <div class="col-md-12">
+      <div class="col-md-10 col-md-offset-1 text-center" ng-if="!tasks.sortedTasks.length" style="margin-top: 30px">
+        <h4 ng-if="!viewState.nameFilter && !viewState.taskStateFilter">We couldn't find any tasks for {{application.name}}</h4>
+        <div ng-if="viewState.nameFilter  || viewState.taskStateFilter">
+          <h4>
+            We couldn't find any tasks matching the filters you've specified.
+          </h4>
+          <p style="margin-top: 20px">
+            <strong>Note</strong> that Spinnaker only tracks tasks for two weeks.
+          </p>
+        </p>
+        </div>
+      </div>
+      <div class="col-md-12" ng-if="tasks.sortedTasks.length">
         <table class="table table-condensed">
           <thead>
             <tr>
@@ -114,7 +126,7 @@
             </tr>
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
               <td colspan="7" class="small text-right">
-                <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
+                <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
               </td>
             </tr>
 
@@ -124,7 +136,7 @@
     </div>
     <div class="row pagination-footer">
       <div class="col-md-9">
-        <pagination ng-if="tasks.tasksLoaded"
+        <pagination ng-if="tasks.tasksLoaded && tasks.sortedTasks.length > pagination.itemsPerPage"
                     items-per-page="pagination.itemsPerPage"
                     total-items="tasks.sortedTasks.length"
                     max-size="pagination.maxSize"

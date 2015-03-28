@@ -17,16 +17,27 @@ angular.module('deckApp.tasks.main', [
 
     function cacheViewState() {
       tasksViewStateCache.put(application.name, $scope.viewState);
+      cacheGlobalViewState();
+    }
+
+    function cacheGlobalViewState() {
+      tasksViewStateCache.put('#common', {
+        itemsPerPage: $scope.viewState.itemsPerPage,
+      });
     }
 
     $scope.tasksUrl = [settings.gateUrl, 'applications', application.name, 'tasks/'].join('/');
 
-    $scope.viewState = tasksViewStateCache.get(application.name) || {
-      taskStateFilter: '',
-      nameFilter: '',
-      expandedTasks: [],
-      itemsPerPage: 20,
-    };
+    function initializeViewState() {
+      var viewState = tasksViewStateCache.get(application.name) || {
+        taskStateFilter: '',
+        nameFilter: '',
+        expandedTasks: [],
+      };
+      viewState.itemsPerPage = tasksViewStateCache.get('#common') ? tasksViewStateCache.get('#common').itemsPerPage : 20;
+
+      $scope.viewState = viewState;
+    }
 
     controller.taskStateFilter = 'All';
     controller.application = application;
@@ -57,7 +68,8 @@ angular.module('deckApp.tasks.main', [
         var normalizedSearch = $scope.viewState.nameFilter.toLowerCase();
         controller.sortedTasks = _.filter(joinedLists, function(task) {
           return task.name.toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            task.id.toLowerCase().indexOf(normalizedSearch) !== -1;
+            task.id.toLowerCase().indexOf(normalizedSearch) !== -1 ||
+            task.getValueFor('user').toLowerCase().indexOf(normalizedSearch) !== -1;
         });
       }
       if ($scope.viewState.taskStateFilter) {
@@ -162,6 +174,8 @@ angular.module('deckApp.tasks.main', [
       $scope.viewState.taskStateFilter = '';
       controller.sortTasks();
     });
+
+    initializeViewState();
 
   }
 );
