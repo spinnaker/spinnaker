@@ -59,6 +59,7 @@ angular.module('deckApp.confirmationModal.service', [
 
     function showError(exception) {
       $scope.state.error = true;
+      $scope.state.submitting = false;
       $scope.errorMessage = exception;
     }
 
@@ -68,6 +69,7 @@ angular.module('deckApp.confirmationModal.service', [
           $scope.taskMonitor.submit(params.submitMethod);
         } else {
           if (params.submitMethod) {
+            $scope.state.submitting = true;
             params.submitMethod().then($modalInstance.close, showError);
           } else {
             $modalInstance.close();

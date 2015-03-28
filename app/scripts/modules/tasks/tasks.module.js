@@ -8,9 +8,5 @@ angular
     'deckApp.tasks.tracker',
     'deckApp.tasks.read.service',
     'deckApp.tasks.write.service',
-
     'deckApp.statusGlyph.directive',
-    'deckApp.taskView.directive',
-
-    'deckApp.task.filter'
   ]);

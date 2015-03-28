@@ -1,61 +1,85 @@
 @import "app/styles/imports/commonImports.less";
 
 .tasks {
-  .task {
-    .summary {
-      background-color: @light_grey;
-      h5 {
-        margin-top: 5px;
-        margin-left: -10px;
-      }
-      .glyphicon {
-        margin-left: -10px;
-        font-size: 1.2em;
-      }
-      .glyphicon-ok {
-        color: @healthy_green_icon;
-      }
-      .glyphicon-warning-sign {
-        color: @unhealthy_red;
-      }
-      .glyphicon-stop {
-        color: @mid_lighter_grey;
-      }
-    }
-    .progress {
-      margin: 0px;
-      border-radius: 0px;
-      height: 5px;
-      margin-top: -5px;
-      border: 0px;
-      .progress-bar-danger {
-        background-color: @unhealthy_red;
-      }
-      .progress-bar-success {
-        background-color: @healthy_green_icon;
-      }
-      .progress-bar-disabled {
-        background-color: @mid_lighter_grey;
-      }
-    }
-    .details {
-      dt {
-        float: left;
-        margin-right: 5px;
-      }
-      li {
-        list-style-type: none;
-      }
-    }
-  }
-}
+  position: fixed;
+  top: 130px;
+  bottom: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 
-.label {
-  &.label-default {
-    .status-glyph {
-      color: #ffffff;
+  @media (min-width: 768px) and (max-width: 992px) {
+    width: 768px;
+  }
+
+  @media (min-width: 992px) {
+    width: 992px;
+  }
+  @media (min-width: 1200px) {
+    width: 1200px;
+  }
+  @media (min-width: 1400px) {
+    width: 1400px;
+  }
+
+  > .tasks-header {
+    h3 {
+      margin-top: 0;
+      font-weight: 600;
+    }
+    flex: none;
+    z-index: 4;
+    box-shadow: 0 20px 10px -10px @lightest_grey;
+    padding-bottom: 0;
+  }
+
+  > .tasks-content {
+    padding: 10px 15px;
+    flex: 1 0 100px;
+    overflow-y: auto;
+  }
+
+  .pagination-footer {
+    .pagination {
+      margin: 0;
+    }
+    z-index: 4;
+    box-shadow: 0 -15px 8px -8px @lightest_grey;
+  }
+
+  .task-name {
+    text-indent: -14px;
+    margin-left: 20px;
+    .glyphicon {
+      font-size: 75%;
+      color: @mid_lighter_grey;
+      display: inline;
     }
   }
+  .task-step {
+    background-color: @lighter_grey;
+    font-size: 90%;
+    :first-child {
+      padding-left: 20px;
+    }
+  }
+
+  .progress {
+    height: 10px;
+    margin-bottom: 0;
+    margin-top: 5px;
+    .progress-bar-danger {
+      background-color: @unhealthy_red;
+    }
+    .progress-bar-success {
+      background-color: @healthy_green_icon;
+    }
+    .progress-bar-disabled {
+      background-color: @mid_lighter_grey;
+    }
+  }
+
 }
 
 .status-glyph {
@@ -68,29 +92,7 @@
   &.glyphicon-play {
     color: @spinnaker-blue;
   }
-  &.glyphicon-stop {
+  &.glyphicon-stop, &.glyphicon-pause, &.glyphicon-time {
     color: @mid_lighter_grey;
-  }
-}
-
-.task-details {
-  @media(min-width: 992px) {
-    .details-panel {
-      width: 34% !important;
-      position: fixed;
-      top: 150px;
-      bottom: 0;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-  }
-  @media(max-width: 992px) {
-    .details-panel {
-      display: none;
-    }
-  }
-  dt {
-    float: left;
-    margin-right: 5px;
   }
 }

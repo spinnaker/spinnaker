@@ -181,17 +181,12 @@ angular.module('deckApp.states', [
       var taskDetails = {
         name: 'taskDetails',
         url: '/:taskId',
-        views: {
-          'task-details': {
-            templateUrl: 'scripts/modules/tasks/taskdetails.html',
-            controller: 'TaskDetailsCtrl',
-            controllerAs: 'taskDetail'
+        views: {},
+        data: {
+          pageTitleDetails: {
+            title: 'Task Details',
+            nameParam: 'taskId'
           }
-        },
-        resolve: {
-          taskId: ['$stateParams', function($stateParams) {
-            return $stateParams.taskId;
-          }]
         }
       };
 
