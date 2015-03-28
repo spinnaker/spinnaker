@@ -21,19 +21,27 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
+
+import java.time.Clock
 
 @RestController
 class TaskController {
   @Autowired
   ExecutionRepository executionRepository
 
+  @Value('${daysOfExecutionHistory:14}')
+  int daysOfExecutionHistory
+
+  Clock clock = Clock.systemUTC()
+
   @RequestMapping(value = "/applications/{application}/tasks", method = RequestMethod.GET)
   List<Orchestration> list(@PathVariable String application) {
-    def twoWeeksAgo = System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000)
+    def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrieveOrchestrationsForApplication(application)
       .findAll {
-        !it.startTime || it.startTime > twoWeeksAgo
+        !it.startTime || (it.startTime > startTimeCutoff)
       }
       .collect { convert it }
       .sort(startTimeOrId)
@@ -78,10 +86,10 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
-    def twoWeeksAgo = System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000)
+    def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrievePipelinesForApplication(application)
       .findAll {
-        !it.startTime || it.startTime > twoWeeksAgo
+        !it.startTime || (it.startTime > startTimeCutoff)
       }
       .sort(startTimeOrId)
   }

@@ -33,6 +33,9 @@ import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
+
+import java.time.Clock
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 
 class TaskControllerSpec extends Specification {
@@ -40,10 +43,17 @@ class TaskControllerSpec extends Specification {
   MockMvc mockMvc
   ExecutionRepository executionRepository
 
+  Clock clock = Mock(Clock)
+  int daysOfExecutionHistory = 14
+
   void setup() {
     executionRepository = Mock(ExecutionRepository)
     mockMvc = MockMvcBuilders.standaloneSetup(
-      new TaskController(executionRepository: executionRepository)
+      new TaskController(
+        executionRepository: executionRepository,
+        daysOfExecutionHistory: daysOfExecutionHistory,
+        clock: clock
+      )
     ).build()
   }
 
@@ -126,10 +136,11 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/tasks only returns unstarted and tasks from the past two weeks, sorted newest first'() {
     given:
+    def now = new Date()
     def tasks = [
-      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000) - 1)], id: 'too-old' ] as Orchestration,
-      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000))], id: 'not-too-old' ] as Orchestration,
-      [ stages: [new OrchestrationStage(startTime: System.currentTimeMillis() - (60 * 1000))], id: 'pretty-new' ] as Orchestration,
+      [ stages: [new OrchestrationStage(startTime: (now  - daysOfExecutionHistory).time - 1)], id: 'too-old' ] as Orchestration,
+      [ stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old' ] as Orchestration,
+      [ stages: [new OrchestrationStage(startTime: (now - 1).time)], id: 'pretty-new' ] as Orchestration,
       [ stages: [new OrchestrationStage()], id: 'not-started-1' ] as Orchestration,
       [ stages: [new OrchestrationStage()], id: 'not-started-2' ] as Orchestration
     ]
@@ -139,6 +150,7 @@ class TaskControllerSpec extends Specification {
     def response = new ObjectMapper().readValue(mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
 
     then:
+    1 * clock.millis() >> now.time
     1 * executionRepository.retrieveOrchestrationsForApplication(app) >> tasks
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
   }
@@ -173,15 +185,17 @@ class TaskControllerSpec extends Specification {
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
     given:
+    def now = new Date()
     def pipelines = [
-      [ startTime: System.currentTimeMillis() - (14 * 24 * 60 * 60 * 1000) - 1, id: 'old' ],
-      [ startTime: System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000), id: 'newer' ],
+      [ startTime: (new Date() - daysOfExecutionHistory).time - 1, id: 'old' ],
+      [ startTime: (new Date() - daysOfExecutionHistory).time + 1, id: 'newer' ],
       [ id: 'not-started' ],
       [ id: 'also-not-started' ]
     ]
     def app = 'test'
 
     when:
+    1 * clock.millis() >> now.time
     def response = mockMvc.perform(get("/applications/$app/pipelines")).andReturn().response
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
