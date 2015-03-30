@@ -22,7 +22,7 @@ angular.module('deckApp.tasks.progressBar.directive', [])
             return step.hasNotStarted || step.isRunning;
           });
 
-          var currentStepIndex = task.steps.indexOf(currentStep[0]);
+          var currentStepIndex = task.steps.indexOf(currentStep[0]) + 1;
 
           scope.tooltip = 'Step ' + currentStepIndex + ' of ' + task.steps.length + ': ' + $filter('robotToHuman')(currentStep[0].name);
         }
@@ -33,7 +33,7 @@ angular.module('deckApp.tasks.progressBar.directive', [])
           });
 
           if (failedStep.length) {
-            var failedStepIndex = task.steps.indexOf(failedStep[0]);
+            var failedStepIndex = task.steps.indexOf(failedStep[0]) + 1;
             var clipped = task.failureMessage.length > 400 ? task.failureMessage.substring(0, 400) + '&hellip;' : task.failureMessage;
             scope.tooltip = 'Failed on Step ' + failedStepIndex + ' of ' + task.steps.length + ':<br>' + $filter('robotToHuman')(failedStep[0].name) +
               '<br><br><strong>Exception:</strong><p>' + clipped + '</p>';

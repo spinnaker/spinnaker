@@ -124,6 +124,11 @@
                 {{ step.runningTimeInMs | duration }}
               </td>
             </tr>
+            <tr class="task-error-message danger" ng-if="task.isFailed && tasks.isExpanded(task.id)" ng-repeat-end>
+              <td colspan="7">
+                <strong>Exception:</strong> {{task.failureMessage}}
+              </td>
+            </tr>
             <tr ng-if="tasks.isExpanded(task.id)" ng-repeat-end>
               <td colspan="7" class="small text-right">
                 <a href="{{tasksUrl + task.id}}" target="_blank">Source</a> | <a target="_blank" ui-sref=".taskDetails({taskId: task.id})">Permalink</a>
@@ -149,7 +154,7 @@
             Show
             <select class="input input-sm"
                     ng-model="viewState.itemsPerPage"
-                    ng-change="tasks.sortTasks()"
+                    ng-change="tasks.sortTasksAndResetPaginator()"
                     style="width: 50px">
               <option value="10">10</option>
               <option value="20">20</option>

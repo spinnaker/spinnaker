@@ -55,7 +55,12 @@ angular.module('deckApp.tasks.main', [
     };
 
     controller.isExpanded = function(taskId) {
-      return $scope.viewState.expandedTasks.indexOf(taskId) !== -1;
+      return taskId && $scope.viewState.expandedTasks.indexOf(taskId) !== -1;
+    };
+
+    controller.sortTasksAndResetPaginator = function() {
+      controller.sortTasks();
+      controller.resetPaginator();
     };
 
     controller.sortTasks = function() {
@@ -75,7 +80,6 @@ angular.module('deckApp.tasks.main', [
       if ($scope.viewState.taskStateFilter) {
         controller.sortedTasks = _.filter(controller.sortedTasks, { status: $scope.viewState.taskStateFilter });
       }
-      controller.resetPaginator();
     };
 
     controller.clearNameFilter = function() {
@@ -87,7 +91,7 @@ angular.module('deckApp.tasks.main', [
       if ($state.includes('**.taskDetails')) {
         $state.go('^');
       }
-      controller.sortTasks();
+      controller.sortTasksAndResetPaginator();
     };
 
     controller.cancelTask = function(taskId) {
@@ -159,7 +163,7 @@ angular.module('deckApp.tasks.main', [
 
     $scope.$watch('application.tasks', controller.sortTasks);
     // angular ui btn-radio doesn't support the ng-change or ng-click directives
-    $scope.$watch('viewState.taskStateFilter', controller.sortTasks);
+    $scope.$watch('viewState.taskStateFilter', controller.sortTasksAndResetPaginator);
     $scope.$watch('viewState', cacheViewState, true);
 
     // The taskId will not be available in the $stateParams that would be passed into this controller
@@ -172,7 +176,7 @@ angular.module('deckApp.tasks.main', [
       }
       $scope.viewState.nameFilter = taskId;
       $scope.viewState.taskStateFilter = '';
-      controller.sortTasks();
+      controller.sortTasksAndResetPaginator();
     });
 
     initializeViewState();
