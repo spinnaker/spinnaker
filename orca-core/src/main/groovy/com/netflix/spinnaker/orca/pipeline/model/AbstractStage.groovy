@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
 
+import java.util.concurrent.atomic.AtomicInteger
 
 import static ExecutionStatus.NOT_STARTED
 import static java.util.Collections.EMPTY_MAP
@@ -42,12 +43,19 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   T execution
   Map<String, Object> context = [:]
   boolean immutable = false
+  boolean initializationStage = false
   List<Task> tasks = []
   String parentStageId
   Stage.SyntheticStageOwner syntheticStageOwner
   List<InjectedStageConfiguration> beforeStages = []
   List<InjectedStageConfiguration> afterStages = []
   long scheduledTime
+
+  @JsonIgnore
+  AtomicInteger stageCounter = new AtomicInteger(0)
+
+  @JsonIgnore
+  AtomicInteger taskCounter = new AtomicInteger(0)
 
   transient ObjectMapper objectMapper = new OrcaObjectMapper()
 

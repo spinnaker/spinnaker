@@ -44,10 +44,12 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
      * is supposed to run only during certain time windows in a day
      */
     boolean executionRestricted = stage.context.containsKey("restrictExecutionDuringTimeWindow") ?
-        stage.context.restrictExecutionDuringTimeWindow as Boolean : false
+      stage.context.restrictExecutionDuringTimeWindow as Boolean : false
+
+    def parentStage = stage.execution.stages.find { it.id == stage.parentStageId }
     if (executionRestricted &&
-        stage.syntheticStageOwner == null && stage.parentStageId == null &&
-        stage.execution.stages.find { Stage stg -> stg.parentStageId == stage.id } == null) {
+      ((stage.syntheticStageOwner == null && stage.parentStageId == null) || parentStage?.initializationStage)
+    ) {
       injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
 

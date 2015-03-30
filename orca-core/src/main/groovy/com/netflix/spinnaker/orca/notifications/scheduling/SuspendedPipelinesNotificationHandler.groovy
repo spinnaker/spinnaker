@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.orca.notifications.scheduling
 
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
+import groovy.util.logging.Slf4j
 
 /**
  *
  */
+@Slf4j
 class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler {
 
   String handlerType = SuspendedPipelinesPollingNotificationAgent.NOTIFICATION_TYPE
@@ -32,9 +34,9 @@ class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler 
   @Override
   void handle(Map pipeline) {
     try {
-      pipelineStarter.restart(pipeline.id)
+      pipelineStarter.resume(pipelineStarter.executionRepository.retrievePipeline(pipeline.id as String))
     } catch (e) {
-      e.printStackTrace()
+      log.error("Unable to resume pipeline", e)
       throw e
     }
   }

@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import java.lang.reflect.Method
 import net.sf.cglib.proxy.*
 
+import java.util.concurrent.atomic.AtomicInteger
+
 class ImmutableStageSupport {
 
   static def <T extends Stage> T toImmutable(T stage) {
@@ -122,6 +124,21 @@ class ImmutableStageSupport {
         this.context = ImmutableMap.copyOf(validContext)
       }
       this.context
+    }
+
+    @Override
+    boolean isInitializationStage() {
+      self.initializationStage
+    }
+
+    @Override
+    void setInitializationStage(boolean initializationStage) {
+      self.initializationStage = initializationStage
+    }
+
+    @Override
+    AtomicInteger getTaskCounter() {
+      self.taskCounter
     }
 
     void setContext(ImmutableMap<String, Object> context) {

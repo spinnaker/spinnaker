@@ -57,7 +57,7 @@ class RetryableTaskTasklet extends TaskTasklet {
     def now = clock.millis()
     def startTime = chunkContext.stepContext.getStepExecution().startTime.time
     if (now - startTime > timeoutMs) {
-      throw new TimeoutException("Operation timed out after ${timeoutMs}ms (startTime: ${startTime}, endTime: ${now})")
+      throw new TimeoutException("Operation timed out after ${timeoutMs}ms")
     }
     return super.doExecuteTask(stage, chunkContext)
   }

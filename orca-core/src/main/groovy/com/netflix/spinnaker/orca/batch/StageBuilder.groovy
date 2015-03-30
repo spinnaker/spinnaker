@@ -51,7 +51,6 @@ abstract class StageBuilder implements ApplicationContextAware {
   private TaskTaskletAdapter taskTaskletAdapter
   private List<StepExecutionListener> taskListeners
   private ApplicationContext applicationContext
-  private ThreadLocal<Integer> taskCounter = new ThreadLocal<>()
 
   StageBuilder(String type) {
     this.type = type
@@ -65,7 +64,6 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @return the resulting builder after any steps are appended.
    */
   final FlowBuilder build(FlowBuilder jobBuilder, Stage stage) {
-    taskCounter.set(1)
     buildInternal jobBuilder, stage
   }
 
@@ -106,7 +104,7 @@ abstract class StageBuilder implements ApplicationContextAware {
   }
 
   private String stepName(Stage stage, String taskName) {
-    def id = nextTaskId()
+    def id = nextTaskId(stage)
     if (!stage.tasks*.id.contains(id)) {
       def task = new DefaultTask(id: id, name: taskName)
       stage.tasks.add(task)
@@ -115,10 +113,8 @@ abstract class StageBuilder implements ApplicationContextAware {
     "${stage.id}.${type}.${taskName}.${id}"
   }
 
-  private String nextTaskId() {
-    def id = taskCounter.get() ?: 1
-    taskCounter.set(id + 1)
-    return id
+  private String nextTaskId(Stage stage) {
+    return stage.taskCounter.incrementAndGet()
   }
 
   @Autowired
@@ -161,8 +157,19 @@ abstract class StageBuilder implements ApplicationContextAware {
     } else {
       stage = new PipelineStage((Pipeline) execution, type, name, context)
     }
-    stage.parentStageId = parent.id
+    stage.parentStageId = parent?.id
     stage.syntheticStageOwner = stageOwner
+
+    // Look upstream until you find the ultimate ancestor parent (parent w/ no parentStageId)
+    while (parent?.parentStageId != null) {
+      parent = execution.stages.find { it.id == parent.parentStageId }
+    }
+
+    if (parent) {
+      // If a parent exists, the new stage id should be deterministically generated
+      stage.id = parent.id + "-" + ((AbstractStage) parent).stageCounter.incrementAndGet() + "-" + stage.name?.replaceAll("[^A-Za-z0-9]", "")
+    }
+
     stage
   }
 }

@@ -53,7 +53,7 @@ class ParallelDeployStage extends ParallelStage {
       def nextStage = newStage(
         stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
       )
-      ((AbstractStage)nextStage).type = MAYO_CONFIG_TYPE
+      ((AbstractStage) nextStage).type = MAYO_CONFIG_TYPE
       stage.execution.stages.add(nextStage)
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String).start(
@@ -73,25 +73,30 @@ class ParallelDeployStage extends ParallelStage {
   @Override
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
+    def defaultStageContext = new HashMap(stage.context)
+
     List<Map<String, Object>> clusters = []
     if (stage.context.cluster) {
       clusters.add(stage.context.cluster as Map<String, Object>)
+      defaultStageContext.remove("cluster")
     }
     if (stage.context.clusters) {
       clusters.addAll(stage.context.clusters as List<Map<String, Object>>)
+      defaultStageContext.remove("clusters")
     }
 
     if (!stage.context.cluster && !stage.context.clusters) {
       // support invoking this stage as an orchestration without nested target cluster details
       clusters.add(stage.context)
+      defaultStageContext.clear()
     }
 
     return clusters.collect {
-      return [
-        account: it.account ?: stage.context.account,
-        cluster: it,
-        type   : DeployStage.MAYO_CONFIG_TYPE,
-        name   : "Deploy in ${(it.availabilityZones as Map).keySet()[0]}"
+      return defaultStageContext + [
+        account            : it.account ?: stage.context.account,
+        cluster            : it,
+        type               : DeployStage.MAYO_CONFIG_TYPE,
+        name               : "Deploy in ${(it.availabilityZones as Map).keySet()[0]}"
       ]
     }
   }
