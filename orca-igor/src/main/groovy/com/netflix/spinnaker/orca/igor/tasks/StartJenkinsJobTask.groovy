@@ -52,11 +52,7 @@ class StartJenkinsJobTask implements Task {
     Map<String,String> parameters = stage.context.parameters
     Map parsedParameters = ContextParameterProcessor.process(parameters, context)
 
-    try {
-      Map<String, Object> build = igorService.build(master, job, parsedParameters)
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
-    } catch (RetrofitError e) {
-      new DefaultTaskResult(ExecutionStatus.TERMINAL)
-    }
+    Map<String, Object> build = igorService.build(master, job, parsedParameters)
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
   }
 }

@@ -82,9 +82,9 @@ class StartJenkinsJobTaskSpec extends Specification {
         }
 
         when:
-        def result = task.execute(stage)
+        task.execute(stage)
 
         then:
-        result.status == ExecutionStatus.TERMINAL
+        thrown(RetrofitError)
     }
 }
