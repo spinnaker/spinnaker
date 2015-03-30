@@ -33,6 +33,22 @@ angular.module('deckApp.securityGroup.aws.edit.controller', [])
       .flatten()
       .value();
 
+    securityGroup.ipIngress = _(securityGroup.inboundRules)
+      .filter(function(rule) {
+        return rule.range;
+      }).map(function(rule) {
+        return rule.portRanges.map(function(portRange) {
+          return {
+            cidr: rule.range.ip + rule.range.cidr,
+            type: rule.protocol,
+            startPort: portRange.startPort,
+            endPort: portRange.endPort
+          };
+        });
+      })
+      .flatten()
+      .value();
+
     securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
       var account = securityGroup.accountName,
           region = securityGroup.region,
