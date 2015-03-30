@@ -45,7 +45,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
             instanceMonitoring: false,
             ebsOptimized: false,
             selectedProvider: 'aws',
-            iamRole: 'BaseIAMRole', // should not be hard coded here
+            iamRole: 'BaseIAMRole', // TODO: should not be hard coded here
 
             terminationPolicies: ['Default'],
             vpcId: null,
