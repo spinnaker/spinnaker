@@ -58,21 +58,11 @@ class OkHttpClientConfig {
     }
     trustManagerFactory.init(ts)
 
-    String strongAlgorithms = AccessController.doPrivileged(
-      new PrivilegedAction<String>() {
-        @Override
-        public String run() {
-          return Security.getProperty(
-            "securerandom.strongAlgorithms");
-        }
-      });
-    log.info("Available strong algorithms: ${strongAlgorithms}")
-
     def secureRandom = new SecureRandom()
     try {
-      secureRandom = SecureRandom.getInstanceStrong()
+      secureRandom = SecureRandom.getInstance("NativePRNGNonBlocking")
     } catch (NoSuchAlgorithmException e) {
-      log.error("Unable to fetch strong secure random instance", e)
+      log.error("Unable to fetch secure random instance for NativePRNGNonBlocking", e)
     }
 
     sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, secureRandom)
