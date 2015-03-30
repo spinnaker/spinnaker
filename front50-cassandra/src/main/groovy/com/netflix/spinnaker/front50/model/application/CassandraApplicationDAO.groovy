@@ -23,6 +23,7 @@ import com.netflix.astyanax.connectionpool.exceptions.BadRequestException
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.model.Row
+import com.netflix.astyanax.retry.ExponentialBackoff
 import com.netflix.astyanax.serializers.IntegerSerializer
 import com.netflix.astyanax.serializers.ListSerializer
 import com.netflix.astyanax.serializers.MapSerializer
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import groovy.util.logging.Slf4j
 import org.apache.cassandra.db.marshal.UTF8Type
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -49,6 +51,12 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   private static ColumnFamily<Integer, String> CF_APPLICATION = ColumnFamily.newColumnFamily(
       CF_NAME, IntegerSerializer.get(), StringSerializer.get()
   )
+
+  @Value('${spinnaker.cassandra.exponentialBaseSleepTimeMs:250}')
+  long exponentialBaseSleepTimeMs
+
+  @Value('${spinnaker.cassandra.exponentialMaxAttempts:10}')
+  int exponentialMaxAttempts
 
   @Autowired
   Keyspace keyspace
@@ -216,11 +224,19 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
   }
 
   private OperationResult runQuery(String query) {
-    return keyspace.prepareQuery(CF_APPLICATION).withCql(query).execute()
+    return keyspace
+        .prepareQuery(CF_APPLICATION)
+        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withCql(query)
+        .execute()
   }
 
   private OperationResult runQuery(Query query) {
-    def preparedQuery = keyspace.prepareQuery(CF_APPLICATION).withCql(query.cql).asPreparedStatement()
+    def preparedQuery = keyspace
+        .prepareQuery(CF_APPLICATION)
+        .withRetryPolicy(new ExponentialBackoff(exponentialBaseSleepTimeMs, exponentialMaxAttempts))
+        .withCql(query.cql)
+        .asPreparedStatement()
     query.values.each {
       if (it instanceof String) {
         preparedQuery = preparedQuery.withStringValue(it)
