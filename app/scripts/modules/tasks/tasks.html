@@ -124,7 +124,7 @@
                 {{ step.runningTimeInMs | duration }}
               </td>
             </tr>
-            <tr class="task-error-message danger" ng-if="task.isFailed && tasks.isExpanded(task.id)" ng-repeat-end>
+            <tr class="task-error-message danger" ng-if="task.isFailed && tasks.isExpanded(task.id)">
               <td colspan="7">
                 <strong>Exception:</strong> {{task.failureMessage}}
               </td>
