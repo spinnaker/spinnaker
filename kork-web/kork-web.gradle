@@ -2,6 +2,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('groovy')
+  compile spinnaker.dependency('okHttp')
 
   spinnaker.group('spockBase')
 }
