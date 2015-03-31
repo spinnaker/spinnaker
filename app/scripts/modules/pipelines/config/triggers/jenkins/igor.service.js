@@ -20,7 +20,7 @@ angular.module('deckApp.pipelines.trigger.jenkins.service', [
     }
 
     function getJobConfig(master, job){
-      return Restangular.one('builds', master).one('job', job).get();
+      return Restangular.one('builds', master).one('jobs', job).get();
     }
 
     return {
