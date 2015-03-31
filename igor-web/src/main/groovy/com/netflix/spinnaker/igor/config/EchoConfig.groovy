@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.igor.config
 
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.igor.history.EchoService
-import com.squareup.okhttp.OkHttpClient
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -32,21 +33,19 @@ import retrofit.client.OkClient
 @ConditionalOnProperty('spinnaker.echo.host')
 @Configuration
 class EchoConfig {
+    @Autowired
+    OkHttpClientConfiguration okHttpClientConfig
 
     @Bean
     @SuppressWarnings('GStringExpressionWithinString')
     EchoService echoService(@Value('${spinnaker.echo.host}') String address) {
-
         if (address == 'none') {
             return null
         }
 
-        OkHttpClient httpClient = new OkHttpClient()
-        OkClient client = new OkClient(httpClient)
-
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
-            .setClient(client)
+            .setClient(new OkClient(okHttpClientConfig.create()))
             .build()
             .create(EchoService)
 
