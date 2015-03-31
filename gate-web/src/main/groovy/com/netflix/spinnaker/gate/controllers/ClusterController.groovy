@@ -48,7 +48,7 @@ class ClusterController {
     clusterService.getClustersForAccount(app, account)
   }
 
-  @RequestMapping(value = "/{account}/{clusterName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{clusterName:.+}", method = RequestMethod.GET)
   Map getClusters(@PathVariable("application") String app,
                   @PathVariable("account") String account,
                   @PathVariable("clusterName") String clusterName) {
@@ -80,7 +80,7 @@ class ClusterController {
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
-  @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{clusterName}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
                             @PathVariable("clusterName") String clusterName,

@@ -51,7 +51,7 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region)
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,
       @PathVariable String region,

@@ -32,7 +32,7 @@ class InstanceController {
   @Autowired
   InstanceService instanceService
 
-  @RequestMapping(value = "/{account}/{region}/{instanceId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{instanceId:.+}", method = RequestMethod.GET)
   Map getInstanceDetails(@PathVariable(value = "account") String account,
                          @PathVariable(value = "region") String region,
                          @PathVariable(value = "instanceId") String instanceId) {

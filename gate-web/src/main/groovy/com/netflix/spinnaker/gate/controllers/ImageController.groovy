@@ -33,7 +33,7 @@ class ImageController {
   @Autowired
   ImageService imageService
 
-  @RequestMapping(value = "/{account}/{region}/{imageId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{imageId:.+}", method = RequestMethod.GET)
   List<Map> getImageDetails(@PathVariable(value = "account") String account,
                             @PathVariable(value = "region") String region,
                             @PathVariable(value = "imageId") String imageId,
