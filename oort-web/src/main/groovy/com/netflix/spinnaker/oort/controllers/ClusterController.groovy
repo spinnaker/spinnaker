@@ -104,7 +104,7 @@ class ClusterController {
     results ?: []
   }
 
-  @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
   def getServerGroup(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
                      @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
     def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll { region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName }
