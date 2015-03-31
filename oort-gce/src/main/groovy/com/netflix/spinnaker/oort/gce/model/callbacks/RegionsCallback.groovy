@@ -25,6 +25,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Region
 import com.google.api.services.replicapool.Replicapool
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
+import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import org.apache.log4j.Logger
 
 class RegionsCallback<Region> extends JsonBatchCallback<Region> {
@@ -38,7 +39,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
   private Replicapool replicapool
   private BatchRequest migsBatch
   private BatchRequest resourceViewsBatch
-  private BatchRequest instancesBatch
+  private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
 
   public RegionsCallback(HashMap<String, GoogleApplication> tempAppMap,
                          String accountName,
@@ -46,18 +47,18 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                          Compute compute,
                          GoogleCredential.Builder credentialBuilder,
                          Replicapool replicapool,
+                         Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
                          BatchRequest migsBatch,
-                         BatchRequest resourceViewsBatch,
-                         BatchRequest instancesBatch) {
+                         BatchRequest resourceViewsBatch) {
     this.tempAppMap = tempAppMap
     this.accountName = accountName
     this.project = project
     this.compute = compute
     this.credentialBuilder = credentialBuilder
     this.replicapool = replicapool
+    this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.migsBatch = migsBatch
     this.resourceViewsBatch = resourceViewsBatch
-    this.instancesBatch = instancesBatch
   }
 
   @Override
@@ -73,8 +74,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                                           project,
                                           compute,
                                           credentialBuilder,
-                                          resourceViewsBatch,
-                                          instancesBatch)
+                                          instanceNameToGoogleServerGroupMap,
+                                          resourceViewsBatch)
 
       replicapool.instanceGroupManagers().list(project, localZoneName).queue(migsBatch, migsCallback)
     }

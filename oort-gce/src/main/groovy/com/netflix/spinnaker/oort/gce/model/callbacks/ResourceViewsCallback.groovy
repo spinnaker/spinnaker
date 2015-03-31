@@ -32,18 +32,18 @@ class ResourceViewsCallback<ZoneViewsListResourcesResponse> extends JsonBatchCal
   private GoogleServerGroup googleServerGroup
   private String project
   private Compute compute
-  private BatchRequest instancesBatch
+  private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
 
   public ResourceViewsCallback(String localZoneName,
                                GoogleServerGroup googleServerGroup,
                                String project,
                                Compute compute,
-                               BatchRequest instancesBatch) {
+                               Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap) {
     this.localZoneName = localZoneName
     this.googleServerGroup = googleServerGroup
     this.project = project
     this.compute = compute
-    this.instancesBatch = instancesBatch
+    this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
   }
 
   @Override
@@ -51,9 +51,7 @@ class ResourceViewsCallback<ZoneViewsListResourcesResponse> extends JsonBatchCal
     for (def listResource : listResourcesResult.getItems()) {
       def instanceName = Utils.getLocalName(listResource.resource)
 
-      compute.instances().get(project,
-                              localZoneName,
-                              instanceName).queue(instancesBatch, new InstancesCallback(localZoneName, googleServerGroup))
+      instanceNameToGoogleServerGroupMap[instanceName] = googleServerGroup
     }
   }
 

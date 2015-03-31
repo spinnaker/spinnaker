@@ -43,8 +43,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
   private String project
   private Compute compute
   private GoogleCredential.Builder credentialBuilder
+  private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private BatchRequest resourceViewsBatch
-  private BatchRequest instancesBatch
 
   public MIGSCallback(HashMap<String, GoogleApplication> tempAppMap,
                       String region,
@@ -53,8 +53,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                       String project,
                       Compute compute,
                       GoogleCredential.Builder credentialBuilder,
-                      BatchRequest resourceViewsBatch,
-                      BatchRequest instancesBatch) {
+                      Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
+                      BatchRequest resourceViewsBatch) {
     this.tempAppMap = tempAppMap
     this.region = region
     this.localZoneName = localZoneName
@@ -62,8 +62,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
     this.project = project
     this.compute = compute
     this.credentialBuilder = credentialBuilder
+    this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.resourceViewsBatch = resourceViewsBatch
-    this.instancesBatch = instancesBatch
   }
 
   @Override
@@ -86,7 +86,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                               googleServerGroup,
                                                               project,
                                                               compute,
-                                                              instancesBatch)
+                                                              instanceNameToGoogleServerGroupMap)
         resourceViews.zoneViews().listResources(project,
                                                 localZoneName,
                                                 instanceGroupManager.name).queue(resourceViewsBatch,
