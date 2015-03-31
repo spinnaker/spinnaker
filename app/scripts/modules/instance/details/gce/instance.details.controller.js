@@ -20,7 +20,13 @@ angular.module('deckApp.instance.detail.gce.controller', [
       standalone: application.isStandalone,
     };
 
-    function extractHealthMetrics(instance) {
+    function extractHealthMetrics(instance, latest) {
+      // do not backfill on standalone instances
+      if (application.isStandalone) {
+        $scope.healthMetrics = latest.health;
+        return;
+      }
+
       instance.health = instance.health || [];
       var displayableMetrics = instance.health.filter(
         function(metric) {
@@ -58,7 +64,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
         instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           $scope.instance = angular.extend(details.plain(), instanceSummary);
-          extractHealthMetrics(instanceSummary);
+          extractHealthMetrics(instanceSummary, details);
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
