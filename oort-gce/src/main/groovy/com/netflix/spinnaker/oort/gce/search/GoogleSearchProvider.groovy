@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.gce.search
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.oort.gce.model.GoogleInstance
 import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
 import com.netflix.spinnaker.oort.search.SearchProvider
@@ -36,14 +37,14 @@ class GoogleSearchProvider implements SearchProvider {
   private static final String LOAD_BALANCERS_TYPE = "loadBalancers"
   private static final String CLUSTERS_TYPE = "clusters"
   private static final String SERVER_GROUPS_TYPE = "serverGroups"
-  private static final String SERVER_GROUP_INSTANCES_TYPE = "instances"
+  private static final String INSTANCES_TYPE = "instances"
 
   private static final List<String> DEFAULT_TYPES = [
     APPLICATIONS_TYPE,
     LOAD_BALANCERS_TYPE,
     CLUSTERS_TYPE,
     SERVER_GROUPS_TYPE,
-    SERVER_GROUP_INSTANCES_TYPE
+    INSTANCES_TYPE
   ]
 
   @Autowired
@@ -82,6 +83,29 @@ class GoogleSearchProvider implements SearchProvider {
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
     search(query, DEFAULT_TYPES, pageNumber, pageSize)
+  }
+
+  private void findStandaloneInstanceMatches(String normalizedSearchTerm, List<Map<String, String>> matches) {
+    Map<String, List<GoogleInstance>> standaloneInstanceMap = googleResourceRetriever.getStandaloneInstanceMap()
+    List<Map<String, String>> standaloneInstanceMatches = []
+
+    standaloneInstanceMap?.each { account, instanceList ->
+      instanceList.each { instance ->
+        if (instance.name.indexOf(normalizedSearchTerm) >= 0) {
+          def localZoneName = instance.placement.availabilityZone
+          def region = localZoneName.substring(0, localZoneName.lastIndexOf("-"))
+
+          standaloneInstanceMatches << [type: INSTANCES_TYPE,
+                                        account: account,
+                                        region: region,
+                                        instanceId: instance.name]
+        }
+      }
+    }
+
+    standaloneInstanceMatches = standaloneInstanceMatches.sort{ it.instanceId }
+
+    matches.addAll(standaloneInstanceMatches)
   }
 
   private void findLoadBalancerMatches(String normalizedSearchTerm, List<Map<String, String>> matches) {
@@ -153,9 +177,9 @@ class GoogleSearchProvider implements SearchProvider {
                             sequence: names.sequence?.toString()]
               }
 
-              if (types.contains(SERVER_GROUP_INSTANCES_TYPE)) {
+              if (types.contains(INSTANCES_TYPE)) {
                 for (def instance : serverGroup.instances.sort { it.name }) {
-                  matches << [type: SERVER_GROUP_INSTANCES_TYPE,
+                  matches << [type: INSTANCES_TYPE,
                               application: applicationName,
                               account: cluster.accountName,
                               cluster: clusterName,
@@ -164,10 +188,10 @@ class GoogleSearchProvider implements SearchProvider {
                               instanceId: instance.name]
                 }
               }
-            } else if (types.contains(SERVER_GROUP_INSTANCES_TYPE)) {
+            } else if (types.contains(INSTANCES_TYPE)) {
               for (def instance : serverGroup.instances.sort { it.name }) {
                 if (instance.name.indexOf(normalizedSearchTerm) >= 0) {
-                  matches << [type: SERVER_GROUP_INSTANCES_TYPE,
+                  matches << [type: INSTANCES_TYPE,
                               application: applicationName,
                               account: cluster.accountName,
                               cluster: clusterName,
@@ -180,6 +204,10 @@ class GoogleSearchProvider implements SearchProvider {
           }
         }
       }
+    }
+
+    if (types.contains(INSTANCES_TYPE)) {
+      findStandaloneInstanceMatches(query, matches)
     }
 
     if (types.contains(LOAD_BALANCERS_TYPE)) {

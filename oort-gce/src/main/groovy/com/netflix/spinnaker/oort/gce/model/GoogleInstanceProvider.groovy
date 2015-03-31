@@ -36,6 +36,14 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
   @Override
   GoogleInstance getInstance(String account, String region, String id) {
     // TODO(duftler): Create a unit test.
+    def standaloneInstance = googleResourceRetriever.standaloneInstanceMap[account]?.find { instance ->
+      instance.name == id
+    }
+
+    if (standaloneInstance) {
+      return standaloneInstance
+    }
+
     String serverGroupName = getInstanceGroupBaseName(id)
     Names nameParts = Names.parseName(serverGroupName)
     GoogleApplication googleApplication = (googleResourceRetriever.getApplicationsMap())[nameParts.app]

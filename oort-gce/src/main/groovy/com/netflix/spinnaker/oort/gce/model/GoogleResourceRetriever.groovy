@@ -28,6 +28,7 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.oort.config.GoogleConfig.GoogleConfigurationProperties
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
+import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.MIGSCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.NetworkLoadBalancersCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
@@ -54,6 +55,7 @@ class GoogleResourceRetriever {
 
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private appMap = new HashMap<String, GoogleApplication>()
+  private standaloneInstanceMap = new HashMap<String, List<GoogleInstance>>()
   private imageMap = new HashMap<String, List<String>>()
   private networkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
@@ -81,6 +83,7 @@ class GoogleResourceRetriever {
 
     try {
       def tempAppMap = new HashMap<String, GoogleApplication>()
+      def tempStandaloneInstanceMap = new HashMap<String, List<GoogleInstance>>()
       def tempImageMap = new HashMap<String, List<String>>()
       def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
@@ -96,6 +99,7 @@ class GoogleResourceRetriever {
           BatchRequest migsBatch = buildBatchRequest(compute)
           BatchRequest resourceViewsBatch = buildBatchRequest(compute)
           BatchRequest instancesBatch = buildBatchRequest(compute)
+          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
           def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
@@ -106,9 +110,9 @@ class GoogleResourceRetriever {
                                                     compute,
                                                     credentialBuilder,
                                                     replicapool,
+                                                    instanceNameToGoogleServerGroupMap,
                                                     migsBatch,
-                                                    resourceViewsBatch,
-                                                    instancesBatch)
+                                                    resourceViewsBatch)
 
           regions.each { region ->
             compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
@@ -146,11 +150,23 @@ class GoogleResourceRetriever {
           executeIfRequestsAreQueued(regionsBatch)
           executeIfRequestsAreQueued(migsBatch)
           executeIfRequestsAreQueued(resourceViewsBatch)
+
+          // Standalone instance maps are keyed by account in standaloneInstanceMap.
+          if (!tempStandaloneInstanceMap[accountName]) {
+            tempStandaloneInstanceMap[accountName] = new ArrayList<GoogleInstance>()
+          }
+
+          def instanceAggregatedListCallback =
+            new InstanceAggregatedListCallback(instanceNameToGoogleServerGroupMap,
+                                               tempStandaloneInstanceMap[accountName])
+
+          compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
           executeIfRequestsAreQueued(instancesBatch)
         }
       }
 
       appMap = tempAppMap
+      standaloneInstanceMap = tempStandaloneInstanceMap
       imageMap = tempImageMap
       networkLoadBalancerMap = tempNetworkLoadBalancerMap
     } finally {
@@ -228,8 +244,7 @@ class GoogleResourceRetriever {
                                               project,
                                               compute,
                                               credentialBuilder,
-                                              resourceViewsBatch,
-                                              instancesBatch)
+                                              resourceViewsBatch)
 
           // Handle 404 here (especially when this is called after destroying a replica pool).
           InstanceGroupManager instanceGroupManager = null
@@ -308,6 +323,10 @@ class GoogleResourceRetriever {
 
   Map<String, GoogleApplication> getApplicationsMap() {
     return appMap
+  }
+
+  Map<String, List<GoogleInstance>> getStandaloneInstanceMap() {
+    return standaloneInstanceMap
   }
 
   Map<String, List<String>> getImageMap() {
