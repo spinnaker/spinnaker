@@ -40,7 +40,7 @@ class LoadBalancerController {
     }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   Set<LoadBalancer> list(@PathVariable String account, @PathVariable String cluster, @PathVariable String type, @PathVariable String name) {
     ((List<LoadBalancer>) loadBalancerProviders.collectMany {
       it.getLoadBalancer(account, cluster, type, name) ?: []

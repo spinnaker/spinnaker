@@ -39,7 +39,7 @@ class InstanceController {
   @Autowired
   MessageSource messageSource
 
-  @RequestMapping(value = "/{account}/{region}/{id}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{id:.+}", method = RequestMethod.GET)
   Instance getInstance(@PathVariable String account, @PathVariable String region, @PathVariable String id) {
     Collection<Instance> instanceMatches = instanceProviders.findResults {
       it.getInstance(account, region, id)

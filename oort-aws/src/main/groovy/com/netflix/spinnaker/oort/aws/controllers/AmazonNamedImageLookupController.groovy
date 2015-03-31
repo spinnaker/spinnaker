@@ -44,7 +44,7 @@ class AmazonNamedImageLookupController {
     this.cacheView = cacheView
   }
 
-  @RequestMapping(value = '/{account}/{region}/{imageId}', method = RequestMethod.GET)
+  @RequestMapping(value = '/{account}/{region}/{imageId:.+}', method = RequestMethod.GET)
   List<NamedImage> getByAmiId(@PathVariable String account, @PathVariable String region, @PathVariable String imageId) {
     CacheData cd = cacheView.get(IMAGES.ns, Keys.getImageKey(imageId, account, region))
     if (cd == null) {
