@@ -7,6 +7,7 @@ angular.module('deckApp.pipelines.create')
       scope: {
         application: '=',
         target: '@',
+        reinitialize: '&',
       },
       templateUrl: 'scripts/modules/pipelines/config/actions/create/createPipelineButton.html',
       controller: 'CreatePipelineButtonCtrl',

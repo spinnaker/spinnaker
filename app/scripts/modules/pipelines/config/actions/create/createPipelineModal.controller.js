@@ -5,7 +5,8 @@ angular.module('deckApp.pipelines.create.controller', [
   'deckApp.pipelines.config.service',
   'deckApp.utils.scrollTo',
 ])
-  .controller('CreatePipelineModalCtrl', function($scope, application, target, _, pipelineConfigService, $modalInstance, $log, scrollToService, $timeout) {
+  .controller('CreatePipelineModalCtrl', function($scope, application, target, reinitialize,
+                                                  _, pipelineConfigService, $modalInstance, $log) {
 
     var noTemplate = {name: 'None', stages: [], triggers: [], application: application.name};
 
@@ -36,18 +37,9 @@ angular.module('deckApp.pipelines.create.controller', [
       return pipelineConfigService.savePipeline(template).then(
         function() {
           template.isNew = true;
-          template.tempId = new Date().getTime();
-          if (target === 'top') {
-            application.pipelines.splice(0, 0, template);
-            scrollToService.scrollTo(template.tempId, null, 220);
-          } else {
-            application.pipelines.push(template);
-            scrollToService.scrollTo(template.tempId, null, 100);
+          if (reinitialize) {
+            reinitialize();
           }
-          $timeout(function() {
-            delete template.tempId;
-          });
-
           $modalInstance.close();
         },
         function(response) {

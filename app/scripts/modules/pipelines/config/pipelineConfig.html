@@ -15,7 +15,7 @@
 <div class="row" ng-if="application.pipelines.length">
   <div class="row">
     <div class="col-md-8" style="margin-top: 20px">
-      <create-pipeline-button application="application" target="top"></create-pipeline-button>
+      <create-pipeline-button application="application" target="top" reinitialize="pipelineConfigCtrl.initialize()"></create-pipeline-button>
     </div>
   </div>
 </div>
@@ -23,8 +23,7 @@
        ui-sortable="pipelineSortOptions"
        ng-model="application.pipelines">
   <div class="row pipeline-configurer"
-       ng-repeat="pipeline in application.pipelines"
-       ng-class="{'new-pipeline': pipeline.isNew}">
+       ng-repeat="pipeline in application.pipelines | orderBy:'index'">
     <div class="col-md-8">
       <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
     </div>
@@ -39,7 +38,7 @@
   <div class="row">
     <div class="col-md-8">
       <h4 ng-if="!application.pipelines.length" class="text-center">You don't have any pipelines configured for {{application.name}}.</h4>
-      <create-pipeline-button application="application"></create-pipeline-button>
+      <create-pipeline-button application="application" reinitialize="pipelineConfigCtrl.initialize()"></create-pipeline-button>
     </div>
   </div>
 </div>

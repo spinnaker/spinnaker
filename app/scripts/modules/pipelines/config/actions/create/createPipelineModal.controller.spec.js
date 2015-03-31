@@ -4,21 +4,18 @@ describe('Controller: createPipelineModal', function() {
 
   beforeEach(module('deckApp.pipelines.create'));
 
-  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService, scrollToService, $timeout) {
+  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
     this.$q = $q;
-    this.initializeController = function(application) {
+    this.initializeController = function(application, reinitialize) {
       this.$scope = $rootScope.$new();
       this.pipelineConfigService = pipelineConfigService;
       this.$modalInstance = { close: angular.noop };
-      this.scrollToService = scrollToService;
-      this.$timeout = $timeout;
       this.controller = $controller('CreatePipelineModalCtrl', {
         $scope: this.$scope,
         application: application,
+        reinitialize: reinitialize,
         pipelineConfigService: this.pipelineConfigService,
         $modalInstance: this.$modalInstance,
-        scrollToService: this.scrollToService,
-        timeout: this.$timeout,
         target: null,
         _: _,
         $log: $log
@@ -120,31 +117,30 @@ describe('Controller: createPipelineModal', function() {
       expect(submitted.isPlainNow).toBe(true);
     });
 
-    it('should insert new pipeline as last one in application, set its index, and scroll to it, then delete the tempId', function() {
+    it('should insert new pipeline as last one in application and set its index, then call reinitialize', function() {
       var $q = this.$q;
       var submitted = null;
+      var reinitialized = false;
       var application = {name:'the_app', pipelines: [ {name: 'a'}]};
-      this.initializeController(application);
+      function reinitialize() {
+        reinitialized = true;
+      }
+
+      this.initializeController(application, reinitialize);
       spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function (pipeline) {
         submitted = pipeline;
         return $q.when(null);
       });
       spyOn(this.$modalInstance, 'close');
-      spyOn(this.scrollToService, 'scrollTo');
 
       this.$scope.command.name = 'new pipeline';
 
       this.controller.createPipeline();
       this.$scope.$digest();
 
-      expect(application.pipelines.length).toBe(2);
-      expect(application.pipelines[1]).toBe(submitted);
+      expect(this.$scope.command.template).toBe(submitted);
       expect(submitted.index).toBe(1);
-      expect(this.scrollToService.scrollTo).toHaveBeenCalled();
-      expect(submitted.tempId).not.toBeUndefined();
-
-      this.$timeout.flush();
-      expect(submitted.tempId).toBeUndefined();
+      expect(reinitialized).toBe(true);
     });
 
     it('sets error flag, message when save is rejected', function() {
