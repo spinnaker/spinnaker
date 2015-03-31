@@ -54,6 +54,13 @@
           Security Groups
         </a>
       <li>
+      <li ng-if="feature.fastProperty">
+        <a ui-sref=".properties"
+           analytics-on="click" analytics-category="Application View" analytics-label="Properties tab selected"
+           ng-class="{active: $state.includes('**.properties')}">
+          Properties
+        </a>
+      <li>
       <li>
         <a ui-sref=".tasks"
            analytics-on="click" analytics-category="Application View" analytics-label="Tasks tab selected"

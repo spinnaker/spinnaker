@@ -1,0 +1,56 @@
+
+<div class="col-md-4 col-sm-12">
+  <form class="form form-horizontal">
+    <div class="form-group">
+      <div class="col-md-12">
+        <input type="search"
+               placeholder="Search applications"
+               class="form-control input-md"
+               focus
+               ng-model="fp.applicationFilter"
+               ng-change="fp.filter(fp.applications)"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+<h2 ng-if="!fp.applicationsLoaded" class="text-center" style="margin-bottom: 250px">
+  <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+</h2>
+
+<div class="row">
+  <div class="col-md-12">
+    <table ng-if="fp.applications" class="table table-hover">
+      <thead>
+      <tr>
+        <th width="20%" key="name" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Name</th>
+        <th width="20%" key="createTs" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Created</th>
+        <th width="20%" key="updateTs" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Created</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr class="clickable" ng-repeat="application in fp.filteredResultPage()" ui-sref="home.applications.application.properties({ application: application.name.toLowerCase() })">
+        <td>
+          <a ui-sref="home.applications.application.properties({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
+            {{ application.name.toLowerCase() }}
+          </a>
+        </td>
+        <td>
+          {{ application.createTs | timestamp }}
+        </td>
+        <td>
+          {{ application.updateTs | timestamp }}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+
+    <pagination ng-if="fp.applications"
+                total-items="fp.filteredCount()"
+                max-size="fp.pagination.maxSize"
+                ng-model="fp.pagination.currentPage">
+    </pagination>
+  </div>
+
+</div>

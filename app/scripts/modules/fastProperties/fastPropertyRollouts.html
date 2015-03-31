@@ -1,0 +1,71 @@
+
+<div class="col-md-4 col-sm-12">
+  <form class="form form-horizontal">
+    <div class="form-group">
+      <div class="col-md-12">
+        <input type="search"
+               placeholder="Search applications"
+               class="form-control input-md"
+               focus
+               ng-model="rollout.applicationFilter"
+               ng-change="rollout.filter()"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!--<h2 ng-if="!fp.applicationsLoaded" class="text-center" style="margin-bottom: 250px">-->
+  <!--<span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>-->
+<!--</h2>-->
+
+
+<div class="row">
+  <div class="col-md-12">
+    <table ng-if="rollout.promotions" class="table table-hover">
+      <thead>
+      <tr>
+        <th width="20%" key="application" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Application</th>
+        <th width="20%" key="property" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
+        <th width="20%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
+        <th width="10%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
+        <th width="20%"> <!--progress bar--></th>
+        <th width="10%"> Continue</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr class="clickable" ng-repeat="promotion in rollout.filteredPropmotions">
+        <td>
+          <a ui-sref="home.applications.application.properties({ application: promotion.scopes.from.appId.toLowerCase() })">
+            {{ promotion.scopes.from.appId }}
+          </a>
+        </td>
+        <td>
+          {{ promotion.keyValue[0] }}
+        </td>
+        <td>
+          {{ promotion.history[0].when | fastPropertyTime}}
+        </td>
+        <td>
+          {{ promotion.state }}
+        </td>
+        <td>
+          <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
+          <small>{{rollout.getLastMessage(promotion)}}</small>
+        </td>
+        <td>
+          <button class="btn btn-success" ng-if="promotion.state == 'Running'" ng-click="rollout.continue(promotion.id)">yes</button>
+          <button class="btn btn-danger" ng-if="promotion.state == 'Running'" ng-click="rollout.stop(promotion.id)">no</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+
+    <pagination ng-if="fp.applications"
+                total-items="fp.filteredCount()"
+                max-size="fp.pagination.maxSize"
+                ng-model="fp.pagination.currentPage">
+    </pagination>
+  </div>
+
+</div>

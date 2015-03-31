@@ -1,0 +1,34 @@
+<form role="form" novalidate name="newFastPropertyScopeForm">
+  <div class="modal-body">
+    <div class="form-group row">
+      <div class="col-sm-6">
+
+        <ui-select ng-model="ss.selectedScopes" theme="select2" class="scope-box form-control input-sm" on-select="ss.scopeLevelSelected($select.selected)">
+          <ui-select-match placeholder="Select scope...">{{$select.selected.name}}</ui-select-match>
+          <ui-select-choices repeat="scope.id as scope in ss.scopes | filter: $select.search">
+            <span ng-bind-html="scope.name | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+
+      </div>
+
+      <div class="col-sm-6">
+
+        <ui-select ng-model="ss.scope" class="scope-box form-control input-sm" on-select="ss.scopeSelected($select.selected)">
+          <ui-select-match placeholder="None" allow-clear="true">{{$select.selected.primary}}</ui-select-match>
+
+          <ui-select-choices
+            repeat="scope.primary as scope in ss.filteredScopeResults | limitTo: ss.infiniteScroll.currentItems"
+            refresh="ss.findScope($select.search)"
+            refresh-delay="0"
+            infinite-scroll="ss.addMoreItems()"
+            infinite-scroll-distance="2" >
+            <strong ng-bind-html="scope.primary | highlight: $select.search"></strong>
+            <div ng-bind-html="scope.secondary.join('&rarr;') | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+
+    </div>
+  </div>
+</form>

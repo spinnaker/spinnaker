@@ -372,7 +372,8 @@ angular.module('deckApp.states', [
         url: '/config',
         views: {
           'insight': {
-            templateUrl: 'scripts/modules/config/config.html',
+
+            templateUrl: 'scripts/modules/fastProperties/fastPropertyRollouts.html',
             controller: 'ConfigController',
             controllerAs: 'config'
           },
@@ -383,6 +384,41 @@ angular.module('deckApp.states', [
           }
         }
       };
+
+      var fastPropertyRollouts = {
+        name: 'rollouts',
+        url: '/rollouts',
+        views: {
+          'master': {
+            templateUrl: 'scripts/modules/fastProperties/fastPropertyRollouts.html',
+            controller: 'FastPropertyRolloutController',
+            controllerAs: 'rollout'
+          }
+        },
+        data: {
+          pageTitleSection: {
+            title: 'Fast Property Rollout'
+          }
+        }
+      };
+
+      var appFastProperties = {
+        name: 'properties',
+        url: '/properties',
+        views: {
+          'insight': {
+            templateUrl: 'scripts/modules/fastProperties/applicationProperties.html',
+            controller: 'ApplicationPropertiesController',
+            controllerAs: 'fp'
+          }
+        },
+        data: {
+          pageTitleSection: {
+            title: 'Fast Properties'
+          }
+        }
+      };
+
 
       var application = {
         name: 'application',
@@ -413,7 +449,8 @@ angular.module('deckApp.states', [
           tasks,
           deliveryStates.executions,
           deliveryStates.configure,
-          config
+          config,
+          appFastProperties,
         ],
       };
 
@@ -436,6 +473,42 @@ angular.module('deckApp.states', [
           application
         ],
       };
+
+      var fastProperties = {
+        name: 'properties',
+        url: '/properties',
+        reloadOnSearch: false,
+        views: {
+          'master': {
+            templateUrl: 'scripts/modules/fastProperties/properties.html',
+            controller: 'FastPropertiesController',
+            controllerAs: 'fp'
+          }
+        }
+      };
+
+      var data = {
+        name: 'data',
+        url: '/data',
+        reloadOnSearch: false,
+        views: {
+          'main@': {
+            templateUrl: 'scripts/modules/fastProperties/main.html',
+            controller: 'FastPropertyDataController',
+            controllerAs: 'data'
+          }
+        },
+        data: {
+          pageTitleMain: {
+            label: 'Data'
+          }
+        },
+        children: [
+          fastProperties,
+          fastPropertyRollouts,
+        ]
+      };
+
 
       var infrastructure = {
         name: 'infrastructure',
@@ -500,6 +573,7 @@ angular.module('deckApp.states', [
           notFound,
           applications,
           infrastructure,
+          data,
           standaloneInstance
         ],
       };

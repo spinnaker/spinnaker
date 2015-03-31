@@ -1,0 +1,31 @@
+<div class="row page-header application-header ">
+
+  <div class="container">
+
+      <h2 data-purpose="view-header">Data</h2>
+
+      <ul class="nav nav-pills">
+        <li>
+          <a ui-sref=".properties"
+             analytics-on="click" analytics-category="Fast Properties View" analytics-label="Properties tab selected"
+             ng-class="{active: $state.includes('**.properties.**')}">
+            Properties
+          </a>
+        </li>
+        <li>
+          <a ui-sref=".rollouts"
+             ng-class="{active: $state.includes('**.rollouts.**')}">
+            Rollouts
+          </a>
+        </li>
+      </ul>
+
+    </div>
+  </div>
+
+  <div class="col-md-12 secondary-panel">
+    <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
+  </div>
+
+</div>
+

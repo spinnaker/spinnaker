@@ -1,0 +1,13 @@
+<div class="form-group row">
+  <div class="col-sm-6">
+
+    <ui-select class="scope-box form-control input-sm" ng-change="ss.scopeSelected($select.selected)">
+      <ui-select-match  placeholder="Select scope">{{$select.selected.name}}</ui-select-match>
+      <ui-select-choices repeat="scope.id as scope in ss.scopes | filter: $select.search">
+        <span ng-bind-html="scope.name | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+
+  </div>
+</div>
+

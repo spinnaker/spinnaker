@@ -1,0 +1,58 @@
+<div modal-page class="confirmation-modal">
+  <!--<task-monitor monitor="taskMonitor"></task-monitor>-->
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Delete Fast Property</h3>
+  </div>
+  <div class="modal-body confirmation-modal" ng-if="delete.fastProperty">
+    <form role="form" class="container-fluid" ng-submit="ctrl.confirm()">
+
+      <div class="row" ng-if="delete.fastProperty.env == 'prod'">
+        <div class="col-sm-offset-1 col-sm-10">
+          <p>Type the name of the account ( <account-tag account="delete.fastProperty.env.toUpperCase()"></account-tag> ) below to continue.</p>
+          <div class="form-inline">
+            <div class="form-group">
+              <input type="text" auto-focus ng-model="delete.verification.verifyAccount" class="form-control input-sm highlight-pristine" ng-class="{'ng-invalid': delete.verification.verifyAccount !== delete.fastProperty.env.toUpperCase()}"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-sm-offset-1 col-sm-10">
+          <p>Enter the CMC Ticket</p>
+          <div class="form-inline">
+            <input type="text" data-ng-model="delete.fastProperty.cmcTicket" class="form-control input-sm highlight-pristine"
+                   ng-class="{'ng-invalid': delete.fastProperty.cmcTicket === '' || delete.fastProperty.cmcTicket == null}"
+              />
+          </div>
+        </div>
+      </div>
+
+    </form>
+
+
+    <div ng-if="delete.state.error">
+      <div class="alert alert-danger">
+        <h4>An exception occurred:</h4>
+        <p>
+          {{errorMessage || 'No details provided.'}}
+        </p>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="delete.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-disabled="delete.formDisabled()"
+            ng-click="delete.confirm()">
+      <span ng-if="params.glyphicon" class="glyphicon glyphicon-{{params.glyphicon}}"></span>
+        <span ng-if="state.submitting" style="display: inline-block; position: relative; width: 16px; height: 15px">
+          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
+        </span>
+      Delete
+    </button>
+  </div>
+</div>
