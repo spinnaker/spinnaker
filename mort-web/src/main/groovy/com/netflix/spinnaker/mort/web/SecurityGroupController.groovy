@@ -124,7 +124,7 @@ class SecurityGroupController {
     }) toBlocking() first()
   }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName}")
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{securityGroupName:.+}")
   Map<String, Set<SecurityGroupSummary>> listByAccountAndTypeAndName(@PathVariable String account, @PathVariable String type,
                                                  @PathVariable String securityGroupName) {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
@@ -140,7 +140,7 @@ class SecurityGroupController {
     }) toBlocking() first()
     }
 
-  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{region}/{securityGroupName}")
+  @RequestMapping(method = RequestMethod.GET, value = "/{account}/{type}/{region}/{securityGroupName:.+}")
   SecurityGroup get(@PathVariable String account,
                     @PathVariable String type,
                     @PathVariable String region,
