@@ -24,6 +24,7 @@ angular.module('deckApp.pipelines.config.service', [
     }
 
     function savePipeline(pipeline, retainIsNewFlags) {
+      delete pipeline.isNew;
       pipeline.stages.forEach(function(stage) {
         if (!retainIsNewFlags) {
           delete stage.isNew;

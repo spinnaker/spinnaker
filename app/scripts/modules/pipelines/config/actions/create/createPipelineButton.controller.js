@@ -9,7 +9,8 @@ angular.module('deckApp.pipelines.create')
         controllerAs: 'createPipelineModalCtrl',
         resolve: {
           application: function() { return $scope.application; },
-          target: function() { return $scope.target; }
+          target: function() { return $scope.target; },
+          reinitialize: function() { return $scope.reinitialize; },
         }
       });
     };

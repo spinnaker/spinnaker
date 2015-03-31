@@ -1,7 +1,7 @@
 <accordion>
   <accordion-group is-open="viewState.expanded">
     <accordion-heading>
-      <h4 class="heading-pipeline-config" ng-attr-id="{{pipeline.tempId}}">
+      <h4 class="heading-pipeline-config">
         <span class="glyphicon glyphicon-chevron-{{viewState.expanded ? 'down' : 'right'}}"></span> {{pipeline.name || '[Unnamed]'}} <span ng-if="pipeline.disabled" class="badge badge-disabled">disabled</span>
         <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
       </h4>
