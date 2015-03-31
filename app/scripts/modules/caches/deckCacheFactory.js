@@ -92,6 +92,9 @@ angular.module('deckApp.caches.core', [
 
           // namespaced
           var key = buildCacheKey(namespace, cacheId);
+          if (cacheFactory.get(key)) {
+            cacheFactory.get(key).destroy();
+          }
           cacheFactory(key, {
             storageMode: 'localStorage',
             storagePrefix: getStoragePrefix(key, i),
