@@ -57,7 +57,6 @@ describe('deckApp.caches.infrastructure', function() {
       expect(this.cacheInstantiations[5].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 2));
       expect(this.removalCalls.length).toBe(5);
       expect(this.removalCalls).toEqual(['myCache', 'myCache', 'infrastructure:myCache', 'myCache', 'infrastructure:myCache']);
-      expect(this.destroyCalls).toEqual(['myCache', 'myCache', 'infrastructure:myCache', 'myCache', 'infrastructure:myCache']);
 
     });
 
