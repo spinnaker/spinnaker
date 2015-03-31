@@ -3,7 +3,7 @@ versions:
   amazoncomponents: "0.11.2"
   amos: "0.26"
   cats: "0.14"
-  kork: "1.30"
+  kork: "1.31"
   redbatch: "0.1"
 # third party
   astyanax: "2.0.2"
