@@ -36,7 +36,7 @@ class ServerGroupController {
     serverGroupService.getForApplication(applicationName)
   }
 
-  @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName}", method = RequestMethod.GET)
+  @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
   Map getServerGroupDetails(@PathVariable String applicationName,
                             @PathVariable String account,
                             @PathVariable String region,

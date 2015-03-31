@@ -34,13 +34,13 @@ class LoadBalancerController {
     loadBalancerService.getAll(provider)
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   Map getLoadBalancer(@PathVariable String name,
                       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.get(name, provider)
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getLoadBalancerDetails(@PathVariable String account,
                                    @PathVariable String region,
                                    @PathVariable String name,
