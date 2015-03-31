@@ -15,7 +15,8 @@ angular.module('deckApp.caches.infrastructure.config', [])
       version: 2 // increment to force refresh of cache on next page load - can be added to any cache
     },
     instanceTypes: {
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      version: 2
     },
     keyPairs: {},
     buildMasters: {
