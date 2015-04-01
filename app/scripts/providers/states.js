@@ -14,6 +14,14 @@ angular.module('deckApp.states', [
       }]);
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
+
+      // Handle legacy links to old instance details paths
+      $urlRouterProvider.when(
+        '/applications/{application}/clusters/instanceDetails?instanceId',
+        '/applications/{application}/clusters/instanceDetails/aws/{instanceId}'
+      );
+
+      // Handle legacy links to old clusters paths
       $urlRouterProvider.when(
         '/applications/{application}/clusters/{acct}/{q}?reg',
         ['$match', function ($match) {
