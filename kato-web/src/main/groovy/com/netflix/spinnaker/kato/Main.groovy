@@ -28,7 +28,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters"])
+@ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
 class Main extends SpringBootServletInitializer {
 

@@ -43,6 +43,7 @@ dependencies {
   compile project(":kato-docker")
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
+  compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
   testCompile ("org.springframework.boot:spring-boot-starter-test")
@@ -65,7 +66,7 @@ sourceSets {
 }
 
 jar {
-  doFirst { 
+  doFirst {
     exclude "${rootProject.name}.yml"
   }
 }
