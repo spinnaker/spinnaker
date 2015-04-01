@@ -12,6 +12,7 @@ angular
           {
             type: 'terminateInstances',
             instanceIds: [instance.instanceId],
+            serverGroup: instance.serverGroup,
             launchTimes: [instance.launchTime],
             region: instance.region,
             zone: instance.placement.availabilityZone,
