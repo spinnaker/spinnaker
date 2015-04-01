@@ -52,7 +52,7 @@ class TerminateGoogleInstancesTask implements Task {
 
   // If the instance is contained within a server group, we want to delegate to the kato task that results in a managed
   // instance groups recreate instances operation. If the instance is standalone, we want to delegate to the kato task
-  // that results in an instance delete operation.
+  // that results in instance delete operations.
   Map convert(Stage stage) {
     def operation = [:]
 
