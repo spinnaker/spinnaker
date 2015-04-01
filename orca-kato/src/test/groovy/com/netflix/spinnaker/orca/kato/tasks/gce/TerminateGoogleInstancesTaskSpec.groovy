@@ -56,13 +56,9 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].terminateGoogleInstancesDescription) {
-      it instanceof Map
-      zone == this.terminateInstancesConfig.zone
-      credentials == this.terminateInstancesConfig.credentials
-      instanceIds == this.terminateInstancesConfig.instanceIds
-      launchTimes == this.terminateInstancesConfig.launchTimes
-    }
+    def katoRequest = operations[0].terminateGoogleInstancesDescription
+    katoRequest instanceof Map
+    validTerminateInstancesCall(katoRequest)
   }
 
   def "creates a recreate google replica pool instance task based on job parameters"() {
@@ -81,13 +77,19 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].recreateGoogleReplicaPoolInstancesDescription) {
-      it instanceof Map
-      replicaPoolName == this.serverGroup
-      zone == this.terminateInstancesConfig.zone
-      credentials == this.terminateInstancesConfig.credentials
-      instanceIds == this.terminateInstancesConfig.instanceIds
-      launchTimes == this.terminateInstancesConfig.launchTimes
+    def katoRequest = operations[0].recreateGoogleReplicaPoolInstancesDescription
+    katoRequest instanceof Map
+    validTerminateInstancesCall(katoRequest)
+
+    katoRequest.replicaPoolName == serverGroup
+  }
+
+  void validTerminateInstancesCall(Map katoRequest) {
+    with (katoRequest) {
+      assert zone == this.terminateInstancesConfig.zone
+      assert credentials == this.terminateInstancesConfig.credentials
+      assert instanceIds == this.terminateInstancesConfig.instanceIds
+      assert launchTimes == this.terminateInstancesConfig.launchTimes
     }
   }
 
