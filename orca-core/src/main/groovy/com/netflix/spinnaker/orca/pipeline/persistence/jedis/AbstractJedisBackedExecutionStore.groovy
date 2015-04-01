@@ -82,6 +82,9 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     try {
       T item = retrieve(id)
       jedis.hdel(key, "config")
+      jedis.srem(alljobsKey, id)
+      def appKey = getAppKey(item.application)
+      jedis.srem(appKey, id)
       item.stages.each { Stage stage ->
         def stageKey = "${storePrefix}:stage:${stage.id}"
         jedis.hdel(stageKey, "config")

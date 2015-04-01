@@ -58,8 +58,9 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
 
   def "a pipeline can be retrieved after being stored"() {
     given:
+    def application = "orca"
     def pipeline = Pipeline.builder()
-                           .withApplication("orca")
+                           .withApplication(application)
                            .withName("dummy-pipeline")
                            .withTrigger(name: "some-jenkins-job", lastBuildLabel: 1)
                            .withStage("one", "one", [foo: "foo"])
@@ -71,6 +72,8 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
     pipelineStore.store(pipeline)
 
     expect:
+    pipelineStore.allForApplication(application).id == [pipeline.id]
+
     with(((Pipeline)pipelineStore.retrieve(pipeline.id))) {
       id == pipeline.id
       application == pipeline.application
@@ -131,12 +134,14 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
 
   def "deleting a pipeline removes pipeline and stages"() {
     given:
+    def application = "someApp"
     def pipeline = Pipeline.builder()
       .withStage("one", "one", [:])
       .withStage("two", "two", [:])
       .withStage("one-a", "one-1", [:])
       .withStage("one-b", "one-1", [:])
       .withStage("one-a-a", "three", [:])
+      .withApplication(application)
       .build()
 
     def one = pipeline.stages.find { it.type == "one"}
@@ -159,5 +164,13 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
 
     then:
     thrown ExecutionNotFoundException
+
+    when:
+    def allForApplication = pipelineStore.allForApplication(application)
+    def allJobs = pipelineStore.all()
+
+    then:
+    allForApplication == []
+    allJobs == []
   }
 }
