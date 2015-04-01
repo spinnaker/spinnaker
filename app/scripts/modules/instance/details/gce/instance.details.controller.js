@@ -23,14 +23,13 @@ angular.module('deckApp.instance.detail.gce.controller', [
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
       if (application.isStandalone) {
-        $scope.healthMetrics = latest.health;
-        return;
+        instance.health = latest.health;
       }
 
       instance.health = instance.health || [];
       var displayableMetrics = instance.health.filter(
         function(metric) {
-          return metric.type !== 'Amazon' || metric.state !== 'Unknown';
+          return metric.type !== 'GCE' || metric.state !== 'Unknown';
         });
       $scope.healthMetrics = displayableMetrics;
     }
