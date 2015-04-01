@@ -174,10 +174,11 @@ angular.module('deckApp.cluster.service', [
 
 
 
-    function addProvidersToInstances(serverGroups) {
+    function addProvidersAndServerGroupsToInstances(serverGroups) {
       serverGroups.forEach(function(serverGroup) {
         serverGroup.instances.forEach(function(instance) {
           instance.provider = serverGroup.type;
+          instance.serverGroup = instance.serverGroup || serverGroup.name;
         });
       });
     }
@@ -193,7 +194,7 @@ angular.module('deckApp.cluster.service', [
           clusters.push(cluster);
         });
       });
-      addProvidersToInstances(serverGroups);
+      addProvidersAndServerGroupsToInstances(serverGroups);
       return clusters;
     }
 
