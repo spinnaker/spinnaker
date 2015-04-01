@@ -51,6 +51,8 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
           boolean instanceIsHealthy = instance.status == "RUNNING"
 
           def googleInstance = new GoogleInstance(instance.name)
+
+          // Set attributes that deck requires to render instance.
           googleInstance.setProperty("isHealthy", instanceIsHealthy)
           googleInstance.setProperty("instanceId", instance.name)
           googleInstance.setProperty("instanceType", Utils.getLocalName(instance.machineType))
@@ -60,9 +62,15 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
           googleInstance.setProperty("health", [[type : "GCE",
                                                  state: instanceIsHealthy ? "Up" : "Down"]])
 
+          // Set all google-provided attributes for use by non-deck callers.
+          googleInstance.putAll(instance)
+
           def googleServerGroup = instanceNameToGoogleServerGroupMap[instance.name]
 
           if (googleServerGroup) {
+            // Set serverGroup so we can easily determine in deck if an instance is contained within a server group.
+            googleInstance.setProperty("serverGroup", googleServerGroup.name)
+
             googleServerGroup.instances << googleInstance
           } else {
             standaloneInstanceList << googleInstance
