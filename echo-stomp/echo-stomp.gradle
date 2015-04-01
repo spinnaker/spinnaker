@@ -18,7 +18,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
     compile project(':echo-model')
-    compile 'org.springframework.boot:spring-boot-starter-websocket:1.1.7.RELEASE'
+    compile "org.springframework.boot:spring-boot-starter-websocket:${springBootVersion}"
     compile 'org.springframework:spring-messaging:4.0.7.RELEASE'
     testCompile commonDependencies.spockSpring
     testCompile commonDependencies.springTest
