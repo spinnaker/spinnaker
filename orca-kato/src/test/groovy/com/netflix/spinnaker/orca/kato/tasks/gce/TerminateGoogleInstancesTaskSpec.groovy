@@ -35,12 +35,13 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
     instanceIds: ['i-123456', 'i-654321'],
     launchTimes: [1419273631008, 1419273085007]
   ]
+  def serverGroup = "some-server-group"
 
   def setup() {
     stage.context.putAll(terminateInstancesConfig)
   }
 
-  def "creates a terminate google Instance task based on job parameters"() {
+  def "creates a terminate google instance task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
@@ -55,12 +56,40 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].terminateGoogleInstancesDescription) {
-      it instanceof Map
-      zone == this.terminateInstancesConfig.zone
-      credentials == this.terminateInstancesConfig.credentials
-      instanceIds == this.terminateInstancesConfig.instanceIds
-      launchTimes == this.terminateInstancesConfig.launchTimes
+    def katoRequest = operations[0].terminateGoogleInstancesDescription
+    katoRequest instanceof Map
+    validTerminateInstancesCall(katoRequest)
+  }
+
+  def "creates a recreate google replica pool instance task based on job parameters"() {
+    given:
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations = it[0]
+        rx.Observable.from(taskId)
+      }
+    }
+
+    when:
+    stage.context.serverGroup = serverGroup
+    task.execute(stage.asImmutable())
+
+    then:
+    operations.size() == 1
+    def katoRequest = operations[0].recreateGoogleReplicaPoolInstancesDescription
+    katoRequest instanceof Map
+    validTerminateInstancesCall(katoRequest)
+
+    katoRequest.replicaPoolName == serverGroup
+  }
+
+  void validTerminateInstancesCall(Map katoRequest) {
+    with (katoRequest) {
+      assert zone == this.terminateInstancesConfig.zone
+      assert credentials == this.terminateInstancesConfig.credentials
+      assert instanceIds == this.terminateInstancesConfig.instanceIds
+      assert launchTimes == this.terminateInstancesConfig.launchTimes
     }
   }
 
