@@ -142,7 +142,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstance(instance, $scope.application);
+        return instanceWriter.terminateInstance(instance, application);
       };
 
       confirmationModalService.confirm({
@@ -165,7 +165,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.rebootInstance(instance, $scope.application);
+        return instanceWriter.rebootInstance(instance, application);
       };
 
       confirmationModalService.confirm({
@@ -189,7 +189,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, $scope.application);
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, application);
       };
 
       confirmationModalService.confirm({
@@ -212,7 +212,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, $scope.application);
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, application);
       };
 
       confirmationModalService.confirm({
@@ -235,7 +235,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.enableInstanceInDiscovery(instance, $scope.application);
+        return instanceWriter.enableInstanceInDiscovery(instance, application);
       };
 
       confirmationModalService.confirm({
@@ -257,7 +257,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.disableInstanceInDiscovery(instance, $scope.application);
+        return instanceWriter.disableInstanceInDiscovery(instance, application);
       };
 
       confirmationModalService.confirm({
