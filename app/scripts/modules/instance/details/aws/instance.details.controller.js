@@ -24,8 +24,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
       if (application.isStandalone) {
-        $scope.healthMetrics = latest.health;
-        return;
+        instance.health = latest.health;
       }
 
       instance.health = instance.health || [];
