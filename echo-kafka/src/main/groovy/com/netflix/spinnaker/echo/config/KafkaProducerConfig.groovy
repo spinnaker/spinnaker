@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.config
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.Configuration
  * Kafka configuration
  */
 @Configuration
+@ConditionalOnExpression
 @SuppressWarnings('GStringExpressionWithinString')
 class KafkaProducerConfig {
 

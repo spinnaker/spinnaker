@@ -10,14 +10,3 @@ search:
 # server:
   # port: 8120
 
-kafka:
-  prefix: '_suro'
-  hostname: 'echo.prod.netflix.com'
-  app: 'spinnaker'
-  rowid: 'events'
-  client:
-    id: 'spinnaker-echo'
-  bootstrap:
-    servers: 'default.kafka.us-east-1.dyntest.netflix.net:7101'
-  acks: '1'
-  topic: 'spinnaker_events'
