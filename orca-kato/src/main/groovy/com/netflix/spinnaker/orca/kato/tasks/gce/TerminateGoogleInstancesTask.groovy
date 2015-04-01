@@ -34,7 +34,8 @@ class TerminateGoogleInstancesTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[terminateGoogleInstancesDescription: stage.context]])
+    def katoRequest = convert(stage)
+    def taskId = kato.requestOperations([katoRequest])
                      .toBlocking()
                      .first()
 
@@ -47,5 +48,24 @@ class TerminateGoogleInstancesTask implements Task {
         "kato.task.id"          : taskId, // TODO retire this.
         "terminate.instance.ids": stage.context.instanceIds,
     ])
+  }
+
+  Map convert(Stage stage) {
+    def operation = [:]
+
+    operation.putAll(stage.context)
+
+    if (operation.serverGroup) {
+      operation.replicaPoolName = operation.remove('serverGroup')
+    }
+
+    def katoOperationDescription = operation.replicaPoolName
+                                   ? 'recreateGoogleReplicaPoolInstancesDescription'
+                                   : 'terminateGoogleInstancesDescription'
+    def katoRequest = [:]
+
+    katoRequest[katoOperationDescription] = operation
+
+    katoRequest
   }
 }
