@@ -20,10 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@Slf4j
 class OperationsController {
 
   @Autowired
@@ -91,12 +93,14 @@ class OperationsController {
   private Map<String, String> startPipeline(Map config) {
     def json = objectMapper.writeValueAsString(config)
     def pipeline = pipelineStarter.start(json)
+    log.info('requested pipeline {}:{}', pipeline.id, json)
     [ref: "/pipelines/${pipeline.id}".toString()]
   }
 
   private Map<String, String> startTask(Map config) {
     def json = objectMapper.writeValueAsString(config)
     def pipeline = orchestrationStarter.start(json)
+    log.info('requested task {}:{}', pipeline.id, json)
     [ref: "/tasks/${pipeline.id}".toString()]
   }
 }
