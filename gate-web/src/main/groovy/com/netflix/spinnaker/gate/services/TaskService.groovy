@@ -53,6 +53,12 @@ class TaskService {
     } execute()
   }
 
+  Map deleteTask(String id) {
+    HystrixFactory.newMapCommand(GROUP, "deleteTask", true) {
+      orcaService.deleteTask(id)
+    } execute()
+  }
+
   Map getTaskDetails(String taskDetailsId) {
     HystrixFactory.newMapCommand(GROUP, "getTaskDetails", true) {
       katoService.getTaskDetails(taskDetailsId)

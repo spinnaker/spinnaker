@@ -37,6 +37,10 @@ interface OrcaService {
   Map getTask(@Path("id") String id)
 
   @Headers("Accept: application/json")
+  @DELETE("/tasks/{id}")
+  Map deleteTask(@Path("id") String id)
+
+  @Headers("Accept: application/json")
   @GET("/tasks")
   Map all()
 
@@ -47,6 +51,10 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/cancel")
   Map cancelPipeline(@Path("id") String id)
+
+  @Headers("Accept: application/json")
+  @DELETE("/pipelines/{id}")
+  Map deletePipeline(@Path("id") String id)
 
   @Headers("Accept: application/json")
   @POST("/orchestrate")

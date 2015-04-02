@@ -37,6 +37,11 @@ class TaskController {
     taskService.getTask(id)
   }
 
+  @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+  Map deleteTask(@PathVariable("id") String id) {
+    taskService.deleteTask(id)
+  }
+
   @RequestMapping(method = RequestMethod.POST)
   Map task(@RequestBody Map map) {
     taskService.createAppTask(map)
