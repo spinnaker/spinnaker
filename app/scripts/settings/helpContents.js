@@ -87,6 +87,28 @@ angular.module('deckApp.help')
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
 
+    'pipieline.config.canary.masterCluster': '' +
+      '<p>A <em>master cluster</em> is used to create a baseline and canary cluster pair.</p>' +
+      '<p>The version deployed in the master cluster will be deployed in the baseline, while the version under test will be deployed into the canary.</p>' +
+      '<p>The resulting clusters will match the master cluster configuration, with <em>baseline</em> and <em>canary</em> added to the Free Form Details section of the name</p>',
+
+    'pipeline.config.canary.resultStrategy': '' +
+      '<p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>' +
+      '<p>The <em>lowest</em> strategy means that the cluster with the lowest score is used as the rolled up score</p>' +
+      '<p>The <em>average</em> strategy takes the average of all the canary scores</p>',
+
+    'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes to wait before generating an initial canary score.</p>',
+
+    'pipeline.config.canary.notificationHours': '<p>Hours at which to send a notification (comma separated)</p>',
+
+    'pipeline.config.canary.canaryInterval': '<p>The frequency in minutes at which a canary score is generated.</p>',
+
+    'pipeline.config.canary.successfulScore': '<p>Minimum score the canary must achieve to be considered successful.</p>',
+    'pipeline.config.canary.unhealthyScore': '<p>Lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
+    'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
+    'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
+
+
     'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
       '<ul>' +
       '<li>For <b>AWS</b>, a server group is an <b>Auto Scaling Group</b>.</li>' +
