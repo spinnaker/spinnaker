@@ -43,7 +43,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   abstract
   protected Map<String, List<String>> getServerGroups(Stage stage)
 
-  abstract protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames)
+  abstract protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames)
 
   @Override
   TaskResult execute(Stage stage) {

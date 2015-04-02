@@ -42,7 +42,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     }
 
     @Override
-    protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+    protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
       hasSucceededSpy.hasSucceeded(asg, instances, interestingHealthProviderNames)
     }
   }
