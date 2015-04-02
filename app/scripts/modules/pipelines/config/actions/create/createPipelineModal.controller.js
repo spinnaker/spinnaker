@@ -34,6 +34,7 @@ angular.module('deckApp.pipelines.create.controller', [
       } else {
         template.index = application.pipelines.length;
       }
+      delete template.id;
       return pipelineConfigService.savePipeline(template).then(
         function() {
           template.isNew = true;
