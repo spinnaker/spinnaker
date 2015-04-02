@@ -65,6 +65,10 @@ class PipelineService {
     orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
   }
 
+  Map getPipeline(String id) {
+    orcaService.getPipeline(id)
+  }
+
   Map cancelPipeline(String id) {
     orcaService.cancelPipeline(id)
   }

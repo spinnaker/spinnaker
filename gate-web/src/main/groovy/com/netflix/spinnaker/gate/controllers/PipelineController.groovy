@@ -53,6 +53,11 @@ class PipelineController {
     pipelineService.move(renameCommand)
   }
 
+  @RequestMapping(value = "{id}", method = RequestMethod.GET)
+  Map getPipeline(@PathVariable("id") String id) {
+    pipelineService.getPipeline(id);
+  }
+
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id) {
     pipelineService.cancelPipeline(id)
