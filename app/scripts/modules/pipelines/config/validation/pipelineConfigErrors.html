@@ -14,8 +14,7 @@
             </strong>
           </p>
           <ul>
-            <li ng-repeat="message in messages">
-              {{message}}
+            <li ng-repeat="message in messages" ng-bind-html="message">
             </li>
           </ul>
         </div>

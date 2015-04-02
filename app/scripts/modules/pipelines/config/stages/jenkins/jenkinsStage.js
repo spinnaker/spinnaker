@@ -10,7 +10,14 @@ angular.module('deckApp.pipelines.stage.jenkins')
       controllerAs: 'jenkinsStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
-      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html'
+      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
+      validators: [
+        {
+          type: 'requiredField',
+          fieldName: 'job',
+          message: '<strong>Job</strong> is a required field on Jenkins stages.',
+        },
+      ],
     });
   }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches) {
 
