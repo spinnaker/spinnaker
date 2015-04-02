@@ -32,6 +32,9 @@ angular.module('deckApp.pipelines.stageConfig', [
     }
 
     this.selectStage = function(newVal, oldVal) {
+      if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
+        $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
+      }
       $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
 
       var type = $scope.stage.type,

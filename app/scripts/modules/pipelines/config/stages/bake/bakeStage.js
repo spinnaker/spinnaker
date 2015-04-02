@@ -14,7 +14,7 @@ angular.module('deckApp.pipelines.stage.bake')
         {
           type: 'requiredField',
           fieldName: 'package',
-          message: 'Package is a required field on bake stages.',
+          message: '<strong>Package</strong> is a required field on bake stages.',
         },
       ],
     });
