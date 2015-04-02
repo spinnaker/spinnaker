@@ -133,6 +133,15 @@ body, html {
       background-color: @lighter_grey;
       color: @mid_grey;
     }
+    &.inactive {
+      background-color: lighten(@mid_grey, 40%);
+      .label-retired {
+        background-color: transparent;
+        color: @light_grey;
+        padding: 3px 10px;
+        font-size: 12px;
+      }
+    }
   }
   .execution-group-col-headers {
     border-bottom: 1px solid @dark_grey;
