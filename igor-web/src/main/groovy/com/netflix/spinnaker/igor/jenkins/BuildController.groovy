@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
-import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
@@ -58,9 +57,9 @@ class BuildController {
         Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
         if (scm?.action?.lastBuiltRevision?.branch?.name) {
             result.scm = [
-                ref: scm?.action.lastBuiltRevision?.branch.name,
+                ref   : scm?.action.lastBuiltRevision?.branch.name,
                 branch: scm?.action.lastBuiltRevision?.branch.name.split('/').last(),
-                sha1: scm?.action.lastBuiltRevision?.branch.sha1
+                sha1  : scm?.action.lastBuiltRevision?.branch.sha1
             ]
         }
         result
@@ -85,7 +84,7 @@ class BuildController {
         }
         try {
             def poller = new BuildJobPoller(job, masters.map[master], requestParams)
-            executor.submit(poller).get(900, TimeUnit.SECONDS)
+            executor.submit(poller).get(2, TimeUnit.HOURS)
             poller.build
         } catch (RuntimeException e) {
             log.error("Unable to build job `${job}`", e)
