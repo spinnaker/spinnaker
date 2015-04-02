@@ -91,6 +91,19 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   }
 
   @Override
+  void delete(String id) {
+    try {
+      T item = retrieve(id)
+      executionsForApps[item.application].remove(mapper.writeValueAsString(item))
+      executions.remove(id)
+      item.stages.each { Stage stage ->
+        def stageKey = "${prefix}:stage:${stage.id}"
+        stages.remove(stageKey)
+      }
+    } catch (ExecutionNotFoundException ignored) { }
+  }
+
+  @Override
   void storeStage(Stage<T> stage) {
     def key = "${prefix}:stage:${stage.id}" as String
     stages[key] = mapper.writeValueAsString(stage)

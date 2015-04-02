@@ -38,6 +38,8 @@ interface ExecutionStore<T extends Execution> {
    */
   T retrieve(String id) throws ExecutionNotFoundException
 
+  void delete(String id)
+
   Stage<T> retrieveStage(String id)
 
   List<T> all()
