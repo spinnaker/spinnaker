@@ -17,15 +17,19 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   @Override
-  protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     // favor using configured target capacity whenever available (rather than in-progress asg's minSize)
-    def targetMinSize = (stage.context.capacity?.min != null) ? stage.context.capacity.min : asg.minSize
+    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
+    Integer targetMinSize = (capacityConfig?.min != null) ? capacityConfig.min : asg.minSize as Integer
     if (targetMinSize > instances.size()) {
       return false
     }
@@ -34,16 +38,22 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       return true
     }
 
-    int healthyCount = instances.count {
-      def healths = interestingHealthProviderNames ? it.health.findAll { health ->
+    def healthyCount = instances.count { Map instance ->
+      def healths = interestingHealthProviderNames ? instance.health.findAll { Map health ->
         health.type in interestingHealthProviderNames
-      } : it.health
-      boolean someAreUp = healths.any { it.state == 'Up' }
-      boolean noneAreDown = !healths.any { it.state == 'Down' }
+      } : instance.health
+      boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
+      boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
       someAreUp && noneAreDown
     }
 
     return healthyCount >= targetMinSize
   }
 
+  @Immutable
+  static class CapacityConfig {
+    Integer min
+    Integer max
+    Integer desired
+  }
 }

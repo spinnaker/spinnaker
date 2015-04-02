@@ -118,6 +118,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     hasSucceeded || minSize | healthProviderNames | instances
     true         || 0       | null                | []
     true         || 0       | ['a']               | []
+    true         || "1"     | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     false        || 1       | null                | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     true         || 1       | null                | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     false        || 1       | ['a']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]

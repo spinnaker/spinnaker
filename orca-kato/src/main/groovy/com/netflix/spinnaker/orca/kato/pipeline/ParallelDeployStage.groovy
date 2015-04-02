@@ -96,7 +96,7 @@ class ParallelDeployStage extends ParallelStage {
         account            : it.account ?: stage.context.account,
         cluster            : it,
         type               : DeployStage.MAYO_CONFIG_TYPE,
-        name               : "Deploy in ${(it.availabilityZones as Map).keySet()[0]}"
+        name               : "Deploy in ${(it.availabilityZones as Map).keySet()[0]}" as String
       ]
     }
   }

@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component
 class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
 
   @Override
-  protected boolean hasSucceeded(Stage stage, Map asg, List instances, Collection<String> interestingHealthProviderNames) {
+  protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
