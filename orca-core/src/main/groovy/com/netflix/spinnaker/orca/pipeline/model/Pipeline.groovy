@@ -23,6 +23,7 @@ class Pipeline extends Execution<Pipeline> {
 
   String application
   String name
+  String pipelineConfigId
   final Map<String, Object> trigger = [:]
   final Map<String, Serializable> initialConfig = [:]
 
@@ -39,6 +40,11 @@ class Pipeline extends Execution<Pipeline> {
       if (trigger) {
         pipeline.trigger.putAll(trigger)
       }
+      return this
+    }
+
+    Builder withPipelineConfigId(String id) {
+      pipeline.pipelineConfigId = id
       return this
     }
 

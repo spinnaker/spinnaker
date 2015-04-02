@@ -53,6 +53,7 @@ class PipelineStarter extends ExecutionStarter<Pipeline> {
     Pipeline.builder()
             .withApplication(config.application.toString())
             .withName(config.name.toString())
+            .withPipelineConfigId(config.id ? config.id.toString() : null)
             .withTrigger((Map<String, Object>) config.trigger)
             .withStages((List<Map<String, Object>>) config.stages)
             .withAppConfig((Map<String, Serializable>) config.appConfig)
