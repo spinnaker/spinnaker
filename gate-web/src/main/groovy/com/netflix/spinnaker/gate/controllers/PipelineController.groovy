@@ -58,6 +58,11 @@ class PipelineController {
     pipelineService.cancelPipeline(id)
   }
 
+  @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+  Map deletePipeline(@PathVariable("id") String id) {
+    pipelineService.deletePipeline(id);
+  }
+
   @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("applicationName") String application,
                                   @PathVariable("pipelineName") String pipelineName,

@@ -69,6 +69,10 @@ class PipelineService {
     orcaService.cancelPipeline(id)
   }
 
+  Map deletePipeline(String id) {
+    orcaService.deletePipeline(id)
+  }
+
   @InheritConstructors
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "pipeline config not found!")
   static class PipelineConfigNotFoundException extends RuntimeException {}
