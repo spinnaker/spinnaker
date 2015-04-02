@@ -15,7 +15,10 @@
         </execution-bar>
       </div>
       <div class="col-md-1 execution-actions text-center">
-        <a href ng-click="ctrl.deleteExecution(); $event.stopPropagation();" tooltip="Delete execution">
+        <a href
+           ng-if="!execution.isRunning && !execution.hasNotStarted"
+           ng-click="ctrl.deleteExecution(); $event.stopPropagation();"
+           tooltip="Delete execution">
           <span class="glyphicon glyphicon-trash"></span>
         </a>
       </div>
