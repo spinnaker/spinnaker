@@ -1,40 +1,13 @@
 'use strict';
 
 angular.module('deckApp.delivery.executionBar.controller', [
-  'deckApp.utils.moment',
-  'deckApp.scheduler',
-  'deckApp.utils.d3',
   'deckApp.pipelines.config',
 ])
-  .controller('executionBar', function($scope, d3Service, $filter, momentService, scheduler, pipelineConfig) {
+  .controller('executionBar', function($scope, $filter, pipelineConfig) {
     var controller = this;
-    controller.now = momentService().valueOf();
 
-    var subscription = scheduler.subscribe(function() {
-      controller.now = momentService().valueOf();
-    });
-
-    $scope.$on('destroy', function() {
-      subscription.dispose();
-    });
-
-    controller.getStageWidth = function(stage) {
-      var filtered = $filter('stages')($scope.execution.stageSummaries, $scope.filter);
-      switch ($scope.filter.stage.scale) {
-        case 'fixed':
-          return 100 / $scope.filter.stage.max + '%';
-        case 'absolute':
-          var abs = d3Service.max($scope.executions, function(d) {
-            return (d.isRunning ? controller.now : d.endTime) - d.startTime;
-          });
-          return 100 * (stage.endTime - stage.startTime) / abs + '%';
-        case 'relative':
-          var rel = (filtered[filtered.length - 1].endTime || controller.now) -
-            filtered[0].startTime;
-          return 100 * ((stage.endTime || controller.now) - stage.startTime) / rel + '%';
-        default:
-          return '0%';
-      }
+    controller.getStageWidth = function() {
+      return 100 / $scope.filter.stage.max + '%';
     };
 
     controller.getStageColor = function(stage) {
@@ -54,12 +27,11 @@ angular.module('deckApp.delivery.executionBar.controller', [
     };
 
     controller.styleStage = function(stage) {
-      var style = {
+      return {
         width: controller.getStageWidth(stage),
         'background-color': controller.getStageColor(stage),
         opacity: controller.getStageOpacity(stage),
       };
-      return style;
     };
 
     controller.getLabelTemplate = function(stage) {
