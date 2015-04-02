@@ -10,6 +10,7 @@ angular.module('deckApp.delivery.executionGroup.directive', [])
         grouping: '=',
         scale: '=',
         filter: '=',
+        application: '=',
       },
       templateUrl: 'scripts/modules/delivery/executionGroup.html',
       controller: 'executionGroup as ctrl',
