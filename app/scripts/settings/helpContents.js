@@ -67,7 +67,8 @@ angular.module('deckApp.help')
     'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.disableAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
-    'pipeline.config.bake.package': '<p>String or uri, strings are resolved to uri by api service</p>',
+    'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
+      '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>',
     'pipeline.config.bake.baseAmi': '<p>(Optional) ami-????????</p>',
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
