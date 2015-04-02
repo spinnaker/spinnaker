@@ -45,6 +45,10 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
       }
     };
 
+    $scope.updateSelectedBuild = function(item) {
+      $scope.selectedBuild = item;
+    };
+
     this.cancel = function() {
       $modalInstance.dismiss();
     };

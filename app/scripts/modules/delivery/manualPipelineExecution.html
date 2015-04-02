@@ -67,7 +67,8 @@
           </div>
           <div class="col-md-7" ng-if="!viewState.buildsLoading">
             <ui-select class="form-control input-sm"
-                       ng-model="selectedBuild">
+                       ng-model="selectedBuild"
+                       on-select="updateSelectedBuild($item)">
               <ui-select-match placeholder="Select...">
                 <span>
                   <strong>Build {{$select.selected.number}}</strong>
