@@ -1,9 +1,11 @@
 'use strict';
 
 angular.module('deckApp.delivery.execution.controller', [
-  'ui.router'
+  'ui.router',
+  'deckApp.confirmationModal.service',
+  'deckApp.delivery.executions.service',
 ])
-  .controller('execution', function($scope, $stateParams, $state) {
+  .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService) {
     var controller = this;
 
     controller.showDetails = function() {
@@ -23,6 +25,17 @@ angular.module('deckApp.delivery.execution.controller', [
 
     controller.executionIsCurrent = function() {
       return controller.executionInState() && $scope.execution.id === $stateParams.executionId;
+    };
+
+    controller.deleteExecution = function() {
+      confirmationModalService.confirm({
+        header: 'Really delete execution?',
+        buttonText: 'Delete',
+        body: '<p>This will permanently delete the execution history.</p>',
+        submitMethod: function() {
+          return executionsService.deleteExecution($scope.application, $scope.execution.id);
+        }
+      });
     };
 
   });

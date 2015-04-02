@@ -10,6 +10,7 @@ angular.module('deckApp.delivery.execution.directive',[])
         filter: '=',
         scale: '=',
         executions: '=',
+        application: '=',
       },
       templateUrl: 'scripts/modules/delivery/execution.html',
       controller: 'execution as ctrl',

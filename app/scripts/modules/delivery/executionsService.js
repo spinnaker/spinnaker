@@ -78,9 +78,29 @@ angular.module('deckApp.delivery.executions.service', [
             deferred.resolve();
           },
           function(exception) {
-            deferred.reject(exception.message);
+            deferred.reject(exception && exception.data ? exception.message : null);
           }
         );
+      return deferred.promise;
+    }
+
+    function deleteExecution(application, executionId) {
+      var deferred = $q.defer();
+      $http({
+        method: 'DELETE',
+        url: [
+          settings.gateUrl,
+          'pipelines',
+          executionId,
+        ].join('/')
+      }).then(
+        function() {
+          application.reloadExecutions().then(deferred.resolve);
+        },
+        function(exception) {
+          deferred.reject(exception && exception.data ? exception.data.message : null);
+        }
+      );
       return deferred.promise;
     }
 
@@ -91,6 +111,7 @@ angular.module('deckApp.delivery.executions.service', [
     return {
       getAll: getExecutions,
       cancelExecution: cancelExecution,
+      deleteExecution: deleteExecution,
       forceRefresh: scheduler.scheduleImmediate,
       subscribeAll: function(fn) {
         return scheduler

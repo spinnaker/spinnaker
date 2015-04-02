@@ -18,9 +18,14 @@ angular
       return getEndpoint(application).one(taskId).one('cancel').put();
     }
 
+    function deleteTask(taskId) {
+      return Restangular.all('tasks').one(taskId).remove();
+    }
+
     return {
       postTaskCommand: postTaskCommand,
       cancelTask: cancelTask,
+      deleteTask: deleteTask,
     };
 
   });

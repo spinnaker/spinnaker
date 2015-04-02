@@ -107,6 +107,20 @@ angular.module('deckApp.tasks.main', [
       });
     };
 
+    controller.deleteTask = function(taskId) {
+      var task = application.tasks.filter(function(task) { return task.id === taskId; })[0];
+      var submitMethod = function () {
+        return tasksWriter.deleteTask(taskId).then(application.reloadTasks);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really delete history for ' + task.name + '?',
+        body: '<p>This will permanently delete the task history.</p>',
+        buttonText: 'Delete',
+        submitMethod: submitMethod
+      });
+    };
+
     /**
      * Pagination - largely copied from applications.controller.js
      */

@@ -7,12 +7,17 @@
         <execution-status execution="execution" filter="filter">
         </execution-status>
       </div>
-      <div class="col-md-9">
+      <div class="col-md-8">
         <execution-bar execution="execution"
                        executions="executions"
                        filter="filter"
                        scale="scale">
         </execution-bar>
+      </div>
+      <div class="col-md-1 execution-actions text-center">
+        <a href ng-click="ctrl.deleteExecution(); $event.stopPropagation();" tooltip="Delete execution">
+          <span class="glyphicon glyphicon-trash"></span>
+        </a>
       </div>
     </div>
     <div class="row" ng-if="ctrl.showDetails()">

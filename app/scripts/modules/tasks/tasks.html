@@ -103,8 +103,13 @@
               <td>
                 {{ task.getValueFor('user') || '-' }}
               </td>
-              <td class="small">
-                <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">Cancel</a>
+              <td class="small text-center">
+                <a ng-if="task.isRunning || task.hasNotStarted" href ng-click="tasks.cancelTask(task.id); $event.stopPropagation();">
+                  <span class="glyphicon glyphicon-remove" tooltip="Cancel Task"></span>
+                </a>
+                <a ng-if="!task.isRunning && !task.hasNotStarted" href ng-click="tasks.deleteTask(task.id); $event.stopPropagation();">
+                  <span class="glyphicon glyphicon-trash" tooltip="Delete Task History"></span>
+                </a>
               </td>
             </tr>
             <tr ng-repeat="step in task.steps"
