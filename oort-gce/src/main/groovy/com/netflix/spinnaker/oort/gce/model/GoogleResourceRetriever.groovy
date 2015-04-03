@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
+import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.google.api.services.replicapool.model.InstanceGroupManagerList
@@ -138,8 +139,11 @@ class GoogleResourceRetriever {
             tempNetworkLoadBalancerMap[accountName] = new HashMap<String, List<GoogleLoadBalancer>>()
           }
 
+          def instanceNameToLoadBalancerHealthStatusMap = new HashMap<String, Map<String, List<HealthStatus>>>()
+
           // Retrieve all available network load balancers for this project.
           def networkLoadBalancersCallback = new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName],
+                                                                              instanceNameToLoadBalancerHealthStatusMap,
                                                                               project,
                                                                               compute,
                                                                               migsBatch,
@@ -158,7 +162,8 @@ class GoogleResourceRetriever {
 
           def instanceAggregatedListCallback =
             new InstanceAggregatedListCallback(instanceNameToGoogleServerGroupMap,
-                                               tempStandaloneInstanceMap[accountName])
+                                               tempStandaloneInstanceMap[accountName],
+                                               instanceNameToLoadBalancerHealthStatusMap)
 
           compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
           executeIfRequestsAreQueued(instancesBatch)
@@ -237,6 +242,7 @@ class GoogleResourceRetriever {
           def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
+          def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
           def migsCallback = new MIGSCallback(tempAppMap,
                                               data.region,
                                               data.zone,
@@ -244,6 +250,7 @@ class GoogleResourceRetriever {
                                               project,
                                               compute,
                                               credentialBuilder,
+                                              instanceNameToGoogleServerGroupMap,
                                               resourceViewsBatch)
 
           // Handle 404 here (especially when this is called after destroying a replica pool).

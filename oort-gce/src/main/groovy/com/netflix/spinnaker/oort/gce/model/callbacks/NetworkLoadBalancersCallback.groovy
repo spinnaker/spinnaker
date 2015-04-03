@@ -22,6 +22,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRuleAggregatedList
+import com.google.api.services.compute.model.HealthStatus
 import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import org.apache.log4j.Logger
 
@@ -29,17 +30,20 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
   protected static final Logger log = Logger.getLogger(this)
 
   private Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap
+  private Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap
   private String project
   private Compute compute
   private BatchRequest targetPoolBatch
   private BatchRequest httpHealthCheckBatch
 
   public NetworkLoadBalancersCallback(Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap,
+                                      Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap,
                                       String project,
                                       Compute compute,
                                       BatchRequest targetPoolBatch,
                                       BatchRequest httpHealthCheckBatch) {
     this.networkLoadBalancerMap = networkLoadBalancerMap
+    this.instanceNameToLoadBalancerHealthStatusMap = instanceNameToLoadBalancerHealthStatusMap
     this.project = project
     this.compute = compute
     this.targetPoolBatch = targetPoolBatch
@@ -71,7 +75,12 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
 
             if (forwardingRule.target) {
               def localTargetPoolName = Utils.getLocalName(forwardingRule.target)
-              def targetPoolCallback = new TargetPoolCallback(googleLoadBalancer, project, compute, httpHealthCheckBatch)
+              def targetPoolCallback = new TargetPoolCallback(googleLoadBalancer,
+                                                              forwardingRule.name,
+                                                              instanceNameToLoadBalancerHealthStatusMap,
+                                                              project,
+                                                              compute,
+                                                              httpHealthCheckBatch)
 
               compute.targetPools().get(project, region, localTargetPoolName).queue(targetPoolBatch, targetPoolCallback)
             }
