@@ -2,8 +2,9 @@
 
 angular.module('deckApp.cluster.pod', [
   'deckApp.serverGroup.sequence.filter',
+  'deckApp.urlBuilder',
 ])
-  .directive('clusterPod', function() {
+  .directive('clusterPod', function(urlBuilder) {
     return {
       restrict: 'E',
       scope: {
@@ -14,5 +15,15 @@ angular.module('deckApp.cluster.pod', [
         parentHeading: '=',
       },
       templateUrl: 'scripts/modules/cluster/clusterPod.html',
+      link: function(scope) {
+        scope.permalink = urlBuilder.buildFromMetadata(
+          {
+            type: 'clusters',
+            application: scope.application.name,
+            cluster: scope.grouping.heading,
+            account: scope.parentHeading,
+          }
+        );
+      }
     };
   });

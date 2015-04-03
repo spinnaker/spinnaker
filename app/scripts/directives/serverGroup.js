@@ -61,7 +61,10 @@ angular.module('deckApp')
           if (!scope.displayOptions.showInstances) {
             return false;
           }
-          return filteredInstances.length;
+          if (scope.displayOptions.listInstances) {
+            return filteredInstances.length > 1;
+          }
+          return filteredInstances.length > 20;
         };
       }
     };
