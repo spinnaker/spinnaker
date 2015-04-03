@@ -27,6 +27,13 @@
       <execution-details execution="execution">
       </execution-details>
     </div>
+    <div class="row permalinks text-right" ng-if="ctrl.showDetails()">
+      <div class="col-md-12">
+        <a target="_blank" ng-href="{{ctrl.pipelinesUrl + execution.id}}">Source</a>
+        |
+        <a target="_blank" ui-sref=".execution({executionId: execution.id, stage: 1})">Permalink</a>
+      </div>
+    </div>
   </div>
 </div>
 

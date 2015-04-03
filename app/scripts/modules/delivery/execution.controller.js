@@ -5,7 +5,7 @@ angular.module('deckApp.delivery.execution.controller', [
   'deckApp.confirmationModal.service',
   'deckApp.delivery.executions.service',
 ])
-  .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService) {
+  .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService, settings) {
     var controller = this;
 
     controller.showDetails = function() {
@@ -18,6 +18,8 @@ angular.module('deckApp.delivery.execution.controller', [
         executionId: $scope.execution.id,
       });
     };
+
+    controller.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
 
     controller.executionInState = function() {
       return $stateParams.executionId && $state.includes('**.execution.**');
