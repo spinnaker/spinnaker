@@ -14,7 +14,7 @@
         <span ng-include="executionStepDetailsCtrl.getTaskLabel(stage.type)"></span>
       </div>
     </div>
-    <div class="row" ng-repeat="task in stage.tasks">
+    <div class="row" ng-repeat="task in stage.tasks | displayableTasks">
       <div class="col-md-8">
         <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
       </div>

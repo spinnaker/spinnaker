@@ -112,7 +112,7 @@
                 </a>
               </td>
             </tr>
-            <tr ng-repeat="step in task.steps"
+            <tr ng-repeat="step in task.steps | displayableTasks"
                 ng-if="tasks.isExpanded(task.id)"
                 class="task-step">
               <td colspan="2">
