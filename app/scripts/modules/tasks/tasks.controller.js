@@ -7,6 +7,7 @@ angular.module('deckApp.tasks.main', [
   'deckApp.caches.viewStateCache',
   'deckApp.tasks.write.service',
   'deckApp.confirmationModal.service',
+  'deckApp.pipelines.stages.core.displayableTasks.filter',
   'ui.router',
   'deckApp.settings',
 ])
