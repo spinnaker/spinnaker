@@ -21,7 +21,7 @@ describe('Controller: pipelineExecutions', function () {
       pipelineConfigService = _pipelineConfigService_;
       $q = _$q_;
 
-      this.initializeController = function(application) {
+      this.initializeController = function (application) {
         scope.application = application;
         controller = $controller('pipelineExecutions', {
           $scope: scope,
@@ -39,19 +39,23 @@ describe('Controller: pipelineExecutions', function () {
       executions: []
     };
     spyOn($state, 'go');
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function() { return []; } }));
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
+      return [];
+    } }));
     this.initializeController(application);
     scope.$digest();
 
     expect($state.go).toHaveBeenCalledWith('^.pipelineConfig');
   });
 
-  it('should not set loading flag to false until executions have been loaded', function() {
+  it('should not set loading flag to false until executions have been loaded', function () {
     var application = {
       name: 'foo',
       executionsLoaded: false
     };
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function() { return []; } }));
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
+      return [];
+    } }));
     this.initializeController(application);
     scope.$digest();
 
@@ -59,6 +63,48 @@ describe('Controller: pipelineExecutions', function () {
 
     rootScope.$broadcast('executions-loaded');
     expect(scope.viewState.loading).toBe(false);
+  });
+
+  it('should update execution name when pipelineConfigId is present and name differs in config', function () {
+    var application = {
+      name: 'foo',
+      executionsLoaded: true,
+      executions: [
+        {
+          pipelineConfigId: 'a1',
+          name: 'oldName',
+          stageSummaries: [],
+        },
+        {
+          pipelineConfigId: 'a2',
+          name: 'unchanged',
+          stageSummaries: [],
+        },
+        {
+          pipelineConfigId: 'a3',
+          name: 'no longer configured',
+          stageSummaries: [],
+        }
+      ],
+    };
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
+      return [
+        {
+          id: 'a1',
+          name: 'updated name',
+        },
+        {
+          id: 'a2',
+          name: 'unchanged',
+        },
+      ];
+    } }));
+    this.initializeController(application);
+    scope.$digest();
+
+    expect(scope.executions[0].name).toBe('updated name');
+    expect(scope.executions[1].name).toBe('unchanged');
+    expect(scope.executions[2].name).toBe('no longer configured');
   });
 });
 

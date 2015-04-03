@@ -107,8 +107,23 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       });
     };
 
+    function normalizeExecutionNames(executions) {
+      var configurations = $scope.configurations || [];
+      executions.forEach(function(execution) {
+        if (execution.pipelineConfigId) {
+          var configMatches = configurations.filter(function(configuration) {
+            return configuration.id === execution.pipelineConfigId;
+          });
+          if (configMatches.length) {
+            execution.name = configMatches[0].name;
+          }
+        }
+      });
+    }
+
     function updateExecutions() {
       var executions = $scope.application.executions || [];
+      normalizeExecutionNames(executions);
       $scope.filter.stage.max = executions.reduce(function(acc, execution) {
         return execution.stageSummaries.length > acc ? execution.stageSummaries.length : acc;
       }, 0);
