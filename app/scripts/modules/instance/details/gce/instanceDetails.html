@@ -98,14 +98,12 @@
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl>
-        <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
-        <dd ng-if="instance.privateDnsName"><a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a></dd>
-        <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>
-        <dd ng-if="instance.publicDnsName"><a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a></dd>
-        <dt ng-if="instance.privateIpAddress">Private IP Address:</dt>
-        <dd ng-if="instance.privateIpAddress"><a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a></dd>
-        <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
-        <dd ng-if="instance.publicIpAddress"><a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a></dd>
+        <dt ng-if="instance.internalDnsName">Internal DNS Name:</dt>
+        <dd ng-if="instance.internalDnsName"><a href="http://{{instance.internalDnsName}}" target="_blank">{{instance.internalDnsName}}</a></dd>
+        <dt ng-if="instance.internalIpAddress">Internal IP Address:</dt>
+        <dd ng-if="instance.internalIpAddress"><a href="http://{{instance.internalIpAddress}}" target="_blank">{{instance.internalIpAddress}}</a></dd>
+        <dt ng-if="instance.externalIpAddress">External IP Address:</dt>
+        <dd ng-if="instance.externalIpAddress"><a href="http://{{instance.externalIpAddress}}" target="_blank">{{instance.externalIpAddress}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
@@ -116,6 +114,12 @@
             </a>
           </li>
         </ul>
+    </collapsible-section>
+    <collapsible-section heading="SSH" ng-if="!instance.notFound">
+      <dl>
+        <dt ng-if="instance.sshLink">SSH into this instance:</dt>
+        <dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>
+      </dl>
     </collapsible-section>
     <collapsible-section heading="Logs" ng-if="baseIpAddress">
       <ul>
