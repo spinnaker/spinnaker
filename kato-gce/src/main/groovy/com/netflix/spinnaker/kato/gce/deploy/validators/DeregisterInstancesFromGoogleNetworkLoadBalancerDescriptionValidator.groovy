@@ -34,7 +34,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerDescriptionValidator
                 DeregisterInstancesFromGoogleNetworkLoadBalancerDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("deregisterInstancesFromGoogleNetworkLoadBalancerDescription", errors)
 
-    helper.validateName(description.networkLoadBalancerName, "networkLoadBalancerName")
+    helper.validateNameList(description.networkLoadBalancerNames, "networkLoadBalancerName")
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateRegion(description.region)
     helper.validateInstanceIds(description.instanceIds)

@@ -34,7 +34,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerDescriptionValidator
                 RegisterInstancesWithGoogleNetworkLoadBalancerDescription description, Errors errors) {
     def helper = new StandardGceAttributeValidator("registerInstancesWithGoogleNetworkLoadBalancerDescription", errors)
 
-    helper.validateName(description.networkLoadBalancerName, "networkLoadBalancerName")
+    helper.validateNameList(description.networkLoadBalancerNames, "networkLoadBalancerName")
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateRegion(description.region)
     helper.validateInstanceIds(description.instanceIds)

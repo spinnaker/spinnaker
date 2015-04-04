@@ -35,9 +35,10 @@ import spock.lang.Subject
 class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final LOAD_BALANCER_NAME = "spinnaker-test-lb"
-  private static final LOAD_BALANCER_RULE_NAME = "spinnaker-test-forwarding-rule"
-  private static final TARGET_POOL_NAME = "spinnaker-target-pool"
+  private static final LOAD_BALANCER_NAME_1 = "spinnaker-test-lb1"
+  private static final TARGET_POOL_NAME_1 = "spinnaker-target-pool1"
+  private static final LOAD_BALANCER_NAME_2 = "spinnaker-test-lb2"
+  private static final TARGET_POOL_NAME_2 = "spinnaker-target-pool2"
   private static final REGION = "us-central1"
   private static final ZONE = "$REGION-a"
   private static final INSTANCE_ID1 = "my-app7-dev-v000-instance1"
@@ -61,8 +62,12 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
       def listForwardingRulesMock = Mock(Compute.ForwardingRules.List)
       def forwardingRulesListReal = new ForwardingRuleList(items:[
         new ForwardingRule(
-          name: LOAD_BALANCER_NAME,
-          target: TARGET_POOL_NAME
+          name: LOAD_BALANCER_NAME_1,
+          target: TARGET_POOL_NAME_1
+        ),
+        new ForwardingRule(
+          name: LOAD_BALANCER_NAME_2,
+          target: TARGET_POOL_NAME_2
         )
       ])
       def instancesMock = Mock(Compute.Instances)
@@ -78,7 +83,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeregisterInstancesFromGoogleNetworkLoadBalancerDescription(
-          networkLoadBalancerName: LOAD_BALANCER_NAME,
+          networkLoadBalancerNames: [LOAD_BALANCER_NAME_1, LOAD_BALANCER_NAME_2],
           instanceIds: INSTANCE_IDS,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -90,6 +95,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
 
     when:
       operation.operate([])
+
     then:
       1 * computeMock.forwardingRules() >> forwardingRulesMock
       1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> listForwardingRulesMock
@@ -100,7 +106,11 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedListReal
     then:
       1 * computeMock.targetPools() >> targetPoolsMock
-      1 * targetPoolsMock.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME, request) >> removeInstanceMock
+      1 * targetPoolsMock.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME_1, request) >> removeInstanceMock
+      1 * removeInstanceMock.execute()
+    then:
+      1 * computeMock.targetPools() >> targetPoolsMock
+      1 * targetPoolsMock.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME_2, request) >> removeInstanceMock
       1 * removeInstanceMock.execute()
   }
 
@@ -112,13 +122,13 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
       def forwardingRulesListReal = new ForwardingRuleList(items:[
         new ForwardingRule(
           name: "AnotherLoadBalancerName",
-          target: TARGET_POOL_NAME
+          target: TARGET_POOL_NAME_1
         )
       ])
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeregisterInstancesFromGoogleNetworkLoadBalancerDescription(
-          networkLoadBalancerName: LOAD_BALANCER_NAME,
+          networkLoadBalancerNames: [LOAD_BALANCER_NAME_1],
           instanceIds: INSTANCE_IDS,
           region: REGION,
           accountName: ACCOUNT_NAME,
@@ -130,6 +140,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
 
     when:
       operation.operate([])
+
     then:
       1 * computeMock.forwardingRules() >> forwardingRulesMock
       1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> listForwardingRulesMock

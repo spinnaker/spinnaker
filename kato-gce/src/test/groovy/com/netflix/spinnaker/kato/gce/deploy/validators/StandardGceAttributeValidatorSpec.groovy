@@ -386,6 +386,64 @@ class StandardGceAttributeValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "valid name list"() {
+    setup:
+    def errors = Mock(Errors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+    validator.validateNameList(["Unchecked"], "loadBalancerName")
+    then:
+    0 * errors._
+
+    when:
+    validator.validateNameList([" "], "loadBalancerName")
+    then:
+    0 * errors._
+
+    when:
+    validator.validateNameList(["a", "b", "c"], "loadBalancerName")
+    then:
+    0 * errors._
+  }
+
+  void "invalid name list"() {
+    setup:
+    def errors = Mock(Errors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+    validator.validateNameList([], "loadBalancerName")
+    then:
+    1 * errors.rejectValue("loadBalancerNames", "${DECORATOR}.loadBalancerNames.empty")
+    0 * errors._
+
+    when:
+    validator.validateNameList([""], "loadBalancerName")
+    then:
+    1 * errors.rejectValue("loadBalancerNames", "${DECORATOR}.loadBalancerName0.empty")
+    0 * errors._
+  }
+
+  void "mixed valid/invalid name list"() {
+    setup:
+    def errors = Mock(Errors)
+    def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+    validator.validateNameList(["good", ""], "loadBalancerName")
+    then:
+    1 * errors.rejectValue("loadBalancerNames", "${DECORATOR}.loadBalancerName1.empty")
+    0 * errors._
+
+    when:
+    validator.validateNameList(["good", "", "another", ""], "loadBalancerName")
+    then:
+    1 * errors.rejectValue("loadBalancerNames", "${DECORATOR}.loadBalancerName1.empty")
+    1 * errors.rejectValue("loadBalancerNames", "${DECORATOR}.loadBalancerName3.empty")
+    0 * errors._
+  }
+
   void "valid instance ids"() {
     setup:
       def errors = Mock(Errors)
