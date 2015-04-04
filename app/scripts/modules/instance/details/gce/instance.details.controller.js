@@ -108,7 +108,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
         return false;
       }
       var inService = instance.health.some(function(health) {
-        return health.type === 'LoadBalancer' && health.state === 'Up';
+        return health.type === 'LoadBalancer';
       });
       return inService;
     };
