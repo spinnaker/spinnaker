@@ -107,10 +107,10 @@ angular.module('deckApp.instance.detail.gce.controller', [
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
         return false;
       }
-      var inService = instance.health.some(function(health) {
+      var hasLoadBalancerHealth = instance.health.some(function(health) {
         return health.type === 'LoadBalancer';
       });
-      return inService;
+      return hasLoadBalancerHealth;
     };
 
     this.canRegisterWithDiscovery = function() {
