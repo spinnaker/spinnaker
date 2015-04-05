@@ -103,6 +103,17 @@ angular.module('deckApp.instance.detail.aws.controller', [
       }
     }
 
+    this.canDeregisterFromLoadBalancer = function() {
+      var instance = $scope.instance;
+      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+        return false;
+      }
+      var hasLoadBalancerHealth = instance.health.some(function(health) {
+        return health.type === 'LoadBalancer';
+      });
+      return hasLoadBalancerHealth;
+    };
+
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance;
       if (!instance.loadBalancers || !instance.loadBalancers.length) {
