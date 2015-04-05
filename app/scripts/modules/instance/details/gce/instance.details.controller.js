@@ -102,6 +102,17 @@ angular.module('deckApp.instance.detail.gce.controller', [
       return outOfService || !hasLoadBalancerHealth;
     };
 
+    this.canDeregisterFromLoadBalancer = function() {
+      var instance = $scope.instance;
+      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+        return false;
+      }
+      var hasLoadBalancerHealth = instance.health.some(function(health) {
+        return health.type === 'LoadBalancer';
+      });
+      return hasLoadBalancerHealth;
+    };
+
     this.canRegisterWithDiscovery = function() {
       var instance = $scope.instance;
       var discoveryHealth = instance.health.filter(function(health) {
