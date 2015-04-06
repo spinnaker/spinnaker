@@ -19,7 +19,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 dependencies {
     compile project(':echo-model')
     compile spinnaker.dependency('bootWeb')
-    compile commonDependencies.kork
+    compile spinnaker.dependency("kork")
     compile commonDependencies.jacksonDatabind
     testCompile commonDependencies.spockSpring
     testCompile commonDependencies.springTest
