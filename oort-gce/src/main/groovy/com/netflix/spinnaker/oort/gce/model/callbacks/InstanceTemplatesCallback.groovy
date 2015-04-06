@@ -20,6 +20,7 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.InstanceTemplate
+import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
@@ -33,10 +34,17 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
 
   private GoogleServerGroup googleServerGroup
   private GoogleCluster googleCluster
+  private Map<String, List<Map>> imageMap
+  private String defaultBuildHost
 
-  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup, GoogleCluster googleCluster) {
+  public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup,
+                                   GoogleCluster googleCluster,
+                                   Map<String, List<Map>> imageMap,
+                                   String defaultBuildHost) {
     this.googleServerGroup = googleServerGroup
     this.googleCluster = googleCluster
+    this.imageMap = imageMap
+    this.defaultBuildHost = defaultBuildHost
   }
 
   @Override
@@ -44,12 +52,21 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
     googleServerGroup.launchConfig.launchConfigurationName = instanceTemplate?.name
     googleServerGroup.launchConfig.instanceType = instanceTemplate?.properties?.machineType
 
-    def sourceImage = instanceTemplate?.properties?.disks?.find { disk ->
+    def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
       disk.boot
     }?.initializeParams?.sourceImage
 
-    if (sourceImage) {
-      googleServerGroup.launchConfig.imageId = Utils.getLocalName(sourceImage)
+    if (sourceImageUrl) {
+      def sourceImageName = Utils.getLocalName(sourceImageUrl)
+
+      googleServerGroup.launchConfig.imageId = sourceImageName
+
+
+      def sourceImage = imageMap[googleCluster.accountName]?.find { image ->
+        image.name == sourceImageName
+      }
+
+      extractBuildInfo(sourceImage?.description, googleServerGroup, defaultBuildHost)
     }
 
     def instanceMetadata = instanceTemplate?.properties?.metadata
@@ -78,6 +95,44 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
         }
       }
     }
+  }
+
+  static void extractBuildInfo(String imageDescription, GoogleServerGroup googleServerGroup, String defaultBuildHost) {
+    if (imageDescription) {
+      def descriptionTokens = imageDescription?.tokenize(",")
+      def appVersionTag = findTagValue(descriptionTokens, "appversion")
+      Map buildInfo = null
+
+      if (appVersionTag) {
+        def appVersion = AppVersion.parseName(appVersionTag)
+
+        if (appVersion) {
+          buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+
+          if (appVersion.buildJobName) {
+            buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+          }
+
+          def buildHostTag = findTagValue(descriptionTokens, "build_host") ?: defaultBuildHost
+
+          if (buildHostTag && buildInfo.containsKey("jenkins")) {
+            ((Map) buildInfo.jenkins).host = buildHostTag
+          }
+        }
+
+        if (buildInfo) {
+          googleServerGroup.setProperty("buildInfo", buildInfo)
+        }
+      }
+    }
+  }
+
+  static String findTagValue(List<String> descriptionTokens, String tagKey) {
+    def matchingKeyValuePair = descriptionTokens?.find { keyValuePair ->
+      keyValuePair.trim().startsWith("$tagKey: ")
+    }
+
+    matchingKeyValuePair ? matchingKeyValuePair.trim().substring(tagKey.length() + 2) : null
   }
 
   @Override

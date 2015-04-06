@@ -44,9 +44,9 @@ class GoogleNamedImageLookupControllerSpec extends Specification {
       imagesCallback2.onSuccess(imageListResult2, null)
 
     then:
-      imageList == ["backports-debian-7-wheezy-v20141108",
-                    "debian-7-wheezy-v20141108",
-                    "ubuntu-1404-trusty-v20141031a"]
+      imageList == buildImageList(["backports-debian-7-wheezy-v20141108",
+                                   "debian-7-wheezy-v20141108",
+                                   "ubuntu-1404-trusty-v20141031a"])
   }
 
   void "project image lists are not pruned"() {
@@ -65,8 +65,8 @@ class GoogleNamedImageLookupControllerSpec extends Specification {
       imagesCallback.onSuccess(imageListResult, null)
 
     then:
-      imageList == ["my-image-1", "my-image-2", "my-image-3",
-                    "my-other-image-1", "my-other-image-2", "my-other-image-3"]
+      imageList == buildImageList(["my-image-1", "my-image-2", "my-image-3",
+                                   "my-other-image-1", "my-other-image-2", "my-other-image-3"])
   }
 
   private List<Image> buildImageList(List<String> imageNameList) {

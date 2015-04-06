@@ -36,6 +36,7 @@ import com.netflix.spinnaker.oort.gce.model.callbacks.RegionsCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 
 import javax.annotation.PostConstruct
 import java.util.concurrent.Executors
@@ -52,12 +53,15 @@ class GoogleResourceRetriever {
   @Autowired
   GoogleConfigurationProperties googleConfigurationProperties
 
+  @Value('${default.build.host:http://builds.netflix.com/}')
+  String defaultBuildHost
+
   protected Lock cacheLock = new ReentrantLock()
 
   // The value of these fields are always assigned atomically and the collections are never modified after assignment.
   private appMap = new HashMap<String, GoogleApplication>()
   private standaloneInstanceMap = new HashMap<String, List<GoogleInstance>>()
-  private imageMap = new HashMap<String, List<String>>()
+  private imageMap = new HashMap<String, List<Map>>()
   private networkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
   @PostConstruct
@@ -85,7 +89,7 @@ class GoogleResourceRetriever {
     try {
       def tempAppMap = new HashMap<String, GoogleApplication>()
       def tempStandaloneInstanceMap = new HashMap<String, List<GoogleInstance>>()
-      def tempImageMap = new HashMap<String, List<String>>()
+      def tempImageMap = new HashMap<String, List<Map>>()
       def tempNetworkLoadBalancerMap = new HashMap<String, Map<String, List<GoogleLoadBalancer>>>()
 
       getAllGoogleCredentialsObjects().each {
@@ -111,6 +115,8 @@ class GoogleResourceRetriever {
                                                     compute,
                                                     credentialBuilder,
                                                     replicapool,
+                                                    tempImageMap,
+                                                    defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
                                                     migsBatch,
                                                     resourceViewsBatch)
@@ -121,7 +127,7 @@ class GoogleResourceRetriever {
 
           // Image lists are keyed by account in imageMap.
           if (!tempImageMap[accountName]) {
-            tempImageMap[accountName] = new ArrayList<String>()
+            tempImageMap[accountName] = new ArrayList<Map>()
           }
 
           // Retrieve all available images for this project.
@@ -250,6 +256,8 @@ class GoogleResourceRetriever {
                                               project,
                                               compute,
                                               credentialBuilder,
+                                              imageMap,
+                                              defaultBuildHost,
                                               instanceNameToGoogleServerGroupMap,
                                               resourceViewsBatch)
 
@@ -336,7 +344,7 @@ class GoogleResourceRetriever {
     return standaloneInstanceMap
   }
 
-  Map<String, List<String>> getImageMap() {
+  Map<String, List<Map>> getImageMap() {
     return imageMap
   }
 

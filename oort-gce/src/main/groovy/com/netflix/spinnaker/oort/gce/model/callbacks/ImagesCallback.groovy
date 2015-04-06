@@ -19,16 +19,17 @@ package com.netflix.spinnaker.oort.gce.model.callbacks
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import org.apache.log4j.Logger
 
 class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
   protected static final Logger log = Logger.getLogger(this)
 
-  private List<String> imageList
+  private List<Map> imageList
   private boolean prune
 
-  public ImagesCallback(List<String> imageList, boolean prune) {
+  public ImagesCallback(List<Map> imageList, boolean prune) {
     this.imageList = imageList
     this.prune = prune
   }
@@ -39,7 +40,7 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
       imageList.addAll(pruneImageList(imageListResult))
     } else {
       imageListResult.items.each { image ->
-        imageList << image.name
+        imageList << image
       }
     }
   }
@@ -49,9 +50,9 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
     log.error e.getMessage()
   }
 
-  private static List<String> pruneImageList(ImageList imageListResult) {
+  private static List<Map> pruneImageList(ImageList imageListResult) {
     /*
-      Build a map from pruned image names to sorted sets of full image names.
+      Build a map from pruned image names to sorted sets of full image representations (images are sorted by name).
 
       An ImageList like the following:
       backports-debian-7-wheezy-v20141017
@@ -64,6 +65,7 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
       Should result in this map:
       {backports-debian-7-wheezy: [backports-debian-7-wheezy-v20141017, backports-debian-7-wheezy-v20141021, backports-debian-7-wheezy-v20141108],
        debian-7-wheezy: [debian-7-wheezy-v20141017, debian-7-wheezy-v20141021, debian-7-wheezy-v20141108]}
+      Each item in the lists above will be a full image representation; just the names are shown here.
      */
     Map<String, Set<String>> map = new HashMap<String, Set<String>>()
 
@@ -77,15 +79,22 @@ class ImagesCallback<ImageList> extends JsonBatchCallback<ImageList> {
       String nameWithoutDate = delimiter != -1 ? fullImageName.substring(0, delimiter) : fullImageName
 
       if (!map[nameWithoutDate]) {
-        map[nameWithoutDate] = new TreeSet<String>()
+        map[nameWithoutDate] = new TreeSet<Image>(new Comparator<Image>() {
+          @Override
+          int compare(Image image1, Image image2) {
+            image1.name <=> image2.name
+          }
+        })
       }
 
-      map[nameWithoutDate] << fullImageName
+      map[nameWithoutDate] << image
     }
 
     // Collect the final item in each sorted set and sort the resulting list.
     map.collect {
       it.value.last()
-    }.sort()
+    }.sort {
+      it.name
+    }
   }
 }
