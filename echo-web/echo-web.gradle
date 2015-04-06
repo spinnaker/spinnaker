@@ -44,8 +44,7 @@ dependencies {
     compile project(':echo-model')
     compile project(':echo-cassandra')
     compile project(':echo-elasticsearch')
-    // compile project(':echo-stomp')
-
+    compile project(':echo-kakfa')
     compile spinnaker.dependency('kork')
     compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency('bootActuator')
