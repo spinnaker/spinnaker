@@ -285,6 +285,9 @@ gulp.task('watch', function() {
   gulp.watch('./bower_components/**/*.css', function() {
     run('css:vendor', 'html');
   });
+  gulp.watch('./app/scripts/settings/settings.js', function() {
+    run('scripts:settings');
+  });
   if (!development) {
     gulp.watch(['./test/**/*','./app/**/*.spec.js'], function() {
       run('test:karma');
