@@ -24,17 +24,17 @@ buildscript {
         maven { url 'http://dl.bintray.com/spinnaker/gradle/' }
     }
     dependencies {
-        classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.54"
+        classpath "com.netflix.spinnaker:spinnaker-gradle-project:1.12.65"
     }
 }
 
 ext {
+    springBootVersion = "1.2.1.RELEASE"
+
     versions = [
         batch   : "3.0.1.RELEASE",
-        groovy  : "2.3.6",
         guava   : "14.0.1",
         jackson : "2.3.3",
-        kork    : "1.23",
         okhttp  : "2.0.0",
         retrofit: "1.6.1",
         rx      : "0.20.2",
@@ -44,14 +44,10 @@ ext {
     ]
 
     commonDependencies = [
-        groovy         : dependencies.create("org.codehaus.groovy:groovy-all:$versions.groovy"),
         guava          : dependencies.create("com.google.guava:guava:$versions.guava"),
         hamcrest       : dependencies.create("org.hamcrest:hamcrest-all:1.3"),
         jacksonDatabind: dependencies.create("com.fasterxml.jackson.core:jackson-databind:$versions.jackson"),
         jacksonGuava   : dependencies.create("com.fasterxml.jackson.datatype:jackson-datatype-guava:$versions.jackson"),
-        kork           : dependencies.create("com.netflix.spinnaker.kork:kork-core:$versions.kork"),
-        korkJedis      : dependencies.create("com.netflix.spinnaker.kork:kork-jedis:$versions.kork"),
-        korkCassandra  : dependencies.create("com.netflix.spinnaker.kork:kork-cassandra:$versions.kork"),
         logback        : dependencies.create("ch.qos.logback:logback-classic:$versions.logback"),
         okHttp         : dependencies.create("com.squareup.okhttp:okhttp-urlconnection:$versions.okhttp"),
         retrofit       : dependencies.create("com.squareup.retrofit:retrofit:$versions.retrofit"),

@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-    compile commonDependencies.groovy
+    compile spinnaker.dependency('groovy')
     compile commonDependencies.guava
     compile commonDependencies.slf4j
     testCompile commonDependencies.spock

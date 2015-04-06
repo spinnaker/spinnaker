@@ -17,5 +17,5 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
-    compile commonDependencies.kork
+    compile spinnaker.dependency("kork")
 }

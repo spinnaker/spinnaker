@@ -28,18 +28,33 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan('com.netflix.spinnaker.echo.config')
+@ComponentScan(['com.netflix.spinnaker.echo.config', 'com.netflix.spinnaker.config'])
 class Application extends SpringBootServletInitializer {
+    static final Map<String, String> DEFAULT_PROPS = [
+        'netflix.environment'   : System.getProperty('netflix.environment', 'test'),
+        'netflix.account'       : System.getProperty('netflix.environment', 'test'),
+        'netflix.stack'         : System.getProperty('netflix.stack', 'test'),
+        'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
+        'spring.config.name'    : 'echo',
+        'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
+    ]
 
-    static void main(String[] args) {
-        if (System.getProperty('netflix.environment') == null) {
-            System.setProperty('netflix.environment', 'test')
+    static {
+        applyDefaults()
+    }
+
+    static void applyDefaults() {
+        DEFAULT_PROPS.each { k, v ->
+            System.setProperty(k, System.getProperty(k, v))
         }
-        SpringApplication.run(Application, args)
+    }
+
+    static void main(String... args) {
+        SpringApplication.run this, args
     }
 
     @Override
-    SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        application.sources(Application)
+    SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        builder.sources(Application)
     }
 }
