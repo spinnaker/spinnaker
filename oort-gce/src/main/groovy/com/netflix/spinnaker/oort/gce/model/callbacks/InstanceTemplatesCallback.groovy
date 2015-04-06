@@ -61,7 +61,6 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
 
       googleServerGroup.launchConfig.imageId = sourceImageName
 
-
       def sourceImage = imageMap[googleCluster.accountName]?.find { image ->
         image.name == sourceImageName
       }
