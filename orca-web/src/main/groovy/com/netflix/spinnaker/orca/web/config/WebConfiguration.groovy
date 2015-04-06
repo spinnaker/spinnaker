@@ -15,13 +15,19 @@
  */
 
 package com.netflix.spinnaker.orca.web.config
+
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
 import org.springframework.beans.factory.annotation.Autowire
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import redis.clients.jedis.JedisCommands
 
 import javax.servlet.Filter
@@ -34,7 +40,18 @@ import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan(basePackages = 'com.netflix.spinnaker.orca.controllers')
-class WebConfiguration {
+class WebConfiguration extends WebMvcConfigurerAdapter {
+  @Autowired
+  ExtendedRegistry extendedRegistry
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(
+      new MetricsInterceptor(
+        extendedRegistry, "controller.invocations", ["application"], ["BasicErrorController"]
+      )
+    )
+  }
 
   @Bean(name = "objectMapper", autowire = Autowire.BY_TYPE) OrcaObjectMapper orcaObjectMapper() {
     new OrcaObjectMapper()

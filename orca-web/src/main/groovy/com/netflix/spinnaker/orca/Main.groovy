@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
@@ -66,7 +67,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MayoConfiguration,
   RushConfiguration,
   IgorConfiguration,
-  DiscoveryPollingConfiguration
+  DiscoveryPollingConfiguration,
+  TomcatConfiguration
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [

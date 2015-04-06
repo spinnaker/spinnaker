@@ -46,6 +46,9 @@ dependencies {
   compile project(":orca-igor")
   compile project(":orca-eureka")
 
+  runtime spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkWeb")
+
   spinnaker.group('test')
   testCompile spinnaker.dependency('batchTest')
   testCompile project(":orca-test")
