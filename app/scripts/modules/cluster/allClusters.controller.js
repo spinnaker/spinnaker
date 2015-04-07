@@ -45,16 +45,22 @@ angular.module('clusters.all', [
       });
     }
 
-
     function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
-      $scope.$evalAsync(
-        clusterFilterService.updateClusterGroups(application)
+      $scope.$evalAsync(function() {
+          clusterFilterService.updateClusterGroups(application);
+        }
       );
 
       $scope.groups = ClusterFilterModel.groups;
       $scope.displayOptions = ClusterFilterModel.displayOptions;
+      $scope.tags = ClusterFilterModel.sortFilter.tags;
     }
+
+    this.clearFilters = function() {
+      clusterFilterService.clearFilters();
+      updateClusterGroups();
+    };
 
     this.createServerGroup = function createServerGroup() {
       providerSelectionService.selectProvider().then(function(selectedProvider) {
