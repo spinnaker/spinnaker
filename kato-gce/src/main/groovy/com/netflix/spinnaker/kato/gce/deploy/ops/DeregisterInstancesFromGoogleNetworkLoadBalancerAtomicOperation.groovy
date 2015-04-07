@@ -45,32 +45,32 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperation implements
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerName": "myapp-loadbalancer", "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:8501/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    def lbName = description.networkLoadBalancerName
+    def loadBalancerNames = description.networkLoadBalancerNames
     def instanceIds = description.instanceIds
     def project = description.credentials.project
     def region = description.region
     def compute = description.credentials.compute
 
-    task.updateStatus BASE_PHASE, "Initializing deregister instances (${instanceIds.join(", ")}) from load balancer '$lbName'."
+    task.updateStatus BASE_PHASE, "Initializing deregister instances (${instanceIds.join(", ")}) from load balancers " +
+      "(${loadBalancerNames.join(", ")})."
 
-    def forwardingRule = GCEUtil.queryRegionalForwardingRule(project, region, lbName, compute, task, BASE_PHASE)
-    if (!forwardingRule) {
-      def errorMsg = "Unknown forwarding rule for load balancer '$lbName'."
-      task.updateStatus BASE_PHASE, errorMsg
-      throw new GCEResourceNotFoundException(errorMsg)
-    }
-
-    def targetPoolName = GCEUtil.getLocalName(forwardingRule.target)
+    def forwardingRules = GCEUtil.queryForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE)
     def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
-    task.updateStatus BASE_PHASE, "Removing urls=(${instanceUrls.join(", ")}) to pool=$targetPoolName."
 
-    def removeInstanceRequest = new TargetPoolsRemoveInstanceRequest()
-    removeInstanceRequest.instances = instanceUrls.collect{ url -> new InstanceReference(instance: url) }
-    compute.targetPools().removeInstance(project, region, targetPoolName, removeInstanceRequest).execute()
+    loadBalancerNames.each { lbName ->
+      def forwardingRule = forwardingRules.find { it.name == lbName }
+
+      def targetPoolName = GCEUtil.getLocalName(forwardingRule.target)
+      task.updateStatus BASE_PHASE, "Removing urls=(${instanceUrls.join(", ")}) from pool=$targetPoolName."
+
+      def removeInstanceRequest = new TargetPoolsRemoveInstanceRequest()
+      removeInstanceRequest.instances = instanceUrls.collect { url -> new InstanceReference(instance: url) }
+      compute.targetPools().removeInstance(project, region, targetPoolName, removeInstanceRequest).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done executing deregister instances (${instanceIds.join(", ")})."
     null

@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class RegisterInstancesWithGoogleNetworkLoadBalancerDescription {
-  String networkLoadBalancerName
+  List<String> networkLoadBalancerNames
   String region
   List<String> instanceIds
   String accountName

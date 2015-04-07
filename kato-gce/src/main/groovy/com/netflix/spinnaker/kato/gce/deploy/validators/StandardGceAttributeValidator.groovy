@@ -191,12 +191,16 @@ class StandardGceAttributeValidator {
     validateNotEmpty(image, "image")
   }
 
-  def validateInstanceIds(List<String> instanceIds) {
-    def result = validateNotEmpty(instanceIds, "instanceIds")
-    instanceIds.eachWithIndex { value, index ->
-      result &= validateNameAsPart(value, "instanceIds", "instanceId$index")
+  def validateNameList(List<String> names, String componentDescription) {
+    def result = validateNotEmpty(names, "${componentDescription}s")
+    names.eachWithIndex { value, index ->
+      result &= validateNameAsPart(value, "${componentDescription}s", "$componentDescription$index")
     }
     return result
+  }
+
+  def validateInstanceIds(List<String> instanceIds) {
+    return validateNameList(instanceIds, "instanceId")
   }
 
   def validateInstanceName(String instanceName) {

@@ -45,32 +45,32 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperation implements A
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "registerInstancesWithGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerName": "myapp-loadbalancer", "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "registerInstancesWithGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:8501/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    def lbName = description.networkLoadBalancerName
+    def loadBalancerNames = description.networkLoadBalancerNames
     def instanceIds = description.instanceIds
     def project = description.credentials.project
     def region = description.region
     def compute = description.credentials.compute
 
-    task.updateStatus BASE_PHASE, "Initializing register instances (${instanceIds.join(", ")}) with load balancer '$lbName'."
+    task.updateStatus BASE_PHASE, "Initializing register instances (${instanceIds.join(", ")}) with load balancers " +
+      "(${loadBalancerNames.join(", ")})."
 
-    def forwardingRule = GCEUtil.queryRegionalForwardingRule(project, region, lbName, compute, task, BASE_PHASE)
-    if (!forwardingRule) {
-      def errorMsg = "Unknown forwarding rule for load balancer '$lbName'."
-      task.updateStatus BASE_PHASE, errorMsg
-      throw new GCEResourceNotFoundException(errorMsg)
-    }
-
-    def targetPoolName = GCEUtil.getLocalName(forwardingRule.target)
+    def forwardingRules = GCEUtil.queryForwardingRules(project, region, loadBalancerNames, compute, task, BASE_PHASE)
     def instanceUrls = GCEUtil.queryInstanceUrls(project, region, instanceIds, compute, task, BASE_PHASE)
-    task.updateStatus BASE_PHASE, "Adding urls=(${instanceUrls.join(", ")}) to pool=$targetPoolName."
 
-    def addInstanceRequest = new TargetPoolsAddInstanceRequest()
-    addInstanceRequest.instances = instanceUrls.collect{ url -> new InstanceReference(instance: url) }
-    compute.targetPools().addInstance(project, region, targetPoolName, addInstanceRequest).execute()
+    loadBalancerNames.each { lbName ->
+      def forwardingRule = forwardingRules.find { it.name == lbName }
+
+      def targetPoolName = GCEUtil.getLocalName(forwardingRule.target)
+      task.updateStatus BASE_PHASE, "Adding urls=(${instanceUrls.join(", ")}) to pool=$targetPoolName."
+
+      def addInstanceRequest = new TargetPoolsAddInstanceRequest()
+      addInstanceRequest.instances = instanceUrls.collect{ url -> new InstanceReference(instance: url) }
+      compute.targetPools().addInstance(project, region, targetPoolName, addInstanceRequest).execute()
+    }
 
     task.updateStatus BASE_PHASE, "Done executing register instances (${instanceIds.join(", ")})."
     null

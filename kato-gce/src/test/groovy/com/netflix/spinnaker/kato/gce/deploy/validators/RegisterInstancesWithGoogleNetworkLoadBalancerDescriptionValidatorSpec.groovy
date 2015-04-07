@@ -48,7 +48,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerDescriptionValidatorSpec ext
   void "pass validation with proper description inputs"() {
     setup:
       def description = new RegisterInstancesWithGoogleNetworkLoadBalancerDescription(
-        networkLoadBalancerName: LOAD_BALANCER_NAME,
+        networkLoadBalancerNames: [LOAD_BALANCER_NAME],
         instanceIds: INSTANCE_IDS,
         region: REGION,
         accountName: ACCOUNT_NAME)
@@ -74,8 +74,8 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerDescriptionValidatorSpec ext
       1 * errors.rejectValue(
         'credentials', 'registerInstancesWithGoogleNetworkLoadBalancerDescription.credentials.empty')
       1 * errors.rejectValue(
-        'networkLoadBalancerName',
-        'registerInstancesWithGoogleNetworkLoadBalancerDescription.networkLoadBalancerName.empty')
+        'networkLoadBalancerNames',
+        'registerInstancesWithGoogleNetworkLoadBalancerDescription.networkLoadBalancerNames.empty')
       1 * errors.rejectValue(
         'region', 'registerInstancesWithGoogleNetworkLoadBalancerDescription.region.empty')
       1 * errors.rejectValue('' +

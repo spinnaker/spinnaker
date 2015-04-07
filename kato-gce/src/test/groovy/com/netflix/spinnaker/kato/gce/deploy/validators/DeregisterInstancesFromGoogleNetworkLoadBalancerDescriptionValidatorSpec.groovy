@@ -48,7 +48,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerDescriptionValidatorSpec e
   void "pass validation with proper description inputs"() {
     setup:
       def description = new DeregisterInstancesFromGoogleNetworkLoadBalancerDescription(
-        networkLoadBalancerName: LOAD_BALANCER_NAME,
+        networkLoadBalancerNames: [LOAD_BALANCER_NAME],
         instanceIds: INSTANCE_IDS,
         region: REGION,
         accountName: ACCOUNT_NAME)
@@ -74,8 +74,8 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerDescriptionValidatorSpec e
       1 * errors.rejectValue(
         'credentials', 'deregisterInstancesFromGoogleNetworkLoadBalancerDescription.credentials.empty')
       1 * errors.rejectValue(
-        'networkLoadBalancerName',
-        'deregisterInstancesFromGoogleNetworkLoadBalancerDescription.networkLoadBalancerName.empty')
+        'networkLoadBalancerNames',
+        'deregisterInstancesFromGoogleNetworkLoadBalancerDescription.networkLoadBalancerNames.empty')
       1 * errors.rejectValue(
         'region', 'deregisterInstancesFromGoogleNetworkLoadBalancerDescription.region.empty')
       1 * errors.rejectValue('' +
