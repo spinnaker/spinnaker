@@ -21,21 +21,11 @@ import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
-import org.springframework.boot.actuate.endpoint.HealthEndpoint
-import org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter
-import org.springframework.boot.actuate.health.OrderedHealthAggregator
 import org.springframework.boot.actuate.health.Status
-import org.springframework.http.HttpStatus
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
-import org.springframework.test.web.servlet.MockMvc
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup
-
-class ApplicationdAOProviderHealthIndicatorSpec extends Specification {
+class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
   @Shared
   ApplicationDAOProviderHealthIndicator healthCheck
 
@@ -51,6 +41,7 @@ class ApplicationdAOProviderHealthIndicatorSpec extends Specification {
 
   void 'health check should return 5xx error if dao is not working'() {
     when:
+    healthCheck.pollForHealth()
     def result = healthCheck.health()
 
     then:
@@ -60,6 +51,7 @@ class ApplicationdAOProviderHealthIndicatorSpec extends Specification {
 
   void 'health check should return Ok'() {
     when:
+    healthCheck.pollForHealth()
     def result = healthCheck.health()
 
     then:

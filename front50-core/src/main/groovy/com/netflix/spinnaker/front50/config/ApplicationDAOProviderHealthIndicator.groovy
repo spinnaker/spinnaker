@@ -17,12 +17,16 @@
 
 package com.netflix.spinnaker.front50.config
 
+import com.amazonaws.AmazonServiceException
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.atomic.AtomicReference
 
 @Component
 public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
@@ -33,8 +37,18 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
   @Autowired
   List<ApplicationDAOProvider> applicationDAOProviders
 
+  private final AtomicReference<Health> lastHealth = new AtomicReference<>(null)
+
   @Override
   public Health health() {
+    if (!lastHealth.get()) {
+      return new Health.Builder().down().build()
+    }
+    return lastHealth.get()
+  }
+
+  @Scheduled(fixedDelay = 30000L)
+  void pollForHealth() {
     def healthBuilder = new Health.Builder().up()
 
     for (account in accountCredentialsProvider.all) {
@@ -52,6 +66,6 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
       }
     }
 
-    return healthBuilder.build()
+    lastHealth.set(healthBuilder.build())
   }
 }

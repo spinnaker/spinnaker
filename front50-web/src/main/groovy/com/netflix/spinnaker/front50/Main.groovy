@@ -25,10 +25,12 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.scheduling.annotation.EnableScheduling
 
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
 @ComponentScan(["com.netflix.spinnaker.front50", "com.netflix.spinnaker.config"])
+@EnableScheduling
 public class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
     'netflix.environment': System.getProperty('netflix.environment', 'test'),
