@@ -205,6 +205,7 @@ angular
         sortGroupsByHeading(groups);
         setDisplayOptions(totalInstancesDisplayed);
         waypointService.restoreToWaypoint(application.name);
+        addTags();
         lastApplication = application;
         return groups;
     }
@@ -219,7 +220,7 @@ angular
 
     function setDisplayOptions(totalInstancesDisplayed) {
       var newOptions =  {
-        renderInstancesOnScroll: totalInstancesDisplayed > 1000, // TODO: move to config
+        renderInstancesOnScroll: totalInstancesDisplayed > 1000, // TODO: remove
         totalInstancesDisplayed: totalInstancesDisplayed,
         showInstances: ClusterFilterModel.sortFilter.showAllInstances,
         listInstances: ClusterFilterModel.sortFilter.listInstances,
@@ -232,6 +233,55 @@ angular
     function clearFilters() {
       ClusterFilterModel.clearFilters();
       updateQueryParams();
+    }
+
+    function addTagsForSection(key, label, translator) {
+      translator = translator || {};
+      var tags = ClusterFilterModel.sortFilter.tags;
+      if (ClusterFilterModel.sortFilter[key]) {
+        _.forOwn(ClusterFilterModel.sortFilter[key], function(isActive, value) {
+          if (isActive) {
+            tags.push({
+              key: key,
+              label: label,
+              value: translator[value] || value,
+              clear: function() {
+                delete ClusterFilterModel.sortFilter[key][value];
+                updateQueryParams();
+                updateClusterGroups();
+              }
+            });
+          }
+        });
+      }
+      return tags;
+    }
+
+    function addFilterTag() {
+      if (ClusterFilterModel.sortFilter.filter) {
+        ClusterFilterModel.sortFilter.tags.push({
+          key: 'filter',
+          label: 'search',
+          value: ClusterFilterModel.sortFilter.filter,
+          clear: function() {
+            ClusterFilterModel.sortFilter.filter = '';
+            updateQueryParams();
+            updateClusterGroups();
+          }
+        });
+      }
+    }
+
+    function addTags() {
+      var tags = ClusterFilterModel.sortFilter.tags;
+      tags.length = 0;
+      addFilterTag();
+      addTagsForSection('account', 'account');
+      addTagsForSection('region', 'region');
+      addTagsForSection('status', 'status', {Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service'});
+      addTagsForSection('availabilityZone', 'zone');
+      addTagsForSection('instanceType', 'instance type');
+      addTagsForSection('providerType', 'provider');
     }
 
     return {

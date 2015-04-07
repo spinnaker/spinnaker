@@ -5,7 +5,8 @@ angular
   .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, $location, _) {
 
     var sortFilter = {
-      instanceSort: { key: 'launchTime' }
+      instanceSort: { key: 'launchTime' },
+      tags: [],
     };
 
     var savedClusterState = {};

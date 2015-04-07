@@ -34,6 +34,13 @@
       </button>
     </div>
   </div>
+  <div class="col-md-12 filter-tags" ng-if="tags.length">
+    Filtered by: <span class="filter-tag" ng-repeat="tag in tags">
+      <strong>{{tag.label}}</strong>: {{tag.value}}
+      <a href ng-click="tag.clear()"><span class="glyphicon glyphicon-remove-sign"></span></a>
+    </span>
+    <a href class="clear-filters" ng-click="allClusters.clearFilters()" ng-if="tags.length > 1">Clear All</a>
+  </div>
 </div>
 <div class="content"
      data-scroll-id="clusters-content"

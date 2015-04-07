@@ -28,6 +28,18 @@ describe('Service: clusterFilterService', function () {
     )
   );
 
+  beforeEach(function() {
+    this.verifyTags = function(expectedTags) {
+      var actual = ClusterFilterModel.sortFilter.tags;
+      expect(actual.length).toBe(expectedTags.length);
+      expectedTags.forEach(function(expected) {
+        expect(actual.some(function(test) {
+          return test.key === expected.key && test.label === expected.label && test.value === expected.value;
+        })).toBe(true);
+      });
+    };
+  });
+
   it('should have the service injected in the test', function () {
     expect(service).toBeDefined();
     expect($location).toBeDefined();
@@ -177,11 +189,18 @@ describe('Service: clusterFilterService', function () {
         ClusterFilterModel.sortFilter.account = {prod: true};
         var expectedProd = _.filter(groupedJSON, {heading:'prod'});
         expect(service.updateClusterGroups(applicationJSON)).toEqual(expectedProd);
+        this.verifyTags([
+          { key: 'account', label: 'account', value: 'prod' }
+        ]);
       });
 
       it('All account filters: should show all accounts', function () {
         ClusterFilterModel.sortFilter.account = {prod: true, test: true};
         expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+        this.verifyTags([
+          { key: 'account', label: 'account', value: 'prod' },
+          { key: 'account', label: 'account', value: 'test' },
+        ]);
       });
     });
   });
@@ -191,6 +210,9 @@ describe('Service: clusterFilterService', function () {
       ClusterFilterModel.sortFilter.region = {'us-west-1' : true};
       var expected = _.filter(groupedJSON, {subgroups: [{heading: 'in-us-west-1-only' }]});
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'region', label: 'region', value: 'us-west-1' },
+      ]);
     });
   });
 
@@ -210,11 +232,15 @@ describe('Service: clusterFilterService', function () {
       );
 
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'healthy' },
+      ]);
     });
 
     it('should not filter by healthy if unchecked', function () {
       ClusterFilterModel.sortFilter.status = {healthy : false};
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
   });
 
@@ -234,11 +260,15 @@ describe('Service: clusterFilterService', function () {
       );
 
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'unhealthy' },
+      ]);
     });
 
     it('should not filter by unhealthy if unchecked', function () {
       ClusterFilterModel.sortFilter.status = {unhealthy : false};
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
 
   });
@@ -258,6 +288,10 @@ describe('Service: clusterFilterService', function () {
         }
       );
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'healthy' },
+        { key: 'status', label: 'status', value: 'unhealthy' },
+      ]);
     });
   });
 
@@ -276,11 +310,15 @@ describe('Service: clusterFilterService', function () {
         }
       );
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'Disabled' },
+      ]);
     });
 
     it('should not filter if the status is unchecked', function () {
       ClusterFilterModel.sortFilter.status = { Disabled: false };
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
   });
 
@@ -297,6 +335,9 @@ describe('Service: clusterFilterService', function () {
       starting.healthState = 'Starting';
       serverGroup.startingCount = 1;
       expect(service.updateClusterGroups(appCopy).length).toBe(1);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'Starting' },
+      ]);
     });
   });
 
@@ -313,6 +354,9 @@ describe('Service: clusterFilterService', function () {
       starting.healthState = 'OutOfService';
       serverGroup.outOfServiceCount = 1;
       expect(service.updateClusterGroups(appCopy).length).toBe(1);
+      this.verifyTags([
+        { key: 'status', label: 'status', value: 'Out of Service' },
+      ]);
     });
   });
 
@@ -331,16 +375,24 @@ describe('Service: clusterFilterService', function () {
         }
       );
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'providerType', label: 'provider', value: 'aws' },
+      ]);
     });
 
     it('should not filter if no provider type is selected', function () {
       ClusterFilterModel.sortFilter.providerType = undefined;
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
 
     it('should not filter if all provider are selected', function () {
       ClusterFilterModel.sortFilter.providerType = {aws: true, gce: true};
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([
+        { key: 'providerType', label: 'provider', value: 'aws' },
+        { key: 'providerType', label: 'provider', value: 'gce' },
+      ]);
     });
   });
 
@@ -359,16 +411,21 @@ describe('Service: clusterFilterService', function () {
         }
       );
       expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      this.verifyTags([
+        { key: 'instanceType', label: 'instance type', value: 'm3.large' },
+      ]);
     });
 
     it('should not filter if no instance type selected', function () {
       ClusterFilterModel.sortFilter.instanceType = undefined;
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
 
     it('should not filter if the instance type is unchecked', function () {
       ClusterFilterModel.sortFilter.instanceType = {'m3.large' : false};
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
     });
   });
 
@@ -384,6 +441,7 @@ describe('Service: clusterFilterService', function () {
       expect(ClusterFilterModel.sortFilter.providerType).toBeDefined();
       service.clearFilters();
       expect(ClusterFilterModel.sortFilter.providerType).toBeUndefined();
+      this.verifyTags([]);
     });
 
   });
