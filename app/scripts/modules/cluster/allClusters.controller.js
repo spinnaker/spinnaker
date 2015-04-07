@@ -32,11 +32,16 @@ angular.module('clusters.all', [
     function addSearchFields() {
       application.clusters.forEach(function(cluster) {
         cluster.serverGroups.forEach(function(serverGroup) {
+          var buildNumber = '';
+          if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
+            buildNumber = '#' + serverGroup.buildInfo.jenkins.number;
+          }
           if (!serverGroup.searchField) {
             serverGroup.searchField = [
               serverGroup.region.toLowerCase(),
               serverGroup.name.toLowerCase(),
               serverGroup.account.toLowerCase(),
+              buildNumber,
               _.collect(serverGroup.loadBalancers, 'name').join(' '),
               _.collect(serverGroup.instances, 'id').join(' ')
             ].join(' ');
