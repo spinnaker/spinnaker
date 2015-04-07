@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div class="container-fluid" ng-repeat="execution in runningExecutions()">
+    <div class="container-fluid" ng-repeat="execution in runningExecutions() track by $index">
       <div class="row">
         <div class="col-md-12">
           <strong>
@@ -31,7 +31,7 @@
           </strong>
         </div>
       </div>
-      <div class="row" ng-repeat="stage in execution.stages">
+      <div class="row" ng-repeat="stage in execution.stages track by $index">
         <div class="col-md-7 col-md-offset-0">
           <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name}}
         </div>
