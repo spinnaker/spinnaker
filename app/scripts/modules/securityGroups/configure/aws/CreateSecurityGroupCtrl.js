@@ -4,13 +4,15 @@
 angular.module('deckApp.securityGroup.aws.create.controller', [
   'ui.router',
   'deckApp.account.service',
+  'deckApp.caches.infrastructure',
+  'deckApp.caches.initializer',
   'deckApp.tasks.monitor.service',
   'deckApp.securityGroup.write.service',
   'deckApp.vpc.read.service',
 ])
   .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                   accountService, securityGroupReader,
-                                                  taskMonitorService,
+                                                  taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   _, application, securityGroup, securityGroupWriter, vpcReader) {
 
     var ctrl = this;
@@ -20,7 +22,8 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
     $scope.isNew = true;
 
     $scope.state = {
-      submitting: false
+      submitting: false,
+      refreshingSecurityGroups: false,
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -33,9 +36,11 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
 
     $scope.securityGroup = securityGroup;
 
-    securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-      allSecurityGroups = securityGroups;
-    });
+    function initializeSecurityGroups() {
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+        allSecurityGroups = securityGroups;
+      });
+    }
 
     accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
@@ -46,6 +51,20 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
       $scope.availableSecurityGroups = [];
       $scope.existingSecurityGroupNames = [];
     }
+
+    this.getSecurityGroupRefreshTime = function() {
+      return infrastructureCaches.securityGroups.getStats().ageMax;
+    };
+
+    this.refreshSecurityGroups = function() {
+      $scope.state.refreshingSecurityGroups = true;
+      return cacheInitializer.refreshCache('securityGroups').then(function() {
+        return initializeSecurityGroups().then(function() {
+          ctrl.vpcUpdated();
+          $scope.state.refreshingSecurityGroups = false;
+        });
+      });
+    };
 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
@@ -146,4 +165,6 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
+
+    initializeSecurityGroups();
   });
