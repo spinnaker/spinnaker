@@ -42,40 +42,40 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
 
   def "creates a register instances with load balancer task based on job parameters"() {
     given:
-    def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
-        rx.Observable.from(taskId)
+      def operations
+      task.kato = Mock(KatoService) {
+        1 * requestOperations(*_) >> {
+          operations = it[0]
+          rx.Observable.from(taskId)
+        }
       }
-    }
 
     when:
-    task.execute(stage.asImmutable())
+      task.execute(stage.asImmutable())
 
     then:
-    operations.size() == 1
-    with(operations[0].registerInstancesWithGoogleNetworkLoadBalancerDescription) {
-      it instanceof Map
-      instanceIds == this.registerInstancesWithLoadBalancerConfig.instanceIds
-      networkLoadBalancerNames == this.registerInstancesWithLoadBalancerConfig.loadBalancers
-      region == this.registerInstancesWithLoadBalancerConfig.region
-      credentials == this.registerInstancesWithLoadBalancerConfig.credentials
-    }
+      operations.size() == 1
+      with(operations[0].registerInstancesWithGoogleNetworkLoadBalancerDescription) {
+        it instanceof Map
+        instanceIds == this.registerInstancesWithLoadBalancerConfig.instanceIds
+        networkLoadBalancerNames == this.registerInstancesWithLoadBalancerConfig.loadBalancers
+        region == this.registerInstancesWithLoadBalancerConfig.region
+        credentials == this.registerInstancesWithLoadBalancerConfig.credentials
+      }
   }
 
   def "returns a success status with the kato task id"() {
     given:
-    task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
-    }
+      task.kato = Stub(KatoService) {
+        requestOperations(*_) >> rx.Observable.from(taskId)
+      }
 
     when:
-    def result = task.execute(stage.asImmutable())
+      def result = task.execute(stage.asImmutable())
 
     then:
-    result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
-    result.outputs."relevant.health.providers" == ["LoadBalancer"]
+      result.status == ExecutionStatus.SUCCEEDED
+      result.outputs."kato.task.id" == taskId
+      result.outputs."relevant.health.providers" == ["LoadBalancer"]
   }
 }
