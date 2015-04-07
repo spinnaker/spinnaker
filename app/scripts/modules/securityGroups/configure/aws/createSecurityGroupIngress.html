@@ -54,6 +54,19 @@
 
         </div>
       </div>
+      <div class="form-group small" style="margin-top: 20px">
+        <div class="col-md-12">
+          <p>
+            <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+            Security groups
+            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.getSecurityGroupRefreshTime() | timestamp }}</span>
+            <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+          </p>
+          <p>If you're not finding a security group that was recently added,
+            <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.
+          </p>
+        </div>
+      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-default pull-left"

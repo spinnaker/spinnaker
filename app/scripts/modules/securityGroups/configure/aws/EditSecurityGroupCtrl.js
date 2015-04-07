@@ -1,13 +1,25 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.aws.edit.controller', [])
+angular.module('deckApp.securityGroup.aws.edit.controller', [
+  'ui.router',
+  'deckApp.account.service',
+  'deckApp.caches.infrastructure',
+  'deckApp.caches.initializer',
+  'deckApp.tasks.monitor.service',
+  'deckApp.securityGroup.write.service',
+  'deckApp.vpc.read.service',
+])
   .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                 accountService,  securityGroupReader,
-                                                taskMonitorService,
+                                                taskMonitorService, cacheInitializer, infrastructureCaches,
                                                 _, application, securityGroup, securityGroupWriter) {
 
     $scope.securityGroup = securityGroup;
+
+    $scope.state = {
+      refreshingSecurityGroups: false,
+    };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
@@ -49,12 +61,29 @@ angular.module('deckApp.securityGroup.aws.edit.controller', [])
       .flatten()
       .value();
 
-    securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
-      var account = securityGroup.accountName,
+    this.getSecurityGroupRefreshTime = function() {
+      return infrastructureCaches.securityGroups.getStats().ageMax;
+    };
+
+    this.refreshSecurityGroups = function() {
+      $scope.state.refreshingSecurityGroups = true;
+      return cacheInitializer.refreshCache('securityGroups').then(function() {
+        initializeSecurityGroups().then(function() {
+          $scope.state.refreshingSecurityGroups = false;
+        });
+      });
+    };
+
+
+
+    function initializeSecurityGroups() {
+      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+        var account = securityGroup.accountName,
           region = securityGroup.region,
           vpcId = securityGroup.vpcId || null;
-      $scope.availableSecurityGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
-    });
+        $scope.availableSecurityGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
+      });
+    }
 
     this.addRule = function(ruleset) {
       ruleset.push({});
@@ -78,4 +107,6 @@ angular.module('deckApp.securityGroup.aws.edit.controller', [])
     this.cancel = function () {
       $modalInstance.dismiss();
     };
+
+    initializeSecurityGroups();
   });
