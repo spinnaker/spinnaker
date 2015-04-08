@@ -142,7 +142,11 @@ angular.module('deckApp.cluster.service', [
     }
 
     function extractServerGroupNameFromContext(context) {
-      return _.first(_.values(context['deploy.server.groups'])) || [context['targetop.asg.disableAsg.name']] || undefined;
+      return _.first(_.values(context['deploy.server.groups'])) || context['targetop.asg.disableAsg.name'] || undefined;
+    }
+
+    function extractRegionFromContext(context) {
+      return _.first(_.keys(context['deploy.server.groups'])) || _.first(context['targetop.asg.disableAsg.regions']) || undefined;
     }
 
     function addExecutionsToServerGroups(application) {
@@ -158,10 +162,20 @@ angular.module('deckApp.cluster.service', [
 
           var stages = findStagesWithServerGroupInfo(execution.stages);
 
-          _.forEach(stages, function(stage) {
-            var stageServerGroup = stages ? extractServerGroupNameFromContext(stage.context): undefined;
+          console.warn('STAGES', stages);
 
-            if(_.includes(stageServerGroup, serverGroup.name)){
+          _.forEach(stages, function(stage) {
+            var stageServerGroup = stage ? extractServerGroupNameFromContext(stage.context): undefined;
+            var stageAccount = stage && stage.context ? stage.context.account || stage.context.credentials : undefined;
+            var stageRegion = stage ? extractRegionFromContext(stage.context) : undefined;
+
+            console.warn('stageServerGroup', stageServerGroup);
+            console.warn('stageAccount', stageAccount);
+            console.warn('stageRegion', stageRegion);
+
+            if(_.includes(stageServerGroup, serverGroup.name) &&
+              stageAccount === serverGroup.account &&
+              stageRegion === serverGroup.region) {
               application.serverGroups[index].executions.push(execution);
             }
 
@@ -215,7 +229,10 @@ angular.module('deckApp.cluster.service', [
       createServerGroupClusters: collateServerGroupsIntoClusters,
       normalizeServerGroupsWithLoadBalancers: normalizeServerGroupsWithLoadBalancers,
       addTasksToServerGroups: addTasksToServerGroups,
-      addExecutionsToServerGroups: addExecutionsToServerGroups
+      addExecutionsToServerGroups: addExecutionsToServerGroups,
+
+      //for testing purposes only
+      extractRegionFromContext: extractRegionFromContext,
     };
 
   });
