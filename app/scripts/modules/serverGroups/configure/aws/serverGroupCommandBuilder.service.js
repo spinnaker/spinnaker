@@ -155,7 +155,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
             region: serverGroup.region,
             asgName: serverGroup.asg.autoScalingGroupName,
           },
-          suspendedProcesses: _.pluck(serverGroup.asg.suspendedProcesses, 'processName'),
+          suspendedProcesses: [],
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             allImageSelection: null,
