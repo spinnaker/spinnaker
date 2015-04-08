@@ -2,7 +2,16 @@
   <div class="col-md-7 execution-info">
     <h5 ng-if="filter.execution.groupBy !== 'name'">{{execution.name}}</h5>
     <span ng-switch="execution.trigger.type" ng-class="{subheading: filter.execution.groupBy !== 'name'}">
-      <h5 ng-switch-when="jenkins">
+       <h5 ng-switch-when="jenkins">
+         Triggered Build
+       </h5>
+      <h5 ng-switch-when="manual">
+        Manual Start
+      </h5>
+      <h5 ng-switch-default>
+        {{ execution.trigger.type }}
+      </h5>
+      <h5>
         <a ng-if="execution.trigger.buildInfo.url"
            href="{{ execution.trigger.buildInfo.url }}"
            target="_blank"
@@ -15,12 +24,6 @@
            ng-click="$event.stopPropagation()">
           Build #{{ execution.trigger.buildInfo.lastBuild.number }}
         </a>
-      </h5>
-      <h5 ng-switch-when="manual">
-        Manual Start
-      </h5>
-      <h5 ng-switch-default>
-        {{ execution.trigger.type }}
       </h5>
     </span>
     <ul>
