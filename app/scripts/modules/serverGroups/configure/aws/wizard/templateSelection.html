@@ -36,6 +36,24 @@
             </ui-select>
           </div>
         </div>
+        <div class="form-group" ng-if="command.viewState.template.serverGroup" style="margin-top: 20px">
+          <div class="col-md-10 col-md-offset-1 well">
+            These fields <strong>will be</strong> copied over from the most recent server group:
+            <ul>
+              <li>account, region, subnet, cluster name (stack, details)</li>
+              <li>load balancers</li>
+              <li>security groups</li>
+              <li>instance type</li>
+              <li>all fields on the Advanced Settings page</li>
+            </ul>
+            These fields <strong>will NOT</strong> be copied over, and will be reset to defaults:
+            <ul>
+              <li>scaling policies</li>
+              <li>suspended processes</li>
+              <li>the deployment strategy (if any) used to deploy the most recent server group</li>
+            </ul>
+          </div>
+        </div>
       </form>
     </div>
     <div class="modal-footer">
