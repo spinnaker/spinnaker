@@ -55,9 +55,11 @@ angular.module('deckApp.aws.serverGroup.configure.service', [
           }
           command.amiName = namedImage.imageName;
 
-          var packageRegex = /((nf(lx)?-)?\w+)-?\w+/;
-          var match = packageRegex.exec(namedImage.imageName);
-          var packageBase = match[1];
+          var packageBase = namedImage.imageName.split('_')[0];
+          var parts = packageBase.split('-');
+          if (parts.length > 3) {
+            packageBase = parts.slice(0, -3).join('-');
+          }
           if (!packageBase || packageBase.length < 3) {
             return [namedImage];
           }

@@ -271,7 +271,7 @@ describe('Controller: awsCloneServerGroup', function () {
     it('queries based on existing ami when cloning', function () {
       var context = this,
         $scope = this.$scope,
-        amiBasedImage = {imageName: 'something-packagebase', amis: {'us-east-1': ['ami-1234']}},
+        amiBasedImage = {imageName: 'something-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
         packageBasedImages = [amiBasedImage],
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
@@ -297,12 +297,13 @@ describe('Controller: awsCloneServerGroup', function () {
       expect(this.imageService.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
 
       expect($scope.command.backingData.filtered.images.length).toBe(1);
-      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase', ami: 'ami-1234'});
+      expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase-something-something', ami: 'ami-1234'});
+
     });
 
     it('returns only the existing ami without further querying when package name is less than three characters', function() {
       var $scope = this.$scope,
-          amiBasedImage = {imageName: 'aa-packagebase', amis: {'us-east-1': ['ami-1234']}},
+          amiBasedImage = {imageName: 'aa-packagebase-something-something', amis: {'us-east-1': ['ami-1234']}},
           serverGroup = this.buildBaseClone();
 
       serverGroup.viewState.imageId = 'ami-1234';
