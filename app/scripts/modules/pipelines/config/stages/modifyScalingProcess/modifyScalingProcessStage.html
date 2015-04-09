@@ -56,9 +56,12 @@
       </label>
     </div>
   </div>
-  <div class="form-group" ng-if="stage.credentials">
+  <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Processes</label>
-    <div class="col-md-8" style="border-top: 1px solid #ccc">
+    <div class="col-md-8" ng-if="!stage.credentials" ng-if="!stage.credentials">
+      Please select an account to pick processes.
+    </div>
+    <div class="col-md-8" style="border-top: 1px solid #ccc" ng-if="stage.credentials">
       <div class="col-md-8 checkbox" style="padding-left:0;">
         <label ng-repeat="p in processes" style="display: block">
           <input
@@ -67,7 +70,7 @@
             value="{{p}}"
             ng-checked="stage.processes.indexOf(p) > -1"
             ng-click="toggleProcess(p)"
-          > {{p}}
+            > {{p}}
         </label>
       </div>
     </div>
