@@ -50,12 +50,11 @@ angular.module('deckApp.pipelines.stage.disableAsg')
 
     $scope.targets = [
       {
-        label: 'Last ASG',
-        val: 'ancestor_asg'
-      },
-      {
         label: 'Current ASG',
         val: 'current_asg'
+      }, {
+        label: 'Last ASG',
+        val: 'ancestor_asg'
       }
     ];
 
