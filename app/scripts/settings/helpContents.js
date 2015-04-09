@@ -38,14 +38,16 @@ angular.module('deckApp.help')
       '<p>If you do not wish to use VPC, select "None".</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
       '<ul>' +
+      '<li>Build # (e.g. <samp>#337</samp>)</li>' +
+      '<li>Cluster (prefixed, e.g. <samp>cluster:myapp-int</samp>)' +
+      '<li>Server Group Name</li>' +
       '<li>Region</li>' +
       '<li>Account</li>' +
-      '<li>Server Group Name</li>' +
       '<li>Load Balancer Name</li>' +
       '<li>Instance ID</li>' +
       '</ul>' +
       '<p>You can search for multiple words or word fragments. For instance, to find all server groups in a prod stack with "canary" in the details' +
-      ', enter "prod canary".</p>' +
+      ', enter <samp>prod canary</samp>.</p>' +
       '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
       'will be highlighted for you.</p>',
     'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
