@@ -45,7 +45,8 @@ class ResizeAsgStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    if (!stage.syntheticStageOwner) {
+    if (!stage.parentStageId || stage.execution.stages.find { it.id == stage.parentStageId}.type != stage.type) {
+      // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
       configureTargets(stage)
       []
     } else {

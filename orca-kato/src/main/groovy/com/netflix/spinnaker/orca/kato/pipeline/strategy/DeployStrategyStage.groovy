@@ -131,10 +131,6 @@ abstract class DeployStrategyStage extends LinearStage {
           injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
         injectAfter(stage, "disable", disableAsgStage, nextStageContext)
-        if (stageData.scaleDown) {
-          nextStageContext.putAll([action: "resume", processes: ["Terminate"]])
-          injectAfter(stage, "enableTerminate", modifyScalingProcessStage, nextStageContext)
-        }
         if (stageData.shrinkCluster) {
           Names names = Names.parseName(latestAsg as String)
           def shrinkContext = [application: names.app, clusterName: names.cluster,

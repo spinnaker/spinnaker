@@ -53,21 +53,11 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
       injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
 
-    try {
-      println "1"
-      processBeforeStages(jobBuilder, stageIdx, stage)
-      println "2"
-      wireSteps(jobBuilder, steps)
-      println "3 ${stage.name}"
-      processAfterStages(jobBuilder, stage)
-      println "4"
-      stage.beforeStages.clear()
-      println "5"
-      stage.afterStages.clear()
-      println "6"
-    } catch (Exception e) {
-      e.printStackTrace()
-    }
+    processBeforeStages(jobBuilder, stageIdx, stage)
+    wireSteps(jobBuilder, steps)
+    processAfterStages(jobBuilder, stage)
+    stage.beforeStages.clear()
+    stage.afterStages.clear()
     jobBuilder
   }
 
@@ -85,7 +75,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
         def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name,
           new HashMap(beforeStage.context), stage, SyntheticStageOwner.STAGE_BEFORE)
         stage.execution.stages.add(stageIdx, newStage)
-        wireSteps(jobBuilder, beforeStage.stageBuilder.buildSteps(newStage))
+        beforeStage.stageBuilder.build(jobBuilder, newStage)
       }
     }
   }
@@ -96,7 +86,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
         def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name,
           new HashMap(afterStage.context), stage, SyntheticStageOwner.STAGE_AFTER)
         stage.execution.stages.add(newStage)
-        wireSteps(jobBuilder, afterStage.stageBuilder.buildSteps(newStage))
+        afterStage.stageBuilder.build(jobBuilder, newStage)
       }
     }
   }

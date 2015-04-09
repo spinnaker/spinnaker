@@ -145,7 +145,7 @@ class DeployStageSpec extends Specification {
     stage.afterStages[0].context.regions == config.availabilityZones.keySet().toList()
   }
 
-  void "should create stages of deploy, resizeAsg, disableAsg, and enableTerminate when strategy is redblack and scaleDown is true"() {
+  void "should create stages of deploy, resizeAsg and disableAsg when strategy is redblack and scaleDown is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
@@ -173,13 +173,11 @@ class DeployStageSpec extends Specification {
           )
       )
     }
-    3 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage]
-    stage.afterStages[2].context.action == "resume"
-    stage.afterStages[2].context.processes == ["Terminate"]
+    2 == stage.afterStages.size()
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
   }
 
-  void "should create stages of deploy, resizeAsg, disableAsg, enableTerminate, and shrinkCluster stages when strategy is redblack and scaleDown is true and shrinkCluster is true"() {
+  void "should create stages of deploy, resizeAsg, disableAsg, and shrinkCluster stages when strategy is redblack and scaleDown is true and shrinkCluster is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
@@ -208,8 +206,8 @@ class DeployStageSpec extends Specification {
         )
       )
     }
-    4 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, modifyScalingProcessStage, shrinkClusterStage]
+    3 == stage.afterStages.size()
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, shrinkClusterStage]
   }
 
   @Unroll
