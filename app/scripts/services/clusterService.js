@@ -162,16 +162,10 @@ angular.module('deckApp.cluster.service', [
 
           var stages = findStagesWithServerGroupInfo(execution.stages);
 
-          console.warn('STAGES', stages);
-
           _.forEach(stages, function(stage) {
             var stageServerGroup = stage ? extractServerGroupNameFromContext(stage.context): undefined;
             var stageAccount = stage && stage.context ? stage.context.account || stage.context.credentials : undefined;
             var stageRegion = stage ? extractRegionFromContext(stage.context) : undefined;
-
-            console.warn('stageServerGroup', stageServerGroup);
-            console.warn('stageAccount', stageAccount);
-            console.warn('stageRegion', stageRegion);
 
             if(_.includes(stageServerGroup, serverGroup.name) &&
               stageAccount === serverGroup.account &&
