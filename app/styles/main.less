@@ -831,3 +831,19 @@ select.input-sm {
   padding-left: 5px;
   padding-right: 0;
 }
+
+whats-new {
+  .navbar-nav > li > a {
+    &.unread {
+      padding: 4px 12px;
+      font-weight: 400;
+      .timestamp {
+        color: @code-yellow;
+        font-size: 80%;
+        font-weight: 200;
+        display: block;
+      }
+
+    }
+  }
+}

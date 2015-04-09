@@ -68,6 +68,11 @@ angular.module('deckApp.settings', [])
         }
       }
     },
+    whatsNew: {
+      gistId: '32526cd608db3d811b38',
+      fileName: 'news.md',
+      accessToken: 'd47428caab832c12c5ef489974d4fbba1d6eed96',
+    },
     authEnabled: false,
     feature: {
       notifications: false
