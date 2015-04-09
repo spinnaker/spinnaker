@@ -209,5 +209,201 @@ describe('Service: InstanceType', function () {
         });
       });
     });
+
+
+    describe('extraction region from stage context', function () {
+
+      it('should return the region from the deploy.server.groups node', function () {
+
+        var context = {
+          'deploy.server.groups':  {
+            'us-west-1': ['mahe-prestaging-v001']
+          }
+        };
+
+        var result = this.clusterService.extractRegionFromContext(context);
+        expect(result).toBe('us-west-1');
+
+      });
+
+
+      it('should return "undefined" if nothing is extracted', function () {
+        var context = {};
+
+        var result = this.clusterService.extractRegionFromContext(context);
+
+        expect(result).toBeUndefined();
+      });
+
+    });
+
+
+    describe('add executions to server group for deploy stage', function () {
+      var application = {};
+
+      beforeEach(function() {
+        application.serverGroups = [
+          {
+            name: 'foo-v001',
+            account: 'test',
+            region: 'us-west-1'
+          }
+        ];
+      });
+
+      it('should successfully add a matched execution to a server group', function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'deploy',
+                context: {
+                  'deploy.server.groups':  {
+                    'us-west-1': ['foo-v001']
+                  },
+                  account:'test',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(1);
+      });
+
+
+      it('should NOT add a execution to a server group if the region does not match' , function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'deploy',
+                context: {
+                  'deploy.server.groups':  {
+                    'us-east-1': ['foo-v001']
+                  },
+                  account:'test',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(0);
+      });
+
+
+      it('should NOT add a execution to a server group if the account does not match' , function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'deploy',
+                context: {
+                  'deploy.server.groups':  {
+                    'us-west-1': ['foo-v001']
+                  },
+                  account:'prod',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(0);
+      });
+    });
+
+
+    fdescribe('add executions to server group for disableAsg stage', function () {
+      var application = {};
+
+      beforeEach(function() {
+        application.serverGroups = [
+          {
+            name: 'foo-v001',
+            account: 'test',
+            region: 'us-west-1'
+          }
+        ];
+      });
+
+      it('should successfully add a matched execution to a server group', function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'disableAsg',
+                context: {
+                  'targetop.asg.disableAsg.name': 'foo-v001',
+                  'targetop.asg.disableAsg.regions': ['us-west-1'],
+                  credentials: 'test',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(1);
+      });
+
+
+      it('should NOT add a execution to a server group if the region does not match' , function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'disableAsg',
+                context: {
+                  'targetop.asg.disableAsg.name': 'foo-v001',
+                  'targetop.asg.disableAsg.regions': ['us-east-1'],
+                  credentials: 'test',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(0);
+      });
+
+
+      it('should NOT add a execution to a server group if the account does not match' , function () {
+        var executions = [
+          {
+            stages: [
+              {
+                type: 'deploy',
+                context: {
+                  'targetop.asg.disableAsg.name': 'foo-v001',
+                  'targetop.asg.disableAsg.regions': ['us-west-1'],
+                  credentials: 'prod',
+                }
+              }
+            ]
+          }
+        ];
+
+        application.executions = executions;
+        var result = this.clusterService.addExecutionsToServerGroups(application);
+
+        expect(result.serverGroups[0].executions.length).toBe(0);
+      });
+    });
   });
 });
