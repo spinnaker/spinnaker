@@ -31,8 +31,8 @@ import retrofit.RetrofitError
 
 @Slf4j
 abstract class AbstractInstancesCheckTask implements RetryableTask {
-  long backoffPeriod = 1000
-  long timeout = 3600000
+  long backoffPeriod = 5000
+  long timeout = 7200000
 
   @Autowired
   OortService oortService

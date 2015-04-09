@@ -62,26 +62,36 @@ class ResizeAsgStageSpec extends Specification {
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> asgs.collect {
       new TargetReference(region: it.region, asg: it)
     }
-    0 == stage.beforeStages.size()
-    0 == stage.afterStages.size()
-    stage.context == config
+
+    stage.beforeStages.collect { it.context } == asgs.collect{[
+        asgName: it.name, credentials: 'test', regions: [it.region], action: 'resume', processes: ['Launch', 'Terminate']
+    ]}
+    stage.afterStages.collect { it.context } == [config] + asgs.collect{[
+      asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend', processes: ['Launch', 'Terminate']
+    ]}
 
     where:
     asgs = [[
               name  : "testapp-asg-v000",
               region: "us-west-1",
               asg   : [
-                minSize        : 5,
-                maxSize        : 5,
-                desiredCapacity: 5
+                minSize           : 5,
+                maxSize           : 5,
+                desiredCapacity   : 5,
+                suspendedProcesses: [
+                  [processName: 'Terminate'], [processName: 'Launch']
+                ]
               ]
             ], [
               name  : "testapp-asg-v000",
               region: "us-east-1",
               asg   : [
-                minSize        : 5,
-                maxSize        : 5,
-                desiredCapacity: 5
+                minSize           : 5,
+                maxSize           : 5,
+                desiredCapacity   : 5,
+                suspendedProcesses: [
+                  [processName: 'Terminate'], [processName: 'Launch']
+                ]
               ]
             ]]
   }
@@ -98,7 +108,9 @@ class ResizeAsgStageSpec extends Specification {
 
     then:
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [targetRef]
-    stage.context.asgName == asgName
+
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context.asgName == asgName
 
     where:
     target         | asgName            | targetRef
@@ -143,7 +155,9 @@ class ResizeAsgStageSpec extends Specification {
         desiredCapacity: 10
       ]
     ])]
-    stage.context.capacity == [min: 15, max: 15, desired: 15]
+
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
   }
 
   void "should allow target capacity to be incrementally scaled"() {
@@ -166,7 +180,9 @@ class ResizeAsgStageSpec extends Specification {
         desiredCapacity: 10
       ]
     ])]
-    stage.context.capacity == [min: 15, max: 15, desired: 15]
+
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
   }
 
   void "should scale percentage factors up"() {
@@ -189,7 +205,9 @@ class ResizeAsgStageSpec extends Specification {
         desiredCapacity: 5
       ]
     ])]
-    stage.context.capacity == [min: 8, max: 8, desired: 8]
+
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context.capacity == [min: 8, max: 8, desired: 8] as Map
   }
 
   void "should be able to derive scaling direction from inputs"() {
@@ -212,7 +230,9 @@ class ResizeAsgStageSpec extends Specification {
         desiredCapacity: 5
       ]
     ])]
-    stage.context.capacity == capacity
+
+    stage.afterStages.size() == 1
+    stage.afterStages[0].context.capacity == capacity
 
     where:
     action       | capacity

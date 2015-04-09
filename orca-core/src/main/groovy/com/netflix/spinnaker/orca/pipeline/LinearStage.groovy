@@ -53,11 +53,21 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
       injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
 
-    processBeforeStages(jobBuilder, stageIdx, stage)
-    wireSteps(jobBuilder, steps)
-    processAfterStages(jobBuilder, stage)
-    stage.beforeStages.clear()
-    stage.afterStages.clear()
+    try {
+      println "1"
+      processBeforeStages(jobBuilder, stageIdx, stage)
+      println "2"
+      wireSteps(jobBuilder, steps)
+      println "3 ${stage.name}"
+      processAfterStages(jobBuilder, stage)
+      println "4"
+      stage.beforeStages.clear()
+      println "5"
+      stage.afterStages.clear()
+      println "6"
+    } catch (Exception e) {
+      e.printStackTrace()
+    }
     jobBuilder
   }
 
