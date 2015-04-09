@@ -44,8 +44,8 @@ abstract class Execution<T> implements Serializable {
 
   Long getStartTime() {
     Long startTime = stages ? stages.first().startTime : null
-    if(!startTime && stages.find{it.startTime!=null}){
-      startTime = stages.findAll{it.startTime!=null}.collect{it.startTime}.sort{}.get(0)
+    if (!startTime && stages.find { it.startTime != null }) {
+      startTime = stages.findAll { it.startTime != null }.collect { it.startTime }.sort {}.get(0)
     }
     startTime
   }

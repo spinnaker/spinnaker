@@ -48,6 +48,7 @@ class ResizeAsgStage extends LinearStage {
     if (!stage.parentStageId || stage.execution.stages.find { it.id == stage.parentStageId}.type != stage.type) {
       // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
       configureTargets(stage)
+      stage.initializationStage = true
       []
     } else {
       def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
