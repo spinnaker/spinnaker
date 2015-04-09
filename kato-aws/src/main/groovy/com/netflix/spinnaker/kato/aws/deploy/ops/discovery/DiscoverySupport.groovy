@@ -70,12 +70,21 @@ class DiscoverySupport {
           }
           break
         } catch (HttpClientErrorException e) {
-          if (e.statusCode != HttpStatus.NOT_FOUND || retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
+          if (retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
             throw e
           }
 
-          retryCount++
-          sleep(getDiscoveryRetryMs())
+          if (e.statusCode.is5xxServerError()) {
+            // automatically retry on server errors (but wait a little longer between attempts)
+            sleep(getDiscoveryRetryMs() * 10)
+            retryCount++
+          } else if (e.statusCode == HttpStatus.NOT_FOUND) {
+            // automatically retry on 404's
+            retryCount++
+            sleep(getDiscoveryRetryMs())
+          } else {
+            throw e
+          }
         }
       }
     }

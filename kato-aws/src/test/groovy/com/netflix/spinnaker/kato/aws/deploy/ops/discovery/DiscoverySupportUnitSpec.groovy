@@ -138,6 +138,26 @@ class DiscoverySupportUnitSpec extends Specification {
     when:
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
 
+    then: "should retry on SERVICE_UNAVAILABLE"
+    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+    instanceIds.each {
+      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> {
+        throw new HttpClientErrorException(HttpStatus.SERVICE_UNAVAILABLE)
+      }
+      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
+        [
+          instance: [
+            app: appName
+          ]
+        ], HttpStatus.OK
+      )
+      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
+    }
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
     DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
