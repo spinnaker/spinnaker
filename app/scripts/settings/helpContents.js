@@ -39,6 +39,8 @@ angular.module('deckApp.help')
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
       '<ul>' +
       '<li>Build # (e.g. <samp>#337</samp>)</li>' +
+      '<li>Jenkins host</li>' +
+      '<li>Jenkins job name</li>' +
       '<li>Cluster (prefixed, e.g. <samp>cluster:myapp-int</samp>)' +
       '<li>Server Group Name</li>' +
       '<li>Region</li>' +
