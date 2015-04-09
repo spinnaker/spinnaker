@@ -63,7 +63,7 @@ angular.module('deckApp.help')
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
     'pipeline.config.resizeAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
-    'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
+    'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this modify scaling process operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this enable operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.disableAsg.cluster': '<p>Configures the cluster upon which this disable operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
     'pipeline.config.destroyAsg.cluster': '<p>Configures the cluster upon which this destroy operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
