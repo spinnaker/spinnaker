@@ -6,6 +6,7 @@ angular
     'hc.marked',
     'deckApp.caches.viewStateCache',
     'deckApp.whatsNew.read.service',
+    'deckApp.utils.timeFormatters',
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
@@ -28,9 +29,11 @@ angular
         };
 
         whatsNewReader.getWhatsNewContents().then(function(result) {
-          $scope.fileContents = result.contents;
-          $scope.fileLastUpdated = result.lastUpdated;
-          $scope.lastUpdatedDate = new Date(result.lastUpdated);
+          if (result) {
+            $scope.fileContents = result.contents;
+            $scope.fileLastUpdated = result.lastUpdated;
+            $scope.lastUpdatedDate = new Date(result.lastUpdated);
+          }
         });
 
         $scope.showWhatsNew = function() {

@@ -324,7 +324,7 @@ describe('Service: InstanceType', function () {
     });
 
 
-    fdescribe('add executions to server group for disableAsg stage', function () {
+    describe('add executions to server group for disableAsg stage', function () {
       var application = {};
 
       beforeEach(function() {
