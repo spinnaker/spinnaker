@@ -87,7 +87,7 @@ angular.module('deckApp.help')
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
 
-    'pipieline.config.canary.masterCluster': '' +
+    'pipeline.config.canary.masterCluster': '' +
       '<p>A <em>master cluster</em> is used to create a baseline and canary cluster pair.</p>' +
       '<p>The version deployed in the master cluster will be deployed in the baseline, while the version under test will be deployed into the canary.</p>' +
       '<p>The resulting clusters will match the master cluster configuration, with <em>baseline</em> and <em>canary</em> added to the Free Form Details section of the name</p>',
