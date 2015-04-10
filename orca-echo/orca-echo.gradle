@@ -17,7 +17,6 @@
 dependencies {
   compile project(":orca-core")
   compile project(":orca-retrofit")
-  compile project(":orca-mayo")
   compile project(":orca-igor")
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('bootAutoConfigure')
