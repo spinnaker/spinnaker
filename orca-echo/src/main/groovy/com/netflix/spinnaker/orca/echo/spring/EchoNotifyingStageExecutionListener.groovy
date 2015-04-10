@@ -1,15 +1,18 @@
 package com.netflix.spinnaker.orca.echo.spring
 
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.echo.EchoService
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
+
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /**
  * Converts step execution events to Echo events.
@@ -25,48 +28,10 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     this.echoService = echoService
   }
 
-//  @Override
-//  void beforeStage(Stage stage, StepExecution stepExecution) {
-//    echoService.recordEvent(
-//        details: [
-//            source     : "Orca",
-//            type       : "orca:stage:starting",
-//            application: stage.execution.application
-//        ],
-//        content: stage.context
-//    )
-//  }
-//
-//  @Override
-//  void afterStage(Stage stage, StepExecution stepExecution) {
-//    echoService.recordEvent(
-//        details: [
-//            source     : "Orca",
-//            type       : "orca:stage:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-//            application: stage.execution.application
-//        ],
-//        content: stage.context
-//    )
-//  }
-
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
     if (stepExecution.status == BatchStatus.STARTED) {
-      echoService.recordEvent(
-          details: [
-              source     : "orca",
-              type       : "orca:task:starting",
-              application: stage.execution.application
-          ],
-          content: [
-              standalone : stage.execution instanceof Orchestration,
-              context    : stage.context,
-              executionId: stage.execution.id,
-              taskName   : stepExecution.stepName,
-              startTime  : stage.execution.startTime,
-              endTime    : stage.execution.endTime
-          ]
-      )
+      recordEvent('starting', stage, stepExecution)
     }
   }
 
@@ -74,20 +39,24 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     if (stepExecution.status.running) {
       return
     }
+    recordEvent((wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
+  }
+
+  private void recordEvent(String phase, Stage stage, StepExecution stepExecution) {
     echoService.recordEvent(
-        details: [
-            source     : "orca",
-            type       : "orca:task:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-            application: stage.execution.application
-        ], content: [
-            standalone : stage.execution instanceof Orchestration,
-            context    : stage.context,
-            executionId: stage.execution.id,
-            taskName   : stepExecution.stepName,
-            startTime  : stage.execution.startTime,
-            endTime    : stage.execution.endTime,
-            canceled   : stage.execution.canceled
-        ]
+      details: [
+        source     : "orca",
+        type       : "orca:task:${phase}".toString(),
+        application: stage.execution.application
+      ], content: [
+        standalone : stage.execution instanceof Orchestration,
+        canceled   : stage.execution.canceled,
+        context    : stage.context,
+        taskName   : stepExecution.stepName,
+        startTime  : stage.startTime,
+        endTime    : stage.endTime,
+        execution  : stage.execution
+      ]
     )
   }
 
