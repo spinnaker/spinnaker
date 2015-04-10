@@ -11,7 +11,7 @@ angular.module('deckApp.healthCounts.directive', [])
       },
       link: function(scope) {
 
-        var template = $templateCache.get('views/directives/healthLegend.html');
+        var template = $templateCache.get('scripts/modules/healthCounts/healthLegend.html');
         scope.legend = template;
 
         function calculateHealthPercent() {
