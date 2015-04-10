@@ -24,6 +24,8 @@ describe('Service: clusterFilterService', function () {
       function (_applicationJSON_, _groupedJSON_) {
         applicationJSON = _applicationJSON_;
         groupedJSON = _groupedJSON_;
+        groupedJSON[0].subgroups[0].cluster = applicationJSON.clusters[0];
+        groupedJSON[1].subgroups[0].cluster = applicationJSON.clusters[1];
       }
     )
   );

@@ -36,9 +36,12 @@ angular.module('deckApp.cluster.service', [
     }
 
     function addHealthCountsToCluster(cluster) {
+      cluster.totalCount = 0;
       cluster.upCount = 0;
       cluster.downCount = 0;
       cluster.unknownCount = 0;
+      cluster.startingCount = 0;
+      cluster.outOfServiceCount = 0;
       if (!cluster.serverGroups) {
         return;
       }
@@ -46,10 +49,12 @@ angular.module('deckApp.cluster.service', [
         if (serverGroup.isDisabled) {
           return;
         }
-        cluster.upCount += serverGroup.upCount;
-        cluster.downCount += serverGroup.downCount;
-        cluster.unknownCount += serverGroup.unknownCount;
-        cluster.missingHealthCount += serverGroup.missingHealthCount;
+        cluster.totalCount += serverGroup.totalCount || 0;
+        cluster.upCount += serverGroup.upCount || 0;
+        cluster.downCount += serverGroup.downCount || 0;
+        cluster.unknownCount += serverGroup.unknownCount || 0;
+        cluster.startingCount += serverGroup.startingCount || 0;
+        cluster.outOfServiceCount += serverGroup.outOfServiceCount || 0;
       });
     }
 

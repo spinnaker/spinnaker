@@ -23,12 +23,12 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-gce:before {
-  content: "\e601";
+.icon-aws:before {
+  content: "\e010";
 }
 
-.icon-elb:before {
-  content: "\e600";
+.icon-gce:before {
+  content: "\e601";
 }
 
 .icon-bubbles:before {
@@ -39,3 +39,6 @@
   content: "\e97e";
 }
 
+.icon-elb:before {
+  content: "\e600";
+}

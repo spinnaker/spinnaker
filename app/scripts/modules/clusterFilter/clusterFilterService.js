@@ -195,8 +195,10 @@ angular
               totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subSubGroup);
               subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
             });
-            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading') } );
+            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
           });
+
+          console.warn('subgroupings:', subGroups);
 
           groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
 
@@ -208,6 +210,10 @@ angular
         addTags();
         lastApplication = application;
         return groups;
+    }
+
+    function getCluster(application, clusterName, account) {
+      return _.find(application.clusters, {account: account, name: clusterName });
     }
 
     function sortGroupsByHeading(groups) {

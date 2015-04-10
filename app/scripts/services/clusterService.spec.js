@@ -28,6 +28,38 @@ describe('Service: InstanceType', function () {
 
   }));
 
+  describe('health count rollups', function() {
+    it('aggregates health counts from server groups', function() {
+      var application = {
+        serverGroups: [
+          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1', instances: [], totalCount: 1, upCount: 1 },
+          {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1', instances: [], totalCount: 2, downCount: 2 },
+          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-east-1', instances: [], totalCount: 1, startingCount: 1 },
+          {cluster: 'cluster-b', name: 'cluster-b-v001', account: 'test', region: 'us-west-1', instances: [], totalCount: 1, outOfServiceCount: 1 },
+          {cluster: 'cluster-b', name: 'cluster-b-v002', account: 'test', region: 'us-west-1', instances: [], totalCount: 2, unknownCount: 1, outOfServiceCount: 1 },
+        ]
+      };
+
+      var clusters = this.clusterService.createServerGroupClusters(application.serverGroups);
+
+      expect(clusters.length).toBe(2);
+      expect(clusters[0].totalCount).toBe(3);
+      expect(clusters[0].upCount).toBe(1);
+      expect(clusters[0].downCount).toBe(2);
+      expect(clusters[0].startingCount).toBe(0);
+      expect(clusters[0].outOfServiceCount).toBe(0);
+      expect(clusters[0].unknownCount).toBe(0);
+
+      expect(clusters[1].totalCount).toBe(4);
+      expect(clusters[1].upCount).toBe(0);
+      expect(clusters[1].downCount).toBe(0);
+      expect(clusters[1].startingCount).toBe(1);
+      expect(clusters[1].outOfServiceCount).toBe(2);
+      expect(clusters[1].unknownCount).toBe(1);
+
+    });
+  });
+
   describe('addTasksToServerGroups', function() {
     describe('createcopylastasg tasks', function() {
       it('attaches to source and target', function() {
@@ -324,7 +356,7 @@ describe('Service: InstanceType', function () {
     });
 
 
-    fdescribe('add executions to server group for disableAsg stage', function () {
+    describe('add executions to server group for disableAsg stage', function () {
       var application = {};
 
       beforeEach(function() {

@@ -3,9 +3,15 @@ angular
   .value('applicationJSON', {
       clusters: [
         {
+          account: 'test',
+          name: 'in-us-west-1-only',
           serverGroups: [
-            {cluster: 'in-us-west-1-only', 'account': 'test', region: 'us-west-1', instances: [], downCount: 1, "isDisabled": false, type: 'aws', instanceType: 'm3.large'},
-            {cluster: 'in-eu-east-2-only', 'account': 'prod', region: 'eu-east-2', instances: [], downCount: 0, "isDisabled": true, type:'gce', instanceType: 'm3.medium'}
+            {cluster: 'in-us-west-1-only', 'account': 'test', region: 'us-west-1', instances: [],
+              totalCount: 1, upCount: 0, downCount: 1, unknownCount: 0, startingCount: 0, outOfServiceCount: 0,
+              isDisabled: false, type: 'aws', instanceType: 'm3.large'},
+            {cluster: 'in-eu-east-2-only', 'account': 'prod', region: 'eu-east-2', instances: [],
+              totalCount: 0, upCount: 0, downCount: 0, unknownCount: 0, startingCount: 0, outOfServiceCount: 0,
+              isDisabled: true, type:'gce', instanceType: 'm3.medium'}
           ]
         }
       ]
@@ -23,7 +29,12 @@ angular
             account : 'test',
             region : 'us-west-1',
             instances : [  ],
+            totalCount: 1,
+            upCount: 0,
             downCount: 1,
+            unknownCount: 0,
+            startingCount: 0,
+            outOfServiceCount: 0,
             isDisabled: false,
             type: 'aws',
             instanceType: 'm3.large'
@@ -40,7 +51,12 @@ angular
             account : 'prod',
             region : 'eu-east-2',
             instances : [  ],
+            totalCount: 0,
+            upCount: 0,
             downCount: 0,
+            unknownCount: 0,
+            startingCount: 0,
+            outOfServiceCount: 0,
             isDisabled: true,
             type: 'gce',
             instanceType: 'm3.medium'
