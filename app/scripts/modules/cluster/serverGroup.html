@@ -12,13 +12,13 @@
         <div class="row">
           <div class="col-md-8">
             <span class="icon icon-server-group icon-{{viewModel.serverGroup.type}} small"></span>
-            <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}:</span>
+            <span class="server-group-sequence">{{ viewModel.serverGroupSequence }}</span><span ng-if="viewModel.jenkins">:</span>
             <a ng-if="viewModel.jenkins"
                href="{{viewModel.jenkins.href}}"
                target="_blank">
               Build: #{{ viewModel.jenkins.number }}
             </a>
-            <span ng-if="!viewModel.jenkins">
+            <span ng-if="!viewModel.hasBuildInfo">
               (No build info)
             </span>
           </div>
