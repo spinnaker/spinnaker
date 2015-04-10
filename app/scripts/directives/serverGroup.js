@@ -28,6 +28,7 @@ angular.module('deckApp')
           serverGroup: serverGroup,
           serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
           jenkins: null,
+          hasBuildInfo: !!serverGroup.buildInfo,
           instances: filteredInstances,
         };
 

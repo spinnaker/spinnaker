@@ -141,19 +141,19 @@
       </ul>
     </collapsible-section>
     <collapsible-section heading="Package">
-      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo && serverGroup.buildInfo.jenkins">
-        <dt>Job</dt>
-        <dd>{{serverGroup.buildInfo.jenkins.name}}</dd>
+      <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo">
+        <dt ng-if="serverGroup.buildInfo.jenkins">Job</dt>
+        <dd ng-if="serverGroup.buildInfo.jenkins">{{serverGroup.buildInfo.jenkins.name}}</dd>
         <dt>Package</dt>
         <dd>{{serverGroup.buildInfo.package_name}}</dd>
-        <dt>Build</dt>
-        <dd>{{serverGroup.buildInfo.jenkins.number}}</dd>
+        <dt ng-if="serverGroup.buildInfo.jenkins">Build</dt>
+        <dd ng-if="serverGroup.buildInfo.jenkins">{{serverGroup.buildInfo.jenkins.number}}</dd>
         <dt>Commit</dt>
         <dd>{{serverGroup.buildInfo.commit}}</dd>
         <dt>Version</dt>
         <dd>{{serverGroup.buildInfo.version}}</dd>
-        <dt>Build Link</dt>
-        <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
+        <dt ng-if="serverGroup.buildInfo.jenkins">Build Link</dt>
+        <dd ng-if="serverGroup.buildInfo.jenkins"><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">
