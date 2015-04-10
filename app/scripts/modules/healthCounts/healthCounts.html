@@ -11,7 +11,7 @@
     {{ container.unknownCount }} <span class="glyphicon glyphicon-Unknown-triangle unknown"></span>
   </span>
   <span ng-if="container.unknownCount !== container.totalCount">
-  : <span ng-class="{healthy: healthPercent === 100, unhealthy: healthPercent < 100 && healthPercent > 0, dead: healthPercent === 0}">
+  : <span class="{{healthStatus}}">
       {{healthPercent}}{{healthPercentLabel}}
     </span>
   </span>

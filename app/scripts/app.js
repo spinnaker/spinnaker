@@ -41,6 +41,7 @@ angular.module('deckApp', [
     'deckApp.caches',
     'deckApp.naming',
     'deckApp.delegation',
+    'deckApp.healthCounts.directive',
     'deckApp.settings',
     'deckApp.scheduler',
     'deckApp.urlBuilder',

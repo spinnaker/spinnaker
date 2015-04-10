@@ -2,7 +2,7 @@
   <a
     ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})"
     ui-sref-active="active">
-    <span class="glyphicon glyphicon-th"></span> {{serverGroup.name}}
+    <span class="icon icon-server-group icon-{{serverGroup.type}} small"></span> {{serverGroup.name}}
   </a>
   <span ng-if="!serverGroup.isDisabled">
     <health-counts container="serverGroup"></health-counts>

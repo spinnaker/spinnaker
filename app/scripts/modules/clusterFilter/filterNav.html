@@ -88,7 +88,9 @@
     <div class="checkbox" ng-repeat="heading in clustersFilters.providerTypeHeadings | orderBy: 'toString()'">
       <label>
         <input type="checkbox" ng-model="sortFilter.providerType[heading]"
-               ng-change="clustersFilters.updateClusterGroups()"/> {{heading}}
+               ng-change="clustersFilters.updateClusterGroups()"/>
+        <span class="icon icon-server-group icon-{{heading}} small"></span>
+        {{heading}}
       </label>
     </div>
   </filter-section>

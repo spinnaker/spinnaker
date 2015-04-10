@@ -276,6 +276,9 @@ gulp.task('watch', function() {
   gulp.watch('./app/**/*.less', function() {
     run('css:application', 'html');
   });
+  gulp.watch('./app/fonts/**/*.css', function() {
+    run('fonts', 'html');
+  });
   gulp.watch('./app/scripts/**/*.js', function() {
     run('scripts:application', 'html', 'test:karma');
   });
