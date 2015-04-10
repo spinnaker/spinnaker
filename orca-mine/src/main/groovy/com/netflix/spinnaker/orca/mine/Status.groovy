@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import groovy.transform.Canonical
+
+@Canonical
 class Status {
   String status
   boolean complete

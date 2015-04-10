@@ -16,10 +16,18 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import groovy.transform.Canonical
+
+@Canonical
 class Cluster {
   String name
   String type = 'aws'
   String accountName
   String region
-  String buildOrImageId
+  String buildId
+  String imageId
+
+  String getId() {
+    "${name}:${type}:${accountName}:${region}"
+  }
 }

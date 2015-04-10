@@ -61,11 +61,11 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
     jobBuilder
   }
 
-  protected void injectBefore(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectBefore(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.beforeStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
-  protected void injectAfter(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectAfter(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.afterStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
@@ -75,7 +75,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
         def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name,
           new HashMap(beforeStage.context), stage, SyntheticStageOwner.STAGE_BEFORE)
         stage.execution.stages.add(stageIdx, newStage)
-        wireSteps(jobBuilder, beforeStage.stageBuilder.buildSteps(newStage))
+        beforeStage.stageBuilder.build(jobBuilder, newStage)
       }
     }
   }
@@ -86,7 +86,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
         def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name,
           new HashMap(afterStage.context), stage, SyntheticStageOwner.STAGE_AFTER)
         stage.execution.stages.add(newStage)
-        wireSteps(jobBuilder, afterStage.stageBuilder.buildSteps(newStage))
+        afterStage.stageBuilder.build(jobBuilder, newStage)
       }
     }
   }

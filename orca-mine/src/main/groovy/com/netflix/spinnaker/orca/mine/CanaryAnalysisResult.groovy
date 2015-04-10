@@ -19,12 +19,13 @@ package com.netflix.spinnaker.orca.mine
 import groovy.transform.Canonical
 
 @Canonical
-class CanaryResult {
-  CanarySuccessCriteria canarySuccessCriteria
-  String combinedScoreStrategy
-
-  String overallResult
-  int overallScore
+class CanaryAnalysisResult {
+  String id
+  String canaryDeploymentId
+  int score
+  String result
+  TimeDuration timeDuration
   long lastUpdated
-  List<CanaryAnalysisResult> lastCanaryAnalysisResults
+  String canaryReportURL
+  Map<String, Object> additionalAttributes
 }

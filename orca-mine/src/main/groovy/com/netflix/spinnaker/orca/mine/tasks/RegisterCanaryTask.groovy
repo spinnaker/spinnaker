@@ -16,75 +16,133 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.NameBuilder
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
+import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.CanaryConfig
 import com.netflix.spinnaker.orca.mine.CanaryDeployment
 import com.netflix.spinnaker.orca.mine.Cluster
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.Recipient
+import com.netflix.spinnaker.orca.mine.pipeline.CanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit
+import java.util.regex.Pattern
 
 @Component
-class RegisterCanaryTask implements RetryableTask {
-  long backoffPeriod = 1000
-  long timeout = TimeUnit.SECONDS.toMillis(30)
+class RegisterCanaryTask implements Task {
 
-  @Autowired MineService mineService
+  static final Pattern DETAIL_PATTERN = ~/^(.*)_?(canary|baseline)$/
+
+  @Autowired
+  MineService mineService
+  @Autowired
+  ObjectMapper objectMapper
+  @Autowired
+  ResultSerializationHelper resultSerializationHelper
 
   @Override
   TaskResult execute(Stage stage) {
     String app = stage.context.application ?: stage.execution.application
-    Canary c = buildCanary(stage)
-    Map canary = mineService.registerCanary(app, c)
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary])
+    Canary c = buildCanary(app, stage)
+    String canaryId = mineService.registerCanary(c)
+    Canary canary = mineService.checkCanaryStatus(canaryId)
+    return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [canary: canary])
   }
 
-  Canary buildCanary(Stage stage) {
+  Canary buildCanary(String app, Stage stage) {
     Canary c = new Canary()
-    c.owner = new Recipient(name: "Cameron Fieber", email: "cfieber@netflix.com")
-    c.canaryConfig = stage.mapTo('/canaryConfig', CanaryConfig)
-    for (canary in stage.context.canaries) {
-      def nameBuilder = new CanaryPairClusterNameBuilder(canary.application, canary.stack, canary.freeFormDetails)
-      c.canaryDeployments << new CanaryDeployment(
-        canaryCluster: new Cluster(accountName: canary.credentials, region: canary.region, name: nameBuilder.canaryCluster),
-        baselineCluster: new Cluster(accountName: canary.credentials, region: canary.region, name: nameBuilder.baselineCluster))
+    c.application = app
+    def context = stage.context
+    c.owner = objectMapper.convertValue(context.owner, Recipient)
+    c.watchers = objectMapper.convertValue(context.watchers, new TypeReference<List<Recipient>>() {})
+    c.canaryConfig = objectMapper.convertValue(context.canaryConfig, CanaryConfig)
+    c.canaryConfig.application = app
+
+    def preceedingCanary = stage.preceding(CanaryStage.MAYO_CONFIG_TYPE)
+
+    def allStages = stage.execution.stages
+
+    def firstCanary = allStages.find { it.type == CanaryStage.MAYO_CONFIG_TYPE }
+    def toUse = preceedingCanary ?: firstCanary
+
+    if (!toUse) { throw new IllegalStateException('wat') }
+    def deployCanaryId = toUse.id
+
+    Map<String, CanaryDeployment> clusters = [:].withDefault { new CanaryDeployment() }
+
+    for (Stage s in stage.execution.stages.findAll {
+      it.type == ParallelDeployStage.MAYO_CONFIG_TYPE && it.parentStageId == deployCanaryId
+    }) {
+      String account = s.context.account
+      s.context.'deploy.server.groups'.each { String region, List<String> serverGroups ->
+        for (sg in serverGroups) {
+          def cluster = buildCluster(sg, region, account)
+          if (cluster.type == 'canary') {
+            clusters[cluster.key].canaryCluster = cluster.cluster
+          } else {
+            clusters[cluster.key].baselineCluster = cluster.cluster
+          }
+        }
+      }
     }
+
+    def unmatched = clusters.values().findAll { it.canaryCluster == null || it.baselineCluster == null }
+    if (unmatched) {
+      throw new IllegalStateException("Didn't pair up ${unmatched}")
+    }
+
+    c.canaryDeployments.addAll(clusters.values())
+
+
     return c
   }
 
-  class CanaryPairClusterNameBuilder extends NameBuilder {
+
+  static TypedCluster buildCluster(String asgName, String region, String account) {
+    Names name = Names.parseName(asgName)
+    def match = name.detail =~ DETAIL_PATTERN
+    if (match.matches()) {
+      String baseName = new CanaryClusterNameBuilder(name.app, name.stack, match.group(1)).baseName
+      return new TypedCluster(match.group(2), baseName, new Cluster(asgName, 'aws', account, region))
+    }
+    return null
+  }
+
+  @Canonical
+  static class TypedCluster {
+    String type
+    String baseName
+    Cluster cluster
+
+    String getKey() {
+      "$cluster.accountName:$cluster.region:$baseName"
+    }
+  }
+
+  private static class CanaryClusterNameBuilder extends NameBuilder {
     String app
     String stack
     String freeFormDetails
 
-    CanaryPairClusterNameBuilder(String app, String stack, String freeFormDetails) {
+    CanaryClusterNameBuilder(String app, String stack, String freeFormDetails) {
       this.app = app
       this.stack = stack
       this.freeFormDetails = freeFormDetails
     }
 
-    String getCanaryCluster() {
-      super.combineAppStackDetail(app, stack, detailsWithSuffix("canary"))
-    }
-
-    String getBaselineCluster() {
-      super.combineAppStackDetail(app, stack, detailsWithSuffix("baseline"))
-    }
-
-    String detailsWithSuffix(String suffix) {
-      if (freeFormDetails == null) {
-        return suffix
-      }
-      return freeFormDetails + "_${suffix}"
+    String getBaseName() {
+      super.combineAppStackDetail(app, stack, freeFormDetails)
     }
   }
 }

@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.orca.mine
 
-/**
- * Created by cfieber on 4/2/15.
- */
+import groovy.transform.Canonical
+
+@Canonical
 class CanaryDeployment {
   Cluster canaryCluster
   Cluster baselineCluster
+
+  String getId() {
+    "${canaryCluster.id}|${baselineCluster.id}"
+  }
 }

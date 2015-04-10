@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 
 @CompileStatic
 @Immutable(knownImmutables = ["stageBuilder"])
 class InjectedStageConfiguration {
-  LinearStage stageBuilder
+  StageBuilder stageBuilder
   String name
   Map<String, Object> context
 }

@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import groovy.transform.Canonical
+
+@Canonical
 class CanaryHealthCheckHandler {
   int minimumCanaryResultScore
+  @JsonProperty('@class')
+  String handlerClass
 }

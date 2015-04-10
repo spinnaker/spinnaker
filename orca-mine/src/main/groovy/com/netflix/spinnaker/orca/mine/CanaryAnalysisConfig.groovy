@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import groovy.transform.Canonical
+
+@Canonical
 class CanaryAnalysisConfig {
   String name
   int beginCanaryAnalysisAfterMins
   List<Integer> notificationHours
   int canaryAnalysisIntervalMins
+  Map<String, Object> params
 }

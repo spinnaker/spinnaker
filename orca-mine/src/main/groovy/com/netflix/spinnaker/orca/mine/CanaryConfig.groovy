@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import groovy.transform.Canonical
+
+@Canonical
 class CanaryConfig {
   String id
   String application
   String name
   int lifetimeHours
   String combinedCanaryResultStrategy
+  CanaryAnalysisConfig canaryAnalysisConfig
   CanarySuccessCriteria canarySuccessCriteria
   CanaryHealthCheckHandler canaryHealthCheckHandler
-  CanaryAnalysisConfig canaryAnalysisConfig
 }

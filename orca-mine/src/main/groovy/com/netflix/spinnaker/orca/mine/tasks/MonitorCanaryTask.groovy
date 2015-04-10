@@ -16,11 +16,16 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.mine.Canary
+import com.netflix.spinnaker.orca.mine.Cluster
+import com.netflix.spinnaker.orca.mine.Health
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -32,7 +37,6 @@ import java.util.concurrent.TimeUnit
 @Component
 @Slf4j
 class MonitorCanaryTask implements RetryableTask {
-
   long backoffPeriod = 5000
   long timeout = TimeUnit.DAYS.toMillis(2)
 
@@ -40,19 +44,26 @@ class MonitorCanaryTask implements RetryableTask {
   MineService mineService
   @Autowired
   KatoService katoService
+  @Autowired
+  ResultSerializationHelper resultSerializationHelper
 
   @Override
   TaskResult execute(Stage stage) {
     Map context = stage.context
 
-    Map canary = context.canary
+    Canary canary = stage.mapTo('/canary', Canary)
     log.info("MonitorCanary, current status: ${canary}")
 
     def outputs = [canary: canary]
     outputs.canary = mineService.checkCanaryStatus(canary.id)
     if (outputs.canary.status.complete) {
       log.info("Canary complete")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [canary: outputs.canary])
+      return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [:], outputs)
+    }
+
+    if (outputs.canary.health.health == Health.UNHEALTHY) {
+      log.info("Canary unhealthy, terminating")
+      outputs.canary = mineService.terminateCanary(canary.id)
     }
 
     Map scaleUp = context.scaleUp
@@ -61,9 +72,8 @@ class MonitorCanaryTask implements RetryableTask {
       if (System.currentTimeMillis() - canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
         def resizeOps = []
         for (deployment in canary.canaryDeployments) {
-          for (Map cluster in [deployment.canaryCluster, deployment.baselineCluster]) {
-            def asg = context.'deploy.server.groups'[cluster.region].find { it.startsWith(cluster.name) }
-            resizeOps << [resizeAsgDescription: [asgName: asg, regions: [cluster.region], capacity: [min: capacity, max: capacity, desired: capacity], credentials: cluster.accountName]]
+          for (Cluster cluster in [deployment.canaryCluster, deployment.baselineCluster]) {
+            resizeOps << [resizeAsgDescription: [asgName: cluster.name, regions: [cluster.region], capacity: [min: capacity, max: capacity, desired: capacity], credentials: cluster.accountName]]
           }
         }
         outputs.scaleUp = scaleUp
@@ -74,6 +84,6 @@ class MonitorCanaryTask implements RetryableTask {
     }
 
     log.info("Canary in progress: ${outputs.canary}")
-    return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+    return resultSerializationHelper.result(ExecutionStatus.RUNNING, outputs)
   }
 }

@@ -20,39 +20,20 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-
 @Component
-@Slf4j
-class CleanupCanaryTask implements Task {
-
-  @Autowired KatoService katoService
-
+class CompleteCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
-    Canary canary = stage.mapTo('/canary', Canary)
-    String operation = 'disableAsgDescription'
-    if (canary.canaryResult.overallResult == 'SUCCESS') {
-      operation = 'destroyAsgDescription'
+    Canary c = stage.mapTo('/canary', Canary)
+
+    if (c.canaryResult.overallResult == 'SUCCESS') {
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    } else {
+      new DefaultTaskResult(ExecutionStatus.FAILED)
     }
-
-    def operations = []
-    for (d in canary.canaryDeployments) {
-      for (c in [d.baselineCluster, d.canaryCluster]) {
-        operations << [(operation): [asgName: c.name, regions: [c.region], credentials: c.accountName]]
-      }
-    }
-
-    log.info "Cleaning up using operation ${operation} with ${operations}"
-
-    def taskId = katoService.requestOperations(operations).toBlocking().first()
-
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
   }
 }

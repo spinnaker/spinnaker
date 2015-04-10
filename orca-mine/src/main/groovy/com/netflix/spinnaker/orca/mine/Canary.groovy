@@ -16,12 +16,18 @@
 
 package com.netflix.spinnaker.orca.mine
 
+import groovy.transform.Canonical
+
+@Canonical
 class Canary {
   String id
+  String application
   long launchedDate
   CanaryConfig canaryConfig
-  Status status
   List<CanaryDeployment> canaryDeployments = []
+  CanaryResult canaryResult
+  Status status
+  Health health
   Recipient owner
   List<Recipient> watchers = []
 }

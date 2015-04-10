@@ -17,14 +17,18 @@
 package com.netflix.spinnaker.orca.mine
 
 import retrofit.http.Body
+import retrofit.http.DELETE
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.Path
 
 interface MineService {
-  @POST('/applications/{application}/registerCanary')
-  Map registerCanary(@Path('application') String application, @Body Canary canary)
+  @POST('/registerCanary')
+  String registerCanary(@Body Canary canary)
 
   @GET('/canaries/{id}')
-  Map checkCanaryStatus(@Path('id') String id)
+  Canary checkCanaryStatus(@Path('id') String id)
+
+  @DELETE('/canaries/{id}/terminate')
+  Canary terminateCanary(@Path('id') String id)
 }

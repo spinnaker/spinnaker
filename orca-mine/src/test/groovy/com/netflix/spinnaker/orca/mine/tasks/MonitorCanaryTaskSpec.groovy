@@ -16,11 +16,15 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.mine.Canary
+import com.netflix.spinnaker.orca.mine.Health
 import com.netflix.spinnaker.orca.mine.MineService
+import com.netflix.spinnaker.orca.mine.Status
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -29,16 +33,19 @@ import spock.lang.Subject
 class MonitorCanaryTaskSpec extends Specification {
   MineService mineService = Mock(MineService)
   KatoService katoService = Mock(KatoService)
+  ObjectMapper objectMapper = new ObjectMapper()
+  ResultSerializationHelper resultSerializationHelper = new ResultSerializationHelper(objectMapper: objectMapper)
 
-  @Subject MonitorCanaryTask task = new MonitorCanaryTask(mineService: mineService, katoService: katoService)
+  @Subject MonitorCanaryTask task = new MonitorCanaryTask(mineService: mineService, katoService: katoService, resultSerializationHelper: resultSerializationHelper)
 
   def 'should retry until completion'() {
     setup:
     def canaryConf = [
       id: UUID.randomUUID().toString(),
       owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
-      canaryDeployments: [[canaryCluster: [], baselineCluster: []]],
+      canaryDeployments: [[canaryCluster: [:], baselineCluster: [:]]],
       status: [status: 'RUNNING', complete: false],
+      health: [health: 'HEALTHY'],
       launchedDate: System.currentTimeMillis(),
       canaryConfig: [
         lifetimeHours: 1,
@@ -54,19 +61,21 @@ class MonitorCanaryTaskSpec extends Specification {
       ]
     ]
     def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [canary: canaryConf])
+    Canary canary = stage.mapTo('/canary', Canary)
+    canary.status = resultStatus
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> (canaryConf + resultStatus)
+    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> canary
     result.status == executionStatus
 
     where:
     resultStatus                                   | executionStatus
-    [status: [status: 'RUNNING', complete: false]] | ExecutionStatus.RUNNING
-    [status: [status: 'COMPLETE', complete: true]] | ExecutionStatus.SUCCEEDED
-    [status: [status: 'FAILED', complete: true]]   | ExecutionStatus.SUCCEEDED
+    new Status('RUNNING', false) | ExecutionStatus.RUNNING
+    new Status('COMPLETE', true) | ExecutionStatus.SUCCEEDED
+    new Status('FAILED', true)  | ExecutionStatus.SUCCEEDED
   }
 
   def 'should perform a scaleup'() {
@@ -75,10 +84,11 @@ class MonitorCanaryTaskSpec extends Specification {
       id: UUID.randomUUID().toString(),
       owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
       canaryDeployments: [
-        [canaryCluster: [name: 'foo--canary', accountName: 'prod', region: 'us-east-1'],
-         baselineCluster: [name: 'foo--baseline', accountName: 'prod', region: 'us-east-1']
+        [canaryCluster: [name: 'foo--canary-v000', accountName: 'prod', region: 'us-east-1'],
+         baselineCluster: [name: 'foo--baseline-v001', accountName: 'prod', region: 'us-east-1']
         ]],
       status: [status: 'RUNNING', complete: false],
+      health: [health: 'HEALTHY'],
       launchedDate: System.currentTimeMillis() - 61000,
       canaryConfig: [
         lifetimeHours: 1,
@@ -95,23 +105,68 @@ class MonitorCanaryTaskSpec extends Specification {
     ]
     def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
       canary: canaryConf,
-      'deploy.server.groups': ['us-east-1': ['foo--canary-v001', 'foo--baseline-v001']],
       scaleUp: [
         enabled: true,
         capacity: 3,
         delay: 1
       ]
     ])
+    Canary canary = stage.mapTo('/canary', Canary)
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> canaryConf
+    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> canary
     1 * katoService.requestOperations({ ops ->
       ops.size() == 2 &&
       ops.find { it.resizeAsgDescription.asgName == 'foo--canary-v001' }
       ops.find { it.resizeAsgDescription.asgName == 'foo--baseline-v001' } }) >> rx.Observable.just(new TaskId('blah'))
 
   }
+
+  def 'should terminate unhealthy'() {
+    setup:
+    def canaryConf = [
+      id: UUID.randomUUID().toString(),
+      owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
+      canaryDeployments: [
+        [canaryCluster: [name: 'foo--canary-v000', accountName: 'prod', region: 'us-east-1'],
+         baselineCluster: [name: 'foo--baseline-v001', accountName: 'prod', region: 'us-east-1']
+        ]],
+      status: [status: 'RUNNING', complete: false],
+      health: [health: Health.UNHEALTHY],
+      launchedDate: System.currentTimeMillis() - 61000,
+      canaryConfig: [
+        lifetimeHours: 1,
+        combinedCanaryResultStrategy: 'LOWEST',
+        canarySuccessCriteria: [canaryResultScore: 95],
+        canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
+        canaryAnalysisConfig: [
+          name: 'beans',
+          beginCanaryAnalysisAfterMins: 5,
+          notificationHours: [1, 2],
+          canaryAnalysisIntervalMins: 15
+        ]
+      ]
+    ]
+    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+      canary: canaryConf,
+    ])
+
+    Canary  canary = stage.mapTo('/canary', Canary)
+    Canary terminated = stage.mapTo('/canary', Canary)
+    terminated.status.status = 'TERMINATED'
+    terminated.status.complete = true
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    1 * mineService.checkCanaryStatus(canary.id) >> canary
+    1 * mineService.terminateCanary(canary.id) >> terminated
+
+    result.stageOutputs.canary.status.status == terminated.status.status
+  }
+
 }

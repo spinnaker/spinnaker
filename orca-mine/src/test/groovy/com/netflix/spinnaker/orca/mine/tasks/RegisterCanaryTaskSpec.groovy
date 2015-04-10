@@ -17,52 +17,100 @@
 package com.netflix.spinnaker.orca.mine.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
+import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.MineService
+import com.netflix.spinnaker.orca.mine.pipeline.CanaryStage
+import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class RegisterCanaryTaskSpec extends Specification {
 
   MineService mineService = Mock(MineService)
-  @Subject RegisterCanaryTask task = new RegisterCanaryTask(mineService: mineService)
+  @Shared ObjectMapper objectMapper = new ObjectMapper()
+  @Shared ResultSerializationHelper resultSerializationHelper = new ResultSerializationHelper(objectMapper: objectMapper)
+  @Subject
+  RegisterCanaryTask task = new RegisterCanaryTask(mineService: mineService, objectMapper: objectMapper, resultSerializationHelper: resultSerializationHelper)
 
   def 'canary registration'() {
     setup:
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
-      owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
-      canaries: [[credentials: 'test', region: 'us-east-1', application: 'foo']],
+    def pipeline = new Pipeline(application: 'foo')
+
+    def context = [
+      account     : 'test',
+      owner       : [name: 'cfieber', email: 'cfieber@netflix.com'],
+      watchers    : [],
+      canaries    : [[credentials: 'test', availabilityZones: ['us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e']], application: 'foo']],
       canaryConfig: [
-        lifetimeHours: 1,
+        lifetimeHours           : 1,
         combinedCanaryResultStrategy: 'LOWEST',
-        canarySuccessCriteria: [canaryResultScore: 95],
+        canarySuccessCriteria   : [canaryResultScore: 95],
         canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
-        canaryAnalysisConfig: [
-          name: 'beans',
+        canaryAnalysisConfig    : [
+          name                      : 'beans',
           beginCanaryAnalysisAfterMins: 5,
-          notificationHours: [1, 2],
+          notificationHours         : [1, 2],
           canaryAnalysisIntervalMins: 15
         ]
-      ]
-    ])
+      ],
+    ]
+
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, context)
+    def deployCanariesStage = new PipelineStage(pipeline, CanaryStage.MAYO_CONFIG_TYPE, context)
+    Map<String, Object> baselineContext = context + ['deploy.server.groups': ['us-east-1': ['foo--baseline-v000']]]
+    def deployBaselineStage = new PipelineStage(pipeline, ParallelDeployStage.MAYO_CONFIG_TYPE, baselineContext)
+    deployBaselineStage.parentStageId = deployCanariesStage.id
+    Map<String, Object> canaryContext = context + ['deploy.server.groups': ['us-east-1': ['foo--canary-v000']]]
+    def deployCanaryStage = new PipelineStage(pipeline, ParallelDeployStage.MAYO_CONFIG_TYPE, canaryContext)
+    deployCanaryStage.parentStageId = deployCanariesStage.id
+    pipeline.stages.addAll([deployCanariesStage, deployBaselineStage, deployCanaryStage, monitorCanaryStage])
+    Canary captured
 
     when:
-    def result = task.execute(stage)
+    def result = task.execute(monitorCanaryStage)
 
     then:
-    1 * mineService.registerCanary('foo', _) >> { app, canary ->
-      new ObjectMapper().convertValue(canary, Map)
+    1 * mineService.registerCanary(_) >> { Canary c ->
+      captured = c
+      "canaryId"
+    }
+
+    then:
+    1 * mineService.checkCanaryStatus("canaryId") >> {
+      captured
     }
     result.stageOutputs.canary
-    result.stageOutputs.canary.canaryDeployments.size() == 1
-    with(result.stageOutputs.canary.canaryDeployments[0]) {
-      canaryCluster.name == 'foo--canary'
-      baselineCluster.name == 'foo--baseline'
-    }
-    with (result.stageOutputs.canary.canaryConfig) {
-      lifetimeHours == 1
-      combinedCanaryResultStrategy == 'LOWEST'
+    with(result.stageOutputs.canary) {
+      canaryDeployments.size() == 1
+      canaryDeployments[0].canaryCluster.name == 'foo--canary-v000'
+      canaryDeployments[0].baselineCluster.name == 'foo--baseline-v000'
+      canaryConfig.lifetimeHours == 1
+      canaryConfig.combinedCanaryResultStrategy == 'LOWEST'
     }
   }
+
+  def 'type cluster creation'() {
+    when:
+    def typedCluster = RegisterCanaryTask.buildCluster(asg, region, account)
+
+    then:
+    (typedCluster == null) == isNull
+    if (!isNull) {
+      typedCluster.type == type
+      typedCluster.cluster.accountName == account
+      typedCluster.cluster.region == region
+      typedCluster.cluster.name == asg
+    }
+
+    where:
+    asg                  | region      | isNull | type       | account
+    'foo--canary-v000'   | 'us-east-1' | false  | 'canary'   | 'test'
+    'foo--baseline-v000' | 'us-west-1' | false  | 'baseline' | 'prod'
+
+  }
+
 }

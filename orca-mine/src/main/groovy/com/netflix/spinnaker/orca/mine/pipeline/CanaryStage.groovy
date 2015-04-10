@@ -17,22 +17,18 @@
 package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.MonitorCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
 import com.netflix.spinnaker.orca.oort.tasks.FindAmiFromClusterTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
-import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class CanaryStage extends ParallelDeployStage {
 
-  public static final String MAYO_CONFIG_TYPE = "canary"
+  public static final String MAYO_CONFIG_TYPE = "deployCanary"
 
   @Autowired FindAmiFromClusterTask findAmi
 
@@ -42,10 +38,10 @@ class CanaryStage extends ParallelDeployStage {
 
   @Override
   List<Map<String, Object>> parallelContexts(Stage stage) {
-
     List<Map> baselineAmis = findBaselineAmis(stage)
     Map defaultStageContext = stage.context
     List<Map> canaries = defaultStageContext.remove('canaries')
+    Set<String> accounts = canaries*.credentials
     def toContext = this.&clusterContext.curry(stage, defaultStageContext)
 
     return canaries.collect { Map cluster ->
@@ -66,14 +62,6 @@ class CanaryStage extends ParallelDeployStage {
     Stage s = new OrchestrationStage(new Orchestration(), "findAmi", findAmiCtx)
     TaskResult result = findAmi.execute(s)
     return result.stageOutputs.amiDetails
-  }
-
-  @Override
-  FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-    super.buildInternal(jobBuilder, stage)
-      .next(buildStep(stage, "registerCanary", RegisterCanaryTask))
-      .next(buildStep(stage, "monitorCanary", MonitorCanaryTask))
-      .next(buildStep(stage, "cleanupCanary", CleanupCanaryTask))
   }
 }
 

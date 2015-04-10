@@ -1,10 +1,13 @@
 package com.netflix.spinnaker.orca.mine.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
 import com.netflix.spinnaker.orca.mine.Canary
+import com.netflix.spinnaker.orca.mine.CanaryAnalysisResult
+import com.netflix.spinnaker.orca.mine.CanaryResult
+import com.netflix.spinnaker.orca.mine.Health
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.Status
+import com.netflix.spinnaker.orca.mine.TimeDuration
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -16,6 +19,7 @@ import org.springframework.context.annotation.Import
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
+import retrofit.http.Path
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
@@ -45,24 +49,33 @@ class MineConfiguration {
   @Bean
   MineService mineService(Endpoint mineEndpoint, Gson gson) {
     return new MineService() {
-      final Map<String, Map> canaries = new ConcurrentHashMap<>()
+      final Map<String, Canary> canaries = new ConcurrentHashMap<>()
 
       @Override
-      Map registerCanary(String app, Canary canary) {
+      Canary terminateCanary(@Path('id') String id) {
+        Canary c = canaries.get(id)
+        if (!c) {
+          return null
+        }
+
+        c.status = new Status(complete: true, status: 'TERMINATED')
+        return c
+      }
+
+      @Override
+      String registerCanary(Canary canary) {
         canary.id = UUID.randomUUID().toString()
         canary.launchedDate = System.currentTimeMillis()
         canary.status = new Status(complete: false, status: 'LAUNCHED')
 
-        Map ctx = new ObjectMapper().convertValue(canary, Map)
+        canaries.put(canary.id, canary)
 
-        canaries.put(canary.id, ctx)
-
-        return ctx
+        return canary.id
       }
 
       @Override
-      Map checkCanaryStatus(String id) {
-        Map c = canaries.get(id)
+      Canary checkCanaryStatus(String id) {
+        Canary c = canaries.get(id)
         if (!c) {
           return null
         }
@@ -71,19 +84,43 @@ class MineConfiguration {
           return c
         }
 
-        if (System.currentTimeMillis() - c.launchedDate < TimeUnit.HOURS.toMillis(c.canaryConfig.lifetimeHours as Long)) {
-          return c
+        if (!c.health) {
+          c.health = new Health('HEALTHY', 'healthy')
+        }
+
+        if (!c.canaryResult) {
+          c.canaryResult = new CanaryResult()
+          c.canaryResult.canarySuccessCriteria = c.canaryConfig.canarySuccessCriteria
+          c.canaryResult.combinedScoreStrategy = c.canaryConfig.combinedCanaryResultStrategy
+          c.canaryResult.overallResult = "SUCCESS"
+          c.canaryResult.overallScore = c.canaryConfig.canarySuccessCriteria.canaryResultScore - 1
+          c.canaryResult.lastCanaryAnalysisResults = c.canaryDeployments.collect {
+            new CanaryAnalysisResult(id: UUID.randomUUID().toString(),
+              canaryDeploymentId: it.id,
+              score: c.canaryResult.overallScore,
+              result: 'SUCCESS',
+              timeDuration: new TimeDuration(TimeUnit.MILLISECONDS.toMinutes(System.currentTimeMillis() - c.launchedDate).intValue(), 'M'),
+              lastUpdated: System.currentTimeMillis(),
+              canaryReportURL: "http://spinnaker.prod.netflix.net/",
+              additionalAttributes: [:]
+            )
+          }
         }
 
         double rand = Math.random()
-        if (rand < 0.2) {
+        if (rand < 0.4) {
+          return c
+        } else if (rand < 0.5) {
+          c.health.health = Health.UNHEALTHY
+          c.health.message = 'unhealthy'
           return c
         }
 
-
         c.status.complete = true
 
-        if (rand < 0.4) {
+        rand = Math.random()
+
+        if (rand < 0.3) {
           c.status.status = 'FAILED'
         } else {
           c.status.status = 'COMPLETED'

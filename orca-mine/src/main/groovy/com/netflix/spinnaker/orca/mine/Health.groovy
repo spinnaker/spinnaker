@@ -19,12 +19,8 @@ package com.netflix.spinnaker.orca.mine
 import groovy.transform.Canonical
 
 @Canonical
-class CanaryResult {
-  CanarySuccessCriteria canarySuccessCriteria
-  String combinedScoreStrategy
-
-  String overallResult
-  int overallScore
-  long lastUpdated
-  List<CanaryAnalysisResult> lastCanaryAnalysisResults
+class Health {
+  public static final String UNHEALTHY = 'UNHEALTHY'
+  String health
+  String message
 }

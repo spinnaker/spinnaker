@@ -19,12 +19,9 @@ package com.netflix.spinnaker.orca.mine
 import groovy.transform.Canonical
 
 @Canonical
-class CanaryResult {
-  CanarySuccessCriteria canarySuccessCriteria
-  String combinedScoreStrategy
+class TimeDuration {
+  int duration
+  String unit
 
-  String overallResult
-  int overallScore
-  long lastUpdated
-  List<CanaryAnalysisResult> lastCanaryAnalysisResults
+  String toString() { "PT${duration}${unit}" }
 }
