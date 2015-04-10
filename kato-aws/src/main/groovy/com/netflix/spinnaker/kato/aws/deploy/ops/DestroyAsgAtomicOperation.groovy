@@ -16,6 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
+
+import com.amazonaws.AmazonClientException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DeleteAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
@@ -77,8 +79,12 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
       for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
         int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
-        task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
-        ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
+        try {
+          task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
+          ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
+        } catch (AmazonClientException e) {
+          task.updateStatus BASE_PHASE, "Unable to terminate instances, reason: '${e.message}'"
+        }
       }
     }
 
