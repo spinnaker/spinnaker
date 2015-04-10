@@ -36,19 +36,27 @@ class ResizeAsgStage extends LinearStage {
   @Autowired
   TargetReferenceSupport targetReferenceSupport
 
+  @Autowired
+  ModifyScalingProcessStage modifyScalingProcessStage
+
   ResizeAsgStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    configureTargets(stage)
-
-    def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
-    def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
-    [step1, step2, step3, step4]
+    if (!stage.parentStageId || stage.execution.stages.find { it.id == stage.parentStageId}.type != stage.type) {
+      // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
+      configureTargets(stage)
+      stage.initializationStage = true
+      []
+    } else {
+      def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
+      def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+      def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+      def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
+      [step1, step2, step3, step4]
+    }
   }
 
   @CompileDynamic
@@ -109,18 +117,42 @@ class ResizeAsgStage extends LinearStage {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       }
 
-
       descriptions[asg.name as String] = description
     }
 
     def descriptionList = descriptions.values()
-    def first = descriptionList[0]
-    descriptionList.remove(first)
-    stage.context.putAll(first)
-
     if (descriptionList.size()) {
       for (description in descriptionList) {
         injectAfter(stage, "resizeAsg", this, description)
+      }
+    }
+
+    targetReferences.each { targetReference ->
+      def context = [
+        asgName    : targetReference.asg.name,
+        credentials: stage.context.credentials,
+        regions    : [targetReference.region]
+      ]
+      if (targetReference.asg.asg.suspendedProcesses) {
+        def suspendedProcesses = targetReference.asg.asg.suspendedProcesses*.processName as List
+        def processesToEnable = []
+        if (suspendedProcesses.contains("Launch")) {
+          processesToEnable << "Launch"
+        }
+        if (suspendedProcesses.contains("Terminate")) {
+          processesToEnable << "Terminate"
+        }
+
+        if (processesToEnable) {
+          injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
+            action: "resume",
+            processes: processesToEnable
+          ])
+          injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, context + [
+            action: "suspend",
+            processes: processesToEnable
+          ])
+        }
       }
     }
   }
