@@ -140,6 +140,10 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
     (Set<Instance>) getProperty("instances")
   }
 
+  Map getBuildInfo() {
+    (Map) getProperty("buildInfo")
+  }
+
   private Map<String, Object> getAsg() {
     (Map<String, Object>) getProperty("asg")
   }

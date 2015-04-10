@@ -42,14 +42,14 @@ class GoogleNamedImageLookupController {
       def imageList = imageMap?.get(account) ?: []
 
       return imageList.collect {
-        [ imageName: it ]
+        [ imageName: it.name ]
       }
     } else {
       def results = []
 
       imageMap?.entrySet().each { Map.Entry<String, List<String>> accountNameToImageNamesEntry ->
         accountNameToImageNamesEntry.value.each {
-          results << [ account: accountNameToImageNamesEntry.key, imageName: it ]
+          results << [ account: accountNameToImageNamesEntry.key, imageName: it.name ]
         }
       }
 

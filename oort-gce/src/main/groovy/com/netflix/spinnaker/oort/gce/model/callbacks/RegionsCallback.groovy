@@ -37,9 +37,11 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
   private Compute compute
   private GoogleCredential.Builder credentialBuilder
   private Replicapool replicapool
+  private Map<String, List<Map>> imageMap
+  private String defaultBuildHost
+  private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private BatchRequest migsBatch
   private BatchRequest resourceViewsBatch
-  private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
 
   public RegionsCallback(HashMap<String, GoogleApplication> tempAppMap,
                          String accountName,
@@ -47,6 +49,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                          Compute compute,
                          GoogleCredential.Builder credentialBuilder,
                          Replicapool replicapool,
+                         Map<String, List<Map>> imageMap,
+                         String defaultBuildHost,
                          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
                          BatchRequest migsBatch,
                          BatchRequest resourceViewsBatch) {
@@ -56,6 +60,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
     this.compute = compute
     this.credentialBuilder = credentialBuilder
     this.replicapool = replicapool
+    this.imageMap = imageMap
+    this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.migsBatch = migsBatch
     this.resourceViewsBatch = resourceViewsBatch
@@ -74,6 +80,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                                           project,
                                           compute,
                                           credentialBuilder,
+                                          imageMap,
+                                          defaultBuildHost,
                                           instanceNameToGoogleServerGroupMap,
                                           resourceViewsBatch)
 

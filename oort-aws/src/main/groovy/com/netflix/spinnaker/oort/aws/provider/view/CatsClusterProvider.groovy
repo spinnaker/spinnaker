@@ -27,6 +27,7 @@ import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.HealthState
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
@@ -36,6 +37,9 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private final Cache cacheView
   private final AwsProvider awsProvider
+
+  @Value('${default.build.host:http://builds.netflix.com/}')
+  String defaultBuildHost
 
   @Autowired
   CatsClusterProvider(Cache cacheView, AwsProvider awsProvider) {
@@ -188,7 +192,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
           if (appVersion.buildJobName) {
             buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
           }
-          def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: "http://builds.netflix.com/"
+          def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: defaultBuildHost
           if (buildHost && buildInfo.containsKey("jenkins")) {
             ((Map) buildInfo.jenkins).host = buildHost
           }
