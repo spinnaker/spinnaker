@@ -22,37 +22,11 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
 
   private final EchoService echoService
 
-  final ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(25)
-
   @Autowired
   EchoNotifyingStageExecutionListener(ExecutionRepository executionRepository, EchoService echoService) {
     super(executionRepository)
     this.echoService = echoService
   }
-
-//  @Override
-//  void beforeStage(Stage stage, StepExecution stepExecution) {
-//    echoService.recordEvent(
-//        details: [
-//            source     : "Orca",
-//            type       : "orca:stage:starting",
-//            application: stage.execution.application
-//        ],
-//        content: stage.context
-//    )
-//  }
-//
-//  @Override
-//  void afterStage(Stage stage, StepExecution stepExecution) {
-//    echoService.recordEvent(
-//        details: [
-//            source     : "Orca",
-//            type       : "orca:stage:${(wasSuccessful(stepExecution) ? "complete" : "failed")}".toString(),
-//            application: stage.execution.application
-//        ],
-//        content: stage.context
-//    )
-//  }
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
@@ -65,12 +39,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     if (stepExecution.status.running) {
       return
     }
-    executor.schedule(new Runnable() {
-      @Override
-      public void run() {
-        recordEvent((wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
-      }
-    }, 250, TimeUnit.MILLISECONDS)
+    recordEvent((wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
   }
 
   private void recordEvent(String phase, Stage stage, StepExecution stepExecution) {
@@ -86,9 +55,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
         taskName   : stepExecution.stepName,
         startTime  : stage.startTime,
         endTime    : stage.endTime,
-        execution  : stage.execution instanceof Orchestration ?
-          executionRepository.retrieveOrchestration(stage.execution.id) :
-          executionRepository.retrievePipeline(stage.execution.id)
+        execution  : stage.execution
       ]
     )
   }
