@@ -54,7 +54,7 @@
                     ng-if="triggers.length > 1"
                     ng-model="trigger"
                     ng-options="trigger as trigger.description for trigger in triggers"
-                    ng-change="triggerUpdated()">
+                    ng-change="triggerUpdated(trigger)">
             </select>
           </div>
         </div>

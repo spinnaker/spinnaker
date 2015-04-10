@@ -29,7 +29,12 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
     $scope.trigger  = _.first($scope.triggers);
     $scope.builds = [];
 
-    $scope.triggerUpdated = function() {
+    $scope.triggerUpdated = function(trigger) {
+
+      if( trigger !== undefined ) {
+        $scope.trigger = trigger;
+      }
+
       if (angular.isDefined($scope.trigger)) {
         $scope.viewState.buildsLoading = true;
         igorService.listBuildsForJob($scope.trigger.master, $scope.trigger.job).then(function(builds) {
