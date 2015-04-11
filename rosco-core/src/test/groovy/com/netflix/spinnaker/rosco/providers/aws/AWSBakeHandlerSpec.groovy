@@ -198,7 +198,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> targetImageName
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -232,7 +232,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> targetImageName
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -266,7 +266,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> targetImageName
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -286,9 +286,10 @@ class AWSBakeHandlerSpec extends Specification {
                                                          packerCommandFactory: packerCommandFactoryMock)
 
     when:
-    awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }
@@ -312,6 +313,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for region 'us-east-1', operating system 'trusty', and vm type 'pv'."
   }

@@ -50,7 +50,7 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
 
   @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {
-    def imageName = imageNameFactory.produceImageName(bakeRequest)
+    def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
 
     def virtualizationSettings = gceBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
@@ -68,7 +68,12 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
     ]
 
     // TODO(duftler): Build out proper support for installation of packages.
-    parameterMap["packages"] = bakeRequest.package_name
+    parameterMap.packages = packagesParameter
+
+    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
+    if (appVersion) {
+      parameterMap.appversion = appVersionStr
+    }
 
     return packerCommandFactory.buildPackerCommandString(parameterMap, gceBakeryDefaults.templateFile)
   }

@@ -54,7 +54,7 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
 
   @Override
   String producePackerCommand(String region, BakeRequest bakeRequest) {
-    def imageName = imageNameFactory.produceImageName(bakeRequest)
+    def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
 
     if (!bakeRequest.vm_type) {
       bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
@@ -88,7 +88,12 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
     ]
 
     // TODO(duftler): Build out proper support for installation of packages.
-    parameterMap["packages"] = bakeRequest.package_name
+    parameterMap.packages = packagesParameter
+
+    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
+    if (appVersion) {
+      parameterMap.appversion = appVersionStr
+    }
 
     return packerCommandFactory.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
   }

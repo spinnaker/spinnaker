@@ -7,6 +7,8 @@
     "aws_instance_type": "",
     "aws_source_ami": "",
     "aws_target_ami": "",
+    "appversion": "",
+    "build_host": "",
     "packages": ""
   },
   "builders": [{
@@ -17,7 +19,8 @@
     "source_ami": "{{user `aws_source_ami`}}",
     "instance_type": "{{user `aws_instance_type`}}",
     "ssh_username": "{{user `aws_ssh_username`}}",
-    "ami_name": "{{user `aws_target_ami`}}"
+    "ami_name": "{{user `aws_target_ami`}}",
+    "tags": {"appversion": "{{user `appversion`}}", "build_host": "{{user `build_host`}}"}
   }],
   "provisioners": [{
     "type": "shell",

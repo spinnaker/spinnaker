@@ -22,7 +22,9 @@ interface ImageNameFactory {
 
   /**
    * This function is not required to return the same image name on multiple invocations with the same bake request.
+   *
+   * Returns [imageName, appVersionStr, appVersion, packagesParameter].
    */
-  String produceImageName(BakeRequest bakeRequest)
+  def produceImageName(BakeRequest bakeRequest)
 
 }

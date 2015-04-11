@@ -4,6 +4,8 @@
     "gce_zone": "",
     "gce_source_image": "",
     "gce_target_image": "",
+    "appversion": "",
+    "build_host": "",
     "packages": ""
   },
   "builders": [{
@@ -12,7 +14,8 @@
     "project_id": "{{user `gce_project_id`}}",
     "source_image": "{{user `gce_source_image`}}",
     "zone": "{{user `gce_zone`}}",
-    "image_name": "{{user `gce_target_image`}}"
+    "image_name": "{{user `gce_target_image`}}",
+    "image_description": "appversion: {{user `appversion`}}, build_host: {{user `build_host`}}"
   }],
   "provisioners": [{
     "type": "shell",

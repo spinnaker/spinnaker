@@ -20,10 +20,18 @@ class DefaultPackerCommandFactory implements PackerCommandFactory {
 
   @Override
   String buildPackerCommandString(Map<String, String> parameterMap, String templateFile) {
-    return "packer build -color=false " +
-      parameterMap.collect {
-        "-var $it.key=$it.value"
-      }.join(" ") + " $templateFile"
+    def packerCommand = "packer build -color=false"
+
+    parameterMap.each { key, value ->
+      if (key && value) {
+        def keyValuePair = value.contains(" ") ? "'$key=$value'" : "$key=$value"
+
+        packerCommand += " -var $keyValuePair"
+      }
+    }
+
+    packerCommand += " $templateFile"
+    packerCommand
   }
 
 }
