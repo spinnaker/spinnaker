@@ -25,6 +25,7 @@ import com.netflix.spinnaker.kato.data.task.TaskState
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
@@ -143,7 +144,7 @@ class DiscoverySupportUnitSpec extends Specification {
     0 * task.fail()
     instanceIds.each {
       1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> {
-        throw new HttpClientErrorException(HttpStatus.SERVICE_UNAVAILABLE)
+        throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)
       }
       1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
         [

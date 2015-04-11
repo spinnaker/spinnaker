@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.RestTemplate
 
 @Component
@@ -69,7 +70,7 @@ class DiscoverySupport {
             }
           }
           break
-        } catch (HttpClientErrorException e) {
+        } catch (HttpServerErrorException|HttpClientErrorException e) {
           if (retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
             throw e
           }
