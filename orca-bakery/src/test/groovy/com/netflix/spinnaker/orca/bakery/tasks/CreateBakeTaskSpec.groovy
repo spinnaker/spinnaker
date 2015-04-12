@@ -219,7 +219,6 @@ class CreateBakeTaskSpec extends Specification {
     }
   }
 
-
   def "outputs the packageName of the bake"() {
     given:
     task.bakery = Stub(BakeryService) {
@@ -231,6 +230,60 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     result.outputs.bakePackageName == bakeConfig.package
+  }
+
+  @Unroll
+  def "build info with url yields bake stage output containing build host, job and build number"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(runningStatus)
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.with {
+      bakePackageName == "hodor_1.1_all"
+      buildHost == "http://spinnaker.builds.test.netflix.net/"
+      job == "SPINNAKER-package-echo"
+      buildNumber == "69"
+    }
+
+    where:
+    triggerInfo      | contextInfo
+    buildInfoWithUrl | null
+    null             | buildInfoWithUrl
+  }
+
+  @Unroll
+  def "build info without url yields bake stage output without build host, job and build number"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(runningStatus)
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.bakePackageName == "hodor_1.1_all"
+    !result.outputs.buildHost
+    !result.outputs.job
+    !result.outputs.buildNumber
+
+    where:
+    triggerInfo | contextInfo
+    buildInfo   | null
+    null        | buildInfo
   }
 
   @Unroll
