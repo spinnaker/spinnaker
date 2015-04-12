@@ -59,6 +59,24 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def buildInfoWithUrl = [
+    url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
+  def buildInfoWithUrlNoMatch = [
+    url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/70/",
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ]
+  ]
+
+  @Shared
   def buildInfoNoMatch = [
     artifacts: [
       [fileName: 'hodornodor_1.1_all.deb'],
@@ -213,6 +231,88 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     result.outputs.bakePackageName == bakeConfig.package
+  }
+
+  @Unroll
+  def "build info with url yields bake request containing build host, job and build number"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+    {
+      it.user == "bran" &&
+      it.packageName == "hodor_1.1_all" &&
+      it.baseLabel == BakeRequest.Label.release &&
+      it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+      it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
+      it.job == "SPINNAKER-package-echo" &&
+      it.buildNumber == "69"
+    }) >> Observable.from(runningStatus)
+
+    where:
+    triggerInfo      | contextInfo
+    buildInfoWithUrl | null
+    null             | buildInfoWithUrl
+  }
+
+  @Unroll
+  def "build info without url yields bake request without build host, job and build number"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+    {
+      it.user == "bran" &&
+      it.packageName == "hodor_1.1_all" &&
+      it.baseLabel == BakeRequest.Label.release &&
+      it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+      it.buildHost == null &&
+      it.job == null &&
+      it.buildNumber == null
+    }) >> Observable.from(runningStatus)
+
+    where:
+    triggerInfo | contextInfo
+    buildInfo   | null
+    null        | buildInfo
+  }
+
+  @Unroll
+  def "fails if pipeline trigger and context both include build urls but they don't match"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Mock(BakeryService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    IllegalStateException ise = thrown(IllegalStateException)
+    ise.message.startsWith("Found mismatched build urls")
+
+    where:
+    triggerInfo             | contextInfo
+    buildInfoWithUrl        | buildInfoWithUrlNoMatch
+    buildInfoWithUrlNoMatch | buildInfoWithUrl
   }
 
 }
