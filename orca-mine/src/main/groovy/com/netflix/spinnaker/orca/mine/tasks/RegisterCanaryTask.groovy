@@ -23,7 +23,6 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.CanaryConfig
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.client.Response
 
 import java.util.regex.Pattern
 
@@ -55,7 +55,13 @@ class RegisterCanaryTask implements Task {
   TaskResult execute(Stage stage) {
     String app = stage.context.application ?: stage.execution.application
     Canary c = buildCanary(app, stage)
-    String canaryId = mineService.registerCanary(c)
+    Response response = mineService.registerCanary(c)
+    String canaryId
+    if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
+      canaryId = response.body.in().text
+    } else {
+      throw new IllegalStateException("Unable to handle $response")
+    }
     Canary canary = mineService.checkCanaryStatus(canaryId)
     return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [canary: canary])
   }
@@ -67,6 +73,7 @@ class RegisterCanaryTask implements Task {
     c.owner = objectMapper.convertValue(context.owner, Recipient)
     c.watchers = objectMapper.convertValue(context.watchers, new TypeReference<List<Recipient>>() {})
     c.canaryConfig = objectMapper.convertValue(context.canaryConfig, CanaryConfig)
+    c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = app
 
     def preceedingCanary = stage.preceding(CanaryStage.MAYO_CONFIG_TYPE)
@@ -89,8 +96,10 @@ class RegisterCanaryTask implements Task {
         for (sg in serverGroups) {
           def cluster = buildCluster(sg, region, account)
           if (cluster.type == 'canary') {
+            cluster.cluster.imageId = s.context.deploymentDetails.find { it.region == region }?.ami
             clusters[cluster.key].canaryCluster = cluster.cluster
           } else {
+            cluster.cluster.imageId = s.context.amiName
             clusters[cluster.key].baselineCluster = cluster.cluster
           }
         }
@@ -114,7 +123,7 @@ class RegisterCanaryTask implements Task {
     def match = name.detail =~ DETAIL_PATTERN
     if (match.matches()) {
       String baseName = new CanaryClusterNameBuilder(name.app, name.stack, match.group(1)).baseName
-      return new TypedCluster(match.group(2), baseName, new Cluster(asgName, 'aws', account, region))
+      return new TypedCluster(match.group(2), baseName, new Cluster(null, asgName, 'aws', account, region))
     }
     return null
   }

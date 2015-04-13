@@ -17,5 +17,5 @@
 package com.netflix.spinnaker.orca.mine
 
 class CanarySuccessCriteria {
-  int canaryResultScore
+  Integer canaryResultScore
 }

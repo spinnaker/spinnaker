@@ -22,7 +22,7 @@ import groovy.transform.Canonical
 class Canary {
   String id
   String application
-  long launchedDate
+  Long launchedDate
   CanaryConfig canaryConfig
   List<CanaryDeployment> canaryDeployments = []
   CanaryResult canaryResult

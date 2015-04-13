@@ -61,9 +61,9 @@ class MonitorCanaryTask implements RetryableTask {
       return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [:], outputs)
     }
 
-    if (outputs.canary.health.health == Health.UNHEALTHY) {
+    if (outputs.canary.health?.health == Health.UNHEALTHY) {
       log.info("Canary unhealthy, terminating")
-      outputs.canary = mineService.terminateCanary(canary.id)
+      outputs.canary = mineService.terminateCanary(canary.id, "unhealthy")
     }
 
     Map scaleUp = context.scaleUp

@@ -20,10 +20,7 @@ import groovy.transform.Canonical
 
 @Canonical
 class CanaryDeployment {
+  String id
   Cluster canaryCluster
   Cluster baselineCluster
-
-  String getId() {
-    "${canaryCluster.id}|${baselineCluster.id}"
-  }
 }

@@ -21,7 +21,8 @@ import groovy.transform.Canonical
 
 @Canonical
 class CanaryHealthCheckHandler {
-  int minimumCanaryResultScore
+  Integer minimumCanaryResultScore
+
   @JsonProperty('@class')
-  String handlerClass
+  String handlerClass = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'
 }

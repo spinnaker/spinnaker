@@ -38,6 +38,8 @@ class CleanupCanaryTask implements Task {
   TaskResult execute(Stage stage) {
     Canary canary = stage.mapTo('/canary', Canary)
     String operation = 'disableAsgDescription'
+    //TODO(cfieber) - check terminated status, destroy on terminate
+    //              - handle disabled status
     if (canary.canaryResult.overallResult == 'SUCCESS') {
       operation = 'destroyAsgDescription'
     }

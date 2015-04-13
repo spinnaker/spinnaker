@@ -49,7 +49,7 @@ class CanaryStage extends ParallelDeployStage {
       def canary = new LinkedHashMap(cluster)
       def detailsPrefix = cluster.freeFormDetails ? "${cluster.freeFormDetails}_" : ""
 
-      baseline.amiName = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }?.name
+      baseline.amiName = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }?.ami
       baseline.freeFormDetails = "${detailsPrefix}baseline".toString()
       canary.freeFormDetails = "${detailsPrefix}canary".toString()
       [baseline, canary]

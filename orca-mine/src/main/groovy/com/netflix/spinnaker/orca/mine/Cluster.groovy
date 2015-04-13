@@ -20,14 +20,11 @@ import groovy.transform.Canonical
 
 @Canonical
 class Cluster {
+  String id
   String name
   String type = 'aws'
   String accountName
   String region
   String buildId
   String imageId
-
-  String getId() {
-    "${name}:${type}:${accountName}:${region}"
-  }
 }

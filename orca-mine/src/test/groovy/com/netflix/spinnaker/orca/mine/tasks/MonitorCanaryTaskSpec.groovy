@@ -164,7 +164,7 @@ class MonitorCanaryTaskSpec extends Specification {
 
     then:
     1 * mineService.checkCanaryStatus(canary.id) >> canary
-    1 * mineService.terminateCanary(canary.id) >> terminated
+    1 * mineService.terminateCanary(canary.id, 'unhealthy') >> terminated
 
     result.stageOutputs.canary.status.status == terminated.status.status
   }

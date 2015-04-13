@@ -21,8 +21,8 @@ import groovy.transform.Canonical
 @Canonical
 class CanaryAnalysisConfig {
   String name
-  int beginCanaryAnalysisAfterMins
+  Integer beginCanaryAnalysisAfterMins
   List<Integer> notificationHours
-  int canaryAnalysisIntervalMins
+  Integer canaryAnalysisIntervalMins
   Map<String, Object> params
 }

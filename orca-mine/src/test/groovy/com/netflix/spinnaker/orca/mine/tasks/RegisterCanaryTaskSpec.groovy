@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.mine.pipeline.CanaryStage
 import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.client.Response
+import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -76,7 +78,7 @@ class RegisterCanaryTaskSpec extends Specification {
     then:
     1 * mineService.registerCanary(_) >> { Canary c ->
       captured = c
-      "canaryId"
+      new Response('http:/mine', 200, 'OK', [], new TypedString('canaryId'))
     }
 
     then:

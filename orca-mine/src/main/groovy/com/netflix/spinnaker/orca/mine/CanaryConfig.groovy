@@ -23,7 +23,7 @@ class CanaryConfig {
   String id
   String application
   String name
-  int lifetimeHours
+  Integer lifetimeHours
   String combinedCanaryResultStrategy
   CanaryAnalysisConfig canaryAnalysisConfig
   CanarySuccessCriteria canarySuccessCriteria
