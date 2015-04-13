@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.events
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.echo.cassandra.HistoryRepository
 import com.netflix.spinnaker.echo.cassandra.TimeSeriesRepository
 import com.netflix.spinnaker.echo.model.Event
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,17 +29,12 @@ import org.springframework.stereotype.Component
 class CassandraEventListener implements EchoEventListener {
 
     @Autowired
-    HistoryRepository historyRepository
-
-    @Autowired
     TimeSeriesRepository timeSeriesRepository
 
     ObjectMapper mapper = new ObjectMapper()
 
     @Override
     void processEvent(Event event) {
-        String key = "${event.details.source}::${event.details.type}::${event.details.created}"
-        historyRepository.saveHistory(key, mapper.writeValueAsString(event))
         timeSeriesRepository.add(event)
     }
 
