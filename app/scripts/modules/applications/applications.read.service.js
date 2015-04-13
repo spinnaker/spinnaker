@@ -149,6 +149,7 @@ angular
         application.refreshImmediately = refreshApplication;
         application.disableAutoRefresh = disableAutoRefresh;
         application.enableAutoRefresh = enableAutoRefresh;
+        application.resumeAutoRefresh = resumeAutoRefresh;
         application.getCluster = getCluster;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
