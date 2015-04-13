@@ -7,7 +7,7 @@ angular.module('deckApp.delivery.executionBar.controller', [
     var controller = this;
 
     controller.getStageWidth = function() {
-      return 100 / $scope.filter.stage.max + '%';
+      return 100 / $scope.execution.stageSummaries.length + '%';
     };
 
     controller.getStageColor = function(stage) {
