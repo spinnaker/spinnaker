@@ -24,17 +24,28 @@ angular.module('deckApp.pipelines.stage.canary', ['deckApp.settings'])
   .controller('CanaryStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
     $scope.stage = stage;
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
+    $scope.stage.owner = $scope.stage.owner || {};
+    $scope.stage.watchers = $scope.stage.watchers || [];
     $scope.stage.canaries = $scope.stage.canaries || [];
     $scope.stage.canaryConfig = $scope.stage.canaryConfig || {};
     $scope.stage.canaryConfig.canaryAnalysisConfig = $scope.stage.canaryConfig.canaryAnalysisConfig || {};
-    $scope.notificationHours = ($scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || []).join();
+    $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = null; //$scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
+    /*
+    console.log($scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
+    console.log(typeof $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
+    $scope.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
+    console.log($scope.notificationHours);
+    console.log(typeof $scope.notificationHours);
 
     this.splitNotificationHours = function() {
+      console.log("ngchanged");
       $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = _.map($scope.notificationHours.split(','), function(str) {
         return str.trim();
       });
+      console.log($scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours)
+      console.log(typeof $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
     };
-
+*/
     this.getRegion = function(cluster) {
       var availabilityZones = cluster.availabilityZones;
       if (availabilityZones) {
