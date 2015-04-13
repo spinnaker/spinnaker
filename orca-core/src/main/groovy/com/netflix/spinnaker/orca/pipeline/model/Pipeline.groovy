@@ -94,5 +94,10 @@ class Pipeline extends Execution<Pipeline> {
       pipeline.name = name
       return this
     }
+
+    Builder withParallel(boolean parallel) {
+      pipeline.parallel = parallel
+      return this
+    }
   }
 }

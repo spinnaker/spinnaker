@@ -26,6 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger
 @CompileStatic
 interface Stage<T extends Execution> {
 
+  String getRefId()
+  void setRefId(String refId)
+
   /**
    * A stage's unique identifier
    */
@@ -185,6 +188,9 @@ interface Stage<T extends Execution> {
    * @see {@link #getParentStageId()}
    */
   void setParentStageId(String id)
+
+  Collection<String> getRequisiteStageRefIds()
+  void setRequisiteStageRefIds(Collection<String> requisiteStageRefIds)
 
   /**
    * @see {@link #setScheduledTime(long scheduledTime)}

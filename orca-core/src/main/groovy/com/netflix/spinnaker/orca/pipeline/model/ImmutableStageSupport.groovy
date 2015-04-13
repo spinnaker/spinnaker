@@ -51,6 +51,16 @@ class ImmutableStageSupport {
     boolean immutable = true
 
     @Override
+    String getRefId() {
+      self.refId
+    }
+
+    @Override
+    void setRefId(String refId) {
+      fail()
+    }
+
+    @Override
     String getId() {
       self.id
     }
@@ -203,6 +213,16 @@ class ImmutableStageSupport {
 
     @Override
     void setParentStageId(String id) {
+      fail()
+    }
+
+    @Override
+    Collection<String> getRequisiteStageRefIds() {
+      self.requisiteStageRefIds
+    }
+
+    @Override
+    void setRequisiteStageRefIds(Collection<String> requisiteStageRefIds) {
       fail()
     }
 
