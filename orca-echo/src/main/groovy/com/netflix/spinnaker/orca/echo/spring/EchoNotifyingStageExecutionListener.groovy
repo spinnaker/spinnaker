@@ -55,7 +55,8 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
         taskName   : stepExecution.stepName,
         startTime  : stage.startTime,
         endTime    : stage.endTime,
-        execution  : stage.execution
+        execution  : stage.execution,
+        executionId: stage.execution.id
       ]
     )
   }
