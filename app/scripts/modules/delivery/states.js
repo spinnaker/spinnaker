@@ -15,7 +15,7 @@ angular.module('deckApp.delivery.states', [])
         {
           name: 'execution',
           url: '/:executionId?stage',
-          view: {},
+          views: {},
           data: {
             pageTitleDetails: {
               title: 'Execution Details',
