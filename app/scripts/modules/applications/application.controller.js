@@ -9,6 +9,15 @@ angular.module('deckApp.application.controller', [])
       return;
     }
 
+    this.toggleRefresh = function() {
+      if (application.autoRefreshEnabled) {
+        application.disableAutoRefresh();
+      } else {
+        application.resumeAutoRefresh();
+        application.refreshImmediately();
+      }
+    };
+
     function countInstances() {
       var serverGroups = application.serverGroups || [];
       return serverGroups
@@ -17,8 +26,9 @@ angular.module('deckApp.application.controller', [])
         }, 0);
     }
 
-    if (countInstances() < 500) {
-      application.enableAutoRefresh($scope);
+    application.enableAutoRefresh($scope);
+    if (countInstances() > 500) {
+      application.disableAutoRefresh();
     }
   }
 );
