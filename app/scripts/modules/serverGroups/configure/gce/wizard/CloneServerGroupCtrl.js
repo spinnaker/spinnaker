@@ -41,7 +41,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       }
       var mode = serverGroupCommand.viewState.mode;
       if (mode === 'clone' || mode === 'editPipeline') {
-        if ($scope.command.image) {
+        if ($scope.command.image || $scope.command.viewState.disableImageSelection) {
           modalWizardService.getWizard().markComplete('location');
         }
         modalWizardService.getWizard().markComplete('load-balancers');
@@ -78,7 +78,7 @@ angular.module('deckApp.serverGroup.configure.gce')
     }
 
     this.isValid = function () {
-      return $scope.command && ($scope.command.image !== null) &&
+      return $scope.command && ($scope.command.viewState.disableImageSelection || $scope.command.image !== null) &&
         ($scope.command.credentials !== null) && ($scope.command.instanceType !== null) &&
         ($scope.command.region !== null) && ($scope.command.zone !== null) &&
         ($scope.command.capacity.desired !== null) &&

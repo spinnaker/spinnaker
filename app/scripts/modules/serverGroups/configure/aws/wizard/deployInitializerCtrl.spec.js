@@ -25,7 +25,7 @@ describe('DeployInitializerCtrl', function() {
           listAvailableStrategies: function() { return $q.when([]); }
         };
 
-        this.controller = this.$controller('DeployInitializerCtrl', {
+        this.controller = this.$controller('awsDeployInitializerCtrl', {
           $scope: $scope,
           serverGroupCommandBuilder: this.serverGroupCommandBuilder,
           securityGroupReader: this.securityGroupReader,
@@ -43,19 +43,22 @@ describe('DeployInitializerCtrl', function() {
             name: 'sg1',
             cluster: 'cluster1',
             account: 'test',
-            region: 'us-east-1'
+            region: 'us-east-1',
+            type: 'aws',
           },
           {
             name: 'sg2',
             cluster: 'cluster1',
             account: 'prod',
-            region: 'us-east-1'
+            region: 'us-east-1',
+            type: 'aws',
           },
           {
             name: 'sg2',
             cluster: 'cluster1',
             account: 'prod',
-            region: 'us-east-1'
+            region: 'us-east-1',
+            type: 'aws',
           },
         ]
       };

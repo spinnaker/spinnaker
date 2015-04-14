@@ -9,6 +9,7 @@
       <table class="table table-condensed">
         <thead>
         <tr>
+          <th if-multiple-providers>Provider</th>
           <th>Account</th>
           <th>Cluster</th>
           <th>Region</th>
@@ -20,6 +21,10 @@
         </thead>
         <tbody>
         <tr ng-repeat="cluster in stage.clusters">
+          <td if-multiple-providers>
+            <span class="icon icon-server-group icon-{{cluster.providerType || 'aws'}}"></span>
+            {{cluster.providerType || 'aws'}}
+          </td>
           <td>
             <account-tag account="cluster.account"></account-tag>
           </td>
@@ -30,7 +35,7 @@
             {{ deployStageCtrl.getRegion(cluster) }}
           </td>
           <td>
-            {{cluster.subnetType || '[none]'}}
+            {{!cluster.providerType || cluster.providerType === 'aws' ? cluster.subnetType || '[none]' : '-'}}
           </td>
           <td>
             {{cluster.strategy || '[none]'}}
@@ -52,7 +57,7 @@
         </tbody>
         <tfoot>
         <tr>
-          <td colspan="7">
+          <td colspan="8">
             <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
               <span class="glyphicon glyphicon-plus-sign"></span> Add cluster
             </button>

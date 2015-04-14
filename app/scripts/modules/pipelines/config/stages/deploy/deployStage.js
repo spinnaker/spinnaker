@@ -75,7 +75,7 @@ angular.module('deckApp.pipelines.stage.deploy')
     };
 
     this.editCluster = function(cluster, index) {
-      cluster.provider = cluster.provider || 'aws';
+      cluster.provider = cluster.providerType || 'aws';
       return $modal.open({
         templateUrl: 'scripts/modules/serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
         controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',

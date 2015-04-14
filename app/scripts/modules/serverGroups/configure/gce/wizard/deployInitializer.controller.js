@@ -1,11 +1,11 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controller', [
+angular.module('deckApp.serverGroup.configure.gce.deployInitialization.controller', [
   'deckApp.serverGroup.read.service',
   'deckApp.utils.lodash',
   'deckApp.aws.serverGroupCommandBuilder.service',
 ])
-  .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('gceDeployInitializerCtrl', function($scope, gceServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;
 
     var noTemplate = { label: 'None', serverGroup: null, cluster: null };
@@ -14,7 +14,7 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
 
     $scope.templates = [ noTemplate ];
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'aws' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'gce' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 
@@ -38,7 +38,7 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
     }
 
     function buildEmptyCommand() {
-      return awsServerGroupCommandBuilder.buildNewServerGroupCommand($scope.application, {mode: 'createPipeline'}).then(function(command) {
+      return gceServerGroupCommandBuilder.buildNewServerGroupCommand($scope.application, {mode: 'createPipeline'}).then(function(command) {
         applyCommandToScope(command);
       });
     }
@@ -46,7 +46,7 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
     function buildCommandFromTemplate(serverGroup) {
       return serverGroupReader.getServerGroup($scope.application.name, serverGroup.account, serverGroup.region, serverGroup.name).then(function (details) {
         angular.extend(details, serverGroup);
-        return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
+        return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
           applyCommandToScope(command);
         });
       });
