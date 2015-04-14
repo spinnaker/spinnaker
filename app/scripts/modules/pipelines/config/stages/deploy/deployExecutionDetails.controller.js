@@ -2,27 +2,42 @@
 
 angular.module('deckApp.pipelines.stage.deploy.details.controller', [
   'deckApp.utils.lodash',
+  'ui.router',
+  'deckApp.executionDetails.section.service',
+  'deckApp.executionDetails.section.nav.directive',
 ])
-  .controller('DeployExecutionDetailsCtrl', function ($scope, _) {
+  .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService) {
 
-    var context = $scope.stage.context,
-      results = [];
+    $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
-    if (context && context['kato.tasks'] && context['kato.tasks'].length) {
-      var resultObjects = context['kato.tasks'][0].resultObjects;
-      if (resultObjects && resultObjects.length) {
+    function initialize() {
+      executionDetailsSectionService.synchronizeSection($scope.configSections);
+
+      $scope.detailsSection = $stateParams.details;
+
+      var context = $scope.stage.context,
         results = [];
-        var deployedArtifacts = _.find(resultObjects, 'asgNameByRegion');
-        if (deployedArtifacts) {
-          _.forEach(deployedArtifacts.asgNameByRegion, function (asgName, region) {
-            results.push({
-              region: region,
-              name: asgName,
+
+      if (context && context['kato.tasks'] && context['kato.tasks'].length) {
+        var resultObjects = context['kato.tasks'][0].resultObjects;
+        if (resultObjects && resultObjects.length) {
+          results = [];
+          var deployedArtifacts = _.find(resultObjects, 'asgNameByRegion');
+          if (deployedArtifacts) {
+            _.forEach(deployedArtifacts.asgNameByRegion, function (asgName, region) {
+              results.push({
+                region: region,
+                name: asgName,
+              });
             });
-          });
+          }
         }
       }
+      $scope.deployed = results;
     }
-    $scope.deployed = results;
+
+    initialize();
+
+    $scope.$on('$stateChangeSuccess', initialize, true);
 
   });

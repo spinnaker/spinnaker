@@ -13,12 +13,6 @@ angular.module('deckApp.delivery.execution.controller', [
         $state.includes('**.execution.**');
     };
 
-    controller.go = function() {
-      $state.go('.execution', {
-        executionId: $scope.execution.id,
-      });
-    };
-
     controller.pipelinesUrl = [settings.gateUrl, 'pipelines/'].join('/');
 
     controller.executionInState = function() {
@@ -38,6 +32,18 @@ angular.module('deckApp.delivery.execution.controller', [
           return executionsService.deleteExecution($scope.application, $scope.execution.id);
         }
       });
+    };
+
+    controller.cancelExecution = function(execution) {
+      confirmationModalService.confirm({
+        header: 'Really stop execution of ' + execution.name + '?',
+        buttonText: 'Stop running ' + execution.name,
+        destructive: false,
+        submitMethod: function() {
+          return executionsService.cancelExecution(execution.id);
+        }
+      });
+
     };
 
   });

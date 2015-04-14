@@ -5,6 +5,8 @@ angular.module('deckApp')
   .filter('robotToHuman', function() {
     return function(input) {
 
+      input = input || '';
+
       var formattedInput = input.charAt(0).toUpperCase() + input.substr(1);
 
       if (/\s/g.test(formattedInput)) {

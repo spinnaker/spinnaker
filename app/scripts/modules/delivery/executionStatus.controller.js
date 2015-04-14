@@ -1,10 +1,7 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionStatus.controller', [
-  'deckApp.delivery.executions.service',
-  'deckApp.confirmationModal.service'
-])
-  .controller('executionStatus', function(executionsService, confirmationModalService) {
+angular.module('deckApp.delivery.executionStatus.controller', [])
+  .controller('executionStatus', function() {
     var controller = this;
 
     controller.getFailedStage = function(execution) {
@@ -46,15 +43,4 @@ angular.module('deckApp.delivery.executionStatus.controller', [
       return 'Unknown';
     };
 
-    controller.cancelExecution = function(execution) {
-      confirmationModalService.confirm({
-        header: 'Really stop execution of ' + execution.name + '?',
-        buttonText: 'Stop running ' + execution.name,
-        destructive: false,
-        submitMethod: function() {
-          return executionsService.cancelExecution(execution.id);
-        }
-      });
-
-    };
   });

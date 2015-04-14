@@ -113,7 +113,7 @@ angular.module('deckApp', [
     $rootScope.$state = $state;
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       $modalStack.dismissAll();
-      $log.debug({
+      $log.debug(event.name, {
         event: event,
         toState: toState,
         toParams: toParams,
@@ -124,7 +124,7 @@ angular.module('deckApp', [
     });
 
     $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error) {
-      $log.debug({
+      $log.debug(event.name, {
         event: event,
         toState: toState,
         toParams: toParams,
@@ -137,7 +137,7 @@ angular.module('deckApp', [
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState, fromParams) {
-      $log.debug({
+      $log.debug(event.name, {
         event: event,
         toState: toState,
         toParams: toParams,

@@ -1,5 +1,5 @@
-<div class="stage-label">
-  <div>{{stage.name}}</div>
+<span class="stage-label">
+  <span>{{stage.name}}</span>
   <div ng-repeat="result in stage.masterStage.context.buildInfo.testResults" class="test-results-label">
     (
     <span class="tests-pass-count">
@@ -14,4 +14,4 @@
     </span>
     )
   </div>
-</div>
+</span>

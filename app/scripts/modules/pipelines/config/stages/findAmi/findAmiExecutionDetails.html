@@ -1,32 +1,42 @@
-<div>
-  <div class="row">
-    <div class="col-md-6">
-      <h5>Find AMI Stage Configuration</h5>
-      <dl class="dl-narrow dl-horizontal">
-        <dt>Account</dt>
-        <dd><account-tag account="stage.context.account"></account-tag></dd>
-        <dt>Region</dt>
-        <dd>{{stage.context.regions.join(', ')}}</dd>
-        <dt>Cluster</dt>
-        <dd>{{stage.context.cluster}}</dd>
-      </dl>
-    </div>
-
-    <execution-step-details item="stage"></execution-step-details>
-
-  </div>
-
-  <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
-
-  <div class="row" ng-if="stage.context.amiDetails">
-    <div class="col-md-12">
-      <div class="well alert alert-text">
-        <dl ng-repeat="ami in stage.context.amiDetails" class="dl-narrow dl-horizontal">
-          <h4>{{ami.region}}</h4>
-          <dt>AMI:</dt><dd>{{ami.ami}}</dd>
-          <dt>Name:</dt><dd>{{ami.imageName}}</dd>
+<div ng-controller="FindAmiExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'findAMIConfig'">
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="stage.context.account"></account-tag>
+          </dd>
+          <dt ng-if="stage.context.regions">Region</dt>
+          <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.cluster}}</dd>
         </dl>
       </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+
+    <div class="row" ng-if="stage.context.amiDetails">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <h4>Results</h4>
+          <dl ng-repeat="ami in stage.context.amiDetails" class="dl-narrow dl-horizontal">
+            <dt>Region</dt>
+            <dd>{{ami.region}}</dd>
+            <dt>AMI</dt>
+            <dd>{{ami.ami}}</dd>
+            <dt>Name</dt>
+            <dd>{{ami.imageName}}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
 </div>
