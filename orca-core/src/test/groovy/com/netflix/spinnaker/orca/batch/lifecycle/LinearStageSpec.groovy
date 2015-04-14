@@ -23,20 +23,24 @@ import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
+import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
-
+import org.springframework.batch.core.step.AbstractStep
 
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class LinearStageSpec extends AbstractBatchLifecycleSpec {
   def listeners = [new StageStatusPropagationListener(executionRepository)]
 
-  def ctx1 = [a:1]
-  def ctx2 = [b:2]
+  def ctx1 = [a: 1]
+  def ctx2 = [b: 2]
 
   def task1 = Mock(Task)
   def task2 = Mock(Task)
@@ -105,6 +109,34 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
   }
 
+  void "parallel execution should only start a new flow path the first time a job builder is seen"() {
+    given:
+    def linearStage = new LinearStage("") {
+      @Override
+      List<Step> buildSteps(Stage stage) {
+        return []
+      }
+    }
+    def jobBuilder = Mock(FlowBuilder)
+    def pipeline = new Pipeline()
+    pipeline.parallel = true
+    pipeline.stages << new PipelineStage(pipeline, "", [:])
+
+    when:
+    linearStage.wireSteps(jobBuilder, [buildStep("Step1"), buildStep("Step2")], pipeline.stages[0])
+
+    then:
+    pipeline.builtPipelineObjects.contains(jobBuilder)
+    1 * jobBuilder.from(_)
+    1 * jobBuilder.next(_)
+
+    when:
+    linearStage.wireSteps(jobBuilder, [buildStep("Step3"), buildStep("Step4")], pipeline.stages[0])
+
+    then:
+    2 * jobBuilder.next(_)
+  }
+
   @Override
   Pipeline createPipeline() {
     Pipeline.builder().withStage("stage2").build()
@@ -129,6 +161,19 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     @Override
     public List<Step> buildSteps(Stage stage) {
       return [buildStep(stage, "step", task)]
+    }
+  }
+
+  private Step buildStep(String stepName) {
+    new AbstractStep() {
+      {
+        setName(stepName)
+      }
+
+      @Override
+      protected void doExecute(StepExecution stepExecution) throws Exception {
+        stepExecution.status = BatchStatus.COMPLETED
+      }
     }
   }
 

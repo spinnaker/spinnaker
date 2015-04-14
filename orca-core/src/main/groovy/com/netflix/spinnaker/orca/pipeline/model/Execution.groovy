@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
@@ -35,6 +36,12 @@ abstract class Execution<T> implements Serializable {
   final Map<String, Object> appConfig = [:]
   List<Stage<T>> stages = []
   boolean canceled
+  boolean parallel
+
+  /*
+   * Used to track Stages/Steps as they're built to prevent unnecessary re-builds in parallel pipelines
+   */
+  private final Set<Object> builtPipelineObjects = []
 
   Stage namedStage(String type) {
     stages.find {
@@ -124,5 +131,10 @@ abstract class Execution<T> implements Serializable {
         this
       }
     }
+  }
+
+  @JsonIgnore
+  Set<Object> getBuiltPipelineObjects() {
+    return builtPipelineObjects
   }
 }

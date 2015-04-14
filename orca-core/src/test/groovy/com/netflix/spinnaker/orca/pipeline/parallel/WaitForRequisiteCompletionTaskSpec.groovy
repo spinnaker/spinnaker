@@ -45,6 +45,7 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
 
     where:
     requisiteIds || expectedStatus
+    []           || ExecutionStatus.SUCCEEDED
     ["1"]        || ExecutionStatus.SUCCEEDED
     ["1", "2"]   || ExecutionStatus.RUNNING
     ["2"]        || ExecutionStatus.RUNNING
