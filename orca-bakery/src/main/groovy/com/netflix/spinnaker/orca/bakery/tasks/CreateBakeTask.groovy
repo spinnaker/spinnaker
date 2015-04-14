@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
@@ -36,6 +37,9 @@ class CreateBakeTask implements Task {
 
   @Autowired BakeryService bakery
   @Autowired ObjectMapper mapper
+
+  @Value('${bakery.extractBuildDetails:false}')
+  boolean extractBuildDetails
 
   @Override
   TaskResult execute(Stage stage) {
@@ -62,6 +66,7 @@ class CreateBakeTask implements Task {
 
   @CompileDynamic
   private BakeRequest bakeFromContext(Stage stage) {
+
     BakeRequest request = mapper.convertValue(stage.context, BakeRequest)
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
@@ -106,24 +111,26 @@ class CreateBakeTask implements Task {
     if (packageName) {
       def augmentedRequest = request.copyWith(packageName: packageName)
 
-      if (trigger?.buildInfo?.url && buildInfo?.url && trigger?.buildInfo?.url != buildInfo?.url) {
-        throw new IllegalStateException("Found mismatched build urls in Jenkins stage and Pipeline Trigger.")
-      }
+      if (extractBuildDetails) {
+        if (trigger?.buildInfo?.url && buildInfo?.url && trigger?.buildInfo?.url != buildInfo?.url) {
+          throw new IllegalStateException("Found mismatched build urls in Jenkins stage and Pipeline Trigger.")
+        }
 
-      def buildInfoUrlParts
+        def buildInfoUrlParts
 
-      if (trigger?.buildInfo?.url) {
-        buildInfoUrlParts = parseBuildInfoUrl(trigger.buildInfo.url)
-      }
+        if (trigger?.buildInfo?.url) {
+          buildInfoUrlParts = parseBuildInfoUrl(trigger.buildInfo.url)
+        }
 
-      if (buildInfo?.url) {
-        buildInfoUrlParts = parseBuildInfoUrl(buildInfo.url)
-      }
+        if (buildInfo?.url) {
+          buildInfoUrlParts = parseBuildInfoUrl(buildInfo.url)
+        }
 
-      if (buildInfoUrlParts?.size == 3) {
-        augmentedRequest = augmentedRequest.copyWith(buildHost: buildInfoUrlParts[0],
-                                                     job: buildInfoUrlParts[1],
-                                                     buildNumber: buildInfoUrlParts[2])
+        if (buildInfoUrlParts?.size == 3) {
+          augmentedRequest = augmentedRequest.copyWith(buildHost: buildInfoUrlParts[0],
+                                                       job: buildInfoUrlParts[1],
+                                                       buildNumber: buildInfoUrlParts[2])
+        }
       }
 
       return augmentedRequest

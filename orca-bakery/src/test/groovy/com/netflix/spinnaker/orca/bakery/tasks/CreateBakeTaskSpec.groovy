@@ -242,6 +242,7 @@ class CreateBakeTaskSpec extends Specification {
     task.bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
+    task.extractBuildDetails = true
 
     when:
     def result = task.execute(stage)
@@ -270,6 +271,7 @@ class CreateBakeTaskSpec extends Specification {
     task.bakery = Stub(BakeryService) {
       createBake(*_) >> Observable.from(runningStatus)
     }
+    task.extractBuildDetails = extractBuildDetails
 
     when:
     def result = task.execute(stage)
@@ -281,13 +283,46 @@ class CreateBakeTaskSpec extends Specification {
     !result.outputs.buildNumber
 
     where:
-    triggerInfo | contextInfo
-    buildInfo   | null
-    null        | buildInfo
+    triggerInfo | contextInfo | extractBuildDetails
+    buildInfo   | null        | true
+    null        | buildInfo   | true
+    buildInfo   | null        | false
+    null        | buildInfo   | false
   }
 
   @Unroll
   def "build info with url yields bake request containing build host, job and build number"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Mock(BakeryService)
+    task.extractBuildDetails = true
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * task.bakery.createBake(bakeConfig.region,
+                               {
+                                 it.user == "bran" &&
+                                 it.packageName == "hodor_1.1_all" &&
+                                 it.baseLabel == BakeRequest.Label.release &&
+                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
+                                 it.job == "SPINNAKER-package-echo" &&
+                                 it.buildNumber == "69"
+                               }) >> Observable.from(runningStatus)
+
+    where:
+    triggerInfo      | contextInfo
+    buildInfoWithUrl | null
+    null             | buildInfoWithUrl
+  }
+
+  @Unroll
+  def "build info with url but without extractBuildDetails yields bake request without build host, job and build number"() {
     given:
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
@@ -300,15 +335,15 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     1 * task.bakery.createBake(bakeConfig.region,
-    {
-      it.user == "bran" &&
-      it.packageName == "hodor_1.1_all" &&
-      it.baseLabel == BakeRequest.Label.release &&
-      it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
-      it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
-      it.job == "SPINNAKER-package-echo" &&
-      it.buildNumber == "69"
-    }) >> Observable.from(runningStatus)
+                               {
+                                 it.user == "bran" &&
+                                 it.packageName == "hodor_1.1_all" &&
+                                 it.baseLabel == BakeRequest.Label.release &&
+                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.buildHost == null &&
+                                 it.job == null &&
+                                 it.buildNumber == null
+                               }) >> Observable.from(runningStatus)
 
     where:
     triggerInfo      | contextInfo
@@ -330,15 +365,15 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     1 * task.bakery.createBake(bakeConfig.region,
-    {
-      it.user == "bran" &&
-      it.packageName == "hodor_1.1_all" &&
-      it.baseLabel == BakeRequest.Label.release &&
-      it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
-      it.buildHost == null &&
-      it.job == null &&
-      it.buildNumber == null
-    }) >> Observable.from(runningStatus)
+                               {
+                                 it.user == "bran" &&
+                                 it.packageName == "hodor_1.1_all" &&
+                                 it.baseLabel == BakeRequest.Label.release &&
+                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.buildHost == null &&
+                                 it.job == null &&
+                                 it.buildNumber == null
+                               }) >> Observable.from(runningStatus)
 
     where:
     triggerInfo | contextInfo
@@ -354,6 +389,7 @@ class CreateBakeTaskSpec extends Specification {
 
     Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
     task.bakery = Mock(BakeryService)
+    task.extractBuildDetails = true
 
     when:
     task.execute(stage)
