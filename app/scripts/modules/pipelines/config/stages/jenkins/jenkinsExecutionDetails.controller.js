@@ -1,19 +1,17 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.bake.executionDetails.controller', [
+angular.module('deckApp.pipelines.stage.jenkins.executionDetails.controller', [
   'ui.router',
   'deckApp.executionDetails.section.service',
   'deckApp.executionDetails.section.nav.directive',
 ])
-  .controller('BakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['bakeConfig', 'taskStatus'];
+    $scope.configSections = ['jenkinsConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
-
-      $scope.provider = $scope.stage.context.cloudProviderType || 'aws';
     }
 
     initialize();

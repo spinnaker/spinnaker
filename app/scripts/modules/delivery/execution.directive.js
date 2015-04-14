@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('deckApp.delivery.execution.directive',[])
-  .directive('execution', function() {
+  .directive('execution', function($location) {
     return {
       restrict: 'E',
       replace: true,
@@ -14,5 +14,8 @@ angular.module('deckApp.delivery.execution.directive',[])
       },
       templateUrl: 'scripts/modules/delivery/execution.html',
       controller: 'execution as ctrl',
+      link: function(scope) {
+        scope.$location = $location;
+      }
     };
   });

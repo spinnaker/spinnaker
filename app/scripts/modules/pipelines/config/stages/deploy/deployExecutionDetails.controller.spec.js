@@ -19,7 +19,9 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.initializeController = function () {
         this.controller = this.$controller('DeployExecutionDetailsCtrl', {
           $scope: $scope,
-          _: _
+          _: _,
+          $stateParams: { details: 'deploymentConfig' },
+          executionDetailsSectionService: jasmine.createSpyObj('executionDetailsSectionService', ['synchronizeSection']),
         });
       };
 

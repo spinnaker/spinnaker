@@ -1,0 +1,6 @@
+<ul class="nav nav-pills">
+  <li ng-repeat="section in sections">
+    <a ui-sref=".execution({details: section})"
+       ui-sref-active="active">{{section | robotToHuman}}</a>
+  </li>
+</ul>

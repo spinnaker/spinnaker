@@ -1,11 +1,15 @@
 <div class="row execution-bar">
   <div class="col-md-12">
-    <div ng-repeat="stage in execution.stageSummaries | stages:filter"
+    <div ng-repeat="stage in execution.stageSummaries"
          class="execution-stage"
-         ng-class="{glowing: stage.isRunning }"
-         ng-style="ctrl.styleStage(stage)">
+         ui-sref=".execution({executionId: execution.id, stage: $index, step: 0})"
+         style="width: {{ctrl.getStageWidth()}}">
+      <div class="execution-stage-bar"
+           ng-class="{glowing: stage.isRunning }"
+           ng-style="ctrl.styleStage(stage)"
+        ></div>
       <div class="execution-stage-label"
-            style="width: 100%">
+           ng-class="{'active': ctrl.showingDetails(stage) }">
         <span ng-include="ctrl.getLabelTemplate(stage)"></span>
       </div>
     </div>

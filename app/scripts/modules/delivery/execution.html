@@ -2,7 +2,7 @@
      ng-class="{'execution-not-current': ctrl.executionInState() && !ctrl.executionIsCurrent(), 'execution-is-current': ctrl.executionIsCurrent()}">
   <div class="col-md-12">
     <a id="execution-{{execution.id}}"></a>
-    <div class="row" ng-if="execution" ui-sref=".execution({executionId: execution.id})">
+    <div class="row" ng-if="execution">
       <div class="col-md-3">
         <execution-status execution="execution" filter="filter">
         </execution-status>
@@ -21,6 +21,12 @@
            tooltip="Delete execution">
           <span class="glyphicon glyphicon-trash"></span>
         </a>
+        <a href
+           ng-if="execution.isRunning || execution.hasNotStarted"
+           ng-click="ctrl.cancelExecution(execution); $event.stopPropagation();"
+           tooltip="Cancel execution">
+          <span class="glyphicon glyphicon-remove-circle"></span>
+        </a>
       </div>
     </div>
     <div class="row" ng-if="ctrl.showDetails()">
@@ -31,7 +37,7 @@
       <div class="col-md-12">
         <a target="_blank" ng-href="{{ctrl.pipelinesUrl + execution.id}}">Source</a>
         |
-        <a target="_blank" ui-sref=".execution({executionId: execution.id, stage: 1})">Permalink</a>
+        <a target="_blank" ng-href="{{$location.url()}}">Permalink</a>
       </div>
     </div>
   </div>

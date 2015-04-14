@@ -2,8 +2,9 @@
 
 angular.module('deckApp.delivery.executionBar.controller', [
   'deckApp.pipelines.config',
+  'ui.router',
 ])
-  .controller('executionBar', function($scope, $filter, pipelineConfig) {
+  .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig) {
     var controller = this;
 
     controller.getStageWidth = function() {
@@ -26,9 +27,13 @@ angular.module('deckApp.delivery.executionBar.controller', [
       }
     };
 
+    controller.showingDetails = function(stage) {
+      var param = $stateParams.stage ? parseInt($stateParams.stage) : 0;
+      return $scope.execution.id === $stateParams.executionId && $scope.execution.stageSummaries.indexOf(stage) === param;
+    };
+
     controller.styleStage = function(stage) {
       return {
-        width: controller.getStageWidth(stage),
         'background-color': controller.getStageColor(stage),
         opacity: controller.getStageOpacity(stage),
       };

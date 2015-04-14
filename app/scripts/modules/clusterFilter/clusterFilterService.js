@@ -198,8 +198,6 @@ angular
             subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
           });
 
-          console.warn('subgroupings:', subGroups);
-
           groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
 
         });

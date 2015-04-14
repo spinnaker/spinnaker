@@ -4,4 +4,5 @@ angular.module('deckApp.pipelines.stage.modifyScalingProcess', [
   'deckApp.pipelines.stage',
   'deckApp.pipelines.stage.core',
   'deckApp.account',
+  'deckApp.pipelines.stage.modifyScalingProcess.executionDetails.controller',
 ]);

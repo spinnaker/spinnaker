@@ -7,4 +7,5 @@ angular.module('deckApp.pipelines.stage.jenkins', [
   'deckApp.caches.infrastructure',
   'deckApp.utils.timeFormatters',
   'deckApp.pipelines.trigger.jenkins.service',
+  'deckApp.pipelines.stage.jenkins.executionDetails.controller',
 ]);

@@ -5,9 +5,6 @@ body, html {
 }
 .status-executing, .status-running {
   color: @spinnaker-blue;
-  .glyphicon-remove-circle {
-    color: @unhealthy_red;
-  }
 }
 .status-failed {
   color: @unhealthy_red;
@@ -34,6 +31,9 @@ body, html {
     background-color: #ffffff;
     border: 1px solid @mid_light_grey;
     padding-bottom: 0px !important;
+    .execution-stage {
+      border-left-color: transparent;
+    }
   }
   .execution-not-current {
     opacity: .5;
@@ -45,8 +45,39 @@ body, html {
   }
   .execution-details {
     background-color: @light_grey;
-    padding: 5px 30px 5px 30px;
-    border-top: 1px solid @mid_light_grey;
+    padding: 5px 30px 5px 15px;
+
+    .nav {
+      background-color: transparent;
+      border: 0;
+      padding-left: 0;
+      a {
+        margin: 10px 0 0;
+        border-radius: 0;
+        padding: 5px 15px;
+        border-bottom-width: 0;
+        font-weight: 600;
+        color: @text-color;
+        background-color: @mid_light_grey;
+        &:hover {
+          background-color: @mid_lighter_grey;
+          transition: background-color 0.15s;
+        }
+        &.active {
+          background-color: @lightest_grey;
+        }
+      }
+    }
+
+    .step-section-details {
+      background-color: @lightest_grey;
+      padding: 15px;
+    }
+
+    .execution-details-title {
+      text-transform: uppercase;
+      font-weight: 600;
+    }
 
     tbody {
       tr.stage-summary {
@@ -59,11 +90,6 @@ body, html {
         cursor: pointer;
         &:hover {
           background-color: @table-bg-hover;
-        }
-        td{
-          &:first-child, &:last-child {
-            padding-left: 20px;
-          }
         }
       }
     }
@@ -96,31 +122,55 @@ body, html {
 
     .execution-actions {
       padding-top: 16px;
+
+      .glyphicon-remove-circle {
+        color: @unhealthy_red;
+      }
     }
   }
   .execution-stage {
-    cursor: pointer;
-    margin-top: 8px;
+    .glowing {
+      .glowing(2.5);
+    }
     display: inline-block;
-    float: left;
-    height: 35px;
-    border-left: 2px solid #fff;
-    padding-top: 32px;
-    overflow: visible;
+    cursor: pointer;
     text-transform: uppercase;
-    transition: width .4s;
-    color: @mid_grey;
-    opacity: 1;
-    background-image: linear-gradient(rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0));
-  }
-  .execution-stage-label {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: .8em;
-    line-height: 22px;
-    padding-left: 5px;
-    font-weight: 600;
+    vertical-align: bottom;
+    height: 97px;
+    border-left: 2px solid @lightest_grey;
+    &:hover {
+      .execution-stage-label {
+        background-color: @mid_light_grey;
+        transition: background-color 0.15s;
+      }
+    }
+    .execution-stage-bar {
+      margin-top: 8px;
+      height: 35px;
+      width: 100%;
+      padding-top: 32px;
+      overflow: visible;
+      color: @mid_grey;
+      opacity: 1;
+    }
+    .execution-stage-label {
+      width: 100%;
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: .8em;
+      line-height: 22px;
+      min-height: 54px;
+      font-weight: 600;
+      margin: 0;
+      border-left: 2px solid transparent;
+      padding: 10px 5px;
+      &.active {
+        background-color: @light_grey;
+        font-weight: 700;
+      }
+    }
   }
   .execution-group-title {
     padding-left: 10px;
@@ -207,7 +257,6 @@ body, html {
 }
 
 .execution-status {
-  cursor: pointer;
   margin-top: 10px;
   overflow-y: hidden;
   font-size: .8em;
@@ -302,9 +351,12 @@ body, html {
 }
 
 .stage-details {
-  background-color: @table-bg-hover;
   .stage-details-heading {
-    border-bottom: 1px solid @dark_grey;
+    text-transform: uppercase;
+    margin-top: 10px;
+    h4 {
+      font-weight: 600;
+    }
   }
   .stage-details-section-heading {
     border-bottom: 1px solid @mid_grey;

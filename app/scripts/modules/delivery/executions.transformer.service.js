@@ -76,6 +76,8 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
       if (!stages.length) {
         return;
+      } else {
+        stage.type = stages[0].type;
       }
       var lastStage = stages[stages.length - 1];
       stage.startTime = stages[0].startTime;
@@ -94,7 +96,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 
       var currentStage = lastFailedStage || lastNotStartedStage || lastStage;
       stage.status = currentStage.status;
-      stage.endTime = lastStage.endTime;
+      stage.endTime = currentStage.endTime;
       stage.stages = stages;
 
     }

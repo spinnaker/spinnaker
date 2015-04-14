@@ -1,40 +1,50 @@
 <div ng-controller="BakeExecutionDetailsCtrl">
-  <div class="row">
-    <div class="col-md-6">
-      <h5>Bake Configuration</h5>
-      <dl class="dl-narrow dl-horizontal">
-        <dt if-multiple-providers>Provider</dt>
-        <dd if-multiple-providers>{{provider}}</dd>
-        <dt>Image</dt>
-        <dd>{{stage.context.ami}}</dd>
-        <dt>Region</dt>
-        <dd>{{stage.context.region}}</dd>
-        <dt>Base OS</dt>
-        <dd>{{stage.context.baseOs}}</dd>
-        <dt ng-if="provider === 'aws'">VM Type</dt>
-        <dd ng-if="provider === 'aws'">{{stage.context.vmType | uppercase}}</dd>
-        <dt ng-if="provider === 'aws'">Store Type</dt>
-        <dd ng-if="provider === 'aws'">{{stage.context.storeType | uppercase}}</dd>
-        <dt>Label</dt>
-        <dd>{{stage.context.baseLabel}}</dd>
-        <dt>Package</dt>
-        <dd>{{stage.context.package}}</dd>
-      </dl>
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'bakeConfig'">
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt if-multiple-providers>Provider</dt>
+          <dd if-multiple-providers>{{provider}}</dd>
+          <dt>Image</dt>
+          <dd>{{stage.context.ami}}</dd>
+          <dt>Region</dt>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Package</dt>
+          <dd>{{stage.context.package}}</dd>
+        </dl>
+      </div>
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Base OS</dt>
+          <dd>{{stage.context.baseOs}}</dd>
+          <dt ng-if="provider === 'aws'">VM Type</dt>
+          <dd ng-if="provider === 'aws'">{{stage.context.vmType | uppercase}}</dd>
+          <dt ng-if="provider === 'aws'">Store Type</dt>
+          <dd ng-if="provider === 'aws'">{{stage.context.storeType | uppercase}}</dd>
+          <dt>Label</dt>
+          <dd>{{stage.context.baseLabel}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+
+    <div class="row" ng-if="stage.context.package && stage.context.region && stage.context.status.resourceId">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <!-- TODO: Move this to config -->
+          <a target="_blank"
+             href="http://bakery.test.netflix.net/#/?region={{stage.context.region}}&package={{stage.context.package}}&detail=bake:{{stage.context.status.resourceId}}">
+            View Bakery Details
+          </a>
+        </div>
+      </div>
     </div>
 
-    <execution-step-details item="stage"></execution-step-details>
   </div>
-
-  <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
-
-  <div class="row" ng-if="stage.context.package && stage.context.region && stage.context.status.resourceId">
-    <div class="col-md-12">
-      <div class="well alert alert-info">
-        <!-- TODO: Move this to config -->
-        <a target="_blank" href="http://bakery.test.netflix.net/#/?region={{stage.context.region}}&package={{stage.context.package}}&detail=bake:{{stage.context.status.resourceId}}">
-          View Bakery Details
-        </a>
-      </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
 </div>

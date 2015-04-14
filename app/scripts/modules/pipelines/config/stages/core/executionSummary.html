@@ -1,0 +1,25 @@
+<table class="table">
+  <thead>
+  <tr>
+    <th width="27%">Step</th>
+    <th>Started</th>
+    <th>Duration</th>
+    <th>Status</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr class="clickable"
+      ng-repeat="step in stageSummary.stages"
+      ng-class="{ info: ctrl.isStepCurrent($index) }"
+      ng-click="ctrl.toggleDetails($index)">
+    <td>{{ (step.name && step.name !== step.type) ? step.name : (step.type | robotToHuman) }}</td>
+    <td>{{ step.startTime | timestamp }}</td>
+    <td>{{ step.runningTimeInMs | duration }}</td>
+    <td>
+      <span class="label label-default label-{{ step.status | lowercase }}">
+        {{ step.status | lowercase | robotToHuman }}
+      </span>
+    </td>
+  </tr>
+  </tbody>
+</table>

@@ -1,19 +1,17 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.bake.executionDetails.controller', [
+angular.module('deckApp.pipelines.stage.destroyAsg.executionDetails.controller', [
   'ui.router',
   'deckApp.executionDetails.section.service',
   'deckApp.executionDetails.section.nav.directive',
 ])
-  .controller('BakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('DestroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['bakeConfig', 'taskStatus'];
+    $scope.configSections = ['destroyAsgConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
-
-      $scope.provider = $scope.stage.context.cloudProviderType || 'aws';
     }
 
     initialize();

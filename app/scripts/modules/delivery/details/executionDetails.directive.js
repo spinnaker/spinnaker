@@ -8,7 +8,7 @@ angular.module('deckApp.delivery.executionDetails.directive', [])
       scope: {
         execution: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionDetails.html',
+      templateUrl: 'scripts/modules/delivery/details/executionDetails.html',
       controller: 'executionDetails as ctrl',
     };
   });

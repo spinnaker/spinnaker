@@ -1,0 +1,30 @@
+<div class="col-md-12 execution-details">
+  <a scroll-on-render offset="120"></a>
+
+  <div class="row">
+    <div class="col-md-6">
+      <h4 class="execution-details-title">{{stageSummary.name || stageSummary.type }} Details</h4>
+      <div ng-include="ctrl.getSummarySourceUrl()"></div>
+    </div>
+    <div class="col-md-6" ng-if="ctrl.getDetailsSourceUrl()">
+      <div class="stage-details">
+        <div class="row stage-details-heading">
+          <div class="col-md-11">
+            <h4>
+              <status-glyph item="stage"></status-glyph>
+              {{stage.name || stage.type | robotToHuman }}
+
+            </h4>
+          </div>
+          <div class="col-md-1 text-right">
+            <a href ng-click="ctrl.close(); $event.stopPropagation();">
+              <span class="glyphicon glyphicon-remove"></span>
+            </a>
+          </div>
+        </div>
+        <div ng-include="ctrl.getDetailsSourceUrl()"></ng-include>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
