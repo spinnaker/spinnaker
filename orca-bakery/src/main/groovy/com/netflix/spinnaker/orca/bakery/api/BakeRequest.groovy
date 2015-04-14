@@ -33,10 +33,13 @@ import com.google.gson.annotations.SerializedName
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
 
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
+  String buildHost
+  String job
+  String buildNumber
   CloudProviderType cloudProviderType
   Label baseLabel
   OperatingSystem baseOs

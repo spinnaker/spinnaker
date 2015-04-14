@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
 @Component
@@ -37,6 +38,9 @@ class CreateBakeTask implements Task {
   @Autowired BakeryService bakery
   @Autowired ObjectMapper mapper
 
+  @Value('${bakery.extractBuildDetails:false}')
+  boolean extractBuildDetails
+
   @Override
   TaskResult execute(Stage stage) {
     String region = stage.context.region
@@ -44,11 +48,25 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: bakeStatus, bakePackageName: bake.packageName])
+    if (bake.buildHost) {
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+        status: bakeStatus,
+        bakePackageName: bake.packageName,
+        buildHost: bake.buildHost,
+        job: bake.job,
+        buildNumber: bake.buildNumber
+      ])
+    } else {
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+        status: bakeStatus,
+        bakePackageName: bake.packageName
+      ])
+    }
   }
 
   @CompileDynamic
   private BakeRequest bakeFromContext(Stage stage) {
+
     BakeRequest request = mapper.convertValue(stage.context, BakeRequest)
     if (stage.execution instanceof Pipeline) {
       Map trigger = ((Pipeline) stage.execution).trigger
@@ -57,17 +75,17 @@ class CreateBakeTask implements Task {
         buildInfo = mapper.convertValue(stage.context.buildInfo, Map)
       }
 
-      return request.copyWith(packageName: findPackage(trigger, buildInfo, request))
+      return createAugmentedRequest(trigger, buildInfo, request)
     }
     return request
   }
 
   @CompileDynamic
-  private String findPackage(Map trigger, Map buildInfo, BakeRequest request) {
+  private BakeRequest createAugmentedRequest(Map trigger, Map buildInfo, BakeRequest request) {
     List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo.artifacts
     if (!triggerArtifacts && !buildArtifacts) {
-      return request.packageName
+      return request
     }
 
     String prefix = "${request.packageName}${request.baseOs.packageType.versionDelimiter}"
@@ -80,12 +98,31 @@ class CreateBakeTask implements Task {
       throw new IllegalStateException("Found build artifact in Jenkins stage and Pipeline Trigger")
     }
 
+    String packageName
+
     if (triggerArtifact) {
-      return extractPackageName(triggerArtifact, fileExtension)
+      packageName = extractPackageName(triggerArtifact, fileExtension)
     }
 
     if (buildArtifact) {
-      return extractPackageName(buildArtifact, fileExtension)
+      packageName = extractPackageName(buildArtifact, fileExtension)
+    }
+
+    if (packageName) {
+      def augmentedRequest = request.copyWith(packageName: packageName)
+
+      if (extractBuildDetails) {
+        def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url
+        def buildInfoUrlParts = parseBuildInfoUrl(buildInfoUrl)
+
+        if (buildInfoUrlParts?.size == 3) {
+          augmentedRequest = augmentedRequest.copyWith(buildHost: buildInfoUrlParts[0],
+                                                       job: buildInfoUrlParts[1],
+                                                       buildNumber: buildInfoUrlParts[2])
+        }
+      }
+
+      return augmentedRequest
     }
 
     throw new IllegalStateException("Unable to find deployable artifact starting with ${prefix} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}")
@@ -103,4 +140,22 @@ class CreateBakeTask implements Task {
     }
   }
 
+  @CompileDynamic
+  // Naming-convention for buildInfo.url is $protocol://$buildHost/job/$job/$buildNumber/.
+  // For example: http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/
+  def parseBuildInfoUrl(String url) {
+    List<String> urlParts = url?.tokenize("/")
+
+    if (urlParts?.size == 5) {
+      def buildNumber = urlParts.pop()
+      def job = urlParts.pop()
+
+      // Discard 'job' path segment.
+      urlParts.pop()
+
+      def buildHost = "${urlParts[0]}//${urlParts[1]}/"
+
+      return [buildHost, job, buildNumber]
+    }
+  }
 }
