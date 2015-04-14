@@ -8,8 +8,8 @@
           <dd if-multiple-providers>{{provider}}</dd>
           <dt>Image</dt>
           <dd>{{stage.context.ami}}</dd>
-          <dt>Region</dt>
-          <dd>{{stage.context.region}}</dd>
+          <dt ng-if="provider !== 'docker'">Region</dt>
+          <dd ng-if="provider !== 'docker'">{{stage.context.region}}</dd>
           <dt>Package</dt>
           <dd>{{stage.context.package}}</dd>
         </dl>
