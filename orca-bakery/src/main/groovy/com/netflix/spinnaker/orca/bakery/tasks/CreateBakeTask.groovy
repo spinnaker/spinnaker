@@ -112,19 +112,8 @@ class CreateBakeTask implements Task {
       def augmentedRequest = request.copyWith(packageName: packageName)
 
       if (extractBuildDetails) {
-        if (trigger?.buildInfo?.url && buildInfo?.url && trigger?.buildInfo?.url != buildInfo?.url) {
-          throw new IllegalStateException("Found mismatched build urls in Jenkins stage and Pipeline Trigger.")
-        }
-
-        def buildInfoUrlParts
-
-        if (trigger?.buildInfo?.url) {
-          buildInfoUrlParts = parseBuildInfoUrl(trigger.buildInfo.url)
-        }
-
-        if (buildInfo?.url) {
-          buildInfoUrlParts = parseBuildInfoUrl(buildInfo.url)
-        }
+        def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url
+        def buildInfoUrlParts = parseBuildInfoUrl(buildInfoUrl)
 
         if (buildInfoUrlParts?.size == 3) {
           augmentedRequest = augmentedRequest.copyWith(buildHost: buildInfoUrlParts[0],
@@ -157,7 +146,7 @@ class CreateBakeTask implements Task {
   def parseBuildInfoUrl(String url) {
     List<String> urlParts = url?.tokenize("/")
 
-    if (urlParts.size == 5) {
+    if (urlParts?.size == 5) {
       def buildNumber = urlParts.pop()
       def job = urlParts.pop()
 

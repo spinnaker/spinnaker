@@ -381,27 +381,4 @@ class CreateBakeTaskSpec extends Specification {
     null        | buildInfo
   }
 
-  @Unroll
-  def "fails if pipeline trigger and context both include build urls but they don't match"() {
-    given:
-    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
-    bakeConfig.buildInfo = contextInfo
-
-    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
-    task.bakery = Mock(BakeryService)
-    task.extractBuildDetails = true
-
-    when:
-    task.execute(stage)
-
-    then:
-    IllegalStateException ise = thrown(IllegalStateException)
-    ise.message.startsWith("Found mismatched build urls")
-
-    where:
-    triggerInfo             | contextInfo
-    buildInfoWithUrl        | buildInfoWithUrlNoMatch
-    buildInfoWithUrlNoMatch | buildInfoWithUrl
-  }
-
 }
