@@ -24,7 +24,7 @@ angular.module('deckApp')
           if (accounts) {
             scope.primaryAccounts = accounts.sort();
           }
-          if (accounts && accounts.length) {
+          if (accounts && accounts.length && settings.providers[scope.provider] && settings.providers[scope.provider].primaryAccounts) {
             scope.primaryAccounts = accounts.filter(function(account) {
                 return settings.providers[scope.provider].primaryAccounts.indexOf(account) !== -1;
             }).sort();

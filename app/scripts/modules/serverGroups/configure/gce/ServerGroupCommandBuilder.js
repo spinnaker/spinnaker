@@ -6,15 +6,17 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
   'deckApp.settings',
   'deckApp.account.service',
   'deckApp.naming',
+  'deckApp.instanceType.service',
   'deckApp.gce.instanceType.service',
 ])
-  .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, accountService, gceInstanceTypeService, namingService) {
+  .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+                                                     accountService, instanceTypeService, gceInstanceTypeService, namingService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
     function determineInstanceCategoryFromInstanceType(command) {
-      gceInstanceTypeService.getCategories().then(function(categories) {
+      return gceInstanceTypeService.getCategories().then(function(categories) {
         categories.forEach(function(category) {
           category.families.forEach(function(family) {
             family.instanceTypes.forEach(function(instanceType) {
@@ -150,7 +152,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
         viewState: {
           allImageSelection: null,
           useAllImageSelection: false,
-          useSimpleCapacity: serverGroup.asg.minSize === serverGroup.asg.maxSize,
+          useSimpleCapacity: true,
           usePreferredZones: false,
           mode: mode,
         },
@@ -167,11 +169,44 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
           ebsOptimized: serverGroup.launchConfig.ebsOptimized,
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
-        determineInstanceCategoryFromInstanceType(command);
-        populateCustomMetadata(serverGroup.launchConfig.userData, command);
+        return determineInstanceCategoryFromInstanceType(command).then(function() {
+          populateCustomMetadata(serverGroup.launchConfig.userData, command);
+          return command;
+        });
       }
 
-      return command;
+      return $q.when(command);
+    }
+
+    function buildServerGroupCommandFromPipeline(application, pipelineCluster) {
+
+      var region = Object.keys(pipelineCluster.availabilityZones)[0];
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
+      var commandOptions = { account: pipelineCluster.account, region: region };
+      var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
+
+      return asyncLoader.then(function(asyncData) {
+        var command = asyncData.command;
+
+        var viewState = {
+          instanceProfile: asyncData.instanceProfile,
+          disableImageSelection: true,
+          useSimpleCapacity: true,
+          mode: 'editPipeline',
+          submitButtonLabel: 'Done',
+        };
+
+        var viewOverrides = {
+          region: region,
+          credentials: pipelineCluster.account,
+          viewState: viewState,
+        };
+
+        pipelineCluster.strategy = pipelineCluster.strategy || '';
+
+        return angular.extend({}, command, pipelineCluster, viewOverrides);
+      });
+
     }
 
     function buildSubmittableCommand(original) {
@@ -194,7 +229,8 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
-      buildSubmittableCommand: buildSubmittableCommand
+      buildSubmittableCommand: buildSubmittableCommand,
+      buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
 });
 
