@@ -99,6 +99,11 @@ class GateConfig {
   }
 
   @Bean
+  MineService mineService() {
+    createClient "mine", MineService
+  }
+
+  @Bean
   OrcaService orcaService() {
     createClient "orca", OrcaService
   }
