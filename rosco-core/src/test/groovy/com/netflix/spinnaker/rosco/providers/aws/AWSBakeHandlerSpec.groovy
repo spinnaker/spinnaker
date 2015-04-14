@@ -198,7 +198,8 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -232,7 +233,8 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -266,7 +268,8 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -289,7 +292,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }
@@ -313,7 +316,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for region 'us-east-1', operating system 'trusty', and vm type 'pv'."
   }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.rosco.providers.util
 
-import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import spock.lang.Specification
 
@@ -32,13 +31,13 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) =
+        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
       appVersionStr == "nflx-djangobase-enhanced-0.1-170cdbd.h12"
-      appVersion == AppVersion.parseName(appVersionStr)
       packagesParameter == "nflx-djangobase-enhanced"
   }
 
@@ -50,13 +49,13 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) =
+        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
       imageName == "reno-server-all-123456-ubuntu"
-      appVersionStr == "reno-server"
-      appVersion == null
+      appVersionStr == null
       packagesParameter == "reno-server"
   }
 
@@ -68,13 +67,13 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) =
+        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
       appVersionStr == "nflx-djangobase-enhanced-0.1-170cdbd.h12"
-      appVersion == AppVersion.parseName(appVersionStr)
       packagesParameter == "nflx-djangobase-enhanced kato redis-server"
   }
 
@@ -86,13 +85,13 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
-      def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) =
+        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1-170cdbd.h12"
-      appVersion == AppVersion.parseName(appVersionStr)
       packagesParameter == "nflx-djangobase-enhanced"
   }
 
@@ -104,13 +103,13 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
-      def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) =
+        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-centos"
       appVersionStr == "nflx-djangobase-enhanced-0.1-170cdbd.h12"
-      appVersion == AppVersion.parseName(appVersionStr)
       packagesParameter == "nflx-djangobase-enhanced kato redis-server"
   }
 }

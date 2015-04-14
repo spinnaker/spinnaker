@@ -52,7 +52,8 @@ public class DockerBakeHandler implements CloudProviderBakeHandler {
 
   @Override
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
-    def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
+    def (imageName, appVersionStr, packagesParameter) =
+      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
     def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
@@ -72,7 +73,7 @@ public class DockerBakeHandler implements CloudProviderBakeHandler {
     parameterMap.packages = packagesParameter
 
     // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
-    if (appVersion) {
+    if (appVersionStr) {
       parameterMap.appversion = appVersionStr
     }
 

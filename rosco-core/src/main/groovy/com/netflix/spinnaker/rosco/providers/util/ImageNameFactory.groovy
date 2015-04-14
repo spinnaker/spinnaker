@@ -21,10 +21,25 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 interface ImageNameFactory {
 
   /**
+   * This method is responsible for:
+   *   - Producing an image name.
+   *   - (If one or more package names are specified) Attempting to derive the AppVersion descriptor from the
+   *     first package name.
+   *   - This is temporary and will be removed shortly: (If one or more package names are specified) Replacing
+   *     the first package name in the list of packages with just the 'packageName' value from the derived AppVersion.
+   *     This is here as a temporary workaround for test/dev since we are not actually publishing the built packages
+   *     to a deb repo yet (so any reference to a fully-qualified debian package would fail to be resolved).
+   *
+   * This method always returns a list of size 3 with the following elements:
+   *   1) A derived image name (to be used for naming the image being baked).
+   *   2) The appversion string (to be used for tagging the newly-baked image).
+   *   3) The update list of packages to be used for overriding the passed package list (this will be removed once the
+   *      temporary workaround described above is removed).
+   *
    * This function is not required to return the same image name on multiple invocations with the same bake request.
    *
-   * Returns [imageName, appVersionStr, appVersion, packagesParameter].
+   * Returns [imageName, appVersionStr, packagesParameter].
    */
-  def produceImageName(BakeRequest bakeRequest)
+  def processPackageNameAndProduceImageNameAndAppVersion(BakeRequest bakeRequest)
 
 }

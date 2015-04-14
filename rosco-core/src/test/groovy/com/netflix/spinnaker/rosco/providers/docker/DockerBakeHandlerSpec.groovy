@@ -148,7 +148,8 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       dockerBakeryDefaults.templateFile)
@@ -179,7 +180,8 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       dockerBakeryDefaults.templateFile)
@@ -203,7 +205,7 @@ class DockerBakeHandlerSpec extends Specification {
       dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }
