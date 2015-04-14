@@ -1,4 +1,9 @@
-FROM ubuntu
+# Docker in docker.
+FROM jpetazzo/dind
+# There is a known issue with later versions of docker requiring us to stick with this version for now: https://github.com/mitchellh/packer/issues/1752
+RUN sudo apt-get install -q -y lxc-docker-1.3.3
+# The REPLACE_THIS_WITH_DOCKER_REGISTRY_HOST token on the next line should be replaced prior to running docker build.
+RUN echo 'DOCKER_OPTS="$DOCKER_OPTS --insecure-registry REPLACE_THIS_WITH_DOCKER_REGISTRY_HOST:5000"' >> /etc/default/docker
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 RUN sudo apt-get update -q -y
 RUN sudo apt-get install -q -y wget

@@ -71,7 +71,7 @@ class RushConfiguration {
 
   @Bean
   ScriptRequest scriptRequest(@Value('${rush.credentials}') String credentials, @Value('${rush.image}') String image) {
-    new ScriptRequest(credentials: credentials, image: image)
+    new ScriptRequest(credentials: credentials, image: image, privileged: true)
   }
 
 }

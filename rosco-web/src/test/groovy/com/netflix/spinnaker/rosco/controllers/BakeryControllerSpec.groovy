@@ -67,9 +67,9 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
+      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
@@ -98,7 +98,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       4 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
@@ -130,11 +130,11 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
+      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
@@ -163,7 +163,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
@@ -268,9 +268,9 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: BakeStatus.State.COMPLETED, result: BakeStatus.Result.FAILURE)
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
+      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
@@ -301,9 +301,9 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> new BakeStatus(id: EXISTING_SCRIPT_ID, resource_id: EXISTING_SCRIPT_ID, state: bakeState)
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> "packer build ..."
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
-      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, command: "packer build ...")) >> runScriptObservable
+      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
       1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
       bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
 

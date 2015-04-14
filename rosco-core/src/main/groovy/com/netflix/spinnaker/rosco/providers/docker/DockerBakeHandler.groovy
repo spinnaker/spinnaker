@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.rosco.providers.google
+package com.netflix.spinnaker.rosco.providers.docker
 
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
+import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
-import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class GCEBakeHandler implements CloudProviderBakeHandler {
+public class DockerBakeHandler implements CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "googlecompute"
-  private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
+  private static final String BUILDER_TYPE = "docker"
+  private static final String IMAGE_NAME_TOKEN = "Repository:"
+
+  static final String START_DOCKER_SERVICE_BASE_COMMAND = "sudo service docker start ; "
 
   @Autowired
-  RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
+  RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
 
   @Autowired
   ImageNameFactory imageNameFactory
@@ -52,7 +54,7 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
     def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
 
-    def virtualizationSettings = gceBakeryDefaults?.operatingSystemVirtualizationSettings.find {
+    def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
     }?.virtualizationSettings
 
@@ -61,10 +63,9 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
     }
 
     def parameterMap = [
-      gce_project_id:   gceBakeryDefaults.project,
-      gce_zone:         gceBakeryDefaults.zone,
-      gce_source_image: virtualizationSettings.sourceImage,
-      gce_target_image: imageName
+      docker_source_image: virtualizationSettings.sourceImage,
+      docker_target_image: imageName,
+      docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
 
     // TODO(duftler): Build out proper support for installation of packages.
@@ -75,7 +76,7 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
       parameterMap.appversion = appVersionStr
     }
 
-    return packerCommandFactory.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
+    return packerCommandFactory.buildPackerCommand(START_DOCKER_SERVICE_BASE_COMMAND, parameterMap, dockerBakeryDefaults.templateFile)
   }
 
   @Override

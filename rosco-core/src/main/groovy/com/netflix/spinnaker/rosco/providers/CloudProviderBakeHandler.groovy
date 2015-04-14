@@ -31,7 +31,7 @@ interface CloudProviderBakeHandler {
   /**
    * Build provider-specific script command for packer.
    */
-  String producePackerCommand(String region, BakeRequest bakeRequest)
+  List<String> producePackerCommand(String region, BakeRequest bakeRequest)
 
   /**
    * Returns true if this cloud provider is the producer of this first line of logs content.

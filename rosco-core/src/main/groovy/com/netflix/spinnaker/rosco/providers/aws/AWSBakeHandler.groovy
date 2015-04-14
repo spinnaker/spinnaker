@@ -53,7 +53,7 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
   }
 
   @Override
-  String producePackerCommand(String region, BakeRequest bakeRequest) {
+  List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
     def (imageName, appVersionStr, appVersion, packagesParameter) = imageNameFactory.produceImageName(bakeRequest)
 
     if (!bakeRequest.vm_type) {
@@ -95,7 +95,7 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
       parameterMap.appversion = appVersionStr
     }
 
-    return packerCommandFactory.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
+    return packerCommandFactory.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
   @Override
@@ -109,7 +109,7 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
     String imageName
 
     // TODO(duftler): Presently scraping the logs for the image name/id. Would be better to not be reliant on the log
-    // format not changing. Resolve this by storing bake details in redis and querying mort for amiId from amiName.
+    // format not changing. Resolve this by storing bake details in redis and querying oort for amiId from amiName.
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split(" ").last()

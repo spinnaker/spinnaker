@@ -19,8 +19,8 @@ package com.netflix.spinnaker.rosco.providers.util
 interface PackerCommandFactory {
 
   /**
-   * Serialize passed parameters into a command string suitable for launching packer.
+   * Serialize passed parameters into a tokenized command string suitable for launching packer via docker.
    */
-  String buildPackerCommandString(Map<String, String> parameterMap, String templateFile)
+  List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String templateFile)
 
 }

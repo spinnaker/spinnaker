@@ -28,7 +28,9 @@ import groovy.transform.Immutable
 @CompileStatic
 class ScriptRequest {
   String command
+  List<String> tokenizedCommand
   String image
   String credentials
+  boolean privileged
 }
 

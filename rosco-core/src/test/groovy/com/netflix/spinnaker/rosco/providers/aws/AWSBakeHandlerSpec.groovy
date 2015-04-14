@@ -199,7 +199,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
   void 'produces packer command with all required parameters for ubuntu, using explicit vm type'() {
@@ -233,7 +233,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
   void 'produces packer command with all required parameters for trusty, using explicit vm type'() {
@@ -267,7 +267,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, awsBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

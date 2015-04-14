@@ -143,7 +143,7 @@ class GCEBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, gceBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
   void 'produces packer command with all required parameters for trusty'() {
@@ -173,7 +173,7 @@ class GCEBakeHandlerSpec extends Specification {
 
     then:
       1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, gceBakeryDefaults.templateFile)
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.rosco
 
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
+import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.google.config.RoscoGoogleConfiguration
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -42,7 +43,7 @@ import javax.servlet.Filter
   "com.netflix.spinnaker.rosco.persistence",
   "com.netflix.spinnaker.rosco.rush"
 ])
-@Import([RoscoAWSConfiguration, RoscoGoogleConfiguration])
+@Import([RoscoAWSConfiguration, RoscoDockerConfiguration, RoscoGoogleConfiguration])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {

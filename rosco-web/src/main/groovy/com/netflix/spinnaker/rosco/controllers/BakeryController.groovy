@@ -65,7 +65,7 @@ class BakeryController {
       }
 
       def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
-      def scriptRequest = baseScriptRequest.copyWith(command: packerCommand)
+      def scriptRequest = baseScriptRequest.copyWith(tokenizedCommand: packerCommand)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {
         return runBake(bakeKey, region, bakeRequest, scriptRequest)

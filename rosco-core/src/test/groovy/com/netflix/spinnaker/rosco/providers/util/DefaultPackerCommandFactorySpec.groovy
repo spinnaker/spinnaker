@@ -37,13 +37,13 @@ class DefaultPackerCommandFactorySpec extends Specification {
       ]
 
     when:
-      def packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false -var some_project_id=some-project " +
-                             "-var some_zone=us-central1-a -var some_source_image=ubuntu-1404-trusty-v20141212 " +
-                             "-var some_target_image=some-new-image " +
-                             "some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false -var some_project_id=some-project " +
+                                    "-var some_zone=us-central1-a -var some_source_image=ubuntu-1404-trusty-v20141212 " +
+                                    "-var some_target_image=some-new-image " +
+                                    "some-packer-template.json"]
   }
 
   void "packer command is built properly with zero parameters"() {
@@ -51,10 +51,10 @@ class DefaultPackerCommandFactorySpec extends Specification {
       def parameterMap = [:]
 
     when:
-      def packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false some-packer-template.json"]
   }
 
   void "packer command elides parameters with empty keys"() {
@@ -66,10 +66,10 @@ class DefaultPackerCommandFactorySpec extends Specification {
       parameterMap[null] = "some-value-1"
 
     when:
-      def packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false -var some_key_3=some-value-3 some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false -var some_key_3=some-value-3 some-packer-template.json"]
   }
 
   void "packer command elides parameters with empty values"() {
@@ -78,20 +78,20 @@ class DefaultPackerCommandFactorySpec extends Specification {
         some_key_1: "some-value",
         some_key_2: null
       ]
-      def packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false -var some_key_1=some-value some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false -var some_key_1=some-value some-packer-template.json"]
 
     when:
       parameterMap = [
         some_key_1: "some-value",
         some_key_2: ""
       ]
-      packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false -var some_key_1=some-value some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false -var some_key_1=some-value some-packer-template.json"]
   }
 
   void "packer command quotes parameters with values that contain spaces"() {
@@ -100,11 +100,25 @@ class DefaultPackerCommandFactorySpec extends Specification {
         some_key_1: "some-value",
         some_key_2: "some set of values"
       ]
-      def packerCommandString = packerCommandFactory.buildPackerCommandString(parameterMap, templateFile)
+      def packerCommand = packerCommandFactory.buildPackerCommand("", parameterMap, templateFile)
 
     then:
-      packerCommandString == "packer build -color=false -var some_key_1=some-value " +
-                             "-var 'some_key_2=some set of values' some-packer-template.json"
+      packerCommand == ["sh", "-c", "packer build -color=false -var some_key_1=some-value " +
+                                    "-var \"some_key_2=some set of values\" some-packer-template.json"]
+  }
+
+  void "packer command prepends base command when specified"() {
+    when:
+      def parameterMap = [
+        some_key_1: "some-value",
+        some_key_2: "some set of values"
+      ]
+      def packerCommand =
+        packerCommandFactory.buildPackerCommand("some base command ; ", parameterMap, templateFile)
+
+    then:
+      packerCommand == ["sh", "-c", "some base command ; packer build -color=false -var some_key_1=some-value " +
+                                    "-var \"some_key_2=some set of values\" some-packer-template.json"]
   }
 
 }

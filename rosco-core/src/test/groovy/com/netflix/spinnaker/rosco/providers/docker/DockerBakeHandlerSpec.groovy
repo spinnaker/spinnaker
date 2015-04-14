@@ -1,0 +1,211 @@
+/*
+ * Copyright 2015 Google, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.rosco.providers.docker
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.rosco.api.Bake
+import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
+import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
+import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Subject
+
+class DockerBakeHandlerSpec extends Specification {
+
+  private static final String PACKAGE_NAME = "kato"
+  private static final String TARGET_REPOSITORY = "my-docker-repository:5000"
+  private static final String TEMPLATE_FILE = "docker_template.json"
+  private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu:precise"
+  private static final String SOURCE_TRUSTY_IMAGE_NAME = "ubuntu:trusty"
+
+  @Shared
+  RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
+
+  void setupSpec() {
+    def dockerBakeryDefaultsJson = [
+      targetRepository: TARGET_REPOSITORY,
+      templateFile: TEMPLATE_FILE,
+      operatingSystemVirtualizationSettings: [
+        [
+          os: "ubuntu",
+          virtualizationSettings: [sourceImage: SOURCE_UBUNTU_IMAGE_NAME]
+        ],
+        [
+          os: "trusty",
+          virtualizationSettings: [sourceImage: SOURCE_TRUSTY_IMAGE_NAME]
+        ]
+      ]
+    ]
+
+    dockerBakeryDefaults = new ObjectMapper().convertValue(dockerBakeryDefaultsJson, RoscoDockerConfiguration.DockerBakeryDefaults)
+  }
+
+  void 'can scrape packer logs for image name'() {
+    setup:
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults)
+
+    when:
+
+
+      def logsContent =
+        " ==> docker: Exporting the container\n" +
+        " ==> docker: Killing the container: 2680047ff61983593134c30dfa0e25e25829afaff7f973a147a8d88a36847d20\n" +
+        " ==> docker: Running post-processor: docker-import\n" +
+        "     docker (docker-import): Importing image: Container\n" +
+        "     docker (docker-import): Repository: mjd-docker-instance-2:5000/kato-all-1428964025241-trusty:latest\n" +
+        "     docker (docker-import): Imported ID: 9d73c7917e47a2a815bc0bb82c36fddaaf3183a81c3774250e70514040a0e74c\n" +
+        "     ==> docker: Running post-processor: docker-push\n" +
+        "     docker (docker-push): Pushing: mjd-docker-instance-2:5000/kato-all-1428964025241-trusty\n" +
+        "     docker (docker-push): The push refers to a repository [mjd-docker-instance-2:5000/kato-all-1428964025241-trusty] (len: 1)\n" +
+        "     docker (docker-push): Sending image list\n" +
+        "     docker (docker-push): Pushing repository mjd-docker-instance-2:5000/kato-all-1428964025241-trusty (1 tags)\n" +
+        "     docker (docker-push): Pushing tag for rev [9d73c7917e47] on {http://mjd-docker-instance-2:5000/v1/repositories/kato-all-1428964025241-trusty/tags/latest}\n" +
+        "     Build 'docker' finished.\n" +
+        "\n" +
+        "     ==> Builds finished. The artifacts of successful builds are:"
+
+      Bake bake = dockerBakeHandler.scrapeCompletedBakeResults("", "123", logsContent)
+
+    then:
+      with (bake) {
+        id == "123"
+        !ami
+        image_name == "mjd-docker-instance-2:5000/kato-all-1428964025241-trusty:latest"
+      }
+  }
+
+  void 'scraping returns null for missing image name'() {
+    setup:
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults)
+
+    when:
+      def logsContent =
+        " ==> docker: Exporting the container\n" +
+        " ==> docker: Killing the container: 2680047ff61983593134c30dfa0e25e25829afaff7f973a147a8d88a36847d20\n" +
+        " ==> docker: Running post-processor: docker-import\n" +
+        "     docker (docker-import): Importing image: Container\n" +
+        "     docker (docker-import): Imported ID: 9d73c7917e47a2a815bc0bb82c36fddaaf3183a81c3774250e70514040a0e74c\n" +
+        "     ==> docker: Running post-processor: docker-push\n" +
+        "     docker (docker-push): Pushing: mjd-docker-instance-2:5000/kato-all-1428964025241-trusty\n" +
+        "     docker (docker-push): The push refers to a repository [mjd-docker-instance-2:5000/kato-all-1428964025241-trusty] (len: 1)\n" +
+        "     docker (docker-push): Sending image list\n" +
+        "     docker (docker-push): Pushing repository mjd-docker-instance-2:5000/kato-all-1428964025241-trusty (1 tags)\n" +
+        "     docker (docker-push): Pushing tag for rev [9d73c7917e47] on {http://mjd-docker-instance-2:5000/v1/repositories/kato-all-1428964025241-trusty/tags/latest}\n" +
+        "     Build 'docker' finished.\n" +
+        "\n" +
+        "     ==> Builds finished. The artifacts of successful builds are:"
+
+    Bake bake = dockerBakeHandler.scrapeCompletedBakeResults("", "123", logsContent)
+
+    then:
+      with (bake) {
+        id == "123"
+        !ami
+        !image_name
+      }
+  }
+
+  void 'produces packer command with all required parameters for ubuntu'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: BakeRequest.OperatingSystem.ubuntu,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.docker)
+      def targetImageName = "kato-x8664-timestamp-ubuntu"
+      def parameterMap = [
+        docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
+        docker_target_image: targetImageName,
+        docker_target_repository: TARGET_REPOSITORY,
+        packages: PACKAGE_NAME
+      ]
+
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+                                                                  imageNameFactory: imageNameFactoryMock,
+                                                                  packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
+                                                      parameterMap,
+                                                      dockerBakeryDefaults.templateFile)
+  }
+
+  void 'produces packer command with all required parameters for trusty'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.docker)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
+        docker_target_image: targetImageName,
+        docker_target_repository: TARGET_REPOSITORY,
+        packages: PACKAGE_NAME
+      ]
+
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+                                                                  imageNameFactory: imageNameFactoryMock,
+                                                                  packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> [targetImageName, null, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
+                                                      parameterMap,
+                                                      dockerBakeryDefaults.templateFile)
+  }
+
+  void 'throws exception when virtualization settings are not found for specified operating system'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: BakeRequest.OperatingSystem.centos,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.docker)
+
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+                                                                  imageNameFactory: imageNameFactoryMock,
+                                                                  packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> new Object[4]
+      IllegalArgumentException e = thrown()
+      e.message == "No virtualization settings found for 'centos'."
+  }
+
+}

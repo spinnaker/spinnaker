@@ -45,7 +45,7 @@ class BakeRequest {
   String ami_suffix
 
   static enum CloudProviderType {
-    aws, gce
+    aws, docker, gce
   }
 
   static enum Label {

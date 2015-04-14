@@ -65,6 +65,19 @@ aws:
         sourceAmi: ami-98aa1cf0
         sshUserName: ubuntu
 
+docker:
+  enabled: ${DOCKER_ENABLED:false}
+  bakeryDefaults:
+    targetRepository: ${DOCKER_TARGET_REPOSITORY:}
+    templateFile: docker.json
+    operatingSystemVirtualizationSettings:
+    - os: ubuntu
+      virtualizationSettings:
+        sourceImage: ubuntu:precise
+    - os: trusty
+      virtualizationSettings:
+        sourceImage: ubuntu:trusty
+
 google:
   enabled: ${GOOGLE_ENABLED:false}
   gce:
