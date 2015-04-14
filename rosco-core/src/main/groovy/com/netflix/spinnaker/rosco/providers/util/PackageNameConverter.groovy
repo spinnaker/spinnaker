@@ -101,10 +101,15 @@ class PackageNameConverter {
   }
 
   public static String buildAppVersionStr(BakeRequest.PackageType packageType, String packageName) {
-    OsPackageName osPackageName =
-      packageType == BakeRequest.PackageType.DEB
-      ? PackageNameConverter.parseDebPackageName(packageName)
-      : PackageNameConverter.parseRpmPackageName(packageName)
+    OsPackageName osPackageName
+
+    if (packageType == BakeRequest.PackageType.DEB) {
+      osPackageName = PackageNameConverter.parseDebPackageName(packageName)
+    } else if (packageType == BakeRequest.PackageType.RPM) {
+      osPackageName = PackageNameConverter.parseRpmPackageName(packageName)
+    } else {
+      throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
+    }
 
     String appVersion = osPackageName.name
 

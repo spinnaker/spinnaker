@@ -33,7 +33,7 @@ interface ImageNameFactory {
    * This method always returns a list of size 3 with the following elements:
    *   1) A derived image name (to be used for naming the image being baked).
    *   2) The appversion string (to be used for tagging the newly-baked image).
-   *   3) The update list of packages to be used for overriding the passed package list (this will be removed once the
+   *   3) The updated list of packages to be used for overriding the passed package list (this will be removed once the
    *      temporary workaround described above is removed).
    *
    * This function is not required to return the same image name on multiple invocations with the same bake request.
