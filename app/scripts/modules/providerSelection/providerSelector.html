@@ -1,0 +1,15 @@
+<ui-select ng-model="component[field]"
+           ng-if="initialized && showSelector && !readOnly"
+           class="form-control input-sm">
+  <ui-select-match placeholder="Select a provider">
+    <span class="icon icon-server-group icon-{{$select.selected}} small"></span>
+    {{$select.selected}}
+  </ui-select-match>
+  <ui-select-choices repeat="provider in providers | filter: $select.search">
+    <h5><span class="icon icon-server-group icon-{{provider}} small"></span> {{provider}}</h5>
+  </ui-select-choices>
+</ui-select>
+<p class="form-control-static" ng-if="readOnly">
+  <span class="icon icon-server-group icon-{{component[field]}} small"></span>
+  {{component[field]}}
+</p>
