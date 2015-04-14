@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.services.NotificationService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -38,8 +39,8 @@ class NotificationController {
   }
 
   @RequestMapping(value = "/{type}/{application:.+}", method = RequestMethod.POST)
-  void saveNotificationConfig(@PathVariable String type, @PathVariable String application) {
-    notificationService.saveNotificationConfig(type, application)
+  void saveNotificationConfig(@PathVariable String type, @PathVariable String application, @RequestBody Map notificationConfig) {
+    notificationService.saveNotificationConfig(type, application, notificationConfig)
   }
 
   @RequestMapping(value = "/{type}/{application:.+}", method = RequestMethod.GET)

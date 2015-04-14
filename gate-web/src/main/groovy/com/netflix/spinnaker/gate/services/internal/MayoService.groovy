@@ -46,6 +46,6 @@ interface MayoService {
   @DELETE('/notifications/{type}/{app}')
   Response deleteNotificationConfig(@Path('type') String type, @Path('app') String app)
 
-  @POST('/notifications/{type}/app')
-  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app)
+  @POST('/notifications/{type}/{app}')
+  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
 }

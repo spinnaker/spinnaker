@@ -34,8 +34,8 @@ class NotificationService {
     mayoService.getNotificationConfigs(type, app)
   }
 
-  void saveNotificationConfig(String type, String app) {
-    mayoService.saveNotificationConfig(type, app)
+  void saveNotificationConfig(String type, String app, Map notification) {
+    mayoService.saveNotificationConfig(type, app, notification)
   }
 
   void deleteNotificationConfig(String type, String app) {
