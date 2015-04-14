@@ -1,10 +1,16 @@
 'use strict';
 
+// TODO: Move everything in here to config
 angular.module('deckApp.pipelines.stage.bake')
   .factory('bakeryService', function($q) {
 
-    function getRegions() {
-      return $q.when(['us-east-1', 'us-west-1', 'us-west-2', 'eu-west-1']);
+    function getRegions(provider) {
+      if (!provider || provider === 'aws') {
+        return $q.when(['us-east-1', 'us-west-1', 'us-west-2', 'eu-west-1']);
+      }
+      if (provider === 'gce') {
+        return $q.when(['asia-east1', 'us-central1', 'europe-west1']);
+      }
     }
 
     function getBaseOsOptions() {
