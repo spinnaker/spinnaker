@@ -6,6 +6,7 @@ versions:
   kork: "1.31"
   redbatch: "0.1"
 # third party
+  akka: "2.3.9"
   astyanax: "2.0.2"
   aws: "1.9.16"
   batch: "3.0.3.RELEASE"
@@ -41,6 +42,12 @@ versions:
   swaggerSpring: "0.9.5"
 
 groups:
+  akka:
+    compile:
+      - akkaCore
+      - akkaPersistence
+    testCompile:
+      - akkaActorTests
   amazon:
     compile:
       - amazoncomponents
@@ -135,6 +142,9 @@ dependencies:
   korkWeb: "com.netflix.spinnaker.kork:kork-web:${versions.kork}"
   redbatch: "com.netflix:redbatch:${versions.redbatch}"
 # third party
+  akkaCore: "com.typesafe.akka:akka-actor_2.11:${versions.akka}"
+  akkaPersistence: "com.typesafe.akka:akka-persistence-experimental_2.11:${versions.akka}"
+  akkaActorTests: "com.typesafe.akka:akka-actor-tests_2.11:${versions.akka}"
   astyanaxCassandra: "com.netflix.astyanax:astyanax-cassandra:${versions.astyanax}"
   astyanaxCql: "com.netflix.astyanax:astyanax-cql:${versions.astyanax}"
   astyanaxThrift: "com.netflix.astyanax:astyanax-thrift:${versions.astyanax}"
