@@ -39,4 +39,13 @@ interface MayoService {
 
   @POST('/pipelines/move')
   Response move(@Body Map moveCommand)
+
+  @GET('/notifications/{type}/{app}')
+  Map getNotificationConfigs(@Path('type') String type, @Path('app') String app)
+
+  @DELETE('/notifications/{type}/{app}')
+  Response deleteNotificationConfig(@Path('type') String type, @Path('app') String app)
+
+  @POST('/notifications/{type}/app')
+  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app)
 }
