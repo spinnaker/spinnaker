@@ -77,6 +77,24 @@ class DefaultImageNameFactorySpec extends Specification {
       packagesParameter == "nflx-djangobase-enhanced kato redis-server"
   }
 
+  void "should recognize multiple fully-qualified ubuntu package names but only derive appversion from the first"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-h12.170cdbd_all some-package_0.3-h15.290fcab_all",
+                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) =
+      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
+      appVersionStr == "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      packagesParameter == "nflx-djangobase-enhanced some-package_0.3-h15.290fcab_all"
+  }
+
   void "should recognize fully-qualified centos package name"() {
     setup:
       def clockMock = Mock(Clock)
