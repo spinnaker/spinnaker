@@ -24,7 +24,7 @@ interface ImageNameFactory {
    * This method is responsible for:
    *   - Producing an image name.
    *   - (If one or more package names are specified) Attempting to derive the AppVersion descriptor from the
-   *     first package name.
+   *     first package name. If the AppVersion could not be derived, this value will be null.
    *   - This is temporary and will be removed shortly: (If one or more package names are specified) Replacing
    *     the first package name in the list of packages with just the 'packageName' value from the derived AppVersion.
    *     This is here as a temporary workaround for test/dev since we are not actually publishing the built packages
@@ -40,6 +40,6 @@ interface ImageNameFactory {
    *
    * Returns [imageName, appVersionStr, packagesParameter].
    */
-  def processPackageNameAndProduceImageNameAndAppVersion(BakeRequest bakeRequest)
+  def deriveImageNameAndAppVersion(BakeRequest bakeRequest)
 
 }

@@ -31,7 +31,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
   Clock clock
 
   @Override
-  def processPackageNameAndProduceImageNameAndAppVersion(BakeRequest bakeRequest) {
+  def deriveImageNameAndAppVersion(BakeRequest bakeRequest) {
     // TODO(duftler): This is a placeholder. Need to properly support naming conventions.
     def timestamp = clock.millis()
 

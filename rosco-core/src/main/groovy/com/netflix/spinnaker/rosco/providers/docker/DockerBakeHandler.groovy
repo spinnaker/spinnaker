@@ -20,13 +20,11 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class DockerBakeHandler implements CloudProviderBakeHandler {
+public class DockerBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "docker"
   private static final String IMAGE_NAME_TOKEN = "Repository:"
@@ -35,12 +33,6 @@ public class DockerBakeHandler implements CloudProviderBakeHandler {
 
   @Autowired
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
-
-  @Autowired
-  ImageNameFactory imageNameFactory
-
-  @Autowired
-  PackerCommandFactory packerCommandFactory
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
@@ -51,10 +43,12 @@ public class DockerBakeHandler implements CloudProviderBakeHandler {
   }
 
   @Override
-  List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
-    def (imageName, appVersionStr, packagesParameter) =
-      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+  BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest) {
+    return bakeRequest
+  }
 
+  @Override
+  def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
     }?.virtualizationSettings
@@ -63,21 +57,26 @@ public class DockerBakeHandler implements CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
     }
 
-    def parameterMap = [
-      docker_source_image: virtualizationSettings.sourceImage,
+    return virtualizationSettings
+  }
+
+  @Override
+  Map buildParameterMap(String region, def dockerVirtualizationSettings, String imageName) {
+    return [
+      docker_source_image: dockerVirtualizationSettings.sourceImage,
       docker_target_image: imageName,
       docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
+  }
 
-    // TODO(duftler): Build out proper support for installation of packages.
-    parameterMap.packages = packagesParameter
+  @Override
+  String getBaseCommand() {
+    return START_DOCKER_SERVICE_BASE_COMMAND
+  }
 
-    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
-    if (appVersionStr) {
-      parameterMap.appversion = appVersionStr
-    }
-
-    return packerCommandFactory.buildPackerCommand(START_DOCKER_SERVICE_BASE_COMMAND, parameterMap, dockerBakeryDefaults.templateFile)
+  @Override
+  String getTemplateFileName() {
+    return dockerBakeryDefaults.templateFile
   }
 
   @Override

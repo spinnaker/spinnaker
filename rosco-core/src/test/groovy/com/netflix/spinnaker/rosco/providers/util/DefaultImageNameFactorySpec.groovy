@@ -31,8 +31,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -49,8 +48,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -67,8 +65,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -85,8 +82,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -103,8 +99,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456
@@ -121,8 +116,7 @@ class DefaultImageNameFactorySpec extends Specification {
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
-      def (imageName, appVersionStr, packagesParameter) =
-        imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     then:
       1 * clockMock.millis() >> 123456

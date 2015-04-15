@@ -19,26 +19,18 @@ package com.netflix.spinnaker.rosco.providers.aws
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
-import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
-import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class AWSBakeHandler implements CloudProviderBakeHandler {
+public class AWSBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "amazon-ebs"
   private static final String IMAGE_NAME_TOKEN = "amazon-ebs: Creating the AMI:"
 
   @Autowired
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
-
-  @Autowired
-  ImageNameFactory imageNameFactory
-
-  @Autowired
-  PackerCommandFactory packerCommandFactory
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
@@ -53,14 +45,16 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
   }
 
   @Override
-  List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
-    def (imageName, appVersionStr, packagesParameter) =
-    imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
-
+  BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest) {
     if (!bakeRequest.vm_type) {
-      bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
+      return bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
+    } else {
+      return bakeRequest
     }
+  }
 
+  @Override
+  def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
     }
@@ -78,7 +72,12 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$bakeRequest.vm_type'.")
     }
 
-    def parameterMap = [
+    return awsVirtualizationSettings
+  }
+
+  @Override
+  Map buildParameterMap(String region, def awsVirtualizationSettings, String imageName) {
+    return [
       aws_access_key:    awsBakeryDefaults.awsAccessKey,
       aws_secret_key:    awsBakeryDefaults.awsSecretKey,
       aws_region:        region,
@@ -87,16 +86,16 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
       aws_source_ami:    awsVirtualizationSettings.sourceAmi,
       aws_target_ami:    imageName
     ]
+  }
 
-    // TODO(duftler): Build out proper support for installation of packages.
-    parameterMap.packages = packagesParameter
+  @Override
+  String getBaseCommand() {
+    return ""
+  }
 
-    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
-    if (appVersionStr) {
-      parameterMap.appversion = appVersionStr
-    }
-
-    return packerCommandFactory.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+  @Override
+  String getTemplateFileName() {
+    return awsBakeryDefaults.templateFile
   }
 
   @Override
