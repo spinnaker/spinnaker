@@ -19,11 +19,21 @@ package com.netflix.spinnaker.rosco.providers.util
 class DefaultPackerCommandFactory implements PackerCommandFactory {
 
   @Override
-  String buildPackerCommandString(Map<String, String> parameterMap, String templateFile) {
-    return "packer build -color=false " +
-      parameterMap.collect {
-        "-var $it.key=$it.value"
-      }.join(" ") + " $templateFile"
+  List<String> buildPackerCommand(String baseCommand, Map<String, String> parameterMap, String templateFile) {
+    def packerCommand = ["sh", "-c"]
+    def shellCommandStr = baseCommand + "packer build -color=false"
+
+    parameterMap.each { key, value ->
+      if (key && value) {
+        def keyValuePair = value.contains(" ") ? "\"$key=$value\"" : "$key=$value"
+
+        shellCommandStr += " -var $keyValuePair"
+      }
+    }
+
+    shellCommandStr += " $templateFile"
+    packerCommand << shellCommandStr
+    packerCommand
   }
 
 }

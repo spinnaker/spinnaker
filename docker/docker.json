@@ -1,0 +1,32 @@
+{
+  "variables": {
+    "docker_source_image": "",
+    "docker_target_image": "",
+    "docker_target_image_tag": "latest",
+    "docker_target_repository": null,
+    "packages": ""
+  },
+  "builders": [{
+    "type": "docker",
+    "image": "{{user `docker_source_image`}}",
+    "export_path": "image.tar"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sleep 30",
+      "apt-get install sudo",
+      "echo \"deb http://dl.bintray.com/spinnaker/ospackages ./\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
+      "sudo apt-get update",
+      "sudo apt-get install --force-yes -y {{user `packages`}}"
+    ]
+  }],
+  "post-processors": [[
+    {
+      "type": "docker-import",
+      "repository": "{{user `docker_target_repository`}}/{{user `docker_target_image`}}",
+      "tag": "{{user `docker_target_image_tag`}}"
+    },
+    "docker-push"
+  ]]
+}

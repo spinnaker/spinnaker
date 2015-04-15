@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.rosco.providers.aws
+package com.netflix.spinnaker.rosco.providers.docker
 
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
+import com.netflix.spinnaker.rosco.providers.docker.config.RoscoDockerConfiguration
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
-import com.netflix.spinnaker.rosco.providers.aws.config.RoscoAWSConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class AWSBakeHandler implements CloudProviderBakeHandler {
+public class DockerBakeHandler implements CloudProviderBakeHandler {
 
-  private static final String BUILDER_TYPE = "amazon-ebs"
-  private static final String IMAGE_NAME_TOKEN = "amazon-ebs: Creating the AMI:"
+  private static final String BUILDER_TYPE = "docker"
+  private static final String IMAGE_NAME_TOKEN = "Repository:"
+
+  static final String START_DOCKER_SERVICE_BASE_COMMAND = "sudo service docker start ; "
 
   @Autowired
-  RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
+  RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
 
   @Autowired
   ImageNameFactory imageNameFactory
@@ -42,50 +44,29 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
-    if (!bakeRequest.vm_type) {
-      bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
-    }
-
     // TODO(duftler): Work through definition of uniqueness.
     bakeRequest.with {
-      return "bake:$cloud_provider_type:$region:$vm_type:$base_os:$package_name"
+      return "bake:$cloud_provider_type:$base_os:$package_name"
     }
   }
 
   @Override
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
     def (imageName, appVersionStr, packagesParameter) =
-    imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
+      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
 
-    if (!bakeRequest.vm_type) {
-      bakeRequest = bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
-    }
-
-    def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.operatingSystemVirtualizationSettings.find {
+    def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
-    }
+    }?.virtualizationSettings
 
-    if (!awsOperatingSystemVirtualizationSettings) {
+    if (!virtualizationSettings) {
       throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
     }
 
-    def awsVirtualizationSettings = awsOperatingSystemVirtualizationSettings?.virtualizationSettings.find {
-      it.region == region
-      it.virtualizationType == bakeRequest.vm_type
-    }
-
-    if (!awsVirtualizationSettings) {
-      throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$bakeRequest.vm_type'.")
-    }
-
     def parameterMap = [
-      aws_access_key:    awsBakeryDefaults.awsAccessKey,
-      aws_secret_key:    awsBakeryDefaults.awsSecretKey,
-      aws_region:        region,
-      aws_ssh_username:  awsVirtualizationSettings.sshUserName,
-      aws_instance_type: awsVirtualizationSettings.instanceType,
-      aws_source_ami:    awsVirtualizationSettings.sourceAmi,
-      aws_target_ami:    imageName
+      docker_source_image: virtualizationSettings.sourceImage,
+      docker_target_image: imageName,
+      docker_target_repository: dockerBakeryDefaults.targetRepository
     ]
 
     // TODO(duftler): Build out proper support for installation of packages.
@@ -96,7 +77,7 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
       parameterMap.appversion = appVersionStr
     }
 
-    return packerCommandFactory.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+    return packerCommandFactory.buildPackerCommand(START_DOCKER_SERVICE_BASE_COMMAND, parameterMap, dockerBakeryDefaults.templateFile)
   }
 
   @Override
@@ -106,19 +87,16 @@ public class AWSBakeHandler implements CloudProviderBakeHandler {
 
   @Override
   Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent) {
-    String amiId
     String imageName
 
-    // TODO(duftler): Presently scraping the logs for the image name/id. Would be better to not be reliant on the log
-    // format not changing. Resolve this by storing bake details in redis and querying oort for amiId from amiName.
+    // TODO(duftler): Presently scraping the logs for the image name. Would be better to not be reliant on the log
+    // format not changing. Resolve this by storing bake details in redis.
     logsContent.eachLine { String line ->
       if (line =~ IMAGE_NAME_TOKEN) {
         imageName = line.split(" ").last()
-      } else if (line =~ "$region:") {
-        amiId = line.split(" ").last()
       }
     }
 
-    return new Bake(id: bakeId, ami: amiId, image_name: imageName)
+    return new Bake(id: bakeId, image_name: imageName)
   }
 }

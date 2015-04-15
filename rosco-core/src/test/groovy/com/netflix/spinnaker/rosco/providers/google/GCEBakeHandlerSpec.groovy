@@ -142,8 +142,9 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> targetImageName
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, gceBakeryDefaults.templateFile)
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
   void 'produces packer command with all required parameters for trusty'() {
@@ -172,28 +173,30 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.produceImageName(bakeRequest) >> targetImageName
-      1 * packerCommandFactoryMock.buildPackerCommandString(parameterMap, gceBakeryDefaults.templateFile)
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
   void 'throws exception when virtualization settings are not found for specified operating system'() {
     setup:
-    def imageNameFactoryMock = Mock(ImageNameFactory)
-    def packerCommandFactoryMock = Mock(PackerCommandFactory)
-    def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
-                                      package_name: PACKAGE_NAME,
-                                      base_os: BakeRequest.OperatingSystem.centos,
-                                      cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: BakeRequest.OperatingSystem.centos,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
 
-    @Subject
-    GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
-                                                       imageNameFactory: imageNameFactoryMock,
-                                                       packerCommandFactory: packerCommandFactoryMock)
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
 
     when:
-    gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
+      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }

@@ -36,6 +36,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
 import redis.clients.jedis.JedisPool
 
+import java.time.Clock
+
 @Configuration
 @CompileStatic
 class RoscoConfiguration {
@@ -59,6 +61,11 @@ class RoscoConfiguration {
   @Bean
   ImageNameFactory imageNameFactory() {
     return new DefaultImageNameFactory()
+  }
+
+  @Bean
+  Clock clock() {
+    return Clock.systemUTC()
   }
 
   @Bean
