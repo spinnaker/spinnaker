@@ -30,7 +30,7 @@ import com.netflix.spinnaker.orca.mine.CanaryDeployment
 import com.netflix.spinnaker.orca.mine.Cluster
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.Recipient
-import com.netflix.spinnaker.orca.mine.pipeline.CanaryStage
+import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,11 +76,11 @@ class RegisterCanaryTask implements Task {
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = app
 
-    def preceedingCanary = stage.preceding(CanaryStage.MAYO_CONFIG_TYPE)
+    def preceedingCanary = stage.preceding(DeployCanaryStage.MAYO_CONFIG_TYPE)
 
     def allStages = stage.execution.stages
 
-    def firstCanary = allStages.find { it.type == CanaryStage.MAYO_CONFIG_TYPE }
+    def firstCanary = allStages.find { it.type == DeployCanaryStage.MAYO_CONFIG_TYPE }
     def toUse = preceedingCanary ?: firstCanary
 
     if (!toUse) { throw new IllegalStateException('wat') }

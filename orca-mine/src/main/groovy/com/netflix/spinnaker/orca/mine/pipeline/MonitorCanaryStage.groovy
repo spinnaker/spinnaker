@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component
 class MonitorCanaryStage extends LinearStage {
   public static final String MAYO_CONFIG_TYPE = "canary"
 
-  @Autowired CanaryStage canaryStage
+  @Autowired DeployCanaryStage deployCanaryStage
 
   MonitorCanaryStage() {
     super(MAYO_CONFIG_TYPE)
@@ -39,7 +39,7 @@ class MonitorCanaryStage extends LinearStage {
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    injectBefore(stage, "Deploy Canary", canaryStage, stage.context)
+    injectBefore(stage, "Deploy Canary", deployCanaryStage, stage.context)
     [
       buildStep(stage, "registerCanary", RegisterCanaryTask),
       buildStep(stage, "monitorCanary", MonitorCanaryTask),

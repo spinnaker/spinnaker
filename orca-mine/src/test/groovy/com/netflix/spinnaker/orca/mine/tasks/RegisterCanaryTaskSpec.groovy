@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.mine.pipeline.CanaryStage
+import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -62,7 +62,7 @@ class RegisterCanaryTaskSpec extends Specification {
     ]
 
     def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, context)
-    def deployCanariesStage = new PipelineStage(pipeline, CanaryStage.MAYO_CONFIG_TYPE, context)
+    def deployCanariesStage = new PipelineStage(pipeline, DeployCanaryStage.MAYO_CONFIG_TYPE, context)
     Map<String, Object> baselineContext = context + ['deploy.server.groups': ['us-east-1': ['foo--baseline-v000']]]
     def deployBaselineStage = new PipelineStage(pipeline, ParallelDeployStage.MAYO_CONFIG_TYPE, baselineContext)
     deployBaselineStage.parentStageId = deployCanariesStage.id

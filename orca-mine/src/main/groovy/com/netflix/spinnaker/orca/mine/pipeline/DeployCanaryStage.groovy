@@ -26,13 +26,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class CanaryStage extends ParallelDeployStage {
+class DeployCanaryStage extends ParallelDeployStage {
 
   public static final String MAYO_CONFIG_TYPE = "deployCanary"
 
   @Autowired FindAmiFromClusterTask findAmi
 
-  CanaryStage() {
+  DeployCanaryStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
