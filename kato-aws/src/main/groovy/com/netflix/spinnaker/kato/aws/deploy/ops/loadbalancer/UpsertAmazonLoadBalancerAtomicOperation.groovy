@@ -39,6 +39,7 @@ import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import org.springframework.beans.factory.annotation.Autowired
 /**
  * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
@@ -156,23 +157,49 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
   private void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancerDescription loadBalancer,
                                   List<Listener> listeners, Collection<String> securityGroups) {
-    String loadBalancerName = loadBalancer.loadBalancerName
-    // Apply listeners...
+    def amazonErrors = []
+    def loadBalancerName = loadBalancer.loadBalancerName
+
     if (listeners) {
-      def ports = loadBalancer.listenerDescriptions.collect { it.listener.loadBalancerPort }
-      if (ports) {
-        loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(loadBalancerName, ports))
+      def existingListeners = loadBalancer.listenerDescriptions*.listener
+      def listenersToRemove = existingListeners.findAll {
+        // existed previously but were not supplied in upsert and should be deleted
+        !listeners.contains(it)
       }
-      loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, listeners))
-      task.updateStatus BASE_PHASE, "Listeners updated on ${loadBalancerName}."
+      listeners.removeAll(listenersToRemove)
+
+      // no need to recreate existing listeners
+      listeners.removeAll(existingListeners)
+
+      listenersToRemove.each {
+        loadBalancing.deleteLoadBalancerListeners(
+          new DeleteLoadBalancerListenersRequest(loadBalancerName, [it.loadBalancerPort])
+        )
+        task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancerName} (${it.loadBalancerPort}:${it.protocol}:${it.instancePort})."
+      }
+
+      listeners.each { Listener listener ->
+        try {
+          loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(loadBalancerName, [listener]))
+          task.updateStatus BASE_PHASE, "Listener added to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort})."
+        } catch (AmazonServiceException e) {
+          def exceptionMessage = "Failed to add listener to ${loadBalancerName} (${listener.loadBalancerPort}:${listener.protocol}:${listener.instancePort}) - reason: ${e.errorMessage}."
+          task.updateStatus BASE_PHASE, exceptionMessage
+          amazonErrors << exceptionMessage
+        }
+      }
     }
-    // Apply security groups...
+
     if (description.securityGroups) {
       loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
               loadBalancerName: loadBalancerName,
               securityGroups: securityGroups
       ))
       task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
+    }
+
+    if (amazonErrors) {
+      throw new AtomicOperationException("Failed to apply all load balancer updates", amazonErrors)
     }
   }
 
