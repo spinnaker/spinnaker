@@ -23,4 +23,6 @@ class CanaryDeployment {
   String id
   Cluster canaryCluster
   Cluster baselineCluster
+  CanaryAnalysisResult canaryAnalysisResult
+  Health health
 }
