@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
@@ -29,10 +30,14 @@ import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.FlowBuilder
+import org.springframework.batch.core.job.flow.Flow
+import org.springframework.batch.core.job.flow.support.SimpleFlow
 import org.springframework.batch.core.step.builder.StepBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
+import org.springframework.core.task.SimpleAsyncTaskExecutor
+
 import static java.util.Collections.EMPTY_LIST
 
 /**
@@ -44,6 +49,7 @@ import static java.util.Collections.EMPTY_LIST
  */
 @CompileStatic
 abstract class StageBuilder implements ApplicationContextAware {
+  private static final int MAX_PARALLEL_CONCURRENCY = 4
 
   final String type
 
@@ -64,10 +70,112 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @return the resulting builder after any steps are appended.
    */
   final FlowBuilder build(FlowBuilder jobBuilder, Stage stage) {
-    buildInternal jobBuilder, stage
+    if (stage.execution.parallel) {
+      return buildParallel(jobBuilder, stage)
+    }
+
+    return buildLinear(jobBuilder, stage)
+  }
+
+  @Deprecated
+  private FlowBuilder buildLinear(FlowBuilder jobBuilder, Stage stage) {
+    buildInternal(jobBuilder, stage)
+  }
+
+  private FlowBuilder buildParallel(FlowBuilder jobBuilder, Stage stage) {
+    if (stage.execution.builtPipelineObjects.contains(stage)) {
+      // stage has already been built by another parallel path
+      return jobBuilder
+    }
+
+    stage.execution.builtPipelineObjects << stage
+
+    buildInternal(jobBuilder, stage)
+    buildDependentStages(jobBuilder, stage)
+
+    return jobBuilder
   }
 
   protected abstract FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage)
+
+  @VisibleForTesting
+  @PackageScope
+  FlowBuilder buildDependentStages(FlowBuilder jobBuilder, Stage stage) {
+    def stageBuilders = applicationContext.getBeansOfType(StageBuilder).values()
+    def dependantStages = stage.execution.stages.findAll {
+      it.requisiteStageRefIds?.contains(stage.refId)
+    }
+
+    if (!dependantStages) {
+      return jobBuilder
+    }
+
+    def flows = []
+    dependantStages.each { Stage childStage ->
+      if (stage.execution.builtPipelineObjects.contains(childStage)) {
+        // stage has already been built, no need to re-build
+        return
+      }
+
+      def childStageBuilder = stageBuilders.find { it.type == childStage.type }
+      if (childStage.requisiteStageRefIds.size() > 1) {
+        // multi parent child, insert an artificial join stage that will wait for all parents to complete
+        def waitForStageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE }
+        def waitForStage = newStage(
+          childStage.execution,
+          waitForStageBuilder.type,
+          "Wait For Parent Tasks",
+          [requisiteIds: childStage.requisiteStageRefIds] as Map,
+          null as Stage,
+          null as Stage.SyntheticStageOwner
+        )
+
+        def stageIdx = stage.execution.stages.indexOf(childStage)
+        stage.execution.stages.add(stageIdx, waitForStage)
+
+        def waitForBuilder = new FlowBuilder<Flow>("WaitForRequisite.${childStage.refId}.${childStage.id}")
+        waitForStageBuilder.build(waitForBuilder, waitForStage)
+
+        // child stage should be added after the artificial join stage
+        def childFlowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
+        flows << waitForBuilder.next(childStageBuilder.build(childFlowBuilder, childStage).build() as Flow).build()
+      } else {
+        // single parent child, no need for an artificial join stage
+        def flowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
+        flows << childStageBuilder.build(flowBuilder, childStage).build()
+      }
+    }
+
+    addFlowsToBuilder(jobBuilder, stage, flows as Flow[])
+    return jobBuilder
+  }
+
+  /**
+   * @param jobBuilder the builder for the job.
+   * @param stage the stage configuration.
+   * @param flows the flows that should be appended to builder (> 1, a parallel builder should be built and appended).
+   * @return the resulting builder after any steps are appended.
+   */
+  @VisibleForTesting
+  @PackageScope
+  final FlowBuilder addFlowsToBuilder(FlowBuilder jobBuilder, Stage stage, Flow[] flows) {
+    if (flows.size() > 1) {
+      def executor = new SimpleAsyncTaskExecutor()
+      executor.setConcurrencyLimit(MAX_PARALLEL_CONCURRENCY)
+
+      // children of a fan-out stage should be executed in parallel
+      def parallelFlowBuilder = new FlowBuilder<Flow>("ParallelChildren.${stage.refId}")
+        .start(new SimpleFlow("NoOp"))
+        .split(executor)
+        .add(flows)
+
+      return jobBuilder.next(parallelFlowBuilder.build())
+    } else if (flows.size() == 1) {
+      return jobBuilder.next(flows[0] as Flow)
+    }
+
+    return jobBuilder
+  }
 
   /**
    * Builds a Spring Batch +Step+ from an Orca +Task+ using required naming
@@ -145,8 +253,8 @@ abstract class StageBuilder implements ApplicationContextAware {
   @PackageScope
   List<StepExecutionListener> getTaskListeners() {
     Optional.fromNullable(taskListeners)
-            .transform(ImmutableList.&copyOf as Function)
-            .or(EMPTY_LIST)
+      .transform(ImmutableList.&copyOf as Function)
+      .or(EMPTY_LIST)
   }
 
   static Stage newStage(Execution execution, String type, String name, Map<String, Object> context,
@@ -155,7 +263,7 @@ abstract class StageBuilder implements ApplicationContextAware {
     if (execution instanceof Orchestration) {
       stage = new OrchestrationStage(execution, type, context)
     } else {
-      stage = new PipelineStage((Pipeline) execution, type, name, context)
+      stage = new PipelineStage(execution as Pipeline, type, name, context)
     }
     stage.parentStageId = parent?.id
     stage.syntheticStageOwner = stageOwner

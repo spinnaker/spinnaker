@@ -177,7 +177,8 @@ class TaskTasklet implements Tasklet {
   private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
     def taskLogger = LoggerFactory.getLogger(task.class)
     if (result.status.complete || taskLogger.isDebugEnabled()) {
-      def message = "${stage.execution.class.simpleName}:${stage.execution.id} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${result.outputs},  Stage Context: ${stage.context}"
+      def executionId = stage.execution.id + (stage.refId ? ":${stage.refId}" : "")
+      def message = "${stage.execution.class.simpleName}:${executionId} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${result.outputs},  Stage Context: ${stage.context}"
       if (result.status.complete) {
         taskLogger.info message
       } else {

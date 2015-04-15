@@ -16,12 +16,17 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.PackageScope
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.job.flow.Flow
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
@@ -38,7 +43,12 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   @Override
   Job build(Pipeline pipeline) {
     def jobBuilder = buildStart(pipeline)
-    buildFlow(jobBuilder, pipeline).build().build()
+
+    if (pipeline.parallel) {
+      return buildFlowParallel(jobBuilder, pipeline).build().build()
+    }
+
+    return buildFlowLinear(jobBuilder, pipeline).build().build()
   }
 
   @Override
@@ -46,7 +56,9 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
     "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}"
   }
 
-  private JobFlowBuilder buildStart(Pipeline pipeline) {
+  @VisibleForTesting
+  @PackageScope
+  JobFlowBuilder buildStart(Pipeline pipeline) {
     def jobBuilder = jobs.get(jobNameFor(pipeline))
     pipelineListeners.each {
       jobBuilder = jobBuilder.listener(it)
@@ -54,16 +66,49 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
     jobBuilder.flow(initializationStep(steps, pipeline))
   }
 
-  private JobFlowBuilder buildFlow(JobFlowBuilder jobBuilder, Pipeline pipeline) {
+  @Deprecated
+  private JobFlowBuilder buildFlowLinear(JobFlowBuilder jobBuilder, Pipeline pipeline) {
     def stages = []
     stages.addAll(pipeline.stages.findAll {
       // only consider non-synthetic stages when building the flow
       return it.parentStageId == null
     })
-    stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
+    return stages.inject(jobBuilder, this.&createStage) as JobFlowBuilder
   }
 
-  protected JobFlowBuilder createStage(JobFlowBuilder jobBuilder, Stage<Pipeline> stage) {
+  private JobFlowBuilder buildFlowParallel(JobFlowBuilder jobBuilder, Pipeline pipeline) {
+    def initializationStage = StageBuilder.newStage(
+      pipeline,
+      WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE,
+      "Initialize",
+      [:],
+      null as Stage,
+      null as Stage.SyntheticStageOwner
+    ) as Stage
+    initializationStage.initializationStage = true
+    initializationStage.refId = "*"
+
+    def stages = [] as List<Stage>
+    stages.addAll(pipeline.stages.findAll {
+      // only consider non-synthetic non-child stages when building the root flow
+      return !it.parentStageId && !it.requisiteStageRefIds && it.refId != initializationStage.refId
+    })
+    stages.each { Stage stage ->
+      // add the initialization stage as a requisite, this ensures that each root will be executed in parallel
+      stage.requisiteStageRefIds = [initializationStage.refId]
+    }
+
+    // the initialization stage should be injected at the beginning of the pipeline
+    pipeline.stages.add(0, initializationStage)
+
+    def initializationBuilder = new FlowBuilder<Flow>("Initialization.${pipeline.id}")
+    createStage(initializationBuilder, initializationStage)
+
+    jobBuilder.next(initializationBuilder.build())
+    return jobBuilder
+  }
+
+  protected FlowBuilder createStage(FlowBuilder jobBuilder, Stage<Pipeline> stage) {
     builderFor(stage).build(jobBuilder, stage)
     return jobBuilder
   }
