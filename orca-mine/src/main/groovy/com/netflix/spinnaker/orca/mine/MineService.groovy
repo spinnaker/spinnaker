@@ -21,6 +21,7 @@ import retrofit.http.Body
 import retrofit.http.DELETE
 import retrofit.http.GET
 import retrofit.http.POST
+import retrofit.http.PUT
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -31,6 +32,15 @@ interface MineService {
   @GET('/canaries/{id}')
   Canary checkCanaryStatus(@Path('id') String id)
 
-  @DELETE('/canaries/{id}/terminate')
-  Canary terminateCanary(@Path('id') String id, @Query('reason') String reason)
+  @DELETE('/canaries/{id}/cancel')
+  Canary cancelCanary(@Path('id') String id, @Query('reason') String reason)
+
+  @PUT('/canaries/{id}/disable')
+  Canary disableCanary(@Path('id') String id, @Query('reason') String reason)
+
+  @PUT('/canaries/{id}/enable')
+  Canary enableCanary(@Path('id') String id)
+
+  @PUT('/canaries/{id}/disableAndScheduleForTermination')
+  Canary disableCanaryAndScheduleForTermination(@Path('id') String id, @Query('reason') String reason)
 }

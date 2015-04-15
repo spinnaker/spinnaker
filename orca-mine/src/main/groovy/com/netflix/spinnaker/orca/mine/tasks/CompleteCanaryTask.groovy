@@ -29,8 +29,9 @@ class CompleteCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     Canary c = stage.mapTo('/canary', Canary)
-
-    if (c.canaryResult.overallResult == 'SUCCESS') {
+    if (c.status == 'CANCELED') {
+      new DefaultTaskResult(ExecutionStatus.CANCELED)
+    } else if (c.canaryResult.overallResult == 'SUCCESS') {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     } else {
       new DefaultTaskResult(ExecutionStatus.FAILED)

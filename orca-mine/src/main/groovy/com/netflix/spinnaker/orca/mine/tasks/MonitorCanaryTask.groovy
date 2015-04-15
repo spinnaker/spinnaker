@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -62,8 +59,18 @@ class MonitorCanaryTask implements RetryableTask {
     }
 
     if (outputs.canary.health?.health == Health.UNHEALTHY) {
-      log.info("Canary unhealthy, terminating")
-      outputs.canary = mineService.terminateCanary(canary.id, "unhealthy")
+      log.info("Canary unhealthy, disabling")
+      String operation = 'disableAsgDescription'
+      def operations = []
+      for (d in canary.canaryDeployments) {
+        for (c in [d.baselineCluster, d.canaryCluster]) {
+          operations << [(operation): [asgName: c.name, regions: [c.region], credentials: c.accountName]]
+        }
+      }
+      log.info "Calling ${operation} with ${operations}"
+      katoService.requestOperations(operations).toBlocking().first()
+
+      outputs.canary = mineService.disableCanaryAndScheduleForTermination(canary.id, "Canary is unhealthy")
     }
 
     Map scaleUp = context.scaleUp
@@ -73,7 +80,12 @@ class MonitorCanaryTask implements RetryableTask {
         def resizeOps = []
         for (deployment in canary.canaryDeployments) {
           for (Cluster cluster in [deployment.canaryCluster, deployment.baselineCluster]) {
-            resizeOps << [resizeAsgDescription: [asgName: cluster.name, regions: [cluster.region], capacity: [min: capacity, max: capacity, desired: capacity], credentials: cluster.accountName]]
+            resizeOps << [ resizeAsgDescription: [
+              asgName: cluster.name,
+              regions: [cluster.region],
+              capacity: [min: capacity, max: capacity, desired: capacity],
+              credentials: cluster.accountName]
+            ]
           }
         }
         outputs.scaleUp = scaleUp

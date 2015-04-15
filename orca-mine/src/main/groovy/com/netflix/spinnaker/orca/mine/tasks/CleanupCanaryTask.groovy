@@ -37,24 +37,15 @@ class CleanupCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     Canary canary = stage.mapTo('/canary', Canary)
-    String operation = 'disableAsgDescription'
-    //TODO(cfieber) - check terminated status, destroy on terminate
-    //              - handle disabled status
-    if (canary.canaryResult.overallResult == 'SUCCESS') {
-      operation = 'destroyAsgDescription'
-    }
-
+    String operation = 'destroyAsgDescription'
     def operations = []
     for (d in canary.canaryDeployments) {
       for (c in [d.baselineCluster, d.canaryCluster]) {
         operations << [(operation): [asgName: c.name, regions: [c.region], credentials: c.accountName]]
       }
     }
-
-    log.info "Cleaning up using operation ${operation} with ${operations}"
-
+    log.info "Calling ${operation} with ${operations}"
     def taskId = katoService.requestOperations(operations).toBlocking().first()
-
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
   }
 }

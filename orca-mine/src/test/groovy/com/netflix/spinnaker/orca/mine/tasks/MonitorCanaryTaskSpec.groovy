@@ -125,7 +125,7 @@ class MonitorCanaryTaskSpec extends Specification {
 
   }
 
-  def 'should terminate unhealthy'() {
+  def 'should disable unhealthy canary'() {
     setup:
     def canaryConf = [
       id: UUID.randomUUID().toString(),
@@ -156,15 +156,15 @@ class MonitorCanaryTaskSpec extends Specification {
 
     Canary  canary = stage.mapTo('/canary', Canary)
     Canary terminated = stage.mapTo('/canary', Canary)
-    terminated.status.status = 'TERMINATED'
-    terminated.status.complete = true
+    terminated.status.status = 'DISABLED'
+    terminated.status.complete = false
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
     1 * mineService.checkCanaryStatus(canary.id) >> canary
-    1 * mineService.terminateCanary(canary.id, 'unhealthy') >> terminated
+    1 * mineService.disableCanaryAndScheduleForTermination(canary.id, 'unhealthy') >> terminated
 
     result.stageOutputs.canary.status.status == terminated.status.status
   }
