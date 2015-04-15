@@ -112,8 +112,6 @@ class RegisterCanaryTask implements Task {
     }
 
     c.canaryDeployments.addAll(clusters.values())
-
-
     return c
   }
 
