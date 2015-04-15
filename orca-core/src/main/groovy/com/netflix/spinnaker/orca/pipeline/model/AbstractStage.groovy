@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonBackReference
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -46,6 +47,10 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
   boolean initializationStage = false
   List<Task> tasks = []
   String parentStageId
+
+  String refId
+  Collection<String> requisiteStageRefIds
+
   Stage.SyntheticStageOwner syntheticStageOwner
   List<InjectedStageConfiguration> beforeStages = []
   List<InjectedStageConfiguration> afterStages = []
@@ -76,12 +81,13 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
     this.type = type
     this.name = name
     this.context = context
+
+    this.refId = (String) context.remove("refId")
+    this.requisiteStageRefIds = (Collection<String>) context.remove("requisiteStageRefIds")
   }
 
   AbstractStage(Execution execution, String type, Map<String, Object> context) {
-    this.execution = execution
-    this.type = type
-    this.context = context
+    this(execution, type, null, context)
   }
 
   AbstractStage(Execution execution, String type) {

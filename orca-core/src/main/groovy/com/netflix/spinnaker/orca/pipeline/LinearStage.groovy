@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.google.common.annotations.VisibleForTesting
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
+import groovy.transform.PackageScope
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.FlowBuilder
 
@@ -54,18 +57,18 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
     }
 
     processBeforeStages(jobBuilder, stageIdx, stage)
-    wireSteps(jobBuilder, steps)
+    wireSteps(jobBuilder, steps, stage)
     processAfterStages(jobBuilder, stage)
     stage.beforeStages.clear()
     stage.afterStages.clear()
     jobBuilder
   }
 
-  protected void injectBefore(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectBefore(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.beforeStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
-  protected void injectAfter(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectAfter(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.afterStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
@@ -91,9 +94,35 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
     }
   }
 
-  private FlowBuilder wireSteps(FlowBuilder jobBuilder, List<Step> steps) {
-    (FlowBuilder) steps.inject(jobBuilder) { FlowBuilder builder, Step step ->
-      builder.next(step)
+  @VisibleForTesting
+  @PackageScope
+  FlowBuilder wireSteps(FlowBuilder jobBuilder, List<Step> steps, Stage stage) {
+    if (stage.execution.parallel) {
+      return wireStepsParallel(jobBuilder, steps, stage)
     }
+
+    return wireStepsLinear(jobBuilder, steps)
+  }
+
+  @Deprecated
+  private FlowBuilder wireStepsLinear(FlowBuilder jobBuilder, List<Step> steps) {
+    steps.each {
+      jobBuilder.next(it)
+    }
+    return jobBuilder
+  }
+
+  private FlowBuilder wireStepsParallel(FlowBuilder jobBuilder, List<Step> steps, Stage stage) {
+    steps.eachWithIndex { step, index ->
+      if (index == 0 && !stage.execution.builtPipelineObjects.contains(jobBuilder)) {
+        // no steps have been built against this flow builder so start a new path
+        jobBuilder.from(step)
+      } else {
+        jobBuilder.next(step)
+      }
+    }
+
+    stage.execution.builtPipelineObjects << jobBuilder
+    return jobBuilder
   }
 }

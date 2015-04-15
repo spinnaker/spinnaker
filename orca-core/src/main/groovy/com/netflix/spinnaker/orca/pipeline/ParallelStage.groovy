@@ -46,10 +46,14 @@ abstract class ParallelStage extends StageBuilder {
     List<Flow> flows = buildFlows(stage)
     stage.name = parallelStageName(stage, flows.size() > 1)
 
-    if (stage.execution.stages.indexOf(stage) == 0) {
-      jobBuilder = jobBuilder.start(buildStep(stage, "beginParallel", beginParallel()))
+    if (stage.execution.parallel) {
+      jobBuilder = jobBuilder.from(buildStep(stage, "beginParallel", beginParallel()))
     } else {
-      jobBuilder = jobBuilder.next(buildStep(stage, "beginParallel", beginParallel()))
+      if (stage.execution.stages.indexOf(stage) == 0) {
+        jobBuilder = jobBuilder.start(buildStep(stage, "beginParallel", beginParallel()))
+      } else {
+        jobBuilder = jobBuilder.next(buildStep(stage, "beginParallel", beginParallel()))
+      }
     }
 
     // revisit when the fix for https://jira.spring.io/browse/BATCH-2346 is available

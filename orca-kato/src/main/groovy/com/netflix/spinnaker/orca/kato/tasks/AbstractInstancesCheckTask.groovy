@@ -75,7 +75,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         String region = serverGroup.region
         String name = serverGroup.name
 
-        List instances = serverGroup.instances
+        List instances = serverGroup.instances ?: []
         Map asg = serverGroup.asg
 
         // Look across ASGs in Cluster for specified ones to exist.

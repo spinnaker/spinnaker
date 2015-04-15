@@ -44,7 +44,11 @@ class ParallelDeployStage extends ParallelStage {
   List<LinearStage> stageBuilders
 
   ParallelDeployStage() {
-    super(MAYO_CONFIG_TYPE)
+    this(MAYO_CONFIG_TYPE)
+  }
+
+  protected ParallelDeployStage(String name) {
+    super(name)
   }
 
   @Override
@@ -70,6 +74,15 @@ class ParallelDeployStage extends ParallelStage {
     }
   }
 
+  protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
+    return defaultStageContext + [
+      account: cluster.account ?: stage.context.account,
+      cluster: cluster,
+      type   : DeployStage.MAYO_CONFIG_TYPE,
+      name   : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
+    ]
+  }
+
   @Override
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
@@ -91,14 +104,9 @@ class ParallelDeployStage extends ParallelStage {
       defaultStageContext.clear()
     }
 
-    return clusters.collect {
-      return defaultStageContext + [
-        account            : it.account ?: stage.context.account,
-        cluster            : it,
-        type               : DeployStage.MAYO_CONFIG_TYPE,
-        name               : "Deploy in ${(it.availabilityZones as Map).keySet()[0]}" as String
-      ]
-    }
+    def toContext = this.&clusterContext.curry(stage, defaultStageContext)
+
+    return clusters.collect(toContext)
   }
 
   @Override

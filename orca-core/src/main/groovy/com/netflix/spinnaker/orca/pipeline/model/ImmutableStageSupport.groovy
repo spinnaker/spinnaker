@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.primitives.Primitives
@@ -48,6 +49,16 @@ class ImmutableStageSupport {
     Stage<T> self
     ImmutableMap<String, Object> context
     boolean immutable = true
+
+    @Override
+    String getRefId() {
+      self.refId
+    }
+
+    @Override
+    void setRefId(String refId) {
+      fail()
+    }
 
     @Override
     String getId() {
@@ -202,6 +213,16 @@ class ImmutableStageSupport {
 
     @Override
     void setParentStageId(String id) {
+      fail()
+    }
+
+    @Override
+    Collection<String> getRequisiteStageRefIds() {
+      self.requisiteStageRefIds
+    }
+
+    @Override
+    void setRequisiteStageRefIds(Collection<String> requisiteStageRefIds) {
       fail()
     }
 
