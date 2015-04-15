@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 

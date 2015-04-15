@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.model
+package com.netflix.spinnaker.orca.mine
 
-import com.netflix.spinnaker.orca.batch.StageBuilder
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
+import groovy.transform.Canonical
 
-@CompileStatic
-@Immutable(knownImmutables = ["stageBuilder"])
-class InjectedStageConfiguration {
-  StageBuilder stageBuilder
-  String name
-  Map<String, Object> context
+@Canonical
+class Canary {
+  String id
+  String application
+  Long launchedDate
+  CanaryConfig canaryConfig
+  List<CanaryDeployment> canaryDeployments = []
+  CanaryResult canaryResult
+  Status status
+  Health health
+  Recipient owner
+  List<Recipient> watchers = []
 }

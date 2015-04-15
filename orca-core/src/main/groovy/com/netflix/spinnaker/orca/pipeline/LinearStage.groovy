@@ -61,11 +61,11 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
     jobBuilder
   }
 
-  protected void injectBefore(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectBefore(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.beforeStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
-  protected void injectAfter(Stage stage, String name, LinearStage stageBuilder, Map<String, Object> context) {
+  protected void injectAfter(Stage stage, String name, StageBuilder stageBuilder, Map<String, Object> context) {
     stage.afterStages.add(new InjectedStageConfiguration(stageBuilder, name, context))
   }
 
