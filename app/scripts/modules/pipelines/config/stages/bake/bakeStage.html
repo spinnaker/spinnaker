@@ -12,7 +12,7 @@
     </div>
   </div>
   <div ng-if="viewState.providerSelected">
-    <div class="form-group" ng-if="stage.cloudProviderType === 'aws'">
+    <div class="form-group" ng-if="!stage.cloudProviderType || stage.cloudProviderType === 'aws'">
       <label class="col-md-2 col-md-offset-1 sm-label-left">Region</label>
 
       <div class="col-md-6">
