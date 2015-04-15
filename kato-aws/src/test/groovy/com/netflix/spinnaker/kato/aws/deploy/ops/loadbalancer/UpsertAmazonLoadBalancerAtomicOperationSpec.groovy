@@ -16,6 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer
+
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancing.model.ApplySecurityGroupsToLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.ConfigureHealthCheckRequest
@@ -41,6 +43,7 @@ import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -126,7 +129,20 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
   }
 
   void "should update existing load balancer"() {
-    def existingLoadBalancers = [new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")]
+    def existingLoadBalancers = [
+      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
+        .withListenerDescriptions(
+        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
+      )
+    ]
+
+    given:
+    description.listeners.add(
+      new UpsertAmazonLoadBalancerDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+        externalPort: 8080,
+        internalPort: 8080
+      ))
 
     when:
     operation.operate([])
@@ -136,7 +152,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
             new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
     1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
             loadBalancerName: "kato-main-frontend",
-            listeners: [ new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501) ]
+            listeners: [ new Listener(protocol: "HTTP", loadBalancerPort: 8080, instanceProtocol: "HTTP", instancePort: 8080) ]
     ))
     1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
             loadBalancerName: "kato-main-frontend",
@@ -158,6 +174,55 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
                     crossZoneLoadBalancing: new CrossZoneLoadBalancing(enabled: true),
                     additionalAttributes: []
             )
+    ))
+    0 * _
+  }
+
+  void "should attempt to apply all listener modifications regardless of individual failures"() {
+    def existingLoadBalancers = [
+      new LoadBalancerDescription(loadBalancerName: "kato-main-frontend")
+        .withListenerDescriptions(
+        new ListenerDescription().withListener(new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8501))
+      )
+    ]
+
+    given:
+    description.listeners.clear()
+    description.listeners.add(
+      new UpsertAmazonLoadBalancerDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.TCP,
+        externalPort: 22,
+        internalPort: 22
+      ))
+    description.listeners.add(
+      new UpsertAmazonLoadBalancerDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+        externalPort: 80,
+        internalPort: 8502
+      ))
+
+    when:
+    operation.operate([])
+
+    then:
+    thrown(AtomicOperationException)
+
+    1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(loadBalancerNames: ["kato-main-frontend"])) >>
+      new DescribeLoadBalancersResult(loadBalancerDescriptions: existingLoadBalancers)
+    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
+      loadBalancerName: "kato-main-frontend",
+      listeners: [ new Listener(protocol: "TCP", loadBalancerPort: 22, instanceProtocol: "TCP", instancePort: 22) ]
+    )) >> { throw new AmazonServiceException("AmazonServiceException") }
+    1 * loadBalancing.deleteLoadBalancerListeners(new DeleteLoadBalancerListenersRequest(
+      loadBalancerName: "kato-main-frontend", loadBalancerPorts: [80]
+    ))
+    1 * loadBalancing.createLoadBalancerListeners(new CreateLoadBalancerListenersRequest(
+      loadBalancerName: "kato-main-frontend",
+      listeners: [ new Listener(protocol: "HTTP", loadBalancerPort: 80, instanceProtocol: "HTTP", instancePort: 8502) ]
+    ))
+    1 * loadBalancing.applySecurityGroupsToLoadBalancer(new ApplySecurityGroupsToLoadBalancerRequest(
+      loadBalancerName: "kato-main-frontend",
+      securityGroups: ["sg-1234"]
     ))
     0 * _
   }

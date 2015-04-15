@@ -23,6 +23,7 @@ import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import groovy.transform.Canonical
@@ -89,6 +90,12 @@ class OperationsController {
       }
     }
     [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
+  }
+
+  @ExceptionHandler(AtomicOperationException)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map handleAtomicOperationException(HttpServletRequest req, AtomicOperationException e) {
+    [error: e.error, errors: e.errors, status: HttpStatus.BAD_REQUEST]
   }
 
   private Map<String, String> start(List<AtomicOperation> atomicOperations) {
