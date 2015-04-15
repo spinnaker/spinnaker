@@ -49,6 +49,7 @@ import static java.util.Collections.EMPTY_LIST
  */
 @CompileStatic
 abstract class StageBuilder implements ApplicationContextAware {
+  private static final int MAX_PARALLEL_CONCURRENCY = 4
 
   final String type
 
@@ -116,37 +117,32 @@ abstract class StageBuilder implements ApplicationContextAware {
         return
       }
 
+      def childStageBuilder = stageBuilders.find { it.type == childStage.type }
       if (childStage.requisiteStageRefIds.size() > 1) {
         // multi parent child, insert an artificial join stage that will wait for all parents to complete
-        def stageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE }
-
+        def waitForStageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE }
         def waitForStage = newStage(
           childStage.execution,
-          stageBuilder.type,
+          waitForStageBuilder.type,
           "Wait For Parent Tasks",
           [requisiteIds: childStage.requisiteStageRefIds] as Map,
           null as Stage,
           null as Stage.SyntheticStageOwner
         )
-        waitForStage.initializationStage = true
 
         def stageIdx = stage.execution.stages.indexOf(childStage)
         stage.execution.stages.add(stageIdx, waitForStage)
 
         def waitForBuilder = new FlowBuilder<Flow>("WaitForRequisite.${childStage.refId}.${childStage.id}")
-        stageBuilder.build(waitForBuilder, waitForStage)
+        waitForStageBuilder.build(waitForBuilder, waitForStage)
 
-        def childStageBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
-        stageBuilders.find {it.type == childStage.type}.build(childStageBuilder, childStage)
-
-        waitForBuilder.next(childStageBuilder.build())
-        flows << waitForBuilder.build()
+        // child stage should be added after the artificial join stage
+        def childFlowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
+        flows << waitForBuilder.next(childStageBuilder.build(childFlowBuilder, childStage).build() as Flow).build()
       } else {
         // single parent child, no need for an artificial join stage
-        def stageBuilder = stageBuilders.find { it.type == childStage.type }
         def flowBuilder = new FlowBuilder<Flow>("ChildExecution.${childStage.refId}.${childStage.id}")
-        stageBuilder.build(flowBuilder, childStage)
-        flows << flowBuilder.build()
+        flows << childStageBuilder.build(flowBuilder, childStage).build()
       }
     }
 
@@ -164,10 +160,13 @@ abstract class StageBuilder implements ApplicationContextAware {
   @PackageScope
   final FlowBuilder addFlowsToBuilder(FlowBuilder jobBuilder, Stage stage, Flow[] flows) {
     if (flows.size() > 1) {
+      def executor = new SimpleAsyncTaskExecutor()
+      executor.setConcurrencyLimit(MAX_PARALLEL_CONCURRENCY)
+
       // children of a fan-out stage should be executed in parallel
       def parallelFlowBuilder = new FlowBuilder<Flow>("ParallelChildren.${stage.refId}")
         .start(new SimpleFlow("NoOp"))
-        .split(new SimpleAsyncTaskExecutor())
+        .split(executor)
         .add(flows)
 
       return jobBuilder.next(parallelFlowBuilder.build())
