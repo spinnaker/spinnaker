@@ -13,7 +13,7 @@ angular.module('deckApp.pipelines.stage.canary.details.controller', [
 
       if (!step) {
         $scope.configSections = ['canary', 'taskStatus'];
-        $scope.canaryConfig = $scope.stage.context.canary.canaryConfig;
+        $scope.canaryConfig = $scope.stage.context.canaryConfig;
       } else {
         $scope.configSections = ['canaryDeployment'];
         $scope.deployment = $scope.stage.context.canary.canaryDeployments[step-1];
