@@ -10,6 +10,7 @@ angular.module('deckApp.pipelines.stage.canary', [
   'deckApp.aws.serverGroupCommandBuilder.service',
   'deckApp.pipelines.stage.canary.canaryDeployment',
   'deckApp.pipelines.stage.canary.transformer',
+  'deckApp.pipelines.stages.canary.score.directive',
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);

@@ -5,106 +5,50 @@
     <div class="row">
       <div class="col-md-6">
         <h4>Canary Config</h4>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>Config Name</dt>
-          <dd>{{canaryConfig.name}}</dd>
-          <dt>Duration</dt>
-          <dd>{{canaryConfig.lifetimeHours}} hours</dd>
-          <dt>Success Criteria</dt>
-          <dd>{{canaryConfig.canarySuccessCriteria.canaryResultScore}}</dd>
-          <dt>Result Strategy</dt>
-          <dd>{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</dd>
-        </dl>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Config Name</div>
+          <div class="col-md-6">{{canaryConfig.name}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Duration</div>
+          <div class="col-md-6">{{canaryConfig.lifetimeHours}} hours</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Success Criteria</div>
+          <div class="col-md-6">{{canaryConfig.canarySuccessCriteria.canaryResultScore}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Result Strategy</div>
+          <div class="col-md-6">{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
+        </div>
       </div>
       <div class="col-md-6">
         <h4>Analysis Config</h4>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>Config Name</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.name}}</dd>
-          <dt>Warmup Period</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins}} minutes</dd>
-          <dt>Interval</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins}} minutes</dd>
-          <dt>Notification Hours</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</dd>
-        </dl>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <h5>Health Check</h5>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>Minimum Canary Score</dt>
-          <dd>70</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-
-  <div class="step-section-details" ng-if="detailsSection === 'canaryDeployment'">
-    <div class="row">
-      <div class="col-md-12 canary-summary">
-        <div class="score score-large">
-          <div class="label label-default label-{{ stage.context.canary.health | lowercase }}">
-            <span ng-if="stage.context.canary.score">{{stage.context.canary.score }}</span>
-            <span ng-if="!stage.context.canary.score">N/A</span>
-          </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Config Name</div>
+          <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.name}}</div>
         </div>
-        <div class="canary-summary-section">
-          <div>
-          <strong>Last updated: </strong>
-          {{ 1429126669006 | timestamp}}
-          </div>
-          <div>
-          <a href>Canary Report</a>
-          </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Warmup Period</div>
+          <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins}} minutes</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Interval</div>
+          <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins}} minutes</div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Notification Hours</div>
+          <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</div>
         </div>
       </div>
     </div>
     <div class="row">
       <div class="col-md-6">
-        <h5>Baseline</h5>
-
-        <div>{{deployment.baselineCluster.name}}</div>
-      </div>
-      <div class="col-md-6">
-        <h5>Canary</h5>
-
-        <div>{{deployment.canaryCluster.name}}</div>
-      </div>
-    </div>
-    <div class="row" style="margin-top: 30px">
-      <div class="col-md-12">
-        <h5>Deployment Config</h5>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <dl class="dl-narrow dl-horizontal">
-          <dt>Account</dt>
-          <dd>
-            <account-tag account="stage.context.account"></account-tag>
-          </dd>
-          <dt>Region</dt>
-          <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
-          <dt>Cluster</dt>
-          <dd>{{stage.context | clusterName }}</dd>
-        </dl>
-      </div>
-      <div class="col-md-6">
-        <dl class="dl-narrow dl-horizontal">
-          <dt>VPC</dt>
-          <dd>{{stage.context.subnetType || '[none]'}}</dd>
-          <dt>Strategy</dt>
-          <dd>{{stage.context.strategy || '[none]'}}</dd>
-          <dt>Capacity</dt>
-          <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
-          <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">
-            Min: {{stage.context.capacity.min}},
-            Max: {{stage.context.capacity.max}},
-            Desired: {{stage.context.capacity.desired}}
-          </dd>
-        </dl>
+        <h4>Health Check</h4>
+        <div class="row">
+          <div class="col-md-6 sm-label-left compact">Minimum Canary Score</div>
+          <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
+        </div>
       </div>
     </div>
   </div>

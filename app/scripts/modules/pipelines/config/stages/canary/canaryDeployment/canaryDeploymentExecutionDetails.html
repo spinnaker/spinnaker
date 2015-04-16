@@ -1,63 +1,23 @@
 <div class="canary-details" ng-controller="CanaryDeploymentExecutionDetailsCtrl as canaryDeploymentDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
-  <div class="step-section-details" ng-if="detailsSection === 'canary'">
-    <div class="row">
-      <div class="col-md-6">
-        <h4>Canary Config</h4>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>Config Name</dt>
-          <dd>{{canaryConfig.name}}</dd>
-          <dt>Duration</dt>
-          <dd>{{canaryConfig.lifetimeHours}} hours</dd>
-          <dt>Success Criteria</dt>
-          <dd>{{canaryConfig.canarySuccessCriteria.canaryResultScore}}</dd>
-          <dt>Result Strategy</dt>
-          <dd>{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</dd>
-        </dl>
-      </div>
-      <div class="col-md-6">
-        <h4>Analysis Config</h4>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>Config Name</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.name}}</dd>
-          <dt>Warmup Period</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins}} minutes</dd>
-          <dt>Interval</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins}} minutes</dd>
-          <dt>Notification Hours</dt>
-          <dd>{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</dd>
-        </dl>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <h4>Health Check</h4>
-        <dl class="dl-narrows dl-horizontal">
-          <dt>key</dt>
-          <dd>value</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
-
   <div class="step-section-details" ng-if="detailsSection === 'canaryDeployment'">
     <div class="row">
       <div class="col-md-12 canary-summary">
         <div class="score score-large">
-          <div class="label label-default label-{{ stage.context.canary.health | lowercase }}">
-            <span ng-if="stage.context.canary.score">{{stage.context.canary.score }}</span>
-            <span ng-if="!stage.context.canary.score">N/A</span>
-          </div>
+          <canary-score health="stage.context.status.health"
+                        result="stage.context.status.result"
+                        score="stage.context.status.score"></canary-score>
         </div>
         <div class="canary-summary-section">
             <strong>Last updated: </strong>
             {{ 1429126669006 | timestamp}}
             <br/>
-            <a href>Canary Report</a>
+            <a target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
         </div>
       </div>
     </div>
+    <div class="row divider"></div>
     <div class="row">
       <div class="col-md-6">
         <h5>Baseline</h5>

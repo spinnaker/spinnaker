@@ -18,7 +18,7 @@
       </ul>
     </div>
   </h4>
-  <table class="table">
+  <table class="table canary-summary">
     <thead>
     <tr>
       <th width="50%">Deployment</th>
@@ -31,25 +31,20 @@
         ng-click="ctrl.toggleDetails(0)">
       <td><strong>Canary Summary</strong></td>
       <td>
-        <span class="label label-default label-{{ stageSummary.masterStage.context.canary.status | lowercase }}">
-        {{stageSummary.masterStage.context.canary.canaryResult.overallScore}}
-        </span>
+        <canary-score result="stageSummary.masterStage.context.canary.canaryResult.overallResult"
+                      score="stageSummary.masterStage.context.canary.canaryResult.overallScore"></canary-score>
       </td>
     </tr>
-    <tr class="clickable"
+    <tr class="clickable canary-deployment-row"
         ng-repeat="stage in stageSummary.stages track by $index"
         ng-if="stage.type === 'canaryDeployment'"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
         ng-click="ctrl.toggleDetails($index)">
-      <td style="padding-left: 20px"><strong>{{ stage.name }}</strong></td>
-      <!--<td></td>-->
-      <!--<td></td>-->
-      <!--<td></td>-->
-      <td ng-if="stage.context.health && stage.context.health !== 'UNKNOWN'">
-        <span class="label label-default label-{{ stage.context.health | lowercase }}">{{stage.context.score }}</span>
-      </td>
-      <td ng-if="!stage.context.health || stage.context.health === 'UNKNOWN'">
-        <span class="label label-default label-unknown"> N/A </span>
+      <td>{{ stage.name }}</td>
+      <td>
+        <canary-score result="stage.context.status.result"
+                      health="stage.context.status.health"
+                      score="stage.context.status.score"></canary-score>
       </td>
     </tr>
     </tbody>
