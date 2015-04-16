@@ -47,6 +47,8 @@ class PipelineSpec extends Specification {
         SUCCEEDED    | RUNNING      | NOT_STARTED  | RUNNING
         SUCCEEDED    | SUCCEEDED    | NOT_STARTED  | RUNNING
         SUCCEEDED    | SUCCEEDED    | RUNNING      | RUNNING
+        RUNNING      | SUCCEEDED    | SUCCEEDED    | RUNNING
+        SUCCEEDED    | RUNNING      | SUCCEEDED    | RUNNING
         SUCCEEDED    | SUCCEEDED    | SUCCEEDED    | SUCCEEDED
         SUCCEEDED    | FAILED       | NOT_STARTED  | FAILED
         SUCCEEDED    | SUCCEEDED    | FAILED       | FAILED
