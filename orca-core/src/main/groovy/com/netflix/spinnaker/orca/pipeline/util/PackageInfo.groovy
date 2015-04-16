@@ -7,9 +7,7 @@ import groovy.transform.CompileDynamic
 import org.springframework.beans.factory.annotation.Autowired
 
 class PackageInfo {
-  //@Autowired
   ObjectMapper mapper
-
   Stage stage
   String versionDelimiter
   String packageType
@@ -33,10 +31,19 @@ class PackageInfo {
       if (requestMap.buildInfo) { // package was built as part of the pipeline
         buildInfo = mapper.convertValue(requestMap.buildInfo, Map)
       }
-      return createAugmentedRequest(trigger, buildInfo, requestMap) // see if the trigger created a package
+      return createAugmentedRequest(trigger, buildInfo, requestMap)
     }
   }
 
+  /**
+   * Try to find a package from the pipeline trigger and/or a step in the pipeline.
+   * Optionally put the build details into the request object.  This does not alter the stage context,
+   * so assign it back if that's the desired behavior.
+   * @param trigger
+   * @param buildInfo
+   * @param request
+   * @return
+   */
   @CompileDynamic
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
     List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
@@ -45,7 +52,6 @@ class PackageInfo {
       return request
     }
 
-    // request.packageName
     String prefix = "${request.package}${versionDelimiter}"
     String fileExtension = ".${packageType}"
 
@@ -58,17 +64,21 @@ class PackageInfo {
     }
 
     String packageName
+    String packageVersion
 
     if (triggerArtifact) {
       packageName = extractPackageName(triggerArtifact, fileExtension)
+      packageVersion = extractPackageVersion(triggerArtifact, prefix, fileExtension)
     }
 
     if (buildArtifact) {
       packageName = extractPackageName(buildArtifact, fileExtension)
+      packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension)
     }
 
-    if (packageName) {
+    if (packageName && packageVersion) {
       request.put('package', packageName)
+      request.put('packageVersion', packageVersion)
 
       if (extractBuildDetails) {
         def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url
@@ -90,6 +100,15 @@ class PackageInfo {
   @CompileDynamic
   private String extractPackageName(Map artifact, String fileExtension) {
     artifact.fileName.substring(0, artifact.fileName.lastIndexOf(fileExtension))
+  }
+
+  @CompileDynamic
+  private String extractPackageVersion(Map artifact, String filePrefix, String fileExtension) {
+    String version = artifact.fileName.substring(artifact.fileName.indexOf(filePrefix), artifact.fileName.lastIndexOf(fileExtension))
+    if(version.contains(versionDelimiter)) { // further strip in case of _all is in the file name
+      version = version.substring(0,version.indexOf(versionDelimiter))
+    }
+    return version
   }
 
   @CompileDynamic

@@ -20,11 +20,11 @@
 
 package com.netflix.spinnaker.orca.bakery.api
 
-import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 
 /**
  * A request to bake a new AMI.
@@ -34,13 +34,11 @@ import com.google.gson.annotations.SerializedName
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static
-  final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
 
   String user
-  @JsonProperty("package")
-  @SerializedName("package")
-  String packageName
+  @JsonProperty("package") @SerializedName("package") String packageName
+  String packageVersion
   String buildHost
   String job
   String buildNumber
