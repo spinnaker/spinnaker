@@ -104,7 +104,7 @@ class PackageInfo {
 
   @CompileDynamic
   private String extractPackageVersion(Map artifact, String filePrefix, String fileExtension) {
-    String version = artifact.fileName.substring(artifact.fileName.indexOf(filePrefix), artifact.fileName.lastIndexOf(fileExtension))
+    String version = artifact.fileName.substring(artifact.fileName.indexOf(filePrefix) + filePrefix.length(), artifact.fileName.lastIndexOf(fileExtension))
     if(version.contains(versionDelimiter)) { // further strip in case of _all is in the file name
       version = version.substring(0,version.indexOf(versionDelimiter))
     }
