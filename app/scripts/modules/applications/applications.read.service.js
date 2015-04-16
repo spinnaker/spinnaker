@@ -245,9 +245,15 @@ angular
               if (application.tasks) {
                 clusterService.addTasksToServerGroups(application);
               }
-              securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups);
-
-              return application;
+              return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
+                .then(
+                  function() {
+                    return application;
+                  },
+                  function(err) {
+                    $exceptionHandler(err, 'Failed to load application');
+                  }
+                );
             }, function(err) {
               $exceptionHandler(err, 'Failed to load application');
             });
