@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary', ['deckApp.settings'])
+angular.module('deckApp.pipelines.stage.canary')
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
         pipelineConfigProvider.registerStage({
@@ -9,6 +9,8 @@ angular.module('deckApp.pipelines.stage.canary', ['deckApp.settings'])
           key: 'canary',
           templateUrl: 'scripts/modules/pipelines/config/stages/canary/canaryStage.html',
           executionDetailsUrl: 'scripts/modules/pipelines/config/stages/canary/canaryExecutionDetails.html',
+          executionSummaryUrl: 'scripts/modules/pipelines/config/stages/canary/canaryExecutionSummary.html',
+          executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/canary/canaryExecutionLabel.html',
           controller: 'CanaryStageCtrl',
           controllerAs: 'canaryStageCtrl',
           validators: [

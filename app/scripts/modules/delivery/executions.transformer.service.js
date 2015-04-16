@@ -3,10 +3,14 @@
 angular.module('deckApp.delivery.executionTransformer.service', [
   'deckApp.orchestratedItem.service',
   'deckApp.utils.lodash',
+  'deckApp.pipelines.config',
 ])
-  .factory('executionsTransformer', function(orchestratedItem, _) {
+  .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 
     function transformExecution(execution) {
+      pipelineConfig.getExecutionTransformers().forEach(function(transformer) {
+        transformer.transform(execution);
+      });
       var stageSummaries = [];
 
       execution.stages.forEach(function(stage, index) {

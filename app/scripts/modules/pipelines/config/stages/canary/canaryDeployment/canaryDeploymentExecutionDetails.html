@@ -1,4 +1,4 @@
-<div class="canary-details" ng-controller="CanaryExecutionDetailsCtrl as canaryDetailsCtrl">
+<div class="canary-details" ng-controller="CanaryDeploymentExecutionDetailsCtrl as canaryDeploymentDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'canary'">
@@ -32,10 +32,10 @@
     </div>
     <div class="row">
       <div class="col-md-12">
-        <h5>Health Check</h5>
+        <h4>Health Check</h4>
         <dl class="dl-narrows dl-horizontal">
-          <dt>Minimum Canary Score</dt>
-          <dd>70</dd>
+          <dt>key</dt>
+          <dd>value</dd>
         </dl>
       </div>
     </div>
@@ -51,13 +51,10 @@
           </div>
         </div>
         <div class="canary-summary-section">
-          <div>
-          <strong>Last updated: </strong>
-          {{ 1429126669006 | timestamp}}
-          </div>
-          <div>
-          <a href>Canary Report</a>
-          </div>
+            <strong>Last updated: </strong>
+            {{ 1429126669006 | timestamp}}
+            <br/>
+            <a href>Canary Report</a>
         </div>
       </div>
     </div>
@@ -66,11 +63,13 @@
         <h5>Baseline</h5>
 
         <div>{{deployment.baselineCluster.name}}</div>
+        <div>{{deployment.baselineCluster.imageId}}</div>
       </div>
       <div class="col-md-6">
         <h5>Canary</h5>
 
         <div>{{deployment.canaryCluster.name}}</div>
+        <div>{{deployment.canaryCluster.imageId}}</div>
       </div>
     </div>
     <div class="row" style="margin-top: 30px">
@@ -83,20 +82,16 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
-            <account-tag account="stage.context.account"></account-tag>
+            <account-tag account="deployment.baselineCluster.accountName"></account-tag>
           </dd>
           <dt>Region</dt>
-          <dd ng-repeat="(region, zones) in stage.context.availabilityZones">{{region}}<br/>({{zones.join(', ')}})</dd>
+          <dd>{{deployment.baselineCluster.region}}</dd>
           <dt>Cluster</dt>
-          <dd>{{stage.context | clusterName }}</dd>
+          <dd>{{deployment.baselineCluster.name | clusterName }}</dd>
         </dl>
       </div>
       <div class="col-md-6">
         <dl class="dl-narrow dl-horizontal">
-          <dt>VPC</dt>
-          <dd>{{stage.context.subnetType || '[none]'}}</dd>
-          <dt>Strategy</dt>
-          <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt>Capacity</dt>
           <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
           <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">

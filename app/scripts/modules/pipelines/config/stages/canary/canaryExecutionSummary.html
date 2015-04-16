@@ -1,0 +1,57 @@
+<div>
+  <h4 class="execution-details-title">
+    {{stageSummary.name || stageSummary.type }} Details
+
+    <span style="margin-left: 10px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status | lowercase }}">
+        {{ stageSummary.masterStage.context.canary.status | lowercase | robotToHuman }}
+      </span>
+
+    <div dropdown class="btn-group pull-right">
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" ng-disabled="disabled">
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href="#">Generate canary score</a></li>
+        <li><a href="#">Terminate canary</a></li>
+        <li><a href="#">Disable canaries</a></li>
+      </ul>
+    </div>
+  </h4>
+  <table class="table">
+    <thead>
+    <tr>
+      <th width="50%">Deployment</th>
+      <th width="50%">Score</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="clickable"
+        ng-class="{ info: ctrl.isStepCurrent(0) }"
+        ng-click="ctrl.toggleDetails(0)">
+      <td><strong>Canary Summary</strong></td>
+      <td>
+        <span class="label label-default label-{{ stageSummary.masterStage.context.canary.status | lowercase }}">
+        {{stageSummary.masterStage.context.canary.canaryResult.overallScore}}
+        </span>
+      </td>
+    </tr>
+    <tr class="clickable"
+        ng-repeat="stage in stageSummary.stages track by $index"
+        ng-if="stage.type === 'canaryDeployment'"
+        ng-class="{ info: ctrl.isStepCurrent($index) }"
+        ng-click="ctrl.toggleDetails($index)">
+      <td style="padding-left: 20px"><strong>{{ stage.name }}</strong></td>
+      <!--<td></td>-->
+      <!--<td></td>-->
+      <!--<td></td>-->
+      <td ng-if="stage.context.health && stage.context.health !== 'UNKNOWN'">
+        <span class="label label-default label-{{ stage.context.health | lowercase }}">{{stage.context.score }}</span>
+      </td>
+      <td ng-if="!stage.context.health || stage.context.health === 'UNKNOWN'">
+        <span class="label label-default label-unknown"> N/A </span>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

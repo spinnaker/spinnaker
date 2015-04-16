@@ -1,6 +1,6 @@
 'use strict';
 
-describe('executionsService', function() {
+xdescribe('executionsService', function() {
 
   beforeEach(module('deckApp.delivery.executionTransformer.service'));
 

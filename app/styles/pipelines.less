@@ -84,7 +84,7 @@
       }
 
     }
-    .label-completed {
+    .label-completed, .label-launched, .label-healthy {
       background-color: @healthy_green_border;
     }
     .label-failed {
@@ -93,8 +93,12 @@
     .label-running {
       background-color: @spinnaker-blue;
     }
+    .label-unhealthy {
+      background-color: @unhealthy_orange;
+    }
     .label {
       text-transform: uppercase;
+      border-radius: 0;
       color: #fff;
       font-weight: 600;
       .glyphicon {
