@@ -4,9 +4,10 @@ describe('DeployExecutionDetailsCtrl', function() {
 
   beforeEach(module('deckApp.pipelines.stage.deploy.details.controller'));
 
-  beforeEach(inject(function ($controller, $rootScope, _) {
+  beforeEach(inject(function ($controller, $rootScope, _, $timeout) {
     this.$controller = $controller;
     this._ = _;
+    this.$timeout = $timeout;
     this.$scope = $rootScope.$new();
 
   }));
@@ -23,6 +24,7 @@ describe('DeployExecutionDetailsCtrl', function() {
           $stateParams: { details: 'deploymentConfig' },
           executionDetailsSectionService: jasmine.createSpyObj('executionDetailsSectionService', ['synchronizeSection']),
         });
+        this.$timeout.flush();
       };
 
     });

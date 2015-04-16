@@ -32,7 +32,7 @@
     </div>
     <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
-    <div class="row" ng-if="stage.isCompleted && stage.context['kato.tasks'][0].resultObjects">
+    <div class="row" ng-if="deployed.length">
       <div class="col-md-12">
         <div class="well alert alert-info">
           <strong>Deployed:</strong>
