@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,11 @@ package com.netflix.spinnaker.orca
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
-interface Task {
-  TaskResult execute(Stage stage)
+/**
+ * Upon cancellation of pipeline execution, cancel() method would be called for a task that is implementing
+ * this interface
+ * @author sthadeshwar
+ */
+interface CancellableTask {
+  TaskResult cancel(Stage stage)
 }

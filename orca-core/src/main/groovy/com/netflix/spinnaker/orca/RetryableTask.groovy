@@ -20,8 +20,6 @@ package com.netflix.spinnaker.orca
  * A retryable task defines its backoff period (the period between delays) and its timeout (the total period of the task)
  */
 interface RetryableTask extends Task {
-
   long getBackoffPeriod()
-
   long getTimeout()
 }

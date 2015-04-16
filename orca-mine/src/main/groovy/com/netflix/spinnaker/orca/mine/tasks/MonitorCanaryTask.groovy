@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
+import com.netflix.spinnaker.orca.CancellableTask
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -33,8 +34,8 @@ import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
-class MonitorCanaryTask implements RetryableTask {
-  long backoffPeriod = 15000
+class MonitorCanaryTask implements RetryableTask, CancellableTask {
+  long backoffPeriod = 10000
   long timeout = TimeUnit.DAYS.toMillis(2)
 
   @Autowired
@@ -52,7 +53,7 @@ class MonitorCanaryTask implements RetryableTask {
     log.info("MonitorCanary, current status: ${canary}")
 
     def outputs = [canary: canary]
-    outputs.canary = mineService.checkCanaryStatus(canary.id)
+    outputs.canary = mineService.getCanary(canary.id)
     if (outputs.canary.status.complete) {
       log.info("Canary complete")
       return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [:], outputs)
@@ -97,5 +98,14 @@ class MonitorCanaryTask implements RetryableTask {
 
     log.info("Canary in progress: ${outputs.canary}")
     return resultSerializationHelper.result(ExecutionStatus.RUNNING, outputs)
+  }
+
+  @Override
+  TaskResult cancel(Stage stage) {
+    Canary canary = stage.mapTo('/canary', Canary)
+    log.info("Cancelling canary: ${canary}...")
+    def outputs = [canary: canary]
+    outputs.canary = mineService.cancelCanary(canary.id, "Pipeline execution (${stage.execution?.id}) canceled")
+    return resultSerializationHelper.result(ExecutionStatus.CANCELED, outputs)
   }
 }
