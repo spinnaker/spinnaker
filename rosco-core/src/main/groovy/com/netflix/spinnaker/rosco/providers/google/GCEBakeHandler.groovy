@@ -43,11 +43,6 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest) {
-    return bakeRequest
-  }
-
-  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = gceBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
@@ -68,11 +63,6 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
-  }
-
-  @Override
-  String getBaseCommand() {
-    return ""
   }
 
   @Override

@@ -45,16 +45,9 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest) {
-    if (!bakeRequest.vm_type) {
-      return bakeRequest.copyWith(vm_type: awsBakeryDefaults.defaultVirtualizationType)
-    } else {
-      return bakeRequest
-    }
-  }
-
-  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
+    BakeRequest.VmType vm_type = bakeRequest.vm_type ?: awsBakeryDefaults.defaultVirtualizationType
+
     def awsOperatingSystemVirtualizationSettings = awsBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
     }
@@ -65,11 +58,11 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
 
     def awsVirtualizationSettings = awsOperatingSystemVirtualizationSettings?.virtualizationSettings.find {
       it.region == region
-      it.virtualizationType == bakeRequest.vm_type
+      it.virtualizationType == vm_type
     }
 
     if (!awsVirtualizationSettings) {
-      throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$bakeRequest.vm_type'.")
+      throw new IllegalArgumentException("No virtualization settings found for region '$region', operating system '$bakeRequest.base_os', and vm type '$vm_type'.")
     }
 
     return awsVirtualizationSettings
@@ -86,11 +79,6 @@ public class AWSBakeHandler extends CloudProviderBakeHandler {
       aws_source_ami:    awsVirtualizationSettings.sourceAmi,
       aws_target_ami:    imageName
     ]
-  }
-
-  @Override
-  String getBaseCommand() {
-    return ""
   }
 
   @Override

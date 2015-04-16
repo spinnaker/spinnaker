@@ -50,12 +50,6 @@ abstract class CloudProviderBakeHandler {
   abstract Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent)
 
   /**
-   * Produces a new bake request containing default values that were missing from the original. Returns the
-   * original bake request if no properties are missing.
-   */
-  abstract BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest)
-
-  /**
    * Finds the appropriate virtualization settings in this provider's configuration based on the region and
    * bake request parameters. Throws an IllegalArgumentException if the virtualization settings cannot be
    * found.
@@ -70,7 +64,9 @@ abstract class CloudProviderBakeHandler {
   /**
    * Returns the command that should be prepended to the shell command passed to the container.
    */
-  abstract String getBaseCommand()
+  String getBaseCommand() {
+    return ""
+  }
 
   /**
    * Returns the name of the template file for this provider.
@@ -81,8 +77,6 @@ abstract class CloudProviderBakeHandler {
    * Build provider-specific script command for packer.
    */
   List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
-    bakeRequest = populateBakeRequestWithDefaults(bakeRequest)
-
     def virtualizationSettings = findVirtualizationSettings(region, bakeRequest)
 
     def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)

@@ -43,11 +43,6 @@ public class DockerBakeHandler extends CloudProviderBakeHandler {
   }
 
   @Override
-  BakeRequest populateBakeRequestWithDefaults(BakeRequest bakeRequest) {
-    return bakeRequest
-  }
-
-  @Override
   def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = dockerBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
