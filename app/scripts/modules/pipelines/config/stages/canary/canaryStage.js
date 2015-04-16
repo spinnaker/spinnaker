@@ -31,23 +31,19 @@ angular.module('deckApp.pipelines.stage.canary')
     $scope.stage.canaries = $scope.stage.canaries || [];
     $scope.stage.canaryConfig = $scope.stage.canaryConfig || {};
     $scope.stage.canaryConfig.canaryAnalysisConfig = $scope.stage.canaryConfig.canaryAnalysisConfig || {};
-    $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = null; //$scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
-    /*
-    console.log($scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
-    console.log(typeof $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
+    $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
+
     $scope.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
-    console.log($scope.notificationHours);
-    console.log(typeof $scope.notificationHours);
 
     this.splitNotificationHours = function() {
-      console.log("ngchanged");
       $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = _.map($scope.notificationHours.split(','), function(str) {
-        return str.trim();
+        if (!parseInt(str.trim()).isNaN) {
+          return parseInt(str.trim());
+        }
+        return 0;
       });
-      console.log($scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours)
-      console.log(typeof $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours);
     };
-*/
+
     this.getRegion = function(cluster) {
       var availabilityZones = cluster.availabilityZones;
       if (availabilityZones) {

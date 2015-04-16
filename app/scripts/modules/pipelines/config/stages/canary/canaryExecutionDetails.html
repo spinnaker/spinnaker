@@ -3,7 +3,7 @@
 
   <div class="step-section-details" ng-if="detailsSection === 'canary'">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-6 canary-config-section">
         <h4>Canary Config</h4>
         <div class="row">
           <div class="col-md-6 sm-label-left compact">Config Name</div>
@@ -22,7 +22,7 @@
           <div class="col-md-6">{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-6 canary-config-section">
         <h4>Analysis Config</h4>
         <div class="row">
           <div class="col-md-6 sm-label-left compact">Config Name</div>
@@ -43,7 +43,7 @@
       </div>
     </div>
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-6 canary-config-section">
         <h4>Health Check</h4>
         <div class="row">
           <div class="col-md-6 sm-label-left compact">Minimum Canary Score</div>
