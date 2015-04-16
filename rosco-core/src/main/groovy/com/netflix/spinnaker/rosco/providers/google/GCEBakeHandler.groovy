@@ -26,19 +26,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class GCEBakeHandler implements CloudProviderBakeHandler {
+public class GCEBakeHandler extends CloudProviderBakeHandler {
 
   private static final String BUILDER_TYPE = "googlecompute"
   private static final String IMAGE_NAME_TOKEN = "googlecompute: A disk image was created:"
 
   @Autowired
   RoscoGoogleConfiguration.GCEBakeryDefaults gceBakeryDefaults
-
-  @Autowired
-  ImageNameFactory imageNameFactory
-
-  @Autowired
-  PackerCommandFactory packerCommandFactory
 
   @Override
   String produceBakeKey(String region, BakeRequest bakeRequest) {
@@ -49,10 +43,7 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
   }
 
   @Override
-  List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
-    def (imageName, appVersionStr, packagesParameter) =
-      imageNameFactory.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest)
-
+  def findVirtualizationSettings(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = gceBakeryDefaults?.operatingSystemVirtualizationSettings.find {
       it.os == bakeRequest.base_os
     }?.virtualizationSettings
@@ -61,22 +52,22 @@ public class GCEBakeHandler implements CloudProviderBakeHandler {
       throw new IllegalArgumentException("No virtualization settings found for '$bakeRequest.base_os'.")
     }
 
-    def parameterMap = [
+    return virtualizationSettings
+  }
+
+  @Override
+  Map buildParameterMap(String region, def gceVirtualizationSettings, String imageName) {
+    return [
       gce_project_id:   gceBakeryDefaults.project,
       gce_zone:         gceBakeryDefaults.zone,
-      gce_source_image: virtualizationSettings.sourceImage,
+      gce_source_image: gceVirtualizationSettings.sourceImage,
       gce_target_image: imageName
     ]
+  }
 
-    // TODO(duftler): Build out proper support for installation of packages.
-    parameterMap.packages = packagesParameter
-
-    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
-    if (appVersionStr) {
-      parameterMap.appversion = appVersionStr
-    }
-
-    return packerCommandFactory.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
+  @Override
+  String getTemplateFileName() {
+    return gceBakeryDefaults.templateFile
   }
 
   @Override

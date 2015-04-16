@@ -154,7 +154,7 @@ class AWSBakeHandlerSpec extends Specification {
 
     when:
       def logsContent =
-        "    amazon-ebs: Processing triggers for libc-bin ...\n" +
+          "    amazon-ebs: Processing triggers for libc-bin ...\n" +
           "    amazon-ebs: ldconfig deferred processing now taking place\n" +
           "==> amazon-ebs: Stopping the source instance...\n" +
           "==> amazon-ebs: Waiting for the instance to stop...\n"
@@ -176,6 +176,7 @@ class AWSBakeHandlerSpec extends Specification {
       def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
                                         package_name: PACKAGE_NAME,
                                         base_os: BakeRequest.OperatingSystem.ubuntu,
+                                        vm_type: BakeRequest.VmType.hvm,
                                         cloud_provider_type: BakeRequest.CloudProviderType.aws)
       def targetImageName = "kato-x8664-timestamp-ubuntu"
       def parameterMap = [
@@ -198,8 +199,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
-        [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -233,8 +233,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
-        [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -268,8 +267,7 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
-        [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
@@ -292,7 +290,6 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }
@@ -316,7 +313,6 @@ class AWSBakeHandlerSpec extends Specification {
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for region 'us-east-1', operating system 'trusty', and vm type 'pv'."
   }

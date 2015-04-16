@@ -142,8 +142,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
-        [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
@@ -173,8 +172,7 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >>
-        [targetImageName, null, PACKAGE_NAME]
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
@@ -196,7 +194,6 @@ class GCEBakeHandlerSpec extends Specification {
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
-      1 * imageNameFactoryMock.processPackageNameAndProduceImageNameAndAppVersion(bakeRequest) >> new Object[3]
       IllegalArgumentException e = thrown()
       e.message == "No virtualization settings found for 'centos'."
   }
