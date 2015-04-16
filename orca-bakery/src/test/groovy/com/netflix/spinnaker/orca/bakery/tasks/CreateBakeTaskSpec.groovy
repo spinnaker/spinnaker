@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import rx.Observable
 import spock.lang.Shared
 import spock.lang.Specification
@@ -46,7 +47,7 @@ class CreateBakeTaskSpec extends Specification {
     region   : "us-west-1",
     package  : "hodor",
     user     : "bran",
-    baseOs   : BakeRequest.OperatingSystem.ubuntu.name(),
+    baseOs   : OperatingSystem.ubuntu.name(),
     baseLabel: BakeRequest.Label.release.name()
   ]
 
@@ -94,7 +95,6 @@ class CreateBakeTaskSpec extends Specification {
 
   def setup() {
     task.mapper = mapper
-
     stage = new PipelineStage(pipeline, "bake", bakeConfig).asImmutable()
   }
 
@@ -309,7 +309,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
                                  it.job == "SPINNAKER-package-echo" &&
                                  it.buildNumber == "69"
@@ -339,7 +339,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&
                                  it.job == null &&
                                  it.buildNumber == null
@@ -369,7 +369,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
                                  it.baseLabel == BakeRequest.Label.release &&
-                                 it.baseOs == BakeRequest.OperatingSystem.ubuntu &&
+                                 it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&
                                  it.job == null &&
                                  it.buildNumber == null

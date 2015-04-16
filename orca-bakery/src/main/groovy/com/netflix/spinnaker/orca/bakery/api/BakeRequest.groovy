@@ -24,6 +24,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.google.gson.annotations.SerializedName
+import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 
 /**
  * A request to bake a new AMI.
@@ -33,10 +34,11 @@ import com.google.gson.annotations.SerializedName
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
 
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
+  String packageVersion
   String buildHost
   String job
   String buildNumber
@@ -57,41 +59,6 @@ class BakeRequest {
 
   static enum Label {
     release, candidate, previous, unstable, foundation
-  }
-
-  static enum PackageType {
-    RPM('rpm', '-'),
-    DEB('deb', '_')
-
-    private final String packageType
-    private final String versionDelimiter
-
-    private PackageType(String packageType, String versionDelimiter) {
-      this.packageType = packageType
-      this.versionDelimiter = versionDelimiter
-    }
-
-    String getPackageType() {
-      return this.packageType
-    }
-
-    String getVersionDelimiter() {
-      return this.versionDelimiter
-    }
-  }
-
-  static enum OperatingSystem {
-
-    centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
-
-    private final PackageType packageType
-    private OperatingSystem(PackageType packageType) {
-      this.packageType = packageType
-    }
-
-    PackageType getPackageType() {
-      return packageType
-    }
   }
 
   static enum VmType {

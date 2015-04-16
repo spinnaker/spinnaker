@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
+import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -66,96 +68,11 @@ class CreateBakeTask implements Task {
 
   @CompileDynamic
   private BakeRequest bakeFromContext(Stage stage) {
+    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs)
 
-    BakeRequest request = mapper.convertValue(stage.context, BakeRequest)
-    if (stage.execution instanceof Pipeline) {
-      Map trigger = ((Pipeline) stage.execution).trigger
-      Map buildInfo = [:]
-      if (stage.context.buildInfo) {
-        buildInfo = mapper.convertValue(stage.context.buildInfo, Map)
-      }
-
-      return createAugmentedRequest(trigger, buildInfo, request)
-    }
-    return request
-  }
-
-  @CompileDynamic
-  private BakeRequest createAugmentedRequest(Map trigger, Map buildInfo, BakeRequest request) {
-    List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
-    List<Map> buildArtifacts = buildInfo.artifacts
-    if (!triggerArtifacts && !buildArtifacts) {
-      return request
-    }
-
-    String prefix = "${request.packageName}${request.baseOs.packageType.versionDelimiter}"
-    String fileExtension = ".${request.baseOs.packageType.packageType}"
-
-    Map triggerArtifact = filterArtifacts(triggerArtifacts, prefix, fileExtension)
-    Map buildArtifact = filterArtifacts(buildArtifacts, prefix, fileExtension)
-
-    if (triggerArtifact && buildArtifact && triggerArtifact.fileName != buildArtifact.fileName) {
-      throw new IllegalStateException("Found build artifact in Jenkins stage and Pipeline Trigger")
-    }
-
-    String packageName
-
-    if (triggerArtifact) {
-      packageName = extractPackageName(triggerArtifact, fileExtension)
-    }
-
-    if (buildArtifact) {
-      packageName = extractPackageName(buildArtifact, fileExtension)
-    }
-
-    if (packageName) {
-      def augmentedRequest = request.copyWith(packageName: packageName)
-
-      if (extractBuildDetails) {
-        def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url
-        def buildInfoUrlParts = parseBuildInfoUrl(buildInfoUrl)
-
-        if (buildInfoUrlParts?.size == 3) {
-          augmentedRequest = augmentedRequest.copyWith(buildHost: buildInfoUrlParts[0],
-                                                       job: buildInfoUrlParts[1],
-                                                       buildNumber: buildInfoUrlParts[2])
-        }
-      }
-
-      return augmentedRequest
-    }
-
-    throw new IllegalStateException("Unable to find deployable artifact starting with ${prefix} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}")
-  }
-
-  @CompileDynamic
-  private String extractPackageName(Map artifact, String fileExtension) {
-    artifact.fileName.substring(0, artifact.fileName.lastIndexOf(fileExtension))
-  }
-
-  @CompileDynamic
-  private Map filterArtifacts(List<Map> artifacts, String prefix, String fileExtension) {
-    artifacts.find {
-      it.fileName?.startsWith(prefix) && it.fileName?.endsWith(fileExtension)
-    }
-  }
-
-  @CompileDynamic
-  // Naming-convention for buildInfo.url is $protocol://$buildHost/job/$job/$buildNumber/.
-  // For example: http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/
-  def parseBuildInfoUrl(String url) {
-    List<String> urlParts = url?.tokenize("/")
-
-    if (urlParts?.size == 5) {
-      def buildNumber = urlParts.pop()
-      def job = urlParts.pop()
-
-      // Discard 'job' path segment.
-      urlParts.pop()
-
-      def buildHost = "${urlParts[0]}//${urlParts[1]}/"
-
-      return [buildHost, job, buildNumber]
-    }
+    PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
+      operatingSystem.packageType.versionDelimiter, extractBuildDetails, mapper)
+    Map requestMap = packageInfo.findTargetPackage()
+    return mapper.convertValue(requestMap, BakeRequest)
   }
 }
