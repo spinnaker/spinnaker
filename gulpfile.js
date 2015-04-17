@@ -92,7 +92,7 @@ gulp.task('clean:images', function(done) {
     del([dist, styles, item+'*.css'].join('/'), done);
   });
 });
-['application', 'vendor', 'templates', 'settings'].forEach(function(item) {
+['application', 'vendor', 'templates', 'settings', 'plugins'].forEach(function(item) {
   gulp.task('clean:'+scripts+':'+item, function(done) {
     del([
       [dist, scripts, item+'*.js'].join('/'),
@@ -244,7 +244,12 @@ gulp.task('scripts:templates', ['clean:scripts:templates'], function() {
     .pipe(gulp.dest([dist, scripts].join('/')));
 });
 
-gulp.task('scripts', ['scripts:application', 'scripts:vendor', 'scripts:templates', 'scripts:settings']);
+gulp.task('scripts:plugins', ['clean:scripts:plugins'], function() {
+  return gulp.src([app, 'scripts/plugins.js'].join('/'))
+    .pipe(gulp.dest([dist, scripts].join('/')));
+});
+
+gulp.task('scripts', ['scripts:application', 'scripts:vendor', 'scripts:templates', 'scripts:settings', 'scripts:plugins']);
 
 gulp.task('connect', function() {
   $.connect.server({
