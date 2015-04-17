@@ -59,7 +59,7 @@ angular.module('deckApp.pipelines.stage.bake')
         if (!$scope.stage.cloudProviderType || $scope.stage.cloudProviderType === 'aws') {
           $scope.regions = results.regions;
         } else {
-          $scope.regions  = ["global"];
+          $scope.regions  = ['global'];
         }
         if ($scope.regions.length === 1) {
           $scope.stage.region = $scope.regions[0];
