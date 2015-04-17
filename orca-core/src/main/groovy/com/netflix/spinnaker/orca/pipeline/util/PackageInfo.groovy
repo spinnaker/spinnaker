@@ -12,12 +12,14 @@ class PackageInfo {
   String versionDelimiter
   String packageType
   boolean extractBuildDetails
+  boolean extractVersion
 
-  PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, ObjectMapper mapper) {
+  PackageInfo(Stage stage, String packageType, String versionDelimiter, boolean extractBuildDetails, boolean extractVersion, ObjectMapper mapper) {
     this.stage = stage
     this.packageType = packageType
     this.versionDelimiter = versionDelimiter
     this.extractBuildDetails = extractBuildDetails
+    this.extractVersion = extractVersion
     this.mapper = mapper
   }
 
@@ -68,17 +70,24 @@ class PackageInfo {
 
     if (triggerArtifact) {
       packageName = extractPackageName(triggerArtifact, fileExtension)
-      packageVersion = extractPackageVersion(triggerArtifact, prefix, fileExtension)
+      if(extractVersion) {
+        packageVersion = extractPackageVersion(triggerArtifact, prefix, fileExtension)
+      }
     }
 
     if (buildArtifact) {
       packageName = extractPackageName(buildArtifact, fileExtension)
-      packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension)
+      if(extractVersion) {
+        packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension)
+      }
     }
 
-    if (packageName && packageVersion) {
-      request.put('package', packageName)
+    if(packageVersion) {
       request.put('packageVersion', packageVersion)
+    }
+
+    if (packageName) {
+      request.put('package', packageName)
 
       if (extractBuildDetails) {
         def buildInfoUrl = buildArtifact ? buildInfo?.url : trigger?.buildInfo?.url

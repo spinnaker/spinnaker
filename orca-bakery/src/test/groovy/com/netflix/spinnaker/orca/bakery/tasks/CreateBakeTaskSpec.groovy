@@ -149,7 +149,6 @@ class CreateBakeTaskSpec extends Specification {
 
     then:
     bake.packageName == 'hodor_1.1_all'
-    bake.packageVersion == '1.1'
     result.outputs.bakePackageName == 'hodor_1.1_all'
 
     where:
@@ -309,7 +308,6 @@ class CreateBakeTaskSpec extends Specification {
                                {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
-                                 it.packageVersion == "1.1" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
@@ -340,7 +338,6 @@ class CreateBakeTaskSpec extends Specification {
                                {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
-                                 it.packageVersion == "1.1" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&
@@ -371,7 +368,6 @@ class CreateBakeTaskSpec extends Specification {
                                {
                                  it.user == "bran" &&
                                  it.packageName == "hodor_1.1_all" &&
-                                 it.packageVersion == "1.1" &&
                                  it.baseLabel == BakeRequest.Label.release &&
                                  it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&

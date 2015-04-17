@@ -71,7 +71,7 @@ class CreateBakeTask implements Task {
     OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs)
 
     PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
-      operatingSystem.packageType.versionDelimiter, extractBuildDetails, mapper)
+      operatingSystem.packageType.versionDelimiter, extractBuildDetails, false, mapper)
     Map requestMap = packageInfo.findTargetPackage()
     return mapper.convertValue(requestMap, BakeRequest)
   }
