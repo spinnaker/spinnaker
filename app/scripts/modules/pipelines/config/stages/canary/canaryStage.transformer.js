@@ -12,7 +12,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             if (canaryStatus.status === 'LAUNCHED') {
               status = 'RUNNING';
             }
-            if (canaryStatus.completed) {
+            if (canaryStatus.complete) {
               status = 'COMPLETED';
             }
             canaryStatus.status = status;
@@ -26,7 +26,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             deployment.canaryCluster = deployment.canaryCluster || {};
             syntheticStagesToAdd.push({
               parentStageId: stage.id,
-              syntheticStageOwner: 'STAGE_AFTER',
+              syntheticStageOwner: 'STAGE_BEFORE',
               id: stage.id + '-' + deploymentIndex,
               type: 'canaryDeployment',
               name: deployment.canaryCluster.region,
