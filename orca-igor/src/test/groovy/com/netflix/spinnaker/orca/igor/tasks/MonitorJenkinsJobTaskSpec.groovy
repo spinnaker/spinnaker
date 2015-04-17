@@ -52,9 +52,9 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     where:
     jobState   | taskStatus
     'ABORTED'  | ExecutionStatus.CANCELED
-    'FAILURE'  | ExecutionStatus.FAILED
+    'FAILURE'  | ExecutionStatus.TERMINAL
     'SUCCESS'  | ExecutionStatus.SUCCEEDED
-    'UNSTABLE' | ExecutionStatus.FAILED
+    'UNSTABLE' | ExecutionStatus.TERMINAL
     null       | ExecutionStatus.RUNNING
     'UNKNOWN'  | ExecutionStatus.RUNNING
   }

@@ -39,9 +39,9 @@ class MonitorJenkinsJobTask implements RetryableTask {
 
   private static Map<String, ExecutionStatus> statusMap = [
     'ABORTED' : ExecutionStatus.CANCELED,
-    'FAILURE' : ExecutionStatus.FAILED,
+    'FAILURE' : ExecutionStatus.TERMINAL,
     'SUCCESS' : ExecutionStatus.SUCCEEDED,
-    'UNSTABLE': ExecutionStatus.FAILED
+    'UNSTABLE': ExecutionStatus.TERMINAL
   ]
 
   @Override
