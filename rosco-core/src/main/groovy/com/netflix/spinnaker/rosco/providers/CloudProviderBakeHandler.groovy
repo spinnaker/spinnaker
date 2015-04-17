@@ -86,9 +86,12 @@ abstract class CloudProviderBakeHandler {
     // TODO(duftler): Build out proper support for installation of packages.
     parameterMap.packages = packagesParameter
 
-    // TODO(duftler): Also set 'build_host' once it is included in BakeRequest.
     if (appVersionStr) {
       parameterMap.appversion = appVersionStr
+    }
+
+    if (bakeRequest.build_host) {
+      parameterMap.build_host = bakeRequest.build_host
     }
 
     return packerCommandFactory.buildPackerCommand(baseCommand, parameterMap, templateFileName)

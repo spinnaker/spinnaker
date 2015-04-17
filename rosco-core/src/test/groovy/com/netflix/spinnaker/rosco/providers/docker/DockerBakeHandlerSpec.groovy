@@ -29,6 +29,7 @@ import spock.lang.Subject
 class DockerBakeHandlerSpec extends Specification {
 
   private static final String PACKAGE_NAME = "kato"
+  private static final String REGION = "global"
   private static final String TARGET_REPOSITORY = "my-docker-repository:5000"
   private static final String TEMPLATE_FILE = "docker_template.json"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu:precise"
@@ -145,7 +146,7 @@ class DockerBakeHandlerSpec extends Specification {
                                                                   packerCommandFactory: packerCommandFactoryMock)
 
     when:
-      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
@@ -176,10 +177,48 @@ class DockerBakeHandlerSpec extends Specification {
                                                                   packerCommandFactory: packerCommandFactoryMock)
 
     when:
-      dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
+      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >> [targetImageName, null, PACKAGE_NAME]
+      1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
+                                                      parameterMap,
+                                                      dockerBakeryDefaults.templateFile)
+  }
+
+  void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      def buildHost = "http://some-build-server:8080"
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: fullyQualifiedPackageName,
+                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        build_host: buildHost,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
+        docker_target_image: targetImageName,
+        docker_target_repository: TARGET_REPOSITORY,
+        packages: fullyQualifiedPackageName,
+        appversion: appVersionStr,
+        build_host: buildHost
+      ]
+
+      @Subject
+      DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
+                                                                  imageNameFactory: imageNameFactoryMock,
+                                                                  packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, appVersionStr, fullyQualifiedPackageName]
       1 * packerCommandFactoryMock.buildPackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND,
                                                       parameterMap,
                                                       dockerBakeryDefaults.templateFile)

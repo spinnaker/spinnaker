@@ -33,6 +33,9 @@ class BakeRequest {
 
   String user
   @JsonProperty("package") @SerializedName("package") String package_name
+  String build_host
+  String job
+  String build_number
   CloudProviderType cloud_provider_type
   Label base_label
   OperatingSystem base_os

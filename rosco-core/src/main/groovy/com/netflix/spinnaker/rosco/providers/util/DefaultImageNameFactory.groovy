@@ -44,9 +44,8 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       // For now, we only take into account the first package name when generating the appversion tag.
       firstPackageName = packageNameList[0]
 
-      // TODO(duftler): Append '/$job-name/$build-number' to appVersionStr once those properties are included
-      // in BakeRequest.
-      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest.base_os.packageType, firstPackageName)
+      // Passing in firstPackageName here to avoid tokenizing the package name list twice.
+      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, firstPackageName)
       appVersion = AppVersion.parseName(appVersionStr)
 
       if (appVersion) {

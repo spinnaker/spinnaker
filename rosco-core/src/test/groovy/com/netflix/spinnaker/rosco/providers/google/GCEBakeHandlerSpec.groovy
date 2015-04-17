@@ -176,6 +176,43 @@ class GCEBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
   }
 
+  void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      def buildHost = "http://some-build-server:8080"
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: fullyQualifiedPackageName,
+                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        build_host: buildHost,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        gce_project_id: gceBakeryDefaults.project,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
+        gce_target_image: targetImageName,
+        packages: fullyQualifiedPackageName,
+        appversion: appVersionStr,
+        build_host: buildHost
+      ]
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, gceBakeryDefaults.templateFile)
+  }
+
   void 'throws exception when virtualization settings are not found for specified operating system'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)

@@ -100,7 +100,8 @@ class PackageNameConverter {
     osPackageName
   }
 
-  public static String buildAppVersionStr(BakeRequest.PackageType packageType, String packageName) {
+  public static String buildAppVersionStr(BakeRequest bakeRequest, String packageName) {
+    BakeRequest.PackageType packageType = bakeRequest.base_os.packageType
     OsPackageName osPackageName
 
     if (packageType == BakeRequest.PackageType.DEB) {
@@ -122,6 +123,10 @@ class PackageNameConverter {
 
           if (buildNumber) {
             appVersion += ".$buildNumber"
+
+            if (bakeRequest.job && bakeRequest.build_number) {
+              appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
+            }
           }
         }
       }
