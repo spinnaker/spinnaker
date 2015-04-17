@@ -48,12 +48,33 @@ class MonitorKatoTaskSpec extends Specification {
 
     where:
     completed | failed | expectedResult
-    true  | false | ExecutionStatus.SUCCEEDED
-    false | false | ExecutionStatus.RUNNING
-    true  | true  | ExecutionStatus.TERMINAL
+    true      | false  | ExecutionStatus.SUCCEEDED
+    false     | false  | ExecutionStatus.RUNNING
+    true      | true   | ExecutionStatus.TERMINAL
 
     taskId = "kato-task-id"
     katoStatus = completed ? "completed" : "incomplete"
+  }
+
+  @Unroll
+  def "should automatically succeed if task id does not exist"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "whatever", context).asImmutable()
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status
+    result.stageOutputs.isEmpty()
+    result.globalOutputs.isEmpty()
+
+    where:
+    context                     | _
+    ["kato.last.task.id": null] | _
+    [:]                         | _
+    null                        | _
+
   }
 
 }
