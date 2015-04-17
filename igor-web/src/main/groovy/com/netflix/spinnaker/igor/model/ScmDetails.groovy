@@ -40,8 +40,8 @@ class Action{
 }
 
 class LastBuiltRevision{
-    @Element(required = false)
-    Branch branch
+    @ElementList(inline = true, name = "branch")
+    List<Branch> branch
 }
 
 class Branch{

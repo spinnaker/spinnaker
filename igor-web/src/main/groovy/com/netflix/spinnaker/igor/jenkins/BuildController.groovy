@@ -56,11 +56,12 @@ class BuildController {
         Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
         Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
         if (scm?.action?.lastBuiltRevision?.branch?.name) {
-            result.scm = [
-                ref   : scm?.action.lastBuiltRevision?.branch.name,
-                branch: scm?.action.lastBuiltRevision?.branch.name.split('/').last(),
-                sha1  : scm?.action.lastBuiltRevision?.branch.sha1
-            ]
+            result.scm = scm?.action.lastBuiltRevision
+            result.scm = result.scm.branch.collect{
+                it.branch = it.name.split('/').last()
+                it
+            }
+
         }
         result
     }
