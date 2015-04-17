@@ -70,6 +70,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
 
       var command = {
         application: application.name,
+        credentials: defaultCredentials,
         region: defaultRegion,
         strategy: 'redblack',
         capacity: {
@@ -97,13 +98,13 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
           useAllImageSelection: false,
           useSimpleCapacity: true,
           usePreferredZones: true,
-          mode: 'create'
+          mode: defaults.mode || 'create',
         }
       };
 
       attemptToSetValidCredentials(application, defaultCredentials, command);
 
-      return command;
+      return $q.when(command);
   }
 
     // Only used to prepare view requiring template selecting
@@ -139,7 +140,7 @@ angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
         },
         zone: serverGroup.zones[0],
         instanceMetadata: [],
-        availabilityZones: serverGroup.asg.availabilityZones,
+        availabilityZones: [],
         providerType: 'gce',
         selectedProvider: 'gce',
         source: {
