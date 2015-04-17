@@ -5,6 +5,9 @@ angular.module('deckApp.orchestratedItem.service', [
 ])
   .factory('orchestratedItem', function(momentService, $log) {
     function defineProperties(item) {
+      if (!item || typeof item !== 'object') {
+        return;
+      }
       var testDescriptor = Object.getOwnPropertyDescriptor(item, 'runningTime');
       if (testDescriptor && !testDescriptor.enumerable) {
         return;
