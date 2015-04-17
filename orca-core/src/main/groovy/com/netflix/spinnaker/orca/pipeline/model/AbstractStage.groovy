@@ -82,8 +82,8 @@ abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializa
     this.name = name
     this.context = context
 
-    this.refId = (String) context.remove("refId")
-    this.requisiteStageRefIds = (Collection<String>) context.remove("requisiteStageRefIds")
+    this.refId = (String) context?.remove("refId")
+    this.requisiteStageRefIds = (Collection<String>) context?.remove("requisiteStageRefIds")
   }
 
   AbstractStage(Execution execution, String type, Map<String, Object> context) {

@@ -16,9 +16,25 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import org.springframework.stereotype.Component
 
 @Component
 class ResumeScalingProcessTask extends AbstractScalingProcessTask {
   String type = "resumeAsgProcessesDescription"
+
+  @Override
+  List<String> filterProcesses(TargetReference targetReference, List<String> processes) {
+    if (!processes) {
+      return []
+    }
+
+    def targetAsgConfiguration = targetReference.asg.asg as Map<String, Object>
+    if (targetAsgConfiguration.suspendedProcesses) {
+      def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
+      return suspendedProcesses.intersect(processes) ?: []
+    }
+
+    return []
+  }
 }
