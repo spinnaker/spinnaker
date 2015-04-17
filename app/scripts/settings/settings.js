@@ -75,7 +75,8 @@ angular.module('deckApp.settings', [])
     },
     authEnabled: false,
     feature: {
-      notifications: false
+      notifications: false,
+      blesk: false,
     },
 
 
