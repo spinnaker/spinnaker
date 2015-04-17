@@ -4,7 +4,7 @@ angular.module('deckApp.delivery.executionBar.controller', [
   'deckApp.pipelines.config',
   'ui.router',
 ])
-  .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig) {
+  .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
     var controller = this;
 
     controller.getStageWidth = function() {
@@ -37,6 +37,18 @@ angular.module('deckApp.delivery.executionBar.controller', [
         'background-color': controller.getStageColor(stage),
         opacity: controller.getStageOpacity(stage),
       };
+    };
+
+    controller.toggleDetails = function(executionId, stageIndex) {
+      if ($state.includes('**.execution', {executionId: executionId, stage: stageIndex})) {
+        $state.go('^');
+      } else {
+        if ($state.includes('**.execution')) {
+          $state.go('^.execution', {executionId: executionId, stage: stageIndex, step: 0});
+        } else {
+          $state.go('.execution', {executionId: executionId, stage: stageIndex, step: 0});
+        }
+      }
     };
 
     controller.getLabelTemplate = function(stage) {

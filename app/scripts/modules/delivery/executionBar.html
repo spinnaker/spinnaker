@@ -2,7 +2,7 @@
   <div class="col-md-12">
     <div ng-repeat="stage in execution.stageSummaries"
          class="execution-stage"
-         ui-sref=".execution({executionId: execution.id, stage: $index, step: 0})"
+         ng-click="ctrl.toggleDetails(execution.id, $index); $event.stopPropagation()"
          style="width: {{ctrl.getStageWidth()}}">
       <div class="execution-stage-bar"
            ng-class="{glowing: stage.isRunning }"
