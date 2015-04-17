@@ -23,7 +23,7 @@ angular.module('deckApp.pipelines.stage.canary')
         });
     }
   })
-  .controller('CanaryStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
+  .controller('CanaryStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
     $scope.stage = stage;
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
     $scope.stage.owner = $scope.stage.owner || {};
@@ -32,6 +32,10 @@ angular.module('deckApp.pipelines.stage.canary')
     $scope.stage.canaryConfig = $scope.stage.canaryConfig || {};
     $scope.stage.canaryConfig.canaryAnalysisConfig = $scope.stage.canaryConfig.canaryAnalysisConfig || {};
     $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
+
+    accountService.listAccounts('aws').then(function(accounts) {
+      $scope.accounts = accounts;
+    });
 
     $scope.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
