@@ -271,6 +271,47 @@ class AWSBakeHandlerSpec extends Specification {
       1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
   }
 
+  void 'produces packer command with all required parameters including appversion and build_host for trusty'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def fullyQualifiedPackageName = "nflx-djangobase-enhanced_0.1-h12.170cdbd_all"
+      def appVersionStr = "nflx-djangobase-enhanced-0.1-170cdbd.h12"
+      def buildHost = "http://some-build-server:8080"
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: fullyQualifiedPackageName,
+                                        base_os: BakeRequest.OperatingSystem.trusty,
+                                        vm_type: BakeRequest.VmType.hvm,
+                                        build_host: buildHost,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.aws)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def parameterMap = [
+        aws_access_key: awsBakeryDefaults.awsAccessKey,
+        aws_secret_key: awsBakeryDefaults.awsSecretKey,
+        aws_region: REGION,
+        aws_ssh_username: "ubuntu",
+        aws_instance_type: "t2.micro",
+        aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
+        aws_target_ami: targetImageName,
+        packages: fullyQualifiedPackageName,
+        appversion: appVersionStr,
+        build_host: buildHost
+      ]
+
+      @Subject
+      AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock)
+
+    when:
+      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.deriveImageNameAndAppVersion(bakeRequest) >>
+        [targetImageName, appVersionStr, fullyQualifiedPackageName]
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, awsBakeryDefaults.templateFile)
+  }
+
   void 'throws exception when virtualization settings are not found for specified operating system'() {
     setup:
       def imageNameFactoryMock = Mock(ImageNameFactory)
