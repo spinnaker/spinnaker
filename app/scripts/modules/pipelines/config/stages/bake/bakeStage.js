@@ -56,7 +56,16 @@ angular.module('deckApp.pipelines.stage.bake')
         vmTypes: bakeryService.getVmTypes(),
         storeTypes: bakeryService.getStoreTypes(),
       }).then(function(results) {
-        $scope.regions = results.regions;
+        if (!$scope.stage.cloudProviderType || $scope.stage.cloudProviderType === 'aws') {
+          $scope.regions = results.regions;
+        } else {
+          $scope.regions  = ["global"];
+        }
+        if ($scope.regions.length === 1) {
+          $scope.stage.region = $scope.regions[0];
+        } else if ($scope.regions.indexOf($scope.stage.region) === -1) {
+          delete $scope.stage.region;
+        }
         $scope.baseOsOptions = results.baseOsOptions;
         $scope.vmTypes = results.vmTypes;
         $scope.baseLabelOptions = results.baseLabelOptions;
