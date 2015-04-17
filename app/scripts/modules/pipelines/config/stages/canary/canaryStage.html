@@ -1,25 +1,28 @@
-<form class="form-horizontal">
+<form class="form-horizontal canary-config-view">
+  <h4>Canary Config</h4>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Config Name</b>
+      <b>Name</b>
     </div>
     <div class="col-md-6">
       <input type="text" required ng-model="stage.canaryConfig.name"
              class="form-control input-sm" />
     </div>
   </div>
-  <div class="form-group">
+  <div class="form-group form-inline">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Lifetime (hours)</b>
+      <b>Canary Lifetime</b>
     </div>
     <div class="col-md-6">
       <input type="text" required ng-model="stage.canaryConfig.lifetimeHours"
-             class="form-control input-sm" />
+             class="form-control input-sm"
+             style="width: 50px"
+        /> hours
     </div>
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Result Strategy</b>
+      <b>Result Strategy</b>
       <help-field key="pipeline.config.canary.resultStrategy"></help-field>
     </div>
     <div class="col-md-6">
@@ -32,59 +35,53 @@
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Successful Canary Score</b>
+      <b>Successful Score</b>
       <help-field key="pipeline.config.canary.successfulScore"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-2">
       <input type="text" required ng-model="stage.canaryConfig.canarySuccessCriteria.canaryResultScore"
              class="form-control input-sm" />
     </div>
-  </div>
-  <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Unhealthy Canary Score</b>
+      <b>Unhealthy Score</b>
       <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-2">
       <input type="text" required ng-model="stage.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
              class="form-control input-sm" />
     </div>
   </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
+  <div class="checkbox col-md-offset-1">
+    <label>
+      <input type="checkbox" ng-model="stage.scaleUp.enabled"/>
       <b>Scale Up Canary</b>
       <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
-    </div>
-    <div class="col-md-6">
-      <input type="checkbox" ng-model="stage.scaleUp.enabled"
-             class="form-control input-sm" />
-    </div>
+    </label>
   </div>
   <div class="form-group" ng-if="stage.scaleUp.enabled">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Scale Up Capacity</b>
       <help-field key="pipeline.config.canary.scaleUpCapacity"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-1">
       <input type="text" required ng-model="stage.scaleUp.capacity"
              class="form-control input-sm" />
     </div>
-  </div>
-  <div class="form-group" ng-if="stage.scaleUp.enabled">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Scale Up Delay (minutes)</b>
+      <b>Scale Up Delay</b>
       <help-field key="pipeline.config.canary.scaleUpDelay"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-1">
       <input type="text" required ng-model="stage.scaleUp.delay"
              class="form-control input-sm" />
     </div>
+    <div class="col-md-1 form-control-static">minutes</div>
   </div>
 
   <h4>Analysis Config</h4>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Configuration Name</b><help-field key="pipeline.config.canary.canaryConfigurationName"></help-field>
+      <b>Name</b><help-field key="pipeline.config.canary.canaryConfigurationName"></help-field>
     </div>
     <div class="col-md-6">
       <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.name"
@@ -93,11 +90,14 @@
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Delay before analysis (minutes)</b><help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
+      <b>Delay Before Analysis</b><help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-1">
       <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
              class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 form-control-static">
+      minutes
     </div>
   </div>
   <div class="form-group">
@@ -111,11 +111,14 @@
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Canary Interval (minutes)</b><help-field key="pipeline.config.canary.canaryInterval"></help-field>
+      <b>Frequency</b><help-field key="pipeline.config.canary.canaryInterval"></help-field>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-1">
       <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
              class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 form-control-static">
+      minutes
     </div>
   </div>
   <h4>Baseline Version</h4>
