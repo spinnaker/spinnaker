@@ -8,5 +8,12 @@ angular.module('deckApp.serverGroup.configure.gce')
         command: '=',
       },
       templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupCapacityDirective.html',
+      controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
+    };
+  })
+  .controller('ServerGroupCapacitySelectorCtrl', function($scope) {
+    $scope.setMinMax = function(newVal) {
+      $scope.command.capacity.min = newVal;
+      $scope.command.capacity.max = newVal;
     };
   });
