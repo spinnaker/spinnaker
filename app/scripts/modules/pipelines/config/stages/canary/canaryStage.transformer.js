@@ -14,6 +14,8 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               type: 'canaryDeployment',
               name: deployment.canaryCluster.region,
               status: stage.context.canary.status === 'LAUNCHED' ? 'RUNNING' : 'COMPLETED',
+              startTime: stage.startTime,
+              endTime: stage.endTime,
               context: {
                 canaryCluster: deployment.canaryCluster,
                 baselineCluster: deployment.baselineCluster,
