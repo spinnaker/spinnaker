@@ -11,10 +11,9 @@ angular.module('deckApp.pipelines.stages.canary.score.directive', [])
       },
       template: '<span class="score label label-default label-{{healthLabel}}">{{score}}</span>',
       link: function(scope) {
-
         scope.result = scope.result ? scope.result.toLowerCase() : '';
         scope.health = scope.health ? scope.health.toLowerCase() : '';
-        scope.score = scope.score || scope.score !== 0 ? 'N/A' : scope.score;
+        scope.score = scope.score || scope.score === 0 ? scope.score : 'N/A';
 
         scope.healthLabel = scope.health === 'unhealthy' ? 'unhealthy'
           : scope.result === 'success' ? 'healthy'

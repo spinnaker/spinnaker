@@ -2,8 +2,8 @@
   <h4 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
-    <span style="margin-left: 10px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status | lowercase }}">
-        {{ stageSummary.masterStage.context.canary.status | lowercase | robotToHuman }}
+    <span style="margin-left: 10px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">
+        {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
       </span>
 
     <div dropdown class="btn-group pull-right">
@@ -27,8 +27,8 @@
     </thead>
     <tbody>
     <tr class="clickable"
-        ng-class="{ info: ctrl.isStepCurrent(0) }"
-        ng-click="ctrl.toggleDetails(0)">
+        ng-class="{ info: ctrl.isStepCurrent(stageSummary.masterStageIndex) }"
+        ng-click="ctrl.toggleDetails(stageSummary.masterStageIndex)">
       <td><strong>Canary Summary</strong></td>
       <td>
         <canary-score result="stageSummary.masterStage.context.canary.canaryResult.overallResult"
@@ -36,9 +36,9 @@
       </td>
     </tr>
     <tr class="clickable canary-deployment-row"
-        ng-repeat="stage in stageSummary.stages track by $index"
-        ng-if="stage.type === 'canaryDeployment'"
+        ng-repeat="stage in stageSummary.stages"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
+        ng-if="stage.type === 'canaryDeployment'"
         ng-click="ctrl.toggleDetails($index)">
       <td>{{ stage.name }}</td>
       <td>

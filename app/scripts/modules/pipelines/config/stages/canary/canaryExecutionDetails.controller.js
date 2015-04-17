@@ -9,15 +9,8 @@ angular.module('deckApp.pipelines.stage.canary.details.controller', [
   .controller('CanaryExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService) {
 
     function initialize() {
-      var step = parseInt($stateParams.step);
-
-      if (!step) {
-        $scope.configSections = ['canary', 'taskStatus'];
-        $scope.canaryConfig = $scope.stage.context.canaryConfig;
-      } else {
-        $scope.configSections = ['canaryDeployment'];
-        $scope.deployment = $scope.stage.context.canary.canaryDeployments[step-1];
-      }
+      $scope.configSections = ['canary', 'taskStatus'];
+      $scope.canaryConfig = $scope.stage.context.canaryConfig;
 
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;

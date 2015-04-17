@@ -87,6 +87,8 @@ angular.module('deckApp.orchestratedItem.service', [
           return 'NOT_STARTED';
         case 'CANCELED':
           return 'CANCELED';
+        case 'UNKNOWN':
+          return 'UNKNOWN';
         default:
           $log.warn('Unrecognized status:', item.originalStatus);
           return item.originalStatus;
