@@ -84,6 +84,10 @@ abstract class Execution<T> implements Serializable {
       return TERMINAL
     }
 
+    if (stages.status.any { it == FAILED }) {
+      return FAILED
+    }
+
     if (stages.status.every { it == SUCCEEDED }) {
       return SUCCEEDED
     }
