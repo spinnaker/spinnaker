@@ -82,7 +82,7 @@ class RegisterCanaryTaskSpec extends Specification {
     }
 
     then:
-    1 * mineService.checkCanaryStatus("canaryId") >> {
+    1 * mineService.getCanary("canaryId") >> {
       captured
     }
     result.stageOutputs.canary

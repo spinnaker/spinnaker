@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.CancellableTask
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -101,6 +102,10 @@ class TaskTasklet implements Tasklet {
   }
 
   private RepeatStatus cancel(Stage stage) {
+    if (task instanceof CancellableTask) {
+      CancellableTask cancellableTask = (CancellableTask) task
+      cancellableTask.cancel(stage)
+    }
     stage.status = ExecutionStatus.CANCELED
     stage.endTime = System.currentTimeMillis()
     stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }

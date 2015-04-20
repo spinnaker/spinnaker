@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -32,11 +34,21 @@ class PipelineSpec extends Specification {
                               .withStage("stage3")
                               .build()
 
+  void setup() {
+    pipeline.stages.findAll { it.tasks.isEmpty() }.each {
+      // ensure each stage has at least one task (otherwise it will get skipped when calculating pipeline status)
+      it.tasks << new DefaultTask()
+    }
+  }
+
   def "a pipeline's status is #expectedStatus if one of its stages is #expectedStatus"() {
     given:
     pipeline.stages[0].status = stage1Status
     pipeline.stages[1].status = stage2Status
     pipeline.stages[2].status = stage3Status
+
+    // add an empty stage (no tasks), should have no affect on pipeline status
+    pipeline.stages.add(new PipelineStage(pipeline, "stage4"))
 
     expect:
     pipeline.status == expectedStatus
@@ -47,9 +59,12 @@ class PipelineSpec extends Specification {
         SUCCEEDED    | RUNNING      | NOT_STARTED  | RUNNING
         SUCCEEDED    | SUCCEEDED    | NOT_STARTED  | RUNNING
         SUCCEEDED    | SUCCEEDED    | RUNNING      | RUNNING
+        RUNNING      | SUCCEEDED    | SUCCEEDED    | RUNNING
+        SUCCEEDED    | RUNNING      | SUCCEEDED    | RUNNING
         SUCCEEDED    | SUCCEEDED    | SUCCEEDED    | SUCCEEDED
         SUCCEEDED    | FAILED       | NOT_STARTED  | FAILED
         SUCCEEDED    | SUCCEEDED    | FAILED       | FAILED
+        FAILED       | SUCCEEDED    | RUNNING      | FAILED
         SUCCEEDED    | SUSPENDED    | NOT_STARTED  | SUSPENDED
         SUCCEEDED    | SUCCEEDED    | SUSPENDED    | SUSPENDED
         TERMINAL     | SUCCEEDED    | NOT_STARTED  | TERMINAL //BUG: WAS RETURNING RUNNING

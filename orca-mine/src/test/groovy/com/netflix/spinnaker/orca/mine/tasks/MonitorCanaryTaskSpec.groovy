@@ -69,7 +69,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> canary
+    1 * mineService.getCanary(stage.context.canary.id) >> canary
     result.status == executionStatus
 
     where:
@@ -118,7 +118,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.checkCanaryStatus(stage.context.canary.id) >> canary
+    1 * mineService.getCanary(stage.context.canary.id) >> canary
     1 * katoService.requestOperations({ ops ->
       ops.size() == 2 &&
       ops.find { it.resizeAsgDescription.asgName == 'foo--canary-v001' }
@@ -165,7 +165,7 @@ class MonitorCanaryTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    1 * mineService.checkCanaryStatus(canary.id) >> canary
+    1 * mineService.getCanary(canary.id) >> canary
     1 * mineService.disableCanaryAndScheduleForTermination(canary.id, 'unhealthy') >> terminated
 
     result.stageOutputs.canary.status.status == terminated.status.status

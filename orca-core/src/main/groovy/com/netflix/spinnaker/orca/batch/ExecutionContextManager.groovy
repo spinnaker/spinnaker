@@ -32,9 +32,13 @@ class ExecutionContextManager {
 
   static <T extends Execution> Stage<T> retrieve(Stage<T> stage, ChunkContext chunkContext) {
     def jobExecutionContext = chunkContext.stepContext.jobExecutionContext
-    jobExecutionContext.each { String key, Object object ->
+    jobExecutionContext.each { String key, Object globalValue ->
       if (key.startsWith(GLOBAL_KEY_PREFIX)) {
-        stage.context.put(key.replace(GLOBAL_KEY_PREFIX, ""), object)
+        key = key.replace(GLOBAL_KEY_PREFIX, "")
+        if (!stage.context.containsKey(key)) {
+          // global value should only apply if stage context does not already contain a local value
+          stage.context.put(key, globalValue)
+        }
       }
     }
 

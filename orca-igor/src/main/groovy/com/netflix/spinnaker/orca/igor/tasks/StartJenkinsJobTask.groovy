@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.igor.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -27,10 +27,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
-class StartJenkinsJobTask implements Task {
+class StartJenkinsJobTask implements RetryableTask {
+  long backoffPeriod = 10000
+  long timeout = 1800000
 
   @Autowired
   IgorService igorService

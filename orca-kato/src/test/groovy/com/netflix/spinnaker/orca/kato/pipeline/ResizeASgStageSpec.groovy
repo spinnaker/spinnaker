@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
@@ -63,11 +64,12 @@ class ResizeAsgStageSpec extends Specification {
       new TargetReference(region: it.region, asg: it)
     }
 
+    stage.status == ExecutionStatus.SUCCEEDED
     stage.beforeStages.collect { it.context } == asgs.collect{[
         asgName: it.name, credentials: 'test', regions: [it.region], action: 'resume', processes: ['Launch', 'Terminate']
     ]}
     stage.afterStages.collect { it.context } == [config] + asgs.collect{[
-      asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend', processes: ['Launch', 'Terminate']
+      asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend'
     ]}
 
     where:
@@ -109,8 +111,10 @@ class ResizeAsgStageSpec extends Specification {
     then:
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [targetRef]
 
-    stage.afterStages.size() == 1
+    stage.afterStages.size() == 2
     stage.afterStages[0].context.asgName == asgName
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ["resumeScalingProcesses"]
 
     where:
     target         | asgName            | targetRef
@@ -156,8 +160,10 @@ class ResizeAsgStageSpec extends Specification {
       ]
     ])]
 
-    stage.afterStages.size() == 1
+    stage.afterStages.size() == 2
     stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ["resumeScalingProcesses"]
   }
 
   void "should allow target capacity to be incrementally scaled"() {
@@ -181,8 +187,10 @@ class ResizeAsgStageSpec extends Specification {
       ]
     ])]
 
-    stage.afterStages.size() == 1
+    stage.afterStages.size() == 2
     stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ["resumeScalingProcesses"]
   }
 
   void "should scale percentage factors up"() {
@@ -206,8 +214,10 @@ class ResizeAsgStageSpec extends Specification {
       ]
     ])]
 
-    stage.afterStages.size() == 1
+    stage.afterStages.size() == 2
     stage.afterStages[0].context.capacity == [min: 8, max: 8, desired: 8] as Map
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ["resumeScalingProcesses"]
   }
 
   void "should be able to derive scaling direction from inputs"() {
@@ -231,8 +241,10 @@ class ResizeAsgStageSpec extends Specification {
       ]
     ])]
 
-    stage.afterStages.size() == 1
+    stage.afterStages.size() == 2
     stage.afterStages[0].context.capacity == capacity
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ["resumeScalingProcesses"]
 
     where:
     action       | capacity

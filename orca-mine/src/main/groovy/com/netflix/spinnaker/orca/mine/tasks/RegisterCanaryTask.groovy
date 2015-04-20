@@ -62,7 +62,7 @@ class RegisterCanaryTask implements Task {
     } else {
       throw new IllegalStateException("Unable to handle $response")
     }
-    Canary canary = mineService.checkCanaryStatus(canaryId)
+    Canary canary = mineService.getCanary(canaryId)
     return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [canary: canary])
   }
 
