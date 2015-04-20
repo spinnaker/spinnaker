@@ -177,6 +177,8 @@ dependencies:
   jacksonCore: "com.fasterxml.jackson.core:jackson-core:${versions.jackson}"
   jacksonDatabind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
   jacksonGuava: "com.fasterxml.jackson.datatype:jackson-datatype-guava:${versions.jackson}"
+  jacksonJsr310: "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${versions.jackson}"
+  jacksonLombok: "com.xebia:jackson-lombok:1.0"
   jedis: "redis.clients:jedis:${versions.jedis}"
   junit: "junit:junit:${versions.junit}"
   lombok: "org.projectlombok:lombok:${versions.lombok}"
