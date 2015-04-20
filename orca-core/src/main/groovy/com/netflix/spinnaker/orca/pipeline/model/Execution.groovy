@@ -88,17 +88,21 @@ abstract class Execution<T> implements Serializable {
       return FAILED
     }
 
-    if (stages.status.every { it == SUCCEEDED }) {
+    List<Stage<T>> nonEmptyStages = stages.findAll {
+      it.tasks.size() > 0
+    } as List
+
+    if (nonEmptyStages.status.every { it == SUCCEEDED }) {
       return SUCCEEDED
     }
 
-    def lastStartedStatus = stages.status.reverse().find {
+    def lastStartedStatus = nonEmptyStages.status.reverse().find {
       it != NOT_STARTED
     }
 
     if (!lastStartedStatus) {
       NOT_STARTED
-    } else if (lastStartedStatus == SUCCEEDED && stages.status.reverse().find { it != SUCCEEDED }) {
+    } else if (lastStartedStatus == SUCCEEDED && nonEmptyStages.status.reverse().find { it != SUCCEEDED }) {
       RUNNING
     } else {
       lastStartedStatus
