@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -200,12 +201,13 @@ class VerifyQuipTaskSpec extends Specification {
     Response badInstanceResponse = new Response('http://oort', 500, 'WTF', [], null)
 
     when:
-    def result = task.execute(stage)
+    TaskResult result = task.execute(stage)
 
     then:
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     2 * instanceService.listTasks() >>> [ instanceResponse, badInstanceResponse ]
-    stage.context?.instances?.size() == 2
+    //stage.context?.instances?.size() == 2
+    result.stageOutputs.instances.size() == 2
     result.status == ExecutionStatus.FAILED
 
     where:
@@ -233,12 +235,12 @@ class VerifyQuipTaskSpec extends Specification {
     Response instanceResponse = new Response('http://instance.com', 200, 'OK', [], new TypedString(instance))
 
     when:
-    def result = task.execute(stage)
+    TaskResult result = task.execute(stage)
 
     then:
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     2 * instanceService.listTasks() >> instanceResponse
-    stage.context?.instances?.size() == 2
+    result.stageOutputs?.instances?.size() == 2
     result.status == ExecutionStatus.SUCCEEDED
 
     where:

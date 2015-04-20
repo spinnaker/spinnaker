@@ -9,8 +9,10 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 
+@Component
 class MonitorQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper
 
@@ -30,11 +32,10 @@ class MonitorQuipTask implements RetryableTask {
     boolean anyFailed = false
     def result = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
 
-    if(!stage.context.taskIds) {
+    if(!stage.context.taskIds || !stage.context.instances) {
       return new DefaultTaskResult(ExecutionStatus.FAILED)
     }
 
-    // ping tasks/<taskId> until completed
     stage.context?.instances.each {
       RestAdapter restAdapter = new RestAdapter.Builder()
         .setEndpoint("http://${it}:5050")
@@ -43,11 +44,11 @@ class MonitorQuipTask implements RetryableTask {
       if(!testing) {
         instanceService = restAdapter.create(InstanceService.class)
       }
-      def instanceResponse = instanceService.listTask(stage.context.taskIds.get(it.publicDnsName))
+      def instanceResponse = instanceService.listTask(stage.context.taskIds.get(it))
       // return status
       int retries = 5
       while (retries-- > 0 && instanceResponse.status != 200) {
-        instanceResponse = instanceService.listTask(stage.context.taskIds.get(it.publicDnsName))
+        instanceResponse = instanceService.listTask(stage.context.taskIds.get(it))
       }
 
       if(instanceResponse.status != 200) {
@@ -55,7 +56,7 @@ class MonitorQuipTask implements RetryableTask {
       }
 
       def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
-      if(status == "Succeeded") {
+      if(status == "Successful") {
         // noop unless they all succeeded
       } else if(status == "Failed") {
         anyFailed = true

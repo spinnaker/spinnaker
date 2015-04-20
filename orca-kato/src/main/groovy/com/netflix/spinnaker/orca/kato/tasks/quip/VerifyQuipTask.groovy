@@ -9,8 +9,10 @@ import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 
+@Component
 class VerifyQuipTask implements Task {
 
   @Autowired
@@ -31,7 +33,9 @@ class VerifyQuipTask implements Task {
     String account = stage.context?.account
     String app = stage.context?.application
     ArrayList instances
-
+    Map stageOutputs = [:]
+    TaskResult result
+    ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     if (cluster && region && account) {
       def response = oortService.getCluster(app, account, cluster, stage.context.providerType ?: "aws")
 
@@ -57,22 +61,27 @@ class VerifyQuipTask implements Task {
         it.instances.publicDnsName
       }.get(0)
 
+      def instanceIds = asgsForCluster.collect {
+        it.instances.instanceId
+      }.get(0)
+
       if(!instances || instances.size() <=0) {
         return new DefaultTaskResult(ExecutionStatus.FAILED)
       }
 
       // inject instances into the context
-      stage.context.put("instances", instances)
+      stageOutputs.put("instances", instances)
+      stageOutputs.put("instanceIds",instanceIds) // for waitForUpInstanceHealthTask
+      stageOutputs.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
 
-      if(checkInstancesForQuip(instances)) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-      } else {
-        return new DefaultTaskResult(ExecutionStatus.FAILED)
+      if(!checkInstancesForQuip(instances)) {
+        executionStatus = ExecutionStatus.FAILED
       }
 
     } else {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      executionStatus = ExecutionStatus.FAILED
     }
+    return new DefaultTaskResult(executionStatus, stageOutputs, [:])
   }
 
   private boolean checkInstancesForQuip(Collection instances) {

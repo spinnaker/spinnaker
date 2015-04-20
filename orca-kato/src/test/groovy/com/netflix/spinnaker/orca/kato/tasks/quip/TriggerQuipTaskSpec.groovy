@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -74,11 +75,11 @@ class TriggerQuipTaskSpec extends Specification {
     stage.context.patchVersion = "1.2"
 
     when:
-    def result = task.execute(stage)
+    TaskResult result = task.execute(stage)
 
     then:
     instances.size() * instanceService.patchInstance(app, "1.2") >>> response
-    stage.context.taskIds == dnsTaskMap
+    result.stageOutputs.taskIds == dnsTaskMap
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
@@ -88,9 +89,9 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
 
     instances | response | dnsTaskMap
-    [["publicDnsName": "foo.com"]] | [instanceResponse] | ["foo.com" : "93fa4"]
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | [instanceResponse,instanceResponse2]  | ["foo.com" : "93fa4", "foo2.com" : "abcd"]
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"], ["publicDnsName": "foo3.com"]] | [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
+    ["foo.com"] | [instanceResponse] | ["foo.com" : "93fa4"]
+    ["foo.com", "foo2.com"] | [instanceResponse,instanceResponse2]  | ["foo.com" : "93fa4", "foo2.com" : "abcd"]
+    ["foo.com", "foo2.com", "foo3.com"] | [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
   }
 
   @Unroll
@@ -112,11 +113,11 @@ class TriggerQuipTaskSpec extends Specification {
     stage.context.patchVersion = "1.2"
 
     when:
-    def result = task.execute(stage)
+    TaskResult result = task.execute(stage)
 
     then:
     response.size() * instanceService.patchInstance(app, "1.2") >>> response
-    stage.context.taskIds == dnsTaskMap
+    result.stageOutputs.taskIds == dnsTaskMap
     result.status == expectedResult
 
     where:
@@ -125,18 +126,18 @@ class TriggerQuipTaskSpec extends Specification {
     account = 'test'
     region = "us-east-1"
     instances | response | dnsTaskMap | expectedResult
-    [["publicDnsName": "foo.com"]] | [badInstanceResponse]*6 | [:] | ExecutionStatus.FAILED
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | [badInstanceResponse]*12 | [:] | ExecutionStatus.FAILED
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | (([badInstanceResponse]*5) << instanceResponse) << instanceResponse | [ "foo.com" : "93fa4", "foo2.com" :"93fa4"] | ExecutionStatus.SUCCEEDED
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | ([badInstanceResponse]*6) << instanceResponse | [ "foo2.com" :"93fa4"] | ExecutionStatus.FAILED
+    ["foo.com"] | [badInstanceResponse]*6 | [:] | ExecutionStatus.FAILED
+    ["foo.com", "foo2.com"] | [badInstanceResponse]*12 | [:] | ExecutionStatus.FAILED
+    ["foo.com", "foo2.com"] | (([badInstanceResponse]*5) << instanceResponse) << instanceResponse | [ "foo.com" : "93fa4", "foo2.com" :"93fa4"] | ExecutionStatus.SUCCEEDED
+    ["foo.com", "foo2.com"] | ([badInstanceResponse]*6) << instanceResponse | [ "foo2.com" :"93fa4"] | ExecutionStatus.FAILED
 
-    [["publicDnsName": "foo.com"]] | [badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"] | ExecutionStatus.SUCCEEDED
-    [["publicDnsName": "foo.com"]] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
-    [["publicDnsName": "foo.com"]] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
+    ["foo.com"] | [badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"] | ExecutionStatus.SUCCEEDED
+    ["foo.com"] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
+    ["foo.com"] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
 
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | [badInstanceResponse, instanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | [badInstanceResponse, instanceResponse, badInstanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
-    [["publicDnsName": "foo.com"], ["publicDnsName": "foo2.com"]] | ((([badInstanceResponse]*5) << instanceResponse) << badInstanceResponse) << instanceResponse2 | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
+    ["foo.com", "foo2.com"] | [badInstanceResponse, instanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
+    ["foo.com", "foo2.com"] | [badInstanceResponse, instanceResponse, badInstanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
+    ["foo.com", "foo2.com"] | ((([badInstanceResponse]*5) << instanceResponse) << badInstanceResponse) << instanceResponse2 | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
@@ -158,11 +159,11 @@ class TriggerQuipTaskSpec extends Specification {
     stage.context.patchVersion = patchVersion
 
     when:
-    def result = task.execute(stage)
+    TaskResult result = task.execute(stage)
 
     then:
     0 * instanceService.patchInstance(app, patchVersion)
-    stage.context.taskIds == [:]
+    result.stageOutputs.taskIds == [:]
     result.status ==  ExecutionStatus.FAILED
 
     where:
