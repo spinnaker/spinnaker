@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -37,8 +39,9 @@ import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+
+import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static java.time.ZoneOffset.UTC
 
 class RetryableTaskTaskletSpec extends BatchExecutionSpec {
@@ -64,8 +67,8 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     pipelineStore.store(pipeline)
     def step = steps.get("${pipeline.stages[0].id}.retryable.task1")
-                    .tasklet(taskFactory.decorate(task))
-                    .build()
+      .tasklet(taskFactory.decorate(task))
+      .build()
     jobBuilder.start(step).build()
   }
 
@@ -126,12 +129,13 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     )
 
     and:
+    def stage = new PipelineStage(new Pipeline(), null, stageContext)
     def tasklet = new RetryableTaskTasklet(task, null, null, clock)
 
     when:
     def exceptionThrown = false
     try {
-      tasklet.doExecuteTask(null, chunkContext)
+      tasklet.doExecuteTask(stage, chunkContext)
     } catch (TimeoutException ignored) {
       exceptionThrown = true
     }
@@ -140,10 +144,12 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     exceptionThrown == expectedException
 
     where:
-    currentTime || expectedException
-    0L || false
-    timeout - 1 || false
-    timeout     || false
-    timeout + 1 || true
+    currentTime | stageContext                                || expectedException
+    0L          | [:]                                         || false
+    timeout     | [:]                                         || false
+    timeout + 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout + 2] || false
+    timeout     | [:]                                         || false
+    timeout + 1 | [:]                                         || true
+    timeout - 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout - 2] || true
   }
 }

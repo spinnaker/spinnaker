@@ -29,6 +29,8 @@ import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
 
+import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
+
 @CompileStatic
 class RetryableTaskTasklet extends TaskTasklet {
   private final Clock clock
@@ -56,6 +58,8 @@ class RetryableTaskTasklet extends TaskTasklet {
   protected TaskResult doExecuteTask(Stage stage, ChunkContext chunkContext) {
     def now = clock.millis()
     def startTime = chunkContext.stepContext.getStepExecution().startTime.time
+
+    def timeoutMs = (stage.context[STAGE_TIMEOUT_OVERRIDE_KEY] ?: timeoutMs) as long
     if (now - startTime > timeoutMs) {
       throw new TimeoutException("Operation timed out after ${timeoutMs}ms")
     }
