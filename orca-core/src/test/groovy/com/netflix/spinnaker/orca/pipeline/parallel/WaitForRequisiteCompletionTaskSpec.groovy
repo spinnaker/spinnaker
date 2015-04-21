@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline.parallel
 
-import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 class WaitForRequisiteCompletionTaskSpec extends Specification {
   @Subject
@@ -34,8 +36,10 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     pipeline.stages << new PipelineStage(["refId": "1"])
     pipeline.stages << new PipelineStage(["refId": "2"])
 
-    pipeline.stages[0].status = ExecutionStatus.SUCCEEDED
-    pipeline.stages[1].status = ExecutionStatus.RUNNING
+    pipeline.stages[0].status = SUCCEEDED
+    pipeline.stages[0].tasks = tasks
+    pipeline.stages[1].status = RUNNING
+    pipeline.stages[1].tasks = tasks
 
     when:
     def result = task.execute(new PipelineStage(pipeline, null, [requisiteIds: requisiteIds]))
@@ -44,12 +48,15 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    requisiteIds || expectedStatus
-    []           || ExecutionStatus.SUCCEEDED
-    ["1"]        || ExecutionStatus.SUCCEEDED
-    ["1", "2"]   || ExecutionStatus.RUNNING
-    ["2"]        || ExecutionStatus.RUNNING
-    ["3"]        || ExecutionStatus.RUNNING
-    ["1", "3"]   || ExecutionStatus.RUNNING
+    requisiteIds | tasks                                  || expectedStatus
+    []           | [new DefaultTask(status: SUCCEEDED)]   || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: SUCCEEDED)]   || SUCCEEDED
+    ["1"]        | []                                     || SUCCEEDED
+    ["1"]        | [new DefaultTask(status: NOT_STARTED)] || RUNNING
+    ["1"]        | [new DefaultTask(status: RUNNING)]     || RUNNING
+    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
+    ["2"]        | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
+    ["3"]        | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
+    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]   || RUNNING
   }
 }
