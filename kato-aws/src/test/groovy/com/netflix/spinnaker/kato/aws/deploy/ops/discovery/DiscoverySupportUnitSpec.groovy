@@ -206,7 +206,6 @@ class DiscoverySupportUnitSpec extends Specification {
     then:
         DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED);
         DiscoverySupport.DISCOVERY_RETRY_MAX * task.updateStatus(_, _) >> {throw new ResourceAccessException("msg")}
-//        thrown ResourceAccessException
         thrown ResourceAccessException
     where:
         discoveryUrl = "http://us-west-1.discovery.netflix.net"
