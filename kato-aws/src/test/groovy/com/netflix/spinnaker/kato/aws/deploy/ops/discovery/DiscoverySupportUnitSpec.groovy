@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
@@ -188,5 +189,31 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123"]
+  }
+
+
+  void "should retry when encounters a ResourceAccessException"() {
+    given:
+    def task = Mock(Task)
+
+    def description = new EnableDisableInstanceDiscoveryDescription(
+     credentials: TestCredential.named('test', [discovery: discoveryUrl])
+    )
+
+    when:
+        discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+
+    then:
+        DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED);
+        DiscoverySupport.DISCOVERY_RETRY_MAX * task.updateStatus(_, _) >> {throw new ResourceAccessException("msg")}
+//        thrown ResourceAccessException
+        thrown ResourceAccessException
+    where:
+        discoveryUrl = "http://us-west-1.discovery.netflix.net"
+        region = "us-west-1"
+        discoveryStatus = DiscoverySupport.DiscoveryStatus.Disable
+        appName = "kato"
+        instanceIds = ["i-123"]
+
   }
 }

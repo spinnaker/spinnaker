@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.HttpServerErrorException
+import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 
 @Component
@@ -70,6 +71,14 @@ class DiscoverySupport {
             }
           }
           break
+        } catch(ResourceAccessException ex) {
+          if (retryCount >= (DISCOVERY_RETRY_MAX -1 )) {
+            throw ex
+          }
+
+          retryCount++
+          sleep(getDiscoveryRetryMs());
+
         } catch (HttpServerErrorException|HttpClientErrorException e) {
           if (retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
             throw e
