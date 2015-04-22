@@ -5,23 +5,18 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 
 @Component
-class VerifyQuipTask implements Task {
+class VerifyQuipTask extends AbstractQuipTask implements Task {
 
   @Autowired
   OortService oortService
-
-  InstanceService instanceService
-
-  // FIXME
-  boolean testing = false
 
   @Autowired
   ObjectMapper objectMapper
@@ -34,18 +29,13 @@ class VerifyQuipTask implements Task {
     String app = stage.context?.application
     ArrayList instances
     Map stageOutputs = [:]
-    TaskResult result
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     if (cluster && region && account) {
       def response = oortService.getCluster(app, account, cluster, stage.context.providerType ?: "aws")
-
-      if (response.status != 200) {
-        return new DefaultTaskResult(ExecutionStatus.FAILED)
-      }
       def oortCluster = objectMapper.readValue(response.body.in().text, Map)
 
       if (!oortCluster || !oortCluster.serverGroups) {
-        return new DefaultTaskResult(ExecutionStatus.FAILED)
+        throw new RuntimeException("unable to find any server groups for ${cluster}, ${region}, ${account}")
       }
 
       def asgsForCluster = oortCluster.serverGroups.findAll {
@@ -54,7 +44,7 @@ class VerifyQuipTask implements Task {
 
       //verify that there is only one ASG, maybe support it in the future
       if (asgsForCluster.size() != 1) {
-        return new DefaultTaskResult(ExecutionStatus.FAILED)
+        throw new RuntimeException("quick patch only runs if there is a single server group in the cluster for ${cluster}, ${region}, ${account}")
       }
 
       instances = asgsForCluster.collect {
@@ -66,7 +56,7 @@ class VerifyQuipTask implements Task {
       }.get(0)
 
       if(!instances || instances.size() <=0) {
-        return new DefaultTaskResult(ExecutionStatus.FAILED)
+        throw new RuntimeException("could not find any instances for ${cluster}, ${region}, ${account}")
       }
 
       // inject instances into the context
@@ -75,11 +65,10 @@ class VerifyQuipTask implements Task {
       stageOutputs.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
 
       if(!checkInstancesForQuip(instances)) {
-        executionStatus = ExecutionStatus.FAILED
+        throw new RuntimeException("quip is not running on all instances : ${instances}")
       }
-
     } else {
-      executionStatus = ExecutionStatus.FAILED
+      throw new RuntimeException("one or more of these parameters is missing : cluster || region || account")
     }
     return new DefaultTaskResult(executionStatus, stageOutputs, [:])
   }
@@ -92,11 +81,10 @@ class VerifyQuipTask implements Task {
         .setEndpoint("http://${it}:5050")
         .build()
 
-      if(!testing) {
-        instanceService = restAdapter.create(InstanceService.class)
-      }
-      def instanceResponse = instanceService.listTasks()
-      if (instanceResponse.status != 200) {
+      def instanceService = createInstanceService(restAdapter)
+      try {
+        instanceService.listTasks()
+      } catch(RetrofitError e) {
         allInstancesHaveQuip = false
       }
     }

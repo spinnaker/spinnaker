@@ -17,10 +17,14 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.RestAdapter
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -29,17 +33,15 @@ import spock.lang.Unroll
 
 class MonitorQuipTaskSpec extends Specification {
 
-  @Subject task = new MonitorQuipTask()
+  @Subject task = Spy(MonitorQuipTask)
   InstanceService instanceService = Mock(InstanceService)
 
   def setup() {
-    task.instanceService = instanceService
-    task.testing = true
     task.objectMapper = new ObjectMapper()
   }
 
   @Unroll
-  def "check different statuses, servers return #status expect #executionStatus"() {
+  def "check different success statuses, servers return #status expect #executionStatus"() {
     given:
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
@@ -52,6 +54,8 @@ class MonitorQuipTaskSpec extends Specification {
     status?.each {
       responses << new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"status\" : \"${it}\"}"))
     }
+
+    instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
     def result = task.execute(stage)
@@ -67,16 +71,94 @@ class MonitorQuipTaskSpec extends Specification {
     instances | taskIds | status | executionStatus
     ["foo.com"] | ["foo.com" : "abcd"] | ["Running"] | ExecutionStatus.RUNNING
     ["foo.com"] | ["foo.com" : "abcd"] | ["Successful"] | ExecutionStatus.SUCCEEDED
-    ["foo.com"] | ["foo.com" : "abcd"] | ["Failed"] | ExecutionStatus.FAILED
-    ["foo.com"] | ["foo.com" : "abcd"] |[null] | ExecutionStatus.FAILED
-
     ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Successful"] | ExecutionStatus.RUNNING
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Succeeded", "Running"] | ExecutionStatus.RUNNING
-
+    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Running"] | ExecutionStatus.RUNNING
     ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Running"] | ExecutionStatus.RUNNING
     ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Successful"] | ExecutionStatus.SUCCEEDED
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"] | ExecutionStatus.FAILED
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"] | ExecutionStatus.FAILED
+  }
+
+  @Unroll
+  def "check different failure statuses, servers return #status, expect exception"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication("foo")
+      .build()
+    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    stage.context.instances = instances
+    stage.context.taskIds = taskIds
+
+    def responses = []
+    status?.each {
+      responses << new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"status\" : \"${it}\"}"))
+    }
+    task.createInstanceService(_) >> instanceService
+
+    when:
+    task.execute(stage)
+
+    then:
+    taskIds.eachWithIndex { def entry, int i ->
+      instanceService.listTask(entry.value) >> responses.get(i)
+    }
+    thrown(RuntimeException)
+
+    where:
+    instances | taskIds | status
+    ["foo.com"] | ["foo.com" : "abcd"] | ["Failed"]
+    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"]
+    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"]
+  }
+
+  def "servers return non-200 responses"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication("foo")
+      .build()
+    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    stage.context.instances = instances
+    stage.context.taskIds = taskIds
+
+    task.createInstanceService(_) >> instanceService
+
+    when:
+    TaskResult result = task.execute(stage)
+
+    then:
+    taskIds.eachWithIndex { def entry, int i ->
+      instanceService.listTask(entry.value) >> { throw new RetrofitError(null, null, null, null, null, null, null)}
+    }
+    result.status == ExecutionStatus.RUNNING
+
+    where:
+    instances | taskIds
+    ["foo.com"] | ["foo.com" : "abcd"]
+    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
+  }
+
+  def "servers return bad data"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication("foo")
+      .build()
+    def stage = new PipelineStage(pipe, 'monitorQuip', [:])
+    stage.context.instances = instances
+    stage.context.taskIds = taskIds
+
+    task.createInstanceService(_) >> instanceService
+
+    when:
+    task.execute(stage)
+
+    then:
+    taskIds.eachWithIndex { def entry, int i ->
+      instanceService.listTask(entry.value) >> new Response('http://foo.com', 200, 'OK', [], new TypedString("{\"noStatus\" : \"foo\"}"))
+    }
+    thrown(RuntimeException)
+
+    where:
+    instances | taskIds
+    ["foo.com"] | ["foo.com" : "abcd"]
+    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
   }
 
   @Unroll
@@ -90,10 +172,10 @@ class MonitorQuipTaskSpec extends Specification {
     stage.context.taskIds = taskIds
 
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.FAILED
+    thrown(RuntimeException)
 
     where:
     instances | taskIds

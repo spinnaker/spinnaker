@@ -4,24 +4,19 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 
 @Component
-class MonitorQuipTask implements RetryableTask {
+class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
   @Autowired ObjectMapper objectMapper
 
-  long backoffPeriod = 1000
-  long timeout = 3600000 // 1hr
-
-  // FIXME
-  boolean testing = false
-  InstanceService instanceService
+  long backoffPeriod = 10000
+  long timeout = 600000 // 10mins
 
   /**
    * TODO: make this more efficient by only polling the instances which are not done.
@@ -29,44 +24,37 @@ class MonitorQuipTask implements RetryableTask {
    */
   @Override
   TaskResult execute(Stage stage) {
-    boolean anyFailed = false
     def result = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
 
     if(!stage.context.taskIds || !stage.context.instances) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+      throw new RuntimeException("missing taskIds and/or instances")
     }
 
     stage.context?.instances.each {
+      def taskId = stage.context.taskIds.get(it)
       RestAdapter restAdapter = new RestAdapter.Builder()
         .setEndpoint("http://${it}:5050")
         .build()
 
-      if(!testing) {
-        instanceService = restAdapter.create(InstanceService.class)
-      }
-      def instanceResponse = instanceService.listTask(stage.context.taskIds.get(it))
-      // return status
-      int retries = 5
-      while (retries-- > 0 && instanceResponse.status != 200) {
-        instanceResponse = instanceService.listTask(stage.context.taskIds.get(it))
-      }
-
-      if(instanceResponse.status != 200) {
-        result = new DefaultTaskResult(ExecutionStatus.FAILED)
-      }
-
-      def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
-      if(status == "Successful") {
-        // noop unless they all succeeded
-      } else if(status == "Failed") {
-        anyFailed = true
-        result = new DefaultTaskResult(ExecutionStatus.FAILED)
-      } else if(status == "Running" && !anyFailed) {
-        result =  new DefaultTaskResult(ExecutionStatus.RUNNING)
-      } else {
-        result = new DefaultTaskResult(ExecutionStatus.FAILED)
+      def instanceService = createInstanceService(restAdapter)
+      try {
+        def instanceResponse = instanceService.listTask(taskId)
+        def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
+        if(status == "Successful") {
+          // noop unless they all succeeded
+        } else if(status == "Failed") {
+          throw new RuntimeException("quip task failed for ${it} with a result of ${status}, see http://${it}:5050/tasks/${taskId}")
+        } else if(status == "Running") {
+          result = new DefaultTaskResult(ExecutionStatus.RUNNING)
+        } else {
+          throw new RuntimeException("quip task failed for ${it} with a result of ${status}, see http://${it}:5050/tasks/${taskId}")
+        }
+      } catch(RetrofitError e) {
+        result = new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
     }
     return result
   }
+
+
 }

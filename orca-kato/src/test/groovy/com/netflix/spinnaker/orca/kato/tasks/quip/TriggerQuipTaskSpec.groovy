@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Shared
@@ -32,12 +33,10 @@ import spock.lang.Unroll
 
 class TriggerQuipTaskSpec extends Specification {
 
-  @Subject task = new TriggerQuipTask()
+  @Subject task = Spy(TriggerQuipTask)
   InstanceService instanceService = Mock(InstanceService)
 
   def setup() {
-    task.instanceService = instanceService
-    task.testing = true
     task.objectMapper = new ObjectMapper()
   }
 
@@ -47,8 +46,6 @@ class TriggerQuipTaskSpec extends Specification {
   def patchResponse2 = '{ \"ref\": \"/tasks/abcd\"}'
   @Shared
   def patchResponse3 = '{ \"ref\": \"/tasks/efghi\"}'
-  @Shared
-  Response badInstanceResponse = new Response('http://foo.com', 500, 'WTF', [], null)
   @Shared
   Response instanceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(patchResponse))
   @Shared
@@ -73,6 +70,7 @@ class TriggerQuipTaskSpec extends Specification {
 
     stage.context.instances = instances
     stage.context.patchVersion = "1.2"
+    instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
     TaskResult result = task.execute(stage)
@@ -95,7 +93,7 @@ class TriggerQuipTaskSpec extends Specification {
   }
 
   @Unroll
-  def 'retries'() {
+  def "servers return errors, expect RUNNING"() {
     given:
     def pipe = new Pipeline.Builder()
       .withApplication(app)
@@ -110,35 +108,34 @@ class TriggerQuipTaskSpec extends Specification {
     ])
 
     stage.context.instances = instances
-    stage.context.patchVersion = "1.2"
+    stage.context.patchVersion = patchVersion
+    instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
-    response.size() * instanceService.patchInstance(app, "1.2") >>> response
-    result.stageOutputs.taskIds == dnsTaskMap
-    result.status == expectedResult
+    throwException.each { // need to do this since I can't stick exceptions on the data table
+      if(it) {
+        1 * instanceService.patchInstance(app, patchVersion) >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+      } else {
+        1 * instanceService.patchInstance(app, patchVersion) >> instanceResponse
+      }
+    }
+
+    result.status == ExecutionStatus.RUNNING
 
     where:
     app = 'foo'
     cluster = 'foo-test'
     account = 'test'
     region = "us-east-1"
-    instances | response | dnsTaskMap | expectedResult
-    ["foo.com"] | [badInstanceResponse]*6 | [:] | ExecutionStatus.FAILED
-    ["foo.com", "foo2.com"] | [badInstanceResponse]*12 | [:] | ExecutionStatus.FAILED
-    ["foo.com", "foo2.com"] | (([badInstanceResponse]*5) << instanceResponse) << instanceResponse | [ "foo.com" : "93fa4", "foo2.com" :"93fa4"] | ExecutionStatus.SUCCEEDED
-    ["foo.com", "foo2.com"] | ([badInstanceResponse]*6) << instanceResponse | [ "foo2.com" :"93fa4"] | ExecutionStatus.FAILED
-
-    ["foo.com"] | [badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"] | ExecutionStatus.SUCCEEDED
-    ["foo.com"] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
-    ["foo.com"] | [badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, badInstanceResponse, instanceResponse ] | ["foo.com" : "93fa4"]| ExecutionStatus.SUCCEEDED
-
-    ["foo.com", "foo2.com"] | [badInstanceResponse, instanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
-    ["foo.com", "foo2.com"] | [badInstanceResponse, instanceResponse, badInstanceResponse, instanceResponse2 ] | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
-    ["foo.com", "foo2.com"] | ((([badInstanceResponse]*5) << instanceResponse) << badInstanceResponse) << instanceResponse2 | ["foo.com" : "93fa4", "foo2.com" : "abcd"]| ExecutionStatus.SUCCEEDED
-  }
+    patchVersion = "1.2"
+    instances | throwException
+    ["foo.com"] | [ true ]
+    ["foo.com", "foo2.com"] | [false, true]
+    ["foo.com", "foo2.com"] | [true, true]
+ }
 
   @Unroll
   def 'missing configuration data'() {
@@ -159,12 +156,12 @@ class TriggerQuipTaskSpec extends Specification {
     stage.context.patchVersion = patchVersion
 
     when:
-    TaskResult result = task.execute(stage)
+    task.execute(stage)
 
     then:
+    0 * task.createInstanceService(_)
     0 * instanceService.patchInstance(app, patchVersion)
-    result.stageOutputs.taskIds == [:]
-    result.status ==  ExecutionStatus.FAILED
+    thrown(RuntimeException)
 
     where:
     cluster = 'foo-test'

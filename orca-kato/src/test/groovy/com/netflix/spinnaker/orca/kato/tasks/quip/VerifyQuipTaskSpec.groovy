@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
@@ -32,7 +33,7 @@ import spock.lang.Unroll
 
 class VerifyQuipTaskSpec extends Specification {
 
-  @Subject task = new VerifyQuipTask()
+  @Subject task = Spy(VerifyQuipTask)
   OortService oortService = Mock(OortService)
   InstanceService instanceService = Mock(InstanceService)
 
@@ -72,8 +73,6 @@ class VerifyQuipTaskSpec extends Specification {
 
   def setup() {
     task.oortService = oortService
-    task.instanceService = instanceService
-    task.testing = true
     task.objectMapper = new ObjectMapper()
   }
 
@@ -92,7 +91,7 @@ class VerifyQuipTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.FAILED
+    thrown(RuntimeException)
 
     where:
     app = 'foo'
@@ -118,8 +117,9 @@ class VerifyQuipTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
+    0 * task.createInstanceService(_) >> instanceService
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
-    result.status == ExecutionStatus.FAILED
+    thrown(RuntimeException)
 
     where:
     app = 'foo'
@@ -138,21 +138,50 @@ class VerifyQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app
     ])
-    Response oortResponse = new Response('http://oort', 500, 'WTF', [], null)
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
-    result.status == ExecutionStatus.FAILED
+    1 * oortService.getCluster(app, account, cluster, 'aws') >> { throw new RetrofitError(null, null, null, null, null, null, null)}
+    0 * task.createInstanceService(_) >> instanceService
+    thrown(RuntimeException)
 
     where:
     app = 'foo'
     cluster = 'foo-test'
     account = 'test'
     region = "eu-west-1"
+  }
 
+  def "no server groups in cluster"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication(app)
+      .build()
+    def stage = new PipelineStage(pipe, 'verifyQuip', [
+      "clusterName" : cluster,
+      "account" : account,
+      "region" : region,
+      "application" : app
+    ])
+
+    Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString("{}"))
+
+    when:
+    task.execute(stage)
+
+    then:
+    0 * task.createInstanceService(_) >> instanceService
+    1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
+    !stage.context?.instances
+    thrown(RuntimeException)
+
+    where:
+    app = 'foo'
+    cluster = 'foo-test'
+    account = 'test'
+    region = "eu-west-1"
   }
 
     def "no instances in cluster"() {
@@ -170,12 +199,13 @@ class VerifyQuipTaskSpec extends Specification {
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
 
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
+    0 * task.createInstanceService(_) >> instanceService
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     !stage.context?.instances
-    result.status == ExecutionStatus.FAILED
+    thrown(RuntimeException)
 
      where:
     app = 'foo'
@@ -198,17 +228,17 @@ class VerifyQuipTaskSpec extends Specification {
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
     Response instanceResponse = new Response('http://oort', 200, 'OK', [], new TypedString(instance))
-    Response badInstanceResponse = new Response('http://oort', 500, 'WTF', [], null)
 
     when:
     TaskResult result = task.execute(stage)
 
     then:
+    2 * task.createInstanceService(_) >> instanceService
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
-    2 * instanceService.listTasks() >>> [ instanceResponse, badInstanceResponse ]
-    //stage.context?.instances?.size() == 2
-    result.stageOutputs.instances.size() == 2
-    result.status == ExecutionStatus.FAILED
+    1 * instanceService.listTasks() >> instanceResponse
+    1 * instanceService.listTasks() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    !result?.stageOutputs
+    thrown(RuntimeException)
 
     where:
     app = 'foo'
@@ -238,6 +268,7 @@ class VerifyQuipTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
+    2 * task.createInstanceService(_) >> instanceService
     1 * oortService.getCluster(app, account, cluster, 'aws') >> oortResponse
     2 * instanceService.listTasks() >> instanceResponse
     result.stageOutputs?.instances?.size() == 2

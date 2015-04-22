@@ -3,24 +3,22 @@ package com.netflix.spinnaker.orca.kato.tasks.quip
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
+import retrofit.RetrofitError
 
 @Component
-class TriggerQuipTask implements Task  {
+class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
   @Autowired ObjectMapper objectMapper
 
-  InstanceService instanceService
-
-  // FIXME
-  boolean testing = false
+  long backoffPeriod = 10000
+  long timeout = 60000 // 1min
 
   @Override
   TaskResult execute(Stage stage) {
@@ -31,7 +29,6 @@ class TriggerQuipTask implements Task  {
     String packageName = stage.context?.packageName
     String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
     def instances = stage.context?.instances
-    //TaskResult taskResult //= new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     // verify instance list, package, and version are in the context
     if(version && packageName && instances) {
@@ -41,26 +38,18 @@ class TriggerQuipTask implements Task  {
           .setEndpoint("http://${it}:5050")
           .build()
 
-        if(!testing) {
-          instanceService = restAdapter.create(InstanceService.class)
-        }
+        def instanceService = createInstanceService(restAdapter)
 
-        def instanceResponse = instanceService.patchInstance(packageName, version)
-        int retries = 5
-
-        while (retries-- > 0 && instanceResponse.status != 200) {
-          instanceResponse = instanceService.patchInstance(packageName, version)
-        }
-
-        if(instanceResponse.status == 200) {
+        try {
+          def instanceResponse = instanceService.patchInstance(packageName, version)
           def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
           taskIdMap.put(it, ref.substring(1+ref.lastIndexOf('/')))
-        } else {
-          executionStatus = ExecutionStatus.FAILED
+        } catch(RetrofitError e) {
+          executionStatus = ExecutionStatus.RUNNING
         }
       }
     } else {
-      executionStatus = ExecutionStatus.FAILED
+      throw new RuntimeException("one or more required parameters are missing : version || packageName || instances")
     }
     return new DefaultTaskResult(executionStatus, ["taskIds" : taskIdMap])
   }

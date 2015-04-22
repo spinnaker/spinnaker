@@ -21,6 +21,7 @@ import retrofit.client.Response
 import retrofit.http.*
 
 interface InstanceService {
+  // TODO: add concrete result objects vs Response objects
   @GET("/tasks")
   Response listTasks()
 
