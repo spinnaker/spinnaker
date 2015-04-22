@@ -72,6 +72,23 @@ class PipelineSpec extends Specification {
         SUCCEEDED    | SUCCEEDED    | TERMINAL     | TERMINAL
   }
 
+  def "a pipeline containing no stages >= 1 tasks should be TERMINAL"() {
+    when:
+    pipeline.stages.each {
+      it.status = RUNNING
+      it.tasks.clear()
+    }
+
+    then:
+    pipeline.status == TERMINAL
+
+    when:
+    pipeline.stages[0].tasks << new DefaultTask()
+
+    then:
+    pipeline.status == RUNNING
+  }
+
 
   def "can get a previous stage from a stage by type"() {
     expect:

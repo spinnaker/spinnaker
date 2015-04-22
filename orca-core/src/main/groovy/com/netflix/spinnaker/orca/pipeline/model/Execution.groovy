@@ -92,6 +92,10 @@ abstract class Execution<T> implements Serializable {
       it.tasks.size() > 0
     } as List
 
+    if (!nonEmptyStages) {
+      return TERMINAL
+    }
+
     if (nonEmptyStages.status.every { it == SUCCEEDED }) {
       return SUCCEEDED
     }
