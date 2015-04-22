@@ -59,6 +59,7 @@ class BakeStageSpec extends Specification {
     [region: "us-east-1"]                  | null                                          || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1", amiSuffix: ""]   | null                                          || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1", amiSuffix: "--"] | null                                          || expectedContexts("--", "us-east-1")
+    [region: "global"]                     | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "global")
   }
 
   def "should include per-region stage contexts as global deployment details"() {
