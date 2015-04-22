@@ -45,6 +45,9 @@ class Build {
     String url
     @Element(required = false)
     String builtOn
+    @Element(required = false)
+    String fullDisplayName
+    
     @ElementList(required = false, name = "artifact", inline = true)
     List<BuildArtifact> artifacts
     /*

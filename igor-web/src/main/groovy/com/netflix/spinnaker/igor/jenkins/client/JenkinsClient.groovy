@@ -43,13 +43,13 @@ interface JenkinsClient {
     @GET('/api/xml?tree=jobs[name]')
     JobList getJobs()
 
-    @GET('/job/{jobName}/api/xml?exclude=/*/build/action[not(totalCount)]&tree=builds[number,url,duration,timestamp,result,building,url,actions[failCount,skipCount,totalCount]]')
+    @GET('/job/{jobName}/api/xml?exclude=/*/build/action[not(totalCount)]&tree=builds[number,url,duration,timestamp,result,building,url,fullDisplayName,actions[failCount,skipCount,totalCount]]')
     BuildsList getBuilds(@Path('jobName') String jobName)
 
     @GET('/job/{jobName}/api/xml?tree=name,url,actions[processes[name]],downstreamProjects[name,url],upstreamProjects[name,url]')
     BuildDependencies getDependencies(@Path('jobName') String jobName)
 
-    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,artifacts[displayPath,fileName,relativePath]')
+    @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(totalCount)]&tree=actions[failCount,skipCount,totalCount,urlName],duration,number,timestamp,result,building,url,fullDisplayName,artifacts[displayPath,fileName,relativePath]')
     Build getBuild(@Path('jobName') String jobName, @Path('buildNumber') Integer buildNumber)
 
     @GET('/job/{jobName}/{buildNumber}/api/xml?exclude=/*/action[not(lastBuiltRevision)]&tree=actions[remoteUrl,lastBuiltRevision[branch[name,SHA1]]]')
