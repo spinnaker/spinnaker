@@ -23,9 +23,11 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Slf4j
 @Component
 class CreateGoogleServerGroupTask implements Task {
 
@@ -48,13 +50,49 @@ class CreateGoogleServerGroupTask implements Task {
 
   Map convert(Stage stage) {
     def operation = [:]
-    operation.putAll(stage.context)
+
+    // If this stage was synthesized by a parallel deploy stage, the operation properties will be under 'cluster'.
+    if (stage.context.containsKey("cluster")) {
+      operation.putAll(stage.context.cluster as Map)
+
+      def transformedInstanceMetadata = [:]
+
+      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the
+      // wizard.
+      operation.instanceMetadata?.each { metadataPair ->
+        transformedInstanceMetadata[metadataPair.key] = metadataPair.value
+      }
+
+      // We use this list of load balancer names when 'Enabling' a server group.
+      if (operation.loadBalancers) {
+        transformedInstanceMetadata['load-balancer-names'] = operation.loadBalancers.join(",");
+      }
+
+      operation.instanceMetadata = transformedInstanceMetadata
+    } else {
+      operation.putAll(stage.context)
+    }
+
     operation.initialNumReplicas = operation.capacity.desired
     operation.networkLoadBalancers = operation.loadBalancers
+
+    if (operation.account && !operation.credentials) {
+      operation.credentials = operation.account
+    }
+
+    // If this is a stage in a pipeline, look in the context for the baked image.
+    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+
+    if (!operation.image && deploymentDetails) {
+      operation.image = deploymentDetails.find { it.cloudProviderType == 'gce' }?.ami
+    }
+
     operation
   }
 
   private TaskId deploy(Map deployOperation) {
+    log.info("Deploying $deployOperation.image to $deployOperation.zone")
+
     kato.requestOperations([[basicGoogleDeployDescription: deployOperation]]).toBlocking().first()
   }
 }
