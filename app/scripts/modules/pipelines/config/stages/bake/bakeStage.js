@@ -45,15 +45,6 @@ angular.module('deckApp.pipelines.stage.bake')
     });
 
     this.providerSelected = function() {
-      if (!$scope.stage.cloudProviderType && $scope.viewState.providerSelectionRequired) {
-        bakeryService.getVmTypes().then( function(vmTypes) {
-          $scope.vmTypes = vmTypes;
-        } );
-        if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
-          $scope.stage.vmType = $scope.vmTypes[0];
-        }
-        return;
-      }
       $scope.viewState.providerSelected = true;
       $q.all({
         regions: bakeryService.getRegions($scope.stage.cloudProviderType),
