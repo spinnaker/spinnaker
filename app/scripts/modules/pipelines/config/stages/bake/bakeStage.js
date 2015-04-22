@@ -40,13 +40,18 @@ angular.module('deckApp.pipelines.stage.bake')
         $scope.viewState.loading = false;
       } else {
         $scope.viewState.providerSelectionRequired = false;
-        $scope.stage.cloudProviderType = $scope.stage.cloudProviderType || _.first(providers);
       }
       ctrl.providerSelected();
     });
 
     this.providerSelected = function() {
       if (!$scope.stage.cloudProviderType && $scope.viewState.providerSelectionRequired) {
+        bakeryService.getVmTypes().then( function(vmTypes) {
+          $scope.vmTypes = vmTypes;
+        } );
+        if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
+          $scope.stage.vmType = $scope.vmTypes[0];
+        }
         return;
       }
       $scope.viewState.providerSelected = true;
