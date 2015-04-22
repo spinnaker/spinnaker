@@ -75,10 +75,16 @@ class ParallelDeployStage extends ParallelStage {
   }
 
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
+    def type = DeployStage.MAYO_CONFIG_TYPE
+
+    if (cluster.providerType) {
+      type += "_$cluster.providerType"
+    }
+
     return defaultStageContext + [
       account: cluster.account ?: stage.context.account,
       cluster: cluster,
-      type   : DeployStage.MAYO_CONFIG_TYPE,
+      type   : type,
       name   : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
     ]
   }

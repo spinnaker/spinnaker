@@ -35,11 +35,14 @@ class ParallelDeployStageSpec extends Specification {
     parallelContexts == expectedParallelContexts
 
     where:
-    stageContext                                            || expectedParallelContexts
-    deployStageContext("prod", "us-west-1")                 || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
-    deployStageContext("prod", "us-west-1", "us-east-1")    || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
-                                                                [account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
-    [availabilityZones: ["us-west-1": []], account: "prod"] || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []], account: "prod"], type: "linearDeploy", name: "Deploy in us-west-1"]]
+    stageContext                                                         || expectedParallelContexts
+    deployStageContext("prod", null, "us-west-1")                        || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"]]
+    deployStageContext("prod", null, "us-west-1", "us-east-1")           || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-west-1": []]], type: "linearDeploy", name: "Deploy in us-west-1"],
+                                                                             [account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-east-1": []]], type: "linearDeploy", name: "Deploy in us-east-1"]]
+    [availabilityZones: ["us-west-1": []], account: "prod"]              || [[account: "prod", cluster: [availabilityZones: ["us-west-1": []], account: "prod"], type: "linearDeploy", name: "Deploy in us-west-1"]]
+    deployStageContext("prod", "gce", "us-central1-a")                   || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-central1-a": []], providerType: "gce"], type: "linearDeploy_gce", name: "Deploy in us-central1-a"]]
+    deployStageContext("prod", "gce", "us-central1-a", "europe-west1-b") || [[account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["us-central1-a": []], providerType: "gce"], type: "linearDeploy_gce", name: "Deploy in us-central1-a"],
+                                                                             [account: "prod", restrictedExecutionWindow: [:], cluster: [availabilityZones: ["europe-west1-b": []], providerType: "gce"], type: "linearDeploy_gce", name: "Deploy in europe-west1-b"]]
   }
 
   @Unroll
@@ -56,12 +59,22 @@ class ParallelDeployStageSpec extends Specification {
     "Default" | true             || "Default"
   }
 
-  Map deployStageContext(String account, String... availabilityZones) {
+  Map deployStageContext(String account, String providerType, String... availabilityZones) {
     def context = ["account": account, restrictedExecutionWindow: [:]]
     if (availabilityZones.size() == 1) {
       context.cluster = ["availabilityZones": [(availabilityZones[0]): []]]
+
+      if (providerType) {
+        context.cluster.providerType = providerType
+      }
     } else {
       context.clusters = availabilityZones.collect { ["availabilityZones": [(it): []]] }
+
+      if (providerType) {
+        context.clusters.each {
+          it.providerType = providerType
+        }
+      }
     }
     return context
   }
