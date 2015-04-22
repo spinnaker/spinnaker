@@ -17,15 +17,17 @@ angular
 
     notificationService.getNotificationsForApplication(application.name).then(function (notifications) {
       vm.notifications = _.filter(_.flatten(_.map(['email', 'sms', 'hipchat'],
-          function (type) {
-            if (notifications[type]) {
-              return _.map(notifications[type], function (entry) {
-                  return _.extend(entry, {type: type});
-                }
-              );
-            }
+        function (type) {
+          if (notifications[type]) {
+            return _.map(notifications[type], function (entry) {
+                return _.extend(entry, {type: type});
+              }
+            );
           }
-        )), function(allow){return allow !== undefined;});
+        }
+      )), function (allow) {
+        return allow !== undefined;
+      });
     });
 
     vm.editApplication = function () {
@@ -94,6 +96,35 @@ angular
           vm.clearingCaches = false;
         }
       );
+    };
+
+    vm.removeNotification = function (notification) {
+      vm.notifications = vm.notifications.filter(function (el) {
+          return el !== notification;
+        }
+      );
+      vm.updateNotifications();
+    };
+
+    vm.editNotification = function (notification) {
+      $modal.open({
+        templateUrl: 'scripts/modules/config/modal/editNotification.html',
+        controller: 'EditNotificationController',
+        controllerAs: 'editNotification',
+        resolve: {
+          notification: function () {
+            return notification;
+          }
+        }
+      });
+    };
+
+    vm.addNotification = function(){
+      vm.editNotification([]);
+    };
+
+    vm.updateNotifications = function(){
+
     };
 
     return vm;

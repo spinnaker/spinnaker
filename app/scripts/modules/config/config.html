@@ -46,18 +46,16 @@
                   </ul>
                 </td>
                 <td>
-                  <a class="btn btn-xs btn-link" href ng-click="deployStageCtrl.editCluster(cluster, $index)">Edit</a>
+                  <a class="btn btn-xs btn-link" href ng-click="config.editNotification(notification)">Edit</a>
                   <a class="btn btn-xs btn-link pad-left" href
-                     ng-click="deployStageCtrl.removeCluster($index)">Remove</a>
-                  <a class="btn btn-xs btn-link pad-left" href
-                     ng-click="deployStageCtrl.copyCluster($index)">Duplicate</a>
+                     ng-click="config.removeNotification(notification)">Remove</a>
                 </td>
               </tr>
               </tbody>
               <tfoot>
               <tr>
                 <td colspan="7">
-                  <button class="btn btn-block btn-sm add-new" ng-click="deployStageCtrl.addCluster()">
+                  <button class="btn btn-block btn-sm add-new" ng-click="config.addNotification()">
                     <span class="glyphicon glyphicon-plus-sign"></span> Add notification setting
                   </button>
                 </td>
