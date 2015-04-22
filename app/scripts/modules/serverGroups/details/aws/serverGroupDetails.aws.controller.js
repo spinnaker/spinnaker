@@ -192,8 +192,6 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
       var taskMonitor = {
         application: application,
         title: 'Enabling ' + serverGroup.name,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {

@@ -7,6 +7,7 @@ angular.module('deckApp.networking.controller', [
   'deckApp.utils.lodash',
   'deckApp.elasticIp.read.service',
   'deckApp.elasticIp.controller',
+  'deckApp.networking.ip.sort.filter',
 ])
   .controller('networkingCtrl', function ($scope, $modal, elasticIpReader) {
     var application = $scope.application;

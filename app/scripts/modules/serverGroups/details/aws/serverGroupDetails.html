@@ -201,7 +201,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="elasticIp in elasticIps">
+        <tr ng-repeat="elasticIp in elasticIps | ipSorter">
           <td>
             {{elasticIp.address}}
             <a href ng-if="!elasticIp.attachedToId" ng-click="disassociateElasticIp(elasticIp.address)"><span class="glyphicon glyphicon-trash"></span></a>

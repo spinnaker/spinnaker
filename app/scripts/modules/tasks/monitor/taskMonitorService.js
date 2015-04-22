@@ -86,7 +86,7 @@ angular.module('deckApp.tasks.monitor.service', [])
       function processSuccessfulTask(task) {
         task.get().then(function() {
           if (monitor.forceRefreshEnabled) {
-            task.watchForForceRefresh().then(handleForceRefreshComplete, handleApplicationRefreshComplete);
+            task.watchForForceRefresh().then(handleForceRefreshComplete, monitor.setError);
           } else {
             monitor.forceRefreshComplete = true;
             task.watchForTaskComplete().then(monitor.onTaskComplete, monitor.setError);

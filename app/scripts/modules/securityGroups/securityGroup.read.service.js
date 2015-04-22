@@ -10,7 +10,7 @@ angular.module('deckApp.securityGroup.read.service', [
   'deckApp.caches.infrastructure',
   'deckApp.notifications.service'
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
+  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
 
     function loadSecurityGroups(application) {
 
@@ -56,7 +56,15 @@ angular.module('deckApp.securityGroup.read.service', [
       }
     }
 
-    function attachSecurityGroups(application, securityGroups, nameBasedSecurityGroups) {
+    function clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups) {
+      infrastructureCaches.clearCache('securityGroups');
+      return loadSecurityGroups(application).then(function(refreshedSecurityGroups) {
+        return attachSecurityGroups(application, refreshedSecurityGroups, nameBasedSecurityGroups, false);
+      });
+    }
+
+    function attachSecurityGroups(application, securityGroups, nameBasedSecurityGroups, retryIfNotFound) {
+      var notFoundCaught = false;
       var applicationSecurityGroups = [];
 
       var indexedSecurityGroups = indexSecurityGroups(securityGroups);
@@ -69,7 +77,8 @@ angular.module('deckApp.securityGroup.read.service', [
           attachUsageFields(match);
           applicationSecurityGroups.push(match);
         } catch(e) {
-          $exceptionHandler('could not initialize application security group:', securityGroup);
+          $log.warn('could not initialize application security group:', securityGroup);
+          notFoundCaught = true;
         }
       });
 
@@ -82,7 +91,8 @@ angular.module('deckApp.securityGroup.read.service', [
               securityGroup.usages.loadBalancers.push(loadBalancer);
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
-              $exceptionHandler('could attach security group to load balancer:', loadBalancer.name, securityGroupId);
+              $log.warn('could not attach security group to load balancer:', loadBalancer.name, securityGroupId);
+              notFoundCaught = true;
             }
           });
         }
@@ -96,13 +106,21 @@ angular.module('deckApp.securityGroup.read.service', [
               securityGroup.usages.serverGroups.push(serverGroup);
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
-              $exceptionHandler('could not attach security group to server group:', serverGroup.name, securityGroupId);
+              $log.warn('could not attach security group to server group:', serverGroup.name, securityGroupId);
+              notFoundCaught = true;
             }
           });
         }
       });
 
-      application.securityGroups = _.unique(applicationSecurityGroups);
+      if (notFoundCaught && retryIfNotFound) {
+        $log.warn('Clearing security group cache and trying again...');
+        return clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
+      } else {
+        application.securityGroups = _.unique(applicationSecurityGroups);
+        return $q.when(null);
+      }
+
     }
 
     function indexSecurityGroups(securityGroups) {
