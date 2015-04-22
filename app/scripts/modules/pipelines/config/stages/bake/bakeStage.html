@@ -43,7 +43,7 @@
         </label>
       </div>
     </div>
-    <div class="form-group" ng-if="stage.cloudProviderType === 'aws'">
+    <div class="form-group" ng-if="stage.cloudProviderType === 'aws' || stage.cloudProviderType === undefined">
       <label class="col-md-2 col-md-offset-1 sm-label-left">VM Type</label>
 
       <div class="col-md-6">
