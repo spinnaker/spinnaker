@@ -26,6 +26,7 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
 
 apply plugin: 'spring-boot'
 apply plugin: 'project-report'
+apply plugin: 'spinnaker-debpublish'
 
 springBoot {
     mainClass = 'com.netflix.spinnaker.echo.Application'
@@ -57,3 +58,7 @@ dependencies {
 
 applicationDefaultJvmArgs = ["-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"]
 
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}
