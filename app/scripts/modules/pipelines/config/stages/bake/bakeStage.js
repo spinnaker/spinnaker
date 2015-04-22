@@ -40,6 +40,7 @@ angular.module('deckApp.pipelines.stage.bake')
         $scope.viewState.loading = false;
       } else {
         $scope.viewState.providerSelectionRequired = false;
+        $scope.stage.cloudProviderType = $scope.stage.cloudProviderType || _.first(providers);
       }
       ctrl.providerSelected();
     });
