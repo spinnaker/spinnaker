@@ -10,8 +10,6 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
           'home.applications.application.insight.clusters.serverGroup',
           {
             application: input.application,
-            cluster: input.cluster,
-            account: input.account,
             accountId: input.account,
             region: input.region,
             serverGroup: input.serverGroup,
@@ -19,7 +17,7 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
           },
           { inherit: false }
         );
-        return buildUrl(href, {q: input.serverGroup});
+        return buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
       },
       // url for a single instance
       'instances': function(input) {
@@ -34,18 +32,16 @@ angular.module('deckApp.urlBuilder', ['ui.router'])
             }
           );
         }
-        return $state.href(
+        var href = $state.href(
           'home.applications.application.insight.clusters.instanceDetails',
           {
             application: input.application,
-            cluster: input.cluster,
-            accountId: input.account,
             instanceId: input.instanceId,
-            account: input.account,
             provider: input.provider,
           },
           { inherit: false }
         );
+        return buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
       },
       // url for a single cluster
       'clusters': function(input) {
