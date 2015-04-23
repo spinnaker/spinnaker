@@ -74,6 +74,11 @@ angular.module('deckApp.search.global')
           acct[result.account] = true;
           ClusterFilterModel.sortFilter.account = acct;
         }
+        if (result.region) {
+          var reg = {};
+          reg[result.region] = true;
+          ClusterFilterModel.sortFilter.region = reg;
+        }
         if ($stateParams.application === result.application) {
           clusterFilterService.updateClusterGroups();
         }
