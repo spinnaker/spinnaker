@@ -67,6 +67,8 @@ angular.module('deckApp.pipelines.stage.deploy')
             },
           }
         }).result.then(function(command) {
+            // If we don't set the provider, the serverGroupTransformer won't know which provider to delegate to.
+            command.provider = selectedProvider;
             var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
             delete stageCluster.credentials;
             $scope.stage.clusters.push(stageCluster);
