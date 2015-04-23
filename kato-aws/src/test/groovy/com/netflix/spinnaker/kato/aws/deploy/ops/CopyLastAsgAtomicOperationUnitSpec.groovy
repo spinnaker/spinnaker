@@ -27,7 +27,6 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
-import com.netflix.spinnaker.kato.aws.deploy.AmazonDeploymentResult
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
@@ -36,6 +35,7 @@ import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import spock.lang.Specification
 
 class CopyLastAsgAtomicOperationUnitSpec extends Specification {
@@ -97,8 +97,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
       mockAsg.getLaunchConfigurationName() >> "foo"
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups([mockAsg])
     }
-    1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new AmazonDeploymentResult(asgNameByRegion: ['us-east-1': 'asgard-stack-v001'])
-    1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new AmazonDeploymentResult(asgNameByRegion: ['us-west-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
+    1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
     with(mockAsgReferenceCopier) {
       2 * copyScalingPoliciesWithAlarms('asgard-stack-v000', 'asgard-stack-v001')
       2 * copyScheduledActionsForAsg('asgard-stack-v000', 'asgard-stack-v001')

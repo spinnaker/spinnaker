@@ -147,6 +147,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                        .setTargetPools(networkLoadBalancers)).execute()
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
-    new DeploymentResult(serverGroupNames: ["$region:$serverGroupName".toString()])
+
+    DeploymentResult deploymentResult = new DeploymentResult()
+    deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]
+    deploymentResult.serverGroupNameByRegion[region] = serverGroupName
+    deploymentResult
   }
 }

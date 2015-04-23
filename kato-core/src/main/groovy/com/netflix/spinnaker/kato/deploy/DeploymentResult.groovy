@@ -19,5 +19,6 @@ package com.netflix.spinnaker.kato.deploy
 
 class DeploymentResult {
   List<String> serverGroupNames = []
+  Map<String, String> serverGroupNameByRegion = [:]
   List<String> messages = []
 }

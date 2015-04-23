@@ -128,7 +128,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
-      def newAsgName = thisResult.asgNameByRegion[targetRegion]
+      def newAsgName = thisResult.serverGroupNameByRegion[targetRegion]
       def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(description.credentials, targetRegion)
       asgReferenceCopier.copyScalingPoliciesWithAlarms(ancestorAsg.autoScalingGroupName, newAsgName)
       asgReferenceCopier.copyScheduledActionsForAsg(ancestorAsg.autoScalingGroupName, newAsgName)
