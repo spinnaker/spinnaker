@@ -54,7 +54,12 @@ class CreateGoogleServerGroupTask implements Task {
     // If this stage was synthesized by a parallel deploy stage, the operation properties will be under 'cluster'.
     if (stage.context.containsKey("cluster")) {
       operation.putAll(stage.context.cluster as Map)
+    } else {
+      operation.putAll(stage.context)
+    }
 
+    // instanceMetadata from a pipeline is sent as a list of maps, each containing key and value entries.
+    if (operation.instanceMetadata instanceof List) {
       def transformedInstanceMetadata = [:]
 
       // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the
@@ -69,8 +74,6 @@ class CreateGoogleServerGroupTask implements Task {
       }
 
       operation.instanceMetadata = transformedInstanceMetadata
-    } else {
-      operation.putAll(stage.context)
     }
 
     operation.initialNumReplicas = operation.capacity.desired
