@@ -30,7 +30,7 @@ interface MineService {
   Response registerCanary(@Body Canary canary)
 
   @GET('/canaries/{id}')
-  Canary checkCanaryStatus(@Path('id') String id)
+  Canary getCanary(@Path('id') String id)
 
   @DELETE('/canaries/{id}/cancel')
   Canary cancelCanary(@Path('id') String id, @Query('reason') String reason)

@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+package com.netflix.spinnaker.orca.oort
 
-interface Task {
-  TaskResult execute(Stage stage)
+import retrofit.client.Response
+import retrofit.http.*
+
+interface InstanceService {
+  // TODO: add concrete result objects vs Response objects
+  @GET("/tasks")
+  Response listTasks()
+
+  @GET("/tasks/{id}")
+  Response listTask(@Path("id") String id)
+
+  @PATCH("/{app}/{version}")
+  Response patchInstance(@Path("app") String app, @Path("version") String version)
 }

@@ -1,7 +1,7 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca
+package com.netflix.spinnaker.orca.pipeline.util
 
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+public enum OperatingSystem {
+  centos(PackageType.RPM), ubuntu(PackageType.DEB), trusty(PackageType.DEB)
 
-interface Task {
-  TaskResult execute(Stage stage)
+  private final PackageType packageType
+  private OperatingSystem(PackageType packageType) {
+    this.packageType = packageType
+  }
+
+  PackageType getPackageType() {
+    return packageType
+  }
 }
+

@@ -47,7 +47,7 @@ class DeployCanaryStage extends ParallelDeployStage {
     return canaries.collect { Map cluster ->
       def baseline = new LinkedHashMap(cluster)
       def canary = new LinkedHashMap(cluster)
-      def detailsPrefix = cluster.freeFormDetails ? "${cluster.freeFormDetails}_" : ""
+      def detailsPrefix = cluster.freeFormDetails ? "${cluster.freeFormDetails}-" : ""
 
       baseline.amiName = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }?.ami
       baseline.freeFormDetails = "${detailsPrefix}baseline".toString()

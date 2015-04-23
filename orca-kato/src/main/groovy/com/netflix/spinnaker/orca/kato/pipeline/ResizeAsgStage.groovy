@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.*
@@ -49,13 +50,17 @@ class ResizeAsgStage extends LinearStage {
       // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
       configureTargets(stage)
       stage.initializationStage = true
-      []
+
+      // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
+      stage.status = ExecutionStatus.SUCCEEDED
+
+      return []
     } else {
       def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
       def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
       def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
       def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
-      [step1, step2, step3, step4]
+      return [step1, step2, step3, step4]
     }
   }
 
@@ -133,27 +138,14 @@ class ResizeAsgStage extends LinearStage {
         credentials: stage.context.credentials,
         regions    : [targetReference.region]
       ]
-      if (targetReference.asg.asg.suspendedProcesses) {
-        def suspendedProcesses = targetReference.asg.asg.suspendedProcesses*.processName as List
-        def processesToEnable = []
-        if (suspendedProcesses.contains("Launch")) {
-          processesToEnable << "Launch"
-        }
-        if (suspendedProcesses.contains("Terminate")) {
-          processesToEnable << "Terminate"
-        }
 
-        if (processesToEnable) {
-          injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
-            action: "resume",
-            processes: processesToEnable
-          ])
-          injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, context + [
-            action: "suspend",
-            processes: processesToEnable
-          ])
-        }
-      }
+      injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
+        action: "resume",
+        processes: ["Launch", "Terminate"]
+      ])
+      injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, context + [
+        action: "suspend"
+      ])
     }
   }
 

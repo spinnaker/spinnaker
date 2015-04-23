@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
@@ -25,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @CompileStatic
 interface Stage<T extends Execution> {
+  public static final String STAGE_TIMEOUT_OVERRIDE_KEY = "stageTimeoutMs"
 
   String getRefId()
   void setRefId(String refId)

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
@@ -39,6 +40,11 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
     requisiteIds?.each { String requisiteId ->
       def requisiteStage = stage.execution.stages.find { it.refId == requisiteId }
       if (requisiteStage?.status != SUCCEEDED) {
+        allRequisiteStagesAreComplete = false
+      }
+
+      def tasks = (requisiteStage?.tasks ?: []) as List<Task>
+      if (tasks.find { it.status != SUCCEEDED }) {
         allRequisiteStagesAreComplete = false
       }
     }

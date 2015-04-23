@@ -42,6 +42,10 @@ class MonitorKatoTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
+    if (!taskId) {
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    }
+
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
     ExecutionStatus status = katoStatusToTaskStatus(katoTask.status)
 
