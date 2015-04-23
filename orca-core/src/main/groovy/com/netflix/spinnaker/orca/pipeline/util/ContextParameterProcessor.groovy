@@ -1,6 +1,14 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
-import org.apache.commons.lang.text.StrSubstitutor
+import org.springframework.expression.AccessException
+import org.springframework.expression.EvaluationContext
+import org.springframework.expression.Expression
+import org.springframework.expression.ExpressionParser
+import org.springframework.expression.ParserContext
+import org.springframework.expression.TypedValue
+import org.springframework.expression.spel.standard.SpelExpressionParser
+import org.springframework.expression.spel.support.ReflectivePropertyAccessor
+import org.springframework.expression.spel.support.StandardEvaluationContext
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
@@ -8,28 +16,67 @@ import org.apache.commons.lang.text.StrSubstitutor
  */
 class ContextParameterProcessor {
 
+  // uses $ instead of  #
+  private static ParserContext parserContext = [
+    getExpressionPrefix: {
+      '${'
+    },
+    getExpressionSuffix: {
+      '}'
+    },
+    isTemplate : {
+     true
+    }
+  ] as ParserContext
+
+  private static MapPropertyAccessor = new MapPropertyAccessor()
+
+  private static ExpressionParser parser = new SpelExpressionParser()
+
   static Map process(Map parameters, Map context) {
-    if(!parameters){
+    if (!parameters) {
       return null
     }
 
-    Map flattenedMap = flattenMap('', context)
-    StrSubstitutor substitutor = new StrSubstitutor(flattenedMap)
+    EvaluationContext evaluationContext = new StandardEvaluationContext(context)
+    evaluationContext.addPropertyAccessor(MapPropertyAccessor)
+
     parameters.collectEntries { k, v ->
-      [k, substitutor.replace(v)]
+      String convertedValue = v
+      try {
+        Expression exp = parser.parseExpression(v, parserContext)
+        convertedValue = exp.getValue(evaluationContext)
+      }catch(e){
+      }
+      [k, convertedValue?:v]
     }
   }
+}
 
-  static Map flattenMap(String prefix, Object o) {
-    Map result = [:]
-    if (o instanceof Map) {
-      o.each { k, v ->
-        result = result + flattenMap("${prefix.empty ? '' : (prefix + '.')}${k}", v)
-      }
-    } else {
-      result[prefix] = o
+class MapPropertyAccessor extends ReflectivePropertyAccessor {
+
+  public MapPropertyAccessor() {
+    super()
+  }
+
+  @Override
+  Class<?>[] getSpecificTargetClasses() {
+    [Map]
+  }
+
+  @Override
+  boolean canRead(final EvaluationContext context, final Object target, final String name)
+    throws AccessException {
+    true
+  }
+
+  @Override
+  public TypedValue read(final EvaluationContext context, final Object target, final String name)
+    throws AccessException {
+    if (!(target instanceof Map)) {
+      throw new AccessException("Cannot read target of class " + target.getClass().getName())
     }
-    result
+    new TypedValue(((Map<String,?>)target).get(name))
   }
 
 }
