@@ -14,7 +14,8 @@ angular
         command.amiName = base.viewState.allImageSelection;
       }
       command.availabilityZones = {};
-      command.availabilityZones[command.region] = base.availabilityZones;
+      command.availabilityZones[command.region] = [base.zone];
+      command.account = command.credentials;
       if (!command.ramdiskId) {
         delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
       }
@@ -24,7 +25,6 @@ angular
       delete command.selectedProvider;
       delete command.instanceProfile;
       delete command.vpcId;
-      delete command.usePreferredZones;
 
       if (!command.subnetType) {
         delete command.subnetType;
