@@ -26,12 +26,12 @@ angular.module('deckApp.pipelines.stage.deploy.details.controller', [
           var resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
-            var deployedArtifacts = _.find(resultObjects, 'asgNameByRegion');
+            var deployedArtifacts = _.find(resultObjects, 'serverGroupNameByRegion');
             if (deployedArtifacts) {
-              _.forEach(deployedArtifacts.asgNameByRegion, function (asgName, region) {
+              _.forEach(deployedArtifacts.serverGroupNameByRegion, function (serverGroupName, region) {
                 results.push({
                   region: region,
-                  name: asgName,
+                  name: serverGroupName,
                 });
               });
             }
