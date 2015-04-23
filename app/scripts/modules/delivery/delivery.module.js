@@ -13,6 +13,7 @@ angular.module('deckApp.delivery', [
   'deckApp.delivery.stages.filter',
   'deckApp.delivery.statusNames.filter',
   'deckApp.delivery.executions.filter',
+  'deckApp.delivery.buildDisplayName.filter',
 
   'deckApp.delivery.execution.directive',
   'deckApp.delivery.executionBar.directive',
