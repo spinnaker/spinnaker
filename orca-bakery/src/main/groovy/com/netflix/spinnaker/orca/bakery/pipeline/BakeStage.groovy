@@ -55,13 +55,15 @@ class BakeStage extends ParallelStage implements StepProvider {
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
     def deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
-    stage.execution.stages.findAll { it.type == "deploy" }.each {
-      ((it.context?.clusters?.availabilityZones ?: []) + [
-        it.context.availabilityZones as Map,
-        it.context?.cluster?.availabilityZones as Map
-      ]).findAll { it }.each {
-        // check each permutation of cluster config for target availability zones
-        deployRegions << it.keySet()[0]
+    if (!deployRegions.contains("global")) {
+      stage.execution.stages.findAll { it.type == "deploy" }.each {
+        ((it.context?.clusters?.availabilityZones ?: []) + [
+          it.context.availabilityZones as Map,
+          it.context?.cluster?.availabilityZones as Map
+        ]).findAll { it }.each {
+          // check each permutation of cluster config for target availability zones
+          deployRegions << it.keySet()[0]
+        }
       }
     }
 
@@ -96,7 +98,7 @@ class BakeStage extends ParallelStage implements StepProvider {
             it.type == MAYO_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && it.context.ami
           }.collect { Stage bakeStage ->
             def deploymentDetails = [:]
-            ["ami", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package"].each {
+            ["ami", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType"].each {
               if (bakeStage.context.containsKey(it)) {
                 deploymentDetails.put(it, bakeStage.context.get(it))
               }
