@@ -30,7 +30,6 @@ angular.module('deckApp.loadBalancer.gce.create.controller', [
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       forceRefreshMessage: 'Getting your new load balancer from GCE...',
       modalInstance: $modalInstance,
-      forceRefreshEnabled: true
     });
 
     var allSecurityGroups = {},
