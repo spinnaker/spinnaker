@@ -19,7 +19,7 @@ angular.module('deckApp.pipelines.stage.deploy')
       ],
     });
   })
-  .controller('DeployStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer) {
+  .controller('DeployStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, serverGroupTransformer) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -67,7 +67,7 @@ angular.module('deckApp.pipelines.stage.deploy')
             },
           }
         }).result.then(function(command) {
-            var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+            var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
             delete stageCluster.credentials;
             $scope.stage.clusters.push(stageCluster);
           });
@@ -91,7 +91,7 @@ angular.module('deckApp.pipelines.stage.deploy')
           },
         }
       }).result.then(function(command) {
-          var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
+          var stageCluster = serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
           delete stageCluster.credentials;
           $scope.stage.clusters[index] = stageCluster;
         });
