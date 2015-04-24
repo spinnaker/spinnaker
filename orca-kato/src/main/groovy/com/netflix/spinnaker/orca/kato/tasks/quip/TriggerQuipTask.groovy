@@ -34,11 +34,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
     if(version && packageName && instances) {
       // trigger patch on target server
       instances.each {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-          .setEndpoint("http://${it}:5050")
-          .build()
-
-        def instanceService = createInstanceService(restAdapter)
+        def instanceService = createInstanceService("http://${it}:5050")
 
         try {
           def instanceResponse = instanceService.patchInstance(packageName, version)

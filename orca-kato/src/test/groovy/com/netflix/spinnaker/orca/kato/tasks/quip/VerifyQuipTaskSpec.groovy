@@ -76,29 +76,32 @@ class VerifyQuipTaskSpec extends Specification {
     task.objectMapper = new ObjectMapper()
   }
 
-  def "missing configuration"() {
+  @Unroll
+  def "missing configuration #app, #cluster, #account, #region,#healthProviders"() {
     def pipe = new Pipeline.Builder()
       .withApplication(app)
       .build()
     def stage = new PipelineStage(pipe, 'verifyQuip', [
-      "clusterName" : null,
+      "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : healthProviders
     ])
 
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
     thrown(RuntimeException)
 
     where:
-    app = 'foo'
-    cluster = 'foo-test'
-    account = 'test'
-    region = "us-west-2"
-
+    app | cluster | account | region | healthProviders
+    null | "foo-test" | "test" | "us-west-2" | ['Discovery']
+    "foo" | null | "test" | "us-west-2" | ['Discovery']
+    "foo" | "foo-test" | null | "us-west-2" | ['Discovery']
+    "foo" | "foo-test" | "test" | null | ['Discovery']
+    "foo" | "foo-test" | "test" | "us-west-2" | null
   }
 
   def "more than one asg"() {
@@ -109,7 +112,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
     Response oortResponse = new Response('http://oort', 500, 'WTF', [], new TypedString(oort))
 
@@ -136,7 +140,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
 
     when:
@@ -163,7 +168,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString("{}"))
@@ -193,7 +199,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
@@ -223,7 +230,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
@@ -258,7 +266,8 @@ class VerifyQuipTaskSpec extends Specification {
       "clusterName" : cluster,
       "account" : account,
       "region" : region,
-      "application" : app
+      "application" : app,
+      "healthProviders" : ['Discovery']
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))

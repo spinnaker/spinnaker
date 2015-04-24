@@ -32,11 +32,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
 
     stage.context?.instances.each {
       def taskId = stage.context.taskIds.get(it)
-      RestAdapter restAdapter = new RestAdapter.Builder()
-        .setEndpoint("http://${it}:5050")
-        .build()
-
-      def instanceService = createInstanceService(restAdapter)
+      def instanceService = createInstanceService("http://${it}:5050")
       try {
         def instanceResponse = instanceService.listTask(taskId)
         def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
