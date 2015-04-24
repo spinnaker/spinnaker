@@ -9,9 +9,15 @@
             <account-tag account="stage.context.credentials"></account-tag>
           </dd>
           <dt>Region</dt>
-          <dd>{{stage.context.regions.join(', ')}}</dd>
-          <dt>ASG Name</dt>
-          <dd>{{stage.context.asgName}}</dd>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.clusterName}}</dd>
+          <dt>Name</dt>
+          <dd>{{stage.context.package}}</dd>
+          <dt>Version</dt>
+          <dd>{{stage.context.packageVersion}}</dd>
+          <dt>BaseOS</dt>
+          <dd>{{stage.context.baseOs}}</dd>
         </dl>
       </div>
       <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>

@@ -14,6 +14,8 @@ angular.module('deckApp.pipelines.stage.quickPatchAsg')
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
     $scope.stage = stage;
     $scope.baseOsOptions = ['ubuntu', 'centos'];
+    $scope.stage.application = $scope.application.name;
+    $scope.stage.healthProviders = ['Discovery'];
 
     $scope.state = {
       accounts: false,
@@ -29,6 +31,7 @@ angular.module('deckApp.pipelines.stage.quickPatchAsg')
       accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
         $scope.regionsLoaded = true;
+        $scope.stage.account = $scope.stage.credentials;
       });
     };
 

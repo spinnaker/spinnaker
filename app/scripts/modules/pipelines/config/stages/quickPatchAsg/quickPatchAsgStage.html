@@ -12,14 +12,10 @@
     </div>
     <div class="col-md-6" ng-if="stage.credentials">
       <div class="col-md-4" style="padding-left:0">
-        <label ng-repeat="r in regions">
-          <input
-            type="radio"
-            name="regions[]"
-            value="{{r}}"
-            ng-checked="stage.regions.indexOf(r) > -1"
-            ng-click="quickPatchAsgStageCtrl.toggleRegion(r)"
-            > {{r}}
+        <label class="radio-inline" ng-repeat="region in regions" style="margin-left: 0">
+          <input type="radio"
+                 ng-model="stage.region"
+                 ng-value="region"/>{{region}}
         </label>
       </div>
     </div>
@@ -40,7 +36,7 @@
       <help-field key="pipeline.config.quickPatchAsg.package"></help-field>
     </div>
     <div class="col-md-6">
-      <input type="text" required ng-model="stage.packageName"
+      <input type="text" required ng-model="stage.package"
              class="form-control input-sm" />
     </div>
   </div>
