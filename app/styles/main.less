@@ -67,9 +67,6 @@ body {
 
 .insight {
   .nav, .nav-content, .details-panel {
-    position: fixed;
-    top: 150px;
-    bottom: 0;
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -77,11 +74,11 @@ body {
     flex-direction: column;
 
     > .header {
-      flex: none
+      flex: 0 0 auto;
     }
 
     > .content {
-      flex: 1 0 100px;
+      flex: 1 1 100px;
       overflow-y: auto;
     }
 
@@ -103,7 +100,7 @@ body {
     }
   }
   .nav-content {
-    margin-left: 15px;
+    margin: 0 25px;
     @media (max-width:768px) {
       width: 70%;
     }
@@ -124,9 +121,9 @@ body {
   }
   .details-panel {
     overflow-y: hidden;
+    margin: 0;
     @media (max-width:768px) {
       top: 170px;
-      margin-left: -25px;
       width: 95%;
     }
 
@@ -844,6 +841,50 @@ whats-new {
         display: block;
       }
 
+    }
+  }
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.spinnaker-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  .spinnaker-header {
+    flex: 0 0 auto;
+    border-radius: 0;
+    margin-bottom: 0;
+  }
+  .spinnaker-content {
+    display: flex;
+    flex: 1 1 auto;
+    > .container {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+    .scrollable-columns {
+      flex: 1 1 auto;
+      display: flex;
+      >div {
+        display: flex;
+        flex: 1 1 auto;
+      }
+      .insight {
+        display: flex;
+        flex: 0 0 auto;
+        padding: 20px 30px 0;
+        >div {
+          display: flex;
+        }
+      }
     }
   }
 }

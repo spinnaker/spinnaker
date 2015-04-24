@@ -1,54 +1,56 @@
 <!doctype html>
 <html class="no-js" ng-app="deckApp">
 <head>
-  <meta charset="utf-8">
-  <title ng-bind="pageTitle">Spinnaker</title>
-  <meta name="description" content="">
-  <meta name="viewport" content="width=device-width">
-  <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700' rel='stylesheet'
-        type='text/css'>
-  <!-- inject:css -->
-  <!-- endinject -->
+    <meta charset="utf-8">
+    <title ng-bind="pageTitle">Spinnaker</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700' rel='stylesheet'
+          type='text/css'>
+    <!-- inject:css -->
+    <!-- endinject -->
 </head>
 <body>
 <div class="transition-overlay" ng-if="!authenticating && routing">
-  <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
+    <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
 </div>
-<div class="navbar navbar-inverse navbar-fixed-top navbar-fixed-primary">
-  <div class="container">
-    <div class="row">
-      <div class="navbar-header">
-        <button type="button" class="navbar-toggle" ng-click="navbarExpanded = !navbarExpanded">
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-          <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="#">SPINNAKER</a>
-      </div>
-      <div class="collapse navbar-collapse" collapse="!navbarExpanded">
-        <ul class="nav navbar-nav">
-          <li state-active="home.applications.**">
-            <a ui-sref="home.applications">Applications</a>
-          </li>
-          <li state-active="home.infrastructure.**">
-            <a ui-sref="home.infrastructure">Infrastructure</a>
-          </li>
-        </ul>
+<div class="spinnaker-container">
+    <div class="spinnaker-header navbar navbar-inverse">
+        <div class="container">
+            <div class="row">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" ng-click="navbarExpanded = !navbarExpanded">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">SPINNAKER</a>
+                </div>
+                <div class="collapse navbar-collapse" collapse="!navbarExpanded">
+                    <ul class="nav navbar-nav">
+                        <li state-active="home.applications.**">
+                            <a ui-sref="home.applications">Applications</a>
+                        </li>
+                        <li state-active="home.infrastructure.**">
+                            <a ui-sref="home.infrastructure">Infrastructure</a>
+                        </li>
+                    </ul>
 
-        <whats-new></whats-new>
-        <feedback></feedback>
-        <ul class="nav navbar-nav navbar-right">
-          <global-search></global-search>
-        </ul>
-      </div>
+                    <whats-new></whats-new>
+                    <feedback></feedback>
+                    <ul class="nav navbar-nav navbar-right">
+                        <global-search></global-search>
+                    </ul>
+                </div>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
     </div>
-    <!--/.nav-collapse -->
-  </div>
-</div>
 
-<div class="container" ng-if="!authenticating">
-  <div ui-view="main"></div>
+    <div class="spinnaker-content">
+        <div class="container" ui-view="main" ng-if="!authenticating"></div>
+    </div>
 </div>
 
 <!-- inject:js -->
@@ -56,21 +58,21 @@
 <script src="/scripts/settings.js"></script>
 
 <script>
-  if (window.tracking && window.tracking.enabled && window.tracking.key) {
-    (function (i, s, o, g, r, a, m) {
-      i['GoogleAnalyticsObject'] = r;
-      i[r] = i[r] || function () {
-        (i[r].q = i[r].q || []).push(arguments)
-      }, i[r].l = 1 * new Date();
-      a = s.createElement(o),
-        m = s.getElementsByTagName(o)[0];
-      a.async = 1;
-      a.src = g;
-      m.parentNode.insertBefore(a, m)
-    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    if (window.tracking && window.tracking.enabled && window.tracking.key) {
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                    m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-    ga('create', window.tracking.key, 'auto');
-  }
+        ga('create', window.tracking.key, 'auto');
+    }
 
 </script>
 </body>
