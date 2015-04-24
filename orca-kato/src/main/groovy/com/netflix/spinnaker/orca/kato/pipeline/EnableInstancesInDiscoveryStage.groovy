@@ -46,7 +46,7 @@ class EnableInstancesInDiscoveryStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "disableInstances", EnableInstancesInDiscoveryTask)
+    def step1 = buildStep(stage, "enableInstances", EnableInstancesInDiscoveryTask)
     def step2 = buildStep(stage, "monitorInstances", MonitorKatoTask)
     def step3 = buildStep(stage, "waitForDiscoveryState", WaitForUpInstanceHealthTask)
     [step1, step2, step3]
