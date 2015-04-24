@@ -3,7 +3,7 @@ Delivery Engineering Team <delivery-engineering@netflix.com>
 2015-04-24
 :toc: right
 :toclevels: 4
-:sectanchors:AUTION
+:sectanchors:
 :sectlink:
 :linkattrs:
 :numbered:
