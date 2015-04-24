@@ -27,10 +27,11 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     String region = stage.context?.region
     String account = stage.context?.account
     String app = stage.context?.application
+    ArrayList healthProviders = stage.context?.healthProviders
     ArrayList instances
     Map stageOutputs = [:]
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
-    if (cluster && region && account) {
+    if (cluster && region && account && healthProviders && app) {
       def response = oortService.getCluster(app, account, cluster, stage.context.providerType ?: "aws")
       def oortCluster = objectMapper.readValue(response.body.in().text, Map)
 
@@ -62,13 +63,14 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
       // inject instances into the context
       stageOutputs.put("instances", instances)
       stageOutputs.put("instanceIds",instanceIds) // for waitForUpInstanceHealthTask
+      stageOutputs.put("relevant.health.providers",healthProviders) // for waitForUpInstanceHealthTask
       stageOutputs.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
 
       if(!checkInstancesForQuip(instances)) {
         throw new RuntimeException("quip is not running on all instances : ${instances}")
       }
     } else {
-      throw new RuntimeException("one or more of these parameters is missing : cluster || region || account")
+      throw new RuntimeException("one or more of these parameters is missing : cluster || region || account || healthProviders || app")
     }
     return new DefaultTaskResult(executionStatus, stageOutputs, [:])
   }
@@ -77,11 +79,7 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     // verify that /tasks endpoint responds
     boolean allInstancesHaveQuip = true
     instances.each {
-      RestAdapter restAdapter = new RestAdapter.Builder()
-        .setEndpoint("http://${it}:5050")
-        .build()
-
-      def instanceService = createInstanceService(restAdapter)
+      def instanceService = createInstanceService("http://${it}:5050")
       try {
         instanceService.listTasks()
       } catch(RetrofitError e) {

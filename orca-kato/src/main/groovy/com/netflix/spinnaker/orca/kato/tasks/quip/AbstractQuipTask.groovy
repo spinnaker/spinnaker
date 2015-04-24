@@ -8,7 +8,10 @@ import retrofit.RestAdapter
  * Created by dzapata on 4/21/15.
  */
 abstract class AbstractQuipTask implements Task {
-  InstanceService createInstanceService(RestAdapter restAdapter) {
+  InstanceService createInstanceService(String address) {
+    RestAdapter restAdapter = new RestAdapter.Builder()
+      .setEndpoint(address)
+      .build()
     return restAdapter.create(InstanceService.class)
   }
 }
