@@ -17,8 +17,10 @@
 @import "app/styles/imports/commonImports.less";
 
 .application-header {
-  top: 48px;
+  margin-top: 0;
+  margin-bottom: 0;
   background-color: #f8f8f8;
+  flex: 0 0 auto;
   h2 {
     a {
       font-size: 75%;
@@ -59,12 +61,8 @@
       }
     }
   }
-  .container {
-    border-bottom: 1px solid @mid_light_grey;
-    padding-left: 0;
-  }
+  border-bottom: 1px solid @mid_light_grey;
   padding-bottom: 0;
-  margin-top: 10px;
 }
 
 .glyphicon-cloud {

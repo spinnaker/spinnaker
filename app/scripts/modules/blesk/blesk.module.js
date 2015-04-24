@@ -4,10 +4,12 @@
 angular.module('deckApp.blesk', ['deckApp.settings'])
   .factory('blesk', function() {
     function initialize() {
-      angular.element('.container-main')
-        .prepend('<div id="blesk" data-appid="spinnaker"></div>');
-      angular.element('body')
-        .append('<script async src="https://blesk.prod.netflix.net/static/js/blesk.js"></script>');
+      if (angular.element('.spinnaker-header').length && !angular.element('#blesk').length) {
+        angular.element('.spinnaker-header')
+          .after('<div id="blesk" data-appid="spinnaker" style="flex: 0 0 auto;"></div>');
+        angular.element('body')
+          .append('<script async src="https://blesk.prod.netflix.net/static/js/blesk.js"></script>');
+      }
     }
 
     return {
