@@ -1,0 +1,36 @@
+===== Pipelines
+
+====== Action
+
+Trigger an existing pipeline
+
+The payload should be a HTTP `POST` to `/pipelines/[appName]/[pipelineName]`
+
+
+====== Example Request Body
+[source,javascript]
+----
+{
+  "enabled":true,
+  "type":"manual",
+  "master":"spinnaker",
+  "job":"SPINNAKER-package-mahe",
+  "buildNumber":15,
+  "description":"spinnaker: SPINNAKER-package-mahe",
+  "user":"bsmith@netflix.com"
+}
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key               | Type   | Required | Value
+|enabled           | boolean| false    | Specifies if the pipeline is enabled
+|type              | string | false    | The type of trigger. Valid values are: manual, jenkins
+|master            | string | false    | The Jenkins master name
+|job               | string | false    | The Jenkins job name
+|buildNumber       | string | false    | The Jenkins build number
+|description       | string | false    | Description of the pipeline trigger
+|user              | string | false    | user name of person triggering the pipeline. Default: anonymous
+|======================

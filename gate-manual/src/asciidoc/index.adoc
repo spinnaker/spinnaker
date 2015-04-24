@@ -1,6 +1,6 @@
 = Spinnaker API
-Dan Woods <danw@netflix.com>
-2014-11-14
+Delivery Engineering Team <delivery-engineering@netflix.com>
+2015-04-24
 :toc: right
 :toclevels: 4
 :sectanchors:
@@ -13,10 +13,6 @@ Dan Woods <danw@netflix.com>
 == Introduction
 
 Spinnaker's Gateway API service exposes a RESTful HTTP API, where orchestrated stages can be submitted on behalf of an application or in the context of another managed resource (like cluster, server group, or load balancer).
-
-== Spinnaker Java Client
-
-Spinnaker will provide a zero-dependency Java client for developers to be able to write applications against the platform.
 
 - - -
 - - -
@@ -180,7 +176,9 @@ Stages that are chained will comprise a single execution and will therefore only
 
 === Pipelines
 
-TODO
+- - -
+include::pipelines.adoc[]
+- - -
 
 === Stages
 
@@ -268,6 +266,6 @@ GET /credentials
 
 == Copyrights and Licenses
 
-Copyright (C) 2014 Netflix. Licensed under the Apache License.
+Copyright (C) 2015 Netflix. Licensed under the Apache License.
 
 See https://raw.githubusercontent.com/spinnaker/gate/master/LICENSE.txt[LICENSE.txt] for more information.
