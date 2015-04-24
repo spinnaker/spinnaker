@@ -12,7 +12,8 @@ angular.module('deckApp')
         field: '@',
         account: '=',
         onChange: '&',
-        labelColumns: '@'
+        labelColumns: '@',
+        readOnly: '=',
       }
     };
   }

@@ -14,7 +14,8 @@ angular.module('deckApp')
         loading: '=',
         onChange: '&',
         labelColumns: '@',
-        labelAlign: '@'
+        labelAlign: '@',
+        readOnly: '=',
       },
       link: function(scope) {
         function groupAccounts(accounts) {

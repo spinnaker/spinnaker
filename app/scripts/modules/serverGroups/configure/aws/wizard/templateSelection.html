@@ -6,9 +6,6 @@
     </div>
     <div class="modal-body">
       <form class="form-horizontal">
-        <!--<p>Select an existing cluster to use as a template for this deployment, and we'll pre-fill-->
-          <!--the configuration based on the newest server group in the cluster.</p>-->
-        <!--<p>If you want to start from scratch, select "None".</p>-->
         <div class="form-group">
           <div class="col-md-4 col-md-offset-1 sm-label-left">
             <b>Copy configuration from</b>
@@ -36,6 +33,9 @@
             </ui-select>
           </div>
         </div>
+        <div class="form-group" ng-if="command.viewState.customTemplateMessage">
+          <p class="col-md-10 col-md-offset-1" ng-bind-html="command.viewState.customTemplateMessage"></p>
+        </div>
         <div class="form-group" ng-if="command.viewState.template.serverGroup" style="margin-top: 20px">
           <div class="col-md-10 col-md-offset-1 well">
             These fields <strong>will be</strong> copied over from the most recent server group:
@@ -50,7 +50,7 @@
             <ul>
               <li>scaling policies</li>
               <li>suspended processes</li>
-              <li>the deployment strategy (if any) used to deploy the most recent server group</li>
+              <li ng-if="!command.viewState.disableStrategySelection">the deployment strategy (if any) used to deploy the most recent server group</li>
             </ul>
           </div>
         </div>
@@ -58,7 +58,8 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-primary"
-              ng-click="deployInitializerCtrl.useTemplate()">
+              ng-click="deployInitializerCtrl.useTemplate()"
+              ng-if="command.viewState.template.serverGroup || !command.viewState.disableNoTemplateSelection">
         <span ng-if="command.viewState.template.serverGroup">Use this template</span>
         <span ng-if="!command.viewState.template.serverGroup">Continue without a template</span>
         <span class="glyphicon glyphicon-chevron-right"></span>

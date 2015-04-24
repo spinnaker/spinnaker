@@ -8,11 +8,14 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
   .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;
 
-    var noTemplate = { label: 'None', serverGroup: null, cluster: null };
+    $scope.templates = [];
+    if (!$scope.command.viewState.disableNoTemplateSelection) {
+      var noTemplate = { label: 'None', serverGroup: null, cluster: null };
 
-    $scope.command.viewState.template = noTemplate;
+      $scope.command.viewState.template = noTemplate;
 
-    $scope.templates = [ noTemplate ];
+      $scope.templates = [ noTemplate ];
+    }
 
     var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'aws' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
@@ -31,9 +34,11 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
 
     function applyCommandToScope(command) {
       command.viewState.disableImageSelection = true;
-      command.viewState.disableStrategySelection = false;
+      command.viewState.disableStrategySelection = $scope.command.viewState.disableStrategySelection || false;
       command.viewState.imageId = null;
+      command.viewState.readOnlyFields = $scope.command.viewState.readOnlyFields || {};
       command.viewState.submitButtonLabel = 'Add';
+      command.viewState.hideClusterNamePreview = $scope.command.viewState.hideClusterNamePreview || false;
       angular.copy(command, $scope.command);
     }
 

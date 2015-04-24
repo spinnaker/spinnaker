@@ -122,24 +122,6 @@
       minutes
     </div>
   </div>
-  <h4>Baseline Version</h4>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Account</b>
-    </div>
-    <div class="col-md-3">
-      <account-select-field accounts="accounts" provider="'aws'" component="stage.baseline" field="account"></account-select-field>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Cluster</b>
-    </div>
-    <div class="col-md-6">
-      <input type="text" required ng-model="stage.baseline.cluster"
-             class="form-control input-sm" />
-    </div>
-  </div>
   <h4>Owner</h4>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
@@ -161,69 +143,48 @@
   </div>
 
 </form>
-
-<div class="well well-sm clearfix">
-  <div class="row">
-    <div class="col-md-12">
-      <h4 class="text-left">Master Clusters<help-field key="pipeline.config.canary.masterCluster"/></h4>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col-md-12">
-      <table class="table table-condensed">
-        <thead>
-        <tr>
-          <th>Account</th>
-          <th>Cluster</th>
-          <th>Region</th>
-          <th>Subnet</th>
-          <th>Strategy</th>
-          <th>Capacity</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="cluster in stage.canaries">
-          <td>
-            <account-tag account="cluster.account"></account-tag>
-          </td>
-          <td>
-            {{ canaryStageCtrl.getClusterName(cluster) }}
-          </td>
-          <td>
-            {{ canaryStageCtrl.getRegion(cluster) }}
-          </td>
-          <td>
-            {{cluster.subnetType || '[none]'}}
-          </td>
-          <td>
-            {{cluster.strategy || '[none]'}}
-          </td>
-          <td>
-            <div ng-if="cluster.capacity.min === cluster.capacity.max">{{cluster.capacity.max}}</div>
-            <div ng-if="cluster.capacity.min !== cluster.capacity.max">
-              Min: {{cluster.capacity.min}},
-              Max: {{cluster.capacity.max}},
-              Desired: {{cluster.capacity.desired}}
-            </div>
-          </td>
-          <td>
-            <a class="btn btn-xs btn-link" href ng-click="canaryStageCtrl.editCluster(cluster, $index)">Edit</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="canaryStageCtrl.removeCluster($index)">Remove</a>
-            <a class="btn btn-xs btn-link pad-left" href ng-click="canaryStageCtrl.copyCluster($index)">Duplicate</a>
-          </td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-          <td colspan="7">
-            <button class="btn btn-block btn-sm add-new" ng-click="canaryStageCtrl.addCluster()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add cluster
-            </button>
-          </td>
-        </tr>
-        </tfoot>
-      </table>
-    </div>
-  </div>
+<div class="well well-sm clearfix" style="margin-top: 20px">
+  <h4>Cluster Pairs <help-field key="pipeline.config.canary.masterCluster"></help-field></h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Canary Cluster</th>
+        <th>Baseline Cluster</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="clusterPair in stage.clusterPairs">
+        <td>
+          <account-tag account="clusterPair.baseline.account"></account-tag>
+          {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
+        </td>
+        <td>
+          {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
+          <br/>
+          <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
+        </td>
+        <td>
+          {{canaryStageCtrl.getClusterName(clusterPair.baseline)}}
+          <br/>
+          <a href ng-click="canaryStageCtrl.editCluster(clusterPair.baseline, $index, 'Baseline')">Edit</a>
+        </td>
+        <td>
+          <a href ng-click="canaryStageCtrl.deleteClusterPair($index);">
+            <span class="glyphicon glyphicon-trash" tooltip="Delete Cluster Pair"></span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <button class="btn btn-block btn-sm add-new" ng-click="canaryStageCtrl.addClusterPair()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add cluster
+          </button>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
 </div>

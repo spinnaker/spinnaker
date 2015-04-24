@@ -13,7 +13,8 @@ angular.module('deckApp')
         region: '=',
         onChange: '&',
         labelColumns: '@',
-        helpKey: '@'
+        helpKey: '@',
+        readOnly: '=',
       }
     };
   }

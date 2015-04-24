@@ -63,50 +63,87 @@ angular.module('deckApp.pipelines.stage.canary')
       return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
     };
 
-    this.addCluster = function() {
+    function cleanupClusterConfig(cluster, type) {
+      delete cluster.credentials;
+      if (cluster.freeFormDetails && cluster.freeFormDetails.split('-').pop() === type.toLowerCase()) {
+        return;
+      }
+      if (cluster.freeFormDetails) {
+        cluster.freeFormDetails += '-';
+      }
+      cluster.freeFormDetails += type.toLowerCase();
+    }
+
+    function configureServerGroupCommandForEditing(command) {
+      command.viewState.disableStrategySelection = true;
+      command.viewState.hideClusterNamePreview = true;
+      command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true };
+    }
+
+    this.addClusterPair = function() {
+      $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
           templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function () {
-              return 'Configure Canary Cluster';
+              return 'Add Cluster Pair';
             },
             application: function () {
               return $scope.application;
             },
             serverGroupCommand: function () {
-              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider);
+              return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider)
+                .then(function(command) {
+                  configureServerGroupCommandForEditing(command);
+                  command.viewState.disableNoTemplateSelection = true;
+                  command.viewState.customTemplateMessage = 'Select a template to configure the canary and baseline ' +
+                    'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +
+                    '"Edit" after adding the pair.';
+                  return command;
+                });
             },
           }
         }).result.then(function(command) {
-            var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-            delete stageCluster.credentials;
-            $scope.stage.canaries.push(stageCluster);
+            var baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command),
+                canaryCluster = _.cloneDeep(baselineCluster);
+            cleanupClusterConfig(baselineCluster, 'baseline');
+            cleanupClusterConfig(canaryCluster, 'canary');
+            $scope.stage.clusterPairs.push({baseline: baselineCluster, canary: canaryCluster});
           });
       });
     };
 
-    this.editCluster = function(cluster, index) {
+    this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || 'aws';
       return $modal.open({
         templateUrl: 'scripts/modules/serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
         controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function () {
-            return 'Configure Deployment Cluster';
+            return 'Configure ' + type + ' Cluster';
           },
           application: function () {
             return $scope.application;
           },
           serverGroupCommand: function () {
-            return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, cluster);
+            return serverGroupCommandBuilder.buildServerGroupCommandFromPipeline($scope.application, cluster)
+              .then(function(command) {
+                configureServerGroupCommandForEditing(command);
+                var detailsParts = command.freeFormDetails.split('-');
+                var lastPart = detailsParts.pop();
+                if (lastPart === type.toLowerCase()) {
+                  command.freeFormDetails = detailsParts.join('-');
+                }
+                return command;
+              });
           },
         }
       }).result.then(function(command) {
           var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
-          delete stageCluster.credentials;
-          $scope.stage.canaries[index] = stageCluster;
+          cleanupClusterConfig(stageCluster, type);
+          $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
         });
     };
 
@@ -114,7 +151,7 @@ angular.module('deckApp.pipelines.stage.canary')
       $scope.stage.canaries.push(angular.copy($scope.stage.canaries[index]));
     };
 
-    this.removeCluster = function(index) {
-      $scope.stage.canaries.splice(index, 1);
+    this.deleteClusterPair = function(index) {
+      $scope.stage.clusterPairs.splice(index, 1);
     };
   });
