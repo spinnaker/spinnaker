@@ -144,7 +144,7 @@
 
 </form>
 <div class="well well-sm clearfix" style="margin-top: 20px">
-  <h4>Cluster Pairs <help-field key="pipeline.config.canary.masterCluster"></help-field></h4>
+  <h4>Cluster Pairs <help-field key="pipeline.config.canary.clusterPairs"></help-field></h4>
   <table class="table">
     <thead>
       <tr>
@@ -161,12 +161,12 @@
           {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
         </td>
         <td>
-          {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
+          {{clusterPair.canary.clusterName}}
           <br/>
           <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
         </td>
         <td>
-          {{canaryStageCtrl.getClusterName(clusterPair.baseline)}}
+          {{clusterPair.baseline.clusterName}}
           <br/>
           <a href ng-click="canaryStageCtrl.editCluster(clusterPair.baseline, $index, 'Baseline')">Edit</a>
         </td>

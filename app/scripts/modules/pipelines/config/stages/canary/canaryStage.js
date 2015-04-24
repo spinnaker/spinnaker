@@ -59,9 +59,11 @@ angular.module('deckApp.pipelines.stage.canary')
       return 'n/a';
     };
 
-    this.getClusterName = function(cluster) {
+    function getClusterName(cluster) {
       return namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
-    };
+    }
+
+    this.getClusterName = getClusterName;
 
     function cleanupClusterConfig(cluster, type) {
       delete cluster.credentials;
@@ -72,6 +74,7 @@ angular.module('deckApp.pipelines.stage.canary')
         cluster.freeFormDetails += '-';
       }
       cluster.freeFormDetails += type.toLowerCase();
+      cluster.clusterName = getClusterName(cluster);
     }
 
     function configureServerGroupCommandForEditing(command) {
