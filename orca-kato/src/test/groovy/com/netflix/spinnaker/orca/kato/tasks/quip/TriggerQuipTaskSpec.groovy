@@ -65,7 +65,7 @@ class TriggerQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "baseOs" : OperatingSystem.ubuntu.toString(),
-      "packageName" : app
+      "package" : app
     ])
 
     stage.context.instances = instances
@@ -104,7 +104,7 @@ class TriggerQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "baseOs" : OperatingSystem.ubuntu.toString(),
-      "packageName" : app
+      "package" : app
     ])
 
     stage.context.instances = instances
@@ -149,7 +149,7 @@ class TriggerQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "baseOs" : OperatingSystem.ubuntu.toString(),
-      "packageName" : packageName
+      "package" : packageName
     ])
 
     stage.context.instances = instances
