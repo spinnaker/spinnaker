@@ -5,21 +5,13 @@
       <account-select-field component="stage" field="credentials" accounts="accounts" provider="'aws'" on-change="quickPatchAsgStageCtrl.accountUpdated()" required></account-select-field>
     </div>
   </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-6" ng-if="!stage.credentials">
-      <p class="form-control-static">(Select an Account)</p>
-    </div>
-    <div class="col-md-6" ng-if="stage.credentials">
-      <div class="col-md-4" style="padding-left:0">
-        <label class="radio-inline" ng-repeat="region in regions" style="margin-left: 0">
-          <input type="radio"
-                 ng-model="stage.region"
-                 ng-value="region"/>{{region}}
-        </label>
-      </div>
-    </div>
-  </div>
+  <region-select-field component="stage"
+                       field="region"
+                       account="stage.credentials"
+                       provider="'aws'"
+                       regions="regions"
+                       label-columns="2 col-md-offset-1"
+                       field-columns="6"></region-select-field>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Cluster</b>

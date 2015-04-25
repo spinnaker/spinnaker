@@ -29,7 +29,7 @@ angular.module('deckApp.pipelines.stage.quickPatchAsg')
 
     $scope.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
-        $scope.regions = _.map(regions, function(v) { return v.name; });
+        $scope.regions = regions;
         $scope.regionsLoaded = true;
         $scope.stage.account = $scope.stage.credentials;
       });
