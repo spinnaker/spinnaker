@@ -13,7 +13,8 @@ angular.module('deckApp')
         account: '=',
         provider: '=',
         onChange: '&',
-        labelColumns: '@'
+        labelColumns: '@',
+        fieldColumns: '@',
       },
       link: function(scope) {
         function groupRegions(regions) {
