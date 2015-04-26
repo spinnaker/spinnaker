@@ -56,7 +56,43 @@ dependencies {
     testCompile commonDependencies.springTest
 }
 
-applicationDefaultJvmArgs = ["-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"]
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
+    if (jamm) {
+        jvmArgs "-javaagent:${jamm}"
+    }
+}
+
+test {
+    // jamm is required when using prepared statements with in-memory C*
+    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
+    if (jamm) {
+        jvmArgs "-javaagent:${jamm}"
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/main/resources'
+            srcDir 'config'
+        }
+    }
+}
+
+applicationName = 'echo'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+    into 'config'
+}
+
+ospackage {
+    packageName = project.applicationName
+    version = project.version.replaceAll("-SNAPSHOT", "")
+    release '3'
+    into "/opt/${project.applicationName}"
+    from "${project.buildDir}/install/${project.applicationName}"
+}
 
 buildDeb {
   dependsOn installApp
