@@ -11,8 +11,7 @@ angular
         fileName: '@'
       },
       link: function($scope, $element, $attrs) {
-        var t = 'd47428caab832c12c5ef489974d4fbba1d6eed96';
-        var url = ['https://api.github.com/gists/', $attrs.gistId, '?access_token=', t].join('');
+        var url = ['https://api.github.com/gists/', $attrs.gistId].join('');
 
         function extractFileContent(data, fileName) {
           return data.files[fileName].content;

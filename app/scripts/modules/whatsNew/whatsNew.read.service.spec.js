@@ -15,9 +15,8 @@ describe('Service: whatsNew reader ', function () {
   describe('getContents', function() {
 
     beforeEach(function() {
-      var token = this.settings.whatsNew.accessToken,
-        gistId = this.settings.whatsNew.gistId;
-      this.url = ['https://api.github.com/gists/', gistId, '?access_token=', token].join('');
+      var gistId = this.settings.whatsNew.gistId;
+      this.url = ['https://api.github.com/gists/', gistId].join('');
     });
 
     it ('returns file contents with lastUpdated', function() {
