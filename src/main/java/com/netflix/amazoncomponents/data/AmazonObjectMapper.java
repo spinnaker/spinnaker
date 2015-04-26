@@ -18,6 +18,7 @@ package com.netflix.amazoncomponents.data;
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.amazonaws.services.ec2.model.*;
+import com.amazonaws.services.elasticloadbalancing.model.Listener;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,6 +50,12 @@ public class AmazonObjectMapper extends ObjectMapper {
     addMixInAnnotations(ProductCode.class, ProductCodeMixins.class);
     addMixInAnnotations(Subnet.class, SubnetMixins.class);
     addMixInAnnotations(LoadBalancerDescription.class, LoadBalancerMixins.class);
+    addMixInAnnotations(Listener.class, ListenerMixins.class);
+  }
+
+  public interface ListenerMixins {
+    @JsonProperty("SSLCertificateId")
+    void setSSLCertificateId(String sSLCertificateId);
   }
 
   private interface LoadBalancerMixins {
