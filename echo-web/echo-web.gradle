@@ -80,6 +80,19 @@ sourceSets {
     }
 }
 
+jar {
+    doFirst {
+        exclude "${rootProject.name}.yml"
+    }
+}
+
+startScripts {
+    doLast {
+        unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+        windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+    }
+}
+
 applicationName = 'echo'
 applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
