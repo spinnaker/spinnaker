@@ -62,7 +62,8 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
               internalProtocol: listener.instanceProtocol,
               internalPort: listener.instancePort,
               externalProtocol: listener.protocol,
-              externalPort: listener.loadBalancerPort
+              externalPort: listener.loadBalancerPort,
+              sslCertificateId: listener.sslcertificateId
             };
           });
         }
