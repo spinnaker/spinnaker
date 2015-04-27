@@ -23,13 +23,18 @@ angular.module('deckApp.pipelines.stage.canary')
         });
     }
   })
-  .controller('CanaryStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
+  .controller('CanaryStageCtrl', function ($scope, $modal, stage,
+                                           namingService, providerSelectionService,
+                                           authenticationService,
+                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
+
+    var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
-    $scope.stage.owner = $scope.stage.owner || {};
+    $scope.stage.owner = $scope.stage.owner || { email: user.authenticated ? user.name : null };
     $scope.stage.watchers = $scope.stage.watchers || [];
     $scope.stage.canaries = $scope.stage.canaries || [];
-    $scope.stage.canaryConfig = $scope.stage.canaryConfig || {};
+    $scope.stage.canaryConfig = $scope.stage.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
     $scope.stage.canaryConfig.canaryAnalysisConfig = $scope.stage.canaryConfig.canaryAnalysisConfig || {};
     $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
 
@@ -74,13 +79,13 @@ angular.module('deckApp.pipelines.stage.canary')
         cluster.freeFormDetails += '-';
       }
       cluster.freeFormDetails += type.toLowerCase();
-      cluster.clusterName = getClusterName(cluster);
     }
 
     function configureServerGroupCommandForEditing(command) {
       command.viewState.disableStrategySelection = true;
       command.viewState.hideClusterNamePreview = true;
       command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true };
+      delete command.strategy;
     }
 
     this.addClusterPair = function() {
@@ -100,6 +105,11 @@ angular.module('deckApp.pipelines.stage.canary')
               return serverGroupCommandBuilder.buildNewServerGroupCommandForPipeline(selectedProvider)
                 .then(function(command) {
                   configureServerGroupCommandForEditing(command);
+                  command.viewState.overrides = {
+                    capacity: {
+                      min: 1, max: 1, desired: 1,
+                    }
+                  };
                   command.viewState.disableNoTemplateSelection = true;
                   command.viewState.customTemplateMessage = 'Select a template to configure the canary and baseline ' +
                     'cluster pair. If you want to configure the server groups differently, you can do so by clicking ' +

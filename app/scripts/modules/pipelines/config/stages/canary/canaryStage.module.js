@@ -5,6 +5,7 @@ angular.module('deckApp.pipelines.stage.canary', [
   'deckApp.pipelines.stage',
   'deckApp.pipelines.stage.core',
   'deckApp.deploymentStrategy',
+  'deckApp.authentication.service',
   'deckApp.utils.lodash',
   'deckApp.serverGroup.read.service',
   'deckApp.aws.serverGroupCommandBuilder.service',

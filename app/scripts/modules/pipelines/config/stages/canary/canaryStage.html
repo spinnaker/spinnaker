@@ -161,12 +161,12 @@
           {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
         </td>
         <td>
-          {{clusterPair.canary.clusterName}}
+          {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
           <br/>
           <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
         </td>
         <td>
-          {{clusterPair.baseline.clusterName}}
+          {{canaryStageCtrl.getClusterName(clusterPair.baseline)}}
           <br/>
           <a href ng-click="canaryStageCtrl.editCluster(clusterPair.baseline, $index, 'Baseline')">Edit</a>
         </td>

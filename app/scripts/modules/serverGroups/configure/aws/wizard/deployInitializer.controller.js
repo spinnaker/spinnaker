@@ -39,6 +39,11 @@ angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controlle
       command.viewState.readOnlyFields = $scope.command.viewState.readOnlyFields || {};
       command.viewState.submitButtonLabel = 'Add';
       command.viewState.hideClusterNamePreview = $scope.command.viewState.hideClusterNamePreview || false;
+      if ($scope.command.viewState.overrides) {
+        _.forOwn($scope.command.viewState.overrides, function(val, key) {
+          command[key] = val;
+        });
+      }
       angular.copy(command, $scope.command);
     }
 
