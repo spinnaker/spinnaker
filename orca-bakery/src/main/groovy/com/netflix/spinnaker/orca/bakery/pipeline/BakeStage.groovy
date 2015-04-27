@@ -55,6 +55,8 @@ class BakeStage extends ParallelStage implements StepProvider {
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
     def deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
+    deployRegions += stage.context.regions ?: []
+
     if (!deployRegions.contains("global")) {
       stage.execution.stages.findAll { it.type == "deploy" }.each {
         ((it.context?.clusters?.availabilityZones ?: []) + [
@@ -72,7 +74,7 @@ class BakeStage extends ParallelStage implements StepProvider {
       stage.context.amiSuffix = now().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC"))
     }
     return deployRegions.collect {
-      stage.context + ([
+      stage.context - ["regions": stage.context.regions] + ([
         type  : MAYO_CONFIG_TYPE,
         region: it,
         name  : "Bake in ${it}" as String
