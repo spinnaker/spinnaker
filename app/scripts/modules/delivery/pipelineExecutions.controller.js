@@ -167,7 +167,7 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
     }
 
     pipelineConfigService.getPipelinesForApplication($scope.application.name).then(function(configurations) {
-        $scope.configurations = configurations.plain();
+        $scope.configurations = configurations;
         if ($scope.application.executionsLoaded) {
           dataInitializationSuccess();
         } else {

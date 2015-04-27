@@ -72,13 +72,15 @@
               <ui-select-match placeholder="Select...">
                 <span>
                   <strong>Build {{$select.selected.number}}</strong>
+                  {{$select.selected | buildDisplayName}}
                   ({{$select.selected.timestamp | timestamp}} -
                   {{$select.selected.result}})
                 </span>
               </ui-select-match>
-              <ui-select-choices repeat="build in builds | anyFieldFilter: {number: $select.search, status: $select.search}">
+              <ui-select-choices repeat="build in builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
               <span>
                   <strong>Build {{build.number}}</strong>
+                  {{build | buildDisplayName}}
                   ({{build.timestamp | timestamp}} -
                   {{build.result}})
                 </span>

@@ -1,9 +1,10 @@
 @import "app/styles/imports/commonImports.less";
 
+.tasks-wrapper {
+  display: flex;
+}
+
 .tasks {
-  position: fixed;
-  top: 130px;
-  bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -28,7 +29,7 @@
       margin-top: 0;
       font-weight: 600;
     }
-    flex: none;
+    flex: 0 0 auto;
     z-index: 4;
     box-shadow: 0 20px 10px -10px @lightest_grey;
     padding-bottom: 0;
@@ -45,12 +46,13 @@
 
   > .tasks-content {
     padding: 10px 15px;
-    flex: 1 0 100px;
+    flex: 1 1 auto;
     overflow-y: auto;
   }
 
   .pagination-footer {
     margin-bottom: 15px;
+    margin-top: 5px;
     .pagination {
       margin: 0;
     }

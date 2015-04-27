@@ -1,5 +1,4 @@
-<div class="row page-header application-header navbar-fixed-top navbar">
-  <div class="container">
+  <div class="page-header application-header navbar">
     <h2 style="min-width: 200px">
       {{application.name}}
       <a href ng-click="ctrl.toggleRefresh()">
@@ -18,8 +17,10 @@
               }"></span>
       </a>
     </h2>
+
     <div ng-if="application.notFound">
       <h1 class="text-center">&lt;404&gt;</h1>
+
       <p class="text-center">Please check your URL - we can't find any data for <em>{{application.name}}</em>.</p>
     </div>
     <ul class="nav nav-pills" ng-if="!application.notFound">
@@ -72,8 +73,6 @@
       </li>
     </ul>
   </div>
-</div>
-<div class="row">
-  <div class="col-md-12 secondary-panel" ui-view="insight"></div>
-</div>
-
+  <div class="scrollable-columns">
+    <div class="secondary-panel" ui-view="insight"></div>
+  </div>

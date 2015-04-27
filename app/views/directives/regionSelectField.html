@@ -1,7 +1,7 @@
 <div class="form-group">
   <div class="col-md-{{labelColumns}} sm-label-left">Region</div>
-  <div class="col-md-7" ng-if="!account">(Select an account)</div>
-  <div class="col-md-7">
+  <div class="col-md-{{fieldColumns || 7}}" ng-if="!account">(Select an account)</div>
+  <div class="col-md-{{fieldColumns || 7}}">
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component[field]"

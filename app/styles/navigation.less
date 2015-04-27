@@ -17,13 +17,16 @@
 @import "app/styles/imports/commonImports.less";
 
 .secondary-panel {
+  > div {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding-top: 20px;
+  }
   .nav {
     padding: 0 0 0 10px;
     background-color: @secondary_panel_grey;
     border: 1px solid @mid_light_grey;
-    border-radius: 5px;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
+    border-radius: 0;
     border-bottom-width: 0;
 
     h3 {

@@ -1,17 +1,5 @@
 <div class="row insight" ng-if="!insightTarget.notFound">
-  <div class="col-md-9 col-sm-8">
-    <div class="row">
-
-      <div class="col-md-3 hidden-sm hidden-xs" ng-hide="insight.isSideNavHideable">
-        <div ui-view="nav" class="nav"></div>
-      </div>
-
-      <div class="col-md-9">
-        <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-3 col-sm-4 col-xs-12 detail-content">
-    <div ui-view="detail"></div>
-  </div>
+  <div ui-view="nav" class="nav"></div>
+  <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
+  <div ui-view="detail" class="detail-content"></div>
 </div>

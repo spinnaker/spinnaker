@@ -9,7 +9,6 @@
  * Main module of the application.
  */
 
-
 angular.module('deckApp', [
     'angulartics',
     'angulartics.google.analytics',
@@ -78,6 +77,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.stage.disableAsg',
     'deckApp.pipelines.stage.executionWindows',
     'deckApp.pipelines.stage.findAmi',
+    'deckApp.pipelines.stage.quickPatchAsg',
     'deckApp.authentication',
     'deckApp.search',
     'deckApp.notifications',
@@ -91,7 +91,8 @@ angular.module('deckApp', [
     'deckApp.whatsNew.directive',
     'deckApp.help.directive',
     'deckApp.networking',
-  ])
+    'deckApp.blesk',
+])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states

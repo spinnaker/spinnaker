@@ -87,8 +87,8 @@ describe('Controller: pipelineExecutions', function () {
         }
       ],
     };
-    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
-      return [
+    spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue(
+      $q.when([
         {
           id: 'a1',
           name: 'updated name',
@@ -97,8 +97,8 @@ describe('Controller: pipelineExecutions', function () {
           id: 'a2',
           name: 'unchanged',
         },
-      ];
-    } }));
+      ])
+    );
     this.initializeController(application);
     scope.$digest();
 
