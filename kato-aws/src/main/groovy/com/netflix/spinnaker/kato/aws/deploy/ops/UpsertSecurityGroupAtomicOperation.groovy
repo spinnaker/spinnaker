@@ -24,10 +24,14 @@ import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
+  private static final String BASE_PHASE = "UPSERT_SG"
+
   final UpsertSecurityGroupDescription description
 
   UpsertSecurityGroupAtomicOperation(UpsertSecurityGroupDescription description) {
@@ -36,6 +40,10 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Autowired
   AmazonClientProvider amazonClientProvider
+
+  private static Task getTask() {
+    TaskRepository.threadLocalTask.get()
+  }
 
   @Override
   Void operate(List priorOutputs) {
@@ -52,6 +60,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     } + description.ipIngress.collect { ingress ->
       map(ingress).withIpRanges(ingress.cidr)
     }
+    List<IpPermission> ipPermissionsToRemove = []
 
     String groupId
     if (!securityGroup) {
@@ -63,23 +72,52 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
       groupId = result.groupId
     } else {
       groupId = securityGroup.groupId
-      // Remove existing permissions if updating
-      def existingPermissions = securityGroup.ipPermissions.collect {
-        // Remove group name because AWS gets confused when it is provided in addition to the ID
-        it.userIdGroupPairs = it.userIdGroupPairs.collect { it.groupName = null; it }
+
+      ipPermissions = ipPermissions.collect {
+        // Ensure supplied permissions have an appropriate userId that can be subsequently .contains()'d against
+        // existing permissions on the target security group
+        it.userIdGroupPairs = it.userIdGroupPairs.collect {
+          it.userId = securityGroup.ownerId
+          it
+        }
         it
       }
-      if (securityGroup.ipPermissions) {
-        def request = new RevokeSecurityGroupIngressRequest(groupId: securityGroup.groupId,
-                ipPermissions: existingPermissions
-        )
-        ec2.revokeSecurityGroupIngress(request)
+
+      def existingIpPermissions = securityGroup.ipPermissions.collect {
+        // Remove group name because AWS gets confused when it is provided in addition to the ID
+        it.userIdGroupPairs = it.userIdGroupPairs.collect {
+          it.groupName = null
+          it
+        }
+        it
       }
+      ipPermissionsToRemove = existingIpPermissions.findAll {
+        // existed previously but were not supplied in upsert and should be deleted
+        !ipPermissions.contains(it)
+      }
+      ipPermissions.removeAll(ipPermissionsToRemove)
+
+      // no need to recreate existing permissions
+      ipPermissions.removeAll(existingIpPermissions)
     }
-    if (ipPermissions) {
-      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: groupId,
-              ipPermissions: ipPermissions))
+
+    ipPermissions.each {
+      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(
+        groupId: groupId,
+        ipPermissions: [it]
+      ))
+      task.updateStatus BASE_PHASE, "Permission added to ${description.name} (${it})."
     }
+
+    ipPermissionsToRemove.each {
+      def request = new RevokeSecurityGroupIngressRequest(
+        groupId: securityGroup.groupId,
+        ipPermissions: [it]
+      )
+      ec2.revokeSecurityGroupIngress(request)
+      task.updateStatus BASE_PHASE, "Permission removed from ${description.name} (${it.toString()})."
+    }
+
     null
   }
 
