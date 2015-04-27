@@ -32,6 +32,7 @@ angular.module('deckApp.pipelines.stage.deploy.details.controller', [
                 results.push({
                   region: region,
                   name: serverGroupName,
+                  provider: context.provider || 'aws',
                 });
               });
             }
