@@ -83,19 +83,28 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     )
   }
 
-  void "existing permissions are revoked before new ones are applied"() {
+  void "existing permissions should not be re-created when a security group is modified"() {
     when:
+    description.securityGroupIngress << new SecurityGroupIngress().with {
+      name = "bar"
+      startPort = 25
+      endPort = 25
+      type = UpsertSecurityGroupDescription.IngressType.tcp
+      it
+    }
     op.operate([])
 
     then:
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-                            new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp")])
+                            new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp")], ipProtocol: "tcp"),
+                            new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp")
                     ]),
                     new SecurityGroup(groupName: "bar", groupId: "456")
             ]
     )
+
     1 * ec2.revokeSecurityGroupIngress(_) >> { RevokeSecurityGroupIngressRequest request ->
       assert request.ipPermissions[0].userIdGroupPairs[0].groupId == "grp"
       assert request.ipPermissions[0].fromPort == 80
@@ -106,5 +115,6 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
       assert request.ipPermissions[0].fromPort == 111
       assert request.ipPermissions[0].toPort == 112
     }
+    0 * ec2._
   }
 }
