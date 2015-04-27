@@ -48,7 +48,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
     this.region = region
     this.discoveryApi = discoveryApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    this.discoveryHost = accounts[0].discovery.toURL().host
+    this.discoveryHost = String.format(accounts[0].discovery, region)
   }
 
   @Override
@@ -58,7 +58,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
 
   @Override
   String getAgentType() {
-    "${discoveryHost}/${region}/${DiscoveryCachingAgent.simpleName}"
+    "${discoveryHost}/${DiscoveryCachingAgent.simpleName}"
   }
 
   @Override
