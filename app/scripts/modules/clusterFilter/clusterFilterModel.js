@@ -124,11 +124,15 @@ angular
     }
 
     function isClusterState(stateName) {
-      return stateName === 'home.applications.application.insight.clusters' || stateName.indexOf('clusters.') > -1;
+      return stateName === 'home.applications.application.insight.clusters';
+    }
+
+    function isClusterStateOrChild(stateName) {
+      return isClusterState(stateName) || stateName.indexOf('clusters.') > -1;
     }
 
     function movingToClusterState(toState) {
-      return isClusterState(toState.name);
+      return isClusterStateOrChild(toState.name);
     }
 
     function hasSavedClusterState(toParams) {
@@ -141,7 +145,7 @@ angular
     }
 
     function movingFromClusterState (toState, fromState) {
-      return isClusterState(fromState.name) && !isClusterState(toState.name);
+      return isClusterStateOrChild(fromState.name) && !isClusterStateOrChild(toState.name);
     }
 
     function saveClusterState(fromState, fromParams) {
@@ -155,7 +159,9 @@ angular
 
     function shouldRouteToSavedState(toState, toParams, fromState) {
       var applicationCurrentSavedState = savedClusterState[toParams.application];
-      return toState.name !== applicationCurrentSavedState.name && !isClusterState(fromState.name);
+      return isClusterState(toState.name) &&
+        toState.name !== applicationCurrentSavedState.name &&
+        !isClusterStateOrChild(fromState.name);
     }
 
     function fromApplicationListState(fromState) {
@@ -184,7 +190,7 @@ angular
           clearSideFilters();
         }
 
-        if(isClusterState(toState.name) && isClusterState(fromState.name)) {
+        if(isClusterStateOrChild(toState.name) && isClusterStateOrChild(fromState.name)) {
           if (toParams.application !== fromParams.application) {
             setParams(toParams);
           }
