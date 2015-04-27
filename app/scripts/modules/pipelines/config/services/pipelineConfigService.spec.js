@@ -33,7 +33,54 @@ describe('pipelineConfigService', function () {
       expect(pipeline.stages[1].isNew).toBeUndefined();
       expect(pipeline.stages[2].isNew).toBeUndefined();
     });
+  });
 
+  describe('getPipelines', function () {
+    it('should return pipelines sorted by index', function() {
+      var result = null;
+      var fromServer = [
+        { name: 'second', index: 1, stages: []},
+        { name: 'last', index: 3, stages: []},
+        { name: 'first', index: 0, stages: []},
+        { name: 'third', index: 2, stages: []},
+      ];
+      this.$http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
+
+      this.service.getPipelinesForApplication('app').then(function(pipelines) {
+        result = pipelines;
+      });
+      this.$scope.$digest();
+      this.$http.flush();
+
+      expect(_.pluck(result, 'name')).toEqual(['first', 'second', 'third', 'last']);
+    });
+
+    it('should fix sort order of pipelines on initialization: 0..n, index collisions sorted alphabetically', function() {
+      var fromServer = [
+        { name: 'second', index: 1, stages: []},
+        { name: 'last', index: 5, stages: []},
+        { name: 'first', index: -3, stages: []},
+        { name: 'duplicateIndex', index: 5, stages: []},
+      ];
+
+      var posted = [];
+      this.$http.expectGET('/applications/app/pipelineConfigs').respond(200, fromServer);
+      this.$http.whenPOST('/pipelines', function(data) {
+        var json = JSON.parse(data);
+        posted.push({index: json.index, name: json.name});
+        return true;
+      }).respond(200, '');
+
+      this.service.getPipelinesForApplication('app');
+      this.$scope.$digest();
+      this.$http.flush();
+
+      expect(posted).toEqual([
+        { name: 'first', index: 0 },
+        { name: 'duplicateIndex', index: 2 },
+        { name: 'last', index: 3 },
+      ]);
+    });
   });
 });
 

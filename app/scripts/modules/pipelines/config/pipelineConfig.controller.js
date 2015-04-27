@@ -24,13 +24,6 @@ angular.module('deckApp.pipelines.config.controller', [
 
     ctrl.initialize = function() {
       pipelineConfigService.getPipelinesForApplication($stateParams.application).then(function (pipelines) {
-        // if there are pipelines without an index, fix that
-        if (pipelines && pipelines.length && pipelines[0].index === undefined) {
-          pipelines.forEach(function (pipeline, index) {
-            pipeline.index = index;
-          });
-          ctrl.updatePipelines(pipelines);
-        }
         $scope.application.pipelines = pipelines;
         $scope.state.pipelinesLoaded = true;
       });

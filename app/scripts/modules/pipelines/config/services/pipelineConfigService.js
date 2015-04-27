@@ -4,10 +4,11 @@
 angular.module('deckApp.pipelines.config.service', [
   'restangular',
   'deckApp.settings',
+  'deckApp.utils.lodash',
   'deckApp.authentication.service',
   'deckApp.caches.viewStateCache'
 ])
-  .factory('pipelineConfigService', function (settings, Restangular, authenticationService, viewStateCache) {
+  .factory('pipelineConfigService', function (_, $q, settings, Restangular, authenticationService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -16,7 +17,23 @@ angular.module('deckApp.pipelines.config.service', [
     }
 
     function getPipelinesForApplication(applicationName) {
-      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList();
+      return Restangular.one('applications', applicationName).all('pipelineConfigs').getList().then(function(pipelines) {
+        var sorted = _.sortByAll(pipelines, ['index', 'name']);
+        // if there are pipelines with a bad index, fix that
+        var misindexed = [];
+        if (sorted && sorted.length) {
+          sorted.forEach(function (pipeline, index) {
+            if (pipeline.index !== index) {
+              pipeline.index = index;
+              misindexed.push(savePipeline(pipeline));
+            }
+          });
+          if (misindexed.length) {
+            return $q.all(misindexed).then(function() { return sorted; });
+          }
+        }
+        return sorted;
+      });
     }
 
     function deletePipeline(applicationName, pipelineName) {
