@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.UserIdGroupPair
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription.SecurityGroupIngress
+import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription.IpIngress
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Shared
@@ -92,14 +93,28 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
       type = UpsertSecurityGroupDescription.IngressType.tcp
       it
     }
+    description.securityGroupIngress << new SecurityGroupIngress().with {
+      name = "bar"
+      startPort = 80
+      endPort = 81
+      type = UpsertSecurityGroupDescription.IngressType.tcp
+      it
+    }
+    description.ipIngress = [new IpIngress().with {
+      cidr = "10.0.0.1/32"
+      startPort = 80
+      endPort = 81
+      type = UpsertSecurityGroupDescription.IngressType.tcp
+      it
+    }]
     op.operate([])
 
     then:
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-                            new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp")], ipProtocol: "tcp"),
-                            new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp")
+                            new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp"), new UserIdGroupPair(groupId: "456")], ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"),
+                            new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp"),
                     ]),
                     new SecurityGroup(groupName: "bar", groupId: "456")
             ]

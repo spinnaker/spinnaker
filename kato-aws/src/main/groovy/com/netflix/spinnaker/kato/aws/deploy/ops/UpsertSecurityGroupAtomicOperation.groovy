@@ -83,14 +83,23 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         it
       }
 
-      def existingIpPermissions = securityGroup.ipPermissions.collect {
-        // Remove group name because AWS gets confused when it is provided in addition to the ID
-        it.userIdGroupPairs = it.userIdGroupPairs.collect {
+      def existingIpPermissions = securityGroup.ipPermissions.collect { IpPermission ipPermission ->
+        ipPermission.userIdGroupPairs.collect {
           it.groupName = null
-          it
+          new IpPermission()
+            .withFromPort(ipPermission.fromPort)
+            .withToPort(ipPermission.toPort)
+            .withIpProtocol(ipPermission.ipProtocol)
+            .withUserIdGroupPairs(it)
+        } + ipPermission.ipRanges.collect {
+          new IpPermission()
+            .withFromPort(ipPermission.fromPort)
+            .withToPort(ipPermission.toPort)
+            .withIpProtocol(ipPermission.ipProtocol)
+            .withIpRanges(it)
         }
-        it
-      }
+      }.flatten()
+
       ipPermissionsToRemove = existingIpPermissions.findAll {
         // existed previously but were not supplied in upsert and should be deleted
         !ipPermissions.contains(it)
