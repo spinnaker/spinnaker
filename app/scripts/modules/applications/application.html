@@ -1,6 +1,20 @@
   <div class="page-header application-header navbar">
     <h2 style="min-width: 200px">
       {{application.name}}
+      <a href ng-click="application.refreshImmediately(true)">
+        <span class="small glyphicon glyphicon-refresh"
+              tooltip-html-unsafe="
+                <p>{{application.refreshing ? 'Application is <strong>refreshing</strong>.'
+                : '(click <span class=\'small glyphicon glyphicon-refresh\'></span> to refresh)'}}</p>
+                <p>Last refresh: {{application.lastRefresh | timestamp }} <br> ({{application.lastRefresh | relativeTime }})</p>
+                <p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>"
+              tooltip-placement="bottom"
+              ng-class="{
+              'refresh-enabled': application.autoRefreshEnabled,
+              'refresh-disabled': !application.autoRefreshEnabled,
+              'glyphicon-spinning': application.refreshing,
+              }"></span>
+      </a>
     </h2>
 
     <div ng-if="application.notFound">
@@ -57,32 +71,6 @@
         </a>
       </li>
     </ul>
-    <div class="pull-right auto-refresh-switch">
-      <div>
-        <div class="label">
-          Auto refresh is
-        </div>
-
-        <a href class="toggle-switch" ng-click="ctrl.toggleRefresh()">
-          <span class="toggle-switch-wrapper" ng-class="application.autoRefreshEnabled ? 'on' : 'off'">
-            <span class="toggle-switch-on">On</span>
-            <span class="toggle-switch-knob"></span>
-            <span class="toggle-switch-off">Off</span>
-          </span>
-        </a>
-
-        <toggle-switch ng-model="application.autoRefreshEnabled"></toggle-switch>
-        <a href ng-click="application.refreshImmediately(true)">
-        <span class="small glyphicon glyphicon-refresh"
-              tooltip-html-unsafe="Click to refresh"
-              tooltip-placement="bottom"
-              ng-class="{
-              'glyphicon-spinning': application.refreshing,
-              }"></span>
-        </a>
-        <div class="small info">Last refreshed {{application.lastRefresh | timestamp }}</div>
-      </div>
-    </div>
   </div>
   <div class="scrollable-columns">
     <div class="secondary-panel" ui-view="insight"></div>

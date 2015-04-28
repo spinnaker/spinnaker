@@ -173,7 +173,6 @@ angular
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
       original.serverGroups = newApplication.serverGroups;
-      //replaceServerGroups(original, newApplication);
       original.loadBalancers = newApplication.loadBalancers;
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
@@ -185,32 +184,6 @@ angular
       newApplication.loadBalancers = null;
       newApplication.securityGroups = null;
     }
-//
-//    function replaceServerGroups(original, newApp) {
-//      var toRemove = [];
-//      original.serverGroups.forEach(function(originalServerGroup, idx) {
-//        var newServerGroup = _.find(newApp.serverGroups, { name: originalServerGroup.name, account: originalServerGroup.account, region: originalServerGroup.region});
-//        if (!newServerGroup) {
-//          toRemove.push(idx);
-//        } else {
-//          if (newServerGroup.stringVal !== originalServerGroup.stringVal) {
-//            newServerGroup.cluster = _.find(newApp.clusters, {name: originalServerGroup.cluster, account: originalServerGroup.account, region: originalServerGroup.region });
-//            original.serverGroups.splice(idx, 1, newServerGroup);
-//          } else {
-//            originalServerGroup.cluster = _.find(newApp.clusters, {name: originalServerGroup.cluster, account: originalServerGroup.account, region: originalServerGroup.region });
-//          }
-//        }
-//      });
-//      toRemove.forEach(function(idx) {
-//        original.serverGroups.splice(idx, 1);
-//      });
-//      newApp.serverGroups.forEach(function(newServerGroup) {
-//        var originalGroup = _.find(original.serverGroups, { name: newServerGroup.name, account: newServerGroup.account, region: newServerGroup.region});
-//        if (!originalGroup) {
-//          original.serverGroups.push(newServerGroup);
-//        }
-//      });
-//    }
 
     function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
@@ -253,7 +226,6 @@ angular
             securityGroups: securityGroupLoader,
           })
             .then(function(results) {
-              var start = new Date().getTime();
               serverGroups = results.serverGroups.plain();
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
@@ -271,8 +243,6 @@ angular
                     application.serverGroups.forEach(function(sg) {
                       sg.stringVal = angular.toJson(sg);
                     });
-                    var end = new Date().getTime();
-                    console.warn('application transformed:', end - start, 'ms');
                     return application;
                   },
                   function(err) {
