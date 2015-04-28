@@ -3,7 +3,9 @@
 .pipelines {
   overflow-x: hidden;
   display: flex;
+  display: -webkit-flex;
   flex-direction: column;
+  -webkit-flex-direction: column;
 
   @media (min-width: 768px) and (max-width: 992px) {
     width: 768px;
@@ -20,12 +22,14 @@
   }
 
   > .header {
-    flex: none
+    flex: none;
+    -webkit-flex: none;
   }
 
   > .execution-groups {
     padding: 0 15px;
     flex: 1 0 100px;
+    -webkit-flex: 1 0 100px;
     overflow-y: auto;
   }
 
