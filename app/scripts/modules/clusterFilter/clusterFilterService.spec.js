@@ -328,7 +328,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by starting status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown'},
-        serverGroup = appCopy.clusters[0].serverGroups[0];
+        serverGroup = appCopy.serverGroups[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {Starting: true};
@@ -347,7 +347,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by out of service status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown' },
-        serverGroup = appCopy.clusters[0].serverGroups[0];
+        serverGroup = appCopy.serverGroups[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {OutOfService: true};

@@ -22,9 +22,7 @@
         server-group="serverGroup"></load-balancer-server-group>
     </div>
     <div ng-if="!displayOptions.showServerGroups && displayOptions.showInstances">
-      <instances
-        instances="loadBalancer.instances"
-        render-instances-on-scroll="displayOptions.renderInstancesOnScroll"></instances>
+      <instances instances="loadBalancer.instances"></instances>
     </div>
   </div>
 </div>

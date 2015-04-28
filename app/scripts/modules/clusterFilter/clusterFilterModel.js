@@ -97,12 +97,8 @@ angular
 
 
     function activate() {
-      var defPrimary = 'account', defSecondary = 'cluster';
-
       var params = $location.search();
 
-      sortFilter.sortPrimary = params.primary || defPrimary;
-      sortFilter.sortSecondary = params.secondary || defSecondary;
       sortFilter.filter = params.q || '';
       sortFilter.showAllInstances = (params.hideInstances ? false : true);
       sortFilter.listInstances = (params.listInstances ? true : false);
@@ -116,11 +112,6 @@ angular
       sortFilter.availabilityZone = setZone();
       sortFilter.instanceSort.key = params.instanceSort || 'launchTime';
 
-      sortFilter.sortOptions = [
-        { label: 'Account', key: 'account' },
-        { label: 'Cluster Name', key: 'cluster' },
-        { label: 'Region', key: 'region' }
-      ];
     }
 
     function isClusterState(stateName) {

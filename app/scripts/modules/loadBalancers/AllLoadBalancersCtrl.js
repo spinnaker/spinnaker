@@ -60,25 +60,9 @@ angular.module('deckApp.loadBalancer.controller', [
       });
     }
 
-    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, loadBalancer) {
-      if (!$scope.sortFilter.hideHealthy) {
-        totalInstancesDisplayed += loadBalancer.reduce(function (total, elb) {
-          return elb.instances.length + total;
-        }, 0);
-      } else {
-        totalInstancesDisplayed += loadBalancer.reduce(
-          function (total, elb) {
-            return (elb.downCount > 0 ? elb.instances.length : 0) + total;
-          }, 0
-        );
-      }
-      return totalInstancesDisplayed;
-    }
-
     function updateLoadBalancerGroups() {
       $scope.$evalAsync(function() {
         var loadBalancers = application.loadBalancers,
-            totalInstancesDisplayed = 0,
             groups = [],
             filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
             primarySort = $scope.sortFilter.sortPrimary,
@@ -95,7 +79,6 @@ angular.module('deckApp.loadBalancer.controller', [
             subGroups = [];
 
           _.forOwn(subGroupings, function(subGroup, subKey) {
-            totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subGroup);
             subGroups.push( { heading: subKey, subgroups: _.sortBy(subGroup, 'name') } );
           });
 
@@ -105,7 +88,6 @@ angular.module('deckApp.loadBalancer.controller', [
         $scope.groups = _.sortBy(groups, 'heading');
 
         $scope.displayOptions = {
-          renderInstancesOnScroll: totalInstancesDisplayed > 2000, // TODO: move to config
           showServerGroups: $scope.sortFilter.showAsgs,
           showInstances: $scope.sortFilter.showAllInstances,
           hideHealthy: $scope.sortFilter.hideHealthy
