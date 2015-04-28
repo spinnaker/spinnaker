@@ -162,22 +162,19 @@ angular
           }
         }
 
-        var groups = [],
-          primarySort = ClusterFilterModel.sortFilter.sortPrimary,
-          secondarySort = ClusterFilterModel.sortFilter.sortSecondary,
-          tertiarySort = ClusterFilterModel.sortFilter.sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+        var groups = [];
 
         var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
         var serverGroups = filterServerGroupsForDisplay(application.serverGroups, filter);
 
-        var grouped = _.groupBy(serverGroups, primarySort);
+        var grouped = _.groupBy(serverGroups, 'account');
 
         _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
+          var subGroupings = _.groupBy(group, 'cluster'),
             subGroups = [];
 
           _.forOwn(subGroupings, function(subGroup, subKey) {
-            var subGroupings = _.groupBy(subGroup, tertiarySort),
+            var subGroupings = _.groupBy(subGroup, 'region'),
               subSubGroups = [];
 
             _.forOwn(subGroupings, function(subSubGroup, subSubKey) {

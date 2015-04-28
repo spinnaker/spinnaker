@@ -193,26 +193,6 @@ describe('Model: ClusterFilterModel', function () {
 
   describe('activate sets the sortFilter state', function () {
 
-    it('should set the primary sort to account by default', function () {
-      expect(ClusterFilterModel.sortFilter.sortPrimary).toBe('account');
-    });
-
-    it('should set the primary sort if set on the query string', function () {
-      searchParams.primary= 'cluster';
-      ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.sortPrimary).toBe('cluster');
-    });
-
-    it('should set the secondary sort to region by default', function () {
-      expect(ClusterFilterModel.sortFilter.sortSecondary).toBe('cluster');
-    });
-
-    it('should set the secondary sort to the region set on the query string', function () {
-      searchParams.secondary = 'not-region';
-      ClusterFilterModel.activate();
-      expect(ClusterFilterModel.sortFilter.sortSecondary).toBe('not-region');
-    });
-
     it('should set the filter to an empty string if nothing has been typed', function () {
       expect(ClusterFilterModel.sortFilter.filter).toBe('');
     });
