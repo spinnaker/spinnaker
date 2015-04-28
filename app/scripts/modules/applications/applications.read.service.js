@@ -240,6 +240,9 @@ angular
               return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
                 .then(
                   function() {
+                    application.serverGroups.forEach(function(sg) {
+                      sg.stringVal = angular.toJson(sg);
+                    });
                     return application;
                   },
                   function(err) {

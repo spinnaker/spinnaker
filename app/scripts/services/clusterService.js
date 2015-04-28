@@ -215,7 +215,7 @@ angular.module('deckApp.cluster.service', [
       application.serverGroups.forEach(function(serverGroup) {
         serverGroup.loadBalancers = application.loadBalancers.filter(function(loadBalancer) {
           return loadBalancer.serverGroups.indexOf(serverGroup) !== -1;
-        });
+        }).map(function(loadBalancer) { return loadBalancer.name; });
       });
     }
 
