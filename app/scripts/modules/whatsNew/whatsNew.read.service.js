@@ -11,7 +11,11 @@ angular.module('deckApp.whatsNew.read.service', [
 
     function getWhatsNewContents() {
       var gistId = settings.whatsNew.gistId,
+          accessToken = settings.whatsNew.accessToken || null,
         url = ['https://api.github.com/gists/', gistId].join('');
+      if (accessToken) {
+        url += '?access_token=' + accessToken;
+      }
       return $http.get(url)
         .then(
           function (result) {
