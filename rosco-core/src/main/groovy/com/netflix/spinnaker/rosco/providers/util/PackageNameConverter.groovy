@@ -118,15 +118,15 @@ class PackageNameConverter {
       if (version) {
         appVersion += "-$version"
 
-        if (commit) {
-          appVersion += "-$commit"
+        if (bakeRequest.build_number) {
+          appVersion += "-h$bakeRequest.build_number"
 
-          if (buildNumber) {
-            appVersion += ".$buildNumber"
+          if (commit) {
+            appVersion += ".$commit"
+          }
 
-            if (bakeRequest.job && bakeRequest.build_number) {
-              appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
-            }
+          if (bakeRequest.job && bakeRequest.build_number) {
+            appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
           }
         }
       }
