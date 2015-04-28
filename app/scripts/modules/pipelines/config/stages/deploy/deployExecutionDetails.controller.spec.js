@@ -68,7 +68,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.initializeController();
       expect(this.$scope.deployed.length).toBe(0);
 
-      stage.context['kato.tasks'][0].resultObjects[0].asgNameByRegion = {
+      stage.context['kato.tasks'][0].resultObjects[0].serverGroupNameByRegion = {
         'us-west-1': 'deployedAsg',
       };
       this.initializeController();
@@ -93,7 +93,7 @@ describe('DeployExecutionDetailsCtrl', function() {
 
     });
 
-    it('sets empty list when no asgNameByRegion', function() {
+    it('sets empty list when no serverGroupNameByRegion', function() {
 
       var stage = this.$scope.stage;
 
@@ -104,7 +104,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       this.initializeController();
       expect(this.$scope.deployed.length).toBe(0);
 
-      stage.context['kato.tasks'][0].resultObjects[0].asgNameByRegion = {
+      stage.context['kato.tasks'][0].resultObjects[0].serverGroupNameByRegion = {
         'us-west-1': 'deployedAsg',
       };
       this.initializeController();
@@ -114,7 +114,7 @@ describe('DeployExecutionDetailsCtrl', function() {
 
     });
 
-    it('sets deployed when asgNameByRegion supplies values', function() {
+    it('sets deployed when serverGroupNameByRegion supplies values', function() {
       var stage = this.$scope.stage;
 
       stage.context = {
@@ -122,7 +122,7 @@ describe('DeployExecutionDetailsCtrl', function() {
           {
             resultObjects: [
               {
-                asgNameByRegion: { 'us-west-1': 'deployedWest', 'us-east-1': 'deployedEast' }
+                serverGroupNameByRegion: { 'us-west-1': 'deployedWest', 'us-east-1': 'deployedEast' }
               }
             ]
           }

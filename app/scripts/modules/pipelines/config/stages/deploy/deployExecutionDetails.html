@@ -38,7 +38,7 @@
           <strong>Deployed:</strong>
           <a ng-repeat="serverGroup in deployed"
              ng-click="$event.stopPropagation()"
-             ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.application, serverGroup: serverGroup.name, accountId: stage.context.account, region: serverGroup.region, provider: serverGroup.provider || 'aws'})">
+             ui-sref="home.applications.application.insight.clusters.serverGroup({application: stage.context.application, serverGroup: serverGroup.name, accountId: stage.context.account, region: serverGroup.region, provider: serverGroup.provider})">
             {{serverGroup.name}}
           </a>
         </div>
