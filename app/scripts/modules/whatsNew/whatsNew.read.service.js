@@ -10,9 +10,12 @@ angular.module('deckApp.whatsNew.read.service', [
     }
 
     function getWhatsNewContents() {
-      var token = settings.whatsNew.accessToken,
-        gistId = settings.whatsNew.gistId,
-        url = ['https://api.github.com/gists/', gistId, '?access_token=', token].join('');
+      var gistId = settings.whatsNew.gistId,
+          accessToken = settings.whatsNew.accessToken || null,
+        url = ['https://api.github.com/gists/', gistId].join('');
+      if (accessToken) {
+        url += '?access_token=' + accessToken;
+      }
       return $http.get(url)
         .then(
           function (result) {
