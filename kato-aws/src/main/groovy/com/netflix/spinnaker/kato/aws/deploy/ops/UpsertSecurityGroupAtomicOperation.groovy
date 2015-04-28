@@ -16,17 +16,20 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.RevokeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
@@ -77,7 +80,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
         // Ensure supplied permissions have an appropriate userId that can be subsequently .contains()'d against
         // existing permissions on the target security group
         it.userIdGroupPairs = it.userIdGroupPairs.collect {
-          it.userId = securityGroup.ownerId
+          it.userId = it.userId ?: securityGroup.ownerId
           it
         }
         it
@@ -111,14 +114,23 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     }
 
     ipPermissions.each {
-      ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(
-        groupId: groupId,
-        ipPermissions: [it]
-      ))
-      task.updateStatus BASE_PHASE, "Permission added to ${description.name} (${it})."
+      try {
+        ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(
+          groupId: groupId,
+          ipPermissions: [it]
+        ))
+        task.updateStatus BASE_PHASE, "Permission added to ${description.name} (${it})."
+      } catch (AmazonServiceException e) {
+        if (e.errorCode == "InvalidPermission.Duplicate") {
+          task.updateStatus BASE_PHASE, "Permission already exists on ${description.name} (${it})."
+          return
+        }
+
+        throw e
+      }
     }
 
-    ipPermissionsToRemove.each {
+    filterUnsupportedRemovals(securityGroup, ipPermissionsToRemove).each {
       def request = new RevokeSecurityGroupIngressRequest(
         groupId: securityGroup.groupId,
         ipPermissions: [it]
@@ -132,5 +144,23 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   static IpPermission map(UpsertSecurityGroupDescription.Ingress ingress) {
     new IpPermission().withIpProtocol(ingress.type.name()).withFromPort(ingress.startPort).withToPort(ingress.endPort)
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  List<IpPermission> filterUnsupportedRemovals(SecurityGroup securityGroup, List<IpPermission> ipPermissions) {
+    return ipPermissions.findAll {
+      if (it.ipRanges) {
+        task.updateStatus BASE_PHASE, "[UNSUPPORTED] Unable to remove CIDR-based permission from ${description.name} (${it.toString()})."
+        return false
+      }
+
+      if (it.userIdGroupPairs.find { it.userId != securityGroup.ownerId }) {
+        task.updateStatus BASE_PHASE, "[UNSUPPORTED] Unable to cross account security group permission from ${description.name} (${it.toString()})."
+        return false
+      }
+
+      return true
+    }
   }
 }

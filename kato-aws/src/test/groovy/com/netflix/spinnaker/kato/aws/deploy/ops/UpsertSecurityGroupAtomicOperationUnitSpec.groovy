@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
+
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.AuthorizeSecurityGroupIngressRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   def setupSpec() {
@@ -54,7 +56,8 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     it
   }
 
-  @Subject op = new UpsertSecurityGroupAtomicOperation(description)
+  @Subject
+    op = new UpsertSecurityGroupAtomicOperation(description)
 
   @Shared
   AmazonEC2 ec2
@@ -76,11 +79,11 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
     then:
     1 * ec2.createSecurityGroup(new CreateSecurityGroupRequest(groupName: "foo", description: "desc")) >> new CreateSecurityGroupResult(groupId: "123")
     1 * ec2.authorizeSecurityGroupIngress(new AuthorizeSecurityGroupIngressRequest(groupId: "123",
-            ipPermissions: [
-                    new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
-                            new UserIdGroupPair(groupId: "456")
-                    ])
-            ])
+      ipPermissions: [
+        new IpPermission(ipProtocol: "tcp", fromPort: 111, toPort: 112, userIdGroupPairs: [
+          new UserIdGroupPair(groupId: "456")
+        ])
+      ])
     )
   }
 
@@ -111,13 +114,13 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
-            securityGroups: [
-                    new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
-                            new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp"), new UserIdGroupPair(groupId: "456")], ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"),
-                            new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp"),
-                    ]),
-                    new SecurityGroup(groupName: "bar", groupId: "456")
-            ]
+      securityGroups: [
+        new SecurityGroup(groupName: "foo", groupId: "123", ipPermissions: [
+          new IpPermission(fromPort: 80, toPort: 81, userIdGroupPairs: [new UserIdGroupPair(groupId: "grp"), new UserIdGroupPair(groupId: "456")], ipRanges: ["10.0.0.1/32"], ipProtocol: "tcp"),
+          new IpPermission(fromPort: 25, toPort: 25, userIdGroupPairs: [new UserIdGroupPair(groupId: "456")], ipProtocol: "tcp"),
+        ]),
+        new SecurityGroup(groupName: "bar", groupId: "456")
+      ]
     )
 
     1 * ec2.revokeSecurityGroupIngress(_) >> { RevokeSecurityGroupIngressRequest request ->
@@ -131,5 +134,26 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
       assert request.ipPermissions[0].toPort == 112
     }
     0 * ec2._
+  }
+
+  @Unroll
+  void "should filter out CIDR and cross-account permissions"() {
+    given:
+    def securityGroup = new SecurityGroup().withOwnerId(ownerId)
+
+    expect:
+    op.filterUnsupportedRemovals(securityGroup, ipPermissions) == expectedIpPermissions as List<IpPermission>
+
+    where:
+    ownerId | ipPermissions                                          || expectedIpPermissions
+    "1"     | [bI("10.0.0.0/32")]                                    || []
+    "1"     | [bI(null, "1", "2")]                                   || []
+    "1"     | [bI("10.0.0.0/32"), bI(null, "1", "2"), bI(null, "1")] || [bI(null, "1")]
+  }
+
+  private IpPermission bI(String ipRange, String... userIds) {
+    return new IpPermission()
+      .withIpRanges(ipRange ? [ipRange] : [])
+      .withUserIdGroupPairs(userIds.collect { new UserIdGroupPair().withGroupId("group").withUserId(it) })
   }
 }
