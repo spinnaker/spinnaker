@@ -27,6 +27,9 @@
       </h5>
     </span>
     <ul>
+      <li ng-if="execution.trigger.buildInfo.url">
+        {{ execution.trigger.buildInfo | buildDisplayName }}
+      </li>
       <span ng-switch="execution.trigger.type">
         <li ng-switch-when="jenkins">
          {{ execution.trigger.job}}
