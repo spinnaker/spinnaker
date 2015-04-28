@@ -36,14 +36,6 @@ angular
       return result;
     }
 
-    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroups) {
-      return serverGroups
-        .reduce(function(total, serverGroup) {
-          return serverGroup.instances.length + total;
-        }, totalInstancesDisplayed);
-    }
-
-
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
     }
@@ -106,10 +98,8 @@ angular
       }
     }
 
-    function filterServerGroupsForDisplay(clusters, filter) {
-      return  _.chain(clusters)
-        .collect('serverGroups')
-        .flatten()
+    function filterServerGroupsForDisplay(serverGroups, filter) {
+      return  _.chain(serverGroups)
         .filter(function(serverGroup) {
           if (!filter) {
             return true;
@@ -173,13 +163,12 @@ angular
         }
 
         var groups = [],
-          totalInstancesDisplayed = 0,
           primarySort = ClusterFilterModel.sortFilter.sortPrimary,
           secondarySort = ClusterFilterModel.sortFilter.sortSecondary,
           tertiarySort = ClusterFilterModel.sortFilter.sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
 
         var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
-        var serverGroups = filterServerGroupsForDisplay(application.clusters, filter);
+        var serverGroups = filterServerGroupsForDisplay(application.serverGroups, filter);
 
         var grouped = _.groupBy(serverGroups, primarySort);
 
@@ -192,7 +181,6 @@ angular
               subSubGroups = [];
 
             _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-              totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subSubGroup);
               subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
             });
             subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
@@ -203,7 +191,7 @@ angular
         });
 
         sortGroupsByHeading(groups);
-        setDisplayOptions(totalInstancesDisplayed);
+        setDisplayOptions();
         waypointService.restoreToWaypoint(application.name);
         addTags();
         lastApplication = application;
@@ -222,10 +210,8 @@ angular
       });
     }
 
-    function setDisplayOptions(totalInstancesDisplayed) {
+    function setDisplayOptions() {
       var newOptions =  {
-        renderInstancesOnScroll: totalInstancesDisplayed > 1000, // TODO: remove
-        totalInstancesDisplayed: totalInstancesDisplayed,
         showInstances: ClusterFilterModel.sortFilter.showAllInstances,
         listInstances: ClusterFilterModel.sortFilter.listInstances,
         hideHealthy: ClusterFilterModel.sortFilter.hideHealthy,
@@ -293,7 +279,6 @@ angular
       updateQueryParams: updateQueryParams,
       updateClusterGroups: updateClusterGroups,
       filterServerGroupsForDisplay: filterServerGroupsForDisplay,
-      incrementTotalInstancesDisplayed: incrementTotalInstancesDisplayed,
       setDisplayOptions: setDisplayOptions,
       sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,

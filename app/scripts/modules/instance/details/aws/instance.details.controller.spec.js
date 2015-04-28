@@ -57,22 +57,20 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         })
       );
       var application = {
-        clusters: [ {
-          serverGroups: [
-            {
-              account: 'test',
-              region: 'us-west-1',
-              instances: [
-                {
-                  id: 'i-123',
-                  health: [
-                    { type: 'Discovery', status: 'Down', reason: 'original reason'}
-                  ]
-                }
-              ]
-            }
-          ]
-        }]
+        serverGroups: [
+          {
+            account: 'test',
+            region: 'us-west-1',
+            instances: [
+              {
+                id: 'i-123',
+                health: [
+                  { type: 'Discovery', status: 'Down', reason: 'original reason'}
+                ]
+              }
+            ]
+          }
+        ]
       };
 
       this.createController(application, params);
@@ -101,22 +99,20 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
       );
 
       var application = {
-        clusters: [ {
-          serverGroups: [
-            {
-              account: 'test',
-              region: 'us-west-1',
-              instances: [
-                {
-                  id: 'i-123',
-                  health: [
-                    { type: 'Discovery', state: 'Up', reason: 'original reason'}
-                  ]
-                }
-              ]
-            }
-          ]
-        }]
+        serverGroups: [
+          {
+            account: 'test',
+            region: 'us-west-1',
+            instances: [
+              {
+                id: 'i-123',
+                health: [
+                  { type: 'Discovery', state: 'Up', reason: 'original reason'}
+                ]
+              }
+            ]
+          }
+        ]
       };
 
       this.createController(application, params);
