@@ -40,8 +40,8 @@ class ContextParameterProcessor {
     getExpressionSuffix: {
       '}'
     },
-    isTemplate : {
-     true
+    isTemplate         : {
+      true
     }
   ] as ParserContext
 
@@ -54,19 +54,43 @@ class ContextParameterProcessor {
       return null
     }
 
-    EvaluationContext evaluationContext = new StandardEvaluationContext(context)
-    evaluationContext.addPropertyAccessor(MapPropertyAccessor)
+    transform(parameters, precomputeValues(context))
+  }
 
-    parameters.collectEntries { k, v ->
-      String convertedValue = v
-      try {
-        Expression exp = parser.parseExpression(v, parserContext)
-        convertedValue = exp.getValue(evaluationContext)
-      }catch(e){
+  static Map precomputeValues(Map context){
+    context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
+    if(context.scmInfo && context.scmInfo.size() >= 2){
+      context.scmInfo = context.scmInfo.find{ it.branch != 'master' && it.branch != 'develop' }
+    } else {
+      context.scmInfo = context.scmInfo?.first()
+    }
+    context
+  }
+
+  static def transform(parameters, context) {
+    if (parameters instanceof Map) {
+      return parameters.collectEntries { k, v ->
+        [k, transform(v, context)]
       }
-      [k, convertedValue?:v]
+    } else if (parameters instanceof List) {
+      return parameters.collect {
+        transform(it, context)
+      }
+    } else if (parameters instanceof String || parameters instanceof GString) {
+      String convertedValue = parameters
+      EvaluationContext evaluationContext = new StandardEvaluationContext(context)
+      evaluationContext.addPropertyAccessor(MapPropertyAccessor)
+      try {
+        Expression exp = parser.parseExpression(parameters, parserContext)
+        convertedValue = exp.getValue(evaluationContext)
+      } catch (e) {
+      }
+      return convertedValue ?: parameters
+    } else {
+      return parameters
     }
   }
+
 }
 
 class MapPropertyAccessor extends ReflectivePropertyAccessor {
@@ -92,7 +116,7 @@ class MapPropertyAccessor extends ReflectivePropertyAccessor {
     if (!(target instanceof Map)) {
       throw new AccessException("Cannot read target of class " + target.getClass().getName())
     }
-    new TypedValue(((Map<String,?>)target).get(name))
+    new TypedValue(((Map<String, ?>) target).get(name))
   }
 
 }
