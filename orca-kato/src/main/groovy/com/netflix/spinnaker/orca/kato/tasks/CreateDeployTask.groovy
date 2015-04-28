@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -25,7 +23,11 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -70,22 +72,28 @@ class CreateDeployTask implements Task {
 
   private Map deployOperationFromContext(Stage stage) {
     def operation = [:]
-    if (stage.context.containsKey("cluster")) {
-      operation.putAll(stage.context.cluster as Map)
+    def augmentedContext = [:] + stage.context
+    if (stage.execution instanceof Pipeline) {
+      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+    }
+    def context = ContextParameterProcessor.process(stage.context, augmentedContext)
+
+    if (context.containsKey("cluster")) {
+      operation.putAll(context.cluster as Map)
     } else {
-      operation.putAll(stage.context)
+      operation.putAll(context)
     }
 
     def targetRegion = (operation.availabilityZones as Map<String, Object>).keySet()[0]
-    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+    def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
     if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
 
     log.info("Deploying ${operation.amiName} to ${targetRegion}")
 
-    if (stage.context.account && !operation.credentials) {
-      operation.credentials = stage.context.account
+    if (context.account && !operation.credentials) {
+      operation.credentials = context.account
     }
     operation.keyPair = (operation.keyPair ?: "nf-${operation.credentials}-keypair-a").toString()
     return operation

@@ -217,4 +217,28 @@ class CreateDeployTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
     result.outputs."kato.task.id" == taskId
   }
+
+  def "replaces stack name with jenkins branch"(){
+    given:
+    def operations = []
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(*_) >> {
+        operations.addAll(it.flatten())
+        Observable.from(taskId)
+      }
+    }
+    stage.context.stack = '${scmInfo.branch.replaceAll("-", "")}'
+    stage.execution.trigger.putAll(
+      [buildInfo: [scm: [[branch: 'name-of-my-stack']]]]
+    )
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    operations.find {
+      it.containsKey("basicAmazonDeployDescription")
+    }.basicAmazonDeployDescription.stack == "nameofmystack"
+
+  }
 }
