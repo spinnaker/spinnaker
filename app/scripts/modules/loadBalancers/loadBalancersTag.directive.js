@@ -8,7 +8,7 @@ angular.module('deckApp.loadBalancer.tag', [])
       replace: false,
       templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancersTag.html',
       scope: {
-        loadBalancers: '=',
+        serverGroup: '=',
         maxDisplay: '='
       },
       link: function(scope) {
