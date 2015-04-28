@@ -18,18 +18,7 @@ angular.module('deckApp.application.controller', [])
       }
     };
 
-    function countInstances() {
-      var serverGroups = application.serverGroups || [];
-      return serverGroups
-        .reduce(function(total, serverGroup) {
-          return serverGroup.instances.length + total;
-        }, 0);
-    }
-
     application.enableAutoRefresh($scope);
-    if (countInstances() > 500) {
-      application.disableAutoRefresh();
-    }
   }
 );
 
