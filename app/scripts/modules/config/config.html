@@ -18,6 +18,78 @@
     <div class="col-md-7">
       <div class="panel panel-default">
         <div class="panel-heading">
+          <h3 class="panel-title">Notifications</h3>
+        </div>
+        <div class="panel-body">
+          <p>You can edit notification settings for this application</p>
+
+          <div class="row">
+            <div class="col-md-12">
+              <table class="table table-condensed">
+                <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Details</th>
+                  <th>When</th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="notification in config.notifications">
+                  <td>
+                    {{notification.type|uppercase}}
+                  </td>
+                  <td>
+                    {{notification.address}}
+                  </td>
+                  <td>
+                    <ul>
+                      <li ng-repeat="when in notification.when">{{when}}</li>
+                    </ul>
+                  </td>
+                  <td>
+                    <a class="btn btn-xs btn-link" href ng-click="config.editNotification(notification)">Edit</a>
+                    <a class="btn btn-xs btn-link pad-left" href
+                       ng-click="config.removeNotification(notification)">Remove</a>
+                  </td>
+                </tr>
+                </tbody>
+                <tfoot>
+                <tr>
+                  <td colspan="7">
+                    <button class="btn btn-block btn-sm add-new" ng-click="config.addNotification()">
+                      <span class="glyphicon glyphicon-plus-sign"></span> Add notification setting
+                    </button>
+                  </td>
+                </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <div class="row pipeline-footer ng-scope">
+            <div class="col-md-3">
+              <button class="btn btn-default" ng-click="config.revertNotificationChanges()"
+                      style="visibility: visible;"><span class="glyphicon glyphicon-flash"></span> Revert
+              </button>
+            </div>
+            <div class="col-md-9 text-right">
+              <button ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary ng-scope"
+                      ng-click="pipelineConfigurerCtrl.savePipeline()" disabled="disabled">
+              <span ng-if="!viewState.saving" class="ng-scope">
+            <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
+          </span></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-7">
+      <div class="panel panel-default">
+        <div class="panel-heading">
           <h3 class="panel-title">Cache Management</h3>
         </div>
         <div class="panel-body">
