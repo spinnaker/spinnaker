@@ -17,7 +17,7 @@ describe('Controller: AllClustersCtrl', function () {
       controller = $controller('AllClustersCtrl', {
         $scope: scope,
         application: {
-          clusters: [],
+          serverGroups: [],
           registerAutoRefreshHandler: angular.noop
         }
       });

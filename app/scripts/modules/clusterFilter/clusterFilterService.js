@@ -6,7 +6,7 @@ angular
     'deckApp.utils.lodash',
     'deckApp.utils.waypoints.service',
   ])
-  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService) {
+  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log) {
 
     var lastApplication = null;
 
@@ -35,14 +35,6 @@ angular
       });
       return result;
     }
-
-    function incrementTotalInstancesDisplayed(totalInstancesDisplayed, serverGroups) {
-      return serverGroups
-        .reduce(function(total, serverGroup) {
-          return serverGroup.instances.length + total;
-        }, totalInstancesDisplayed);
-    }
-
 
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
@@ -106,10 +98,8 @@ angular
       }
     }
 
-    function filterServerGroupsForDisplay(clusters, filter) {
-      return  _.chain(clusters)
-        .collect('serverGroups')
-        .flatten()
+    function filterServerGroupsForDisplay(serverGroups, filter) {
+      return  _.chain(serverGroups)
         .filter(function(serverGroup) {
           if (!filter) {
             return true;
@@ -165,67 +155,123 @@ angular
     }
 
     function updateClusterGroups(application) {
-        if (!application) {
-          application = lastApplication;
-          if (!lastApplication) {
-            return null;
-          }
+      if (!application) {
+        application = lastApplication;
+        if (!lastApplication) {
+          return null;
         }
+      }
 
-        var groups = [],
-          totalInstancesDisplayed = 0,
-          primarySort = ClusterFilterModel.sortFilter.sortPrimary,
-          secondarySort = ClusterFilterModel.sortFilter.sortSecondary,
-          tertiarySort = ClusterFilterModel.sortFilter.sortOptions.filter(function(option) { return option.key !== primarySort && option.key !== secondarySort; })[0].key;
+      var groups = [];
 
-        var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
-        var serverGroups = filterServerGroupsForDisplay(application.clusters, filter);
+      var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
+      var serverGroups = filterServerGroupsForDisplay(application.serverGroups, filter);
 
-        var grouped = _.groupBy(serverGroups, primarySort);
+      var grouped = _.groupBy(serverGroups, 'account');
 
-        _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
+      _.forOwn(grouped, function(group, key) {
+        var subGroupings = _.groupBy(group, 'cluster'),
+          subGroups = [];
 
-          _.forOwn(subGroupings, function(subGroup, subKey) {
-            var subGroupings = _.groupBy(subGroup, tertiarySort),
-              subSubGroups = [];
+        _.forOwn(subGroupings, function(subGroup, subKey) {
+          var subGroupings = _.groupBy(subGroup, 'region'),
+            subSubGroups = [];
 
-            _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
-              totalInstancesDisplayed = incrementTotalInstancesDisplayed(totalInstancesDisplayed, subSubGroup);
-              subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
-            });
-            subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
+          _.forOwn(subGroupings, function(subSubGroup, subSubKey) {
+            subSubGroups.push( { heading: subSubKey, serverGroups: subSubGroup } );
           });
-
-          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
-
+          subGroups.push( { heading: subKey, subgroups: _.sortBy(subSubGroups, 'heading'), cluster: getCluster(application, subKey, key) } );
         });
 
-        sortGroupsByHeading(groups);
-        setDisplayOptions(totalInstancesDisplayed);
-        waypointService.restoreToWaypoint(application.name);
-        addTags();
-        lastApplication = application;
-        return groups;
+        groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
+
+      });
+
+      sortGroupsByHeading(groups);
+      setDisplayOptions();
+      waypointService.restoreToWaypoint(application.name);
+      addTags();
+      lastApplication = application;
+      return groups;
     }
 
     function getCluster(application, clusterName, account) {
       return _.find(application.clusters, {account: account, name: clusterName });
     }
 
-    function sortGroupsByHeading(groups) {
-      var sortedGroups = _.sortBy(groups, 'heading');
-      ClusterFilterModel.groups.length = 0;
-      sortedGroups.forEach(function(group) {
-        ClusterFilterModel.groups.push(group);
+    function diffSubgroups(oldGroups, newGroups) {
+      var groupsToRemove = [];
+
+      oldGroups.forEach(function(oldGroup, idx) {
+        var newGroup = _.find(newGroups, { heading: oldGroup.heading });
+        if (!newGroup) {
+          groupsToRemove.push(idx);
+        } else {
+          if (newGroup.cluster) {
+            oldGroup.cluster = newGroup.cluster;
+          }
+          if (newGroup.serverGroups) {
+            diffServerGroups(oldGroup, newGroup);
+          }
+          if (newGroup.subgroups) {
+            diffSubgroups(oldGroup.subgroups, newGroup.subgroups);
+          }
+        }
+      });
+      groupsToRemove.reverse().forEach(function(idx) {
+        oldGroups.splice(idx, 1);
+      });
+      newGroups.forEach(function(newGroup) {
+        var match = _.find(oldGroups, { heading: newGroup.heading });
+        if (!match) {
+          oldGroups.push(newGroup);
+        }
       });
     }
 
-    function setDisplayOptions(totalInstancesDisplayed) {
+    function diffServerGroups(oldGroup, newGroup) {
+      var toRemove = [];
+      oldGroup.serverGroups.forEach(function(serverGroup, idx) {
+        var newServerGroup = _.find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
+        if (!newServerGroup) {
+          $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
+          toRemove.push(idx);
+        } else {
+          if (serverGroup.stringVal !== newServerGroup.stringVal) {
+            $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
+            oldGroup.serverGroups.splice(idx, 1, newServerGroup);
+          }
+        }
+      });
+      toRemove.reverse().forEach(function(idx) {
+        oldGroup.serverGroups.splice(idx, 1);
+      });
+      newGroup.serverGroups.forEach(function(serverGroup) {
+        var oldServerGroup = _.find(oldGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
+        if (!oldServerGroup) {
+          $log.debug('new server group found, adding', serverGroup.name, serverGroup.account, serverGroup.region);
+          oldGroup.serverGroups.push(serverGroup);
+        }
+      });
+    }
+
+    function sortGroupsByHeading(groups) {
+      diffSubgroups(ClusterFilterModel.groups, groups);
+
+      // sort groups in place so Angular doesn't try to update the world
+      ClusterFilterModel.groups.sort(function(a, b) {
+        if (a.heading < b.heading) {
+          return -1;
+        }
+        if (a.heading > b.heading) {
+          return 1;
+        }
+        return 0;
+      });
+    }
+
+    function setDisplayOptions() {
       var newOptions =  {
-        renderInstancesOnScroll: totalInstancesDisplayed > 1000, // TODO: remove
-        totalInstancesDisplayed: totalInstancesDisplayed,
         showInstances: ClusterFilterModel.sortFilter.showAllInstances,
         listInstances: ClusterFilterModel.sortFilter.listInstances,
         hideHealthy: ClusterFilterModel.sortFilter.hideHealthy,
@@ -293,7 +339,6 @@ angular
       updateQueryParams: updateQueryParams,
       updateClusterGroups: updateClusterGroups,
       filterServerGroupsForDisplay: filterServerGroupsForDisplay,
-      incrementTotalInstancesDisplayed: incrementTotalInstancesDisplayed,
       setDisplayOptions: setDisplayOptions,
       sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,

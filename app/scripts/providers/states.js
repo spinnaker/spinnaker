@@ -99,7 +99,7 @@ angular.module('deckApp.states', [
         params: {
           vpcId: {
             value: null,
-            squash: 'ec2-classic',
+            squash: true,
           },
         },
         views: {
@@ -140,7 +140,7 @@ angular.module('deckApp.states', [
         params: {
           vpcId: {
             value: null,
-            squash: 'ec2-classic',
+            squash: true,
           },
         },
         views: {

@@ -1,10 +1,10 @@
-<span ng-if="loadBalancers.length" ng-class="{'overflowing': loadBalancers.length > maxDisplay}">
+<span ng-if="serverGroup.loadBalancers.length" ng-class="{'overflowing': serverGroup.loadBalancers.length > maxDisplay}">
   <button
       class="btn btn-link btn-multiple-load-balancers clearfix no-padding"
-      ng-if="loadBalancers.length > maxDisplay"
+      ng-if="serverGroup.loadBalancers.length > maxDisplay"
       ng-click="popover.show = !popover.show; $event.stopPropagation();"
-      tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{loadBalancers.length}} load balancers">
-    <span class="badge counter">{{loadBalancers.length}}</span>
+      tooltip="{{popover.show ? 'Hide' : 'Show'}} all {{serverGroup.loadBalancers.length}} load balancers">
+    <span class="badge counter">{{serverGroup.loadBalancers.length}}</span>
     <span class="icon">
       <span class="icon-elb"></span>
     </span>
@@ -14,18 +14,18 @@
       Load Balancers
     </div>
     <a
-      ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
-      ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
-      >{{loadBalancer.name}}
+      ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
+      ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.type})"
+      >{{loadBalancer}}
     </a>
   </div>
-  <span class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
+  <span class="btn-load-balancer" ng-if="serverGroup.loadBalancers.length <= maxDisplay">
     <button
        class="btn btn-link no-padding"
-       ng-repeat="loadBalancer in loadBalancers | orderBy:'name'"
-       ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
+       ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
+       ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.type})"
        ui-sref-active="active"
-       tooltip="ELB: {{loadBalancer.name}}">
+       tooltip="ELB: {{loadBalancer}}">
       <span class="icon">
         <span class="icon-elb"></span>
       </span>

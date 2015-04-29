@@ -30,26 +30,24 @@ angular.module('clusters.all', [
     });
 
     function addSearchFields() {
-      application.clusters.forEach(function(cluster) {
-        cluster.serverGroups.forEach(function(serverGroup) {
-          var buildInfo = '';
-          if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
-            buildInfo = [
-                '#' + serverGroup.buildInfo.jenkins.number,
-                serverGroup.buildInfo.jenkins.host,
-                serverGroup.buildInfo.jenkins.name].join(' ').toLowerCase();
-          }
-          if (!serverGroup.searchField) {
-            serverGroup.searchField = [
-              serverGroup.region.toLowerCase(),
-              serverGroup.name.toLowerCase(),
-              serverGroup.account.toLowerCase(),
-              buildInfo,
-              _.collect(serverGroup.loadBalancers, 'name').join(' '),
-              _.collect(serverGroup.instances, 'id').join(' ')
-            ].join(' ');
-          }
-        });
+      application.serverGroups.forEach(function(serverGroup) {
+        var buildInfo = '';
+        if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
+          buildInfo = [
+              '#' + serverGroup.buildInfo.jenkins.number,
+              serverGroup.buildInfo.jenkins.host,
+              serverGroup.buildInfo.jenkins.name].join(' ').toLowerCase();
+        }
+        if (!serverGroup.searchField) {
+          serverGroup.searchField = [
+            serverGroup.region.toLowerCase(),
+            serverGroup.name.toLowerCase(),
+            serverGroup.account.toLowerCase(),
+            buildInfo,
+            _.collect(serverGroup.loadBalancers, 'name').join(' '),
+            _.collect(serverGroup.instances, 'id').join(' ')
+          ].join(' ');
+        }
       });
     }
 

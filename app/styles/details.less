@@ -45,7 +45,9 @@
 
 .details-panel {
   display: flex;
+  display: -webkit-flex;
   flex-direction: column;
+  -webkit-flex-direction: column;
   border: 1px solid #aaaaaa;
   border-bottom-width: 0;
   background-color: #ffffff;
@@ -54,6 +56,11 @@
 
   .header {
     border-bottom: 0;
+
+    h4.text-center {
+      position: relative;
+      top: 100px;
+    }
   }
 
   &.disabled, &.OutOfService {
@@ -68,11 +75,13 @@
 
   .content {
     flex: 1 0 100px;
+    -webkit-flex: 1 0 100px;
     overflow-y: auto;
   }
 
   .header {
     flex: none;
+    -webkit-flex: none;
     padding: 20px 15px 0 15px;
     margin-bottom: 10px;
     .header-text {

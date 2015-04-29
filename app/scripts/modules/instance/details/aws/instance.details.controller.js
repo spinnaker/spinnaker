@@ -50,25 +50,23 @@ angular.module('deckApp.instance.detail.aws.controller', [
 
     function retrieveInstance() {
       var instanceSummary, loadBalancers, account, region, vpcId;
-      if (!application.clusters) {
+      if (!application.serverGroups) {
         // standalone instance
         instanceSummary = {};
         loadBalancers = [];
         account = instance.account;
         region = instance.region;
       } else {
-        application.clusters.some(function (cluster) {
-          return cluster.serverGroups.some(function (serverGroup) {
-            return serverGroup.instances.some(function (possibleInstance) {
-              if (possibleInstance.id === instance.instanceId) {
-                instanceSummary = possibleInstance;
-                loadBalancers = serverGroup.loadBalancers;
-                account = serverGroup.account;
-                region = serverGroup.region;
-                vpcId = serverGroup.vpcId;
-                return true;
-              }
-            });
+        application.serverGroups.some(function (serverGroup) {
+          return serverGroup.instances.some(function (possibleInstance) {
+            if (possibleInstance.id === instance.instanceId) {
+              instanceSummary = possibleInstance;
+              loadBalancers = serverGroup.loadBalancers;
+              account = serverGroup.account;
+              region = serverGroup.region;
+              vpcId = serverGroup.vpcId;
+              return true;
+            }
           });
         });
       }

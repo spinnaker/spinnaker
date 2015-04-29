@@ -328,7 +328,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by starting status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown'},
-        serverGroup = appCopy.clusters[0].serverGroups[0];
+        serverGroup = appCopy.serverGroups[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {Starting: true};
@@ -347,7 +347,7 @@ describe('Service: clusterFilterService', function () {
     it('should filter by out of service status if checked', function() {
       var appCopy = _.cloneDeep(applicationJSON);
       var starting = { healthState: 'Unknown' },
-        serverGroup = appCopy.clusters[0].serverGroups[0];
+        serverGroup = appCopy.serverGroups[0];
       serverGroup.instances.push(starting);
 
       ClusterFilterModel.sortFilter.status = {OutOfService: true};
@@ -446,5 +446,198 @@ describe('Service: clusterFilterService', function () {
       this.verifyTags([]);
     });
 
+  });
+
+  describe('group diffing', function() {
+    beforeEach(function() {
+      this.serverGroup001 = { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original' };
+      this.serverGroup000 = { cluster: 'cluster-a', name: 'cluster-a-v000', account: 'prod', region: 'us-east-1', stringVal: 'should be deleted' };
+      ClusterFilterModel.groups = [
+        {
+          heading: 'prod',
+          subgroups: [
+            {
+              heading: 'cluster-a',
+              cluster: { name: 'cluster-a' },
+              subgroups: [
+                {
+                  heading: 'us-east-1',
+                  serverGroups: [
+                    this.serverGroup000,
+                    this.serverGroup001,
+                  ]
+                }
+              ]
+            },
+          ],
+        },
+      ];
+    });
+
+    it('adds a group when new one provided', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'test', region: 'us-east-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(2);
+      expect(ClusterFilterModel.groups[1].heading).toBe('test');
+      expect(ClusterFilterModel.groups[1].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[1].subgroups[0].heading).toBe('cluster-a');
+      expect(ClusterFilterModel.groups[1].subgroups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[1].subgroups[0].subgroups[0].heading).toBe('us-east-1');
+      expect(ClusterFilterModel.groups[1].subgroups[0].subgroups[0].serverGroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[1].subgroups[0].subgroups[0].serverGroups[0].name).toBe('cluster-a-v003');
+    });
+
+    it('adds a subgroup when new one provided', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-b', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(2);
+      expect(ClusterFilterModel.groups[0].subgroups[1].heading).toBe('cluster-b');
+      expect(ClusterFilterModel.groups[0].subgroups[1].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[1].subgroups[0].heading).toBe('us-east-1');
+      expect(ClusterFilterModel.groups[0].subgroups[1].subgroups[0].serverGroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[1].subgroups[0].serverGroups[0].name).toBe('cluster-a-v003');
+    });
+
+    it('adds a sub-subgroup when new one provided', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-west-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(2);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[1].heading).toBe('us-west-1');
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[1].serverGroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[1].serverGroups[0].name).toBe('cluster-a-v003');
+    });
+
+    it('adds a server group when new one provided in same sub-sub-group', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups.length).toBe(3);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[2].name).toBe('cluster-a-v003');
+    });
+
+    it('removes a group when one goes away', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'test', region: 'us-east-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(2);
+
+      application.serverGroups.splice(0, 2);
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].heading).toBe('test');
+    });
+
+    it('removes a subgroup when one goes away', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-b', name: 'cluster-a-v003', account: 'prod', region: 'us-east-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(2);
+
+      application.serverGroups.splice(0, 2);
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].heading).toBe('cluster-b');
+    });
+
+    it('removes a sub-subgroup when one goes away', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup000,
+          this.serverGroup001,
+          { cluster: 'cluster-a', name: 'cluster-a-v003', account: 'prod', region: 'us-west-1', stringVal: 'new' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(2);
+
+      application.serverGroups.splice(0, 2);
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].heading).toBe('us-west-1');
+    });
+
+    it('removes a server group when one goes away', function() {
+      var application = {
+        serverGroups: [
+          this.serverGroup001,
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups.length).toBe(1);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].name).toBe('cluster-a-v001');
+    });
+
+    it('leaves server groups alone when stringVal does not change', function() {
+      var application = {
+        serverGroups: [
+          { cluster: 'cluster-a', name: 'cluster-a-v000', account: 'prod', region: 'us-east-1', stringVal: 'should be deleted' },
+          { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(this.serverGroup000);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[1]).toBe(this.serverGroup001);
+    });
+
+    it('replaces server group when stringVal changes', function() {
+      var application = {
+        serverGroups: [
+          { cluster: 'cluster-a', name: 'cluster-a-v000', account: 'prod', region: 'us-east-1', stringVal: 'mutated' },
+          { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original' },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).not.toBe(this.serverGroup000);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(application.serverGroups[0]);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[1]).toBe(this.serverGroup001);
+    });
   });
 });

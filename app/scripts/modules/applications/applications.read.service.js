@@ -112,13 +112,6 @@ angular
           autoRefresh(scope);
         }
 
-        function getCluster (accountName, clusterName) {
-          var matches = application.clusters.filter(function (cluster) {
-            return cluster.name === clusterName && cluster.account === accountName;
-          });
-          return matches.length ? matches[0] : null;
-        }
-
         function reloadTasks() {
           return tasksReader.listAllTasksForApplication(application.name).then(function(tasks) {
             addTasksToApplication(application, tasks);
@@ -150,7 +143,6 @@ angular
         application.disableAutoRefresh = disableAutoRefresh;
         application.enableAutoRefresh = enableAutoRefresh;
         application.resumeAutoRefresh = resumeAutoRefresh;
-        application.getCluster = getCluster;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
 
@@ -248,6 +240,9 @@ angular
               return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
                 .then(
                   function() {
+                    application.serverGroups.forEach(function(sg) {
+                      sg.stringVal = angular.toJson(sg);
+                    });
                     return application;
                   },
                   function(err) {
