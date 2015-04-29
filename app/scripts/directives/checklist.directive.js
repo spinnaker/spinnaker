@@ -25,7 +25,8 @@ angular.module('deckApp')
       scope: {
         items: '=',
         model: '=',
-        onChange: '&'
+        onChange: '&',
+        inline: '=',
       },
       link: function(scope) {
 
