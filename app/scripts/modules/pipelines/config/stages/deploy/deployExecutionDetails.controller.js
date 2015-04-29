@@ -22,20 +22,25 @@ angular.module('deckApp.pipelines.stage.deploy.details.controller', [
         var context = $scope.stage.context,
           results = [];
 
+        function addDeployedArtifacts(key) {
+          var deployedArtifacts = _.find(resultObjects, key);
+          if (deployedArtifacts) {
+            _.forEach(deployedArtifacts[key], function (serverGroupName, region) {
+              results.push({
+                region: region,
+                name: serverGroupName,
+                provider: context.provider || 'aws',
+              });
+            });
+          }
+        }
+
         if (context && context['kato.tasks'] && context['kato.tasks'].length) {
           var resultObjects = context['kato.tasks'][0].resultObjects;
           if (resultObjects && resultObjects.length) {
             results = [];
-            var deployedArtifacts = _.find(resultObjects, 'serverGroupNameByRegion');
-            if (deployedArtifacts) {
-              _.forEach(deployedArtifacts.serverGroupNameByRegion, function (serverGroupName, region) {
-                results.push({
-                  region: region,
-                  name: serverGroupName,
-                  provider: context.provider || 'aws',
-                });
-              });
-            }
+            addDeployedArtifacts('asgNameByRegion'); // TODO: Remove after 5/11/15
+            addDeployedArtifacts('serverGroupNameByRegion');
           }
         }
         $scope.deployed = results;
