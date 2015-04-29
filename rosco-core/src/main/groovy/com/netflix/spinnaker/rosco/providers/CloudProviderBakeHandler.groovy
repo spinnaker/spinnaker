@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 
 abstract class CloudProviderBakeHandler {
 
@@ -29,6 +30,9 @@ abstract class CloudProviderBakeHandler {
 
   @Autowired
   PackerCommandFactory packerCommandFactory
+
+  @Value('${debianRepository:}')
+  String debianRepository
 
   /**
    * Build provider-specific key used to determine uniqueness. If a prior (or in-flight) bake exists
@@ -82,6 +86,10 @@ abstract class CloudProviderBakeHandler {
     def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
 
     def parameterMap = buildParameterMap(region, virtualizationSettings, imageName)
+
+    if (debianRepository) {
+      parameterMap.deb_repo = debianRepository
+    }
 
     // TODO(duftler): Build out proper support for installation of packages.
     parameterMap.packages = packagesParameter

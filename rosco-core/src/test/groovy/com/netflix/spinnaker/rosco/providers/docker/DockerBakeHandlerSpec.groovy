@@ -34,6 +34,7 @@ class DockerBakeHandlerSpec extends Specification {
   private static final String TEMPLATE_FILE = "docker_template.json"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "ubuntu:precise"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "ubuntu:trusty"
+  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
 
   @Shared
   RoscoDockerConfiguration.DockerBakeryDefaults dockerBakeryDefaults
@@ -137,13 +138,15 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
-                                                                  packerCommandFactory: packerCommandFactoryMock)
+                                                                  packerCommandFactory: packerCommandFactoryMock,
+                                                                  debianRepository: DEBIAN_REPOSITORY)
 
     when:
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -168,13 +171,15 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
-                                                                  packerCommandFactory: packerCommandFactoryMock)
+                                                                  packerCommandFactory: packerCommandFactoryMock,
+                                                                  debianRepository: DEBIAN_REPOSITORY)
 
     when:
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -203,6 +208,7 @@ class DockerBakeHandlerSpec extends Specification {
         docker_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         docker_target_image: targetImageName,
         docker_target_repository: TARGET_REPOSITORY,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         appversion: appVersionStr,
         build_host: buildHost
@@ -211,7 +217,8 @@ class DockerBakeHandlerSpec extends Specification {
       @Subject
       DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
-                                                                  packerCommandFactory: packerCommandFactoryMock)
+                                                                  packerCommandFactory: packerCommandFactoryMock,
+                                                                  debianRepository: DEBIAN_REPOSITORY)
 
     when:
       dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -236,7 +243,8 @@ class DockerBakeHandlerSpec extends Specification {
       @Subject
       DockerBakeHandler dockerBakeHandler = new DockerBakeHandler(dockerBakeryDefaults: dockerBakeryDefaults,
                                                                   imageNameFactory: imageNameFactoryMock,
-                                                                  packerCommandFactory: packerCommandFactoryMock)
+                                                                  packerCommandFactory: packerCommandFactoryMock,
+                                                                  debianRepository: DEBIAN_REPOSITORY)
 
     when:
       dockerBakeHandler.producePackerCommand(DockerBakeHandler.START_DOCKER_SERVICE_BASE_COMMAND, bakeRequest)
