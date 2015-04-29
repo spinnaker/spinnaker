@@ -69,6 +69,7 @@ class ContextParameterProcessorSpec extends Specification {
     [:]                                                                                                     | '${scmInfo.branch}'
     [trigger: [buildInfo: [scm: [[branch: 'branch1']]]]]                                                    | 'branch1'
     [trigger: [buildInfo: [scm: [[branch: 'branch1'], [branch: 'master']]]]]                                | 'branch1'
+    [trigger: [buildInfo: [scm: [[branch: 'develop'], [branch: 'master']]]]]                                | 'develop'
     [trigger: [buildInfo: [scm: [[branch: 'jenkinsBranch']]]], buildInfo: [scm: [[branch: 'buildBranch']]]] | 'buildBranch'
   }
 

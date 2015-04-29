@@ -60,7 +60,8 @@ class ContextParameterProcessor {
   static Map precomputeValues(Map context){
     context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
     if(context.scmInfo && context.scmInfo.size() >= 2){
-      context.scmInfo = context.scmInfo.find{ it.branch != 'master' && it.branch != 'develop' }
+      def scmInfo = context.scmInfo.find{ it.branch != 'master' && it.branch != 'develop' }
+      context.scmInfo = scmInfo ?: context.scmInfo?.first()
     } else {
       context.scmInfo = context.scmInfo?.first()
     }
