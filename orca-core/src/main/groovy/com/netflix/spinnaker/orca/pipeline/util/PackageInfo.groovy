@@ -133,13 +133,19 @@ class PackageInfo {
   private String extractCommitHash(Map buildInfo) {
     // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
     // If the list contains more than one entry, prefer the first one that is not master and is not develop.
+    def commitHash
+
     if (buildInfo?.scm?.size() >= 2) {
-      buildInfo.scm.find {
+      commitHash = buildInfo.scm.find {
         it.branch != "master" && it.branch != "develop"
       }?.sha1
-    } else {
-      buildInfo?.scm?.first()?.sha1
     }
+
+    if (!commitHash) {
+      commitHash = buildInfo?.scm?.first()?.sha1
+    }
+
+    return commitHash
   }
 
   @CompileDynamic
