@@ -33,6 +33,7 @@ class AWSBakeHandlerSpec extends Specification {
   private static final String SOURCE_UBUNTU_HVM_IMAGE_NAME = "ami-a123456b"
   private static final String SOURCE_UBUNTU_PV_IMAGE_NAME = "ami-a654321b"
   private static final String SOURCE_TRUSTY_HVM_IMAGE_NAME = "ami-c456789d"
+  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
 
   @Shared
   RoscoAWSConfiguration.AWSBakeryDefaults awsBakeryDefaults
@@ -187,13 +188,15 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_UBUNTU_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -221,13 +224,15 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "m3.medium",
         aws_source_ami: SOURCE_UBUNTU_PV_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -255,13 +260,15 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -293,6 +300,7 @@ class AWSBakeHandlerSpec extends Specification {
         aws_instance_type: "t2.micro",
         aws_source_ami: SOURCE_TRUSTY_HVM_IMAGE_NAME,
         aws_target_ami: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         appversion: appVersionStr,
         build_host: buildHost
@@ -301,7 +309,8 @@ class AWSBakeHandlerSpec extends Specification {
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -325,7 +334,8 @@ class AWSBakeHandlerSpec extends Specification {
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -348,7 +358,8 @@ class AWSBakeHandlerSpec extends Specification {
       @Subject
       AWSBakeHandler awsBakeHandler = new AWSBakeHandler(awsBakeryDefaults: awsBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       awsBakeHandler.producePackerCommand(REGION, bakeRequest)

@@ -33,6 +33,7 @@ class GCEBakeHandlerSpec extends Specification {
   private static final String REGION = "us-central1"
   private static final String SOURCE_UBUNTU_IMAGE_NAME = "some-ubuntu-image"
   private static final String SOURCE_TRUSTY_IMAGE_NAME = "some-trusty-image"
+  private static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
 
   @Shared
   GCEBakeryDefaults gceBakeryDefaults
@@ -130,13 +131,15 @@ class GCEBakeHandlerSpec extends Specification {
         gce_zone: gceBakeryDefaults.zone,
         gce_source_image: SOURCE_UBUNTU_IMAGE_NAME,
         gce_target_image: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -160,13 +163,15 @@ class GCEBakeHandlerSpec extends Specification {
         gce_zone: gceBakeryDefaults.zone,
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: PACKAGE_NAME
       ]
 
       @Subject
       GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -194,6 +199,7 @@ class GCEBakeHandlerSpec extends Specification {
         gce_zone: gceBakeryDefaults.zone,
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
+        deb_repo: DEBIAN_REPOSITORY,
         packages: fullyQualifiedPackageName,
         appversion: appVersionStr,
         build_host: buildHost
@@ -202,7 +208,8 @@ class GCEBakeHandlerSpec extends Specification {
       @Subject
       GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)
@@ -225,7 +232,8 @@ class GCEBakeHandlerSpec extends Specification {
       @Subject
       GCEBakeHandler gceBakeHandler = new GCEBakeHandler(gceBakeryDefaults: gceBakeryDefaults,
                                                          imageNameFactory: imageNameFactoryMock,
-                                                         packerCommandFactory: packerCommandFactoryMock)
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
 
     when:
       gceBakeHandler.producePackerCommand(REGION, bakeRequest)

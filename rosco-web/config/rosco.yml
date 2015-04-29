@@ -26,6 +26,8 @@ executionStatusToBakeResults:
     - executionStatus: FAILED
       bakeResult: FAILURE
 
+debianRepository: http://dl.bintray.com/spinnaker/ospackages
+
 defaultCloudProviderType: aws
 
 aws:

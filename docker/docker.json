@@ -4,6 +4,7 @@
     "docker_target_image": "",
     "docker_target_image_tag": "latest",
     "docker_target_repository": null,
+    "deb_repo": "",
     "packages": ""
   },
   "builders": [{
@@ -16,7 +17,7 @@
     "inline": [
       "sleep 30",
       "apt-get install sudo",
-      "echo \"deb http://dl.bintray.com/spinnaker/ospackages ./\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
+      "echo \"deb {{user `deb_repo`}} ./\" | sudo tee /etc/apt/sources.list.d/spinnaker.list > /dev/null",
       "sudo apt-get update",
       "sudo apt-get install --force-yes -y {{user `packages`}}"
     ]
