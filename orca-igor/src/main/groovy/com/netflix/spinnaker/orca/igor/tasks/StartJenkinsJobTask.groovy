@@ -54,6 +54,6 @@ class StartJenkinsJobTask implements RetryableTask {
     Map parsedParameters = ContextParameterProcessor.process(parameters, context)
 
     Map<String, Object> build = igorService.build(master, job, parsedParameters)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number, parameters: parsedParameters])
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number] + ( parsedParameters ? [parsedParameters:parsedParameters] : [:] ) )
   }
 }
