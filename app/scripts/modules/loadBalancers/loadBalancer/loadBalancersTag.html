@@ -19,10 +19,10 @@
       >{{loadBalancer}}
     </a>
   </div>
-  <span class="btn-load-balancer" ng-if="loadBalancers.length <= maxDisplay">
+  <span class="btn-load-balancer" ng-if="serverGroup.loadBalancers.length <= maxDisplay">
     <button
        class="btn btn-link no-padding"
-       ng-repeat="loadBalancer in loadBalancers | orderBy:'toString()'"
+       ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
        ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.provider})"
        ui-sref-active="active"
        tooltip="ELB: {{loadBalancer}}">
