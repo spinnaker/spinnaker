@@ -69,6 +69,20 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def buildInfoWithUrlAndSCM = [
+    url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ],
+    scm: [
+      [name  : "refs/remotes/origin/master",
+       sha1  : "f83a447f8d02a40fa84ec9d4d0dccd263d51782d",
+       branch: "master"]
+    ]
+  ]
+
+  @Shared
   def buildInfoWithUrlNoMatch = [
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/70/",
     artifacts: [
@@ -253,6 +267,7 @@ class CreateBakeTaskSpec extends Specification {
       buildHost == "http://spinnaker.builds.test.netflix.net/"
       job == "SPINNAKER-package-echo"
       buildNumber == "69"
+      !commitHash
     }
 
     where:
@@ -262,7 +277,37 @@ class CreateBakeTaskSpec extends Specification {
   }
 
   @Unroll
-  def "build info without url yields bake stage output without build host, job and build number"() {
+  def "build info with url and scm yields bake stage output containing build host, job, build number and commit hash"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(runningStatus)
+    }
+    task.extractBuildDetails = true
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.with {
+      bakePackageName == "hodor_1.1_all"
+      buildHost == "http://spinnaker.builds.test.netflix.net/"
+      job == "SPINNAKER-package-echo"
+      buildNumber == "69"
+      commitHash == "f83a447f8d02a40fa84ec9d4d0dccd263d51782d"
+    }
+
+    where:
+    triggerInfo            | contextInfo
+    buildInfoWithUrlAndSCM | null
+    null                   | buildInfoWithUrlAndSCM
+  }
+
+  @Unroll
+  def "build info without url yields bake stage output without build host, job, build number and commit hash"() {
     given:
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
@@ -281,6 +326,7 @@ class CreateBakeTaskSpec extends Specification {
     !result.outputs.buildHost
     !result.outputs.job
     !result.outputs.buildNumber
+    !result.outputs.commitHash
 
     where:
     triggerInfo | contextInfo | extractBuildDetails
@@ -313,6 +359,7 @@ class CreateBakeTaskSpec extends Specification {
                                  it.buildHost == "http://spinnaker.builds.test.netflix.net/" &&
                                  it.job == "SPINNAKER-package-echo" &&
                                  it.buildNumber == "69"
+                                 it.commitHash == null
                                }) >> Observable.from(runningStatus)
 
     where:
@@ -322,7 +369,7 @@ class CreateBakeTaskSpec extends Specification {
   }
 
   @Unroll
-  def "build info with url but without extractBuildDetails yields bake request without build host, job and build number"() {
+  def "build info with url but without extractBuildDetails yields bake request without build host, job, build number, and commit hash"() {
     given:
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
@@ -342,7 +389,8 @@ class CreateBakeTaskSpec extends Specification {
                                  it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&
                                  it.job == null &&
-                                 it.buildNumber == null
+                                 it.buildNumber == null &&
+                                 it.commitHash == null
                                }) >> Observable.from(runningStatus)
 
     where:
@@ -352,7 +400,7 @@ class CreateBakeTaskSpec extends Specification {
   }
 
   @Unroll
-  def "build info without url yields bake request without build host, job and build number"() {
+  def "build info without url yields bake request without build host, job, build number and commit hash"() {
     given:
     Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
     bakeConfig.buildInfo = contextInfo
@@ -372,7 +420,8 @@ class CreateBakeTaskSpec extends Specification {
                                  it.baseOs == OperatingSystem.ubuntu &&
                                  it.buildHost == null &&
                                  it.job == null &&
-                                 it.buildNumber == null
+                                 it.buildNumber == null &&
+                                 it.commitHash == null
                                }) >> Observable.from(runningStatus)
 
     where:

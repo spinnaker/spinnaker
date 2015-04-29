@@ -115,12 +115,24 @@ class PackageInfo {
           request.put('job', buildInfoUrlParts[1].toString())
           request.put('buildNumber', buildInfoUrlParts[2].toString())
         }
+
+        def commitHash = buildArtifact ? extractCommitHash(buildInfo) : extractCommitHash(trigger?.buildInfo)
+
+        if (commitHash) {
+          request.put('commitHash', commitHash)
+        }
       }
 
       return request
     }
 
     throw new IllegalStateException("Unable to find deployable artifact starting with ${prefix} and ending with ${fileExtension} in ${buildArtifacts} and ${triggerArtifacts}")
+  }
+
+  @CompileDynamic
+  private String extractCommitHash(Map buildInfo) {
+    // buildInfo.scm contains a list of maps. Each map contains these keys: name, sha1, branch.
+    buildInfo?.scm?.first()?.sha1
   }
 
   @CompileDynamic

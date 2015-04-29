@@ -50,20 +50,24 @@ class CreateBakeTask implements Task {
 
     def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
+    def stageOutputs = [
+      status: bakeStatus,
+      bakePackageName: bake.packageName
+    ] as Map<String, ? extends Object>
+
     if (bake.buildHost) {
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        status: bakeStatus,
-        bakePackageName: bake.packageName,
+      stageOutputs << [
         buildHost: bake.buildHost,
         job: bake.job,
         buildNumber: bake.buildNumber
-      ])
-    } else {
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        status: bakeStatus,
-        bakePackageName: bake.packageName
-      ])
+      ]
+
+      if (bake.commitHash) {
+        stageOutputs.commitHash = bake.commitHash
+      }
     }
+
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
   }
 
   @CompileDynamic
