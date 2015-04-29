@@ -66,8 +66,8 @@ class CreateDeployTask implements Task {
       "notification.type"  : "createdeploy",
       "kato.last.task.id"  : taskId,
       "kato.task.id"       : taskId, // TODO retire this.
-      "deploy.account.name": deployOperations.credentials,
-    ])
+      "deploy.account.name": deployOperations.credentials
+    ] + deployOperations )
   }
 
   private Map deployOperationFromContext(Stage stage) {
