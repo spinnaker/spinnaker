@@ -1,10 +1,10 @@
 {
   "variables": {
-    "docker_source_image": "",
-    "docker_target_image": "",
+    "docker_source_image": null,
+    "docker_target_image": null,
     "docker_target_image_tag": "latest",
     "docker_target_repository": null,
-    "deb_repo": "",
+    "deb_repo": null,
     "packages": ""
   },
   "builders": [{
