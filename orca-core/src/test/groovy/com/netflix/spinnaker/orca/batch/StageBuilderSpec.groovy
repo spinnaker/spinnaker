@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.batch.core.job.builder.FlowBuilder
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -50,6 +53,26 @@ class StageBuilderSpec extends Specification {
     buildParent(execution, "ParentId")                  || "ParentId-1-NewStage"      || "ParentId-2-NewStage"
     buildParent(execution, "GrandParentId", "ParentId") || "GrandParentId-1-NewStage" || "GrandParentId-2-NewStage"
     null                                                || uuidRegex                  || uuidRegex
+  }
+
+  def "should handle exceptions when building new stage"() {
+    given:
+    def stageBuilder = new StageBuilder("bake", [new DefaultExceptionHandler()]) {
+      @Override
+      protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
+        throw new IllegalStateException("Expected Exception")
+      }
+    }
+    def stage = new PipelineStage(new Pipeline(), "bake", [:])
+
+    when:
+    stageBuilder.build(Mock(FlowBuilder), stage)
+
+    then:
+    stage.status == ExecutionStatus.TERMINAL
+    stage.startTime != null
+    stage.endTime != null
+    stage.context.exception.details.errors == ["Expected Exception"]
   }
 
   Stage buildParent(Execution execution, String... parentStageIds) {

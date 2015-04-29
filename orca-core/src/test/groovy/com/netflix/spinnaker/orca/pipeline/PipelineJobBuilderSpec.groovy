@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -65,6 +66,7 @@ class PipelineJobBuilderSpec extends Specification {
       registerSingleton WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE, waitForRequisiteCompletionStage
       registerSingleton "waitForRequisiteCompletionTask", new WaitForRequisiteCompletionTask()
       registerSingleton("stepExecutionListener", new StepExecutionListenerSupport())
+      registerSingleton("defaultExceptionHandler", new DefaultExceptionHandler())
       registerSingleton "taskTaskletAdapter", taskTaskletAdapter
 
       autowireBean waitForRequisiteCompletionStage

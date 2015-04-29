@@ -46,6 +46,13 @@ abstract class ExecutionStarter<T extends Execution> {
     persistExecution(subject)
     def job = executionJobBuilder.build(subject)
     persistExecution(subject)
+
+    if (subject.status.isComplete()) {
+      throw new IllegalStateException(
+        "Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id})"
+      )
+    }
+
     launcher.run job, createJobParameters(subject)
     subject
   }

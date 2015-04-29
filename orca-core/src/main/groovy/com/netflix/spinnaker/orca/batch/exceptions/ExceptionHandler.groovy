@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.batch.exceptions
 
 import groovy.transform.Canonical
 
-interface ExceptionHandler<T extends RuntimeException> {
-  boolean handles(RuntimeException e)
+interface ExceptionHandler<T extends Exception> {
+  boolean handles(Exception e)
 
   Response handle(String taskName, T e)
 
