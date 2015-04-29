@@ -217,9 +217,9 @@ angular
             diffSubgroups(oldGroup.subgroups, newGroup.subgroups);
           }
         }
-        groupsToRemove.forEach(function(idx) {
-          oldGroups.splice(idx, 1);
-        });
+      });
+      groupsToRemove.reverse().forEach(function(idx) {
+        oldGroups.splice(idx, 1);
       });
       newGroups.forEach(function(newGroup) {
         var match = _.find(oldGroups, { heading: newGroup.heading });
@@ -243,7 +243,7 @@ angular
           }
         }
       });
-      toRemove.forEach(function(idx) {
+      toRemove.reverse().forEach(function(idx) {
         oldGroup.serverGroups.splice(idx, 1);
       });
       newGroup.serverGroups.forEach(function(serverGroup) {
