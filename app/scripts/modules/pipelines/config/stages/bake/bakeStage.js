@@ -19,7 +19,7 @@ angular.module('deckApp.pipelines.stage.bake')
       ],
     });
   })
-  .controller('BakeStageCtrl', function($scope, stage, bakeryService, $q, authenticationService, accountService) {
+  .controller('BakeStageCtrl', function($scope, stage, bakeryService, $q, _, authenticationService, accountService) {
     var ctrl = this;
 
     $scope.stage = stage;
@@ -84,6 +84,14 @@ angular.module('deckApp.pipelines.stage.bake')
       });
     };
 
-    $scope.$watch('stage.cloudProviderType', this.providerSelected);
+    function deleteEmptyProperties() {
+      _.forOwn($scope.stage, function(val, key) {
+        if (val === '') {
+          delete $scope.stage[key];
+        }
+      });
+    }
 
+    $scope.$watch('stage.cloudProviderType', this.providerSelected);
+    $scope.$watch('stage', deleteEmptyProperties, true);
   });

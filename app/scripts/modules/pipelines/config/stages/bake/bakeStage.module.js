@@ -6,4 +6,5 @@ angular.module('deckApp.pipelines.stage.bake', [
   'deckApp.pipelines.stage.bake.executionDetails.controller',
   'deckApp.providerSelection.directive',
   'deckApp.account.service',
+  'deckApp.utils.lodash',
 ]);
