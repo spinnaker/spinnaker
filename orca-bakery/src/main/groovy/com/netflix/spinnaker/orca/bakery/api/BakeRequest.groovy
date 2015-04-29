@@ -34,13 +34,14 @@ import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 @Immutable(copyWith = true)
 @CompileStatic
 class BakeRequest {
-  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
+  static final Default = new BakeRequest(System.getProperty("user.name"), null, null, null, null, null, CloudProviderType.aws, Label.release, OperatingSystem.ubuntu, null, null, null, null, null, null, null)
 
   String user
   @JsonProperty("package") @SerializedName("package") String packageName
   String buildHost
   String job
   String buildNumber
+  String commitHash
   CloudProviderType cloudProviderType
   Label baseLabel
   OperatingSystem baseOs
