@@ -240,5 +240,7 @@ class CreateDeployTaskSpec extends Specification {
       it.containsKey("basicAmazonDeployDescription")
     }.basicAmazonDeployDescription.stack == "nameofmystack"
 
+    result.stageOutputs.stack == 'nameofmystack'
+
   }
 }

@@ -19,20 +19,21 @@ class ContextParameterProcessorSpec extends Specification {
     result.test == expectedValue
 
     where:
-    processAttributes                             | sourceValue                           | expectedValue
-    'leave strings alone'                         | 'just a string'                       | 'just a string'
-    'transform simple properties'                 | '${replaceMe}'                        | 'newValue'
-    'transform properties with dots'              | '${h1.h1}'                            | 'h1Val'
-    'transform embedded properties'               | '${replaceMe} and ${replaceMe}'       | 'newValue and newValue'
-    'transform hierarchical values'               | '${hierarchy.h2}'                     | 'hierarchyValue'
-    'transform nested hierarchical values'        | '${hierarchy.h3.h4}'                  | 'h4Val'
-    'leave unresolvable values'                   | '${notResolvable}'                    | '${notResolvable}'
-    'can get a value in an array'                 | '${testArray[0]}'                     | 'good'
-    'can get a value in an map within an array'   | '${testArray[1].arrayVal}'            | 'bad'
-    'can get a value in an array within an array' | '${testArray[2][0].one}'              | 'two'
-    'can support SPEL expression'                 | '${ h1.h1 == "h1Val" }'               | 'true'
-    'can support SPEL defaults'                   | '${ h1.h2  ?: 60 }'                   | '60'
-    'can support SPEL string methods'             | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
+    processAttributes                               | sourceValue                           | expectedValue
+    'leave strings alone'                           | 'just a string'                       | 'just a string'
+    'transform simple properties'                   | '${replaceMe}'                        | 'newValue'
+    'transform properties with dots'                | '${h1.h1}'                            | 'h1Val'
+    'transform embedded properties'                 | '${replaceMe} and ${replaceMe}'       | 'newValue and newValue'
+    'transform hierarchical values'                 | '${hierarchy.h2}'                     | 'hierarchyValue'
+    'transform nested hierarchical values'          | '${hierarchy.h3.h4}'                  | 'h4Val'
+    'leave unresolvable values'                     | '${notResolvable}'                    | '${notResolvable}'
+    'can get a value in an array'                   | '${testArray[0]}'                     | 'good'
+    'can get a value in an map within an array'     | '${testArray[1].arrayVal}'            | 'bad'
+    'can get a value in an array within an array'   | '${testArray[2][0].one}'              | 'two'
+    'can support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | 'true'
+    'can support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | '60'
+    'can support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
+    'can make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
   }
 
   def "should process elements of source map correctly"() {

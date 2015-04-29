@@ -80,6 +80,7 @@ class ContextParameterProcessor {
       String convertedValue = parameters
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
+      evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
       try {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
@@ -91,6 +92,12 @@ class ContextParameterProcessor {
     }
   }
 
+}
+
+abstract class ContextStringUtilities {
+  static String alphanumerical(String str) {
+    str.replaceAll('[^A-Za-z0-9]', '')
+  }
 }
 
 class MapPropertyAccessor extends ReflectivePropertyAccessor {
