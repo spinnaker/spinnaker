@@ -34,8 +34,8 @@
               </td>
               <td><select class="form-control input-sm" ng-model="rule.type"
                           ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp']"></select></td>
-              <td><input class="form-control input-sm" type="number" min="-1" ng-model="rule.startPort" required/></td>
-              <td><input class="form-control input-sm" type="number" min="-1" ng-model="rule.endPort" required/></td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" required/></td>
+              <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" required/></td>
               <td><a class="btn btn-link sm-label"
                      ng-click="ctrl.removeRule(securityGroup.securityGroupIngress, $index)"><span
                 class="glyphicon glyphicon-trash"></span></a></td>
