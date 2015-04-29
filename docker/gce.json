@@ -1,12 +1,12 @@
 {
   "variables": {
-    "gce_project_id": "",
-    "gce_zone": "",
-    "gce_source_image": "",
-    "gce_target_image": "",
+    "gce_project_id": null,
+    "gce_zone": null,
+    "gce_source_image": null,
+    "gce_target_image": null,
     "appversion": "",
     "build_host": "",
-    "deb_repo": "",
+    "deb_repo": null,
     "packages": ""
   },
   "builders": [{

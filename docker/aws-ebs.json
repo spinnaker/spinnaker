@@ -2,14 +2,14 @@
   "variables": {
     "aws_access_key": "",
     "aws_secret_key": "",
-    "aws_region": "",
-    "aws_ssh_username": "",
-    "aws_instance_type": "",
-    "aws_source_ami": "",
-    "aws_target_ami": "",
+    "aws_region": null,
+    "aws_ssh_username": null,
+    "aws_instance_type": null,
+    "aws_source_ami": null,
+    "aws_target_ami": null,
     "appversion": "",
     "build_host": "",
-    "deb_repo": "",
+    "deb_repo": null,
     "packages": ""
   },
   "builders": [{
