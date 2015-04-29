@@ -52,4 +52,26 @@ class ExecutionContextManagerSpec extends Specification {
     ["key": "value"] | ["global-key": "global-value"] || ["key": "value"]
     [:]              | ["global-key": "global-value"] || ["key": "global-value"]
   }
+
+  @Unroll
+  def "should convert SPEL expressions into actual values"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), null, [ "key": "normal-string", "replaceKey": '${#alphanumerical(key)}' ] )
+    def chunkContext = Mock(ChunkContext) {
+      1 * getStepContext() >> {
+        return Mock(StepContext) {
+          1 * getJobExecutionContext() >> {
+            return [:]
+          }
+        }
+      }
+    }
+
+    when:
+    ExecutionContextManager.retrieve(stage, chunkContext)
+
+    then:
+    stage.context == ["key":"normal-string", "replaceKey": "normalstring"]
+
+  }
 }

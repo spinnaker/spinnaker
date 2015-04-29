@@ -23,9 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Slf4j
@@ -67,16 +65,12 @@ class CreateDeployTask implements Task {
       "kato.last.task.id"  : taskId,
       "kato.task.id"       : taskId, // TODO retire this.
       "deploy.account.name": deployOperations.credentials
-    ] + deployOperations )
+    ] )
   }
 
   private Map deployOperationFromContext(Stage stage) {
     def operation = [:]
-    def augmentedContext = [:] + stage.context
-    if (stage.execution instanceof Pipeline) {
-      augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
-    }
-    def context = ContextParameterProcessor.process(stage.context, augmentedContext)
+    def context = stage.context
 
     if (context.containsKey("cluster")) {
       operation.putAll(context.cluster as Map)
