@@ -83,6 +83,23 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def buildInfoWithUrlAndTwoSCMs = [
+    url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/69/",
+    artifacts: [
+      [fileName: 'hodor_1.1_all.deb'],
+      [fileName: 'hodor-1.1.noarch.rpm']
+    ],
+    scm: [
+      [name  : "refs/remotes/origin/master",
+       sha1  : "f83a447f8d02a40fa84ec9d4d0dccd263d51782d",
+       branch: "master"],
+      [name  : "refs/remotes/origin/some-feature",
+       sha1  : "1234567f8d02a40fa84ec9d4d0dccd263d51782d",
+       branch: "some-feature"]
+    ]
+  ]
+
+  @Shared
   def buildInfoWithUrlNoMatch = [
     url: "http://spinnaker.builds.test.netflix.net/job/SPINNAKER-package-echo/70/",
     artifacts: [
@@ -304,6 +321,36 @@ class CreateBakeTaskSpec extends Specification {
     triggerInfo            | contextInfo
     buildInfoWithUrlAndSCM | null
     null                   | buildInfoWithUrlAndSCM
+  }
+
+  @Unroll
+  def "build info with url and two scms yields bake stage output containing build host, job, build number and correctly-chosen commit hash"() {
+    given:
+    Pipeline pipelineWithTrigger = new Pipeline.Builder().withTrigger([buildInfo: triggerInfo]).build()
+    bakeConfig.buildInfo = contextInfo
+
+    Stage stage = new PipelineStage(pipelineWithTrigger, "bake", bakeConfig).asImmutable()
+    task.bakery = Stub(BakeryService) {
+      createBake(*_) >> Observable.from(runningStatus)
+    }
+    task.extractBuildDetails = true
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.outputs.with {
+      bakePackageName == "hodor_1.1_all"
+      buildHost == "http://spinnaker.builds.test.netflix.net/"
+      job == "SPINNAKER-package-echo"
+      buildNumber == "69"
+      commitHash == "1234567f8d02a40fa84ec9d4d0dccd263d51782d"
+    }
+
+    where:
+    triggerInfo                | contextInfo
+    buildInfoWithUrlAndTwoSCMs | null
+    null                       | buildInfoWithUrlAndTwoSCMs
   }
 
   @Unroll
