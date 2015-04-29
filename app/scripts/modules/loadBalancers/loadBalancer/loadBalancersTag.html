@@ -15,7 +15,7 @@
     </div>
     <a
       ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
-      ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.provider})"
+      ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.type})"
       >{{loadBalancer}}
     </a>
   </div>
@@ -23,7 +23,7 @@
     <button
        class="btn btn-link no-padding"
        ng-repeat="loadBalancer in serverGroup.loadBalancers | orderBy:'toString()'"
-       ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.provider})"
+       ui-sref=".loadBalancerDetails({region: serverGroup.region, accountId: serverGroup.account, name: loadBalancer, vpcId: serverGroup.vpcId, provider: serverGroup.type})"
        ui-sref-active="active"
        tooltip="ELB: {{loadBalancer}}">
       <span class="icon">
