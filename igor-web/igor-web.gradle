@@ -33,6 +33,7 @@ dependencies {
     compile spinnaker.dependency("retrofit")
     compile spinnaker.dependency("eurekaClient")
 
+    compile 'org.yaml:snakeyaml:1.15'
     compile 'com.squareup.retrofit:converter-simplexml:1.5.1'
     compile 'cz.jirutka.spring:spring-rest-exception-handler:1.0.0'
     testCompile 'com.squareup.okhttp:mockwebserver:2.1.0'

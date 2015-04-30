@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.yaml.snakeyaml.Yaml
 import retrofit.RetrofitError
 
 import java.util.concurrent.ExecutorService
@@ -57,7 +58,7 @@ class BuildController {
         Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
         if (scm?.action?.lastBuiltRevision?.branch?.name) {
             result.scm = scm?.action.lastBuiltRevision
-            result.scm = result.scm.branch.collect{
+            result.scm = result.scm.branch.collect {
                 it.branch = it.name.split('/').last()
                 it
             }
@@ -102,13 +103,19 @@ class BuildController {
         }
         Map<String, String> map = [:]
         try {
-            Properties properties = new Properties()
             JenkinsClient jenkinsClient = masters.map[master]
             String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find {
                 it.fileName == fileName
             }?.relativePath
-            properties.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
-            map = map << properties
+
+            if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
+                Yaml yml = new Yaml()
+                map = yml.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
+            } else {
+                Properties properties = new Properties()
+                properties.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
+                map = map << properties
+            }
         } catch (e) {
             log.error("Unable to get properties `${job}`", e)
         }
