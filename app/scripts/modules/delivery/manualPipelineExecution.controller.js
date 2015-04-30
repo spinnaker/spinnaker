@@ -38,7 +38,7 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
       if (angular.isDefined($scope.trigger)) {
         $scope.viewState.buildsLoading = true;
         igorService.listBuildsForJob($scope.trigger.master, $scope.trigger.job).then(function(builds) {
-          $scope.builds = _.filter(builds, {building: false});
+          $scope.builds = _.filter(builds, {building: false, result: 'SUCCESS'});
           if (!angular.isDefined($scope.trigger.build)) {
             $scope.selectedBuild = $scope.builds[0];
           }

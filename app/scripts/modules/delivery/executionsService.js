@@ -39,14 +39,12 @@ angular.module('deckApp.delivery.executions.service', [
       return deferred.promise;
     }
 
-    function waitUntilNewTriggeredPipelineAppears(application, pipelineName, ignoreList) {
+    function waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId) {
 
       return application.reloadExecutions().then(function() {
         var executions = application.executions;
         var match = executions.filter(function(execution) {
-          return (execution.status === 'RUNNING' || execution.status === 'NOT_STARTED') &&
-            execution.name === pipelineName &&
-            ignoreList.indexOf(execution.id) === -1;
+          return execution.id === triggeredPipelineId;
         });
         var deferred = $q.defer();
         if (match && match.length) {
@@ -54,7 +52,7 @@ angular.module('deckApp.delivery.executions.service', [
           return deferred.promise;
         } else {
           return $timeout(function() {
-            return waitUntilNewTriggeredPipelineAppears(application, pipelineName, ignoreList);
+            return waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId);
           }, 1000);
         }
       });

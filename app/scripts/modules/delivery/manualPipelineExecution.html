@@ -65,7 +65,7 @@
               <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
             </p>
           </div>
-          <div class="col-md-7" ng-if="!viewState.buildsLoading">
+          <div class="col-md-8" ng-if="!viewState.buildsLoading">
             <ui-select class="form-control input-sm"
                        ng-model="selectedBuild"
                        on-select="updateSelectedBuild($item)">
@@ -73,16 +73,14 @@
                 <span>
                   <strong>Build {{$select.selected.number}}</strong>
                   {{$select.selected | buildDisplayName}}
-                  ({{$select.selected.timestamp | timestamp}} -
-                  {{$select.selected.result}})
+                  ({{$select.selected.timestamp | timestamp}})
                 </span>
               </ui-select-match>
               <ui-select-choices repeat="build in builds | anyFieldFilter: {number: $select.search, fullDisplayName: $select.search, status: $select.search}">
               <span>
                   <strong>Build {{build.number}}</strong>
                   {{build | buildDisplayName}}
-                  ({{build.timestamp | timestamp}} -
-                  {{build.result}})
+                  ({{build.timestamp | timestamp}})
                 </span>
               </ui-select-choices>
             </ui-select>

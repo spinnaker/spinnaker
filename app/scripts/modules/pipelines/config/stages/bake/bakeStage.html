@@ -13,12 +13,10 @@
   </div>
   <div ng-if="viewState.providerSelected">
     <div class="form-group">
-      <label class="col-md-2 col-md-offset-1 sm-label-left">Region</label>
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
 
       <div class="col-md-6">
-        <select class="form-control input-sm" ng-model="stage.region" ng-options="region for region in regions">
-          <option value="">Select a region...</option>
-        </select>
+        <checklist items="regions" model="stage.regions" inline="true"></checklist>
       </div>
     </div>
     <div class="form-group">

@@ -56,7 +56,7 @@ angular.module('deckApp.executionDetails.controller', [
       if ($stateParams.step !== undefined) {
         var stageSummary = $scope.execution.stageSummaries[getCurrentStage()];
         if (stageSummary) {
-          var step = stageSummary.stages[getCurrentStep()];
+          var step = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
           $scope.stageSummary = stageSummary;
           $scope.stage = step;
           var stageConfig = pipelineConfig.getStageConfig(step.type);

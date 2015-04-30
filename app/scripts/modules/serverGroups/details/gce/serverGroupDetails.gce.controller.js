@@ -134,7 +134,6 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
         application: application,
         title: 'Enabling ' + serverGroup.name,
         forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {
@@ -203,6 +202,13 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
       if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.jenkins) {
         var jenkins = $scope.serverGroup.buildInfo.jenkins;
         return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
+      }
+      return null;
+    };
+
+    this.truncateCommitHash = function() {
+      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
+        return $scope.serverGroup.buildInfo.commit.substring(0, 8);
       }
       return null;
     };
