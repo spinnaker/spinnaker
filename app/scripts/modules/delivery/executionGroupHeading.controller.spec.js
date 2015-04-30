@@ -14,16 +14,17 @@ describe('Controller: ExecutionGroupHeading', function () {
   describe('triggerPipeline', function() {
     beforeEach(function() {
       var $q = this.$q;
-
       this.$scope.application = {};
       this.$scope.filter = {
         execution: { groupBy: 'name' }
       };
 
-      this.initializeController = function() {
+      this.initializeController = function(pipelineId) {
         this.pipelineConfigService = {
           triggerPipeline: function() {
-            return $q.when(null);
+            return $q.when({
+              ref: '/pipelines/' + pipelineId
+            });
           }
         };
         this.executionsService = {
@@ -44,17 +45,10 @@ describe('Controller: ExecutionGroupHeading', function () {
 
     it('sets flag, waits for new execution to appear, ignoring any currently enqueued or running pipelines', function() {
       var $scope = this.$scope,
-          name = 'pipeline name a',
-          executions = [
-            { name: name, status: 'RUNNING', id: 'exec-1' },
-            { name: name, status: 'NOT_STARTED', id: 'exec-2' },
-            { name: name, status: 'COMPLETED', id: 'exec-3' },
-          ];
+          name = 'pipeline name a';
 
-      $scope.executions = executions;
       $scope.value = name;
-
-      this.initializeController();
+      this.initializeController('exec-1');
 
       spyOn(this.$modal, 'open').and.returnValue({
         result: {
@@ -70,7 +64,7 @@ describe('Controller: ExecutionGroupHeading', function () {
       expect($scope.viewState.triggeringExecution).toBe(true);
 
       $scope.$digest();
-      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith($scope.application, 'pipeline name a', ['exec-1', 'exec-2']);
+      expect(this.executionsService.waitUntilNewTriggeredPipelineAppears).toHaveBeenCalledWith($scope.application, 'pipeline name a', 'exec-1');
       expect($scope.viewState.triggeringExecution).toBe(false);
 
     });

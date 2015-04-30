@@ -39,10 +39,10 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
 
     function startPipeline(trigger) {
       $scope.viewState.triggeringExecution = true;
-      var ignoreList = _.pluck(getCurrentlyRunningExecutions(), 'id');
       return pipelineConfigService.triggerPipeline($scope.application.name, $scope.value, trigger).then(
-        function () {
-          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, ignoreList);
+        function (result) {
+          var newPipelineId = result.ref.split('/').pop();
+          var monitor = executionsService.waitUntilNewTriggeredPipelineAppears($scope.application, $scope.value, newPipelineId);
           monitor.then(function () {
             $scope.viewState.triggeringExecution = false;
           });
