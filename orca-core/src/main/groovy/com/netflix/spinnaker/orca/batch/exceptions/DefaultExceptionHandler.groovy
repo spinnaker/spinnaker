@@ -19,14 +19,14 @@ package com.netflix.spinnaker.orca.batch.exceptions
 
 import com.google.common.base.Throwables
 
-class DefaultExceptionHandler implements ExceptionHandler<RuntimeException> {
+class DefaultExceptionHandler implements ExceptionHandler<Exception> {
   @Override
-  boolean handles(RuntimeException e) {
+  boolean handles(Exception e) {
     return true
   }
 
   @Override
-  ExceptionHandler.Response handle(String taskName, RuntimeException e) {
+  ExceptionHandler.Response handle(String taskName, Exception e) {
     def exceptionDetails = new ExceptionHandler.ResponseDetails("Unexpected Task Failure", [e.message])
     exceptionDetails.stackTrace = Throwables.getStackTraceAsString(e)
     return new ExceptionHandler.Response(

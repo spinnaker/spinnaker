@@ -23,7 +23,7 @@ import retrofit.mime.TypedByteArray
 
 class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
   @Override
-  boolean handles(RuntimeException e) {
+  boolean handles(Exception e) {
     return e.class == RetrofitError
   }
 

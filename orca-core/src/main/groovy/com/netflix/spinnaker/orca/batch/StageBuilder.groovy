@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -58,8 +60,17 @@ abstract class StageBuilder implements ApplicationContextAware {
   private List<StepExecutionListener> taskListeners
   private ApplicationContext applicationContext
 
+  @Autowired
+  private final List<ExceptionHandler> exceptionHandlers
+
   StageBuilder(String type) {
     this.type = type
+  }
+
+  @VisibleForTesting
+  StageBuilder(String type, List<ExceptionHandler> exceptionHandlers) {
+    this.type = type
+    this.exceptionHandlers = exceptionHandlers
   }
 
   /**
@@ -70,11 +81,27 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @return the resulting builder after any steps are appended.
    */
   final FlowBuilder build(FlowBuilder jobBuilder, Stage stage) {
-    if (stage.execution.parallel) {
-      return buildParallel(jobBuilder, stage)
-    }
+    try {
+      if (stage.execution.parallel) {
+        return buildParallel(jobBuilder, stage)
+      }
 
-    return buildLinear(jobBuilder, stage)
+      return buildLinear(jobBuilder, stage)
+    } catch (Exception e) {
+      def exceptionHandler = exceptionHandlers.find { it.handles(e) }
+      if (!exceptionHandler) {
+        throw e
+      }
+
+      def now = System.currentTimeMillis()
+      stage.startTime = now
+      stage.endTime = now
+
+      stage.status = ExecutionStatus.TERMINAL
+      stage.context.exception = exceptionHandler.handle("build", e)
+
+      return jobBuilder
+    }
   }
 
   @Deprecated

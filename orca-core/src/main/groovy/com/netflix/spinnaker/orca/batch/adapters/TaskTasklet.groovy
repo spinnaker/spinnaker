@@ -135,7 +135,7 @@ class TaskTasklet implements Tasklet {
   private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
     try {
       return doExecuteTask(stage.asImmutable(), chunkContext)
-    } catch (RuntimeException e) {
+    } catch (Exception e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {
         throw e

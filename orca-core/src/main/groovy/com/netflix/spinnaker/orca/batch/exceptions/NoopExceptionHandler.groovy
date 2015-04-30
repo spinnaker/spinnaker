@@ -17,14 +17,14 @@
 
 package com.netflix.spinnaker.orca.batch.exceptions
 
-class NoopExceptionHandler implements ExceptionHandler<RuntimeException> {
+class NoopExceptionHandler implements ExceptionHandler<Exception> {
   @Override
-  boolean handles(RuntimeException e) {
+  boolean handles(Exception e) {
     return false
   }
 
   @Override
-  ExceptionHandler.Response handle(String taskName, RuntimeException e) {
+  ExceptionHandler.Response handle(String taskName, Exception e) {
     return null
   }
 }
