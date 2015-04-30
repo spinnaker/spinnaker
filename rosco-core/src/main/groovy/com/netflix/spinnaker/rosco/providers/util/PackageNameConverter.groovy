@@ -26,8 +26,6 @@ class PackageNameConverter {
     String name
     String version
     String release
-    String buildNumber
-    String commit
     String arch
   }
 
@@ -50,15 +48,6 @@ class PackageNameConverter {
 
             if (versionReleaseParts.size > 1) {
               release = versionReleaseParts[1]
-
-              // Naming-convention for release is buildNumber.commit.
-              // For example: h12.170cdbd
-              List<String> releaseParts = release.tokenize(".")
-
-              if (releaseParts.size == 2) {
-                buildNumber = releaseParts[0]
-                commit = releaseParts[1]
-              }
             }
           }
 
@@ -85,15 +74,6 @@ class PackageNameConverter {
         release = parts.pop()
         version = parts.pop()
         name = parts.join("-")
-
-        // Naming-convention for release is buildNumber.commit.
-        // For example: h12.170cdbd
-        List<String> releaseParts = release.tokenize(".")
-
-        if (releaseParts.size == 2) {
-          buildNumber = releaseParts[0]
-          commit = releaseParts[1]
-        }
       }
     }
 
@@ -121,8 +101,8 @@ class PackageNameConverter {
         if (bakeRequest.build_number) {
           appVersion += "-h$bakeRequest.build_number"
 
-          if (commit) {
-            appVersion += ".$commit"
+          if (bakeRequest.commit_hash) {
+            appVersion += ".$bakeRequest.commit_hash"
           }
 
           if (bakeRequest.job && bakeRequest.build_number) {

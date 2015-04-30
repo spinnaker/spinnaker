@@ -29,6 +29,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-h12.170cdbd_all",
                                         build_number: "12",
+                                        commit_hash: "170cdbd",
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
@@ -38,6 +39,24 @@ class DefaultImageNameFactorySpec extends Specification {
       1 * clockMock.millis() >> 123456
       imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
       appVersionStr == "nflx-djangobase-enhanced-0.1-h12.170cdbd"
+      packagesParameter == "nflx-djangobase-enhanced"
+  }
+
+  void "should build appversion tag from ubuntu package name even without commit hash"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-3_all",
+                                        build_number: "12",
+                                        base_os: BakeRequest.OperatingSystem.ubuntu)
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-djangobase-enhanced-all-123456-ubuntu"
+      appVersionStr == "nflx-djangobase-enhanced-0.1-h12"
       packagesParameter == "nflx-djangobase-enhanced"
   }
 
@@ -64,6 +83,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-h12.170cdbd_all kato redis-server",
                                         build_number: "12",
+                                        commit_hash: "170cdbd",
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
@@ -82,6 +102,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced_0.1-h12.170cdbd_all some-package_0.3-h15.290fcab_all",
                                         build_number: "12",
+                                        commit_hash: "170cdbd",
                                         base_os: BakeRequest.OperatingSystem.ubuntu)
 
     when:
@@ -100,6 +121,7 @@ class DefaultImageNameFactorySpec extends Specification {
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-h12.170cdbd-all",
                                         build_number: "12",
+                                        commit_hash: "170cdbd",
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
@@ -112,12 +134,31 @@ class DefaultImageNameFactorySpec extends Specification {
       packagesParameter == "nflx-djangobase-enhanced"
   }
 
+  void "should build appversion tag from centos package name even without commit hash"() {
+    setup:
+      def clockMock = Mock(Clock)
+      def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
+      def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-3-all",
+                                        build_number: "12",
+                                        base_os: BakeRequest.OperatingSystem.centos)
+
+    when:
+      def (imageName, appVersionStr, packagesParameter) = imageNameFactory.deriveImageNameAndAppVersion(bakeRequest)
+
+    then:
+      1 * clockMock.millis() >> 123456
+      imageName == "nflx-djangobase-enhanced-all-123456-centos"
+      appVersionStr == "nflx-djangobase-enhanced-0.1-h12"
+      packagesParameter == "nflx-djangobase-enhanced"
+  }
+
   void "should recognize fully-qualified centos package name plus extra packages"() {
     setup:
       def clockMock = Mock(Clock)
       def imageNameFactory = new DefaultImageNameFactory(clock: clockMock)
       def bakeRequest = new BakeRequest(package_name: "nflx-djangobase-enhanced-0.1-h12.170cdbd-all kato redis-server",
                                         build_number: "12",
+                                        commit_hash: "170cdbd",
                                         base_os: BakeRequest.OperatingSystem.centos)
 
     when:
