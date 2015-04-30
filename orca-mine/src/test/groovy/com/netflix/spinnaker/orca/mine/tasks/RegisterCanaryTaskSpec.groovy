@@ -42,11 +42,12 @@ class RegisterCanaryTaskSpec extends Specification {
     setup:
     def pipeline = new Pipeline(application: 'foo')
 
-    def context = [
+    def stageContext = [:]
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, stageContext)
+    stageContext.putAll([
       account     : 'test',
       owner       : [name: 'cfieber', email: 'cfieber@netflix.com'],
       watchers    : [],
-      canaries    : [[credentials: 'test', availabilityZones: ['us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e']], application: 'foo']],
       canaryConfig: [
         lifetimeHours           : 1,
         combinedCanaryResultStrategy: 'LOWEST',
@@ -59,17 +60,27 @@ class RegisterCanaryTaskSpec extends Specification {
           canaryAnalysisIntervalMins: 15
         ]
       ],
-    ]
+      deployedClusterPairs: [[
+              canaryStage: monitorCanaryStage.id,
+              canary: [
+                clusterName: 'foo--cfieber-canary',
+                serverGroup: 'foo--cfieber-canary-v000',
+                account: 'test',
+                region: 'us-west-1',
+                imageId: 'ami-12345',
+                buildNumber: 100
+              ],
+              baseline: [
+                clusterName: 'foo--cfieber-baseline',
+                serverGroup: 'foo--cfieber-baseline-v000',
+                account: 'test',
+                region: 'us-west-1',
+                imageId: 'ami-12344',
+                buildNumber: 99
+              ]
+      ]]
+    ])
 
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, context)
-    def deployCanariesStage = new PipelineStage(pipeline, DeployCanaryStage.MAYO_CONFIG_TYPE, context)
-    Map<String, Object> baselineContext = context + ['deploy.server.groups': ['us-east-1': ['foo--baseline-v000']]]
-    def deployBaselineStage = new PipelineStage(pipeline, ParallelDeployStage.MAYO_CONFIG_TYPE, baselineContext)
-    deployBaselineStage.parentStageId = deployCanariesStage.id
-    Map<String, Object> canaryContext = context + ['deploy.server.groups': ['us-east-1': ['foo--canary-v000']]]
-    def deployCanaryStage = new PipelineStage(pipeline, ParallelDeployStage.MAYO_CONFIG_TYPE, canaryContext)
-    deployCanaryStage.parentStageId = deployCanariesStage.id
-    pipeline.stages.addAll([deployCanariesStage, deployBaselineStage, deployCanaryStage, monitorCanaryStage])
     Canary captured
 
     when:
@@ -88,31 +99,10 @@ class RegisterCanaryTaskSpec extends Specification {
     result.stageOutputs.canary
     with(result.stageOutputs.canary) {
       canaryDeployments.size() == 1
-      canaryDeployments[0].canaryCluster.name == 'foo--canary-v000'
-      canaryDeployments[0].baselineCluster.name == 'foo--baseline-v000'
+      canaryDeployments[0].canaryCluster.name == 'foo--cfieber-canary'
+      canaryDeployments[0].baselineCluster.name == 'foo--cfieber-baseline'
       canaryConfig.lifetimeHours == 1
       canaryConfig.combinedCanaryResultStrategy == 'LOWEST'
     }
   }
-
-  def 'type cluster creation'() {
-    when:
-    def typedCluster = RegisterCanaryTask.buildCluster(asg, region, account)
-
-    then:
-    (typedCluster == null) == isNull
-    if (!isNull) {
-      typedCluster.type == type
-      typedCluster.cluster.accountName == account
-      typedCluster.cluster.region == region
-      typedCluster.cluster.name == asg
-    }
-
-    where:
-    asg                  | region      | isNull | type       | account
-    'foo--canary-v000'   | 'us-east-1' | false  | 'canary'   | 'test'
-    'foo--baseline-v000' | 'us-west-1' | false  | 'baseline' | 'prod'
-
-  }
-
 }

@@ -85,8 +85,8 @@ class MonitorCanaryTaskSpec extends Specification {
       id: UUID.randomUUID().toString(),
       owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
       canaryDeployments: [
-        [canaryCluster: [name: 'foo--canary-v000', accountName: 'prod', region: 'us-east-1'],
-         baselineCluster: [name: 'foo--baseline-v001', accountName: 'prod', region: 'us-east-1']
+        [canaryCluster: [name: 'foo--cfieber-canary', accountName: 'test', region: 'us-west-1'],
+         baselineCluster: [name: 'foo--cfieber-baseline', accountName: 'test', region: 'us-west-1']
         ]],
       status: [status: 'RUNNING', complete: false],
       health: [health: 'HEALTHY'],
@@ -104,12 +104,35 @@ class MonitorCanaryTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+    def stageCtx = [:]
+    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", stageCtx)
+    stageCtx.putAll([
       canary: canaryConf,
       scaleUp: [
         enabled: true,
         capacity: 3,
         delay: 1
+      ],
+      deployedClusterPairs: [[
+        canaryStage: stage.id,
+        canary: [
+          clusterName: 'foo--cfieber-canary',
+          serverGroup: 'foo--cfieber-canary-v000',
+          account: 'test',
+          region: 'us-west-1',
+          imageId: 'ami-12345',
+          buildNumber: 100
+        ],
+        baseline: [
+          clusterName: 'foo--cfieber-baseline',
+          serverGroup: 'foo--cfieber-baseline-v000',
+          account: 'test',
+          region: 'us-west-1',
+          imageId: 'ami-12344',
+          buildNumber: 99
+        ]
+      ]
+
       ]
     ])
     Canary canary = stage.mapTo('/canary', Canary)
@@ -121,20 +144,18 @@ class MonitorCanaryTaskSpec extends Specification {
     1 * mineService.getCanary(stage.context.canary.id) >> canary
     1 * katoService.requestOperations({ ops ->
       ops.size() == 2 &&
-      ops.find { it.resizeAsgDescription.asgName == 'foo--canary-v001' }
-      ops.find { it.resizeAsgDescription.asgName == 'foo--baseline-v001' } }) >> rx.Observable.just(new TaskId('blah'))
-
+      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-canary-v000' }
+      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-baseline-v000' } }) >> rx.Observable.just(new TaskId('blah'))
   }
 
-  @Ignore
   def 'should disable unhealthy canary'() {
     setup:
     def canaryConf = [
       id: UUID.randomUUID().toString(),
       owner: [name: 'cfieber', email: 'cfieber@netflix.com'],
       canaryDeployments: [
-        [canaryCluster: [name: 'foo--canary-v000', accountName: 'prod', region: 'us-east-1'],
-         baselineCluster: [name: 'foo--baseline-v001', accountName: 'prod', region: 'us-east-1']
+        [canaryCluster: [name: 'foo--cfieber-canary', accountName: 'test', region: 'us-west-1'],
+         baselineCluster: [name: 'foo--cfieber-baseline', accountName: 'test', region: 'us-west-1']
         ]],
       status: [status: 'RUNNING', complete: false],
       health: [health: Health.UNHEALTHY],
@@ -152,9 +173,30 @@ class MonitorCanaryTaskSpec extends Specification {
         ]
       ]
     ]
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+    def stageCtx = [:]
+    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", stageCtx)
+    stageCtx.putAll([
       canary: canaryConf,
-    ])
+      deployedClusterPairs: [[
+                               canaryStage: stage.id,
+                               canary: [
+                                 clusterName: 'foo--cfieber-canary',
+                                 serverGroup: 'foo--cfieber-canary-v000',
+                                 account: 'test',
+                                 region: 'us-west-1',
+                                 imageId: 'ami-12345',
+                                 buildNumber: 100
+                               ],
+                               baseline: [
+                                 clusterName: 'foo--cfieber-baseline',
+                                 serverGroup: 'foo--cfieber-baseline-v000',
+                                 account: 'test',
+                                 region: 'us-west-1',
+                                 imageId: 'ami-12344',
+                                 buildNumber: 99
+                               ]
+                             ]
+    ]])
 
     Canary  canary = stage.mapTo('/canary', Canary)
     Canary terminated = stage.mapTo('/canary', Canary)
@@ -166,9 +208,10 @@ class MonitorCanaryTaskSpec extends Specification {
 
     then:
     1 * mineService.getCanary(canary.id) >> canary
-    1 * mineService.disableCanaryAndScheduleForTermination(canary.id, 'unhealthy') >> terminated
-
-    result.stageOutputs.canary.status.status == terminated.status.status
+    1 * katoService.requestOperations({ ops ->
+      ops.size() == 2 &&
+      ops.find { it.disableAsgDescription.asgName == 'foo--cfieber-canary-v000' }
+      ops.find { it.disableAsgDescription.asgName == 'foo--cfieber-baseline-v000' } }) >> rx.Observable.just(new TaskId('blah'))
   }
 
 }

@@ -34,8 +34,6 @@ class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
   static final String MAYO_CONFIG_TYPE = "destroyAsg"
 
-  @Autowired ResizeAsgStage resizeAsgStage
-
   DestroyAsgStage() {
     super(MAYO_CONFIG_TYPE)
   }
