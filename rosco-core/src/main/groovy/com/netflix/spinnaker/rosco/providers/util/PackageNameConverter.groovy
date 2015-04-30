@@ -26,8 +26,6 @@ class PackageNameConverter {
     String name
     String version
     String release
-    String buildNumber
-    String commit
     String arch
   }
 
@@ -50,15 +48,6 @@ class PackageNameConverter {
 
             if (versionReleaseParts.size > 1) {
               release = versionReleaseParts[1]
-
-              // Naming-convention for release is buildNumber.commit.
-              // For example: h12.170cdbd
-              List<String> releaseParts = release.tokenize(".")
-
-              if (releaseParts.size == 2) {
-                buildNumber = releaseParts[0]
-                commit = releaseParts[1]
-              }
             }
           }
 
@@ -85,15 +74,6 @@ class PackageNameConverter {
         release = parts.pop()
         version = parts.pop()
         name = parts.join("-")
-
-        // Naming-convention for release is buildNumber.commit.
-        // For example: h12.170cdbd
-        List<String> releaseParts = release.tokenize(".")
-
-        if (releaseParts.size == 2) {
-          buildNumber = releaseParts[0]
-          commit = releaseParts[1]
-        }
       }
     }
 
@@ -112,6 +92,10 @@ class PackageNameConverter {
       throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
 
+    // As per source of AppVersion, these are valid appversion tags:
+    //   subscriberha-1.0.0-h150
+    //   subscriberha-1.0.0-h150.586499
+    //   subscriberha-1.0.0-h150.586499/WE-WAPP-subscriberha/150
     String appVersion = osPackageName.name
 
     osPackageName.with {
@@ -121,11 +105,11 @@ class PackageNameConverter {
         if (bakeRequest.build_number) {
           appVersion += "-h$bakeRequest.build_number"
 
-          if (commit) {
-            appVersion += ".$commit"
+          if (bakeRequest.commit_hash) {
+            appVersion += ".$bakeRequest.commit_hash"
           }
 
-          if (bakeRequest.job && bakeRequest.build_number) {
+          if (bakeRequest.job) {
             appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
           }
         }

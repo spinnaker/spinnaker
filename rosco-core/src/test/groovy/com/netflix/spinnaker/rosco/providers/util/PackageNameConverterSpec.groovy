@@ -38,14 +38,17 @@ class PackageNameConverterSpec extends Specification {
                                                                                               version: "0.1")
       "nflx-djangobase-enhanced_0.1-h12.170cdbd"     | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
                                                                                               version: "0.1",
-                                                                                              release: "h12.170cdbd",
-                                                                                              buildNumber: "h12",
-                                                                                              commit: "170cdbd")
+                                                                                              release: "h12.170cdbd")
+      "nflx-djangobase-enhanced_0.1-3"               | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
+                                                                                              version: "0.1",
+                                                                                              release: "3")
       "nflx-djangobase-enhanced_0.1-h12.170cdbd_all" | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
                                                                                               version: "0.1",
                                                                                               release: "h12.170cdbd",
-                                                                                              buildNumber: "h12",
-                                                                                              commit: "170cdbd",
+                                                                                              arch: "all")
+      "nflx-djangobase-enhanced_0.1-3_all"           | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
+                                                                                              version: "0.1",
+                                                                                              release: "3",
                                                                                               arch: "all")
   }
 
@@ -64,14 +67,10 @@ class PackageNameConverterSpec extends Specification {
       "billinggateway-1.0-h2385.e0a09ce-all"         | new PackageNameConverter.OsPackageName(name: "billinggateway",
                                                                                               version: "1.0",
                                                                                               release: "h2385.e0a09ce",
-                                                                                              buildNumber: "h2385",
-                                                                                              commit: "e0a09ce",
                                                                                               arch: "all")
       "nflx-djangobase-enhanced-0.1-h12.170cdbd-all" | new PackageNameConverter.OsPackageName(name: "nflx-djangobase-enhanced",
                                                                                               version: "0.1",
                                                                                               release: "h12.170cdbd",
-                                                                                              buildNumber: "h12",
-                                                                                              commit: "170cdbd",
                                                                                               arch: "all")
   }
 
@@ -84,10 +83,16 @@ class PackageNameConverterSpec extends Specification {
     when:
       def parsedDebPackageName = PackageNameConverter.parseDebPackageName(debPackageName)
       def parsedRpmPackageName = PackageNameConverter.parseRpmPackageName(rpmPackageName)
-      def appVersionStrFromDebPackageName =
-        PackageNameConverter.buildAppVersionStr(new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu, build_number: "12"), debPackageName)
-      def appVersionStrFromRpmPackageName =
-        PackageNameConverter.buildAppVersionStr(new BakeRequest(base_os: BakeRequest.OperatingSystem.centos, build_number: "12"), rpmPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(
+        new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
+                        build_number: "12",
+                        commit_hash: "170cdbd"),
+        debPackageName)
+      def appVersionStrFromRpmPackageName = PackageNameConverter.buildAppVersionStr(
+        new BakeRequest(base_os: BakeRequest.OperatingSystem.centos,
+                        build_number: "12",
+                        commit_hash: "170cdbd"),
+        rpmPackageName)
 
     then:
       parsedDebPackageName == parsedRpmPackageName
@@ -101,7 +106,8 @@ class PackageNameConverterSpec extends Specification {
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h123.170cdbd/some-job-name/123"
       def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
                                         job: "some-job-name",
-                                        build_number: "123")
+                                        build_number: "123",
+                                        commit_hash: "170cdbd")
 
     when:
       def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, debPackageName)
@@ -116,7 +122,9 @@ class PackageNameConverterSpec extends Specification {
       def appVersionStr = "nflx-djangobase-enhanced-0.1-h12.170cdbd"
 
     when:
-      def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu, build_number: "12")
+      def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
+                                        build_number: "12",
+                                        commit_hash: "170cdbd")
       def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, debPackageName)
 
     then:
