@@ -84,9 +84,9 @@ class PackageNameConverter {
     BakeRequest.PackageType packageType = bakeRequest.base_os.packageType
 
     if (packageType == BakeRequest.PackageType.DEB) {
-      PackageNameConverter.parseDebPackageName(packageName)
+      return PackageNameConverter.parseDebPackageName(packageName)
     } else if (packageType == BakeRequest.PackageType.RPM) {
-      PackageNameConverter.parseRpmPackageName(packageName)
+      return PackageNameConverter.parseRpmPackageName(packageName)
     } else {
       throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
