@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -40,6 +42,14 @@ class ExecutionContextManager {
           stage.context.put(key, globalValue)
         }
       }
+    }
+
+    if(stage.context) {
+      def augmentedContext = [:] + stage.context
+      if (stage.execution instanceof Pipeline) {
+        augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+      }
+      stage.context.putAll(ContextParameterProcessor.process(stage.context, augmentedContext))
     }
 
     return stage
