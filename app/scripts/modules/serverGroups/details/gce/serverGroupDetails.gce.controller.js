@@ -134,7 +134,6 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
         application: application,
         title: 'Enabling ' + serverGroup.name,
         forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true
       };
 
       var submitMethod = function () {
