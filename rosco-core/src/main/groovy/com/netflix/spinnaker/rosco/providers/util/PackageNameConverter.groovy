@@ -92,6 +92,10 @@ class PackageNameConverter {
       throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
 
+    // As per source of AppVersion, these are valid appversion tags:
+    //   subscriberha-1.0.0-h150
+    //   subscriberha-1.0.0-h150.586499
+    //   subscriberha-1.0.0-h150.586499/WE-WAPP-subscriberha/150
     String appVersion = osPackageName.name
 
     osPackageName.with {
@@ -105,7 +109,7 @@ class PackageNameConverter {
             appVersion += ".$bakeRequest.commit_hash"
           }
 
-          if (bakeRequest.job && bakeRequest.build_number) {
+          if (bakeRequest.job) {
             appVersion += "/$bakeRequest.job/$bakeRequest.build_number"
           }
         }
