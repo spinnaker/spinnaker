@@ -32,7 +32,7 @@ interface IgorService {
                                @Path("buildNumber") Integer buildNumber)
 
   @GET("/jobs/{master}/{job}/{buildNumber}/properties/{fileName}")
-  Map<String, String> getPropertyFile(@Path("master") String master,
+  Map<String, Object> getPropertyFile(@Path("master") String master,
                                       @Path("job") String job,
                                       @Path("buildNumber") Integer buildNumber,
                                       @Path("fileName") String fileName)

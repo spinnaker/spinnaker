@@ -78,7 +78,7 @@ class ContextParameterProcessor {
         transform(it, context)
       }
     } else if (parameters instanceof String || parameters instanceof GString) {
-      String convertedValue = parameters
+      Object convertedValue = parameters
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))

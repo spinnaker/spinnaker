@@ -30,10 +30,25 @@ class ContextParameterProcessorSpec extends Specification {
     'can get a value in an array'                   | '${testArray[0]}'                     | 'good'
     'can get a value in an map within an array'     | '${testArray[1].arrayVal}'            | 'bad'
     'can get a value in an array within an array'   | '${testArray[2][0].one}'              | 'two'
-    'can support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | 'true'
-    'can support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | '60'
+    'can support SPEL expression'                   | '${ h1.h1 == "h1Val" }'               | true
+    'can support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                   | 60
     'can support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }' | 'stackwithhyphens'
     'can make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
+  }
+
+  def "should be able to swap out a SPEL expression of a string with other types"() {
+    def source = ['test': ['k1': '${var1}', 'k2': '${map1}']]
+    def context = [var1: 17, map1: [map1key: 'map1val']]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.test.k1 instanceof Integer
+    result.test.k1 == 17
+    result.test.k2 instanceof Map
+    result.test.k2.map1key == 'map1val'
+
   }
 
   def "should process elements of source map correctly"() {
