@@ -35,7 +35,7 @@ angular.module('deckApp.utils.stickyHeader', [
               bottom = sectionRect.bottom;
 
             if (sectionRect.bottom < 0 || sectionTop > windowHeight) {
-              clearStickiness($section, $heading);
+              clearStickiness($section);
               return;
             }
 
@@ -62,10 +62,21 @@ angular.module('deckApp.utils.stickyHeader', [
               });
               isSticky = true;
             } else {
-              clearStickiness($section, $heading);
+              clearStickiness($section);
             }
 
           }, 50);
+
+          function resetHeaderWidth() {
+            if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
+              $heading.removeClass('heading-sticky').addClass('not-sticky').css({width: '' });
+            }
+          }
+
+          function handleWindowResize() {
+            resetHeaderWidth();
+            positionHeader();
+          }
 
           function destroyStickyBindings() {
             $scrollableContainer.unbind('.stickyHeader-' + id);
@@ -74,14 +85,12 @@ angular.module('deckApp.utils.stickyHeader', [
             $heading.removeData();
           }
 
-          function clearStickiness($section, $heading) {
+          function clearStickiness($section) {
             if (isSticky) {
               $section.css({
                 paddingTop: 0,
               });
-              if ($heading.get(0).className.indexOf('heading-sticky') !== -1) {
-                $heading.removeClass('heading-sticky').addClass('not-sticky');
-              }
+              resetHeaderWidth();
             }
             isSticky = false;
           }
@@ -89,7 +98,7 @@ angular.module('deckApp.utils.stickyHeader', [
           function toggleSticky(enabled) {
             if (enabled) {
               $scrollableContainer.bind('scroll.stickyHeader-' + id + ' resize.stickyHeader-' + id, positionHeader);
-              $($window).bind('resize.stickyHeader-' + id, positionHeader);
+              $($window).bind('resize.stickyHeader-' + id, handleWindowResize);
 
               scope.$on('$destroy', destroyStickyBindings);
             } else {
