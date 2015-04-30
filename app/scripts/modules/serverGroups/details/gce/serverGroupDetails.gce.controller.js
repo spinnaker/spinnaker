@@ -206,5 +206,12 @@ angular.module('deckApp.serverGroup.details.gce.controller', [
       }
       return null;
     };
+
+    this.truncateCommitHash = function() {
+      if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
+        return $scope.serverGroup.buildInfo.commit.substring(0, 8);
+      }
+      return null;
+    };
   }
 );
