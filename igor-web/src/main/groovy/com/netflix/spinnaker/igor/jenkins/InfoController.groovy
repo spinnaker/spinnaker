@@ -52,29 +52,6 @@ class InfoController {
         masters.map[master].jobs.list.collect{it.name}
     }
 
-    @RequestMapping(value = '/typeahead')
-    List<MasterResults> typeaheadResults(
-        @RequestParam String q, @RequestParam(value = 'size', defaultValue = '10') Integer size) {
-
-        log.info('Getting typeahead results for {}, size: {}', q, size)
-        Map<String, MasterResults> results = [:]
-        List fromCache = cache.getTypeaheadResults(q)
-        log.info('Found {} results', fromCache ? fromCache.size() : 0)
-        Integer maxResults = size ?: 10
-        Integer resultSize = Math.min(fromCache.size(), maxResults)
-        List toReturn = resultSize ? fromCache[0..resultSize - 1] : []
-        toReturn.each { String key ->
-            def masterAndJob = key.split(':'),
-                master = masterAndJob[0],
-                job = masterAndJob[1]
-            if (!results[master]) {
-                results.put(master, new MasterResults(master: master))
-            }
-            results[master].results << job
-        }
-        results.values().sort { it.master }
-    }
-
     @RequestMapping(value = '/jobs/{master}/{job}')
     JobConfig getJobConfig(@PathVariable String master, @PathVariable String job) {
         log.info('Getting the job config for {} at {}', job, master)

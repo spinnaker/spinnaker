@@ -86,39 +86,6 @@ class InfoControllerSpec extends Specification {
         response.contentAsString == '["blah","blip","bum"]'
     }
 
-    @Unroll
-    void 'maps typeahead results by build server, returning up to requested size: #size'() {
-        given:
-        final MATCHES = ['master1:blah', 'master2:blah', 'master1:blip', 'master2:bum']
-
-        when:
-        def path = size != null ? "/typeahead?q=${query}&size=${size}" : "/typeahead?q=${query}"
-        MockHttpServletResponse response = mockMvc.perform(get(path)
-            .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-        then:
-        1 * cache.getTypeaheadResults(query) >> MATCHES
-        response.contentAsString == result
-
-        where:
-        query   | size  || result
-        'b'     | 10    || '[{"master":"master1","results":["blah","blip"]},{"master":"master2","results":["blah","bum"]}]'
-        'b'     | 3     || '[{"master":"master1","results":["blah","blip"]},{"master":"master2","results":["blah"]}]'
-        'b'     | 1     || '[{"master":"master1","results":["blah"]}]'
-        'b'     | 0     || '[{"master":"master1","results":["blah","blip"]},{"master":"master2","results":["blah","bum"]}]'
-        'b'     | null  || '[{"master":"master1","results":["blah","blip"]},{"master":"master2","results":["blah","bum"]}]'
-    }
-
-    void 'return empty map when no results found for typeahead request'() {
-        when:
-        MockHttpServletResponse response = mockMvc.perform(get('/typeahead?q=igor')
-            .accept(MediaType.APPLICATION_JSON)).andReturn().response
-
-        then:
-        1 * cache.getTypeaheadResults('igor') >> []
-        response.contentAsString == '[]'
-    }
-
     private void setResponse(String body) {
         server.enqueue(
             new MockResponse()
