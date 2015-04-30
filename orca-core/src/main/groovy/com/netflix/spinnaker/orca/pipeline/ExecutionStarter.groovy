@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.launch.JobLauncher
@@ -26,6 +27,7 @@ import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 @CompileStatic
 abstract class ExecutionStarter<T extends Execution> {
 
@@ -48,9 +50,8 @@ abstract class ExecutionStarter<T extends Execution> {
     persistExecution(subject)
 
     if (subject.status.isComplete()) {
-      throw new IllegalStateException(
-        "Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id})"
-      )
+      log.warn("Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
+      return subject
     }
 
     launcher.run job, createJobParameters(subject)

@@ -57,20 +57,14 @@ class ExecutionStarterSpec extends Specification {
     executionStarter.launcher = Mock(JobLauncher)
 
     when:
-    def exceptionThrown = false
-    try {
-      executionStarter.start("{}")
-    } catch (e) {
-      assert e.message == "Unable to start execution that has previously been completed (Pipeline:ID)"
-      exceptionThrown = true
-    }
+    executionStarter.start("{}")
 
     then:
-    exceptionThrown == expectedExceptionThrown
+    launchInvocations * executionStarter.launcher.run(_, _)
 
     where:
-    sourceExecutionStatus       || expectedExceptionThrown
-    ExecutionStatus.TERMINAL    || true
-    ExecutionStatus.NOT_STARTED || false
+    sourceExecutionStatus       || launchInvocations
+    ExecutionStatus.TERMINAL    || 0
+    ExecutionStatus.NOT_STARTED || 1
   }
 }
