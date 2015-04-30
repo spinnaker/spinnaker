@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.providers.util
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.time.Clock
@@ -25,6 +26,7 @@ import java.time.Clock
 /**
  * Placeholder implementation of ImageNameFactory. Considers only package_name, a timestamp, and base_os.
  */
+@Slf4j
 public class DefaultImageNameFactory implements ImageNameFactory {
 
   @Autowired
@@ -51,6 +53,10 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       appVersion = AppVersion.parseName(appVersionStr)
 
       if (!appVersion) {
+        if (appVersionStr) {
+          log.debug("AppVersion.parseName() was unable to parse appVersionStr=$appVersionStr.")
+        }
+
         // If appVersionStr could not be parsed to create AppVersion, clear it.
         appVersionStr = null
       }
