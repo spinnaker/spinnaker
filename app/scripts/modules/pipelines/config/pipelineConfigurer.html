@@ -18,7 +18,7 @@
         </ul>
       </div>
     </div>
-    <div class="row pipeline-config">
+    <div class="row pipeline-config" ng-if="false">
       <div class="col-md-12">
         <ul class="nav-pipeline-config">
           <li class="config-section">
@@ -44,6 +44,16 @@
             </button>
           </li>
         </ul>
+      </div>
+    </div>
+    <div ng-if="pipeline.stages.length && pipeline.stages[0].refId">
+      <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+        </button>
       </div>
     </div>
 

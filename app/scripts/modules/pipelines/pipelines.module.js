@@ -18,4 +18,6 @@ angular.module('deckApp.pipelines', [
   'deckApp.authentication',
   'deckApp.utils.lodash',
   'ui.sortable',
+
+  'deckApp.pipelines.graph.directive',
 ]);

@@ -35,6 +35,17 @@
           <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
         </div>
       </div>
+      <div class="form-group">
+        <label class="col-md-2 col-md-offset-1 sm-label-left">Depends On</label>
+        <div class="col-md-6">
+          <ui-select ng-model="stage.requisiteStageRefIds" multiple class="form-control input-sm">
+            <ui-select-match>{{$item.name}}</ui-select-match>
+            <ui-select-choices repeat="stage.refId as stage in pipeline.stages | anyFieldFilter: {name: $select.search}">
+              <span ng-bind-html="stage.name | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+      </div>
       <div class="stage-details">
         <div class="row">
           <div class="stage-body"></div>
