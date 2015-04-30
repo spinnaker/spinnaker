@@ -95,25 +95,29 @@ class BuildController {
     }
 
     @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
-    Map<String, String> getProperties(
+    Map<String, Object> getProperties(
         @PathVariable String master,
         @PathVariable String job, @PathVariable Integer buildNumber, @PathVariable String fileName) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        Map<String, String> map = [:]
+        Map<String, Object> map = [:]
         try {
             JenkinsClient jenkinsClient = masters.map[master]
             String path = jenkinsClient.getBuild(job, buildNumber).artifacts.find {
                 it.fileName == fileName
             }?.relativePath
 
+            def propertyStream = jenkinsClient.getPropertyFile(job, buildNumber, path).body.in()
+
             if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
                 Yaml yml = new Yaml()
-                map = yml.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
+                map = yml.load(propertyStream)
+            } else if(fileName.endsWith('.json')){
+                map = objectMapper.readValue(propertyStream, Map)
             } else {
                 Properties properties = new Properties()
-                properties.load(jenkinsClient.getPropertyFile(job, buildNumber, path).body.in())
+                properties.load(propertyStream)
                 map = map << properties
             }
         } catch (e) {
