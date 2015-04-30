@@ -54,19 +54,18 @@ class BakeStage extends ParallelStage implements StepProvider {
   @Override
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
-    def deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
-    deployRegions += stage.context.regions ?: []
+    Set<String> deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []
+    deployRegions.addAll(stage.context.regions as Set<String> ?: [])
 
     if (!deployRegions.contains("global")) {
-      stage.execution.stages.findAll { it.type == "deploy" }.each {
-        ((it.context?.clusters?.availabilityZones ?: []) + [
-          it.context.availabilityZones as Map,
-          it.context?.cluster?.availabilityZones as Map
-        ]).findAll { it }.each {
-          // check each permutation of cluster config for target availability zones
-          deployRegions << it.keySet()[0]
-        }
-      }
+      deployRegions.addAll(stage.execution.stages.findAll { it.type == "deploy" }.collect {
+        Set<String> regions = it.context?.clusters?.inject([] as Set<String>) { Set<String> accum, Map cluster ->
+          accum.addAll(cluster.availabilityZones?.keySet() ?: [])
+          return accum
+        } ?: []
+        regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
+        regions
+      }.flatten())
     }
 
     log.info("Preparing package `${stage.context.package}` for bake in ${deployRegions.join(", ")}")

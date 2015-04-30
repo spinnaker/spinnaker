@@ -57,6 +57,7 @@ class BakeStageSpec extends Specification {
     [region: "us-east-1"]                         | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "us-east-1", "us-west-1")
     [region: "us-east-1"]                         | []                                            || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1"]                         | null                                          || expectedContexts("197001010115", "us-east-1")
+    [region: "us-east-1"]                         | deployAz("clusters", "us-east-1")             || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1", amiSuffix: ""]          | null                                          || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1", amiSuffix: "--"]        | null                                          || expectedContexts("--", "us-east-1")
     [region: "global"]                            | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "global")
@@ -64,6 +65,7 @@ class BakeStageSpec extends Specification {
     [region: "us-east-1", regions: []]            | null                                          || expectedContexts("197001010115", "us-east-1")
     [region: "us-east-1", regions: null]          | null                                          || expectedContexts("197001010115", "us-east-1")
     [regions: ["us-east-1", "us-west-1"]]         | null                                          || expectedContexts("197001010115", "us-east-1", "us-west-1")
+    [regions: ["us-east-1", "us-west-1"]]         | deployAz("clusters", "us-west-1")             || expectedContexts("197001010115", "us-east-1", "us-west-1")
   }
 
   def "should include per-region stage contexts as global deployment details"() {
