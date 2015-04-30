@@ -87,12 +87,12 @@ class PackageNameConverterSpec extends Specification {
         new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
                         build_number: "12",
                         commit_hash: "170cdbd"),
-        debPackageName)
+        parsedDebPackageName)
       def appVersionStrFromRpmPackageName = PackageNameConverter.buildAppVersionStr(
         new BakeRequest(base_os: BakeRequest.OperatingSystem.centos,
                         build_number: "12",
                         commit_hash: "170cdbd"),
-        rpmPackageName)
+        parsedRpmPackageName)
 
     then:
       parsedDebPackageName == parsedRpmPackageName
@@ -110,7 +110,8 @@ class PackageNameConverterSpec extends Specification {
                                         commit_hash: "170cdbd")
 
     when:
-      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, debPackageName)
+      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, debPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
 
     then:
       appVersionStrFromDebPackageName == appVersionStr
@@ -125,7 +126,8 @@ class PackageNameConverterSpec extends Specification {
       def bakeRequest = new BakeRequest(base_os: BakeRequest.OperatingSystem.ubuntu,
                                         build_number: "12",
                                         commit_hash: "170cdbd")
-      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, debPackageName)
+      def parsedDebPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, debPackageName)
+      def appVersionStrFromDebPackageName = PackageNameConverter.buildAppVersionStr(bakeRequest, parsedDebPackageName)
 
     then:
       appVersionStrFromDebPackageName == appVersionStr
