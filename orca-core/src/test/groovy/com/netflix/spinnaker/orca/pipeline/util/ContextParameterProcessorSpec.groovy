@@ -36,6 +36,21 @@ class ContextParameterProcessorSpec extends Specification {
     'can make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'   | 'stackwithhyphens'
   }
 
+  def "should be able to swap out a SPEL expression of a string with other types"() {
+    def source = ['test': ['k1': '${var1}', 'k2': '${map1}']]
+    def context = [var1: 17, map1: [map1key: 'map1val']]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.test.k1 instanceof Integer
+    result.test.k1 == 17
+    result.test.k2 instanceof Map
+    result.test.k2.map1key == 'map1val'
+
+  }
+
   def "should process elements of source map correctly"() {
 
     given:
