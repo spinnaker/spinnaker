@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
@@ -28,10 +27,10 @@ import org.springframework.stereotype.Component
 class CompleteCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
-    Canary c = stage.mapTo('/canary', Canary)
-    if (c.status == 'CANCELED') {
+    Map canary = stage.context.canary
+    if (canary.status?.status == 'CANCELED') {
       new DefaultTaskResult(ExecutionStatus.CANCELED)
-    } else if (c.canaryResult.overallResult == 'SUCCESS') {
+    } else if (canary.canaryResult?.overallResult == 'SUCCESS') {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     } else {
       new DefaultTaskResult(ExecutionStatus.FAILED)

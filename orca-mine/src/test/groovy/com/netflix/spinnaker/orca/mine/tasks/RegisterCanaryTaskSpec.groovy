@@ -16,27 +16,20 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
-import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedString
-import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class RegisterCanaryTaskSpec extends Specification {
 
   MineService mineService = Mock(MineService)
-  @Shared ObjectMapper objectMapper = new ObjectMapper()
-  @Shared ResultSerializationHelper resultSerializationHelper = new ResultSerializationHelper(objectMapper: objectMapper)
   @Subject
-  RegisterCanaryTask task = new RegisterCanaryTask(mineService: mineService, objectMapper: objectMapper, resultSerializationHelper: resultSerializationHelper)
+  RegisterCanaryTask task = new RegisterCanaryTask(mineService: mineService)
 
   def 'canary registration'() {
     setup:
@@ -81,13 +74,13 @@ class RegisterCanaryTaskSpec extends Specification {
       ]]
     ])
 
-    Canary captured
+    Map captured
 
     when:
     def result = task.execute(monitorCanaryStage)
 
     then:
-    1 * mineService.registerCanary(_) >> { Canary c ->
+    1 * mineService.registerCanary(_) >> { Map c ->
       captured = c
       new Response('http:/mine', 200, 'OK', [], new TypedString('canaryId'))
     }

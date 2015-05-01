@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.orca.mine.tasks
 
 import com.netflix.spinnaker.orca.CancellableTask
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.mine.Canary
-import com.netflix.spinnaker.orca.mine.Cluster
-import com.netflix.spinnaker.orca.mine.Health
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -42,23 +40,20 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
   MineService mineService
   @Autowired
   KatoService katoService
-  @Autowired
-  ResultSerializationHelper resultSerializationHelper
 
   @Override
   TaskResult execute(Stage stage) {
     Map context = stage.context
 
-    Canary canary = stage.mapTo('/canary', Canary)
-
-    def outputs = [canary: canary]
-    outputs.canary = mineService.getCanary(canary.id)
-    if (outputs.canary.status.complete) {
+    Map outputs = [
+      canary : mineService.getCanary(stage.context.canary.id)
+    ]
+    if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
-      return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [:], outputs)
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
     }
 
-    if (outputs.canary.health?.health == Health.UNHEALTHY && !context.disableRequested) {
+    if (outputs.canary.health?.health == 'UNHEALTHY' && !context.disableRequested) {
       log.info("Canary $stage.id unhealthy, disabling")
       def operations = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
         [it.canary, it.baseline].collect {
@@ -75,7 +70,7 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     Map scaleUp = context.scaleUp
     if (scaleUp && scaleUp.enabled && !scaleUp.complete) {
       int capacity = scaleUp.capacity as Integer
-      if (System.currentTimeMillis() - canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
+      if (System.currentTimeMillis() - outputs.canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
         def resizeOps = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
           [it.canary, it.baseline].collect {
             [resizeAsgDescription: [
@@ -94,15 +89,16 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     }
 
     log.info("Canary in progress: ${outputs.canary}")
-    return resultSerializationHelper.result(ExecutionStatus.RUNNING, outputs)
+    return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
   }
 
   @Override
   TaskResult cancel(Stage stage) {
-    Canary canary = stage.mapTo('/canary', Canary)
-    log.info("Cancelling canary: ${canary}...")
-    def outputs = [canary: canary]
-    outputs.canary = mineService.cancelCanary(canary.id, "Pipeline execution (${stage.execution?.id}) canceled")
-    return resultSerializationHelper.result(ExecutionStatus.CANCELED, outputs)
+    String canaryId = stage.context.canary.id
+    log.info("Cancelling canary: ${canaryId}...")
+    def outputs = [
+      canary : mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled")
+    ]
+    return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
   }
 }
