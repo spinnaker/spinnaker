@@ -58,11 +58,13 @@ class RegisterCanaryTask implements Task {
       watchers: context.watchers ?: [],
       canaryConfig: context.canaryConfig,
     ]
+    c.canaryConfig.canaryHealthCheckHandler = c.canaryConfig.canaryHealthCheckHandler ?: [:]
+    c.canaryConfig.canaryHealthCheckHandler['@class'] = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = app
     c.canaryDeployments =  stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect { Map pair ->
       def asCluster = { Map cluster ->
-        [name: cluster.clusterName, accountName: cluster.account, region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber]
+        [name: cluster.clusterName, accountName: cluster.account, type: 'aws', region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber]
       }
       [canaryCluster: asCluster(pair.canary), baselineCluster: asCluster(pair.baseline)]
     }
