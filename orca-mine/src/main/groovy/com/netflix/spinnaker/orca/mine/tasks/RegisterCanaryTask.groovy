@@ -16,17 +16,12 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.mine.Canary
-import com.netflix.spinnaker.orca.mine.CanaryConfig
-import com.netflix.spinnaker.orca.mine.CanaryDeployment
-import com.netflix.spinnaker.orca.mine.Cluster
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.mine.Recipient
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -37,15 +32,11 @@ class RegisterCanaryTask implements Task {
 
   @Autowired
   MineService mineService
-  @Autowired
-  ObjectMapper objectMapper
-  @Autowired
-  ResultSerializationHelper resultSerializationHelper
 
   @Override
   TaskResult execute(Stage stage) {
     String app = stage.context.application ?: stage.execution.application
-    Canary c = buildCanary(app, stage)
+    Map c = buildCanary(app, stage)
     Response response = mineService.registerCanary(c)
     String canaryId
     if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
@@ -53,24 +44,27 @@ class RegisterCanaryTask implements Task {
     } else {
       throw new IllegalStateException("Unable to handle $response")
     }
-    Canary canary = mineService.getCanary(canaryId)
-    return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [canary: canary])
+    def outputs = [
+            canary: mineService.getCanary(canaryId)
+    ]
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  Canary buildCanary(String app, Stage stage) {
-    Canary c = new Canary()
-    c.application = app
+  Map buildCanary(String app, Stage stage) {
     def context = stage.context
-    c.owner = objectMapper.convertValue(context.owner, Recipient)
-    c.watchers = objectMapper.convertValue(context.watchers, new TypeReference<List<Recipient>>() {})
-    c.canaryConfig = objectMapper.convertValue(context.canaryConfig, CanaryConfig)
+    Map c = [
+      application: app,
+      owner: context.owner,
+      watchers: context.watchers ?: [],
+      canaryConfig: context.canaryConfig,
+    ]
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = app
     c.canaryDeployments =  stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect { Map pair ->
       def asCluster = { Map cluster ->
-        new Cluster(name: cluster.clusterName, accountName: cluster.account, region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber)
+        [name: cluster.clusterName, accountName: cluster.account, region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber]
       }
-      new CanaryDeployment(canaryCluster: asCluster(pair.canary), baselineCluster: asCluster(pair.baseline))
+      [canaryCluster: asCluster(pair.canary), baselineCluster: asCluster(pair.baseline)]
     }
 
     return c

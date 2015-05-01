@@ -27,20 +27,20 @@ import retrofit.http.Query
 
 interface MineService {
   @POST('/registerCanary')
-  Response registerCanary(@Body Canary canary)
+  Response registerCanary(@Body Map canary)
 
   @GET('/canaries/{id}')
-  Canary getCanary(@Path('id') String id)
+  Map getCanary(@Path('id') String id)
 
   @DELETE('/canaries/{id}/cancel')
-  Canary cancelCanary(@Path('id') String id, @Query('reason') String reason)
+  Map cancelCanary(@Path('id') String id, @Query('reason') String reason)
 
   @PUT('/canaries/{id}/disable')
-  Canary disableCanary(@Path('id') String id, @Query('reason') String reason)
+  Map disableCanary(@Path('id') String id, @Query('reason') String reason)
 
   @PUT('/canaries/{id}/enable')
-  Canary enableCanary(@Path('id') String id)
+  Map enableCanary(@Path('id') String id)
 
   @PUT('/canaries/{id}/disableAndScheduleForTermination')
-  Canary disableCanaryAndScheduleForTermination(@Path('id') String id, @Query('reason') String reason)
+  Map disableCanaryAndScheduleForTermination(@Path('id') String id, @Query('reason') String reason)
 }
