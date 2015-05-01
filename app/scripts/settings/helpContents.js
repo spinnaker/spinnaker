@@ -106,6 +106,7 @@ angular.module('deckApp.help')
     'pipeline.config.canary.unhealthyScore': '<p>Lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
     'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
     'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
+    'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
 
 
     'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
