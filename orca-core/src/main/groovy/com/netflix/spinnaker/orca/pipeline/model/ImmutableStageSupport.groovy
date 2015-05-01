@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.ExecutionStatus
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -110,8 +108,8 @@ class ImmutableStageSupport {
     }
 
     @Override
-    ImmutableMap<String, Object> getContext() {
-      ImmutableMap.copyOf(self.context ?: [:])
+    Map<String, Object> getContext() {
+      Collections.unmodifiableMap(self.context ?: [:])
     }
 
     @Override
@@ -136,7 +134,7 @@ class ImmutableStageSupport {
 
     @Override
     List<Task> getTasks() {
-      ImmutableList.copyOf(self.tasks)
+      Collections.unmodifiableList(self.tasks)
     }
 
     @Override
@@ -171,12 +169,12 @@ class ImmutableStageSupport {
 
     @Override
     List<InjectedStageConfiguration> getBeforeStages() {
-      ImmutableList.of(self.beforeStages)
+      Collections.unmodifiableList(self.beforeStages)
     }
 
     @Override
     List<InjectedStageConfiguration> getAfterStages() {
-      ImmutableList.of(self.afterStages)
+      Collections.unmodifiableList(self.afterStages)
     }
 
     @Override
@@ -191,7 +189,7 @@ class ImmutableStageSupport {
 
     @Override
     Collection<String> getRequisiteStageRefIds() {
-      ImmutableList.of(self.requisiteStageRefIds)
+      Collections.unmodifiableCollection(self.requisiteStageRefIds)
     }
 
     @Override

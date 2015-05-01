@@ -28,10 +28,10 @@ abstract class AbstractStagePropagationListener extends StageExecutionListener {
   }
 
   protected void saveStage(Stage stage) {
-    if (stage instanceof PipelineStage) {
-      executionRepository.storeStage(stage as PipelineStage)
+    if (stage.self instanceof PipelineStage) {
+      executionRepository.storeStage(stage.self as PipelineStage)
     } else {
-      executionRepository.storeStage(stage as OrchestrationStage)
+      executionRepository.storeStage(stage.self as OrchestrationStage)
     }
   }
 }

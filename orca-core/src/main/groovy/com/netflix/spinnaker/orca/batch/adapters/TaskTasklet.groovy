@@ -113,10 +113,10 @@ class TaskTasklet implements Tasklet {
   }
 
   private void save(Stage stage) {
-    if (stage instanceof OrchestrationStage) {
-      executionRepository.storeStage(stage as OrchestrationStage)
-    } else if (stage instanceof PipelineStage) {
-      executionRepository.storeStage(stage as PipelineStage)
+    if (stage.self instanceof OrchestrationStage) {
+      executionRepository.storeStage(stage.self as OrchestrationStage)
+    } else if (stage.self instanceof PipelineStage) {
+      executionRepository.storeStage(stage.self as PipelineStage)
     }
   }
 
