@@ -46,7 +46,7 @@
         </ul>
       </div>
     </div>
-    <div ng-if="pipeline.stages.length && pipeline.stages[0].refId">
+    <div ng-if="true && viewState.expanded">
       <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
     </div>
     <div class="row">

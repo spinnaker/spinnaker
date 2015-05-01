@@ -15,276 +15,244 @@ angular.module('deckApp.pipelines.graph.directive', [
       templateUrl: 'scripts/modules/pipelines/config/graph/pipelineGraph.directive.html',
       link: function (scope, elem) {
 
-        function applyPhases() {
+        scope.nodeRadius = 8;
+        scope.rowPadding = 15;
+        scope.graphPadding = 15;
+        scope.labelOffsetY = scope.nodeRadius + 3;
+
+        /**
+         * Used to draw inverse bezier curve between stages
+         */
+        var diagonal = d3Service.svg.diagonal()
+          .source(function(d) { return {'x': d.source.y, 'y': d.source.x + scope.nodeRadius}; })
+          .target(function(d) { return {'x': d.target.y, 'y': d.target.x - scope.nodeRadius}; })
+          .projection(function (d) {
+            return [d.y, d.x];
+          });
+
+
+        scope.nodeClicked = function(node) {
+          scope.onNodeClick(node.section, node.index);
+        };
+
+        scope.highlight = function(node) {
+          if (node.isActive) {
+            return;
+          }
+          node.isHighlighted = true;
+          node.parentLinks.forEach(function(link) {
+            link.isHighlighted = true;
+            link.className = 'highlighted target';
+          });
+          node.childLinks.forEach(function(link) {
+            link.isHighlighted = true;
+            link.className = 'highlighted source';
+          });
+        };
+
+        scope.removeHighlight = function(node) {
+          if (node.isActive) {
+            return;
+          }
+          node.isHighlighted = false;
+          node.parentLinks.forEach(function(link) {
+            link.isHighlighted = false;
+            link.className = link.parent.isActive ? 'active source' : 'inactive';
+          });
+          node.childLinks.forEach(function(link) {
+            link.isHighlighted = false;
+            link.className = link.child.isActive ? 'active target' : 'inactive';
+          });
+        };
+
+        /**
+         * Creates base configuration for all nodes;
+         *  - does not set phase, position, or create links between nodes
+         */
+        function createNodes() {
+          var triggersNode = {
+              name: 'Triggers (' + scope.pipeline.triggers.length + ')',
+              phase: 0,
+              id: -1,
+              section: 'triggers',
+              parentIds: [],
+              parents: [],
+              children: [],
+              parentLinks: [],
+              childLinks: [],
+              isActive: scope.viewState.section === 'triggers',
+              isHighlighted: false,
+            },
+            nodes = [triggersNode];
+
+          scope.pipeline.stages.forEach(function(stage, idx) {
+            stage.requisiteStageRefIds = stage.requisiteStageRefIds || [];
+            var node = {
+              id: stage.refId,
+              name: stage.name || '[new stage]',
+              section: 'stage',
+              index: idx,
+              parentIds: angular.copy(stage.requisiteStageRefIds || []),
+              parents: [],
+              children: [],
+              parentLinks: [],
+              childLinks: [],
+              isActive: scope.viewState.stageIndex === idx && scope.viewState.section === 'stage',
+              isHighlighted: false,
+            };
+            if (!node.parentIds.length) {
+              node.parentIds.push(triggersNode.id);
+            }
+            nodes.push(node);
+          });
+          return nodes;
+        }
+
+        /**
+         * Sets phases and adds children/parents to nodes
+         * Probably blows the stack if circular dependencies exist, maybe not
+         */
+        function applyPhasesAndLink(nodes) {
+          nodes = nodes || createNodes();
           var allPhasesResolved = true;
-          scope.pipeline.stages.forEach(function(stage) {
+          nodes.forEach(function(node) {
             var phaseResolvable = true,
-              phase = 1;
-            if (!stage.requisiteStageRefIds || !stage.requisiteStageRefIds.length) {
-              stage.phase = phase;
+                phase = 0;
+            if (!node.parentIds.length) {
+              node.phase = phase;
             } else {
-              stage.requisiteStageRefIds.forEach(function(parentId) {
-                var parent = _.find(scope.pipeline.stages, { refId: parentId });
-                if (!parent.phase) {
+              node.parentIds.forEach(function(parentId) {
+                var parent = _.find(nodes, { id: parentId });
+                if (parent.phase === undefined) {
                   phaseResolvable = false;
                 } else {
                   phase = Math.max(phase, parent.phase);
-                  parent.hasChildren = true;
+                  parent.children.push(node);
+                  node.parents.push({node: parent});
                 }
               });
               if (phaseResolvable) {
-                stage.phase = phase + 1;
+                node.phase = phase + 1;
               } else {
                 allPhasesResolved = false;
               }
             }
           });
           if (!allPhasesResolved) {
-            applyPhases();
+            applyPhasesAndLink(nodes);
           } else {
-            var terminalPhase = _.max(scope.pipeline.stages, 'phase').phase;
-            scope.pipeline.stages.forEach(function(stage) {
-              if (!stage.hasChildren) {
-                stage.phase = terminalPhase;
+            scope.phaseCount = _.max(nodes, 'phase').phase;
+            scope.nodes = [];
+            nodes = _.sortByAll(nodes, ['phase', 'name']);
+            nodes.forEach(function(node) {
+              scope.nodes[node.phase] = scope.nodes[node.phase] || [];
+              scope.nodes[node.phase].push(node);
+
+              node.children = _.uniq(node.children);
+              node.parents = _.uniq(node.parents);
+              if (!node.children.length) {
+                node.phase = scope.phaseCount;
               }
             });
           }
         }
 
-        var d3 = d3Service;
+        /**
+         * Sets the width of the graph and determines the width available for each label
+         */
+        function applyPhaseWidth() {
+          scope.graphWidth = elem.width() - (2 * scope.nodeRadius);
+          console.warn('graph width:', scope.graphWidth);
+          var maxLabelWidth = scope.graphWidth;
 
-        function drawGraph() {
-
-          applyPhases();
-
-          elem.find('g').empty();
-          var stages = scope.pipeline.stages;
-
-          var phaseCount = _.max(stages, 'phase').phase + 1;
-
-          var graphWidth = 800;
-
-          var maxLabelWidth = graphWidth / phaseCount - 16;
-
-          var rowPadding = 30;
-
-          var circleRadius = 8;
-
-          var rowHeights = [];
-
-          function setRow(node, idx) {
-            node.row = idx;
+          if (scope.phaseCount) {
+            maxLabelWidth = (scope.graphWidth / (scope.phaseCount + 1)) - (2*scope.nodeRadius) - scope.labelOffsetY;
           }
 
-          function setPosition(node) {
-            if (!node.x) {
-              var row = node.row;
-              if (row === 0) {
-                node.y = 0;
-              } else {
-                node.y = rowHeights[row-1].offset + rowHeights[row-1].height + rowPadding;
-              }
-              node.x = ((node.phase) / phaseCount) * 800;
-            }
-          }
-
-          var triggersNode = {
-            name: 'Triggers (' + scope.pipeline.triggers.length + ')',
-            phase: 0,
-            section: 'triggers',
-            isActive: scope.viewState.section === 'triggers',
-          };
-
-          var vis = d3.select(elem.find('g')[0]).attr('transform', 'translate(50, 50)');
-
-          var diagonal = d3.svg.diagonal()
-            .source(function(d) { return {'x': d.source.y, 'y': d.source.x}; })
-            .target(function(d) { return {'x': d.target.y, 'y': d.target.x}; })
-            .projection(function (d) {
-              return [d.y, d.x];
-            });
-
-          var nodeSrc = [triggersNode],
-            linkSrc = [];
-
-          stages.forEach(function (stage, idx) {
-            nodeSrc.push({
-              id: stage.refId,
-              name: stage.name || '[new stage]',
-              phase: stage.phase,
-              index: idx,
-              section: 'stage',
-              isActive: scope.viewState.stageIndex === idx && scope.viewState.section === 'stage',
-            });
-          });
-
-          stages.forEach(function (stage) {
-            if (!stage.requisiteStageRefIds.length) {
-              var targetNode = _.find(nodeSrc, { id: stage.refId });
-              if (triggersNode.isActive) {
-                targetNode.isConnected = true;
-              }
-              linkSrc.push({
-                source: triggersNode,
-                target: targetNode,
-              });
-            }
-            stage.requisiteStageRefIds.forEach(function (parentId) {
-              var source = _.find(nodeSrc, { id: parentId }),
-                  target = _.find(nodeSrc, { id: stage.refId });
-              if (source.isActive) {
-                target.isConnected = true;
-              }
-              if (target.isActive) {
-                source.isConnected = true;
-              }
-              linkSrc.push({
-                source: source,
-                target: target,
-              });
-            });
-          });
-
-          nodeSrc = _.sortByAll(nodeSrc, ['phase', 'name']);
-
-          linkSrc.sort(function(a) {
-            if (a.source.isActive || a.target.isActive) {
-              return 1;
-            }
-            return -1;
-          });
-
-          var rowCount = 1;
-          var grouped = _.groupBy(nodeSrc, 'phase');
-          _.forOwn(grouped, function (val) {
-            val.forEach(setRow);
-            rowCount = Math.max(rowCount, val.length);
-          });
-
-          function buildNodeMarkers() {
-            var nodes = vis.selectAll('g.node').data(nodeSrc);
-            var nodeEnter = nodes.enter().append('g')
-              .attr('class', function (d) {
-                var baseClass = 'clickable node';
-                if (d.isActive) {
-                  baseClass += ' active';
-                }
-                if (d.isConnected) {
-                  baseClass += ' connected';
-                }
-                return baseClass;
-              })
-              .on('click', function (d) {
-                scope.onNodeClick(d.section, d.index);
-              });
-            nodeEnter.append('circle')
-              .attr('r', circleRadius)
-              .attr('fill', '#999');
-            nodes.attr('transform', function (d) {
-              return 'translate(' + d.x + ', ' + d.y + ')';
-            });
-          }
-
-          function buildNodeLabels() {
-            var labels = vis.selectAll('g.label').data(nodeSrc);
-            labels.enter().append('foreignObject')
-              .attr('x', function (d) {
-                return d.x + 8;
-              })
-              .attr('y', function (d) {
-                return d.y - 15;
-              })
-              .attr('width', maxLabelWidth)
-              .attr('height', 100)
-              .append('xhtml:body')
-              .attr('class', 'label-body')
-              .append('div')
-              .text(function (d) {
-                return d.name;
-              })
-              .attr('class', function (d) {
-                var baseClass = 'clickable node row-' + d.row;
-                if (d.isActive) {
-                  baseClass += ' active';
-                }
-                if (d.isConnected) {
-                  baseClass += ' connected';
-                }
-                return baseClass;
-              })
-              .on('click', function (d) {
-                scope.onNodeClick(d.section, d.index);
-              });
-          }
-          function buildNodeLinks() {
-            var links = vis.selectAll('line.link').data(linkSrc);
-            links.enter()
-              .insert('svg:path', 'g')
-              .attr('class', function (d) {
-                if (d.source.isActive) {
-                  return 'link source active';
-                }
-                if (d.target.isActive) {
-                  return 'link target active';
-                }
-                return 'link';
-              })
-              .attr('d', function (d) {
-                return diagonal({ source: d.source, target: d.target});
-              });
-          }
-
-          var graphHeight = 0;
-
-          function buildRowHeight() {
-            var heights = [];
-            var labelsToMeasure = vis.selectAll('g.placeholder').data(nodeSrc);
-            labelsToMeasure.enter().append('foreignObject')
-              .attr('width', maxLabelWidth)
-              .attr('height', 100)
-              .append('xhtml:body')
-              .attr('class', 'label-body placeholder')
-              .append('div')
-              .attr('data-row', function(d) { return d.row; })
-              .text(function(d) {
-                return d.name;
-              });
-
-            elem.find('.label-body.placeholder div').each(function() {
-              var $label = $(this),
-                  row = $label.attr('data-row');
-              if (!heights[row]) {
-                heights[row] = $label.height();
-              } else {
-                heights[row] = Math.max($label.height(), heights[row]);
-              }
-            });
-            rowHeights = heights.map(function(row) {
-              var result = {
-                height: row,
-                offset: graphHeight,
-              };
-              graphHeight += (row + rowPadding);
-              return result;
-            });
-            labelsToMeasure.remove();
-
-          }
-
-          buildRowHeight();
-          nodeSrc.forEach(setPosition);
-          buildNodeLinks();
-          buildNodeMarkers();
-          buildNodeLabels();
-          elem.find('svg').width(graphWidth + 50).height(graphHeight + 50);
-
-          // TODO: Calculate height, row height based on label heights via class="row-x"
+          scope.maxLabelWidth = maxLabelWidth;
         }
 
-        drawGraph();
+        function applyNodeHeights() {
+          var placeholderNode = elem.find('g.placeholder div');
+          placeholderNode.width(scope.maxLabelWidth);
+          scope.graphHeight = 0;
+          scope.nodes.forEach(function(nodes) {
+            nodes.forEach(function(node) {
+              placeholderNode.html(node.name);
+              node.height = placeholderNode.height() + scope.rowPadding;
+            });
+            scope.graphHeight = Math.max(_.sum(nodes, 'height'), scope.graphHeight);
+          });
+          placeholderNode.empty();
+          scope.graphHeight += 2*scope.graphPadding;
+        }
 
-        scope.$watch('pipeline', drawGraph, true);
-        scope.$watch('viewState', drawGraph, true);
+        function setNodePositions() {
+          scope.nodes.forEach(function(nodes, idx) {
+            var columnHeight = _.sum(nodes, 'height'),
+                nodePadding = ((scope.graphHeight - columnHeight)/nodes.length)*0.5,
+                nodeOffset = scope.graphPadding;
+            nodes.forEach(function(node) {
+              node.x = (scope.maxLabelWidth + 2*scope.nodeRadius + scope.labelOffsetY) * idx;
+              node.y = nodeOffset;
+              nodeOffset += node.height + nodePadding;
+            });
+          });
+        }
+
+        function createLinks() {
+          scope.nodes.forEach(function(column) {
+            column.forEach(function(node) {
+              node.children.forEach(function(child) {
+                var linkClass = node.isActive ? 'active source' :
+                  child.isActive ? 'active target' : 'inactive';
+                var link = {
+                  parent: node,
+                  child: child,
+                  className: linkClass,
+                  line: diagonal({ source: node, target: child })
+                };
+                node.childLinks.push(link);
+                if (!child.parentLinks) {
+                  console.warn('no parents?', child);
+                }
+                child.parentLinks.push(link);
+
+              });
+            });
+          });
+        }
+
+        function applyAllNodes() {
+          var flattened = _.flatten(scope.nodes),
+            highlighted = _.find(flattened, 'isHighlighted'),
+            active = _.find(flattened, 'isActive'),
+            base = _.filter(flattened, {isActive: false, isHighlighted: false});
+
+          scope.allNodes = base;
+          if (highlighted) {
+            base.push(highlighted);
+          }
+          if (active) {
+            base.push(active);
+          }
+        }
+
+
+        function updateGraph() {
+          applyPhasesAndLink();
+          applyPhaseWidth();
+          applyNodeHeights();
+          setNodePositions();
+          createLinks();
+          applyAllNodes();
+
+        }
+
+        updateGraph();
+
+        scope.$watch('pipeline', updateGraph, true);
+        scope.$watch('viewState', updateGraph, true);
 
       },
     };

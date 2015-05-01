@@ -1,9 +1,23 @@
-<svg>
-  <defs>
-    <marker id="markerArrow" markerWidth="5" markerHeight="5" refx="7" refy="3"
-            orient="auto">
-      <path d="M1,1 L1,5 L5,3 L1,1" style="stroke: none; fill: #8cad6e;" />
-    </marker>
-  </defs>
-  <g></g>
+<svg ng-style="{height: graphHeight, width: '100%', padding: graphPadding + 'px ' + nodeRadius*2 + 'px'}">
+  <g class="placeholder">
+    <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
+      <div class="clickable node active"></div>
+    </foreignobject>
+  </g>
+  <g ng-repeat="node in allNodes" ng-class="{active: node.isActive, highlighted: node.isHighlighted}" ng-attr-transform="translate({{node.x}},{{node.y}})">
+    <path ng-repeat="link in node.childLinks" ng-attr-d="{{link.line}}" class="link {{link.className}}"
+          ng-attr-transform="translate({{0-node.x}}, {{0-node.y}})"></path>
+
+    <circle ng-attr-r="{{nodeRadius}}"
+            class="clickable"
+            ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+            ng-click="nodeClicked(node)"></circle>
+
+    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
+                   ng-attr-transform="translate({{labelOffsetY}}, -{{nodeRadius*2}})">
+        <div class="label-body clickable node"
+             ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+             ng-click="nodeClicked(node)">{{node.name}}</div>
+    </foreignobject>
+  </g>
 </svg>
