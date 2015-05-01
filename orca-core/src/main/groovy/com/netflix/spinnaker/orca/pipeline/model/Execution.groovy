@@ -93,7 +93,7 @@ abstract class Execution<T> implements Serializable {
     } as List
 
     if (!nonEmptyStages) {
-      return TERMINAL
+      return NOT_STARTED
     }
 
     if (nonEmptyStages.status.every { it == SUCCEEDED }) {
