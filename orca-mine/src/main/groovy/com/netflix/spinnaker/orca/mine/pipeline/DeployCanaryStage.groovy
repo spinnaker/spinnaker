@@ -47,7 +47,7 @@ class DeployCanaryStage extends ParallelDeployStage {
 
   @Override
   List<Map<String, Object>> parallelContexts(Stage stage) {
-    List<Map> baselineAmis = findBaselineAmis(stage) //it.tags.find { it.key == 'appversion' }
+    List<Map> baselineAmis = findBaselineAmis(stage)
     Map defaultStageContext = stage.context
     List<Map> canaryDeployments = defaultStageContext.clusterPairs
     def toContext = this.&clusterContext.curry(stage, defaultStageContext)
