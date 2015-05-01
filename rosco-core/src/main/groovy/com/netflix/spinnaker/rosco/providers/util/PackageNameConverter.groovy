@@ -80,18 +80,19 @@ class PackageNameConverter {
     osPackageName
   }
 
-  public static String buildAppVersionStr(BakeRequest bakeRequest, String packageName) {
+  public static OsPackageName buildOsPackageName(BakeRequest bakeRequest, String packageName) {
     BakeRequest.PackageType packageType = bakeRequest.base_os.packageType
-    OsPackageName osPackageName
 
     if (packageType == BakeRequest.PackageType.DEB) {
-      osPackageName = PackageNameConverter.parseDebPackageName(packageName)
+      return PackageNameConverter.parseDebPackageName(packageName)
     } else if (packageType == BakeRequest.PackageType.RPM) {
-      osPackageName = PackageNameConverter.parseRpmPackageName(packageName)
+      return PackageNameConverter.parseRpmPackageName(packageName)
     } else {
       throw new IllegalArgumentException("Unrecognized packageType '$packageType'.")
     }
+  }
 
+  public static String buildAppVersionStr(BakeRequest bakeRequest, OsPackageName osPackageName) {
     // As per source of AppVersion, these are valid appversion tags:
     //   subscriberha-1.0.0-h150
     //   subscriberha-1.0.0-h150.586499

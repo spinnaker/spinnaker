@@ -18,6 +18,7 @@ package com.netflix.spinnaker.rosco.providers.util
 
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 import java.time.Clock
@@ -25,6 +26,7 @@ import java.time.Clock
 /**
  * Placeholder implementation of ImageNameFactory. Considers only package_name, a timestamp, and base_os.
  */
+@Slf4j
 public class DefaultImageNameFactory implements ImageNameFactory {
 
   @Autowired
@@ -37,6 +39,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
 
     List<String> packageNameList = bakeRequest?.package_name?.tokenize(" ")
     def firstPackageName
+    PackageNameConverter.OsPackageName osPackageName
     String appVersionStr
     AppVersion appVersion
 
@@ -45,35 +48,38 @@ public class DefaultImageNameFactory implements ImageNameFactory {
       firstPackageName = packageNameList[0]
 
       // Passing in firstPackageName here to avoid tokenizing the package name list twice.
-      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, firstPackageName)
+      osPackageName = PackageNameConverter.buildOsPackageName(bakeRequest, firstPackageName)
+      appVersionStr = PackageNameConverter.buildAppVersionStr(bakeRequest, osPackageName)
       appVersion = AppVersion.parseName(appVersionStr)
 
-      if (appVersion) {
-        // TODO(duftler): Fix this. This is a temporary hack.
-        packageNameList[0] = appVersion.packageName
-      } else {
+      if (!appVersion) {
+        if (appVersionStr) {
+          log.debug("AppVersion.parseName() was unable to parse appVersionStr=$appVersionStr.")
+        }
+
         // If appVersionStr could not be parsed to create AppVersion, clear it.
         appVersionStr = null
       }
+
+      if (osPackageName?.name) {
+        packageNameList[0] = osPackageName.name
+
+        // If a version/release was specified, we need to include that when installing the package.
+        if (osPackageName?.version && osPackageName?.release) {
+          packageNameList[0] += "=$osPackageName.version-$osPackageName.release"
+        }
+      }
     }
 
-    // If we were able to generate the appversion tag from the original package name, we will need to
-    // replace that original fully-qualified package name with the unqualified package name before using
+    // We need to replace the original fully-qualified package name with the unqualified package name before using
     // it in the target image name.
-    def baseImagePackageName = appVersion ? appVersion.packageName : firstPackageName
+    def baseImagePackageName = osPackageName?.name ?: firstPackageName
     def imageName = baseImagePackageName ? "$baseImagePackageName-" : ""
 
     // TODO(duftler): Get architecture from OsPackageName.
     imageName += "all-$timestamp-$bakeRequest.base_os"
 
-    def packagesParameter
-
-    if (appVersion) {
-      // TODO(duftler): Remove this when the 'packageNameList[0] = appVersion.packageName' hack is removed.
-      packagesParameter = packageNameList.join(" ")
-    } else {
-      packagesParameter = bakeRequest.package_name
-    }
+    def packagesParameter = packageNameList.join(" ")
 
     [imageName, appVersionStr, packagesParameter]
   }
