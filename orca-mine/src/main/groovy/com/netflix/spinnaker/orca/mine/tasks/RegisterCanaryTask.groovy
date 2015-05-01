@@ -18,31 +18,22 @@ package com.netflix.spinnaker.orca.mine.tasks
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.frigga.NameBuilder
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import com.netflix.spinnaker.orca.mine.Canary
 import com.netflix.spinnaker.orca.mine.CanaryConfig
 import com.netflix.spinnaker.orca.mine.CanaryDeployment
 import com.netflix.spinnaker.orca.mine.Cluster
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.Recipient
-import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
 
-import java.util.regex.Pattern
-
 @Component
 class RegisterCanaryTask implements Task {
-
-  static final Pattern DETAIL_PATTERN = ~/^(.*)_?(canary|baseline)$/
 
   @Autowired
   MineService mineService
@@ -75,81 +66,13 @@ class RegisterCanaryTask implements Task {
     c.canaryConfig = objectMapper.convertValue(context.canaryConfig, CanaryConfig)
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
     c.canaryConfig.application = app
-
-    def preceedingCanary = stage.preceding(DeployCanaryStage.MAYO_CONFIG_TYPE)
-
-    def allStages = stage.execution.stages
-
-    def firstCanary = allStages.find { it.type == DeployCanaryStage.MAYO_CONFIG_TYPE }
-    def toUse = preceedingCanary ?: firstCanary
-
-    if (!toUse) { throw new IllegalStateException('wat') }
-    def deployCanaryId = toUse.id
-
-    Map<String, CanaryDeployment> clusters = [:].withDefault { new CanaryDeployment() }
-
-    for (Stage s in stage.execution.stages.findAll {
-      it.type == ParallelDeployStage.MAYO_CONFIG_TYPE && it.parentStageId == deployCanaryId
-    }) {
-      String account = s.context.account
-      s.context.'deploy.server.groups'.each { String region, List<String> serverGroups ->
-        for (sg in serverGroups) {
-          def cluster = buildCluster(sg, region, account)
-          if (cluster.type == 'canary') {
-            cluster.cluster.imageId = s.context.deploymentDetails.find { it.region == region }?.ami
-            clusters[cluster.key].canaryCluster = cluster.cluster
-          } else {
-            cluster.cluster.imageId = s.context.amiName
-            clusters[cluster.key].baselineCluster = cluster.cluster
-          }
-        }
+    c.canaryDeployments =  stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect { Map pair ->
+      def asCluster = { Map cluster ->
+        new Cluster(name: cluster.clusterName, accountName: cluster.account, region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber)
       }
+      new CanaryDeployment(canaryCluster: asCluster(pair.canary), baselineCluster: asCluster(pair.baseline))
     }
 
-    def unmatched = clusters.values().findAll { it.canaryCluster == null || it.baselineCluster == null }
-    if (unmatched) {
-      throw new IllegalStateException("Didn't pair up ${unmatched}")
-    }
-
-    c.canaryDeployments.addAll(clusters.values())
     return c
-  }
-
-
-  static TypedCluster buildCluster(String asgName, String region, String account) {
-    Names name = Names.parseName(asgName)
-    def match = name.detail =~ DETAIL_PATTERN
-    if (match.matches()) {
-      String baseName = new CanaryClusterNameBuilder(name.app, name.stack, match.group(1)).baseName
-      return new TypedCluster(match.group(2), baseName, new Cluster(null, asgName, 'aws', account, region))
-    }
-    return null
-  }
-
-  @Canonical
-  static class TypedCluster {
-    String type
-    String baseName
-    Cluster cluster
-
-    String getKey() {
-      "$cluster.accountName:$cluster.region:$baseName"
-    }
-  }
-
-  private static class CanaryClusterNameBuilder extends NameBuilder {
-    String app
-    String stack
-    String freeFormDetails
-
-    CanaryClusterNameBuilder(String app, String stack, String freeFormDetails) {
-      this.app = app
-      this.stack = stack
-      this.freeFormDetails = freeFormDetails
-    }
-
-    String getBaseName() {
-      super.combineAppStackDetail(app, stack, freeFormDetails)
-    }
   }
 }

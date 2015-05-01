@@ -36,16 +36,13 @@ class CleanupCanaryTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    Canary canary = stage.mapTo('/canary', Canary)
-    String operation = 'destroyAsgDescription'
-    def operations = []
-    for (d in canary.canaryDeployments) {
-      for (c in [d.baselineCluster, d.canaryCluster]) {
-        operations << [(operation): [asgName: c.name, regions: [c.region], credentials: c.accountName]]
+    def ops = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
+      [it.canary, it.baseline].collect {
+        [destroyAsgDescription: [asgName: it.serverGroup, regions: [it.region], credentials: it.account]]
       }
-    }
-    log.info "Calling ${operation} with ${operations}"
-    def taskId = katoService.requestOperations(operations).toBlocking().first()
+    }.flatten()
+    log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
+    def taskId = katoService.requestOperations(ops).toBlocking().first()
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
   }
 }

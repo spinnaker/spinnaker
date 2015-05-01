@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.json
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.ImmutableStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -37,7 +38,8 @@ class StageDeserializerSpec extends Specification {
       def deserialized = mapper.readValue(json, Stage)
 
     then:
-      deserialized instanceof PipelineStage
       deserialized.isImmutable()
+      deserialized instanceof ImmutableStageSupport.ImmutableStage
+      deserialized.self instanceof PipelineStage
   }
 }

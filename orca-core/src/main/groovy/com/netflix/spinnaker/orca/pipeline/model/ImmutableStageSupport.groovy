@@ -16,39 +16,23 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.google.common.collect.ImmutableList
-import com.google.common.collect.ImmutableMap
-import com.google.common.primitives.Primitives
 import com.netflix.spinnaker.orca.ExecutionStatus
-import java.lang.reflect.Method
-import net.sf.cglib.proxy.*
 
 import java.util.concurrent.atomic.AtomicInteger
 
 class ImmutableStageSupport {
 
   static def <T extends Stage> T toImmutable(T stage) {
-    final def immutableDelegate = new ImmutableStage(self: stage)
-    def enhancer = new Enhancer()
-    enhancer.superclass = stage.class
-    enhancer.interfaces = [Stage]
-    enhancer.callback = new MethodInterceptor() {
-      @Override
-      Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
-        Class[] classes = objects.collect { Primitives.isWrapperType(it.class) ? Primitives.unwrap(it.class) : it.class } as Class[]
-        Method proxyMeth = immutableDelegate.getClass().getDeclaredMethod(method.name, classes)
-        proxyMeth.accessible = true
-        proxyMeth.invoke(immutableDelegate, objects)
-      }
-    }
-    (T) enhancer.create()
+    (T) new ImmutableStage(stage)
   }
 
   static class ImmutableStage<T extends Execution> implements Stage<T> {
-    Stage<T> self
-    ImmutableMap<String, Object> context
-    boolean immutable = true
+    final Stage<T> self
+    final boolean immutable = true
+
+    public ImmutableStage(Stage<T> self) {
+      this.self = self
+    }
 
     @Override
     String getRefId() {
@@ -124,17 +108,8 @@ class ImmutableStageSupport {
     }
 
     @Override
-    ImmutableMap<String, Object> getContext() {
-      if (!this.context) {
-        def validContext = [:]
-        for (entry in self.context) {
-          if (entry.key && entry.value != null) {
-            validContext[entry.key] = entry.value
-          }
-        }
-        this.context = ImmutableMap.copyOf(validContext)
-      }
-      this.context
+    Map<String, Object> getContext() {
+      Collections.unmodifiableMap(self.context ?: [:])
     }
 
     @Override
@@ -152,10 +127,6 @@ class ImmutableStageSupport {
       self.taskCounter
     }
 
-    void setContext(ImmutableMap<String, Object> context) {
-      this.context = context
-    }
-
     @Override
     Stage<T> asImmutable() {
       this
@@ -163,7 +134,7 @@ class ImmutableStageSupport {
 
     @Override
     List<Task> getTasks() {
-      ImmutableList.copyOf(self.tasks)
+      Collections.unmodifiableList(self.tasks)
     }
 
     @Override
@@ -198,12 +169,12 @@ class ImmutableStageSupport {
 
     @Override
     List<InjectedStageConfiguration> getBeforeStages() {
-      ImmutableList.of(self.beforeStages)
+      Collections.unmodifiableList(self.beforeStages)
     }
 
     @Override
     List<InjectedStageConfiguration> getAfterStages() {
-      ImmutableList.of(self.afterStages)
+      Collections.unmodifiableList(self.afterStages)
     }
 
     @Override
@@ -218,7 +189,7 @@ class ImmutableStageSupport {
 
     @Override
     Collection<String> getRequisiteStageRefIds() {
-      self.requisiteStageRefIds
+      Collections.unmodifiableCollection(self.requisiteStageRefIds)
     }
 
     @Override

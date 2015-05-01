@@ -50,49 +50,46 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     Map context = stage.context
 
     Canary canary = stage.mapTo('/canary', Canary)
-    log.info("MonitorCanary, current status: ${canary}")
 
     def outputs = [canary: canary]
     outputs.canary = mineService.getCanary(canary.id)
     if (outputs.canary.status.complete) {
-      log.info("Canary complete")
+      log.info("Canary $stage.id complete")
       return resultSerializationHelper.result(ExecutionStatus.SUCCEEDED, [:], outputs)
     }
 
-    if (outputs.canary.health?.health == Health.UNHEALTHY) {
-      log.info("Canary unhealthy, disabling")
-      String operation = 'disableAsgDescription'
-      def operations = []
-      for (d in canary.canaryDeployments) {
-        for (c in [d.baselineCluster, d.canaryCluster]) {
-          operations << [(operation): [asgName: c.name, regions: [c.region], credentials: c.accountName]]
+    if (outputs.canary.health?.health == Health.UNHEALTHY && !context.disableRequested) {
+      log.info("Canary $stage.id unhealthy, disabling")
+      def operations = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
+        [it.canary, it.baseline].collect {
+          [disableAsgDescription: [asgName: it.serverGroup, regions: [it.region], credentials: it.account]]
         }
-      }
-      log.info "Calling ${operation} with ${operations}"
+      }.flatten()
+      log.info "Disabling canary $stage.id with ${operations}"
       katoService.requestOperations(operations).toBlocking().first()
-
-      outputs.canary = mineService.disableCanaryAndScheduleForTermination(canary.id, "Canary is unhealthy")
+      outputs.disableRequested = true
+    } else {
+      outputs.disableRequested = false
     }
 
     Map scaleUp = context.scaleUp
     if (scaleUp && scaleUp.enabled && !scaleUp.complete) {
       int capacity = scaleUp.capacity as Integer
       if (System.currentTimeMillis() - canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
-        def resizeOps = []
-        for (deployment in canary.canaryDeployments) {
-          for (Cluster cluster in [deployment.canaryCluster, deployment.baselineCluster]) {
-            resizeOps << [ resizeAsgDescription: [
-              asgName: cluster.name,
-              regions: [cluster.region],
+        def resizeOps = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
+          [it.canary, it.baseline].collect {
+            [resizeAsgDescription: [
+              asgName: it.serverGroup,
+              regions: [it.region],
               capacity: [min: capacity, max: capacity, desired: capacity],
-              credentials: cluster.accountName]
+              credentials: it.account]
             ]
           }
-        }
+        }.flatten()
         outputs.scaleUp = scaleUp
         outputs.scaleUp.katoId = katoService.requestOperations(resizeOps).toBlocking().first().id
         outputs.scaleUp.complete = true
-        log.info('Canary scale up requested')
+        log.info("Canary $stage.id scale up requested")
       }
     }
 
