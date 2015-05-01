@@ -28,10 +28,12 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.TimeUnit
+
 @Component
 class StartJenkinsJobTask implements RetryableTask {
   long backoffPeriod = 10000
-  long timeout = 1800000
+  long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
   IgorService igorService

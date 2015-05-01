@@ -27,12 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+import java.util.concurrent.TimeUnit
+
 @Slf4j
 @Component
 class MonitorJenkinsJobTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = 7200000
+  long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
   IgorService igorService
