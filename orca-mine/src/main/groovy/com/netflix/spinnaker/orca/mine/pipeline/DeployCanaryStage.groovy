@@ -59,9 +59,8 @@ class DeployCanaryStage extends ParallelDeployStage {
       def baseline = canaryDeployment.baseline
       baseline.strategy = "highlander"
       def baselineAmi = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }
-      def baselineBuild = AppVersion.parseName(baselineAmi?.tags?.find { it.key == 'appversion' }?.value)
       baseline.amiName = baselineAmi?.ami
-      baseline.buildNumber = baselineBuild.buildNumber
+      baseline.buildNumber = createBuildId(baselineAmi)
 
       [baseline, canary]
     }.flatten().collect(toContext)
@@ -73,6 +72,15 @@ class DeployCanaryStage extends ParallelDeployStage {
     Stage s = new OrchestrationStage(new Orchestration(), "findAmi", findAmiCtx)
     TaskResult result = findAmi.execute(s)
     return result.stageOutputs.amiDetails
+  }
+
+  String createBuildId(Map deploymentDetail) {
+    def appVersion = AppVersion.parseName(deploymentDetail?.tags?.find { it.key == 'appversion' }?.value)
+    def buildHost = deploymentDetail?.tags?.find { it.key == 'build_host' }?.value
+    if (appVersion && buildHost) {
+      return "${buildHost}job/$appVersion.buildJobName/$appVersion.buildNumber/"
+    }
+    return null
   }
 
   @Override
@@ -104,7 +112,7 @@ class DeployCanaryStage extends ParallelDeployStage {
               def ami = deployStage.context.deploymentDetails.find { it.region == region }
 
               cluster.amiName = ami?.ami
-              cluster.buildNumber = AppVersion.parseName(ami?.tags?.find { it.key == 'appversion' }?.value)?.buildNumber
+              cluster.buildNumber = createBuildId(ami)
             }
             resultPair[type] = [
               clusterName: nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
