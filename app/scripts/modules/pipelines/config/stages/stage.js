@@ -19,7 +19,8 @@ angular.module('deckApp.pipelines.stageConfig', [
       }
     };
   })
-  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache, pipelineConfig, _) {
+  .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache,
+                                          pipelineConfigService, pipelineConfig) {
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;
     $scope.options = { stageTypes: stageTypes };
@@ -31,30 +32,13 @@ angular.module('deckApp.pipelines.stageConfig', [
       return matches.length ? matches[0] : null;
     }
 
-    function getDownstreamStageIds(stage) {
-      var downstream = [];
-      var children = $scope.pipeline.stages.filter(function(stageToTest) {
-        return stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
-      });
-      if (children) {
-        downstream = _.pluck(children, 'refId');
-        children.forEach(function(child) {
-          downstream = downstream.concat(getDownstreamStageIds(child));
-        });
-      }
-      return _(downstream).compact().uniq().value();
-    }
-
     this.selectStage = function(newVal, oldVal) {
       if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
         $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
       }
       $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
 
-      var downstreamIds = getDownstreamStageIds($scope.stage);
-      $scope.options.otherStages = $scope.pipeline.stages.filter(function(stage) {
-        return stage !== $scope.stage && downstreamIds.indexOf(stage.refId) === -1;
-      });
+      $scope.options.otherStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
 
       var type = $scope.stage.type,
           stageScope = $scope.$new();

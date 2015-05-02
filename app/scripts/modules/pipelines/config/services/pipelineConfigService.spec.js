@@ -82,5 +82,64 @@ describe('pipelineConfigService', function () {
       ]);
     });
   });
+
+  describe('getAvailableUpstreamStages', function() {
+
+    beforeEach(function() {
+      this.a = { refId: 1, requisiteStageRefIds: [] };
+      this.b = { refId: 2, requisiteStageRefIds: [] };
+      this.c = { refId: 3, requisiteStageRefIds: [] };
+      this.d = { refId: 4, requisiteStageRefIds: [] };
+
+      this.pipeline = { stages: [ this.a, this.b, this.c, this.d ]};
+
+      this.connect = function(child, parent) {
+        this[child].requisiteStageRefIds.push(this[parent].refId);
+      };
+
+      this.expectCandidates = function(test, expected) {
+        var target = [];
+        expected.forEach(function(stage) {
+          target.push(this[stage]);
+        }.bind(this));
+        expect(this.service.getDependencyCandidateStages(this.pipeline, this[test])).toEqual(target);
+      };
+    });
+
+    it('filters out provided stage', function() {
+      this.expectCandidates('a', ['b', 'c', 'd']);
+      this.expectCandidates('b', ['a', 'c', 'd']);
+      this.expectCandidates('c', ['a', 'b', 'd']);
+      this.expectCandidates('d', ['a', 'b', 'c']);
+    });
+
+    it('filters out direct dependent', function() {
+      this.connect('b', 'a');
+      this.expectCandidates('a', ['c', 'd']);
+    });
+
+    it('filters out multiple direct dependents', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'a');
+      this.expectCandidates('a', ['d']);
+    });
+
+    it('filters out indirect dependents', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'b');
+      this.expectCandidates('a', ['d']);
+      this.expectCandidates('b', ['a', 'd']);
+      this.expectCandidates('c', ['a', 'b', 'd']);
+      this.expectCandidates('d', ['a', 'b', 'c']);
+    });
+
+    it('can depend on descendant stages of siblings', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'b');
+      this.connect('d', 'a');
+      this.expectCandidates('a', []);
+      this.expectCandidates('d', ['a', 'b', 'c']);
+    });
+  });
 });
 
