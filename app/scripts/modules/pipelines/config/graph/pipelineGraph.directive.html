@@ -1,7 +1,7 @@
-<svg ng-style="{height: graphHeight, width: '100%', padding: graphPadding + 'px ' + nodeRadius*2 + 'px'}">
+<svg ng-style="{height: graphHeight, width: '100%', padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px'}">
   <g class="placeholder">
     <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
-      <div class="clickable node active"></div>
+      <div class="label-body clickable node active"></div>
     </foreignobject>
   </g>
   <g ng-repeat="node in allNodes" ng-class="{active: node.isActive, highlighted: node.isHighlighted}" ng-attr-transform="translate({{node.x}},{{node.y}})">

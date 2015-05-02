@@ -16,8 +16,8 @@ angular.module('deckApp.pipelines.graph.directive', [
       link: function (scope, elem) {
 
         scope.nodeRadius = 8;
-        scope.rowPadding = 15;
-        scope.graphPadding = 15;
+        scope.rowPadding = 30;
+        scope.graphVerticalPadding = 15;
         scope.labelOffsetY = scope.nodeRadius + 3;
 
         /**
@@ -143,16 +143,32 @@ angular.module('deckApp.pipelines.graph.directive', [
           } else {
             scope.phaseCount = _.max(nodes, 'phase').phase;
             scope.nodes = [];
-            nodes = _.sortByAll(nodes, ['phase', 'name']);
             nodes.forEach(function(node) {
-              scope.nodes[node.phase] = scope.nodes[node.phase] || [];
-              scope.nodes[node.phase].push(node);
-
               node.children = _.uniq(node.children);
               node.parents = _.uniq(node.parents);
               if (!node.children.length) {
                 node.phase = scope.phaseCount;
               }
+            });
+
+            // Collision minimization "Algorithm"
+            nodes = _.sortByAll(nodes,
+              'phase',
+              function(node) {
+                return _.sortBy(node.parents, 'phase').map(function(parent) {
+                  return [(node.phase - parent.phase), parent.name].join('-');
+                });
+              },
+              function(node) {
+                return _.sortBy(node.children, 'phase').map(function(child) {
+                  return [(child.phase - node.phase), child.name].join('-');
+                });
+              },
+              'name'
+            );
+            nodes.forEach(function(node) {
+              scope.nodes[node.phase] = scope.nodes[node.phase] || [];
+              scope.nodes[node.phase].push(node);
             });
           }
         }
@@ -162,7 +178,6 @@ angular.module('deckApp.pipelines.graph.directive', [
          */
         function applyPhaseWidth() {
           scope.graphWidth = elem.width() - (2 * scope.nodeRadius);
-          console.warn('graph width:', scope.graphWidth);
           var maxLabelWidth = scope.graphWidth;
 
           if (scope.phaseCount) {
@@ -184,18 +199,16 @@ angular.module('deckApp.pipelines.graph.directive', [
             scope.graphHeight = Math.max(_.sum(nodes, 'height'), scope.graphHeight);
           });
           placeholderNode.empty();
-          scope.graphHeight += 2*scope.graphPadding;
+          scope.graphHeight += 3*scope.graphVerticalPadding;
         }
 
         function setNodePositions() {
           scope.nodes.forEach(function(nodes, idx) {
-            var columnHeight = _.sum(nodes, 'height'),
-                nodePadding = ((scope.graphHeight - columnHeight)/nodes.length)*0.5,
-                nodeOffset = scope.graphPadding;
-            nodes.forEach(function(node) {
+            var nodeOffset = scope.graphVerticalPadding;
+            nodes.forEach(function(node, rowNumber) {
               node.x = (scope.maxLabelWidth + 2*scope.nodeRadius + scope.labelOffsetY) * idx;
               node.y = nodeOffset;
-              nodeOffset += node.height + nodePadding;
+              nodeOffset += scope.rowHeights[rowNumber];
             });
           });
         }
@@ -213,11 +226,7 @@ angular.module('deckApp.pipelines.graph.directive', [
                   line: diagonal({ source: node, target: child })
                 };
                 node.childLinks.push(link);
-                if (!child.parentLinks) {
-                  console.warn('no parents?', child);
-                }
                 child.parentLinks.push(link);
-
               });
             });
           });
@@ -238,11 +247,26 @@ angular.module('deckApp.pipelines.graph.directive', [
           }
         }
 
+        function establishRowHeights() {
+          var rowHeights = [];
+          scope.nodes.forEach(function(column) {
+            column.forEach(function(node, rowNumber) {
+              if (!rowHeights[rowNumber]) {
+                rowHeights[rowNumber] = 0;
+              }
+              rowHeights[rowNumber] = Math.max(rowHeights[rowNumber], node.height);
+            });
+          });
+          scope.rowHeights = rowHeights;
+          scope.graphHeight = _.sum(scope.rowHeights) + 2*scope.graphVerticalPadding;
+        }
+
 
         function updateGraph() {
           applyPhasesAndLink();
           applyPhaseWidth();
           applyNodeHeights();
+          establishRowHeights();
           setNodePositions();
           createLinks();
           applyAllNodes();
