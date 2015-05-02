@@ -13,7 +13,8 @@ angular.module('deckApp.pipelines')
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache,
+                                                 settings) {
 
     var configViewStateCache = viewStateCache.pipelineConfig;
 
@@ -21,7 +22,7 @@ angular.module('deckApp.pipelines')
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.name);
     }
 
-    if (!$scope.pipeline.stageCounter && $scope.pipeline.stages.length && !$scope.pipeline.stages[0].refId) {
+    if (settings.feature.parallelPipelines && !$scope.pipeline.stageCounter && $scope.pipeline.stages.length && !$scope.pipeline.stages[0].refId) {
       $scope.pipeline.stageCounter = 0;
       $scope.pipeline.stages.forEach(function(stage) {
         $scope.pipeline.stageCounter++;
@@ -42,6 +43,8 @@ angular.module('deckApp.pipelines')
       originalPipelineName: $scope.pipeline.name,
       saving: false,
     };
+
+    $scope.viewState.parallelPipelinesEnabled = !!settings.feature.parallelPipelines;
 
     this.deletePipeline = function() {
       $modal.open({

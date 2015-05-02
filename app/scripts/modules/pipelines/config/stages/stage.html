@@ -8,7 +8,7 @@
             <div class="col-md-9" ng-if="stage.isNew">
               <select class="input-sm"
                       ng-change="stageConfigCtrl.selectStage()"
-                      ng-options="option.key as option.label for option in options"
+                      ng-options="option.key as option.label for option in options.stageTypes"
                       ng-model="stage.type">
                 <option value="">Select...</option>
               </select>
@@ -40,7 +40,7 @@
         <div class="col-md-6">
           <ui-select ng-model="stage.requisiteStageRefIds" multiple class="form-control input-sm">
             <ui-select-match>{{$item.name}}</ui-select-match>
-            <ui-select-choices repeat="stage.refId as stage in pipeline.stages | anyFieldFilter: {name: $select.search}">
+            <ui-select-choices repeat="stage.refId as stage in options.otherStages | anyFieldFilter: {name: $select.search}">
               <span ng-bind-html="stage.name | highlight: $select.search"></span>
             </ui-select-choices>
           </ui-select>

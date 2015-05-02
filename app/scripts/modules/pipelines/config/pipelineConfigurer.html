@@ -18,7 +18,7 @@
         </ul>
       </div>
     </div>
-    <div class="row pipeline-config" ng-if="false">
+    <div class="row pipeline-config" ng-if="!viewState.parallelPipelinesEnabled">
       <div class="col-md-12">
         <ul class="nav-pipeline-config">
           <li class="config-section">
@@ -46,7 +46,7 @@
         </ul>
       </div>
     </div>
-    <div ng-if="true && viewState.expanded">
+    <div ng-if="viewState.parallelPipelinesEnabled && viewState.expanded">
       <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
     </div>
     <div class="row">

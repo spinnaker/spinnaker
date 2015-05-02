@@ -17,6 +17,7 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.editJson',
   'deckApp.authentication',
   'deckApp.utils.lodash',
+  'deckApp.settings',
   'ui.sortable',
 
   'deckApp.pipelines.graph.directive',
