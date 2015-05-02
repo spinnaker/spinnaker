@@ -3,8 +3,9 @@
 angular.module('deckApp.pipelines.graph.directive', [
   'deckApp.utils.d3',
   'deckApp.utils.lodash',
+  'deckApp.utils.jQuery',
 ])
-  .directive('pipelineGraph', function (d3Service, _) {
+  .directive('pipelineGraph', function ($window, d3Service, _, $) {
     return {
       restrict: 'E',
       scope: {
@@ -273,10 +274,19 @@ angular.module('deckApp.pipelines.graph.directive', [
 
         }
 
+        var handleWindowResize = _.throttle(function() {
+          scope.$evalAsync(updateGraph);
+        }, 300);
+
         updateGraph();
 
         scope.$watch('pipeline', updateGraph, true);
         scope.$watch('viewState', updateGraph, true);
+        $($window).bind('resize.pipelineGraph-' + scope.pipeline.name, handleWindowResize);
+
+        scope.$on('$destroy', function() {
+          $($window).unbind('resize.pipelineGraph-' + scope.pipeline.name);
+        });
 
       },
     };
