@@ -87,6 +87,7 @@ angular.module('deckApp.pipelines.graph.directive', [
             },
             nodes = [triggersNode];
 
+          scope.pipeline.parallel = true;
           scope.pipeline.stages.forEach(function(stage, idx) {
             stage.requisiteStageRefIds = stage.requisiteStageRefIds || [];
             var node = {

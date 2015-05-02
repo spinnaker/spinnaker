@@ -72,7 +72,8 @@ angular.module('deckApp.pipelines.config.service', [
     function getDownstreamStageIds(pipeline, stage) {
       var downstream = [];
       var children = pipeline.stages.filter(function(stageToTest) {
-        return stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
+        return stageToTest.requisiteStageRefIds &&
+               stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
       });
       if (children.length) {
         downstream = _.pluck(children, 'refId');
@@ -87,6 +88,7 @@ angular.module('deckApp.pipelines.config.service', [
       var downstreamIds = getDownstreamStageIds(pipeline, stage);
       return pipeline.stages.filter(function(stageToTest) {
         return stage !== stageToTest &&
+          stageToTest.requisiteStageRefIds &&
           downstreamIds.indexOf(stageToTest.refId) === -1 &&
           stage.requisiteStageRefIds.indexOf(stageToTest.refId) === -1;
       });
