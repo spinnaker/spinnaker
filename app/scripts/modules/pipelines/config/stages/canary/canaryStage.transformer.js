@@ -22,7 +22,10 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             if (!deployment.baselineCluster) {
               return;
             }
-            deployment.canaryResult = deployment.canaryResult || {};
+            var baseClusterName = deployment.baselineCluster.name.split('-');
+            baseClusterName.pop();
+            baseClusterName = baseClusterName.join('-');
+            deployment.canaryResult = deployment.canaryAnalysisResult || {};
             deployment.canaryCluster = deployment.canaryCluster || {};
             syntheticStagesToAdd.push({
               parentStageId: stage.id,
@@ -34,6 +37,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               startTime: stage.startTime,
               endTime: stage.endTime,
               context: {
+                baseClusterName: baseClusterName,
                 canaryCluster: deployment.canaryCluster,
                 baselineCluster: deployment.baselineCluster,
                 canaryResult: deployment.canaryResult,
