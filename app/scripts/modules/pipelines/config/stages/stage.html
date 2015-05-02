@@ -45,7 +45,7 @@
                      on-select="updateAvailableDependencyStages()"
                      on-remove="updateAvailableDependencyStages()">
             <ui-select-match>{{$item.name}}</ui-select-match>
-            <ui-select-choices repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search} track by option.refId"
+            <ui-select-choices repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search}"
                                ui-disable-choice="!option.available"
                                group-by="groupDependencyOptions"
               >
