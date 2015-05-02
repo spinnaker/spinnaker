@@ -8,7 +8,7 @@
             <div class="col-md-9" ng-if="stage.isNew">
               <select class="input-sm"
                       ng-change="stageConfigCtrl.selectStage()"
-                      ng-options="option.key as option.label for option in options"
+                      ng-options="option.key as option.label for option in options.stageTypes"
                       ng-model="stage.type">
                 <option value="">Select...</option>
               </select>
@@ -33,6 +33,25 @@
         <label class="col-md-2 col-md-offset-1 sm-label-left">Stage Name</label>
         <div class="col-md-6">
           <input type="text" class="form-control input-sm" required ng-model="stage.name"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-md-2 col-md-offset-1 sm-label-left">
+          Depends On
+          <help-field key="pipeline.config.dependsOn"></help-field>
+        </label>
+        <div class="col-md-6">
+          <ui-select ng-model="stage.requisiteStageRefIds" multiple class="form-control input-sm"
+                     on-select="updateAvailableDependencyStages()"
+                     on-remove="updateAvailableDependencyStages()">
+            <ui-select-match>{{$item.name}}</ui-select-match>
+            <ui-select-choices repeat="option.refId as option in options.dependencies | anyFieldFilter: {name: $select.search} track by option.refId"
+                               ui-disable-choice="!option.available"
+                               group-by="groupDependencyOptions"
+              >
+              <span ng-if="stage.requisiteStageRefIds.indexOf(option.refId) === -1" ng-bind-html="option.name | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
         </div>
       </div>
       <div class="stage-details">

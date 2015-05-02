@@ -11,6 +11,7 @@ angular.module('deckApp.pipelines.rename')
       delete obj.appConfig;
       delete obj.index;
       delete obj.id;
+      delete obj.stageCounter;
     }
 
     this.initialize = function() {

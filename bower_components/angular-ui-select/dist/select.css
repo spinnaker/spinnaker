@@ -1,7 +1,7 @@
 /*!
  * ui-select
  * http://github.com/angular-ui/ui-select
- * Version: 0.9.5 - 2014-12-12T16:07:20.859Z
+ * Version: 0.11.2 - 2015-03-17T04:08:46.478Z
  * License: MIT
  */
 
@@ -44,6 +44,10 @@
     display:none;
 }
 
+body > .select2-container.open {
+  z-index: 9999; /* The z-index Select2 applies to the select2-drop */
+}
+
 /* Selectize theme */
 
 /* Helper class to show styles when focus */
@@ -80,6 +84,17 @@
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
 }
 
+.ui-select-bootstrap .ui-select-toggle {
+  position: relative;
+}
+
+.ui-select-bootstrap .ui-select-toggle > .caret {
+  position: absolute;
+  height: 10px;
+  top: 50%;
+  right: 10px;
+  margin-top: -2px;
+}
 
 /* Fix Bootstrap dropdown position when inside a input-group */
 .input-group > .ui-select-bootstrap.dropdown {
@@ -93,9 +108,9 @@
   border-bottom-right-radius: 0;
 }
 
-.ui-select-bootstrap > .ui-select-match {
+.ui-select-bootstrap > .ui-select-match > .btn{
   /* Instead of center because of .btn */
-  text-align: left;
+  text-align: left !important;
 }
 
 .ui-select-bootstrap > .ui-select-match > .caret {
@@ -110,11 +125,16 @@
   height: auto;
   max-height: 200px;
   overflow-x: hidden;
+  margin-top: -1px;
+}
+
+body > .ui-select-bootstrap.open {
+  z-index: 1000; /* Standard Bootstrap dropdown z-index */
 }
 
 .ui-select-multiple.ui-select-bootstrap {
   height: auto;
-  padding: .3em;
+  padding: 3px 3px 0 3px;
 }
 
 .ui-select-multiple.ui-select-bootstrap input.ui-select-search {
@@ -122,6 +142,7 @@
   border: none;
   outline: none;
   height: 1.666666em;
+  margin-bottom: 3px;
 }
 
 .ui-select-multiple.ui-select-bootstrap .ui-select-match .close {
@@ -129,8 +150,33 @@
   line-height: 0.75;
 }
 
-.ui-select-multiple.ui-select-bootstrap .ui-select-match-item{
+.ui-select-multiple.ui-select-bootstrap .ui-select-match-item {
   outline: 0;
+  margin: 0 3px 3px 0;
+}
+
+.ui-select-multiple .ui-select-match-item {
+  position: relative;
+}
+
+.ui-select-multiple .ui-select-match-item.dropping-before:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 100%;
+  height: 100%;
+  margin-right: 2px;
+  border-left: 1px solid #428bca;
+}
+
+.ui-select-multiple .ui-select-match-item.dropping-after:after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 100%;
+  height: 100%;
+  margin-left: 2px;
+  border-right: 1px solid #428bca;
 }
 
 .ui-select-bootstrap .ui-select-choices-row>a {
