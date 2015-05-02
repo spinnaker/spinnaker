@@ -153,6 +153,11 @@ angular.module('deckApp.pipelines')
     this.removeStage = function(stage) {
       var stageIndex = $scope.pipeline.stages.indexOf(stage);
       $scope.pipeline.stages.splice(stageIndex, 1);
+      $scope.pipeline.stages.forEach(function(test) {
+        if (stage.refId && test.requisiteStageRefIds) {
+          test.requisiteStageRefIds = _.without(test.requisiteStageRefIds, stage.refId);
+        }
+      });
       if (stageIndex > 0) {
         $scope.viewState.stageIndex--;
       }
