@@ -19,7 +19,8 @@ angular.module('deckApp.pipelines.graph.directive', [
         scope.nodeRadius = 8;
         scope.rowPadding = 30;
         scope.graphVerticalPadding = 15;
-        scope.labelOffsetY = scope.nodeRadius + 3;
+        scope.labelOffsetX = scope.nodeRadius + 3;
+        scope.labelOffsetY = scope.nodeRadius + 10;
 
         /**
          * Used to draw inverse bezier curve between stages
@@ -143,6 +144,11 @@ angular.module('deckApp.pipelines.graph.directive', [
             applyPhasesAndLink(nodes);
           } else {
             scope.phaseCount = _.max(nodes, 'phase').phase;
+            if (scope.phaseCount > 6) {
+              scope.nodeRadius = 6;
+              scope.labelOffsetX = scope.nodeRadius + 3;
+              scope.labelOffsetY = 15;
+            }
             scope.nodes = [];
             nodes.forEach(function(node) {
               node.children = _.uniq(node.children);
@@ -182,7 +188,7 @@ angular.module('deckApp.pipelines.graph.directive', [
           var maxLabelWidth = scope.graphWidth;
 
           if (scope.phaseCount) {
-            maxLabelWidth = (scope.graphWidth / (scope.phaseCount + 1)) - (2*scope.nodeRadius) - scope.labelOffsetY;
+            maxLabelWidth = (scope.graphWidth / (scope.phaseCount + 1)) - (2*scope.nodeRadius) - scope.labelOffsetX;
           }
 
           scope.maxLabelWidth = maxLabelWidth;
@@ -194,7 +200,7 @@ angular.module('deckApp.pipelines.graph.directive', [
           scope.graphHeight = 0;
           scope.nodes.forEach(function(nodes) {
             nodes.forEach(function(node) {
-              placeholderNode.html(node.name);
+              placeholderNode.html('<a href>' + node.name + '</a>');
               node.height = placeholderNode.height() + scope.rowPadding;
             });
             scope.graphHeight = Math.max(_.sum(nodes, 'height'), scope.graphHeight);
@@ -207,7 +213,7 @@ angular.module('deckApp.pipelines.graph.directive', [
           scope.nodes.forEach(function(nodes, idx) {
             var nodeOffset = scope.graphVerticalPadding;
             nodes.forEach(function(node, rowNumber) {
-              node.x = (scope.maxLabelWidth + 2*scope.nodeRadius + scope.labelOffsetY) * idx;
+              node.x = (scope.maxLabelWidth + 2*scope.nodeRadius + scope.labelOffsetX) * idx;
               node.y = nodeOffset;
               nodeOffset += scope.rowHeights[rowNumber];
             });

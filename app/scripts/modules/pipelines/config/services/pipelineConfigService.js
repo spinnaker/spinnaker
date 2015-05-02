@@ -86,7 +86,9 @@ angular.module('deckApp.pipelines.config.service', [
     function getDependencyCandidateStages(pipeline, stage) {
       var downstreamIds = getDownstreamStageIds(pipeline, stage);
       return pipeline.stages.filter(function(stageToTest) {
-        return stage !== stageToTest && downstreamIds.indexOf(stageToTest.refId) === -1;
+        return stage !== stageToTest &&
+          downstreamIds.indexOf(stageToTest.refId) === -1 &&
+          stage.requisiteStageRefIds.indexOf(stageToTest.refId) === -1;
       });
     }
 

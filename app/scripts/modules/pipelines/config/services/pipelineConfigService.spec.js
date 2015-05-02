@@ -124,12 +124,12 @@ describe('pipelineConfigService', function () {
       this.expectCandidates('a', ['d']);
     });
 
-    it('filters out indirect dependents', function() {
+    it('filters out existing upstream stages and indirect dependents', function() {
       this.connect('b', 'a');
       this.connect('c', 'b');
       this.expectCandidates('a', ['d']);
-      this.expectCandidates('b', ['a', 'd']);
-      this.expectCandidates('c', ['a', 'b', 'd']);
+      this.expectCandidates('b', ['d']);
+      this.expectCandidates('c', ['a', 'd']);
       this.expectCandidates('d', ['a', 'b', 'c']);
     });
 
@@ -138,7 +138,7 @@ describe('pipelineConfigService', function () {
       this.connect('c', 'b');
       this.connect('d', 'a');
       this.expectCandidates('a', []);
-      this.expectCandidates('d', ['a', 'b', 'c']);
+      this.expectCandidates('d', ['b', 'c']);
     });
   });
 });

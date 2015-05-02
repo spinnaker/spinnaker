@@ -94,6 +94,8 @@ angular.module('deckApp.help')
       '</ul>',
 
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
+    'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
+
 
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
       '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',

@@ -303,12 +303,19 @@ svg {
       background-color: transparent;
       text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
       line-height: 14px;
-      color: lighten(@text-color, 60);
       word-wrap: break-word;
+      a {
+        color: lighten(@text-color, 60);
+        &:hover {
+          text-decoration: none;
+        }
+      }
     }
     &.active, &.highlighted {
       div.label-body {
-        color: @text-color;
+        a {
+          color: @text-color;
+        }
         font-weight: 600;
       }
     }
