@@ -172,6 +172,7 @@ angular.module('deckApp.pipelines.graph.directive', [
                   return [(child.phase - node.phase), child.name].join('-');
                 });
               },
+              'refId',
               'name'
             );
             nodes.forEach(function(node) {
