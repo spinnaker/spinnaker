@@ -154,14 +154,14 @@ angular.module('deckApp.pipelines.graph.directive', [
             nodes.forEach(function(node) {
               node.children = _.uniq(node.children);
               node.parents = _.uniq(node.parents);
-              if (!node.children.length) {
-                node.phase = scope.phaseCount;
-              }
             });
 
             // Collision minimization "Algorithm"
             nodes = _.sortByAll(nodes,
               'phase',
+              function(node) {
+                return 1 - _.sum(node.children, function(child) { return child.children.length; });
+              },
               function(node) {
                 return _.sortBy(node.parents, 'phase').map(function(parent) {
                   return [(node.phase - parent.phase), parent.name].join('-');
