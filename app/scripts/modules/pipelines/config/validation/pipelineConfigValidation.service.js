@@ -35,7 +35,11 @@ angular.module('deckApp.pipelines.config.validator.service', [
           field = field[part];
         });
 
-        if (fieldNotFound || (!field && field !== 0)) {
+        
+        if (fieldNotFound ||
+          (!field && field !== 0) ||
+          (field && field instanceof Array && field.length === 0)
+          ) {
           messages.push(validationConfig.message);
         }
       },

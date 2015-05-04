@@ -16,6 +16,11 @@ angular.module('deckApp.pipelines.stage.bake')
           fieldName: 'package',
           message: '<strong>Package</strong> is a required field on bake stages.',
         },
+        {
+          type: 'requiredField',
+          fieldName: 'regions',
+          message: 'You must select at least one region on bake stages.',
+        }
       ],
     });
   })

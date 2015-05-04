@@ -262,6 +262,17 @@ describe('pipelineConfigValidator', function() {
         messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(0);
       });
+
+      it('empty array', function() {
+        var pipeline = { stages: [ { type: 'simpleField', foo: [] }]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('need a foo');
+
+        pipeline.stages[0].foo.push(1);
+        messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
     });
   });
 
