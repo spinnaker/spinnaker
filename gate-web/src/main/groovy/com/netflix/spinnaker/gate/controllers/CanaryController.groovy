@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
-
 import com.netflix.spinnaker.gate.services.CanaryService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-
 /**
  *
  * @author sthadeshwar
@@ -31,13 +29,13 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CanaryController {
 
-  @Autowired
+  @Autowired(required = false)
   CanaryService canaryService
 
   @RequestMapping(value = "/canaries/{id:.+}/generateCanaryScore", method = RequestMethod.POST)
   void generateCanaryScore(@PathVariable("id") String id,
                            @RequestParam("duration") int duration,
                            @RequestParam("durationUnit") String durationUnit) {
-    canaryService.generateCanaryScore(id, duration, durationUnit)
+    canaryService?.generateCanaryScore(id, duration, durationUnit)
   }
 }
