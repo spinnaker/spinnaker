@@ -16,6 +16,11 @@ angular.module('deckApp.pipelines.stage.bake')
           fieldName: 'package',
           message: '<strong>Package</strong> is a required field on bake stages.',
         },
+        {
+          type: 'requiredField',
+          fieldName: 'regions',
+          message: 'You must select at least one region on bake stages.',
+        }
       ],
     });
   })
@@ -23,6 +28,8 @@ angular.module('deckApp.pipelines.stage.bake')
     var ctrl = this;
 
     $scope.stage = stage;
+
+    stage.regions = stage.regions || [];
 
     if (!$scope.stage.user) {
       $scope.stage.user = authenticationService.getAuthenticatedUser().name;

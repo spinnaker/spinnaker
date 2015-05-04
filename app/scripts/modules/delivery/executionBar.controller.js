@@ -40,13 +40,15 @@ angular.module('deckApp.delivery.executionBar.controller', [
     };
 
     controller.toggleDetails = function(executionId, stageIndex) {
+      var stageSummary = $scope.execution.stageSummaries[stageIndex],
+          masterIndex = stageSummary.masterStageIndex;
       if ($state.includes('**.execution', {executionId: executionId, stage: stageIndex})) {
         $state.go('^');
       } else {
         if ($state.includes('**.execution')) {
-          $state.go('^.execution', {executionId: executionId, stage: stageIndex, step: 0});
+          $state.go('^.execution', {executionId: executionId, stage: stageIndex, step: masterIndex});
         } else {
-          $state.go('.execution', {executionId: executionId, stage: stageIndex, step: 0});
+          $state.go('.execution', {executionId: executionId, stage: stageIndex, step: masterIndex});
         }
       }
     };

@@ -87,6 +87,28 @@ angular.module('deckApp.help')
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
 
+    'pipeline.config.canary.clusterPairs': '' +
+      '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
+      '<p>The version currently deployed in the baseline cluster will be used to create a new baseline server group, while the version created in the previous bake or Find AMI stage will be deployed into the canary.</p>',
+
+    'pipeline.config.canary.resultStrategy': '' +
+      '<p>The result stategy is used to determine how to roll up a score if multiple clusters are participating in the canary.</p>' +
+      '<p>The <em>lowest</em> strategy means that the cluster with the lowest score is used as the rolled up score</p>' +
+      '<p>The <em>average</em> strategy takes the average of all the canary scores</p>',
+
+    'pipeline.config.canary.delayBeforeAnalysis': '<p>The number of minutes to wait before generating an initial canary score.</p>',
+
+    'pipeline.config.canary.notificationHours': '<p>Hours at which to send a notification (comma separated)</p>',
+
+    'pipeline.config.canary.canaryInterval': '<p>The frequency in minutes at which a canary score is generated.</p>',
+
+    'pipeline.config.canary.successfulScore': '<p>Minimum score the canary must achieve to be considered successful.</p>',
+    'pipeline.config.canary.unhealthyScore': '<p>Lowest score the canary can attain before it is aborted and disabled as a failure.</p>',
+    'pipeline.config.canary.scaleUpCapacity': '<p>Desired capacity after canary and control clusters are scaled up</p>',
+    'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
+    'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
+
+
     'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
       '<ul>' +
       '<li>For <b>AWS</b>, a server group is an <b>Auto Scaling Group</b>.</li>' +
@@ -94,6 +116,8 @@ angular.module('deckApp.help')
       '</ul>',
 
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
+    'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
+
 
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
       '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',

@@ -1,0 +1,23 @@
+<svg ng-style="{height: graphHeight, width: '100%', padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px'}">
+  <g class="placeholder">
+    <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
+      <div class="label-body node active"></div>
+    </foreignobject>
+  </g>
+  <g ng-repeat="node in allNodes" ng-class="{active: node.isActive, highlighted: node.isHighlighted}" ng-attr-transform="translate({{node.x}},{{node.y}})">
+    <path ng-repeat="link in node.childLinks" ng-attr-d="{{link.line}}" class="link {{link.className}}"
+          ng-attr-transform="translate({{0-node.x}}, {{0-node.y}})"></path>
+
+    <circle ng-attr-r="{{nodeRadius}}"
+            class="clickable"
+            ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+            ng-click="nodeClicked(node)"></circle>
+
+    <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
+                   ng-attr-transform="translate({{labelOffsetX}}, -{{labelOffsetY}})">
+        <div class="label-body node"
+             ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+             ng-click="nodeClicked(node)"><a href>{{node.name}}</a></div>
+    </foreignobject>
+  </g>
+</svg>

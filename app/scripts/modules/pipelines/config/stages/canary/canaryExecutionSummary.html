@@ -1,0 +1,51 @@
+<div>
+  <h4 class="execution-details-title">
+    {{stageSummary.name || stageSummary.type }} Details
+
+    <span style="margin-left: 10px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">
+        {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
+      </span>
+
+    <div dropdown class="btn-group pull-right">
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" ng-disabled="disabled">
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href="#">Generate canary score</a></li>
+        <li><a href="#">Disable canaries</a></li>
+      </ul>
+    </div>
+  </h4>
+  <table class="table canary-summary">
+    <thead>
+    <tr>
+      <th width="50%">Deployment</th>
+      <th width="50%">Score</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr class="clickable"
+        ng-class="{ info: ctrl.isStepCurrent(stageSummary.masterStageIndex) }"
+        ng-click="ctrl.toggleDetails(stageSummary.masterStageIndex)">
+      <td><strong>Canary Summary</strong></td>
+      <td>
+        <canary-score result="stageSummary.masterStage.context.canary.canaryResult.overallResult"
+                      score="stageSummary.masterStage.context.canary.canaryResult.overallScore"></canary-score>
+      </td>
+    </tr>
+    <tr class="clickable canary-deployment-row"
+        ng-repeat="stage in stageSummary.stages"
+        ng-class="{ info: ctrl.isStepCurrent($index) }"
+        ng-if="stage.type === 'canaryDeployment'"
+        ng-click="ctrl.toggleDetails($index)">
+      <td>{{ stage.name }}</td>
+      <td>
+        <canary-score result="stage.context.status.result"
+                      health="stage.context.status.health"
+                      score="stage.context.status.score"></canary-score>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

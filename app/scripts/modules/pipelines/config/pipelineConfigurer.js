@@ -13,12 +13,27 @@ angular.module('deckApp.pipelines')
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache,
+                                                 settings) {
 
     var configViewStateCache = viewStateCache.pipelineConfig;
 
     function buildCacheKey() {
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.name);
+    }
+
+    if (settings.feature.parallelPipelines && !$scope.pipeline.stageCounter && $scope.pipeline.stages.length && !$scope.pipeline.stages[0].refId) {
+      $scope.pipeline.stageCounter = 0;
+      $scope.pipeline.stages.forEach(function(stage) {
+        $scope.pipeline.stageCounter++;
+        stage.refId = $scope.pipeline.stageCounter;
+        if (stage.refId > 1) {
+          stage.requisiteStageRefIds = [$scope.pipeline.stageCounter - 1];
+        } else {
+          stage.requisiteStageRefIds = [];
+        }
+      });
+      $scope.pipeline.stageCounter = $scope.pipeline.stages.length;
     }
 
     $scope.viewState = configViewStateCache.get(buildCacheKey()) || {
@@ -28,6 +43,8 @@ angular.module('deckApp.pipelines')
       originalPipelineName: $scope.pipeline.name,
       saving: false,
     };
+
+    $scope.viewState.parallelPipelinesEnabled = !!settings.feature.parallelPipelines;
 
     this.deletePipeline = function() {
       $modal.open({
@@ -42,8 +59,17 @@ angular.module('deckApp.pipelines')
     };
 
     this.addStage = function() {
+      var newStage = { isNew: true };
       $scope.pipeline.stages = $scope.pipeline.stages || [];
-      $scope.pipeline.stages.push({ isNew: true });
+      if (settings.feature.parallelPipelines) {
+        $scope.pipeline.stageCounter++;
+        newStage.requisiteStageRefIds = [];
+        newStage.refId = $scope.pipeline.stageCounter;
+        if ($scope.pipeline.stages.length && $scope.viewState.section === 'stage') {
+          newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.viewState.stageIndex].refId);
+        }
+      }
+      $scope.pipeline.stages.push(newStage);
       this.navigateToStage($scope.pipeline.stages.length - 1);
     };
 
@@ -117,8 +143,11 @@ angular.module('deckApp.pipelines')
       }
     };
 
-    this.navigateTo = function(section) {
+    this.navigateTo = function(section, index) {
       $scope.viewState.section = section;
+      if (section === 'stage') {
+        ctrl.navigateToStage(index);
+      }
     };
 
     this.isActive = function(section) {
@@ -130,8 +159,14 @@ angular.module('deckApp.pipelines')
     };
 
     this.removeStage = function(stage) {
+      console.warn('REMOVING STAGE I HOPE YOU WANT THIS.');
       var stageIndex = $scope.pipeline.stages.indexOf(stage);
       $scope.pipeline.stages.splice(stageIndex, 1);
+      $scope.pipeline.stages.forEach(function(test) {
+        if (stage.refId && test.requisiteStageRefIds) {
+          test.requisiteStageRefIds = _.without(test.requisiteStageRefIds, stage.refId);
+        }
+      });
       if (stageIndex > 0) {
         $scope.viewState.stageIndex--;
       }
@@ -202,6 +237,9 @@ angular.module('deckApp.pipelines')
       $scope.viewState.isDirty = $scope.viewState.original !== angular.toJson(getPlain($scope.pipeline));
       if ($scope.viewState.isDirty) {
         dirtyPipelineTracker.add($scope.pipeline.name);
+//        console.warn('dirty:');
+//        console.warn($scope.viewState.original);
+//        console.warn(angular.toJson(getPlain($scope.pipeline)));
       } else {
         dirtyPipelineTracker.remove($scope.pipeline.name);
       }

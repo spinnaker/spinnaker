@@ -90,16 +90,31 @@
     .label-failed {
       background-color: @unhealthy_red;
     }
-    .label-running {
+    .label-running, .label-launched {
       background-color: @spinnaker-blue;
     }
     .label {
       text-transform: uppercase;
+      border-radius: 0;
       color: #fff;
       font-weight: 600;
       .glyphicon {
         color: #ffffff;
       }
+    }
+  }
+}
+
+.canary-config-view {
+  h4 {
+    margin: 20px 0 20px 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid @mid_lighter_grey;
+  }
+  .sm-label-left, label {
+    padding-right: 5px;
+    b {
+      font-weight: 600;
     }
   }
 }
@@ -252,5 +267,77 @@
   }
   .stage.not_started {
     fill: #ffffff !important;
+  }
+}
+
+path.link {
+  fill: none;
+  stroke: #CCC;
+  stroke-width: 1.5px;
+  &.active {
+    &.target {
+      stroke: @healthy_green;
+    }
+    &.source {
+      stroke: @spinnaker-blue;
+    }
+    stroke-width: 4px;
+  }
+  &.highlighted {
+    &.target {
+      stroke: lighten(@healthy_green, 10);
+    }
+    &.source {
+      stroke: lighten(@spinnaker-blue, 25);
+    }
+    stroke-width: 2.5px;
+  }
+}
+
+g.connected {
+  circle {
+    fill: @mid_lighter_grey;
+  }
+}
+
+g.active, g.highlighted {
+  circle {
+    fill: @healthy_green_border;
+  }
+}
+
+g {
+  circle {
+    fill: @mid_light_grey;
+  }
+}
+
+svg {
+  g {
+    div.label-body {
+      background-color: transparent;
+      text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, 0 -1px 0 #fff, -1px 0 0 #fff;
+      line-height: 14px;
+      word-wrap: break-word;
+      a {
+        color: lighten(@text-color, 60);
+        &:hover {
+          text-decoration: none;
+        }
+      }
+    }
+    &.active, &.highlighted {
+      div.label-body {
+        a {
+          color: @text-color;
+        }
+        font-weight: 600;
+      }
+    }
+    &.highlighted {
+      div.label-body {
+        font-weight: 400;
+      }
+    }
   }
 }

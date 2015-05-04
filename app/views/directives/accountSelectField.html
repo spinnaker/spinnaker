@@ -1,8 +1,12 @@
+<div>
 <select class="form-control input-sm"
         ng-model="component[field]"
         ng-change="onChange()"
+        ng-if="!readOnly"
         required>
   <option ng-repeat="account in primaryAccounts" value="{{account}}" ng-selected="component[field] === account">{{account}}</option>
   <option ng-if="primaryAccounts.length && secondaryAccounts.length" disabled>---------------</option>
   <option ng-repeat="account in secondaryAccounts" value="{{account}}" ng-selected="component[field] === account">{{account}}</option>
 </select>
+  <p class="form-control-static" ng-if="readOnly">{{component[field]}}</p>
+</div>

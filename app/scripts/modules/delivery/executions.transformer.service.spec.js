@@ -9,6 +9,24 @@ describe('executionsService', function() {
   }));
 
   describe('transformExecution', function() {
+    it('should flatten stages into summaries', function() {
+      var execution = {
+        stages: [
+          { id: 'a', name: 'a' },
+          { id: 'b', name: 'b', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'c', name: 'c', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'd', name: 'd', parentStageId: 'a', syntheticStageOwner: 'STAGE_AFTER' },
+          { id: 'e', name: 'e', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'f', name: 'f', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
+        ]
+      };
+
+      this.transformer.transformExecution(execution);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e','f','b','c','a','g','d','h']);
+    });
+
     it('should group stages into summaries when no synthetic stages added', function() {
       var execution = {
         stages: [
@@ -92,10 +110,12 @@ describe('executionsService', function() {
       expect(summary.startTime).toBe(7);
       expect(summary.endTime).toBeUndefined();
 
-      expect(summary.stages.length).toBe(2);
+      expect(summary.stages.length).toBe(5);
 
-      var nested = summary.stages[1];
+      var nested = summary.stages[2];
 
+      expect(_.pluck(summary.stages, 'id')).toEqual(['1','3','2','4','5']);
+      expect(nested.id).toBe('2');
       expect(nested.status).toBe('RUNNING');
       expect(nested.startTime).toBe(7);
       expect(nested.endTime).toBeUndefined();

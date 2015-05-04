@@ -351,6 +351,9 @@ body > .container {
 }
 
 .sm-label, .sm-label-left, .sm-label-right {
+  &.compact {
+    line-height: 20px;
+  }
   line-height: 30px;
   font-weight: bold;
   text-align: right;
@@ -424,9 +427,8 @@ body > .container {
   border: 1px dashed #a5a5a5;
   color: #a5a5a5;
   padding: 8px;
-  margin: 4px;
+  margin: 5px 0 20px;
   cursor: pointer;
-  margin-bottom: 20px;
   background-color: transparent;
 
   &:hover, &:focus, &:active {
@@ -903,6 +905,26 @@ body, html {
           display: -webkit-flex;
         }
       }
+    }
+  }
+}
+
+.ui-select-multiple {
+  .select2-drop {
+    width: calc(~"100% - 30px");
+    margin-left: 1px;
+  }
+}
+.select2-results {
+  .select2-disabled {
+    background-color: transparent;
+    opacity: 0.5;
+    &:hover, &.select2-highlighted {
+      background-color: transparent;
+    }
+    .select2-result-label {
+      cursor: default;
+      background-color: transparent;
     }
   }
 }

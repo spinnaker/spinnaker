@@ -7,8 +7,10 @@
   <div class="col-md-7" ng-if="region">
     <select class="form-control input-sm" ng-model="component[field]"
             ng-change="onChange()"
+            ng-if="!readOnly"
             ng-options="subnet.purpose as subnet.label for subnet in subnets | orderBy: 'label'">
       <option value="">None (EC2 Classic)</option>
     </select>
+    <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
   </div>
 </div>

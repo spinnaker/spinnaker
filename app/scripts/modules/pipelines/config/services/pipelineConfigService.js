@@ -69,6 +69,44 @@ angular.module('deckApp.pipelines.config.service', [
         .customPOST(body, pipelineName);
     }
 
+    function getDownstreamStageIds(pipeline, stage) {
+      var downstream = [];
+      var children = pipeline.stages.filter(function(stageToTest) {
+        return stageToTest.requisiteStageRefIds &&
+               stageToTest.requisiteStageRefIds.indexOf(stage.refId) !== -1;
+      });
+      if (children.length) {
+        downstream = _.pluck(children, 'refId');
+        children.forEach(function(child) {
+          downstream = downstream.concat(getDownstreamStageIds(pipeline, child));
+        });
+      }
+      return _(downstream).compact().uniq().value();
+    }
+
+    function getDependencyCandidateStages(pipeline, stage) {
+      var downstreamIds = getDownstreamStageIds(pipeline, stage);
+      return pipeline.stages.filter(function(stageToTest) {
+        return stage !== stageToTest &&
+          stageToTest.requisiteStageRefIds &&
+          downstreamIds.indexOf(stageToTest.refId) === -1 &&
+          stage.requisiteStageRefIds.indexOf(stageToTest.refId) === -1;
+      });
+    }
+
+    function getAllUpstreamDependencies(pipeline, stage) {
+      var upstreamStages = [];
+      if (stage.requisiteStageRefIds  && stage.requisiteStageRefIds.length) {
+        pipeline.stages.forEach(function(stageToTest) {
+          if (stage.requisiteStageRefIds.indexOf(stageToTest.refId) !== -1) {
+            upstreamStages.push(stageToTest);
+            upstreamStages = upstreamStages.concat(getAllUpstreamDependencies(pipeline, stageToTest));
+          }
+        });
+      }
+      return _.uniq(upstreamStages);
+    }
+
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       savePipeline: savePipeline,
@@ -76,6 +114,8 @@ angular.module('deckApp.pipelines.config.service', [
       renamePipeline: renamePipeline,
       triggerPipeline: triggerPipeline,
       buildViewStateCacheKey: buildViewStateCacheKey,
+      getDependencyCandidateStages: getDependencyCandidateStages,
+      getAllUpstreamDependencies: getAllUpstreamDependencies,
     };
 
   });

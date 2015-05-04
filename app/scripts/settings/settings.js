@@ -75,6 +75,8 @@ angular.module('deckApp.settings', [])
     authEnabled: false,
     feature: {
       notifications: false,
+      canary: true,
+      parallelPipelines: true,
     },
 
 

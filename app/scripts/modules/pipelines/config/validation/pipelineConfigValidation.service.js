@@ -2,31 +2,25 @@
 
 angular.module('deckApp.pipelines.config.validator.service', [
   'deckApp.pipelines.config',
+  'deckApp.pipelines.config.service',
   'deckApp.utils.lodash',
+  'deckApp.settings',
 ])
-  .factory('pipelineConfigValidator', function(pipelineConfig, $log, _) {
+  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, settings) {
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
         var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
-        for (var i = 0; i < index; i++) {
-          if (stageTypes.indexOf(pipeline.stages[i].type) !== -1) {
+        var stagesToTest = pipeline.stages.slice(0, index+1);
+        if (settings.feature.parallelPipelines) {
+          stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
+        }
+        for (var i = 0; i < stagesToTest.length; i++) {
+          if (stageTypes.indexOf(stagesToTest[i].type) !== -1) {
             return;
           }
         }
         messages.push(validationConfig.message);
-      },
-      stageBeforeMethod: function(pipeline, index, validationConfig, messages) {
-        if (index === 0) {
-          return;
-        }
-        var thisStage = pipeline.stages[index],
-            beforeStage = pipeline.stages[index-1];
-
-        var validationMessage = validationConfig.validate(beforeStage, thisStage);
-        if (validationMessage) {
-          messages.push(validationMessage);
-        }
       },
       checkRequiredField: function(stage, validationConfig, messages) {
         var field = stage,
@@ -41,7 +35,11 @@ angular.module('deckApp.pipelines.config.validator.service', [
           field = field[part];
         });
 
-        if (fieldNotFound || (!field && field !== 0)) {
+        
+        if (fieldNotFound ||
+          (!field && field !== 0) ||
+          (field && field instanceof Array && field.length === 0)
+          ) {
           messages.push(validationConfig.message);
         }
       },

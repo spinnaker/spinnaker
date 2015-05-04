@@ -4,14 +4,23 @@ angular.module('deckApp.pipelines.config', [])
   .provider('pipelineConfig', function() {
 
     var triggerTypes = [],
-        stageTypes = [];
+        stageTypes = [],
+        transformers = [];
 
     function registerTrigger(triggerConfig) {
       triggerTypes.push(triggerConfig);
     }
 
+    function registerTransformer(transformer) {
+      transformers.push(transformer);
+    }
+
     function registerStage(stageConfig) {
       stageTypes.push(stageConfig);
+    }
+
+    function getExecutionTransformers() {
+      return transformers;
     }
 
     function getTriggerTypes() {
@@ -41,6 +50,8 @@ angular.module('deckApp.pipelines.config', [])
         getStageTypes: getStageTypes,
         getStageConfig: getStageConfig,
         getConfigurableStageTypes: getConfigurableStageTypes,
+        getExecutionTransformers: getExecutionTransformers,
+        registerTransformer: registerTransformer,
       };
     };
 

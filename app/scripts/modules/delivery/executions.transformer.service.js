@@ -3,10 +3,14 @@
 angular.module('deckApp.delivery.executionTransformer.service', [
   'deckApp.orchestratedItem.service',
   'deckApp.utils.lodash',
+  'deckApp.pipelines.config',
 ])
-  .factory('executionsTransformer', function(orchestratedItem, _) {
+  .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 
     function transformExecution(execution) {
+      pipelineConfig.getExecutionTransformers().forEach(function(transformer) {
+        transformer.transform(execution);
+      });
       var stageSummaries = [];
 
       execution.stages.forEach(function(stage, index) {
@@ -38,6 +42,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
             name: stage.name,
             id: stage.id,
             masterStage: stage,
+            type: stage.type,
             before: stage.before,
             after: stage.after,
             status: stage.status
@@ -51,6 +56,31 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       execution.stageSummaries = stageSummaries;
       execution.currentStages = getCurrentStages(execution);
 
+    }
+
+    function flattenStages(stages, stage) {
+      if (stage.before && stage.before.length) {
+        stage.before.forEach(function(beforeStage) {
+          stages = flattenStages(stages, beforeStage);
+        });
+      }
+      if (stage.masterStage) {
+        stages.push(stage.masterStage);
+      } else {
+        stages.push(stage);
+      }
+      if (stage.after && stage.after.length) {
+        stage.after.forEach(function(afterStage) {
+          stages = flattenStages(stages, afterStage);
+        });
+      }
+      return stages;
+    }
+
+    function flattenAndFilter(stage) {
+      return flattenStages([], stage).filter(function(stage) {
+        return stage.type !== 'initialization' && stage.initializationStage !== true;
+      });
     }
 
     function getCurrentStages(execution) {
@@ -70,15 +100,12 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     }
 
     function transformStage(stage) {
-      var stages = stage.before.concat([stage.masterStage || stage]).concat(stage.after).filter(function(stage) {
-        return stage.type !== 'initialization' && stage.initializationStage !== true;
-      });
+      var stages = flattenAndFilter(stage);
 
       if (!stages.length) {
         return;
-      } else {
-        stage.type = stages[0].type;
       }
+
       var lastStage = stages[stages.length - 1];
       stage.startTime = stages[0].startTime;
 
@@ -102,10 +129,9 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     }
 
     function transformStageSummary(summary) {
-      summary.stages = summary.before.concat([summary.masterStage]).concat(summary.after).filter(function(stage) {
-        return stage.type !== 'initialization' && stage.initializationStage !== true;
-      });
+      summary.stages = flattenAndFilter(summary);
       summary.stages.forEach(transformStage);
+      summary.masterStageIndex = summary.stages.indexOf(summary.masterStage);
       transformStage(summary);
       orchestratedItem.defineProperties(summary);
     }
