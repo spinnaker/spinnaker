@@ -1,0 +1,209 @@
+<form class="form-horizontal canary-config-view">
+  <h4>Canary Config</h4>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Name</b>
+    </div>
+    <div class="col-md-3">
+      <input type="text" required ng-model="stage.canaryConfig.name"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Canary Lifetime</b>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.canaryConfig.lifetimeHours"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 form-control-static">
+      hours
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Result Strategy</b>
+      <help-field key="pipeline.config.canary.resultStrategy"></help-field>
+    </div>
+    <div class="col-md-3">
+      <select class="form-control input-sm"
+              ng-model="stage.canaryConfig.combinedCanaryResultStrategy">
+        <option value="LOWEST">lowest</option>
+        <option value="AGGREGATE">average</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Successful Score</b>
+      <help-field key="pipeline.config.canary.successfulScore"></help-field>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.canaryConfig.canarySuccessCriteria.canaryResultScore"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Unhealthy Score</b>
+      <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="checkbox col-md-offset-1">
+    <label>
+      <input type="checkbox" ng-model="stage.scaleUp.enabled"/>
+      <b>Scale Up Canary</b>
+      <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
+    </label>
+  </div>
+  <div class="form-group" ng-if="stage.scaleUp.enabled" style="margin-top: 10px;">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Capacity</b>
+      <help-field key="pipeline.config.canary.scaleUpCapacity"></help-field>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.scaleUp.capacity"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Scale Up Delay</b>
+      <help-field key="pipeline.config.canary.scaleUpDelay"></help-field>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.scaleUp.delay"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-1 form-control-static">minutes</div>
+  </div>
+
+  <h4>Analysis Config</h4>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Name</b><help-field key="pipeline.config.canary.canaryConfigurationName"></help-field>
+    </div>
+    <div class="col-md-3">
+      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.name"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Delay</b>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-5 form-control-static">
+      minutes before starting analysis <help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Notification Hours</b><help-field key="pipeline.config.canary.notificationHours"></help-field>
+    </div>
+    <div class="col-md-3">
+      <input type="text" required ng-model="notificationHours"
+             class="form-control input-sm" ng-change="canaryStageCtrl.splitNotificationHours()" />
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Frequency</b><help-field key="pipeline.config.canary.canaryInterval"></help-field>
+    </div>
+    <div class="col-md-1">
+      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
+             class="form-control input-sm" />
+    </div>
+    <div class="col-md-2 form-control-static">
+      minutes
+    </div>
+  </div>
+  <h4>Owner</h4>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Name</b>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.owner.name"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Email</b>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.owner.email"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <h4>Baseline Version<help-field key="pipeline.config.canary.baselineVersion"></help-field></h4>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Account</b>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.baseline.account"
+             class="form-control input-sm" />
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Cluster</b>
+    </div>
+    <div class="col-md-6">
+      <input type="text" required ng-model="stage.baseline.cluster"
+             class="form-control input-sm" />
+    </div>
+  </div>
+
+</form>
+<div class="well well-sm clearfix" style="margin-top: 20px">
+  <h4>Cluster Pairs <help-field key="pipeline.config.canary.clusterPairs"></help-field></h4>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Canary Cluster</th>
+        <th>Baseline Cluster</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="clusterPair in stage.clusterPairs">
+        <td>
+          <account-tag account="clusterPair.baseline.account"></account-tag>
+          {{canaryStageCtrl.getRegion(clusterPair.baseline)}}
+        </td>
+        <td>
+          {{canaryStageCtrl.getClusterName(clusterPair.canary)}}
+          <br/>
+          <a href ng-click="canaryStageCtrl.editCluster(clusterPair.canary, $index, 'Canary')">Edit</a>
+        </td>
+        <td>
+          {{canaryStageCtrl.getClusterName(clusterPair.baseline)}}
+          <br/>
+          <a href ng-click="canaryStageCtrl.editCluster(clusterPair.baseline, $index, 'Baseline')">Edit</a>
+        </td>
+        <td>
+          <a href ng-click="canaryStageCtrl.deleteClusterPair($index);">
+            <span class="glyphicon glyphicon-trash" tooltip="Delete Cluster Pair"></span>
+          </a>
+        </td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">
+          <button class="btn btn-block btn-sm add-new" ng-click="canaryStageCtrl.addClusterPair()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add cluster
+          </button>
+        </td>
+      </tr>
+    </tfoot>
+  </table>
+</div>

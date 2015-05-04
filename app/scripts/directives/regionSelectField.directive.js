@@ -15,6 +15,7 @@ angular.module('deckApp')
         onChange: '&',
         labelColumns: '@',
         fieldColumns: '@',
+        readOnly: '=',
       },
       link: function(scope) {
         function groupRegions(regions) {

@@ -236,6 +236,9 @@ angular.module('deckApp.pipelines')
       $scope.viewState.isDirty = $scope.viewState.original !== angular.toJson(getPlain($scope.pipeline));
       if ($scope.viewState.isDirty) {
         dirtyPipelineTracker.add($scope.pipeline.name);
+//        console.warn('dirty:');
+//        console.warn($scope.viewState.original);
+//        console.warn(angular.toJson(getPlain($scope.pipeline)));
       } else {
         dirtyPipelineTracker.remove($scope.pipeline.name);
       }

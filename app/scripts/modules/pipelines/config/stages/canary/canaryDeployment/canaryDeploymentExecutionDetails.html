@@ -1,0 +1,72 @@
+<div class="canary-details" ng-controller="CanaryDeploymentExecutionDetailsCtrl as canaryDeploymentDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+
+  <div class="step-section-details" ng-if="detailsSection === 'canaryDeployment'">
+    <div class="row">
+      <div class="col-md-12 canary-summary">
+        <div class="score score-large">
+          <canary-score health="stage.context.status.health"
+                        result="stage.context.status.result"
+                        score="stage.context.status.score"></canary-score>
+        </div>
+        <div class="canary-summary-section">
+            <strong>Last updated: </strong>
+            {{ 1429126669006 | timestamp}}
+            <br/>
+            <a target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
+        </div>
+      </div>
+    </div>
+    <div class="row divider"></div>
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Baseline</h5>
+
+        <div><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
+        <div>{{deployment.baselineCluster.imageId}}</div>
+      </div>
+      <div class="col-md-6">
+        <h5>Canary</h5>
+
+        <div><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>
+        <div>{{deployment.canaryCluster.imageId}}</div>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 30px">
+      <div class="col-md-12">
+        <h5>Deployment Config</h5>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="deployment.baselineCluster.accountName"></account-tag>
+          </dd>
+          <dt>Region</dt>
+          <dd>{{deployment.baselineCluster.region}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.baseClusterName }}</dd>
+        </dl>
+      </div>
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Capacity</dt>
+          <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
+          <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">
+            Min: {{stage.context.capacity.min}},
+            Max: {{stage.context.capacity.max}},
+            Desired: {{stage.context.capacity.desired}}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

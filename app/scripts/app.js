@@ -66,6 +66,7 @@ angular.module('deckApp', [
     'deckApp.pipelines.trigger.jenkins',
     'deckApp.pipelines.stage',
     'deckApp.pipelines.stage.bake',
+    'deckApp.pipelines.stage.canary',
     'deckApp.pipelines.stage.deploy',
     'deckApp.pipelines.stage.script',
     'deckApp.pipelines.stage.wait',

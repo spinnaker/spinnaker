@@ -90,16 +90,31 @@
     .label-failed {
       background-color: @unhealthy_red;
     }
-    .label-running {
+    .label-running, .label-launched {
       background-color: @spinnaker-blue;
     }
     .label {
       text-transform: uppercase;
+      border-radius: 0;
       color: #fff;
       font-weight: 600;
       .glyphicon {
         color: #ffffff;
       }
+    }
+  }
+}
+
+.canary-config-view {
+  h4 {
+    margin: 20px 0 20px 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid @mid_lighter_grey;
+  }
+  .sm-label-left, label {
+    padding-right: 5px;
+    b {
+      font-weight: 600;
     }
   }
 }

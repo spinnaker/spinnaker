@@ -78,6 +78,82 @@ body, html {
     .execution-details-title {
       text-transform: uppercase;
       font-weight: 600;
+      .btn-group {
+        margin-left: 20px;
+        text-transform: none;
+      }
+    }
+
+    .score {
+      &.label-failing {
+        background-color: @unhealthy_orange;
+      }
+      &.label-healthy {
+        background-color: @healthy_green_border;
+      }
+      &.label-unhealthy {
+        background-color: @unhealthy_red;
+      }
+      &.label-unknown {
+        background-color: @unknown-label-color;
+      }
+    }
+
+    .canary-summary {
+      .canary-deployment-row {
+        td:first-child {
+          padding-left: 20px;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .canary-details {
+      h4 {
+        margin-bottom: 10px;
+        border-bottom: 1px solid @mid_lighter_grey;
+      }
+      .canary-config-section {
+        margin-bottom: 20px;
+      }
+
+      .canary-summary {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        align-items: center;
+        display: flex;
+        border-bottom: 1px solid @mid_lighter_grey;
+
+        & > div {
+          display: flex;
+          flex: 4 0 20px;
+          margin-right: 15px;
+          &.canary-summary-section {
+            display: block;
+          }
+          &.score-large {
+            flex: 0 0 50px;
+            height: 48px;
+            .score {
+              line-height: 48px;
+              width: 48px;
+              height: 48px;
+              font-size: 175%;
+            }
+          }
+        }
+      }
+      .score {
+        padding: 0;
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+      }
+
+      h5 {
+        margin: 0;
+      }
     }
 
     tbody {
