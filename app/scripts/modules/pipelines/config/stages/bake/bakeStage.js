@@ -24,6 +24,8 @@ angular.module('deckApp.pipelines.stage.bake')
 
     $scope.stage = stage;
 
+    stage.regions = stage.regions || [];
+
     if (!$scope.stage.user) {
       $scope.stage.user = authenticationService.getAuthenticatedUser().name;
     }
