@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.gate.services.internal.MineService
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 /**
@@ -23,16 +24,25 @@ import org.springframework.stereotype.Component
  * @author sthadeshwar
  */
 @Component
+@CompileStatic
 class CanaryService {
 
   @Autowired(required = false)
   MineService mineService
 
-  void generateCanaryScore(String canaryId, int duration, String durationUnit) {
-    mineService?.generateCanaryScore(canaryId, duration, durationUnit)
+  void generateCanaryResult(String canaryId, int duration, String durationUnit) {
+    mineService?.generateCanaryResult(canaryId, duration, durationUnit)
   }
 
   List<Map> getCanaryAnalysisHistory(String canaryDeploymentId) {
-    mineService ? mineService.listCanaryAnalysisHistory(canaryDeploymentId) : []
+    mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
+  }
+
+  Map overrideCanaryResult(String canaryId, String result, String reason) {
+    mineService ? mineService.overrideCanaryResult(canaryId, result, reason) : [:]
+  }
+
+  Map showCanary(String canaryId) {
+    mineService ? mineService.showCanary(canaryId) : [:]
   }
 }

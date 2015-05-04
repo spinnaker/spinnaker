@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services.internal
 import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.POST
+import retrofit.http.PUT
 import retrofit.http.Path
 import retrofit.http.Query
 /**
@@ -26,12 +27,20 @@ import retrofit.http.Query
  */
 public interface MineService {
 
-  @POST("/canaries/{id}/generateCanaryScore")
-  Response generateCanaryScore(@Path("id") String id,
-                               @Query("duration") int duration,
-                               @Query("durationUnit") String durationUnit)
+  @PUT("/canaries/{id}")
+  Map showCanary(@Path("id") String canaryId)
+
+  @POST("/canaries/{id}/generateCanaryResult")
+  Response generateCanaryResult(@Path("id") String id,
+                                @Query("duration") int duration,
+                                @Query("durationUnit") String durationUnit)
+
+  @PUT("/canaries/{id}/overrideCanaryResult/{result}")
+  Map overrideCanaryResult(@Path("id") String canaryId,
+                           @Path("result") String result,
+                           @Query("reason") String reason)
 
   @GET("/canaryDeployments/{id}/canaryAnalysisHistory")
-  List<Map> listCanaryAnalysisHistory(@Path("id") String canaryDeploymentId)
+  List<Map> getCanaryAnalysisHistory(@Path("id") String canaryDeploymentId)
 
 }
