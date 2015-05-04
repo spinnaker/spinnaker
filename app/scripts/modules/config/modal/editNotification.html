@@ -6,26 +6,21 @@
 
   <form role="form" class="container-fluid" novalidate name="editNotificationForm">
     <div class="modal-body">
-
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left" id="type">Notify via:</div>
         <div class="col-sm-9">
-          <input type="text"
-                 class="form-control input-sm"
-                 ng-model="editNotification.notification.type"
-                 id="pagerDutyApiKey">
-          </input>
+          <select class="input-sm"
+                  ng-options="t as t for t in editNotification.types"
+                  ng-model="editNotification.notification.type">
+          </select>
         </div>
       </div>
-
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left">Details</div>
+        <div class="col-sm-3 sm-label-left">Address: </div>
         <div class="col-sm-9">
-          <input type="email"
-                 name="email"
-                 ng-class="{'ng-invalid ng-dirty':newAppModal.emailErrorMsg.length > 0 }"
+          <input type="address"
+                 name="address"
                  class="form-control input-sm "
-                 data-purpose="application-email"
                  ng-model="editNotification.notification.address"
                  placeholder="Enter an email address"
                  required
@@ -33,7 +28,6 @@
           </input>
         </div>
       </div>
-
       <div class="form-group row slide-in animated" ng-if="editApplicationForm.email.$dirty && editApplicationForm.email.$invalid">
         <div class="col-sm-9 col-sm-offset-3 error-message">
           <span>Please enter a valid email address</span>
@@ -47,15 +41,20 @@
       </div>
 
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left">When</div>
-          <label class="col-sm-offset-3 col-sm-9 checkbox-inline" ng-repeat="wo in editNotification.whenOptions">
+        <div class="col-sm-3 sm-label-left">When:</div>
+        <div class="col-sm-9">
+          <label class="col-sm-9" ng-repeat="wo in editNotification.whenOptions">
             <input
               type="checkbox"
               name="when"
               value="{{wo}}"
+              ng-model="editNotification.selectedWhenOptions[wo]"
               ng-checked="editNotification.notification.when.indexOf(wo) > -1">
             {{wo}}
           </label>
+        </div>
+
+        {{editNotification.selectedWhenOptions}}
         </div>
       </div>
     </div>
@@ -72,8 +71,7 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="!editApplicationForm.$valid || editApp.submitting"
-              ng-click="editApp.submit()">
+              ng-click="editNotification.submit()">
         <span class="glyphicon glyphicon-ok-circle"></span> Update
       </button>
     </div>

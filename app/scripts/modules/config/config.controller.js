@@ -15,21 +15,6 @@ angular
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
     vm.error = '';
 
-    notificationService.getNotificationsForApplication(application.name).then(function (notifications) {
-      vm.notifications = _.filter(_.flatten(_.map(['email', 'sms', 'hipchat'],
-        function (type) {
-          if (notifications[type]) {
-            return _.map(notifications[type], function (entry) {
-                return _.extend(entry, {type: type});
-              }
-            );
-          }
-        }
-      )), function (allow) {
-        return allow !== undefined;
-      });
-    });
-
     vm.editApplication = function () {
       $modal.open({
         templateUrl: 'scripts/modules/config/modal/editApplication.html',
@@ -107,7 +92,7 @@ angular
     };
 
     vm.editNotification = function (notification) {
-      $modal.open({
+      var modalInstance = $modal.open({
         templateUrl: 'scripts/modules/config/modal/editNotification.html',
         controller: 'EditNotificationController',
         controllerAs: 'editNotification',
@@ -117,15 +102,51 @@ angular
           }
         }
       });
+
+      modalInstance.result.then(function (notifications) {
+
+          var oldNotification = notifications[0];
+          var newNotification = notifications[1];
+
+          debugger;
+
+
+          if (oldNotification === undefined) {
+            vm.notifications.push(newNotification);
+          } else {
+            vm.notifications[vm.notifications.indexOf(oldNotification)] = newNotification;
+          }
+        }
+      );
+
     };
 
-    vm.addNotification = function(){
-      vm.editNotification([]);
+    vm.addNotification = function () {
+      vm.editNotification(undefined);
     };
 
-    vm.updateNotifications = function(){
+    vm.updateNotifications = function () {
 
     };
+
+    vm.revertNotificationChanges = function(){
+      notificationService.getNotificationsForApplication(application.name).then(function (notifications) {
+        vm.notifications = _.filter(_.flatten(_.map(['email', 'sms', 'hipchat'],
+          function (type) {
+            if (notifications[type]) {
+              return _.map(notifications[type], function (entry) {
+                  return _.extend(entry, {type: type});
+                }
+              );
+            }
+          }
+        )), function (allow) {
+          return allow !== undefined;
+        });
+      });
+    };
+
+    vm.revertNotificationChanges();
 
     return vm;
 
