@@ -3,6 +3,7 @@ build/
 *.iml
 *.ipr
 *.iws
+out/
 /.idea/
 gate-manual/src/main/resources/static/manual
 *.rdb
