@@ -59,9 +59,17 @@ angular.module('deckApp.pipelines')
     };
 
     this.addStage = function() {
+      var newStage = { isNew: true };
       $scope.pipeline.stages = $scope.pipeline.stages || [];
-      $scope.pipeline.stageCounter++;
-      $scope.pipeline.stages.push({ isNew: true, requisiteStageRefIds: [], refId: $scope.pipeline.stageCounter });
+      if (settings.feature.parallelPipelines) {
+        $scope.pipeline.stageCounter++;
+        newStage.requisiteStageRefIds = [];
+        newStage.refId = $scope.pipeline.stageCounter;
+        if ($scope.pipeline.stages.length) {
+          newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.pipeline.stages.length - 1].refId);
+        }
+      }
+      $scope.pipeline.stages.push(newStage);
       this.navigateToStage($scope.pipeline.stages.length - 1);
     };
 

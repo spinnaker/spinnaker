@@ -39,6 +39,9 @@ angular.module('deckApp.pipelines.stageConfig', [
     };
 
     $scope.updateAvailableDependencyStages = function() {
+      if (!$scope.viewState.parallelPipelinesEnabled) {
+        return;
+      }
       var availableDependencyStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
       $scope.options.dependencies = availableDependencyStages.map(function(stage) {
         return {
