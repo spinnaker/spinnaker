@@ -29,13 +29,19 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CanaryController {
 
-  @Autowired(required = false)
+  @Autowired
   CanaryService canaryService
 
   @RequestMapping(value = "/canaries/{id:.+}/generateCanaryScore", method = RequestMethod.POST)
   void generateCanaryScore(@PathVariable("id") String id,
                            @RequestParam("duration") int duration,
                            @RequestParam("durationUnit") String durationUnit) {
-    canaryService?.generateCanaryScore(id, duration, durationUnit)
+    canaryService.generateCanaryScore(id, duration, durationUnit)
   }
+
+  @RequestMapping(value = "/canaryDeployments/{canaryDeploymentId}/canaryAnalysisHistory", method = RequestMethod.GET)
+  List<Map> showCanaryAnalysisHistory(@PathVariable String canaryDeploymentId) {
+    canaryService.getCanaryAnalysisHistory(canaryDeploymentId)
+  }
+
 }

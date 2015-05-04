@@ -15,11 +15,9 @@
  */
 
 package com.netflix.spinnaker.gate.services
-
 import com.netflix.spinnaker.gate.services.internal.MineService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
 /**
  *
  * @author sthadeshwar
@@ -27,10 +25,14 @@ import org.springframework.stereotype.Component
 @Component
 class CanaryService {
 
-  @Autowired
+  @Autowired(required = false)
   MineService mineService
 
   void generateCanaryScore(String canaryId, int duration, String durationUnit) {
-    mineService.generateCanaryScore(canaryId, duration, durationUnit)
+    mineService?.generateCanaryScore(canaryId, duration, durationUnit)
+  }
+
+  List<Map> getCanaryAnalysisHistory(String canaryDeploymentId) {
+    mineService ? mineService.listCanaryAnalysisHistory(canaryDeploymentId) : []
   }
 }
