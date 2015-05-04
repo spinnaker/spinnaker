@@ -99,11 +99,6 @@ class GateConfig {
   }
 
   @Bean
-  MineService mineService() {
-    createClient "mine", MineService
-  }
-
-  @Bean
   OrcaService orcaService() {
     createClient "orca", OrcaService
   }
@@ -184,6 +179,12 @@ class GateConfig {
         return []
       }
     }
+  }
+
+  @Bean
+  @ConditionalOnProperty('services.mine.enabled')
+  MineService mineService() {
+    createClient "mine", MineService
   }
 
   private <T> T createClient(String serviceName, Class<T> type) {
