@@ -22,13 +22,13 @@
       <div class="col-md-6">
         <h5>Baseline</h5>
 
-        <div>{{deployment.baselineCluster.name}}</div>
+        <div><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
         <div>{{deployment.baselineCluster.imageId}}</div>
       </div>
       <div class="col-md-6">
         <h5>Canary</h5>
 
-        <div>{{deployment.canaryCluster.name}}</div>
+        <div><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>
         <div>{{deployment.canaryCluster.imageId}}</div>
       </div>
     </div>
