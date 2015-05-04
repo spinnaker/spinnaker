@@ -105,8 +105,8 @@ describe('pipelineConfigValidator', function() {
 
         var pipeline = {
           stages: [
-            {type: 'withValidation'},
-            {type: 'no-validation'}
+            {type: 'withValidation', refId: 1, requisiteStageRefIds: []},
+            {type: 'no-validation', refId: 2, requisiteStageRefIds: []}
           ]
         };
 
@@ -115,8 +115,8 @@ describe('pipelineConfigValidator', function() {
         expect(messages[0]).toBe('need a prereq');
 
         pipeline.stages = [
-          {type: 'wrongType'},
-          {type: 'withValidation'}
+          {type: 'wrongType', refId: 1, requisiteStageRefIds: []},
+          {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
         ];
 
         messages = this.validator.validatePipeline(pipeline);
@@ -128,9 +128,9 @@ describe('pipelineConfigValidator', function() {
         expect(messages.length).toBe(0);
 
         pipeline.stages = [
-          {type: 'prereq'},
-          {type: 'somethingElse'},
-          {type: 'withValidation'}
+          {type: 'prereq', refId: 1, requisiteStageRefIds: []},
+          {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
+          {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
         ];
 
         messages = this.validator.validatePipeline(pipeline);
@@ -156,8 +156,8 @@ describe('pipelineConfigValidator', function() {
 
         var pipeline = {
           stages: [
-            {type: 'three'},
-            {type: 'withValidation'}
+            {type: 'three', refId: 1, requisiteStageRefIds: []},
+            {type: 'withValidation', refId: 2, requisiteStageRefIds: [1]}
           ]
         };
 
@@ -170,9 +170,9 @@ describe('pipelineConfigValidator', function() {
         expect(messages.length).toBe(0);
 
         pipeline.stages = [
-          {type: 'two'},
-          {type: 'somethingElse'},
-          {type: 'withValidation'}
+          {type: 'two', refId: 1, requisiteStageRefIds: []},
+          {type: 'somethingElse', refId: 2, requisiteStageRefIds: [1]},
+          {type: 'withValidation', refId: 3, requisiteStageRefIds: [2]}
         ];
 
         messages = this.validator.validatePipeline(pipeline);
@@ -261,45 +261,6 @@ describe('pipelineConfigValidator', function() {
         pipeline.stages[0].foo = { bar: { baz: 'ok' }};
         messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(0);
-      });
-    });
-
-    describe('stageBeforeMethod', function() {
-      beforeEach(function() {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
-          if (type === 'toValidate') {
-            return {
-              validators: [
-                {
-                  type: 'stageBeforeMethod',
-                  validate: function(beforeStage, thisStage) {
-                    if (beforeStage.check !== thisStage.check) {
-                      return 'NOPE';
-                    }
-                  }
-                },
-              ]
-            };
-          }
-          return {};
-        });
-      });
-
-      it('ignores stage if no stage before', function() {
-        var pipeline = { stages: [ { type: 'toValidate'} ] };
-        expect(this.validator.validatePipeline(pipeline).length).toBe(0);
-      });
-
-      it('adds validation message if validator fails', function() {
-        var pipeline = { stages: [ { type: 'other'}, { type: 'toValidate', check: 'foo'} ] };
-        expect(this.validator.validatePipeline(pipeline).length).toBe(1);
-        expect(this.validator.validatePipeline(pipeline)[0]).toBe('NOPE');
-
-        pipeline.stages[0].check = 'bar';
-        expect(this.validator.validatePipeline(pipeline).length).toBe(1);
-
-        pipeline.stages[0].check = 'foo';
-        expect(this.validator.validatePipeline(pipeline).length).toBe(0);
       });
     });
   });

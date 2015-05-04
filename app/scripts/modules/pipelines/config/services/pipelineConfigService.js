@@ -94,6 +94,19 @@ angular.module('deckApp.pipelines.config.service', [
       });
     }
 
+    function getAllUpstreamDependencies(pipeline, stage) {
+      var upstreamStages = [];
+      if (stage.requisiteStageRefIds  && stage.requisiteStageRefIds.length) {
+        pipeline.stages.forEach(function(stageToTest) {
+          if (stage.requisiteStageRefIds.indexOf(stageToTest.refId) !== -1) {
+            upstreamStages.push(stageToTest);
+            upstreamStages = upstreamStages.concat(getAllUpstreamDependencies(pipeline, stageToTest));
+          }
+        });
+      }
+      return _.uniq(upstreamStages);
+    }
+
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       savePipeline: savePipeline,
@@ -102,6 +115,7 @@ angular.module('deckApp.pipelines.config.service', [
       triggerPipeline: triggerPipeline,
       buildViewStateCacheKey: buildViewStateCacheKey,
       getDependencyCandidateStages: getDependencyCandidateStages,
+      getAllUpstreamDependencies: getAllUpstreamDependencies,
     };
 
   });

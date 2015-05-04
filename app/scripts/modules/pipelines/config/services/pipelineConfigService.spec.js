@@ -141,5 +141,90 @@ describe('pipelineConfigService', function () {
       this.expectCandidates('d', ['b', 'c']);
     });
   });
+
+  describe('getAllUpstreamDependencies', function() {
+    beforeEach(function() {
+      this.a = { refId: 1, requisiteStageRefIds: [] };
+      this.b = { refId: 2, requisiteStageRefIds: [] };
+      this.c = { refId: 3, requisiteStageRefIds: [] };
+      this.d = { refId: 4, requisiteStageRefIds: [] };
+
+      this.pipeline = { stages: [ this.a, this.b, this.c, this.d ]};
+
+      this.connect = function (child, parent) {
+        this[child].requisiteStageRefIds.push(this[parent].refId);
+      };
+
+      this.expectDependencies = function(test, expected) {
+        var target = [];
+        expected.forEach(function(stage) {
+          target.push(this[stage]);
+        }.bind(this));
+        expect(this.service.getAllUpstreamDependencies(this.pipeline, this[test])).toEqual(target);
+      };
+    });
+
+    it('returns an empty list when no dependencies exist', function() {
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', []);
+      this.expectDependencies('c', []);
+      this.expectDependencies('d', []);
+    });
+
+    it('returns a single direct dependency', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'a');
+
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', ['a']);
+      this.expectDependencies('c', ['a']);
+      this.expectDependencies('d', []);
+    });
+
+    it('returns multiple direct dependencies', function() {
+      this.connect('c', 'a');
+      this.connect('c', 'b');
+
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', []);
+      this.expectDependencies('c', ['a', 'b']);
+      this.expectDependencies('d', []);
+    });
+
+    it('returns ancestor upstream dependencies', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'b');
+      this.connect('d', 'c');
+
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', ['a']);
+      this.expectDependencies('c', ['b', 'a']);
+      this.expectDependencies('d', ['c', 'b', 'a']);
+    });
+
+    it('returns ancestors: multiple direct dependencies', function() {
+      this.connect('b', 'a');
+      this.connect('c', 'a');
+      this.connect('d', 'b');
+      this.connect('d', 'c');
+
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', ['a']);
+      this.expectDependencies('c', ['a']);
+      this.expectDependencies('d', ['b', 'a', 'c']);
+    });
+
+    it('returns ancestors: multiple ancestor dependencies', function() {
+      this.connect('c', 'a');
+      this.connect('c', 'b');
+      this.connect('d', 'c');
+
+      this.expectDependencies('a', []);
+      this.expectDependencies('b', []);
+      this.expectDependencies('c', ['a', 'b']);
+      this.expectDependencies('d', ['c', 'a', 'b']);
+
+    });
+  });
 });
 
