@@ -131,7 +131,7 @@ angular.module('deckApp.pipelines.graph.directive', [
                 } else {
                   phase = Math.max(phase, parent.phase);
                   parent.children.push(node);
-                  node.parents.push({node: parent});
+                  node.parents.push(parent);
                 }
               });
               if (phaseResolvable) {
@@ -160,7 +160,17 @@ angular.module('deckApp.pipelines.graph.directive', [
             nodes = _.sortByAll(nodes,
               'phase',
               function(node) {
+                return 1 - node.children.length;
+              },
+              function(node) {
                 return 1 - _.sum(node.children, function(child) { return child.children.length; });
+              },
+              function(node) {
+                return 1 - node.parents.length;
+              },
+              function(node) {
+                return _.sum(node.parents, function(parent) {
+                  return 1 - parent.children.length; });
               },
               function(node) {
                 return _.sortBy(node.parents, 'phase').map(function(parent) {

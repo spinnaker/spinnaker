@@ -65,8 +65,8 @@ angular.module('deckApp.pipelines')
         $scope.pipeline.stageCounter++;
         newStage.requisiteStageRefIds = [];
         newStage.refId = $scope.pipeline.stageCounter;
-        if ($scope.pipeline.stages.length) {
-          newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.pipeline.stages.length - 1].refId);
+        if ($scope.pipeline.stages.length && $scope.viewState.section === 'stage') {
+          newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.viewState.stageIndex].refId);
         }
       }
       $scope.pipeline.stages.push(newStage);
@@ -159,6 +159,7 @@ angular.module('deckApp.pipelines')
     };
 
     this.removeStage = function(stage) {
+      console.warn('REMOVING STAGE I HOPE YOU WANT THIS.');
       var stageIndex = $scope.pipeline.stages.indexOf(stage);
       $scope.pipeline.stages.splice(stageIndex, 1);
       $scope.pipeline.stages.forEach(function(test) {
