@@ -84,4 +84,13 @@ angular.module('deckApp.executionDetails.controller', [
 
     };
 
+    controller.getStepLabel = function(stageType) {
+      var stageConfig = pipelineConfig.getStageConfig(stageType);
+      if (stageConfig && stageConfig.executionStepLabelUrl) {
+        return stageConfig.executionStepLabelUrl;
+      } else {
+        return 'scripts/modules/pipelines/config/stages/core/stepLabel.html';
+      }
+    };
+
   });
