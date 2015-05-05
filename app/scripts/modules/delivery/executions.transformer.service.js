@@ -61,7 +61,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     function flattenStages(stages, stage) {
       if (stage.before && stage.before.length) {
         stage.before.forEach(function(beforeStage) {
-          stages = flattenStages(stages, beforeStage);
+          flattenStages(stages, beforeStage);
         });
       }
       if (stage.masterStage) {
@@ -71,7 +71,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       }
       if (stage.after && stage.after.length) {
         stage.after.forEach(function(afterStage) {
-          stages = flattenStages(stages, afterStage);
+          flattenStages(stages, afterStage);
         });
       }
       return stages;
@@ -106,24 +106,26 @@ angular.module('deckApp.delivery.executionTransformer.service', [
         return;
       }
 
-      var lastStage = stages[stages.length - 1];
-      stage.startTime = stages[0].startTime;
 
-      var lastNotStartedStage = _(stages).findLast(
-          function(childStage) {
+      if (stage.masterStage) {
+        var lastStage = stages[stages.length - 1];
+        stage.startTime = stages[0].startTime;
+        var lastNotStartedStage = _(stages).findLast(
+          function (childStage) {
             return !childStage.hasNotStarted;
           }
         );
 
-      var lastFailedStage = _(stages).findLast(
-        function(childStage) {
-          return childStage.isFailed;
-        }
-      );
+        var lastFailedStage = _(stages).findLast(
+          function (childStage) {
+            return childStage.isFailed;
+          }
+        );
 
-      var currentStage = lastFailedStage || lastNotStartedStage || lastStage;
-      stage.status = currentStage.status;
-      stage.endTime = currentStage.endTime;
+        var currentStage = lastFailedStage || lastNotStartedStage || lastStage;
+        stage.status = currentStage.status;
+        stage.endTime = currentStage.endTime;
+      }
       stage.stages = stages;
 
     }
@@ -131,7 +133,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
     function transformStageSummary(summary) {
       summary.stages = flattenAndFilter(summary);
       summary.stages.forEach(transformStage);
-      summary.masterStageIndex = summary.stages.indexOf(summary.masterStage);
+      summary.masterStageIndex = summary.stages.indexOf(summary.masterStage) === -1 ? 0 : summary.stages.indexOf(summary.masterStage);
       transformStage(summary);
       orchestratedItem.defineProperties(summary);
     }

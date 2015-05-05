@@ -10,7 +10,7 @@ angular.module('deckApp.pipelines.stage.destroyAsg')
       controllerAs: 'destroyAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
-      executionTaskLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgTaskLabel.html',
+      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
     });
   }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService) {
     var ctrl = this;

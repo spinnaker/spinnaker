@@ -10,7 +10,7 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
       controllerAs: 'resizeAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
-      executionTaskLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgTaskLabel.html',
+      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
     });
   }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService) {
 

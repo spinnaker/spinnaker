@@ -10,7 +10,7 @@ angular.module('deckApp.pipelines.stage.disableAsg')
       controllerAs: 'disableAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
-      executionTaskLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgTaskLabel.html',
+      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
     });
   }).controller('DisableAsgStageCtrl', function($scope, stage, accountService) {
     var ctrl = this;
