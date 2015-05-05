@@ -39,7 +39,7 @@
                       class="glyphicon glyphicon-time small" tooltip="This stage is configured to only run during specified windows"></span>
               </a>
             </div>
-            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()" ng-if="viewState.section === 'stage'">
               <span class="glyphicon glyphicon-plus-sign"></span> Add stage
             </button>
           </li>
