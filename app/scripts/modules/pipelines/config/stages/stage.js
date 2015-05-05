@@ -35,7 +35,7 @@ angular.module('deckApp.pipelines.stageConfig', [
 
     $scope.groupDependencyOptions = function(stage) {
       return stage.available ? 'Available' :
-        $scope.stage.requisiteStageRefIds.indexOf(stage.refId) === -1 ? 'Unavailable (would create a circular dependency)' : null;
+        $scope.stage.requisiteStageRefIds.indexOf(stage.refId) === -1 ? 'Downstream dependencies (unavailable)' : null;
     };
 
     $scope.updateAvailableDependencyStages = function() {
