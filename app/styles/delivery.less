@@ -248,6 +248,25 @@ body, html {
         font-weight: 700;
       }
     }
+    .label-inverse {
+      .score {
+        background-color: transparent;
+        font-size: 100%;
+        padding: 0;
+        &.label-failing {
+          color: @unhealthy_orange;
+        }
+        &.label-healthy {
+          color: @healthy_green_border;
+        }
+        &.label-unhealthy {
+          color: @unhealthy_red;
+        }
+        &.label-unknown {
+          color: @unknown-label-color;
+        }
+      }
+    }
   }
   .execution-group-title {
     padding-left: 10px;

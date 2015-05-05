@@ -1,24 +1,24 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary.actions.generate.score.controller', [
+angular.module('deckApp.pipelines.stage.canary.actions.override.result.controller', [
   'ui.router',
   'deckApp.utils.lodash',
   'deckApp.executionDetails.section.service',
   'deckApp.executionDetails.section.nav.directive',
 ])
-  .controller('GenerateScoreCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
+  .controller('OverrideResultCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
 
     $scope.command = {
-      duration: null,
-      durationUnit: 'h'
+      reason: null,
+      result: 'SUCCESS',
     };
 
     $scope.state = 'editing';
 
-    this.generateCanaryScore = function() {
+    this.overrideResult = function() {
       $scope.state = 'submitting';
-      var targetUrl = [settings.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
-      $http.post(targetUrl, $scope.command)
+      var targetUrl = [settings.gateUrl, 'canaries', canaryId, 'overrideCanaryResult', $scope.command.result].join('/');
+      $http.put(targetUrl, $scope.command)
         .success(function() {
           $scope.state = 'success';
         })

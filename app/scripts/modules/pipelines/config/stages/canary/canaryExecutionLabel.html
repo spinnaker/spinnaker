@@ -1,4 +1,6 @@
 <span class="stage-label">
   <span>{{stage.name}}</span>
-  <span>({{stage.masterStage.context.canary.canaryResult.overallScore}})</span>
+  <span class="label-inverse">(<canary-score
+    score="stage.masterStage.context.canary.canaryResult.overallScore"
+    result="stage.masterStage.context.canary.canaryResult.overallResult"></canary-score>)</span>
 </span>
