@@ -54,7 +54,7 @@ class CanaryController {
     canaryService.showCanary(id)
   }
 
-  @RequestMapping(value = "/canaries/{id}/overrideCanaryResult/{result}", method = RequestMethod.PUT)
+  @RequestMapping(value = "/canaries/{id:.+}/overrideCanaryResult/{result}", method = RequestMethod.PUT)
   Map overrideCanaryResult(@PathVariable String id, @PathVariable String result, @RequestParam String reason) {
     canaryService.overrideCanaryResult(id, result, reason)
   }
