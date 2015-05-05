@@ -50,7 +50,7 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     ]
     if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
     }
 
     if (outputs.canary.health?.health == 'UNHEALTHY' && !context.disableRequested) {
@@ -99,6 +99,14 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     def outputs = [
       canary : mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled")
     ]
+    def ops = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
+      [it.canary, it.baseline].collect {
+        [destroyAsgDescription: [asgName: it.serverGroup, regions: [it.region], credentials: it.account]]
+      }
+    }.flatten()
+    log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
+    def taskId = katoService.requestOperations(ops).toBlocking().first()
+    outputs << ['kato.last.task.id': taskId]
     return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
   }
 }
