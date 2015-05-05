@@ -15,50 +15,82 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
+
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.RetrofitError
 import retrofit.client.Response
-import retrofit.mime.TypedString
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
+import static java.net.HttpURLConnection.HTTP_NOT_FOUND
+import static com.netflix.spinnaker.orca.mort.MortService.SecurityGroup.*
+
 class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
-  @Subject task = new WaitForUpsertedSecurityGroupTask()
+  @Subject
+  def task = new WaitForUpsertedSecurityGroupTask()
+
+  @Shared
+  def error404 = RetrofitError.httpError(null, new Response("", HTTP_NOT_FOUND, "Not Found", [], null), null, null)
 
   @Unroll
-  void "should return #taskStatus status when group was #old and is now '#current' per Mort"() {
+  void "should be RUNNING if current security group does not reflect expected"() {
     given:
     def pipeline = new Pipeline()
-    def groupName = 'group'
-    def account = 'account'
-    def region = 'region'
     task.mortService = Stub(MortService) {
-      getSecurityGroup(account, 'aws', groupName, region) >> new Response('mort', 200, 'ok', [], new TypedString(current))
+      getSecurityGroup(_, _, _, _, _) >> {
+        currentSecurityGroupProvider.call()
+      }
     }
 
     and:
     def stage = new PipelineStage(pipeline, "whatever", [
-      "upsert.account": account,
-      "upsert.region" : region,
-      "upsert.name"   : groupName
+      targets             : [
+        [account: account, region: region, name: groupName]
+      ],
+      securityGroupIngress: filterForSecurityGroupIngress(task.mortService, expectedSecurityGroup)
     ])
-    if (old) {
-      stage.context."pre.response" = old
-    }
 
     expect:
     task.execute(stage.asImmutable()).status == taskStatus
 
     where:
-    old | current || taskStatus
-    null       | ''         || ExecutionStatus.RUNNING
-    null       | 'changed'  || ExecutionStatus.SUCCEEDED
-    'original' | 'original' || ExecutionStatus.RUNNING
-    'original' | 'changed'  || ExecutionStatus.SUCCEEDED
+    expectedSecurityGroup                 | currentSecurityGroupProvider              || taskStatus
+    null                                  | { bSG(bIR("S1", 7000)) }                  || ExecutionStatus.RUNNING
+    bSG(bIR("S2", 7000))                  | { throw error404 }                        || ExecutionStatus.RUNNING
+    bSG(bIR("S2", 7000))                  | { bSG(bIR("S1", 7000)) }                  || ExecutionStatus.RUNNING
+    bSG(bIR("S1", 7000, 7001))            | { bSG(bIR("S1", 7000)) }                  || ExecutionStatus.RUNNING
+    bSG(bIR("S1", 7000), bIR("S2", 7001)) | { bSG(bIR("S1", 7000)) }                  || ExecutionStatus.RUNNING
+    bSG(bIR("S1", 7000), bIR("S2", 7001)) | { bSG(bIR("S1", 7000), bIR("S2", 7001)) } || ExecutionStatus.SUCCEEDED
+    bSG(bIR("S1", 7000, 7001))            | { bSG(bIR("S1", 7000, 7001)) }            || ExecutionStatus.SUCCEEDED
+    bSG(bIR("S1", 7000))                  | { bSG(bIR("S1", 7000)) }                  || ExecutionStatus.SUCCEEDED
+    bSG([:])                              | { bSG([:]) }                              || ExecutionStatus.SUCCEEDED
+
+    account = "account"
+    region = "us-west-1"
+    groupName = "securityGroup"
+  }
+
+  private static MortService.SecurityGroup bSG(Map<String, Object>... inboundRules) {
+    return new MortService.SecurityGroup(inboundRules: inboundRules)
+  }
+
+  private static Map<String, Object> bIR(String securityGroupName, Integer... ports) {
+    return [
+      securityGroup: [
+        name: securityGroupName
+      ],
+      protocol     : "tcp",
+      portRanges   : ports.collect {
+        [startPort: it, endPort: it]
+      }
+    ]
   }
 
 }

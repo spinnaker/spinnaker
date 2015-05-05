@@ -1,7 +1,7 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,29 +16,29 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.kato.tasks.securitygroup.CopySecurityGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.UpsertSecurityGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class UpsertSecurityGroupStage extends LinearStage {
+class CopySecurityGroupStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "upsertSecurityGroup"
+  public static final String MAYO_CONFIG_TYPE = "copySecurityGroup"
 
-  UpsertSecurityGroupStage() {
+  CopySecurityGroupStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertSecurityGroup", UpsertSecurityGroupTask)
+    def step1 = buildStep(stage, "copySecurityGroup", CopySecurityGroupTask)
     def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
     def step3 = buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
     def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
