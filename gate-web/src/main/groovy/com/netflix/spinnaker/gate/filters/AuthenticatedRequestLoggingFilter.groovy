@@ -67,4 +67,23 @@ class AuthenticatedRequestLoggingFilter implements Filter {
 
   @Override
   void destroy() {}
+
+  /**
+   * Ensure an appropriate MDC context is available when {@code closure} is executed.
+   */
+  public static final Closure applyMDC(Closure closure) {
+    def authenticatedUser = MDC.get(AUTHENTICATED_USER)
+    if (!authenticatedUser) {
+      return closure
+    }
+
+    return {
+      try {
+        MDC.put(AUTHENTICATED_USER, authenticatedUser)
+        closure()
+      } finally {
+        MDC.remove(AUTHENTICATED_USER)
+      }
+    }
+  }
 }
