@@ -1,4 +1,4 @@
-<div>
+<div ng-controller="CanaryExecutionSummaryCtrl as canaryExecutionSummaryCtrl">
   <h4 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
@@ -12,16 +12,17 @@
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a href="#">Generate canary score</a></li>
-        <li><a href="#">Disable canaries</a></li>
+        <li><a href ng-click="canaryExecutionSummaryCtrl.generateCanaryScore()">Generate canary score</a></li>
+        <li><a href="#">Override canary result</a></li>
       </ul>
     </div>
   </h4>
   <table class="table canary-summary">
     <thead>
     <tr>
-      <th width="50%">Deployment</th>
-      <th width="50%">Score</th>
+      <th width="34%">Deployment</th>
+      <th width="33%">Score</th>
+      <th width="33%">Running Time</th>
     </tr>
     </thead>
     <tbody>
@@ -33,6 +34,7 @@
         <canary-score result="stageSummary.masterStage.context.canary.canaryResult.overallResult"
                       score="stageSummary.masterStage.context.canary.canaryResult.overallScore"></canary-score>
       </td>
+      <td>{{stageSummary.runningTimeInMs | duration}}</td>
     </tr>
     <tr class="clickable canary-deployment-row"
         ng-repeat="stage in stageSummary.stages"
@@ -45,6 +47,7 @@
                       health="stage.context.status.health"
                       score="stage.context.status.score"></canary-score>
       </td>
+      <td>{{}}</td>
     </tr>
     </tbody>
   </table>

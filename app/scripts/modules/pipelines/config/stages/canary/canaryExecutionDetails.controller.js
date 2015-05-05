@@ -11,6 +11,7 @@ angular.module('deckApp.pipelines.stage.canary.details.controller', [
     function initialize() {
       $scope.configSections = ['canary', 'taskStatus'];
       $scope.canaryConfig = $scope.stage.context.canaryConfig;
+      $scope.baseline = $scope.stage.context.baseline;
 
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;

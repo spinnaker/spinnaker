@@ -21,45 +21,55 @@
     <div class="row">
       <div class="col-md-6">
         <h5>Baseline</h5>
-
-        <div><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
-        <div>{{deployment.baselineCluster.imageId}}</div>
+        <div class="row">
+          <div class="col-md-3"><strong>Cluster</strong></div>
+          <div class="col-md-9"><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Image</strong></div>
+          <div class="col-md-9">{{deployment.baselineCluster.imageId}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Build</strong></div>
+          <div class="col-md-9"><a ng-href="{{deployment.baselineCluster.build.url}}" target="_blank">#{{deployment.baselineCluster.build.number}}</a></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Capacity</strong></div>
+          <div class="col-md-9">
+            <span ng-if="deployment.baselineCluster.capacity.min === deployment.baselineCluster.capacity.max">
+              {{deployment.baselineCluster.capacity.min}}
+            </span>
+            <span ng-if="deployment.baselineCluster.capacity.min !== deployment.baselineCluster.capacity.max">
+              {{deployment.baselineCluster.capacity.min}}/{{deployment.baselineCluster.capacity.desired}}/{{deployment.baselineCluster.capacity.max}}
+            </span>
+          </div>
+        </div>
       </div>
       <div class="col-md-6">
         <h5>Canary</h5>
-
-        <div><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>
-        <div>{{deployment.canaryCluster.imageId}}</div>
-      </div>
-    </div>
-    <div class="row" style="margin-top: 30px">
-      <div class="col-md-12">
-        <h5>Deployment Config</h5>
-      </div>
-    </div>
-    <div class="row">
-      <div class="col-md-6">
-        <dl class="dl-narrow dl-horizontal">
-          <dt>Account</dt>
-          <dd>
-            <account-tag account="deployment.baselineCluster.accountName"></account-tag>
-          </dd>
-          <dt>Region</dt>
-          <dd>{{deployment.baselineCluster.region}}</dd>
-          <dt>Cluster</dt>
-          <dd>{{stage.context.baseClusterName }}</dd>
-        </dl>
-      </div>
-      <div class="col-md-6">
-        <dl class="dl-narrow dl-horizontal">
-          <dt>Capacity</dt>
-          <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
-          <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">
-            Min: {{stage.context.capacity.min}},
-            Max: {{stage.context.capacity.max}},
-            Desired: {{stage.context.capacity.desired}}
-          </dd>
-        </dl>
+        <div class="row">
+          <div class="col-md-3"><strong>Cluster</strong></div>
+          <div class="col-md-9"><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Image</strong></div>
+          <div class="col-md-9">{{deployment.canaryCluster.imageId}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Build</strong></div>
+          <div class="col-md-9"><a ng-href="{{deployment.canaryCluster.build.url}}" target="_blank">#{{deployment.canaryCluster.build.number}}</a></div>
+        </div>
+        <div class="row">
+          <div class="col-md-3"><strong>Capacity</strong></div>
+          <div class="col-md-9">
+            <span ng-if="deployment.canaryCluster.capacity.min === deployment.canaryCluster.capacity.max">
+              {{deployment.canaryCluster.capacity.min}}
+            </span>
+            <span ng-if="deployment.canaryCluster.capacity.min !== deployment.canaryCluster.capacity.max">
+              {{deployment.canaryCluster.capacity.min}}/{{deployment.canaryCluster.capacity.desired}}/{{deployment.canaryCluster.capacity.max}}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   </div>

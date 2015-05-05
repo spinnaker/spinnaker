@@ -2,6 +2,7 @@
 
 angular.module('deckApp.pipelines.stage.canary', [
   'deckApp.pipelines.stage.canary.details.controller',
+  'deckApp.pipelines.stage.canary.summary.controller',
   'deckApp.pipelines.stage',
   'deckApp.pipelines.stage.core',
   'deckApp.deploymentStrategy',
