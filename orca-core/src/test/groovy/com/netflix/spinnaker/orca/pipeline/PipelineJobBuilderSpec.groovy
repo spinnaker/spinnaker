@@ -18,10 +18,11 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
-import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationStage
+import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationTask
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -55,6 +56,7 @@ class PipelineJobBuilderSpec extends Specification {
   def orchestrationStore = new InMemoryOrchestrationStore(mapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
 
+  def pipelineInitializationStage = new PipelineInitializationStage()
   def waitForRequisiteCompletionStage = new WaitForRequisiteCompletionStage()
   def taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
 
@@ -63,16 +65,20 @@ class PipelineJobBuilderSpec extends Specification {
 
   def setup() {
     applicationContext.beanFactory.with {
+      registerSingleton PipelineInitializationStage.MAYO_CONFIG_TYPE, pipelineInitializationStage
       registerSingleton WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE, waitForRequisiteCompletionStage
       registerSingleton "waitForRequisiteCompletionTask", new WaitForRequisiteCompletionTask()
+      registerSingleton "pipelineInitializationTask", new PipelineInitializationTask()
       registerSingleton("stepExecutionListener", new StepExecutionListenerSupport())
       registerSingleton("defaultExceptionHandler", new DefaultExceptionHandler())
       registerSingleton "taskTaskletAdapter", taskTaskletAdapter
 
       autowireBean waitForRequisiteCompletionStage
+      autowireBean pipelineInitializationStage
     }
 
     waitForRequisiteCompletionStage.applicationContext = applicationContext
+    pipelineInitializationStage.applicationContext = applicationContext
 
     def helper = new SimpleJobBuilderHelper("")
     helper.repository(new SimpleJobRepository())
