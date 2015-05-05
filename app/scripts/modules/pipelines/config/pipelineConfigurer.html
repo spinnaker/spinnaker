@@ -39,7 +39,7 @@
                       class="glyphicon glyphicon-time small" tooltip="This stage is configured to only run during specified windows"></span>
               </a>
             </div>
-            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()" ng-if="viewState.section === 'stage'">
+            <button class="btn btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
               <span class="glyphicon glyphicon-plus-sign"></span> Add stage
             </button>
           </li>
@@ -48,12 +48,12 @@
     </div>
     <div ng-if="viewState.parallelPipelinesEnabled && viewState.expanded">
       <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
-          <span class="glyphicon glyphicon-plus-sign"></span> Add stage
-        </button>
+      <div class="row">
+        <div class="col-md-12">
+          <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+          </button>
+        </div>
       </div>
     </div>
 
