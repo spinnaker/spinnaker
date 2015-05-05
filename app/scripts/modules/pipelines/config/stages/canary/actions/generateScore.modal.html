@@ -1,0 +1,53 @@
+<div modal-page>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Generate Canary Score</h3>
+    </div>
+    <div class="modal-body container-fluid form-inline">
+      <div class="form-group">
+        <label>
+          Generate a score for the past
+        </label>
+        <input style="width: 60px" type="number" class="form-control input-sm"
+               min="0"
+               required
+               ng-model="command.duration"/>
+        <select style="width: 90px" class="form-control input-sm"
+                ng-model="command.durationUnit">
+          <option value="h">hours</option>
+          <option value="m">minutes</option>
+        </select>
+      </div>
+      <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
+        <alert type="success">
+          <p>
+            <span class="glyphicon glyphicon-ok-circle"></span>
+            Successfully requested a new score. It takes a few minutes to generate the score - check back in a bit.
+          </p>
+        </alert>
+      </div>
+      <div class="form-group" ng-if="state === 'error'" style="margin-top: 30px">
+        <alert type="danger">
+          <p>There was an error with this request. Please try again later.</p>
+        </alert>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="ctrl.cancel()">
+        <span ng-if="state !== 'success'">Cancel</span>
+        <span ng-if="state === 'success'">Close</span>
+      </button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-if="state !== 'success'"
+              ng-click="ctrl.generateCanaryScore()"
+              ng-disabled="state === 'submitting' || !command.duration || command.duration < 1">
+        <span ng-if="state === 'submitting'" style="display: inline-block; position: relative; width: 16px; height: 15px">
+          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
+        </span>
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

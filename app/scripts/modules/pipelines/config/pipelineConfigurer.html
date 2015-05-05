@@ -48,12 +48,12 @@
     </div>
     <div ng-if="viewState.parallelPipelinesEnabled && viewState.expanded">
       <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
-          <span class="glyphicon glyphicon-plus-sign"></span> Add stage
-        </button>
+      <div class="row">
+        <div class="col-md-12">
+          <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
+            <span class="glyphicon glyphicon-plus-sign"></span> Add stage
+          </button>
+        </div>
       </div>
     </div>
 

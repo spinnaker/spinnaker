@@ -3,7 +3,7 @@
   <table class="table">
     <thead>
     <tr>
-      <th width="27%">Step</th>
+      <th width="40%">Step</th>
       <th>Started</th>
       <th>Duration</th>
       <th>Status</th>
@@ -14,7 +14,7 @@
         ng-repeat="step in stageSummary.stages"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
         ng-click="ctrl.toggleDetails($index)">
-      <td>{{ (step.name && step.name !== step.type) ? step.name : (step.type | robotToHuman) }}</td>
+      <td><span ng-include="ctrl.getStepLabel(step.type)"></span></td>
       <td>{{ step.startTime | timestamp }}</td>
       <td>{{ step.runningTimeInMs | duration }}</td>
       <td>

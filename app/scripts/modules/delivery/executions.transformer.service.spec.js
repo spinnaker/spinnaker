@@ -90,7 +90,7 @@ describe('executionsService', function() {
       expect(execution.stageSummaries[2].endTime).toBeUndefined();
     });
 
-    it('should set stage status, start/end times based on child stages on non-summary stages', function() {
+    it('should not set stage status, start/end times based on child stages on non-summary stages', function() {
       var execution = {
         stages: [
           { id: '1', name: 'bake', status: 'COMPLETED', startTime: 7, endTime: 8 },
@@ -116,9 +116,9 @@ describe('executionsService', function() {
 
       expect(_.pluck(summary.stages, 'id')).toEqual(['1','3','2','4','5']);
       expect(nested.id).toBe('2');
-      expect(nested.status).toBe('RUNNING');
-      expect(nested.startTime).toBe(7);
-      expect(nested.endTime).toBeUndefined();
+      expect(nested.status).toBe('COMPLETED');
+      expect(nested.startTime).toBe(8);
+      expect(nested.endTime).toBe(9);
     });
   });
 });

@@ -2,51 +2,55 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'canary'">
+    <div class="row section-title">
+      <div class="col-md-12">
+        <h4 ng-bind="canaryConfig.name"></h4>
+      </div>
+    </div>
     <div class="row">
-      <div class="col-md-6 canary-config-section">
-        <h4>Canary Config</h4>
+      <div class="col-md-12 canary-config-section">
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Config Name</div>
-          <div class="col-md-6">{{canaryConfig.name}}</div>
+          <div class="col-md-4 sm-label-left compact">Baseline</div>
+          <div class="col-md-6"><account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Duration</div>
+          <div class="col-md-4 sm-label-left compact">Duration</div>
           <div class="col-md-6">{{canaryConfig.lifetimeHours}} hours</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Success Criteria</div>
+          <div class="col-md-4 sm-label-left compact">Success Criteria</div>
           <div class="col-md-6">{{canaryConfig.canarySuccessCriteria.canaryResultScore}}</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Result Strategy</div>
+          <div class="col-md-4 sm-label-left compact">Result Strategy</div>
           <div class="col-md-6">{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
         </div>
       </div>
-      <div class="col-md-6 canary-config-section">
+      <div class="col-md-12 canary-config-section">
         <h4>Analysis Config</h4>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Config Name</div>
+          <div class="col-md-4 sm-label-left compact">Config Name</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.name}}</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Warmup Period</div>
+          <div class="col-md-4 sm-label-left compact">Warmup Period</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins}} minutes</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Interval</div>
+          <div class="col-md-4 sm-label-left compact">Interval</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins}} minutes</div>
         </div>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Notification Hours</div>
+          <div class="col-md-4 sm-label-left compact">Notification Hours</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</div>
         </div>
       </div>
     </div>
     <div class="row">
-      <div class="col-md-6 canary-config-section">
+      <div class="col-md-12 canary-config-section">
         <h4>Health Check</h4>
         <div class="row">
-          <div class="col-md-6 sm-label-left compact">Minimum Canary Score</div>
+          <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
         </div>
       </div>

@@ -1,0 +1,52 @@
+<div modal-page>
+  <form role="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Override Result</h3>
+    </div>
+    <div class="modal-body container-fluid">
+      <div class="form-group">
+        <label>Set result to</label>
+        <select class="form-control input-sm"
+                ng-model="command.result">
+          <option value="SUCCESS">SUCCESS</option>
+          <option value="FAILURE">FAILURE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Reason for override</label>
+        <textarea class="form-control" rows="4"
+                  ng-model="command.reason"></textarea>
+      </div>
+      <div class="form-group" ng-if="state === 'success'" style="margin-top: 30px">
+        <alert type="success">
+          <p>
+            <span class="glyphicon glyphicon-ok-circle"></span>
+            Result has been overridden.
+          </p>
+        </alert>
+      </div>
+      <div class="form-group" ng-if="state === 'error'" style="margin-top: 30px">
+        <alert type="danger">
+          <p>There was an error with this request. Please try again later.</p>
+        </alert>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" ng-click="ctrl.cancel()">
+        <span ng-if="state !== 'success'">Cancel</span>
+        <span ng-if="state === 'success'">Close</span>
+      </button>
+      <button type="submit"
+              class="btn btn-primary"
+              ng-if="state !== 'success'"
+              ng-click="ctrl.overrideResult()"
+              ng-disabled="state === 'submitting' || !command.reason">
+        <span ng-if="state === 'submitting'" style="display: inline-block; position: relative; width: 16px; height: 15px">
+          <span us-spinner="{color: '#ffffff', left: '3px', top: '10px', radius:3, width: 2, length: 3}"></span>
+        </span>
+        Submit
+      </button>
+    </div>
+  </form>
+</div>

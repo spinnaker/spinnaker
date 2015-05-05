@@ -109,6 +109,13 @@ body, html {
     }
 
     .canary-details {
+      .section-title {
+        border-bottom: 1px solid @mid_lighter_grey;
+        margin-bottom: 20px;
+        h4 {
+          border-bottom: 0;
+        }
+      }
       h4 {
         margin-bottom: 10px;
         border-bottom: 1px solid @mid_lighter_grey;
@@ -181,9 +188,6 @@ body, html {
     }
     .stage-name {
       margin-top: 5px;
-      .task-label {
-        font-weight: 600;
-      }
     }
     .well {
       margin-top: 10px;
@@ -246,6 +250,25 @@ body, html {
       &.active {
         background-color: @light_grey;
         font-weight: 700;
+      }
+    }
+    .label-inverse {
+      .score {
+        background-color: transparent;
+        font-size: 100%;
+        padding: 0;
+        &.label-failing {
+          color: @unhealthy_orange;
+        }
+        &.label-healthy {
+          color: @healthy_green_border;
+        }
+        &.label-unhealthy {
+          color: @unhealthy_red;
+        }
+        &.label-unknown {
+          color: @unknown-label-color;
+        }
       }
     }
   }

@@ -82,6 +82,7 @@ angular.module('deckApp.orchestratedItem.service', [
         case 'STOPPED':
           return 'FAILED';
         case 'SUSPENDED':
+        case 'DISABLED':
           return 'SUSPENDED';
         case 'NOT_STARTED':
           return 'NOT_STARTED';

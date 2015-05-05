@@ -19,14 +19,34 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
           }
 
           stage.context.canary.canaryDeployments.forEach(function(deployment, deploymentIndex) {
-            if (!deployment.baselineCluster) {
+            if (!deployment.baselineCluster || !stage.context.clusterPairs[deploymentIndex]) {
               return;
             }
-            var baseClusterName = deployment.baselineCluster.name.split('-');
-            baseClusterName.pop();
-            baseClusterName = baseClusterName.join('-');
+            var clusterPair = stage.context.clusterPairs[deploymentIndex];
+
+            // TODO: Clean this up on the backend - this is a mess
+            var baselineBuildParts = deployment.baselineCluster.buildId.split('/');
+            baselineBuildParts.pop();
+            var baselineBuildNumber = baselineBuildParts.pop();
+
+            var canaryBuildParts = deployment.canaryCluster.buildId.split('/');
+            canaryBuildParts.pop();
+            var canaryBuildNumber = canaryBuildParts.pop();
+
             deployment.canaryResult = deployment.canaryAnalysisResult || {};
             deployment.canaryCluster = deployment.canaryCluster || {};
+
+            deployment.canaryCluster.capacity = clusterPair.canary.capacity;
+            deployment.baselineCluster.capacity = clusterPair.baseline.capacity;
+            deployment.baselineCluster.build = {
+              url: deployment.baselineCluster.buildId,
+              number: baselineBuildNumber,
+            };
+            deployment.canaryCluster.build = {
+              url: deployment.canaryCluster.buildId,
+              number: canaryBuildNumber,
+            };
+
             syntheticStagesToAdd.push({
               parentStageId: stage.id,
               syntheticStageOwner: 'STAGE_BEFORE',
@@ -38,7 +58,6 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               endTime: stage.endTime,
               context: {
                 application: stage.context.canary.application,
-                baseClusterName: baseClusterName,
                 canaryCluster: deployment.canaryCluster,
                 baselineCluster: deployment.baselineCluster,
                 canaryResult: deployment.canaryResult,

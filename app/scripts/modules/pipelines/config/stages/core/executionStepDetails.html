@@ -7,19 +7,12 @@
       <strong>Duration</strong>
     </div>
   </div>
-  <div ng-repeat="stage in item.stages">
-    <div class="row stage-name" ng-if="item.stages.length > 1">
-      <div class="col-md-12">
-        <span ng-include="executionStepDetailsCtrl.getTaskLabel(stage.type)"></span>
-      </div>
+  <div class="row" ng-repeat="task in item.tasks | displayableTasks">
+    <div class="col-md-8">
+      <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
     </div>
-    <div class="row" ng-repeat="task in stage.tasks | displayableTasks">
-      <div class="col-md-8">
-        <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
-      </div>
-      <div class="col-md-4 text-right">
-        {{task.runningTimeInMs | duration }}
-      </div>
+    <div class="col-md-4 text-right">
+      {{task.runningTimeInMs | duration }}
     </div>
   </div>
 </div>
