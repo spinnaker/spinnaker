@@ -15,16 +15,19 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
+
 import com.netflix.spinnaker.gate.services.CanaryService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+
 /**
  *
  * @author sthadeshwar
@@ -39,9 +42,8 @@ class CanaryController {
   @RequestMapping(value = "/canaries/{id:.+}/generateCanaryResult", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.CREATED)
   void generateCanaryResult(@PathVariable("id") String id,
-                           @RequestParam("duration") int duration,
-                           @RequestParam("durationUnit") String durationUnit) {
-    canaryService.generateCanaryResult(id, duration, durationUnit)
+                            @RequestBody GenerateResultCommand generateResultCommand) {
+    canaryService.generateCanaryResult(id, generateResultCommand.duration, generateResultCommand.durationUnit)
   }
 
   @RequestMapping(value = "/canaryDeployments/{canaryDeploymentId}/canaryAnalysisHistory", method = RequestMethod.GET)
@@ -55,7 +57,17 @@ class CanaryController {
   }
 
   @RequestMapping(value = "/canaries/{id:.+}/overrideCanaryResult/{result}", method = RequestMethod.PUT)
-  Map overrideCanaryResult(@PathVariable String id, @PathVariable String result, @RequestParam String reason) {
-    canaryService.overrideCanaryResult(id, result, reason)
+  Map overrideCanaryResult(
+    @PathVariable String id, @PathVariable String result, @RequestBody OverrideResultCommand command) {
+    canaryService.overrideCanaryResult(id, result, command.reason)
+  }
+
+  static class GenerateResultCommand {
+    int duration
+    String durationUnit
+  }
+
+  static class OverrideResultCommand {
+    String reason
   }
 }
