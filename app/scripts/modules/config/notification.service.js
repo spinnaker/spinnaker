@@ -11,8 +11,13 @@ angular.module('deckApp.config.notification.service', [
       return Restangular.one('notifications/application', applicationName).get();
     }
 
+    function saveNotificationsForApplication(applicationName, notifications){
+      return Restangular.all('notifications/application/' + applicationName).post(notifications).then();
+    }
+
     return {
-      getNotificationsForApplication: getNotificationsForApplication
+      getNotificationsForApplication: getNotificationsForApplication,
+      saveNotificationsForApplication: saveNotificationsForApplication
     };
 
   });

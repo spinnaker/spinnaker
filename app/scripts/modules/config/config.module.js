@@ -5,6 +5,7 @@ angular
     'deckApp.editApplication.modal.controller',
     'deckApp.editNotification.modal.controller',
     'deckApp.config.controller',
-    'deckApp.config.notification.service'
+    'deckApp.config.notification.service',
+    'deckApp.config.notification.details.filter'
   ]);
 

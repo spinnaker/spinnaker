@@ -88,7 +88,6 @@ angular
           return el !== notification;
         }
       );
-      vm.updateNotifications();
     };
 
     vm.editNotification = function (notification) {
@@ -132,12 +131,28 @@ angular
             }
           }
         )), function (allow) {
-          return allow !== undefined;
+          return allow !== undefined && allow.level === 'application';
         });
       });
     };
 
     vm.revertNotificationChanges();
+
+    vm.saveNotifications = function(){
+
+      var toSaveNotifications = {};
+      toSaveNotifications.application = application.name;
+
+      _.each(vm.notifications, function(notification){
+        if( toSaveNotifications[notification.type] === undefined ){
+          toSaveNotifications[notification.type] = [];
+        }
+        toSaveNotifications[notification.type].push(notification);
+      });
+
+      notificationService.saveNotificationsForApplication(application.name, toSaveNotifications);
+
+    };
 
     return vm;
 

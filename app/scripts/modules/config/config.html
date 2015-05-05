@@ -37,14 +37,14 @@
                 <tbody>
                 <tr ng-repeat="notification in config.notifications">
                   <td>
-                    {{notification.type|uppercase}}
+                    {{notification.type|notificationType}}
                   </td>
                   <td>
                     {{notification.address}}
                   </td>
                   <td>
                     <ul>
-                      <li ng-repeat="when in notification.when">{{when}}</li>
+                      <li ng-repeat="when in notification.when">{{when|notificationWhen}}</li>
                     </ul>
                   </td>
                   <td>
@@ -74,9 +74,8 @@
               </button>
             </div>
             <div class="col-md-9 text-right">
-              <button ng-disabled="!pipelineConfigurerCtrl.isValid()" class="btn btn-primary ng-scope"
-                      ng-click="pipelineConfigurerCtrl.savePipeline()" disabled="disabled">
-              <span ng-if="!viewState.saving" class="ng-scope">
+              <button class="btn btn-primary ng-scope"
+                      ng-click="config.saveNotifications()">
             <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
           </span></button>
             </div>
