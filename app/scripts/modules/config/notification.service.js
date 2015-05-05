@@ -12,7 +12,7 @@ angular.module('deckApp.config.notification.service', [
     }
 
     function saveNotificationsForApplication(applicationName, notifications){
-      return Restangular.all('notifications/application/' + applicationName).post(notifications).then();
+      return Restangular.all('notifications/application/' + applicationName).post(notifications);
     }
 
     return {

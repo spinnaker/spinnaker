@@ -3,10 +3,10 @@
 angular.module('deckApp.config.notification.details.filter', [])
   .filter('notificationWhen', function() {
     return function(input) {
-      input = input.replace('.', ' ').replace('pipeline', 'A pipeline is');
+      input = input.replace('.', ' ').replace('pipeline', 'A pipeline has');
 
-      if(input.indexOf('failed')>-1){
-        input = input.replace('pipeline is', 'pipeline has');
+      if(input.indexOf('complete')>-1){
+        input = input.replace('pipeline has complete', 'pipeline has completed');
       }
 
       return input;

@@ -14,6 +14,7 @@ angular
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
     vm.error = '';
+    vm.isNotificationsDirty = false;
 
     vm.editApplication = function () {
       $modal.open({
@@ -88,6 +89,7 @@ angular
           return el !== notification;
         }
       );
+      vm.isNotificationsDirty = true;
     };
 
     vm.editNotification = function (notification) {
@@ -110,6 +112,7 @@ angular
           } else {
             vm.notifications[vm.notifications.indexOf(oldNotification)] = newNotification;
           }
+          vm.isNotificationsDirty = true;
         }
       );
 
@@ -133,6 +136,7 @@ angular
         )), function (allow) {
           return allow !== undefined && allow.level === 'application';
         });
+        vm.isNotificationsDirty = false;
       });
     };
 
@@ -150,7 +154,9 @@ angular
         toSaveNotifications[notification.type].push(notification);
       });
 
-      notificationService.saveNotificationsForApplication(application.name, toSaveNotifications);
+      notificationService.saveNotificationsForApplication(application.name, toSaveNotifications).then(function(){
+        vm.revertNotificationChanges();
+      });
 
     };
 

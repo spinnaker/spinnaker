@@ -35,7 +35,7 @@
       </div>
 
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left">When:</div>
+        <div class="col-sm-3 sm-label-left">Notify when:</div>
         <div class="col-sm-9">
           <label class="col-sm-9" ng-repeat="wo in editNotification.whenOptions">
             <input
@@ -44,7 +44,7 @@
               value="{{wo}}"
               ng-model="editNotification.selectedWhenOptions[wo]"
               ng-checked="editNotification.notification.when.indexOf(wo) > -1">
-            {{wo}}
+            {{wo|notificationWhen}}
           </label>
         </div>
        </div>
