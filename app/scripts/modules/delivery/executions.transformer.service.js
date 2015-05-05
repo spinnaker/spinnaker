@@ -37,7 +37,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       });
 
       execution.stages.forEach(function(stage) {
-        if (!stage.syntheticStageOwner) {
+        if (!stage.syntheticStageOwner && stage.type !== 'pipelineInitialization') {
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
