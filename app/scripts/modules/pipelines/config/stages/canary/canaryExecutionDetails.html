@@ -2,9 +2,13 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'canary'">
+    <div class="row section-title">
+      <div class="col-md-12">
+        <h4 ng-bind="canaryConfig.name"></h4>
+      </div>
+    </div>
     <div class="row">
       <div class="col-md-12 canary-config-section">
-        <h4 ng-bind="canaryConfig.name"></h4>
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Baseline</div>
           <div class="col-md-6"><account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}</div>

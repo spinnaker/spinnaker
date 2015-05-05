@@ -14,7 +14,7 @@
         ng-repeat="step in stageSummary.stages"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
         ng-click="ctrl.toggleDetails($index)">
-      <td>{{ (step.name && step.name !== step.type) ? step.name : (step.type | robotToHuman) }}</td>
+      <td>{{ ((step.name && step.name !== step.type) ? step.name : step.type) | robotToHuman }}</td>
       <td>{{ step.startTime | timestamp }}</td>
       <td>{{ step.runningTimeInMs | duration }}</td>
       <td>
