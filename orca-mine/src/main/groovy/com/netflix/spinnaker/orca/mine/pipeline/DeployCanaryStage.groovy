@@ -99,7 +99,8 @@ class DeployCanaryStage extends ParallelDeployStage {
               it.context.account == cluster.account &&
                 it.context.application == cluster.application &&
                 it.context.stack == cluster.stack &&
-                it.context.freeFormDetails == cluster.freeFormDetails
+                it.context.freeFormDetails == cluster.freeFormDetails &&
+                it.context.availabilityZones.keySet()[0] == cluster.availabilityZones.keySet()[0]
             }
             def region = cluster.availabilityZones.keySet()[0]
             def nameBuilder = new NameBuilder() {
