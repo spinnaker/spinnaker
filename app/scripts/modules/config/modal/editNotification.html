@@ -34,12 +34,6 @@
         </div>
       </div>
 
-      <div class="form-group row slide-in animated" ng-if="editApp.emailErrorMsg">
-        <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.emailErrorMsg">
-          {{errorMsg}} <small><span class="glyphicon glyphicon-remove" ng-click="editApp.clearEmailMsg()" style="cursor: pointer; padding-left: 10px"></span></small>
-        </div>
-      </div>
-
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">When:</div>
         <div class="col-sm-9">
@@ -53,9 +47,7 @@
             {{wo}}
           </label>
         </div>
-
-        {{editNotification.selectedWhenOptions}}
-        </div>
+       </div>
       </div>
     </div>
 

@@ -8,7 +8,7 @@ angular
     vm.notification = angular.copy(notification);
 
     vm.types = [
-      'email', 'hipchat', 'sms'
+      'email', 'hipchat'
     ];
 
     vm.selectedWhenOptions = {};
@@ -26,14 +26,20 @@ angular
         }
       });
     } else {
-      vm.notification = [];
+      vm.notification = {};
       vm.notification.address = '';
       vm.notification.type = 'email';
       vm.notification.level = 'application';
+      vm.notification.when = [];
     }
 
     vm.submit = function() {
       vm.notification.when = [];
+      _.each(vm.whenOptions, function(option){
+        if(vm.selectedWhenOptions[option] === true){
+          vm.notification.when.push(option);
+        }
+      });
       $modalInstance.close([notification, vm.notification]);
     };
 

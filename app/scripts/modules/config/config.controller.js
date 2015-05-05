@@ -104,13 +104,8 @@ angular
       });
 
       modalInstance.result.then(function (notifications) {
-
           var oldNotification = notifications[0];
           var newNotification = notifications[1];
-
-          debugger;
-
-
           if (oldNotification === undefined) {
             vm.notifications.push(newNotification);
           } else {
@@ -123,10 +118,6 @@ angular
 
     vm.addNotification = function () {
       vm.editNotification(undefined);
-    };
-
-    vm.updateNotifications = function () {
-
     };
 
     vm.revertNotificationChanges = function(){
