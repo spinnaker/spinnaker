@@ -18,7 +18,8 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -91,7 +92,7 @@ class GateConfig {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  OkHttpClientConfig okHttpClientConfig
+  OkHttpClientConfiguration okHttpClientConfig
 
   @Bean
   OortService oortDeployService() {
@@ -236,7 +237,7 @@ class GateConfig {
 
   @Bean
   Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter()
+    new AuthenticatedRequestLoggingFilter()
   }
 
   @Component

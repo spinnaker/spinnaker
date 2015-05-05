@@ -2,7 +2,9 @@ package com.netflix.spinnaker.gate.filters
 
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
+import org.springframework.security.core.context.SecurityContextImpl
 
+import javax.servlet.http.HttpServletRequest
 import java.security.cert.X509Certificate
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -12,7 +14,7 @@ import javax.servlet.ServletRequest
 import javax.servlet.ServletResponse
 
 @Slf4j
-class AuthenticatedRequestFilter implements Filter {
+class AuthenticatedRequestLoggingFilter implements Filter {
   private static final String X509_CERTIFICATE = "javax.servlet.request.X509Certificate"
   private static final String AUTHENTICATED_USER = "AUTHENTICATED_USER"
 
@@ -46,10 +48,17 @@ class AuthenticatedRequestFilter implements Filter {
       }
     }
 
-    if (authenticatedUser) {
-      MDC.put(AUTHENTICATED_USER, authenticatedUser)
+    if (!authenticatedUser) {
+      def session = ((HttpServletRequest) request).getSession(false)
+      def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
+      authenticatedUser = securityContext?.authentication?.principal?.email
     }
+
     try {
+      if (authenticatedUser) {
+        MDC.put(AUTHENTICATED_USER, authenticatedUser)
+      }
+
       chain.doFilter(request, response)
     } finally {
       MDC.remove(AUTHENTICATED_USER)
