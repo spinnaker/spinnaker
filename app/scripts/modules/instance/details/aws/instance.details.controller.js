@@ -140,8 +140,6 @@ angular.module('deckApp.instance.detail.aws.controller', [
       var taskMonitor = {
         application: application,
         title: 'Terminating ' + instance.instanceId,
-        forceRefreshMessage: 'Refreshing application...',
-        forceRefreshEnabled: true,
         onApplicationRefresh: function() {
           if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
             $state.go('^');
