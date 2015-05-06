@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
+import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationStage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -79,7 +79,7 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   private JobFlowBuilder buildFlowParallel(JobFlowBuilder jobBuilder, Pipeline pipeline) {
     def initializationStage = StageBuilder.newStage(
       pipeline,
-      WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE,
+      PipelineInitializationStage.MAYO_CONFIG_TYPE,
       "Initialize",
       [:],
       null as Stage,
