@@ -6,7 +6,7 @@ angular
     'deckApp.applications.write.service',
     'deckApp.confirmationModal.service',
     'deckApp.caches.initializer',
-    'deckApp.caches.infrastructure'
+    'deckApp.caches.infrastructure',
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, application, notificationService) {
