@@ -22,13 +22,13 @@ angular.module('deckApp.pipelines')
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.name);
     }
 
-    if (settings.feature.parallelPipelines && !$scope.pipeline.stageCounter && $scope.pipeline.stages.length && !$scope.pipeline.stages[0].refId) {
+    if (settings.feature.parallelPipelines && $scope.pipeline.stageCounter === undefined) {
       $scope.pipeline.stageCounter = 0;
       $scope.pipeline.stages.forEach(function(stage) {
         $scope.pipeline.stageCounter++;
-        stage.refId = $scope.pipeline.stageCounter;
-        if (stage.refId > 1) {
-          stage.requisiteStageRefIds = [$scope.pipeline.stageCounter - 1];
+        stage.refId = $scope.pipeline.stageCounter + '';
+        if ($scope.pipeline.stageCounter > 1) {
+          stage.requisiteStageRefIds = [($scope.pipeline.stageCounter - 1) + ''];
         } else {
           stage.requisiteStageRefIds = [];
         }
@@ -64,7 +64,7 @@ angular.module('deckApp.pipelines')
       if (settings.feature.parallelPipelines) {
         $scope.pipeline.stageCounter++;
         newStage.requisiteStageRefIds = [];
-        newStage.refId = $scope.pipeline.stageCounter;
+        newStage.refId = $scope.pipeline.stageCounter + ''; // needs to be a string
         if ($scope.pipeline.stages.length && $scope.viewState.section === 'stage') {
           newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.viewState.stageIndex].refId);
         }
@@ -159,7 +159,6 @@ angular.module('deckApp.pipelines')
     };
 
     this.removeStage = function(stage) {
-      console.warn('REMOVING STAGE I HOPE YOU WANT THIS.');
       var stageIndex = $scope.pipeline.stages.indexOf(stage);
       $scope.pipeline.stages.splice(stageIndex, 1);
       $scope.pipeline.stages.forEach(function(test) {
