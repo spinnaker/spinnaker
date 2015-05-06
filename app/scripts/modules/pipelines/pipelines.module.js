@@ -13,6 +13,8 @@ angular.module('deckApp.pipelines', [
   'deckApp.pipelines.trigger',
   'deckApp.pipelines.create',
   'deckApp.pipelines.delete',
+  'deckApp.pipelines.enableParallel',
+  'deckApp.pipelines.disableParallel',
   'deckApp.pipelines.rename',
   'deckApp.pipelines.editJson',
   'deckApp.authentication',

@@ -6,13 +6,20 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
   'deckApp.executionDetails.section.service',
   'deckApp.executionDetails.section.nav.directive',
   'deckApp.urlBuilder',
+  'deckApp.pipelines.stages.canary.deployment.history.service'
 ])
-  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, urlBuilder) {
+  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams,
+                                                                executionDetailsSectionService,
+                                                                canaryDeploymentHistoryService, urlBuilder) {
 
     function initialize() {
-      $scope.configSections = ['canaryDeployment'];
+      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
 
       $scope.deployment = $scope.stage.context;
+      $scope.viewState = {
+        loadingHistory: true,
+        loadingHistoryError: false,
+      };
 
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
@@ -31,7 +38,25 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
         account: $scope.deployment.canaryCluster.accountName,
       });
 
+      $scope.loadHistory();
     }
+
+    $scope.loadHistory = function() {
+      $scope.viewState.loadingHistory = true;
+      $scope.viewState.loadingHistoryError = false;
+
+      canaryDeploymentHistoryService.getAnalysisHistory($scope.deployment.canaryDeploymentId).then(
+        function(results) {
+          $scope.analysisHistory = results;
+          $scope.viewState.loadingHistory = false;
+        },
+        function() {
+          $scope.viewState.loadingHistory = false;
+          $scope.viewState.loadingHistoryError = true;
+        }
+      );
+    };
+
 
     initialize();
 

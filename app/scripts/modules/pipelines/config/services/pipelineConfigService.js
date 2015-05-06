@@ -107,6 +107,30 @@ angular.module('deckApp.pipelines.config.service', [
       return _.uniq(upstreamStages);
     }
 
+    function enableParallelExecution(pipeline) {
+      pipeline.stageCounter = 0;
+      pipeline.stages.forEach(function(stage) {
+        pipeline.stageCounter++;
+        stage.refId = pipeline.stageCounter + '';
+        if (pipeline.stageCounter > 1) {
+          stage.requisiteStageRefIds = [(pipeline.stageCounter - 1) + ''];
+        } else {
+          stage.requisiteStageRefIds = [];
+        }
+      });
+      pipeline.parallel = true;
+      pipeline.stageCounter = pipeline.stages.length;
+    }
+
+    function disableParallelExecution(pipeline) {
+      delete pipeline.stageCounter;
+      pipeline.stages.forEach(function(stage) {
+        delete stage.refId;
+        delete stage.requisiteStageRefIds;
+      });
+      delete pipeline.parallel;
+    }
+
     return {
       getPipelinesForApplication: getPipelinesForApplication,
       savePipeline: savePipeline,
@@ -116,6 +140,8 @@ angular.module('deckApp.pipelines.config.service', [
       buildViewStateCacheKey: buildViewStateCacheKey,
       getDependencyCandidateStages: getDependencyCandidateStages,
       getAllUpstreamDependencies: getAllUpstreamDependencies,
+      enableParallelExecution: enableParallelExecution,
+      disableParallelExecution: disableParallelExecution,
     };
 
   });

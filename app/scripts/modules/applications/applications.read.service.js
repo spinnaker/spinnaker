@@ -125,7 +125,7 @@ angular
         }
 
         function reloadExecutions() {
-          return executionsService.getAll(application.name).then(function(execution) {
+          return executionsService.getAll(application).then(function(execution) {
             addExecutionsToApplication(application, execution);
             if (!application.executionsLoaded) {
               application.executionsLoaded = true;

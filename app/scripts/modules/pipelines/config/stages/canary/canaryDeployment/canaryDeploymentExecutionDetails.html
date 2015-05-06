@@ -36,12 +36,7 @@
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
           <div class="col-md-9">
-            <span ng-if="deployment.baselineCluster.capacity.min === deployment.baselineCluster.capacity.max">
-              {{deployment.baselineCluster.capacity.min}}
-            </span>
-            <span ng-if="deployment.baselineCluster.capacity.min !== deployment.baselineCluster.capacity.max">
-              {{deployment.baselineCluster.capacity.min}}/{{deployment.baselineCluster.capacity.desired}}/{{deployment.baselineCluster.capacity.max}}
-            </span>
+            {{deployment.baselineCluster.capacity}}
           </div>
         </div>
       </div>
@@ -62,21 +57,43 @@
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
           <div class="col-md-9">
-            <span ng-if="deployment.canaryCluster.capacity.min === deployment.canaryCluster.capacity.max">
-              {{deployment.canaryCluster.capacity.min}}
-            </span>
-            <span ng-if="deployment.canaryCluster.capacity.min !== deployment.canaryCluster.capacity.max">
-              {{deployment.canaryCluster.capacity.min}}/{{deployment.canaryCluster.capacity.desired}}/{{deployment.canaryCluster.capacity.max}}
-            </span>
+            {{deployment.canaryCluster.capacity}}
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+  <div class="step-section-details" ng-if="detailsSection === 'canaryAnalysisHistory'">
     <div class="row">
-      <execution-step-details item="stage"></execution-step-details>
+      <div class="col-md-12">
+        <p class="text-center" ng-if="viewState.loadingHistory">Loading...</p>
+        <p class="text-center" ng-if="!viewState.loadingHistory && viewState.loadingHistoryError">
+          Score History could not be loaded. <br/>
+          <a href ng-click="loadHistory()">Reload score history</a>
+        </p>
+        <table class="table" ng-if="!viewState.loadingHistory && !viewState.loadingHistoryError">
+          <thead>
+          <tr>
+            <th width="10%">Score</th>
+            <th width="20%">Last Updated</th>
+            <th width="20%">Report</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="scoreReport in analysisHistory | orderBy: '-lastUpdated'">
+              <td>
+                <canary-score result="scoreReport.result"
+                              score="scoreReport.score"></canary-score>
+              </td>
+              <td>
+                {{ scoreReport.lastUpdated | timestamp }}
+              </td>
+              <td><a target="_blank" ng-href="{{scoreReport.canaryReportURL}}">Canary Report</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+
 </div>

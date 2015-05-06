@@ -5,13 +5,12 @@ angular.module('deckApp.delivery.executions.service', [
   'deckApp.scheduler',
   'deckApp.orchestratedItem.service',
   'deckApp.settings',
-  'deckApp.utils.rx',
   'deckApp.utils.appendTransform',
   'deckApp.delivery.executionTransformer.service'
 ])
-  .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, RxService, appendTransform, executionsTransformer) {
+  .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, appendTransform, executionsTransformer) {
 
-    function getExecutions(applicationName) {
+    function getExecutions(application) {
 
       var deferred = $q.defer();
       $http({
@@ -20,13 +19,15 @@ angular.module('deckApp.delivery.executions.service', [
           if (!executions || !executions.length) {
             return [];
           }
-          executions.forEach(executionsTransformer.transformExecution);
+          executions.forEach(function(execution) {
+            executionsTransformer.transformExecution(application, execution);
+          });
           return executions;
         }),
         url: [
           settings.gateUrl,
           'applications',
-          applicationName,
+          application.name,
           'pipelines',
         ].join('/'),
       }).then(
@@ -112,14 +113,6 @@ angular.module('deckApp.delivery.executions.service', [
       cancelExecution: cancelExecution,
       deleteExecution: deleteExecution,
       forceRefresh: scheduler.scheduleImmediate,
-      subscribeAll: function(fn) {
-        return scheduler
-          .get()
-          .flatMap(function() {
-            return RxService.Observable.fromPromise(getExecutions($stateParams.application));
-          })
-          .subscribe(fn);
-      },
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
       getSectionCacheKey: getSectionCacheKey,
     };

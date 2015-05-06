@@ -182,8 +182,9 @@ angular.module('deckApp.pipelines.graph.directive', [
                   return [(child.phase - node.phase), child.name].join('-');
                 });
               },
-              'refId',
-              'name'
+              function(node) {
+                return parseInt(node.refId);
+              }
             );
             nodes.forEach(function(node) {
               scope.nodes[node.phase] = scope.nodes[node.phase] || [];

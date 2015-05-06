@@ -117,6 +117,8 @@ angular.module('deckApp.help')
 
     'pipeline.config.findAmi.cluster': 'The cluster to look at when selecting the AMI to use in this pipeline.',
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
+    'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
+      'stages have completed.</p><p>By configuring a pipeline this way, you can reduce the time it takes to run.</p>',
 
 
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
