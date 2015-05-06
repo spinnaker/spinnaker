@@ -24,7 +24,6 @@ import com.netflix.spinnaker.gate.security.onelogin.saml.Response
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -48,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@ConditionalOnProperty('onelogin.enabled')
+@ConditionalOnExpression('${onelogin.enabled:false}')
 @Configuration
 @EnableConfigurationProperties
 class OneLoginSecurityConfig implements WebSecurityAugmentor {
