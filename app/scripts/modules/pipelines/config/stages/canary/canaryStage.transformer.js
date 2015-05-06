@@ -86,6 +86,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               startTime: stage.startTime,
               endTime: deploymentEndTime,
               context: {
+                canaryDeploymentId: deployment.canaryAnalysisResult.canaryDeploymentId,
                 application: stage.context.canary.application,
                 canaryCluster: deployment.canaryCluster,
                 baselineCluster: deployment.baselineCluster,
