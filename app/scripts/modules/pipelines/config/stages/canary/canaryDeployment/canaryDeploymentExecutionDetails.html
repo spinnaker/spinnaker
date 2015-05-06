@@ -36,12 +36,7 @@
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
           <div class="col-md-9">
-            <span ng-if="deployment.baselineCluster.capacity.min === deployment.baselineCluster.capacity.max">
-              {{deployment.baselineCluster.capacity.min}}
-            </span>
-            <span ng-if="deployment.baselineCluster.capacity.min !== deployment.baselineCluster.capacity.max">
-              {{deployment.baselineCluster.capacity.min}}/{{deployment.baselineCluster.capacity.desired}}/{{deployment.baselineCluster.capacity.max}}
-            </span>
+            {{deployment.baselineCluster.capacity}}
           </div>
         </div>
       </div>
@@ -62,12 +57,7 @@
         <div class="row">
           <div class="col-md-3"><strong>Capacity</strong></div>
           <div class="col-md-9">
-            <span ng-if="deployment.canaryCluster.capacity.min === deployment.canaryCluster.capacity.max">
-              {{deployment.canaryCluster.capacity.min}}
-            </span>
-            <span ng-if="deployment.canaryCluster.capacity.min !== deployment.canaryCluster.capacity.max">
-              {{deployment.canaryCluster.capacity.min}}/{{deployment.canaryCluster.capacity.desired}}/{{deployment.canaryCluster.capacity.max}}
-            </span>
+            {{deployment.canaryCluster.capacity}}
           </div>
         </div>
       </div>

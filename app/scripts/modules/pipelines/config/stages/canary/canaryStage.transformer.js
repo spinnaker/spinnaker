@@ -2,7 +2,7 @@
 
 angular.module('deckApp.pipelines.stage.canary.transformer', [])
   .service('canaryStageTransformer', function() {
-    this.transform = function(execution) {
+    this.transform = function(application, execution) {
       var syntheticStagesToAdd = [];
       execution.stages.forEach(function(stage) {
         if (stage.type === 'canary' && stage.context && stage.context.canary && stage.context.canary.canaryDeployments) {
@@ -22,7 +22,12 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             if (!deployment.baselineCluster || !stage.context.clusterPairs[deploymentIndex]) {
               return;
             }
-            var clusterPair = stage.context.clusterPairs[deploymentIndex];
+
+            var deploymentEndTime = null;
+            var monitorTask = _.find(stage.tasks, { name: 'monitorCanary' });
+            if (monitorTask) {
+              deploymentEndTime = monitorTask.endTime;
+            }
 
             // TODO: Clean this up on the backend - this is a mess
             var baselineBuildParts = deployment.baselineCluster.buildId.split('/');
@@ -36,8 +41,32 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             deployment.canaryResult = deployment.canaryAnalysisResult || {};
             deployment.canaryCluster = deployment.canaryCluster || {};
 
-            deployment.canaryCluster.capacity = clusterPair.canary.capacity;
-            deployment.baselineCluster.capacity = clusterPair.baseline.capacity;
+            var deployedClusterPair = stage.context.deployedClusterPairs[deploymentIndex];
+            if (deployedClusterPair) {
+              var canaryServerGroup = _.find(application.serverGroups, {
+                name: deployedClusterPair.canary.serverGroup,
+                account: deployedClusterPair.canary.serverGroup.account,
+                region: deployedClusterPair.canary.serverGroup.region
+              });
+              if (canaryServerGroup) {
+                deployment.canaryCluster.capacity = canaryServerGroup.instances.length;
+              } else {
+                deployment.canaryCluster.capacity = 'n/a';
+              }
+
+              var baselineServerGroup = _.find(application.serverGroups, {
+                name: deployedClusterPair.baseline.serverGroup,
+                account: deployedClusterPair.baseline.serverGroup.account,
+                region: deployedClusterPair.baseline.serverGroup.region
+              });
+              if (baselineServerGroup) {
+                deployment.baselineCluster.capacity = baselineServerGroup.instances.length;
+              } else {
+                deployment.baselineCluster.capacity = 'n/a';
+              }
+            }
+
+
             deployment.baselineCluster.build = {
               url: deployment.baselineCluster.buildId,
               number: baselineBuildNumber,
@@ -55,7 +84,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               name: deployment.canaryCluster.region,
               status: status,
               startTime: stage.startTime,
-              endTime: stage.endTime,
+              endTime: deploymentEndTime,
               context: {
                 application: stage.context.canary.application,
                 canaryCluster: deployment.canaryCluster,

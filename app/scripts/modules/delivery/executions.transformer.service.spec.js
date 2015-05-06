@@ -23,7 +23,7 @@ describe('executionsService', function() {
         ]
       };
 
-      this.transformer.transformExecution(execution);
+      this.transformer.transformExecution({}, execution);
       expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e','f','b','c','a','g','d','h']);
     });
 
@@ -35,7 +35,7 @@ describe('executionsService', function() {
           { id: '3', name: 'wait' },
         ]
       };
-      this.transformer.transformExecution(execution);
+      this.transformer.transformExecution({}, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
       expect(_.pluck(execution.stageSummaries, 'name')).toEqual(['bake', 'deploy', 'wait']);
@@ -54,7 +54,7 @@ describe('executionsService', function() {
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER'},
         ]
       };
-      this.transformer.transformExecution(execution);
+      this.transformer.transformExecution({}, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
       expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['5','1']);
@@ -75,7 +75,7 @@ describe('executionsService', function() {
           { id: '8', parentStageId: '3', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ]
       };
-      this.transformer.transformExecution(execution);
+      this.transformer.transformExecution({}, execution);
 
       expect(execution.stageSummaries[0].status).toBe('COMPLETED');
       expect(execution.stageSummaries[0].startTime).toBe(5);
@@ -100,7 +100,7 @@ describe('executionsService', function() {
           { id: '5', parentStageId: '2', syntheticStageOwner: 'STAGE_AFTER', status: 'NOT_STARTED' },
         ]
       };
-      this.transformer.transformExecution(execution);
+      this.transformer.transformExecution({}, execution);
 
       var summary = execution.stageSummaries[0];
 

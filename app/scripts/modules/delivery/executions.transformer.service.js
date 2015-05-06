@@ -7,9 +7,9 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 ])
   .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 
-    function transformExecution(execution) {
+    function transformExecution(application, execution) {
       pipelineConfig.getExecutionTransformers().forEach(function(transformer) {
-        transformer.transform(execution);
+        transformer.transform(application, execution);
       });
       var stageSummaries = [];
 
