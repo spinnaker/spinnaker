@@ -5,7 +5,7 @@
       <b>Name</b>
     </div>
     <div class="col-md-3">
-      <input type="text" required ng-model="stage.canaryConfig.name"
+      <input type="text" required ng-model="stage.canary.canaryConfig.name"
              class="form-control input-sm" />
     </div>
   </div>
@@ -14,7 +14,7 @@
       <b>Canary Lifetime</b>
     </div>
     <div class="col-md-1">
-      <input type="text" required ng-model="stage.canaryConfig.lifetimeHours"
+      <input type="text" required ng-model="stage.canary.canaryConfig.lifetimeHours"
              class="form-control input-sm" />
     </div>
     <div class="col-md-2 form-control-static">
@@ -28,7 +28,7 @@
     </div>
     <div class="col-md-3">
       <select class="form-control input-sm"
-              ng-model="stage.canaryConfig.combinedCanaryResultStrategy">
+              ng-model="stage.canary.canaryConfig.combinedCanaryResultStrategy">
         <option value="LOWEST">lowest</option>
         <option value="AGGREGATE">average</option>
       </select>
@@ -40,7 +40,7 @@
       <help-field key="pipeline.config.canary.successfulScore"></help-field>
     </div>
     <div class="col-md-1">
-      <input type="text" required ng-model="stage.canaryConfig.canarySuccessCriteria.canaryResultScore"
+      <input type="text" required ng-model="stage.canary.canaryConfig.canarySuccessCriteria.canaryResultScore"
              class="form-control input-sm" />
     </div>
     <div class="col-md-2 col-md-offset-1 sm-label-left">
@@ -48,7 +48,7 @@
       <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
     </div>
     <div class="col-md-1">
-      <input type="text" required ng-model="stage.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
+      <input type="text" required ng-model="stage.canary.canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore"
              class="form-control input-sm" />
     </div>
   </div>
@@ -56,7 +56,7 @@
     <label>
       <input type="checkbox" ng-model="stage.scaleUp.enabled"/>
       <b>Scale Up Canary</b>
-      <help-field key="pipeline.config.canary.unhealthyScore"></help-field>
+      <help-field key="pipeline.config.canary.scaleUp"></help-field>
     </label>
   </div>
   <div class="form-group" ng-if="stage.scaleUp.enabled" style="margin-top: 10px;">
@@ -85,7 +85,7 @@
       <b>Name</b><help-field key="pipeline.config.canary.canaryConfigurationName"></help-field>
     </div>
     <div class="col-md-3">
-      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.name"
+      <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.name"
              class="form-control input-sm" />
     </div>
   </div>
@@ -94,7 +94,7 @@
       <b>Delay</b>
     </div>
     <div class="col-md-1">
-      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
+      <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
              class="form-control input-sm" />
     </div>
     <div class="col-md-5 form-control-static">
@@ -115,7 +115,7 @@
       <b>Frequency</b><help-field key="pipeline.config.canary.canaryInterval"></help-field>
     </div>
     <div class="col-md-1">
-      <input type="text" required ng-model="stage.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
+      <input type="text" required ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.canaryAnalysisIntervalMins"
              class="form-control input-sm" />
     </div>
     <div class="col-md-2 form-control-static">
@@ -128,7 +128,7 @@
       <b>Name</b>
     </div>
     <div class="col-md-6">
-      <input type="text" required ng-model="stage.owner.name"
+      <input type="text" required ng-model="stage.canary.owner.name"
              class="form-control input-sm" />
     </div>
   </div>
@@ -137,7 +137,7 @@
       <b>Email</b>
     </div>
     <div class="col-md-6">
-      <input type="text" required ng-model="stage.owner.email"
+      <input type="text" required ng-model="stage.canary.owner.email"
              class="form-control input-sm" />
     </div>
   </div>

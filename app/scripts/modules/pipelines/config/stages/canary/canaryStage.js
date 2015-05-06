@@ -31,21 +31,21 @@ angular.module('deckApp.pipelines.stage.canary')
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
-    $scope.stage.owner = $scope.stage.owner || { email: user.authenticated ? user.name : null };
-    $scope.stage.watchers = $scope.stage.watchers || [];
-    $scope.stage.canaries = $scope.stage.canaries || [];
-    $scope.stage.canaryConfig = $scope.stage.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
-    $scope.stage.canaryConfig.canaryAnalysisConfig = $scope.stage.canaryConfig.canaryAnalysisConfig || {};
-    $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours || [];
+    $scope.stage.canary = $scope.stage.canary || {};
+    $scope.stage.canary.owner = $scope.stage.canary.owner || { email: user.authenticated ? user.name : null };
+    $scope.stage.canary.watchers = $scope.stage.canary.watchers || [];
+    $scope.stage.canary.canaryConfig = $scope.stage.canary.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig = $scope.stage.canary.canaryConfig.canaryAnalysisConfig || {};
+    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
 
     accountService.listAccounts('aws').then(function(accounts) {
       $scope.accounts = accounts;
     });
 
-    $scope.notificationHours = $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
+    $scope.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
     this.splitNotificationHours = function() {
-      $scope.stage.canaryConfig.canaryAnalysisConfig.notificationHours = _.map($scope.notificationHours.split(','), function(str) {
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map($scope.notificationHours.split(','), function(str) {
         if (!parseInt(str.trim()).isNaN) {
           return parseInt(str.trim());
         }
@@ -158,10 +158,6 @@ angular.module('deckApp.pipelines.stage.canary')
           cleanupClusterConfig(stageCluster, type);
           $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
         });
-    };
-
-    this.copyCluster = function(index) {
-      $scope.stage.canaries.push(angular.copy($scope.stage.canaries[index]));
     };
 
     this.deleteClusterPair = function(index) {

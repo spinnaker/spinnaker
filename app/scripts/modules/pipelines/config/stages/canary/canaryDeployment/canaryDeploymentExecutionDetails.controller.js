@@ -42,19 +42,21 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
     }
 
     $scope.loadHistory = function() {
-      $scope.viewState.loadingHistory = true;
-      $scope.viewState.loadingHistoryError = false;
+      if ($scope.deployment.canaryDeploymentId) {
+        $scope.viewState.loadingHistory = true;
+        $scope.viewState.loadingHistoryError = false;
 
-      canaryDeploymentHistoryService.getAnalysisHistory($scope.deployment.canaryDeploymentId).then(
-        function(results) {
-          $scope.analysisHistory = results;
-          $scope.viewState.loadingHistory = false;
-        },
-        function() {
-          $scope.viewState.loadingHistory = false;
-          $scope.viewState.loadingHistoryError = true;
-        }
-      );
+        canaryDeploymentHistoryService.getAnalysisHistory($scope.deployment.canaryDeploymentId).then(
+          function(results) {
+            $scope.analysisHistory = results;
+            $scope.viewState.loadingHistory = false;
+          },
+          function() {
+            $scope.viewState.loadingHistory = false;
+            $scope.viewState.loadingHistoryError = true;
+          }
+        );
+      }
     };
 
 
