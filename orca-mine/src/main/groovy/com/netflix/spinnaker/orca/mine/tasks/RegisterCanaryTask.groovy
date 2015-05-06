@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -51,24 +50,12 @@ class RegisterCanaryTask implements Task {
   }
 
   Map buildCanary(String app, Stage stage) {
-    def context = stage.context
-    Map c = [
-      application: app,
-      owner: context.owner,
-      watchers: context.watchers ?: [],
-      canaryConfig: context.canaryConfig,
-    ]
+    Map c = stage.context.canary
+    c.application = c.application ?: app
     c.canaryConfig.canaryHealthCheckHandler = c.canaryConfig.canaryHealthCheckHandler ?: [:]
-    c.canaryConfig.canaryHealthCheckHandler['@class'] = 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'
+    c.canaryConfig.canaryHealthCheckHandler['@class'] = c.canaryConfig.canaryHealthCheckHandler['@class'] ?: 'com.netflix.spinnaker.mine.CanaryResultHealthCheckHandler'
     c.canaryConfig.name = c.canaryConfig.name ?: stage.execution.id
-    c.canaryConfig.application = app
-    c.canaryDeployments =  stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect { Map pair ->
-      def asCluster = { Map cluster ->
-        [name: cluster.clusterName, accountName: cluster.account, type: 'aws', region: cluster.region, imageId: cluster.imageId, buildId: cluster.buildNumber]
-      }
-      [canaryCluster: asCluster(pair.canary), baselineCluster: asCluster(pair.baseline)]
-    }
-
+    c.canaryConfig.application = c.canaryConfig.application ?: c.application ?: app
     return c
   }
 }

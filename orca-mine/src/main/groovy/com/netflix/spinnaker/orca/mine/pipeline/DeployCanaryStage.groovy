@@ -37,8 +37,6 @@ class DeployCanaryStage extends ParallelDeployStage {
 
   public static final String MAYO_CONFIG_TYPE = "deployCanary"
 
-  private final Logger log = LoggerFactory.getLogger(DeployCanaryStage)
-
   @Autowired FindAmiFromClusterTask findAmi
 
   DeployCanaryStage() {
@@ -60,7 +58,7 @@ class DeployCanaryStage extends ParallelDeployStage {
       baseline.strategy = "highlander"
       def baselineAmi = baselineAmis.find { it.region == baseline.availabilityZones.keySet()[0] }
       baseline.amiName = baselineAmi?.ami
-      baseline.buildNumber = createBuildId(baselineAmi)
+      baseline.buildUrl = createBuildUrl(baselineAmi)
 
       [baseline, canary]
     }.flatten().collect(toContext)
@@ -74,7 +72,7 @@ class DeployCanaryStage extends ParallelDeployStage {
     return result.stageOutputs.amiDetails
   }
 
-  String createBuildId(Map deploymentDetail) {
+  String createBuildUrl(Map deploymentDetail) {
     def appVersion = AppVersion.parseName(deploymentDetail?.tags?.find { it.key == 'appversion' }?.value)
     def buildHost = deploymentDetail?.tags?.find { it.key == 'build_host' }?.value
     if (appVersion && buildHost) {
@@ -87,19 +85,19 @@ class DeployCanaryStage extends ParallelDeployStage {
   Task completeParallel() {
     return new Task() {
       TaskResult execute(Stage stage) {
-        def parentId = stage.parentStageId
         def context = stage.context
         def allStages = stage.execution.stages
         def deployStages = allStages.findAll { it.parentStageId == stage.id && it.type == ParallelDeployStage.MAYO_CONFIG_TYPE }
         def deployedClusterPairs = []
         for (Map pair in context.clusterPairs) {
-          def resultPair = [canaryStage: parentId]
+          def resultPair = [canaryStage: context.canaryStageId]
           pair.each { String type, Map cluster ->
             def deployStage = deployStages.find {
               it.context.account == cluster.account &&
                 it.context.application == cluster.application &&
                 it.context.stack == cluster.stack &&
-                it.context.freeFormDetails == cluster.freeFormDetails
+                it.context.freeFormDetails == cluster.freeFormDetails &&
+                it.context.availabilityZones.keySet()[0] == cluster.availabilityZones.keySet()[0]
             }
             def region = cluster.availabilityZones.keySet()[0]
             def nameBuilder = new NameBuilder() {
@@ -112,22 +110,26 @@ class DeployCanaryStage extends ParallelDeployStage {
               def ami = deployStage.context.deploymentDetails.find { it.region == region }
 
               cluster.amiName = ami?.ami
-              cluster.buildNumber = createBuildId(ami)
+              cluster.buildUrl = createBuildUrl(ami)
             }
-            resultPair[type] = [
-              clusterName: nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
+            resultPair[type + "Cluster"] = [
+              name: nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
               serverGroup: deployStage.context.'deploy.server.groups'[region].first(),
-              account: cluster.account,
+              type: 'aws',
+              accountName: cluster.account,
               region: region,
               imageId: cluster.amiName,
-              buildNumber: cluster.buildNumber
+              buildId: cluster.buildUrl
             ]
           }
           deployedClusterPairs << resultPair
         }
+
         Logger log = LoggerFactory.getLogger(DeployCanaryStage)
         log.info("Completed Canary Deploys")
-        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [deployedClusterPairs: deployedClusterPairs])
+        Map canary = stage.context.canary
+        canary.canaryDeployments = deployedClusterPairs
+        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary], [canary: canary, deployedClusterPairs: deployedClusterPairs])
       }
     }
   }

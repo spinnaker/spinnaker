@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.mine.tasks.CleanupCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.CompleteCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.MonitorCanaryTask
-import com.netflix.spinnaker.orca.mine.tasks.RegisterCanaryTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step
@@ -28,23 +23,25 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class MonitorCanaryStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "monitorCanary"
+class CanaryStage extends LinearStage {
+  public static final String MAYO_CONFIG_TYPE = "canary"
 
   @Autowired DeployCanaryStage deployCanaryStage
+  @Autowired MonitorCanaryStage monitorCanaryStage
 
-  MonitorCanaryStage() {
+  CanaryStage() {
     super(MAYO_CONFIG_TYPE)
   }
 
   @Override
   List<Step> buildSteps(Stage stage) {
-    [
-      buildStep(stage, "registerCanary", RegisterCanaryTask),
-      buildStep(stage, "monitorCanary", MonitorCanaryTask),
-      buildStep(stage, "cleanupCanary", CleanupCanaryTask),
-      buildStep(stage, "monitorCleanup", MonitorKatoTask),
-      buildStep(stage, "completeCanary", CompleteCanaryTask)
-    ]
+    Map canaryStageId = [canaryStageId: stage.id]
+
+    Map deployContext = canaryStageId + stage.context
+    Map monitorContext = canaryStageId + [scaleUp: stage.context.scaleUp ?: [:]]
+
+    injectAfter(stage, "Deploy Canary", deployCanaryStage, deployContext)
+    injectAfter(stage, "Monitor Canary", monitorCanaryStage, monitorContext)
+    []
   }
 }

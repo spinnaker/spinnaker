@@ -35,41 +35,61 @@ class RegisterCanaryTaskSpec extends Specification {
     setup:
     def pipeline = new Pipeline(application: 'foo')
 
-    def stageContext = [:]
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, stageContext)
-    stageContext.putAll([
+    def canaryStageId = UUID.randomUUID().toString()
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, [
+      canaryStageId: canaryStageId,
       account     : 'test',
-      owner       : [name: 'cfieber', email: 'cfieber@netflix.com'],
-      watchers    : [],
-      canaryConfig: [
-        lifetimeHours           : 1,
-        combinedCanaryResultStrategy: 'LOWEST',
-        canarySuccessCriteria   : [canaryResultScore: 95],
-        canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
-        canaryAnalysisConfig    : [
-          name                      : 'beans',
-          beginCanaryAnalysisAfterMins: 5,
-          notificationHours         : [1, 2],
-          canaryAnalysisIntervalMins: 15
-        ]
+      canary: [
+        owner       : [name: 'cfieber', email: 'cfieber@netflix.com'],
+        watchers    : [],
+        canaryConfig: [
+          lifetimeHours           : 1,
+          combinedCanaryResultStrategy: 'LOWEST',
+          canarySuccessCriteria   : [canaryResultScore: 95],
+          canaryHealthCheckHandler: [minimumCanaryResultScore: 75],
+          canaryAnalysisConfig    : [
+            name                      : 'beans',
+            beginCanaryAnalysisAfterMins: 5,
+            notificationHours         : [1, 2],
+            canaryAnalysisIntervalMins: 15
+          ]
+        ],
+        canaryDeployments: [[
+          canaryCluster: [
+            name: 'foo--cfieber-canary',
+            serverGroup: 'foo--cfieber-canary-v000',
+            accountName: 'test',
+            region: 'us-west-1',
+            imageId: 'ami-12345',
+            buildId: 100
+          ],
+          baselineCluster: [
+            name: 'foo--cfieber-baseline',
+            serverGroup: 'foo--cfieber-baseline-v000',
+            accountName: 'test',
+            region: 'us-west-1',
+            imageId: 'ami-12344',
+            buildId: 99
+          ]
+        ]]
       ],
       deployedClusterPairs: [[
-              canaryStage: monitorCanaryStage.id,
-              canary: [
-                clusterName: 'foo--cfieber-canary',
+              canaryStage: canaryStageId,
+              canaryCluster: [
+                name: 'foo--cfieber-canary',
                 serverGroup: 'foo--cfieber-canary-v000',
-                account: 'test',
+                accountName: 'test',
                 region: 'us-west-1',
                 imageId: 'ami-12345',
-                buildNumber: 100
+                buildId: 100
               ],
-              baseline: [
-                clusterName: 'foo--cfieber-baseline',
+              baselineCluster: [
+                name: 'foo--cfieber-baseline',
                 serverGroup: 'foo--cfieber-baseline-v000',
-                account: 'test',
+                accountName: 'test',
                 region: 'us-west-1',
                 imageId: 'ami-12344',
-                buildNumber: 99
+                buildId: 99
               ]
       ]]
     ])

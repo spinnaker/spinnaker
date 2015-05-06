@@ -50,16 +50,12 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     ]
     if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], outputs)
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
     }
 
     if (outputs.canary.health?.health == 'UNHEALTHY' && !context.disableRequested) {
       log.info("Canary $stage.id unhealthy, disabling")
-      def operations = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
-        [it.canary, it.baseline].collect {
-          [disableAsgDescription: [asgName: it.serverGroup, regions: [it.region], credentials: it.account]]
-        }
-      }.flatten()
+      def operations = DeployedClustersUtil.toKatoAsgOperations('disableAsgDescription', stage.context)
       log.info "Disabling canary $stage.id with ${operations}"
       katoService.requestOperations(operations).toBlocking().first()
       outputs.disableRequested = true
@@ -71,16 +67,8 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     if (scaleUp && scaleUp.enabled && !scaleUp.complete) {
       int capacity = scaleUp.capacity as Integer
       if (System.currentTimeMillis() - outputs.canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
-        def resizeOps = stage.context.deployedClusterPairs.findAll { it.canaryStage == stage.id }.collect {
-          [it.canary, it.baseline].collect {
-            [resizeAsgDescription: [
-              asgName: it.serverGroup,
-              regions: [it.region],
-              capacity: [min: capacity, max: capacity, desired: capacity],
-              credentials: it.account]
-            ]
-          }
-        }.flatten()
+        def resizeCapacity = [min: capacity, max: capacity, desired: capacity]
+        def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeAsgDescription', stage.context).collect { it + resizeCapacity }
         outputs.scaleUp = scaleUp
         outputs.scaleUp.katoId = katoService.requestOperations(resizeOps).toBlocking().first().id
         outputs.scaleUp.complete = true
@@ -99,6 +87,10 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     def outputs = [
       canary : mineService.cancelCanary(canaryId, "Pipeline execution (${stage.execution?.id}) canceled")
     ]
+    def ops = DeployedClustersUtil.toKatoAsgOperations('destroyAsgDescription', stage.context)
+    log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
+    def taskId = katoService.requestOperations(ops).toBlocking().first()
+    outputs << ['kato.last.task.id': taskId]
     return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
   }
 }

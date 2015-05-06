@@ -64,7 +64,15 @@ class BakeStage extends ParallelStage implements StepProvider {
           return accum
         } ?: []
         regions.addAll(it.context?.cluster?.availabilityZones?.keySet() ?: [])
-        regions
+        return regions
+      }.flatten())
+      deployRegions.addAll(stage.execution.stages.findAll { it.type == "canary"}.collect {
+        Set<String> regions = it.context?.clusterPairs?.inject([] as Set<String>) { Set<String> accum, Map clusterPair ->
+          accum.addAll(clusterPair.baseline?.availabilityZones?.keySet() ?: [])
+          accum.addAll(clusterPair.canary?.availabilityZones?.keySet() ?: [])
+          return accum
+        } ?: []
+        return regions
       }.flatten())
     }
 
