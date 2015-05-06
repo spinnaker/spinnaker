@@ -95,9 +95,9 @@ class MonitorCanaryTaskSpec extends Specification {
         ]
       ]
     ]
-    def stageCtx = [:]
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", stageCtx)
-    stageCtx.putAll([
+    def canaryStageId = UUID.randomUUID().toString()
+    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+      canaryStageId: canaryStageId,
       canary: canaryConf,
       scaleUp: [
         enabled: true,
@@ -105,8 +105,8 @@ class MonitorCanaryTaskSpec extends Specification {
         delay: 1
       ],
       deployedClusterPairs: [[
-        canaryStage: stage.id,
-        canary: [
+        canaryStage: canaryStageId,
+        canaryCluster: [
           clusterName: 'foo--cfieber-canary',
           serverGroup: 'foo--cfieber-canary-v000',
           account: 'test',
@@ -114,7 +114,7 @@ class MonitorCanaryTaskSpec extends Specification {
           imageId: 'ami-12345',
           buildNumber: 100
         ],
-        baseline: [
+        baselineCluster: [
           clusterName: 'foo--cfieber-baseline',
           serverGroup: 'foo--cfieber-baseline-v000',
           account: 'test',
@@ -163,13 +163,13 @@ class MonitorCanaryTaskSpec extends Specification {
         ]
       ]
     ]
-    def stageCtx = [:]
-    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", stageCtx)
-    stageCtx.putAll([
+    def canaryStageId = UUID.randomUUID().toString()
+    def stage = new PipelineStage(new Pipeline(application: "foo"), "canary", [
+      canaryStageId: canaryStageId,
       canary: canaryConf,
       deployedClusterPairs: [[
-                               canaryStage: stage.id,
-                               canary: [
+                               canaryStage: canaryStageId,
+                               canaryCluster: [
                                  clusterName: 'foo--cfieber-canary',
                                  serverGroup: 'foo--cfieber-canary-v000',
                                  account: 'test',
@@ -177,7 +177,7 @@ class MonitorCanaryTaskSpec extends Specification {
                                  imageId: 'ami-12345',
                                  buildNumber: 100
                                ],
-                               baseline: [
+                               baselineCluster: [
                                  clusterName: 'foo--cfieber-baseline',
                                  serverGroup: 'foo--cfieber-baseline-v000',
                                  account: 'test',

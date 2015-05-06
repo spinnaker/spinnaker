@@ -34,13 +34,4 @@ interface MineService {
 
   @DELETE('/canaries/{id}/cancel')
   Map cancelCanary(@Path('id') String id, @Query('reason') String reason)
-
-  @PUT('/canaries/{id}/disable')
-  Map disableCanary(@Path('id') String id, @Query('reason') String reason)
-
-  @PUT('/canaries/{id}/enable')
-  Map enableCanary(@Path('id') String id)
-
-  @PUT('/canaries/{id}/disableAndScheduleForTermination')
-  Map disableCanaryAndScheduleForTermination(@Path('id') String id, @Query('reason') String reason)
 }

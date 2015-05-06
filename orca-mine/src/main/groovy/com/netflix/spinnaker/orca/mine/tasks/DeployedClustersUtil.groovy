@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.mine
+package com.netflix.spinnaker.orca.mine.tasks
 
-import groovy.transform.Canonical
-
-@Canonical
-class Cluster {
-  String id
-  String name
-  String type = 'aws'
-  String accountName
-  String region
-  String buildId
-  String imageId
+class DeployedClustersUtil {
+  static List<Map> toKatoAsgOperations(String asgOperationDescription, Map stageContext) {
+    stageContext.deployedClusterPairs.findAll { it.canaryStage == stageContext.canaryStageId }.collect {
+      [it.canaryCluster, it.baselineCluster].collect {
+        [(asgOperationDescription): [asgName: it.serverGroup, regions: [it.region], credentials: it.accountName]]
+      }
+    }.flatten()
+  }
 }
