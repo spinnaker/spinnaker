@@ -13,27 +13,12 @@ angular.module('deckApp.pipelines')
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
-                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache,
-                                                 settings) {
+                                                 dirtyPipelineTracker, pipelineConfigService, viewStateCache) {
 
     var configViewStateCache = viewStateCache.pipelineConfig;
 
     function buildCacheKey() {
       return pipelineConfigService.buildViewStateCacheKey($scope.application.name, $scope.pipeline.name);
-    }
-
-    if (settings.feature.parallelPipelines && $scope.pipeline.stageCounter === undefined) {
-      $scope.pipeline.stageCounter = 0;
-      $scope.pipeline.stages.forEach(function(stage) {
-        $scope.pipeline.stageCounter++;
-        stage.refId = $scope.pipeline.stageCounter + '';
-        if ($scope.pipeline.stageCounter > 1) {
-          stage.requisiteStageRefIds = [($scope.pipeline.stageCounter - 1) + ''];
-        } else {
-          stage.requisiteStageRefIds = [];
-        }
-      });
-      $scope.pipeline.stageCounter = $scope.pipeline.stages.length;
     }
 
     $scope.viewState = configViewStateCache.get(buildCacheKey()) || {
@@ -44,7 +29,31 @@ angular.module('deckApp.pipelines')
       saving: false,
     };
 
-    $scope.viewState.parallelPipelinesEnabled = !!settings.feature.parallelPipelines;
+    this.enableParallel = function() {
+      $modal.open({
+        templateUrl: 'scripts/modules/pipelines/config/actions/enableParallel/enableParallel.html',
+        controller: 'EnableParallelModalCtrl',
+        controllerAs: 'enableParallelModalCtrl',
+        resolve: {
+          pipeline: function() { return $scope.pipeline; },
+        }
+      }).result.then(function() {
+          $scope.$broadcast('pipeline-parallel-changed');
+        });
+    };
+
+    this.disableParallel = function() {
+      $modal.open({
+        templateUrl: 'scripts/modules/pipelines/config/actions/disableParallel/disableParallel.html',
+        controller: 'DisableParallelModalCtrl',
+        controllerAs: 'disableParallelModalCtrl',
+        resolve: {
+          pipeline: function() { return $scope.pipeline; },
+        }
+      }).result.then(function() {
+          $scope.$broadcast('pipeline-parallel-changed');
+        });
+    };
 
     this.deletePipeline = function() {
       $modal.open({
@@ -61,7 +70,7 @@ angular.module('deckApp.pipelines')
     this.addStage = function() {
       var newStage = { isNew: true };
       $scope.pipeline.stages = $scope.pipeline.stages || [];
-      if (settings.feature.parallelPipelines) {
+      if ($scope.pipeline.parallel) {
         $scope.pipeline.stageCounter++;
         newStage.requisiteStageRefIds = [];
         newStage.refId = $scope.pipeline.stageCounter + ''; // needs to be a string
@@ -199,6 +208,13 @@ angular.module('deckApp.pipelines')
 
     this.revertPipelineChanges = function() {
       var original = angular.fromJson($scope.viewState.original);
+      if (original.parallel) {
+        $scope.pipeline.parallel = true;
+        $scope.pipeline.stageCounter = original.stageCounter;
+      } else {
+        delete $scope.pipeline.parallel;
+        delete $scope.pipeline.stageCounter;
+      }
       $scope.pipeline.stages = original.stages;
       $scope.pipeline.triggers = original.triggers;
       // if we were looking at a stage that no longer exists, move to the last stage
