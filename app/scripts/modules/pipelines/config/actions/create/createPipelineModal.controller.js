@@ -28,8 +28,10 @@ angular.module('deckApp.pipelines.create.controller', [
       var template = $scope.command.template;
       if (template.fromServer) {
         template = angular.copy(template.plain());
+      } else {
+        template = angular.copy(template);
       }
-      if (template === noTemplate && $scope.command.parallel) {
+      if ($scope.command.template === noTemplate && $scope.command.parallel) {
         pipelineConfigService.enableParallelExecution(template);
       }
       template.name = $scope.command.name;

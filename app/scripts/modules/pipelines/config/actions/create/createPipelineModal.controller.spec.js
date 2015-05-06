@@ -138,7 +138,6 @@ describe('Controller: createPipelineModal', function() {
       this.controller.createPipeline();
       this.$scope.$digest();
 
-      expect(this.$scope.command.template).toBe(submitted);
       expect(submitted.index).toBe(1);
       expect(reinitialized).toBe(true);
     });
