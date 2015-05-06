@@ -18,7 +18,8 @@ angular.module('deckApp.pipelines.create.controller', [
     $scope.existingNames = _.pluck($scope.templates, 'name');
 
     $scope.command = {
-      template: noTemplate
+      template: noTemplate,
+      parallel: true,
     };
 
     this.cancel = $modalInstance.dismiss;
@@ -27,6 +28,9 @@ angular.module('deckApp.pipelines.create.controller', [
       var template = $scope.command.template;
       if (template.fromServer) {
         template = angular.copy(template.plain());
+      }
+      if (template === noTemplate && $scope.command.parallel) {
+        pipelineConfigService.enableParallelExecution(template);
       }
       template.name = $scope.command.name;
       if (target === 'top') {

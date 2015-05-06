@@ -4,15 +4,14 @@ angular.module('deckApp.pipelines.config.validator.service', [
   'deckApp.pipelines.config',
   'deckApp.pipelines.config.service',
   'deckApp.utils.lodash',
-  'deckApp.settings',
 ])
-  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, settings) {
+  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService) {
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
         var stageTypes = validationConfig.stageTypes || [validationConfig.stageType];
         var stagesToTest = pipeline.stages.slice(0, index+1);
-        if (settings.feature.parallelPipelines) {
+        if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
         for (var i = 0; i < stagesToTest.length; i++) {
@@ -35,7 +34,7 @@ angular.module('deckApp.pipelines.config.validator.service', [
           field = field[part];
         });
 
-        
+
         if (fieldNotFound ||
           (!field && field !== 0) ||
           (field && field instanceof Array && field.length === 0)

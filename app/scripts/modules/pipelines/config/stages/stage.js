@@ -39,7 +39,7 @@ angular.module('deckApp.pipelines.stageConfig', [
     };
 
     $scope.updateAvailableDependencyStages = function() {
-      if (!$scope.viewState.parallelPipelinesEnabled) {
+      if (!$scope.pipeline.parallel) {
         return;
       }
       var availableDependencyStages = pipelineConfigService.getDependencyCandidateStages($scope.pipeline, $scope.stage);
@@ -126,6 +126,7 @@ angular.module('deckApp.pipelines.stageConfig', [
 
     $scope.$on('pipeline-reverted', this.selectStage);
     $scope.$on('pipeline-json-edited', this.selectStage);
+    $scope.$on('pipeline-parallel-changed', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   });

@@ -1,0 +1,23 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>Enable Parallel Execution</h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-12">
+          <p>Enabling parallel execution allows you to run some stages concurrently.</p>
+          <p>Are you sure you want to enable parallel execution for the pipeline: {{pipeline.name}}?</p>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="enableParallelModalCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="enableParallelModalCtrl.makeParallel()">
+      <span class="glyphicon glyphicon-ok-circle"></span> Enable Parallel Execution
+    </button>
+  </div>
+</div>
