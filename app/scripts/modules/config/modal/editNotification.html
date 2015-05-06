@@ -1,0 +1,95 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">Edit Notification</h3>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="editNotificationForm">
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="type">Notify via:</div>
+        <div class="col-sm-9">
+          <select class="input-sm"
+                  ng-options="t as t for t in editNotification.types"
+                  ng-model="editNotification.notification.type">
+          </select>
+        </div>
+      </div>
+      <div class="form-group row" ng-if="editNotification.notification.type === 'email'">
+        <div class="col-sm-3 sm-label-left">Email Address:</div>
+        <div class="col-sm-9">
+          <input type="email"
+                 name="email"
+                 class="form-control input-sm "
+                 ng-model="editNotification.email"
+                 placeholder="enter a email address"
+                 required>
+          </input>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in animated"
+           ng-if="editNotificationForm.email.$dirty && editNotificationForm.email.$invalid && editNotification.notification.type === 'email'">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Please enter a valid email address</span>
+        </div>
+      </div>
+
+      <div class="form-group row" ng-if="editNotification.notification.type === 'hipchat'">
+        <div class="col-sm-9 col-sm-offset-3"><strong>Please Note:</strong> You need to invite the Skynet T-800 bot to your room to
+          receive hipchat notifications<br/>
+        </div>
+        <div class="col-sm-3 sm-label-left">Hipchat Room:</div>
+        <div class="col-sm-9">
+          <input name="hipchat"
+                 class="form-control input-sm "
+                 ng-model="editNotification.hipchat"
+                 placeholder="enter a hipchat room"
+                 required>
+          </input>
+        </div>
+      </div>
+
+      <div class="form-group row slide-in animated"
+           ng-if="editNotificationForm.hipchat.$dirty && editNotificationForm.hipchat.$invalid && editNotification.notification.type === 'hipchat'">
+        <div class="col-sm-9 col-sm-offset-3 error-message">
+          <span>Please enter a valid hipchat room</span>
+        </div>
+      </div>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Notify when:</div>
+        <div class="col-sm-9">
+          <label class="col-sm-9" ng-repeat="wo in editNotification.whenOptions">
+            <input
+              type="checkbox"
+              name="when"
+              value="{{wo}}"
+              ng-model="selectedWhenOptions[wo]"
+              ng-checked="editNotification.notification.when.indexOf(wo) > -1">
+            {{wo|notificationWhen}}
+          </label>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal-footer">
+  <span ng-show="editApp.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
+  <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+  <button type="submit"
+          class="btn btn-primary"
+          data-purpose="submit"
+          ng-click="editNotification.submit()"
+          ng-disabled="
+          ( editNotification.notification.type === 'hipchat' && !editNotification.hipchat.length ) ||
+          ( editNotification.notification.type === 'email' && !editNotification.email.length ) ||
+          !editNotification.hasSelectedWhen
+          "
+    >
+    <span class="glyphicon glyphicon-ok-circle"></span> Update
+  </button>
+</div>
+
+</form>
+</div>

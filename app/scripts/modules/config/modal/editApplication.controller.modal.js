@@ -19,7 +19,6 @@ angular
       );
     }
 
-
     function extractErrorMsg(error) {
       var exceptions = _.chain(error.variables)
         .where({key: 'exception'})
