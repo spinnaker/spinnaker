@@ -91,7 +91,8 @@ class FindAmiFromClusterTask implements Task {
     String cluster = stage.context.cluster
     Set<String> requiredRegions = new HashSet<>(stage.context.regions?.asType(List) ?: [])
 
-    boolean onlyEnabled = (stage.context.onlyEnabled ?: "true") as Boolean
+    boolean onlyEnabled = stage.context.onlyEnabled == null ? true : (Boolean.valueOf(stage.context.onlyEnabled))
+
     SelectionStrategy clusterSelectionStrategy = SelectionStrategy.valueOf(stage.context.selectionStrategy?.toString() ?: "NEWEST")
 
     TypeReference<Map<String, Object>> jsonType = new TypeReference<Map<String, Object>>() {}
