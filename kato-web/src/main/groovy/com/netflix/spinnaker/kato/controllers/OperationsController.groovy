@@ -86,7 +86,7 @@ class OperationsController {
     ex.errors.each { Errors errors ->
       errors.allErrors.each { ObjectError objectError ->
         def message = messageSource.getMessage(objectError.code, objectError.arguments, objectError.code, locale)
-        errorStrings << message
+        errorStrings << ((message != objectError.code) ? message : (objectError.defaultMessage ?: message))
       }
     }
     [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]

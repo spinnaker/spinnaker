@@ -42,7 +42,11 @@ class UpsertSecurityGroupDescriptionValidator extends AmazonDescriptionValidatio
       } catch (SecurityGroupNotFoundException ex) {
         def priorSecurityGroupCreateDescriptions = (List<UpsertSecurityGroupDescription>) priorDescriptions.findAll { it instanceof UpsertSecurityGroupDescription }
         if (ex.missingSecurityGroups && !priorSecurityGroupCreateDescriptions*.name.containsAll(ex.missingSecurityGroups)) {
-          errors.rejectValue("securityGroupIngress", "upsertSecurityGroupDescription.security.group.not.found")
+          errors.rejectValue(
+            "securityGroupIngress",
+            "upsertSecurityGroupDescription.security.group.not.found",
+            "The following security groups do not exist: ${ex.missingSecurityGroups.join(", ")} (account: ${description.credentials.accountId}, region: ${description.region}, vpcId: ${description.vpcId})"
+          )
         }
       }
     }
