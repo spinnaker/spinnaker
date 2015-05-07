@@ -156,39 +156,47 @@ angular.module('deckApp.pipelines.graph.directive', [
               node.parents = _.uniq(node.parents);
             });
 
+            var grouped = _.groupBy(nodes, 'phase');
+
             // Collision minimization "Algorithm"
-            nodes = _.sortByAll(nodes,
-              'phase',
-              function(node) {
-                return 1 - node.children.length;
-              },
-              function(node) {
-                return 1 - _.sum(node.children, function(child) { return child.children.length; });
-              },
-              function(node) {
-                return 1 - node.parents.length;
-              },
-              function(node) {
-                return _.sum(node.parents, function(parent) {
-                  return 1 - parent.children.length; });
-              },
-              function(node) {
-                return _.sortBy(node.parents, 'phase').map(function(parent) {
-                  return [(node.phase - parent.phase), parent.name].join('-');
-                });
-              },
-              function(node) {
-                return _.sortBy(node.children, 'phase').map(function(child) {
-                  return [(child.phase - node.phase), child.name].join('-');
-                });
-              },
-              function(node) {
-                return parseInt(node.refId);
-              }
-            );
-            nodes.forEach(function(node) {
-              scope.nodes[node.phase] = scope.nodes[node.phase] || [];
-              scope.nodes[node.phase].push(node);
+            _.forOwn(grouped, function(group, phase) {
+              var sortedPhase = _.sortByAll(group,
+                // farthest, highest parent, e.g. phase 1 always before phase 2, row 1 always before row 2
+                function(node) {
+                  if (node.parents.length) {
+                    var parents = _.sortByAll(node.parents,
+                      function(parent) {
+                        return 1 - parent.phase;
+                      },
+                      function(parent) {
+                        return parent.row;
+                      });
+
+                    var firstParent = parents[0];
+                    return (firstParent.phase * 100) + firstParent.row;
+                  }
+                  return 0;
+                },
+                // same highest parent, so sort by number of children (more first)
+                function(node) {
+                  return 1 - node.children.length;
+                },
+                // same number of children, so sort by number of grandchildren (more first)
+                function(node) {
+                  return 1 - _.sum(node.children, function(child) { return child.children.length; });
+                },
+                // great, same number of grandchildren, how about by nearest children, alphabetically by name, why not
+                function(node) {
+                  return _.sortBy(node.children, 'phase').map(function(child) {
+                    return [(child.phase - node.phase), child.name].join('-');
+                  }).join(':');
+                },
+                function(node) {
+                  return parseInt(node.refId);
+                }
+              );
+              sortedPhase.forEach(function(node, index) { node.row = index; });
+              scope.nodes[phase] = sortedPhase;
             });
           }
         }
