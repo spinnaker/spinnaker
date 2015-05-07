@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 include "orca-core",
   "orca-retrofit",
   "orca-front50",
