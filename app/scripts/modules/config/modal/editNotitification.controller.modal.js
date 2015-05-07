@@ -15,7 +15,7 @@ angular
     $scope.selectedWhenOptions = {};
 
     vm.whenOptions = [
-      'pipeline.started',
+      'pipeline.starting',
       'pipeline.complete',
       'pipeline.failed'
     ];
