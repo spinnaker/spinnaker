@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
+import groovy.transform.PackageScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
@@ -80,6 +81,16 @@ abstract class DeployStrategyStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
+
+    def source = getSource(stage)
+    if (source) {
+      stage.getContext().put("source", [
+        asgName: source.asgName,
+        account: source.account,
+        region : source.region
+      ])
+    }
+
     basicSteps(stage)
   }
 
@@ -96,13 +107,47 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
+  /**
+   * Determine an appropriate source asg for the current deploy stage:
+   * - If a 'source' is available in the stage context, use it
+   * - Otherwise, lookup the latest ASG in the target account/region/cluster and use it
+   */
+  @VisibleForTesting
+  @PackageScope
+  StageData.Source getSource(Stage stage) {
+    def stageData = stage.mapTo(StageData)
+    if (stageData.source) {
+      // has an existing source, return it
+      return stageData.source
+    }
+
+    def existingAsgs = getExistingAsgs(
+      stageData.application, stageData.account, stageData.cluster, stageData.providerType
+    )
+
+    if (!existingAsgs || !stageData.availabilityZones) {
+      return null
+    }
+
+    def targetRegion = stageData.availabilityZones.keySet()[0]
+
+    def sortedAsgNames = sortAsgs(existingAsgs.findAll { it.region == targetRegion }.collect { it.name })
+    def latestAsgName = sortedAsgNames ? sortedAsgNames.last() : null
+    def latestAsg = latestAsgName ? existingAsgs.find { it.name == latestAsgName && it.region == targetRegion } : null
+
+    return latestAsg ? new StageData.Source(
+      account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
+    ) : null
+  }
+
   @VisibleForTesting
   @CompileDynamic
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account,
-                                       cleanupConfig.cluster, stageData.providerType)
+    def existingAsgs = getExistingAsgs(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
+    )
 
     if (existingAsgs) {
       for (entry in stageData.availabilityZones) {
@@ -110,7 +155,7 @@ abstract class DeployStrategyStage extends LinearStage {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
-        def asgs = sortAsgs(existingAsgs.findAll { it.region == region }.collect { it.name})
+        def asgs = sortAsgs(existingAsgs.findAll { it.region == region }.collect { it.name })
         def latestAsg = asgs.size() > 0 ? asgs?.last() : null
 
         if (!latestAsg) {
@@ -138,7 +183,7 @@ abstract class DeployStrategyStage extends LinearStage {
           injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
         }
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
-        if(stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
+        if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
             logger.info("Injecting destroyAsg stage (${region}:${asg})")
             nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
@@ -153,8 +198,9 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account,
-                                       cleanupConfig.cluster, stageData.providerType)
+    def existingAsgs = getExistingAsgs(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
+    )
     if (existingAsgs) {
       for (entry in stageData.availabilityZones) {
         def region = entry.key
@@ -162,7 +208,7 @@ abstract class DeployStrategyStage extends LinearStage {
           continue
         }
 
-        existingAsgs.findAll { it.region == region}.each { Map asg ->
+        existingAsgs.findAll { it.region == region }.each { Map asg ->
           def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
@@ -207,7 +253,9 @@ abstract class DeployStrategyStage extends LinearStage {
     return asgs.sort(true, mc)
   }
 
-  private List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
+  @VisibleForTesting
+  @PackageScope
+  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
     try {
       def response = oort.getCluster(app, account, cluster, providerType)
       def json = response.body.in().text
@@ -231,6 +279,8 @@ abstract class DeployStrategyStage extends LinearStage {
     Map<String, List<String>> availabilityZones
     int maxRemainingAsgs
 
+    Source source
+
     String getCluster() {
       def builder = new AutoScalingGroupNameBuilder()
       builder.appName = application
@@ -245,6 +295,12 @@ abstract class DeployStrategyStage extends LinearStage {
         throw new IllegalStateException("Cannot specify different values for 'account' and 'credentials' (${application})")
       }
       return account ?: credentials
+    }
+
+    static class Source {
+      String account
+      String region
+      String asgName
     }
   }
 
