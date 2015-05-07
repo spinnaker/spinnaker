@@ -38,8 +38,8 @@ describe('Controller: tasks', function () {
   describe('Filtering Task list with one running task', function () {
     var application = {
       tasks: [
-        {status: 'COMPLETED'},
-        {status: 'RUNNING'},
+        {status: 'COMPLETED', name: 'a'},
+        {status: 'RUNNING', name: 'a'},
       ]
     };
 
@@ -59,8 +59,8 @@ describe('Controller: tasks', function () {
   describe('Filtering Task list by startTime in descending order with only running task', function () {
     var application = {
       tasks: [
-        {status: 'RUNNING', startTime:20},
-        {status: 'RUNNING', startTime:99},
+        {status: 'RUNNING', startTime:20, name: 'a'},
+        {status: 'RUNNING', startTime:99, name: 'a'},
       ]
     };
 
@@ -84,8 +84,8 @@ describe('Controller: tasks', function () {
   describe('Filtering Task list with zero running task', function () {
     var application = {
       tasks: [
-        {status: 'COMPLETED', startTime: 22},
-        {status: 'COMPLETED', startTime: 100},
+        {status: 'COMPLETED', startTime: 22, name: 'a'},
+        {status: 'COMPLETED', startTime: 100, name: 'a'},
       ]
     };
 

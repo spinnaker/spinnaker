@@ -155,7 +155,7 @@ angular.module('deckApp.tasks.main', [
     function filterRunningTasks() {
       var running = _.chain(application.tasks)
         .filter(function(task) {
-          return task.status === 'RUNNING';
+          return task.name && task.status === 'RUNNING';
         })
         .value();
 
@@ -165,7 +165,7 @@ angular.module('deckApp.tasks.main', [
     function filterNonRunningTasks() {
       var notRunning = _.chain(application.tasks)
         .filter(function(task) {
-          return task.status !== 'RUNNING';
+          return task.name && task.status !== 'RUNNING';
         })
         .value();
 
