@@ -101,7 +101,10 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
           return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
         });
         $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
-        var existingNames = ['nf-datacenter-vpc', 'nf-infrastructure-vpc'];
+        // TODO: Move to settings
+        var existingNames = ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'].filter(function(defaultName) {
+          return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
+        });
         $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
           if ($scope.existingSecurityGroupNames.indexOf(securityGroup) === -1) {
             var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
