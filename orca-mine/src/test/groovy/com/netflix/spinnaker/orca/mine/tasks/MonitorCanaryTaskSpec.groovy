@@ -134,8 +134,10 @@ class MonitorCanaryTaskSpec extends Specification {
     1 * mineService.getCanary(stage.context.canary.id) >> canaryConf
     1 * katoService.requestOperations({ ops ->
       ops.size() == 2 &&
-      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-canary-v000' }
-      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-baseline-v000' } }) >> rx.Observable.just(new TaskId('blah'))
+      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-canary-v000' } &&
+      ops.find { it.resizeAsgDescription.asgName == 'foo--cfieber-baseline-v000' } &&
+      ops.every { it.resizeAsgDescription.capacity == [min:3, max: 3, desired: 3]}
+      }) >> rx.Observable.just(new TaskId('blah'))
   }
 
   def 'should disable unhealthy canary'() {

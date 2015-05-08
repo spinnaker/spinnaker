@@ -67,8 +67,8 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     if (scaleUp && scaleUp.enabled && !scaleUp.complete) {
       int capacity = scaleUp.capacity as Integer
       if (System.currentTimeMillis() - outputs.canary.launchedDate > TimeUnit.MINUTES.toMillis(scaleUp.delay as Long)) {
-        def resizeCapacity = [capacity: [min: capacity, max: capacity, desired: capacity]]
-        def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeAsgDescription', stage.context).collect { it + resizeCapacity }
+        def resizeCapacity = [min: capacity, max: capacity, desired: capacity]
+        def resizeOps = DeployedClustersUtil.toKatoAsgOperations('resizeAsgDescription', stage.context).collect { it.resizeAsgDescription.capacity = resizeCapacity; it  }
         outputs.scaleUp = scaleUp
         outputs.scaleUp.katoId = katoService.requestOperations(resizeOps).toBlocking().first().id
         outputs.scaleUp.complete = true
