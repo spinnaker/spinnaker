@@ -19,7 +19,11 @@ package com.netflix.spinnaker.oort.aws.provider.view
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
+import com.netflix.spinnaker.oort.aws.model.AmazonInstance
+import com.netflix.spinnaker.oort.aws.model.AmazonServerGroup
+import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import com.netflix.spinnaker.oort.model.LoadBalancerProvider
 import com.netflix.spinnaker.oort.aws.model.AmazonLoadBalancer
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,20 +31,23 @@ import org.springframework.stereotype.Component
 
 import java.util.regex.Pattern
 
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
 
 @Component
 class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalancer> {
 
-  private static final Pattern ACCOUNT_REGION_NAME = Pattern.compile(/([^\/]+)\/([^\/]+)\/(.*)/)
-
   private final Cache cacheView
+  private final AwsProvider awsProvider
 
   @Autowired
-  public CatsLoadBalancerProvider(Cache cacheView) {
+  public CatsLoadBalancerProvider(Cache cacheView, AwsProvider awsProvider) {
     this.cacheView = cacheView
+    this.awsProvider = awsProvider
   }
 
   @Override
@@ -67,9 +74,14 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     source.relationships[relationship] ? cacheView.getAll(relationship, source.relationships[relationship]) : []
   }
 
+  private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
+    Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
+    relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
+  }
+
   @Override
   Set<AmazonLoadBalancer> getLoadBalancers(String account) {
-    def searchKey = Keys.getLoadBalancerKey('*', account, '*')
+    def searchKey = Keys.getLoadBalancerKey('*', account, '*', null)
     def filteredIds = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     cacheView.getAll(LOAD_BALANCERS.ns, filteredIds).findResults(this.&translate) as Set<AmazonLoadBalancer>
   }
@@ -94,7 +106,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   @Override
   AmazonLoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
-    def searchKey = Keys.getLoadBalancerKey(loadBalancerName, account, region) + '*'
+    def searchKey = Keys.getLoadBalancerKey(loadBalancerName, account, region, null) + '*'
     def lbs = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     def keys = lbs.findAll {
       Keys.parse(it).loadBalancer == loadBalancerName
@@ -106,5 +118,95 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     } else {
       candidates.first()
     }
+  }
+
+  @Override
+  Set<AmazonLoadBalancer> getApplicationLoadBalancers(String applicationName) {
+
+    Map<String, AmazonServerGroup> serverGroups
+    Set<String> keys = []
+
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
+
+    def applicationServerGroups = application ? resolveRelationshipData(application, SERVER_GROUPS.ns) : []
+    applicationServerGroups.each { CacheData serverGroup ->
+      keys.addAll(serverGroup.relationships[LOAD_BALANCERS.ns])
+    }
+
+    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*' + applicationName + '-*')
+
+    keys.addAll(nameMatches)
+
+    def allLoadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, keys)
+
+    def allInstances = resolveRelationshipDataForCollection(allLoadBalancers, INSTANCES.ns)
+    def allServerGroups = resolveRelationshipDataForCollection(allLoadBalancers, SERVER_GROUPS.ns)
+
+    Map<String, AmazonInstance> instances = translateInstances(allInstances)
+
+    serverGroups = translateServerGroups(allServerGroups, instances)
+
+    translateLoadBalancers(allLoadBalancers, serverGroups)
+  }
+
+  private static Set<AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData, Map<String, AmazonServerGroup> serverGroups) {
+    Set<AmazonLoadBalancer> loadBalancers = loadBalancerData.collect { loadBalancerEntry ->
+      Map<String, String> loadBalancerKey = Keys.parse(loadBalancerEntry.id)
+      AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerKey.loadBalancer, loadBalancerKey.region)
+      loadBalancer.putAll(loadBalancerEntry.attributes)
+      loadBalancer.vpcId = loadBalancerKey.vpcId
+      loadBalancer.serverGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
+      loadBalancer
+    }
+
+    loadBalancers
+  }
+
+  private static Map<String, AmazonServerGroup> translateServerGroups(Collection<CacheData> serverGroupData, Map<String, AmazonInstance> instances) {
+    Map<String, AmazonServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
+      Map<String, String> serverGroupKey = Keys.parse(serverGroupEntry.id)
+
+      def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
+      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
+      [(serverGroupEntry.id) : serverGroup]
+    }
+
+    serverGroups
+  }
+
+  private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
+    Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
+      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
+      instance.zone = instanceEntry.attributes.placement?.availabilityZone
+      [(instanceEntry.id): instance]
+    }
+    addHealthToInstances(instanceData, instances)
+
+    instances
+  }
+
+  private void addHealthToInstances(Collection<CacheData> instanceData, Map<String, AmazonInstance> instances) {
+    Map<String, String> healthKeysToInstance = [:]
+    instanceData.each { instanceEntry ->
+      Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
+      awsProvider.healthAgents.each {
+        def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
+        healthKeysToInstance.put(key, instanceEntry.id)
+      }
+    }
+
+    Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
+    healths.findAll { it.attributes.type == 'LoadBalancer' }.each { healthEntry ->
+      def instanceId = healthKeysToInstance.get(healthEntry.id)
+      instances[instanceId].health << healthEntry.attributes.loadBalancers?.collect {
+        [
+          loadBalancerName: it.loadBalancerName,
+          state: it.state,
+          reasonCode: it.reasonCode,
+          description: it.description
+        ]
+      }
+    }
+
   }
 }

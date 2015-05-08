@@ -46,4 +46,9 @@ class NoopLoadBalancerProvider implements LoadBalancerProvider<LoadBalancer> {
   LoadBalancer getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region) {
     null
   }
+
+  @Override
+  Set<LoadBalancer> getApplicationLoadBalancers(String application) {
+    Collections.emptySet()
+  }
 }
