@@ -2,9 +2,10 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'canary'">
-    <div class="row section-title">
+    <div class="row">
       <div class="col-md-12">
-        <h4 ng-bind="canaryConfig.name"></h4>
+        <h5 ng-bind="canaryConfig.name"></h5>
+        <div class="horizontal-rule"></div>
       </div>
     </div>
     <div class="row">
@@ -27,7 +28,8 @@
         </div>
       </div>
       <div class="col-md-12 canary-config-section">
-        <h4>Analysis Config</h4>
+        <h5>Analysis Config</h5>
+        <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Config Name</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.name}}</div>
@@ -48,7 +50,8 @@
     </div>
     <div class="row">
       <div class="col-md-12 canary-config-section">
-        <h4>Health Check</h4>
+        <h5>Health Check</h5>
+        <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
