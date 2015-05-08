@@ -84,7 +84,10 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         }
 
         seenServerGroup[name] = true
-        Collection<String> interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
+        Collection<String> interestingHealthProviderNames = stage.context.interestingHealthProviderNames as Collection
+        if (interestingHealthProviderNames == null) {
+          interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
+        }
         def isComplete = hasSucceeded(stage, asg, instances, interestingHealthProviderNames)
         if (!isComplete) {
           return new DefaultTaskResult(ExecutionStatus.RUNNING)

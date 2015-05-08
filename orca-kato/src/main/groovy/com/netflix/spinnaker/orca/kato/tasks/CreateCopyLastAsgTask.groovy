@@ -47,12 +47,19 @@ class CreateCopyLastAsgTask implements Task {
     def taskId = kato.requestOperations(getDescriptions(operation))
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"  : "createcopylastasg",
-        "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
-        "deploy.account.name": operation.credentials,
-    ])
+
+    def outputs = [
+      "notification.type"  : "createcopylastasg",
+      "kato.last.task.id"  : taskId,
+      "deploy.account.name": operation.credentials,
+    ]
+
+    def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
+    if (suspendedProcesses?.contains("AddToLoadBalancer")) {
+      outputs.interestingHealthProviderNames = ["Amazon"]
+    }
+
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   private List<Map<String, Object>> getDescriptions(Map operation) {

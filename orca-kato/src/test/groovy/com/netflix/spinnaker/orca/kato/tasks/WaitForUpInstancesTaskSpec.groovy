@@ -125,8 +125,11 @@ class WaitForUpInstancesTaskSpec extends Specification {
     true         || 1       | ['a']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     false        || 1       | ['b']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     false        || 1       | ['b']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
+    true         || 1       | ['Amazon']          | [ [ health: [ [ type: 'Amazon', statue: "Unknown"] ] ] ]
+    false        || 1       | ['Amazon']          | [ [ health: [ [ type: 'Amazon', state: "Down"] ] ] ]
 
     // multiple health providers
+    true         || 1       | ['Amazon']          | [ [ health: [ [ type: 'Amazon', statue: "Unknown"], [ type: 'b', state : "Down"] ] ] ]
     true         || 1       | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
     false        || 1       | null                | [ [ health: [ [ type: 'a', state : "Down"], [ type: 'b', state : "Down"] ] ] ]
     false        || 1       | null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Down"] ] ] ]
