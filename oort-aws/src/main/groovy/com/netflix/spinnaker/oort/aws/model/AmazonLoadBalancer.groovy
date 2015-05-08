@@ -23,14 +23,19 @@ import groovy.transform.CompileStatic
 class AmazonLoadBalancer extends HashMap implements LoadBalancer {
 
   AmazonLoadBalancer() {
-    this(null, null)
+    this(null, null, null)
   }
 
-  AmazonLoadBalancer(String name, String region) {
+  AmazonLoadBalancer(String name, String account, String region) {
+    setProperty "account", account
     setProperty "name", name
     setProperty "type", "aws"
     setProperty "region", region
     setProperty "serverGroups", new HashSet<>()
+  }
+
+  String getAccount() {
+    getProperty "account"
   }
 
   @Override
@@ -58,11 +63,11 @@ class AmazonLoadBalancer extends HashMap implements LoadBalancer {
       return false
     }
     AmazonLoadBalancer other = (AmazonLoadBalancer)o
-    other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
+    other.getAccount() == this.getAccount() && other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
   }
 
   @Override
   int hashCode() {
-    getName().hashCode() + getType().hashCode() + getServerGroups().hashCode() + getRegion().hashCode()
+    getAccount().hashCode() + getName().hashCode() + getType().hashCode() + getServerGroups().hashCode() + getRegion().hashCode()
   }
 }

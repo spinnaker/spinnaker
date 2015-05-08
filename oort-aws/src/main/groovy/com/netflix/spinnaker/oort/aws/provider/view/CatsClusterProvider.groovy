@@ -98,7 +98,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
     loadBalancerData.collectEntries { loadBalancerEntry ->
       Map<String, String> lbKey = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.region)]
+      [(loadBalancerEntry.id) : new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.account, lbKey.region)]
     }
   }
 

@@ -152,9 +152,11 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   private static Set<AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData, Map<String, AmazonServerGroup> serverGroups) {
     Set<AmazonLoadBalancer> loadBalancers = loadBalancerData.collect { loadBalancerEntry ->
       Map<String, String> loadBalancerKey = Keys.parse(loadBalancerEntry.id)
-      AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerKey.loadBalancer, loadBalancerKey.region)
+      AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerKey.loadBalancer, loadBalancerKey.account, loadBalancerKey.region)
       loadBalancer.putAll(loadBalancerEntry.attributes)
+      loadBalancer.instances = loadBalancer.instances.findResults { it.instanceId }
       loadBalancer.vpcId = loadBalancerKey.vpcId
+      loadBalancer.account = loadBalancerKey.account
       def lbServerGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
       lbServerGroups.each { serverGroup ->
         loadBalancer.serverGroups << [
