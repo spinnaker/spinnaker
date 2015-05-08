@@ -3,6 +3,100 @@
 // TODO: Clean this up on the backend - this is a mess
 angular.module('deckApp.pipelines.stage.canary.transformer', [])
   .service('canaryStageTransformer', function() {
+
+    // adds "canary" or "baseline" to the deploy stage name when converting it to a task
+    function getDeployTaskName(stage) {
+      if (stage.context.freeFormDetails) {
+        var nameParts = stage.name.split(' ');
+        if (stage.context.freeFormDetails.indexOf('-canary') !== -1) {
+          nameParts.splice(1, 0, 'canary');
+        } else {
+          nameParts.splice(1, 0, 'baseline');
+        }
+        return nameParts.join(' ');
+      }
+      return stage.name;
+    }
+
+    function buildCanaryDeploymentsFromClusterPairs(stage) {
+      return _.map(stage.context.clusterPairs, function (pair) {
+        var name = function (cluster) {
+          var parts = [cluster.application];
+          if (cluster.stack) {
+            parts.push(cluster.stack);
+          } else if (cluster.freeFormDetails) {
+            parts.push('');
+          }
+          if (cluster.freeFormDetails) {
+            parts.push(cluster.freeFormDetails);
+          }
+          return parts.join('-');
+        };
+        var region = function (cluster) {
+          return _.first(_.keys(cluster.availabilityZones));
+        };
+        return {
+          canaryCluster: {
+            accountName: pair.canary.account,
+            imageId: null,
+            buildId: null,
+            name: name(pair.canary),
+            region: region(pair.canary),
+            type: 'aws',
+          },
+          baselineCluster: {
+            accountName: pair.baseline.account,
+            imageId: pair.baseline.amiName,
+            buildId: pair.baseline.buildUrl,
+            name: name(pair.baseline),
+            region: region(pair.baseline),
+            type: 'aws',
+          }
+        };
+      });
+    }
+
+    function extractBuild(cluster) {
+      cluster.build = cluster.build || {};
+      if (cluster.buildId) {
+        var parts = cluster.buildId.split('/');
+        parts.pop();
+        cluster.build.url = cluster.buildId;
+        cluster.build.number = parts.pop();
+      } else {
+        cluster.build.url = '#';
+        cluster.build.number = 'n/a';
+      }
+    }
+
+    function createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution) {
+      return {
+        parentStageId: stage.id,
+        syntheticStageOwner: 'STAGE_BEFORE',
+        id: stage.id + '-' + deployment.id,
+        type: 'canaryDeployment',
+        name: deployment.canaryCluster.region,
+        status: status,
+        startTime: deployParent.startTime,
+        endTime: deploymentEndTime,
+        context: {
+          canaryDeploymentId: canaryDeploymentId,
+          application: stage.context.canary.application || execution.application,
+          canaryCluster: deployment.canaryCluster,
+          baselineCluster: deployment.baselineCluster,
+          canaryResult: deployment.canaryResult,
+          lastUpdated: deployment.lastUpdated,
+          status: {
+            reportUrl: deployment.canaryResult.canaryReportURL,
+            score: deployment.canaryResult.score,
+            result: deployment.canaryResult.result,
+            duration: deployment.canaryResult.timeDuration,
+            health: deployment.health ? deployment.health.health : '',
+          }
+        }
+      };
+    }
+
     this.transform = function(application, execution) {
       var syntheticStagesToAdd = [];
       execution.stages.forEach(function(stage) {
@@ -22,46 +116,12 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
 
           stage.context.canary = monitorStage.context.canary || deployParent.context.canary || stage.context.canary;
           if (!stage.context.canary.canaryDeployments) {
-            stage.context.canary.canaryDeployments = _.map(stage.context.clusterPairs, function(pair) {
-              var name = function(cluster) {
-                var parts = [cluster.application];
-                if (cluster.stack) {
-                  parts.push(cluster.stack);
-                } else if (cluster.freeFormDetails) {
-                  parts.push('');
-                }
-                if (cluster.freeFormDetails) {
-                  parts.push(cluster.freeFormDetails);
-                }
-                return parts.join('-');
-              };
-              var region = function(cluster) {
-                return _.first(_.keys(cluster.availabilityZones));
-              };
-              return {
-                canaryCluster: {
-                  accountName: pair.canary.account,
-                  imageId: null,
-                  buildId: null,
-                  name: name(pair.canary),
-                  region: region(pair.canary),
-                  type: 'aws',
-                },
-                baselineCluster: {
-                  accountName: pair.baseline.account,
-                  imageId: pair.baseline.amiName,
-                  buildId: pair.baseline.buildUrl,
-                  name: name(pair.baseline),
-                  region: region(pair.baseline),
-                  type: 'aws',
-                }
-              };
-            });
+            stage.context.canary.canaryDeployments = buildCanaryDeploymentsFromClusterPairs(stage);
           }
-          var status = 'UNKNOWN';
+          var status = monitorStage.status === 'CANCELED' ? 'CANCELED' : 'UNKNOWN';
           var canaryStatus = stage.context.canary.status;
-          if (canaryStatus) {
-            if (canaryStatus.status === 'LAUNCHED') {
+          if (canaryStatus && status !== 'CANCELED') {
+            if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {
               status = 'RUNNING';
             }
             if (canaryStatus.complete) {
@@ -71,6 +131,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
           } else {
             stage.context.canary.status = { status: status };
           }
+          stage.status = status;
 
           var deployStages = _.filter(execution.stages, {
             type: 'deploy',
@@ -80,7 +141,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
           var tasks = _.map(deployStages, function(deployStage) {
             return {
               id: deployStage.id,
-              name: deployStage.name,
+              name: getDeployTaskName(deployStage),
               startTime: deployStage.startTime,
               endTime: deployStage.endTime,
               status: deployStage.status,
@@ -120,18 +181,6 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
               deploymentEndTime = monitorTask.endTime;
             }
 
-            var extractBuild = function(cluster) {
-              cluster.build = cluster.build || {};
-              if (cluster.buildId) {
-                var parts = cluster.buildId.split('/');
-                parts.pop();
-                cluster.build.url = cluster.buildId;
-                cluster.build.number = parts.pop();
-              } else {
-                cluster.build.url = '#';
-                cluster.build.number = 'n/a';
-              }
-            };
             extractBuild(deployment.baselineCluster);
             extractBuild(deployment.canaryCluster);
 
@@ -167,31 +216,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
 
             var canaryDeploymentId = deployment.canaryAnalysisResult ? deployment.canaryAnalysisResult.canaryDeploymentId : null;
 
-            syntheticStagesToAdd.push({
-              parentStageId: stage.id,
-              syntheticStageOwner: 'STAGE_BEFORE',
-              id: stage.id + '-' + deployment.id,
-              type: 'canaryDeployment',
-              name: deployment.canaryCluster.region,
-              status: status,
-              startTime: deployParent.startTime,
-              endTime: deploymentEndTime,
-              context: {
-                canaryDeploymentId: canaryDeploymentId,
-                application: stage.context.canary.application || execution.application,
-                canaryCluster: deployment.canaryCluster,
-                baselineCluster: deployment.baselineCluster,
-                canaryResult: deployment.canaryResult,
-                lastUpdated: deployment.lastUpdated,
-                status: {
-                  reportUrl: deployment.canaryResult.canaryReportURL,
-                  score: deployment.canaryResult.score,
-                  result: deployment.canaryResult.result,
-                  duration: deployment.canaryResult.timeDuration,
-                  health: deployment.health ? deployment.health.health : '',
-                }
-              }
-            });
+            syntheticStagesToAdd.push(createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution));
           });
         }
       });

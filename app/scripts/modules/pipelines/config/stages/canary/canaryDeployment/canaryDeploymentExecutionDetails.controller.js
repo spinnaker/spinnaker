@@ -56,6 +56,8 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
             $scope.viewState.loadingHistoryError = true;
           }
         );
+      } else {
+        $scope.viewState.loadingHistory = false;
       }
     };
 

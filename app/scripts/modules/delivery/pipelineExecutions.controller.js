@@ -76,8 +76,8 @@ angular.module('deckApp.delivery.pipelineExecutions.controller', [
       status: d3Service
         .scale
         .ordinal()
-        .domain(['completed', 'failed', 'running', 'not_started', 'canceled', 'suspended'])
-        .range(['#769D3E', '#b82525','#2275b8', '#cccccc', '#cccccc', '#cccccc']),
+        .domain(['completed', 'failed', 'running', 'not_started', 'canceled', 'suspended', 'unknown'])
+        .range(['#769D3E', '#b82525','#2275b8', '#cccccc', '#cccccc', '#cccccc', '#cccccc']),
     };
 
     controller.solo = function(facet, value) {

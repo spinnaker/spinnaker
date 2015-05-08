@@ -1,17 +1,17 @@
 <div class="col-md-6">
   <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-9">
       <strong>Task</strong>
     </div>
-    <div class="col-md-4 text-right">
+    <div class="col-md-3 text-right">
       <strong>Duration</strong>
     </div>
   </div>
   <div class="row" ng-repeat="task in item.tasks | displayableTasks">
-    <div class="col-md-8">
+    <div class="col-md-9">
       <span class="small"><status-glyph item="task"></status-glyph></span> {{task.name | robotToHuman }}
     </div>
-    <div class="col-md-4 text-right">
+    <div class="col-md-3 text-right">
       {{task.runningTimeInMs | duration }}
     </div>
   </div>

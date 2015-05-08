@@ -15,9 +15,9 @@
             <br/>
             <a target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
         </div>
-        <div class="horizontal-rule"></div>
       </div>
     </div>
+    <div class="horizontal-rule"></div>
     <div class="row divider"></div>
     <div class="row">
       <div class="col-md-6">
@@ -93,6 +93,8 @@
             </tr>
           </tbody>
         </table>
+        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">No history has been reported yet.</p>
+
       </div>
     </div>
   </div>
