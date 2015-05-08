@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.tasks.FindAmiFromClusterTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
 import org.slf4j.Logger
@@ -110,7 +111,7 @@ class DeployCanaryStage extends ParallelDeployStage {
               def ami = deployStage.context.deploymentDetails.find { it.region == region }
 
               cluster.amiName = ami?.ami
-              cluster.buildUrl = createBuildUrl(ami)
+              cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger.buildInfo.url
             }
             resultPair[type + "Cluster"] = [
               name: nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),
