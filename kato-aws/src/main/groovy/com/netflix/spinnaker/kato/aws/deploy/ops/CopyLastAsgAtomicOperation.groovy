@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -25,10 +24,8 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
-import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.SubnetData
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -90,13 +87,22 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       }
       def sourceRegionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
+      BasicAmazonDeployDescription newDescription = description.clone()
       if (!ancestorAsg) {
         task.updateStatus BASE_PHASE, "Looking up last ASG in ${sourceRegion} for ${cluster}."
         ancestorAsg = sourceRegionScopedProvider.asgService.getAncestorAsg(cluster)
+
+        if (ancestorAsg) {
+          newDescription.source = new BasicAmazonDeployDescription.Source(
+            sourceAsgCredentials.name,
+            sourceRegionScopedProvider.region,
+            ancestorAsg.autoScalingGroupName
+          )
+          task.updateStatus BASE_PHASE, "Using ${sourceRegion}/${ancestorAsg.autoScalingGroupName} as source."
+        }
       }
 
       def ancestorLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(ancestorAsg.launchConfigurationName)
-      BasicAmazonDeployDescription newDescription = description.clone()
 
       if (ancestorAsg.VPCZoneIdentifier) {
         task.updateStatus BASE_PHASE, "Looking up subnet type..."
@@ -114,12 +120,10 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.capacity.max = description.capacity?.max != null ? description.capacity.max : ancestorAsg.maxSize
       newDescription.capacity.desired = description.capacity?.desired != null ? description.capacity.desired : ancestorAsg.desiredCapacity
       newDescription.keyPair = description.keyPair ?: ancestorLaunchConfiguration.keyName
-      newDescription.blockDevices = description.blockDevices != null ? description.blockDevices : convertBlockDevices(ancestorLaunchConfiguration.blockDeviceMappings)
       newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
       newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown
       newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod
       newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
-      newDescription.spotPrice = description.spotPrice != null ? description.spotPrice : ancestorLaunchConfiguration.spotPrice
       newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
       newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies
       newDescription.ramdiskId = description.ramdiskId ?: (ancestorLaunchConfiguration.ramdiskId ?: null)
@@ -128,10 +132,6 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
 
       task.updateStatus BASE_PHASE, "Initiating deployment."
       def thisResult = basicAmazonDeployHandler.handle(newDescription, priorOutputs)
-      def newAsgName = thisResult.serverGroupNameByRegion[targetRegion]
-      def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(description.credentials, targetRegion)
-      asgReferenceCopier.copyScalingPoliciesWithAlarms(ancestorAsg.autoScalingGroupName, newAsgName)
-      asgReferenceCopier.copyScheduledActionsForAsg(ancestorAsg.autoScalingGroupName, newAsgName)
 
       result.serverGroupNames.addAll(thisResult.serverGroupNames)
       result.messages.addAll(thisResult.messages)
@@ -148,19 +148,5 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
     def json = result.subnets?.getAt(0)?.tags?.find { it.key == SubnetData.METADATA_TAG_KEY }?.value
     def metadata = objectMapper.readValue(json, Map)
     (metadata && metadata.purpose) ? metadata.purpose : null
-  }
-
-  List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
-    blockDeviceMappings.collect {
-      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
-      it.ebs?.with {
-        device.iops = iops
-        device.deleteOnTermination = deleteOnTermination
-        device.size = volumeSize
-        device.volumeType = volumeType
-        device.snapshotId = snapshotId
-      }
-      device
-    }
   }
 }
