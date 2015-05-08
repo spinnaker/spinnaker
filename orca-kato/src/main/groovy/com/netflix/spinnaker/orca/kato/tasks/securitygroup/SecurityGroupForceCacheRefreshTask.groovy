@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.kato.tasks.securitygroup
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -25,9 +25,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * Created by aglover on 9/29/14.
- */
 @Component
 public class SecurityGroupForceCacheRefreshTask implements Task {
   static final String REFRESH_TYPE = "AmazonSecurityGroup"
@@ -37,11 +34,11 @@ public class SecurityGroupForceCacheRefreshTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context."upsert.account"
-    String name = stage.context."upsert.name"
-    String region = stage.context."upsert.region"
-
-    mort.forceCacheUpdate(REFRESH_TYPE, [account: account, securityGroupName: name, region: region])
+    stage.context.targets.each { Map target ->
+      mort.forceCacheUpdate(
+        REFRESH_TYPE, [account: target.account, securityGroupName: target.name, region: target.region]
+      )
+    }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }

@@ -72,7 +72,7 @@ class PipelineSpec extends Specification {
         SUCCEEDED    | SUCCEEDED    | TERMINAL     | TERMINAL
   }
 
-  def "a pipeline containing no stages >= 1 tasks should be TERMINAL"() {
+  def "a pipeline containing no stages >= 1 tasks should be NOT_STARTED"() {
     when:
     pipeline.stages.each {
       it.status = RUNNING
@@ -80,7 +80,7 @@ class PipelineSpec extends Specification {
     }
 
     then:
-    pipeline.status == TERMINAL
+    pipeline.status == NOT_STARTED
 
     when:
     pipeline.stages[0].tasks << new DefaultTask()

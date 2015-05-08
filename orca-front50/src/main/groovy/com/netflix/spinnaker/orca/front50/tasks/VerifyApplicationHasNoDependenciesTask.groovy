@@ -99,8 +99,7 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
   }
 
   protected List<Map> getMortResults(String applicationName, String type) {
-    def mortResponse = mortService.getSearchResults(applicationName, type)
-    def mortResults = objectMapper.readValue(mortResponse.body.in().text, List)
+    def mortResults = mortService.getSearchResults(applicationName, type)
     return mortResults ? mortResults[0].results : []
   }
 }

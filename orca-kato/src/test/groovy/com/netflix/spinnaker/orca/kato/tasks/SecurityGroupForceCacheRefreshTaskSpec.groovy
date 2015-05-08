@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.kato.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -32,9 +33,9 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   ]
 
   def setup() {
-    config.each {
-      stage.context["upsert.${it.key}".toString()] = it.value
-    }
+    stage.context.targets = [
+        config
+    ]
   }
 
   void "should force cache refresh security groups via mort"() {

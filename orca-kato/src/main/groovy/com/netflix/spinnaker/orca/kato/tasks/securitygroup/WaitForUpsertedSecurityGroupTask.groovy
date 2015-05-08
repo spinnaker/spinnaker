@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.kato.tasks.securitygroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -23,14 +23,15 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mort.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
-/**
- * Note: this is a bit buggy. It only checks if the security group has changed in any way,
- * not that the security group has changed to the requested state
- */
+import static com.netflix.spinnaker.orca.mort.MortService.SecurityGroup.*
+
 @Component
+@CompileStatic
 class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
   long backoffPeriod = 1000
@@ -44,23 +45,36 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context."upsert.account"
-    String region = stage.context."upsert.region"
-    String name = stage.context."upsert.name"
-    String oldValue = stage.context."pre.response" ?: null
+    def status = ExecutionStatus.SUCCEEDED
+    def context = stage.mapTo(StageData)
+    context.targets.each { Map<String, Object> target ->
+      try {
+        def existingSecurityGroup = mortService.getSecurityGroup(
+          target.credentials as String, 'aws', target.name as String, target.region as String, target.vpcId as String
+        )
 
-    if (!account || !region || !name) {
-      return new DefaultTaskResult(ExecutionStatus.FAILED)
+        def securityGroupIngress = applyMappings(
+          target.securityGroupMappings as Map<String, String>,
+          filterForSecurityGroupIngress(mortService, existingSecurityGroup)
+        )
+        if ((securityGroupIngress as Set) != (context.securityGroupIngress as Set)) {
+          status = ExecutionStatus.RUNNING
+        }
+      } catch (RetrofitError e) {
+        if (e.response?.status == 404) {
+          status = ExecutionStatus.RUNNING
+          return
+        }
+
+        throw e
+      }
     }
 
-    def mortResponse = mortService.getSecurityGroup(account, 'aws', name, region)
+    return new DefaultTaskResult(status)
+  }
 
-    def currentValue = UpsertSecurityGroupTask.parseCurrentValue(mortResponse)
-
-    def changeDetected = currentValue != oldValue
-
-    def status = changeDetected ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
-
-    new DefaultTaskResult(status)
+  static class StageData {
+    Collection<Map<String, Object>> targets
+    Collection<SecurityGroupIngress> securityGroupIngress
   }
 }
