@@ -69,7 +69,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
 
     then:
     1 * securityGroupService.getSecurityGroupIds(_) >> { throw new SecurityGroupNotFoundException(missingSecurityGroups: ["sg-123"]) }
-    1 * errors.rejectValue("securityGroupIngress", _)
+    1 * errors.rejectValue("securityGroupIngress", _, _)
   }
 
   void "should allow ingress from unknown security groups if they are intending to be created earlier in the chain"() {

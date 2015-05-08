@@ -16,30 +16,50 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.handlers
+
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
+import com.amazonaws.services.autoscaling.model.Ebs
+import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeImagesRequest
 import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
+import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory.RegionScopedProvider
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   @Subject
   BasicAmazonDeployHandler handler
+
+  @Shared
+  NetflixAmazonCredentials testCredentials = new NetflixAmazonCredentials(
+    "test", "test", null, null, null, null, null, null, null, null
+  )
+
+  @Shared
+  Task task = Mock(Task)
 
   AmazonEC2 amazonEC2
 
@@ -62,7 +82,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     credsRepo.save('baz', TestCredential.named('baz'))
     this.handler = new BasicAmazonDeployHandler([], mockAmazonClientProvider, rspf, credsRepo, defaults)
     Task task = Stub(Task) {
-        getResultObjects() >> []
+      getResultObjects() >> []
     }
     TaskRepository.threadLocalTask.set(task)
   }
@@ -158,7 +178,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def deployCallCounts = 0
     AutoScalingWorker.metaClass.deploy = { deployCallCounts++; "foo" }
 
-    def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1':[]])
+    def description = new BasicAmazonDeployDescription(amiName: "the-greatest-ami-in-the-world", availabilityZones: ['us-west-1': []])
     description.credentials = TestCredential.named('baz')
 
     when:
@@ -166,13 +186,93 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * amazonEC2.describeImages(_) >> { DescribeImagesRequest req ->
-        assert req.filters.size() == 1
-        assert req.filters.first().name == 'name'
-        assert req.filters.first().values == ['the-greatest-ami-in-the-world']
+      assert req.filters.size() == 1
+      assert req.filters.first().name == 'name'
+      assert req.filters.first().values == ['the-greatest-ami-in-the-world']
 
-        return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
+      return new DescribeImagesResult().withImages(new Image().withImageId('ami-12345'))
     }
 
     deployCallCounts == 1
+  }
+
+  @Unroll
+  void "should copy spot price and block devices from source provider if not specified explicitly"() {
+    given:
+    def asgService = Mock(AsgService) {
+      1 * getLaunchConfiguration(_) >> {
+        return new LaunchConfiguration()
+          .withSpotPrice("OLD_SPOT")
+          .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
+        )
+      }
+    }
+    def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
+      1 * getAsgService() >> { return asgService }
+    }
+
+    def amazonClientProvider = Mock(AmazonClientProvider) {
+      1 * getAutoScaling(_, _) >> {
+        return Mock(AmazonAutoScaling) {
+          1 * describeAutoScalingGroups(_) >> {
+            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(new AutoScalingGroup())
+          }
+        }
+      }
+    }
+
+    when:
+    def targetDescription = handler.copySourceAttributes(
+      sourceRegionScopedProvider, amazonClientProvider, "sourceAsg", sourceDescription
+    )
+
+    then:
+    targetDescription.spotPrice == expectedSpotPrice
+    targetDescription.blockDevices*.deviceName == expectedBlockDevices
+
+    where:
+    sourceDescription                                                                             || expectedSpotPrice || expectedBlockDevices
+    new BasicAmazonDeployDescription()                                                            || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription(spotPrice: "SPOT")                                           || "SPOT"            || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription(blockDevices: [])                                            || "OLD_SPOT"        || []
+    new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) || "OLD_SPOT"        || ["DEVICE"]
+  }
+
+  @Unroll
+  void "should copy scaling policies and scheduled actions"() {
+    given:
+    def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
+      1 * getAsgReferenceCopier(testCredentials, targetRegion) >> {
+        return Mock(AsgReferenceCopier) {
+          1 * copyScalingPoliciesWithAlarms(task, sourceAsgName, targetAsgName)
+          1 * copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
+        }
+      }
+    }
+
+    expect:
+    handler.copyScalingPoliciesAndScheduledActions(
+      task, sourceRegionScopedProvider, testCredentials, sourceAsgName, targetRegion, targetAsgName
+    )
+
+    where:
+    sourceAsgName | targetRegion | targetAsgName
+    "sourceAsg"   | "us-west-1"  | "targetAsg"
+
+  }
+
+  @Unroll
+  void "should convert block device mappings to AmazonBlockDevices"() {
+    expect:
+    handler.convertBlockDevices([sourceDevice]) == [targetDevice]
+
+    where:
+    sourceDevice                                                                                        || targetDevice
+    new BlockDeviceMapping().withDeviceName("Device1").withVirtualName("virtualName")                   || new AmazonBlockDevice("Device1", "virtualName", null, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withIops(500))                 || new AmazonBlockDevice("Device1", null, null, null, null, 500, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withDeleteOnTermination(true)) || new AmazonBlockDevice("Device1", null, null, null, true, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeSize(1024))          || new AmazonBlockDevice("Device1", null, 1024, null, null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withVolumeType("volumeType"))  || new AmazonBlockDevice("Device1", null, null, "volumeType", null, null, null)
+    new BlockDeviceMapping().withDeviceName("Device1").withEbs(new Ebs().withSnapshotId("snapshotId"))  || new AmazonBlockDevice("Device1", null, null, null, null, null, "snapshotId")
   }
 }

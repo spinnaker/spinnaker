@@ -30,7 +30,6 @@ import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
-import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -70,10 +69,13 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
     def expectedDeployDescription = { region ->
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
-        blockDevices: [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 125), new AmazonBlockDevice(deviceName: '/dev/sdc', virtualName: 'ephemeral1')],
         securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
-        source: new BasicAmazonDeployDescription.Source())
+        source: new BasicAmazonDeployDescription.Source(
+          asgName: "asgard-stack-v000",
+          account: "name",
+          region: null
+        ))
     }
 
     when:
@@ -99,9 +101,5 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     }
     1 * deployHandler.handle(expectedDeployDescription('us-east-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-east-1': 'asgard-stack-v001'])
     1 * deployHandler.handle(expectedDeployDescription('us-west-1'), _) >> new DeploymentResult(serverGroupNameByRegion: ['us-west-1': 'asgard-stack-v001'])
-    with(mockAsgReferenceCopier) {
-      2 * copyScalingPoliciesWithAlarms('asgard-stack-v000', 'asgard-stack-v001')
-      2 * copyScheduledActionsForAsg('asgard-stack-v000', 'asgard-stack-v001')
-    }
   }
 }

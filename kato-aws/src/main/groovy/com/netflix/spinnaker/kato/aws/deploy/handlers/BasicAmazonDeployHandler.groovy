@@ -16,6 +16,10 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy.handlers
+
+import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
+import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -25,6 +29,7 @@ import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
+import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.config.KatoAWSConfig
 import com.netflix.spinnaker.kato.data.task.Task
@@ -32,6 +37,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
+import groovy.transform.PackageScope
 
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
   private static final String BASE_PHASE = "DEPLOY"
@@ -46,7 +52,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final AccountCredentialsRepository accountCredentialsRepository
   private final KatoAWSConfig.DeployDefaults deployDefaults
 
-  BasicAmazonDeployHandler(List<UserDataProvider> userDataProviders, AmazonClientProvider amazonClientProvider, RegionScopedProviderFactory regionScopedProviderFactory, AccountCredentialsRepository accountCredentialsRepository, KatoAWSConfig.DeployDefaults deployDefaults) {
+  BasicAmazonDeployHandler(List<UserDataProvider> userDataProviders,
+                           AmazonClientProvider amazonClientProvider,
+                           RegionScopedProviderFactory regionScopedProviderFactory,
+                           AccountCredentialsRepository accountCredentialsRepository,
+                           KatoAWSConfig.DeployDefaults deployDefaults) {
     this.userDataProviders = userDataProviders
     this.amazonClientProvider = amazonClientProvider
     this.regionScopedProviderFactory = regionScopedProviderFactory
@@ -66,6 +76,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     task.updateStatus BASE_PHASE, "Preparing deployment to ${description.availabilityZones}..."
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       String region = entry.key
+
+      def sourceRegionScopedProvider = buildSourceRegionScopedProvider(description.source)
+      description = copySourceAttributes(
+        sourceRegionScopedProvider, amazonClientProvider, description.source.asgName, description
+      )
+
       List<String> availabilityZones = entry.value
 
       // Get the properly typed version of the description's subnetType
@@ -86,7 +102,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
       if (!description.blockDevices) {
-        def blockDeviceConfig = deployDefaults.instanceClassBlockDevices.find { it.handlesInstanceType(description.instanceType) }
+        def blockDeviceConfig = deployDefaults.instanceClassBlockDevices.find {
+          it.handlesInstanceType(description.instanceType)
+        }
         if (blockDeviceConfig) {
           description.blockDevices = blockDeviceConfig.blockDevices
         }
@@ -98,10 +116,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       //             stick an explicit launch permission on the image)
       //         3) owner
       //         4) global
-      ResolvedAmiResult ami = priorOutputs.find({ it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName }) ?:
-            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, description.credentials.accountId) ?:
-            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, description.credentials.accountId) ?:
-            AmiIdResolver.resolveAmiId(amazonEC2, region,  description.amiName, null, null)
+      ResolvedAmiResult ami = priorOutputs.find({
+        it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName
+      }) ?:
+        AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, description.credentials.accountId) ?:
+          AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, region, description.amiName, null, null)
 
       if (!ami) {
         throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
@@ -152,7 +172,86 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       deploymentResult.serverGroupNames << "${region}:${asgName}".toString()
       deploymentResult.serverGroupNameByRegion[region] = asgName
+
+      copyScalingPoliciesAndScheduledActions(
+        task, sourceRegionScopedProvider, description.credentials, description.source.asgName, region, asgName
+      )
     }
-    deploymentResult
+
+    return deploymentResult
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  BasicAmazonDeployDescription copySourceAttributes(RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
+                                                    AmazonClientProvider amazonClientProvider,
+                                                    String sourceAsgName,
+                                                    BasicAmazonDeployDescription description) {
+    if (!sourceRegionScopedProvider) {
+      return description
+    }
+
+    description = description.clone()
+
+    def sourceAutoScaling = amazonClientProvider.getAutoScaling(
+      sourceRegionScopedProvider.amazonCredentials,
+      sourceRegionScopedProvider.region
+    )
+    def ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(
+      new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [sourceAsgName])
+    ).autoScalingGroups
+    def sourceAsg = ancestorAsgs.getAt(0)
+
+    def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
+      sourceAsg.launchConfigurationName
+    )
+
+    description.blockDevices = description.blockDevices != null ? description.blockDevices : convertBlockDevices(sourceLaunchConfiguration.blockDeviceMappings)
+    description.spotPrice = description.spotPrice ?: sourceLaunchConfiguration.spotPrice
+
+    return description
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  void copyScalingPoliciesAndScheduledActions(Task task,
+                                              RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
+                                              NetflixAmazonCredentials targetCredentials,
+                                              String sourceAsgName,
+                                              String targetRegion,
+                                              String targetAsgName) {
+    if (!sourceRegionScopedProvider) {
+      return
+    }
+
+    def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(targetCredentials, targetRegion)
+    asgReferenceCopier.copyScalingPoliciesWithAlarms(task, sourceAsgName, targetAsgName)
+    asgReferenceCopier.copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
+  }
+
+  @VisibleForTesting
+  @PackageScope
+  static List<AmazonBlockDevice> convertBlockDevices(List<BlockDeviceMapping> blockDeviceMappings) {
+    blockDeviceMappings.collect {
+      def device = new AmazonBlockDevice(deviceName: it.deviceName, virtualName: it.virtualName)
+      it.ebs?.with {
+        device.iops = iops
+        device.deleteOnTermination = deleteOnTermination
+        device.size = volumeSize
+        device.volumeType = volumeType
+        device.snapshotId = snapshotId
+      }
+      device
+    }
+  }
+
+  private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(BasicAmazonDeployDescription.Source source) {
+    if (source.account && source.region && source.asgName) {
+      def sourceRegion = source.region
+      def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account) as NetflixAmazonCredentials
+      return regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
+    }
+
+    return null
   }
 }

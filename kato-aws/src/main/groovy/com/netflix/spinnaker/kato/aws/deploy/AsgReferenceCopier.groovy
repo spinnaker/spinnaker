@@ -24,6 +24,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.model.AwsResultsRetriever
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
+import com.netflix.spinnaker.kato.data.task.Task
 import groovy.transform.Canonical
 
 @Canonical
@@ -41,7 +42,7 @@ class AsgReferenceCopier {
 
   IdGenerator idGenerator
 
-  void copyScheduledActionsForAsg(String sourceAsgName, String targetAsgName) {
+  void copyScheduledActionsForAsg(Task task, String sourceAsgName, String targetAsgName) {
     AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion)
     AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion)
     def sourceScheduledActions = new ScheduledActionsRetriever(sourceAutoScaling).retrieve(new DescribeScheduledActionsRequest(autoScalingGroupName: sourceAsgName))
@@ -61,10 +62,12 @@ class AsgReferenceCopier {
         request.withStartTime(startTime)
       }
       targetAutoScaling.putScheduledUpdateGroupAction(request)
+
+      task.updateStatus "AWS_DEPLOY", "Creating scheduled action (${request}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
     }
   }
 
-  void copyScalingPoliciesWithAlarms(String sourceAsgName, String targetAsgName) {
+  void copyScalingPoliciesWithAlarms(Task task, String sourceAsgName, String targetAsgName) {
     AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion)
     AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion)
     List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(new DescribePoliciesRequest(autoScalingGroupName: sourceAsgName))
@@ -81,6 +84,8 @@ class AsgReferenceCopier {
       )
       def result = targetAutoScaling.putScalingPolicy(policyRequest)
       sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN] = result.policyARN
+
+      task.updateStatus "AWS_DEPLOY", "Creating scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
     }
     Collection<String> allSourceAlarmNames = sourceAsgScalingPolicies*.alarms*.alarmName.flatten().unique()
     if (allSourceAlarmNames) {

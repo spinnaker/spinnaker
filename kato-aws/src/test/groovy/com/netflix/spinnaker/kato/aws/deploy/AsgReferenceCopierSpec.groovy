@@ -34,6 +34,7 @@ import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.cloudwatch.model.PutMetricAlarmRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
+import com.netflix.spinnaker.kato.data.task.Task
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -61,7 +62,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should copy scheduled actions'() {
     when:
-    asgReferenceCopier.copyScheduledActionsForAsg('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScheduledActionsForAsg(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describeScheduledActions(new DescribeScheduledActionsRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -108,7 +109,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should copy nothing when there are no scheduled actions'() {
     when:
-    asgReferenceCopier.copyScheduledActionsForAsg('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScheduledActionsForAsg(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describeScheduledActions(new DescribeScheduledActionsRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -118,7 +119,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should not copy scheduled action start time if older than now'() {
     when:
-    asgReferenceCopier.copyScheduledActionsForAsg('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScheduledActionsForAsg(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describeScheduledActions(new DescribeScheduledActionsRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -136,7 +137,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should copy scheduled action and convert time to startTime'() {
     when:
-    asgReferenceCopier.copyScheduledActionsForAsg('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScheduledActionsForAsg(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describeScheduledActions(new DescribeScheduledActionsRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -156,7 +157,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should copy nothing when there are no scaling policies'() {
     when:
-    asgReferenceCopier.copyScalingPoliciesWithAlarms('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScalingPoliciesWithAlarms(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
@@ -168,7 +169,7 @@ class AsgReferenceCopierSpec extends Specification {
 
   void 'should copy scaling policies and alarms'() {
     when:
-    asgReferenceCopier.copyScalingPoliciesWithAlarms('asgard-v000', 'asgard-v001')
+    asgReferenceCopier.copyScalingPoliciesWithAlarms(Mock(Task), 'asgard-v000', 'asgard-v001')
 
     then:
     1 * sourceAutoScaling.describePolicies(new DescribePoliciesRequest(autoScalingGroupName: 'asgard-v000')) >>
