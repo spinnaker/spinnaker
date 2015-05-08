@@ -85,6 +85,11 @@ body, html {
     }
 
     .score {
+      font-size: 110%;
+      padding: 3px 6px;
+      display: inline-block;
+      height: 20px;
+      line-height: 14px;
       &.label-failing {
         background-color: @unhealthy_orange;
       }
@@ -138,23 +143,18 @@ body, html {
             display: block;
           }
           &.score-large {
-            flex: 0 0 50px;
+            flex: 0 0 auto;
             height: 48px;
             .score {
-              line-height: 48px;
-              width: 48px;
+              line-height: 38px;
               height: 48px;
+              padding-left: 10px;
+              padding-right: 10px;
               font-size: 175%;
             }
+            margin-right: 10px;
           }
         }
-      }
-      .score {
-        padding: 0;
-        display: inline-block;
-        width: 16px;
-        height: 16px;
-        line-height: 16px;
       }
 
       h5 {

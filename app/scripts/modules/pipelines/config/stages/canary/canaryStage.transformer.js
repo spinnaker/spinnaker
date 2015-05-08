@@ -114,11 +114,19 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             }
           });
 
+          var deployStages = _.filter(execution.stages, {
+            type: 'deploy',
+            parentStageId: deployParent.id,
+          });
+
           stage.context.canary = monitorStage.context.canary || deployParent.context.canary || stage.context.canary;
           if (!stage.context.canary.canaryDeployments) {
             stage.context.canary.canaryDeployments = buildCanaryDeploymentsFromClusterPairs(stage);
           }
-          var status = monitorStage.status === 'CANCELED' ? 'CANCELED' : 'UNKNOWN';
+          var status = monitorStage.status === 'CANCELED' || _.some(deployStages, { status: 'CANCELED' }) ? 'CANCELED' : 'UNKNOWN';
+          if (_.some(deployStages, { status: 'RUNNING' })) {
+            status = 'RUNNING';
+          }
           var canaryStatus = stage.context.canary.status;
           if (canaryStatus && status !== 'CANCELED') {
             if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {
@@ -132,11 +140,6 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             stage.context.canary.status = { status: status };
           }
           stage.status = status;
-
-          var deployStages = _.filter(execution.stages, {
-            type: 'deploy',
-            parentStageId: deployParent.id,
-          });
 
           var tasks = _.map(deployStages, function(deployStage) {
             return {
