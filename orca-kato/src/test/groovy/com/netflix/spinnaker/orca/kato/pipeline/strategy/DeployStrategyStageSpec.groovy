@@ -124,23 +124,77 @@ class DeployStrategyStageSpec extends Specification {
     sorted == expectedSortedAsgs
 
     where:
-    inputAsgs | expectedSortedAsgs
-    ["asgard-test","asgard-test-v000"] | ["asgard-test","asgard-test-v000"]
-    ["asgard-test-v000","asgard-test"] | ["asgard-test","asgard-test-v000"]
-    ["asgard-test","asgard-test-v999"] | ["asgard-test-v999","asgard-test"]
-    ["asgard-test-v999","asgard-test"] | ["asgard-test-v999","asgard-test"]
-    ["asgard-test-v999","asgard-test-v002"] | ["asgard-test-v999","asgard-test-v002"]
-    ["asgard-test-v002","asgard-test-v999"] | ["asgard-test-v999","asgard-test-v002"]
-    ["asgard-test-v999","asgard-test-v002", "asgard-test"] | ["asgard-test-v999","asgard-test", "asgard-test-v002"]
-    ["asgard-test-v999","asgard-test", "asgard-test-v002"] | ["asgard-test-v999","asgard-test", "asgard-test-v002"]
-    ["asgard-test-v001","asgard-test-v002"] | ["asgard-test-v001","asgard-test-v002"]
-    ["asgard-test-v002","asgard-test-v001"] | ["asgard-test-v001","asgard-test-v002"]
-    ["asgard-test-v002","asgard-test-v003","asgard-test-v001"] | ["asgard-test-v001","asgard-test-v002","asgard-test-v003"]
-    ["asgard-test-v000","asgard-test-v999","asgard-test-v998"] | ["asgard-test-v998","asgard-test-v999","asgard-test-v000"]
-    ["asgard-test-v000","asgard-test-v999","asgard-test-v001"] | ["asgard-test-v999","asgard-test-v000","asgard-test-v001"]
-    ["asgard-test-v001","asgard-test-v000","asgard-test-v002"] |  ["asgard-test-v000","asgard-test-v001","asgard-test-v002"]
-    ["asgard-test-v001","asgard-test-v000","asgard-test"] |  ["asgard-test","asgard-test-v000","asgard-test-v001"]
-    ["asgard-test-v000","asgard-test-v999","asgard-test"] |  ["asgard-test-v999","asgard-test","asgard-test-v000"]
+    inputAsgs                                                    | expectedSortedAsgs
+    ["asgard-test", "asgard-test-v000"]                          | ["asgard-test", "asgard-test-v000"]
+    ["asgard-test-v000", "asgard-test"]                          | ["asgard-test", "asgard-test-v000"]
+    ["asgard-test", "asgard-test-v999"]                          | ["asgard-test-v999", "asgard-test"]
+    ["asgard-test-v999", "asgard-test"]                          | ["asgard-test-v999", "asgard-test"]
+    ["asgard-test-v999", "asgard-test-v002"]                     | ["asgard-test-v999", "asgard-test-v002"]
+    ["asgard-test-v002", "asgard-test-v999"]                     | ["asgard-test-v999", "asgard-test-v002"]
+    ["asgard-test-v999", "asgard-test-v002", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
+    ["asgard-test-v999", "asgard-test", "asgard-test-v002"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
+    ["asgard-test-v001", "asgard-test-v002"]                     | ["asgard-test-v001", "asgard-test-v002"]
+    ["asgard-test-v002", "asgard-test-v001"]                     | ["asgard-test-v001", "asgard-test-v002"]
+    ["asgard-test-v002", "asgard-test-v003", "asgard-test-v001"] | ["asgard-test-v001", "asgard-test-v002", "asgard-test-v003"]
+    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v998"] | ["asgard-test-v998", "asgard-test-v999", "asgard-test-v000"]
+    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v001"] | ["asgard-test-v999", "asgard-test-v000", "asgard-test-v001"]
+    ["asgard-test-v001", "asgard-test-v000", "asgard-test-v002"] | ["asgard-test-v000", "asgard-test-v001", "asgard-test-v002"]
+    ["asgard-test-v001", "asgard-test-v000", "asgard-test"]      | ["asgard-test", "asgard-test-v000", "asgard-test-v001"]
+    ["asgard-test-v000", "asgard-test-v999", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v000"]
+  }
+
+  @Unroll
+  void "should populate deploy stage 'source' with latest ASG details if not explicitly specified"() {
+    given:
+    def exampleContexts = [
+      empty               : [:],
+      existingSource      : [source: [asgName: "test-v000", account: "test", region: "us-west-1"]],
+      specifiedEmptySource: [source: [:]]
+    ] as Map<String, Map>
+
+    def exampleAsgs = [
+      empty       : [],
+      singleRegion: [
+        [name: "test-v000", region: "us-west-1"],
+        [name: "test-v003", region: "us-west-1"],
+        [name: "test-v001", region: "us-west-1"]
+      ],
+      mixedRegions: [
+        [name: "test-v000", region: "us-west-1"],
+        [name: "test-v003", region: "us-west-2"],
+        [name: "test-v001", region: "us-west-1"]
+      ]
+    ]
+
+    def stageBuilder = Spy(TestDeployStrategyStage) {
+      (0..1) * getExistingAsgs("app", "test", "app-test", "aws") >> {
+        return exampleAsgs[existingAsgsName]
+      }
+    }
+
+    and:
+    def context = exampleContexts[exampleContextName]
+    def stage = new PipelineStage(new Pipeline(), "test", context + [
+      application: "app", stack: "test", account: "test", availabilityZones: ["us-west-1": []]
+    ])
+
+    when:
+    stageBuilder.buildSteps(stage)
+    def source = stage.mapTo(DeployStrategyStage.StageData).source
+
+    then:
+    source?.asgName == expectedAsgName
+    source?.account == expectedAccount
+    source?.region == expectedRegion
+
+    where:
+    exampleContextName     | existingAsgsName || expectedAsgName || expectedAccount || expectedRegion
+    "empty"                | "empty"          || null            || null            || null
+    "specifiedEmptySource" | "empty"          || null            || null            || null
+    "specifiedEmptySource" | "singleRegion"   || null            || null            || null
+    "existingSource"       | "empty"          || "test-v000"     || "test"          || "us-west-1"
+    "empty"                | "singleRegion"   || "test-v003"     || "test"          || "us-west-1"
+    "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
   }
 
   static class TestDeployStrategyStage extends DeployStrategyStage {
