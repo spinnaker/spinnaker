@@ -20,6 +20,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
+import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.AmazonInstance
 import com.netflix.spinnaker.oort.aws.model.AmazonServerGroup
@@ -28,8 +29,6 @@ import com.netflix.spinnaker.oort.model.LoadBalancerProvider
 import com.netflix.spinnaker.oort.aws.model.AmazonLoadBalancer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.util.regex.Pattern
 
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
