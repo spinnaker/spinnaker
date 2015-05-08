@@ -135,14 +135,13 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*' + applicationName + '-*')
 
     keys.addAll(nameMatches)
-    Set<String> relevantLoadBalancerNames = keys.findResults { Keys.parse(it).loadBalancer }
 
     def allLoadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, keys)
 
     def allInstances = resolveRelationshipDataForCollection(allLoadBalancers, INSTANCES.ns)
     def allServerGroups = resolveRelationshipDataForCollection(allLoadBalancers, SERVER_GROUPS.ns)
 
-    Map<String, AmazonInstance> instances = translateInstances(allInstances, relevantLoadBalancerNames)
+    Map<String, AmazonInstance> instances = translateInstances(allInstances)
 
     serverGroups = translateServerGroups(allServerGroups, instances)
 
@@ -194,34 +193,34 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     serverGroups
   }
 
-  private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData, Set<String> relevantLoadBalancerNames) {
+  private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
       AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
       instance.zone = instanceEntry.attributes.placement?.availabilityZone
       [(instanceEntry.id): instance]
     }
-    addHealthToInstances(instanceData, instances, relevantLoadBalancerNames)
+    addHealthToInstances(instanceData, instances)
 
     instances
   }
 
-  private void addHealthToInstances(Collection<CacheData> instanceData, Map<String, AmazonInstance> instances, relevantLoadBalancerNames) {
+  private void addHealthToInstances(Collection<CacheData> instanceData, Map<String, AmazonInstance> instances) {
+    // Health will only be picked up when the healthAgent's healthId contains 'load-balancer'
     Map<String, String> healthKeysToInstance = [:]
+    def loadBalancingHealthAgents = awsProvider.healthAgents.findAll { it.healthId.contains('load-balancer')}
+
     instanceData.each { instanceEntry ->
       Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
-      awsProvider.healthAgents.each {
+      loadBalancingHealthAgents.each {
         def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
         healthKeysToInstance.put(key, instanceEntry.id)
       }
     }
 
     Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
-    healths.findAll { it.attributes.type == 'LoadBalancer' }.each { healthEntry ->
+    healths.findAll { it.attributes.type == 'LoadBalancer' && it.attributes.loadBalancers }.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
-      def interestingHealth = healthEntry.findAll { it.attributes.loadBalancers }
-        .findResults { it.attributes.loadBalancers }
-        .flatten()
-        .findAll { relevantLoadBalancerNames.contains(it.loadBalancerName) }
+      def interestingHealth = healthEntry.attributes.loadBalancers
       instances[instanceId].health.addAll(interestingHealth.collect {
         [
           loadBalancerName: it.loadBalancerName,
