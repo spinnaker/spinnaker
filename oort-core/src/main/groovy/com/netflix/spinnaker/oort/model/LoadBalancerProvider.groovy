@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.model
 
+import com.netflix.spinnaker.oort.documentation.Empty
+
 /**
  * A loadBalancerProvider is an interface for the application to retrieve {@link LoadBalancer} objects. The interface provides a common contract for which one or many providers can be queried for
  * their knowledge of load balancers at a given depth of specificity.
@@ -82,4 +84,16 @@ interface LoadBalancerProvider<T extends LoadBalancer> {
    * @return a specific load balancer
    */
   T getLoadBalancer(String account, String cluster, String type, String loadBalancerName, String region)
+
+  /**
+   * Returns all load balancers related to an application based on one of the following criteria:
+   *   - the load balancer name follows the Frigga naming conventions for load balancers (i.e., the load balancer name starts with the application name, followed by a hyphen)
+   *   - the load balancer is used by a server group in the application
+   * @param application the name of the application
+   * @return a collection of load balancers with all attributes populated and a minimal amount of data
+   *         for each server group: its name, region, and *only* the instances attached to the load balancers described above.
+   *         The instances will have a minimal amount of data, as well: name, zone, and health related to any load balancers
+   */
+  @Empty
+  Set<T> getApplicationLoadBalancers(String application)
 }

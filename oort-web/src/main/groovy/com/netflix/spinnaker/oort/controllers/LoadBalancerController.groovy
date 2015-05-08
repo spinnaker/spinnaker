@@ -24,38 +24,19 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-import javax.servlet.http.HttpServletResponse
-
 @RestController
-@RequestMapping("/applications/{application}/clusters/{account}/{cluster}/{type}/loadBalancers")
+@RequestMapping("/applications/{application}/loadBalancers")
 class LoadBalancerController {
 
   @Autowired
   List<LoadBalancerProvider> loadBalancerProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  Set<LoadBalancer> list(@PathVariable String account, @PathVariable String cluster, @PathVariable String type) {
-    ((List<LoadBalancer>) loadBalancerProviders.collectMany {
-      it.getLoadBalancers(account, cluster, type) ?: []
-    }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
-  }
-
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
-  Set<LoadBalancer> list(@PathVariable String account, @PathVariable String cluster, @PathVariable String type, @PathVariable String name) {
-    ((List<LoadBalancer>) loadBalancerProviders.collectMany {
-      it.getLoadBalancer(account, cluster, type, name) ?: []
-    }).sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
-  }
-
-  @RequestMapping(value = "/{name}/{region}", method = RequestMethod.GET)
-  LoadBalancer list(@PathVariable String account, @PathVariable String cluster, @PathVariable String type, @PathVariable String loadBalancerName, @PathVariable String region, HttpServletResponse response) {
-    def lb = (LoadBalancer)loadBalancerProviders.collect {
-      it.getLoadBalancer(account, cluster, type, loadBalancerName, region) ?: []
-    }?.getAt(0)
-    if (lb) {
-      lb
-    } else {
-      response.status = 404
-    }
+  Set<LoadBalancer> list(@PathVariable String application) {
+    ((List<LoadBalancer>) loadBalancerProviders.findResults {
+      it.getApplicationLoadBalancers(application)
+    })
+      .flatten()
+      .sort { a, b -> a.name.toLowerCase() <=> b.name.toLowerCase() }
   }
 }
