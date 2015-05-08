@@ -74,7 +74,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
-    Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
+    Set<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 
@@ -135,13 +135,14 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*' + applicationName + '-*')
 
     keys.addAll(nameMatches)
+    Set<String> relevantLoadBalancerNames = keys.findResults { Keys.parse(it).loadBalancer }
 
     def allLoadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, keys)
 
     def allInstances = resolveRelationshipDataForCollection(allLoadBalancers, INSTANCES.ns)
     def allServerGroups = resolveRelationshipDataForCollection(allLoadBalancers, SERVER_GROUPS.ns)
 
-    Map<String, AmazonInstance> instances = translateInstances(allInstances)
+    Map<String, AmazonInstance> instances = translateInstances(allInstances, relevantLoadBalancerNames)
 
     serverGroups = translateServerGroups(allServerGroups, instances)
 
@@ -154,7 +155,25 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
       AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerKey.loadBalancer, loadBalancerKey.region)
       loadBalancer.putAll(loadBalancerEntry.attributes)
       loadBalancer.vpcId = loadBalancerKey.vpcId
-      loadBalancer.serverGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
+      def lbServerGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
+      lbServerGroups.each { serverGroup ->
+        loadBalancer.serverGroups << [
+          name: serverGroup.name,
+          instances: serverGroup.instances ? serverGroup.instances.collect { instance ->
+            def health = instance.health.find { it.loadBalancerName == loadBalancer.name }
+            [
+              id: instance.name,
+              health:
+                [
+                  state: health.state,
+                  reasonCode: health.reasonCode,
+                  description: health.description
+                ]
+            ]
+          } : []
+
+        ]
+      }
       loadBalancer
     }
 
@@ -173,18 +192,18 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     serverGroups
   }
 
-  private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
+  private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData, Set<String> relevantLoadBalancerNames) {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
       AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
       instance.zone = instanceEntry.attributes.placement?.availabilityZone
       [(instanceEntry.id): instance]
     }
-    addHealthToInstances(instanceData, instances)
+    addHealthToInstances(instanceData, instances, relevantLoadBalancerNames)
 
     instances
   }
 
-  private void addHealthToInstances(Collection<CacheData> instanceData, Map<String, AmazonInstance> instances) {
+  private void addHealthToInstances(Collection<CacheData> instanceData, Map<String, AmazonInstance> instances, relevantLoadBalancerNames) {
     Map<String, String> healthKeysToInstance = [:]
     instanceData.each { instanceEntry ->
       Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
@@ -197,14 +216,18 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     Collection<CacheData> healths = cacheView.getAll(HEALTH.ns, healthKeysToInstance.keySet(), RelationshipCacheFilter.none())
     healths.findAll { it.attributes.type == 'LoadBalancer' }.each { healthEntry ->
       def instanceId = healthKeysToInstance.get(healthEntry.id)
-      instances[instanceId].health << healthEntry.attributes.loadBalancers?.collect {
+      def interestingHealth = healthEntry.findAll { it.attributes.loadBalancers }
+        .findResults { it.attributes.loadBalancers }
+        .flatten()
+        .findAll { relevantLoadBalancerNames.contains(it.loadBalancerName) }
+      instances[instanceId].health.addAll(interestingHealth.collect {
         [
           loadBalancerName: it.loadBalancerName,
           state: it.state,
           reasonCode: it.reasonCode,
           description: it.description
         ]
-      }
+      })
     }
 
   }

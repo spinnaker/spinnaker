@@ -48,7 +48,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCach
   final ObjectMapper objectMapper
 
   private Cache cacheView
-  final String healthId = "aws-load-balancer-instance-health"
+  final static String healthId = "aws-load-balancer-instance-health"
 
   @Autowired
   ApplicationContext ctx
@@ -60,6 +60,11 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCach
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+  }
+
+  @Override
+  String getHealthId() {
+    healthId
   }
 
   @Override
