@@ -104,10 +104,8 @@ angular
 
         function enableAutoRefresh (scope) {
           document.addEventListener('visibilitychange', watchDocumentVisibility);
-          $window.addEventListener('blur', suspendAutoRefresh);
           $window.addEventListener('offline', suspendAutoRefresh);
           $window.addEventListener('online', resumeAutoRefresh);
-          $window.addEventListener('focus', resumeAutoRefresh);
           application.autoRefreshEnabled = true;
           autoRefresh(scope);
         }
