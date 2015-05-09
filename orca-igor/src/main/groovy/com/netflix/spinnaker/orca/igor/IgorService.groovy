@@ -24,7 +24,10 @@ import retrofit.http.QueryMap
 interface IgorService {
 
   @PUT("/masters/{name}/jobs/{jobName}")
-  Map<String, Object> build(@Path("name") String master, @Path("jobName") String jobName, @QueryMap Map<String,String> queryParams)
+  String build(@Path("name") String master, @Path("jobName") String jobName, @QueryMap Map<String,String> queryParams)
+
+  @GET("/jobs/{master}/queue/{item}")
+  Map queuedBuild(@Path("master") String master, @Path("item") String item)
 
   @GET("/jobs/{master}/{job}/{buildNumber}")
   Map<String, Object> getBuild(@Path("master") String master,
