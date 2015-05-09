@@ -22,29 +22,33 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
 @CompileStatic
-@RequestMapping("/loadBalancers")
 @RestController
 class LoadBalancerController {
 
   @Autowired
   LoadBalancerService loadBalancerService
 
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(value = '/loadBalancers', method = RequestMethod.GET)
   List getAll(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.getAll(provider)
   }
 
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/loadBalancers/{name:.+}", method = RequestMethod.GET)
   Map getLoadBalancer(@PathVariable String name,
                       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.get(name, provider)
   }
 
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/loadBalancers/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getLoadBalancerDetails(@PathVariable String account,
                                    @PathVariable String region,
                                    @PathVariable String name,
                                    @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.getDetailsForAccountAndRegion(account, region, name, provider)
+  }
+
+  @RequestMapping(value = '/applications/{application}/loadBalancers', method = RequestMethod.GET)
+  List<Map> getApplicationLoadBalancers(@PathVariable String application) {
+    loadBalancerService.getApplicationLoadBalancers(application)
   }
 }
