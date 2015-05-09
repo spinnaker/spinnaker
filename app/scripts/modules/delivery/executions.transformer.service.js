@@ -7,7 +7,10 @@ angular.module('deckApp.delivery.executionTransformer.service', [
 ])
   .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 
+    var hiddenStageTypes = ['pipelineInitialization', 'waitForRequisiteCompletion'];
+
     function transformExecution(application, execution) {
+      applyPhasesAndLink(execution);
       pipelineConfig.getExecutionTransformers().forEach(function(transformer) {
         transformer.transform(application, execution);
       });
@@ -37,7 +40,7 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       });
 
       execution.stages.forEach(function(stage) {
-        if (!stage.syntheticStageOwner && stage.type !== 'pipelineInitialization') {
+        if (!stage.syntheticStageOwner && hiddenStageTypes.indexOf(stage.type) === -1) {
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
@@ -128,6 +131,47 @@ angular.module('deckApp.delivery.executionTransformer.service', [
       }
       stage.stages = stages;
 
+    }
+
+    function applyPhasesAndLink(execution) {
+      if (!execution.parallel) {
+        return;
+      }
+      var stages = execution.stages;
+      var allPhasesResolved = true;
+      // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
+      stages.forEach(function (stage) {
+        stage.requisiteStageRefIds = stage.requisiteStageRefIds || [];
+        stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(function(parentId) {
+          return _.find(stages, { refId: parentId });
+        });
+      });
+      stages.forEach(function (stage) {
+        var phaseResolvable = true,
+          phase = 0;
+        // if there are no dependencies or it's a synthetic stage, set it to 0
+        if (stage.phase === undefined && !stage.requisiteStageRefIds.length) {
+          stage.phase = phase;
+        } else {
+          stage.requisiteStageRefIds.forEach(function (parentId) {
+            var parent = _.find(stages, { refId: parentId });
+            if (parent.phase === undefined) {
+              phaseResolvable = false;
+            } else {
+              phase = Math.max(phase, parent.phase);
+            }
+          });
+          if (phaseResolvable) {
+            stage.phase = phase + 1;
+          } else {
+            allPhasesResolved = false;
+          }
+        }
+      });
+      execution.stages = _.sortByAll(stages, 'phase', 'refId');
+      if (!allPhasesResolved) {
+        applyPhasesAndLink(execution);
+      }
     }
 
     function transformStageSummary(summary) {
