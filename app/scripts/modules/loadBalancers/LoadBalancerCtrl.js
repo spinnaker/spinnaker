@@ -7,7 +7,7 @@ angular.module('deckApp.loadBalancer.controller')
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
-        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account.name === loadBalancer.account.name;
+        return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.account;
       })[0];
 
       if (!$scope.loadBalancer) {
