@@ -69,14 +69,14 @@
       <div class="col-md-12">
         <p class="text-center" ng-if="viewState.loadingHistory">Loading...</p>
         <p class="text-center" ng-if="!viewState.loadingHistory && viewState.loadingHistoryError">
-          Score History could not be loaded. <br/>
+          Canary analysis history could not be loaded. <br/>
           <a href ng-click="loadHistory()">Reload score history</a>
         </p>
         <table class="table" ng-if="!viewState.loadingHistory && !viewState.loadingHistoryError">
           <thead>
           <tr>
             <th width="10%">Score</th>
-            <th width="20%">Last Updated</th>
+            <th width="20%">Generated On</th>
             <th width="20%">Report</th>
           </tr>
           </thead>
@@ -93,7 +93,7 @@
             </tr>
           </tbody>
         </table>
-        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">No history has been reported yet.</p>
+        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">No canary analysis history available</p>
 
       </div>
     </div>
