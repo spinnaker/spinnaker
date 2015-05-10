@@ -134,6 +134,9 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             if (canaryStatus.complete) {
               status = 'COMPLETED';
             }
+            if (canaryStatus.status === 'DISABLED') {
+              status = 'DISABLED';
+            }
             canaryStatus.status = status;
           } else {
             stage.context.canary.status = { status: status };
