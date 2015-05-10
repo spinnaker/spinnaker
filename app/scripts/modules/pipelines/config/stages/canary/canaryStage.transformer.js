@@ -72,7 +72,7 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
     function createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution) {
       return {
         parentStageId: stage.id,
-        syntheticStageOwner: 'STAGE_BEFORE',
+        syntheticStageOwner: 'STAGE_AFTER',
         id: stage.id + '-' + deployment.id,
         type: 'canaryDeployment',
         name: deployment.canaryCluster.region,

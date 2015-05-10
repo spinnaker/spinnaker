@@ -21,10 +21,12 @@ angular.module('deckApp.executionDetails.controller', [
 
     controller.toggleDetails = function(index) {
       var newStepDetails = getCurrentStep() === index ? null : index;
-      $state.go('.', {
-        stage: getCurrentStage(),
-        step: newStepDetails,
-      });
+      if (newStepDetails !== null) {
+        $state.go('.', {
+          stage: getCurrentStage(),
+          step: newStepDetails,
+        });
+      }
     };
 
     controller.isStageCurrent = function(index) {

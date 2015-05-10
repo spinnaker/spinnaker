@@ -8,7 +8,7 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
   'deckApp.urlBuilder',
   'deckApp.pipelines.stages.canary.deployment.history.service'
 ])
-  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams,
+  .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,
                                                                 executionDetailsSectionService,
                                                                 canaryDeploymentHistoryService, urlBuilder) {
 
@@ -24,21 +24,23 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
 
-      $scope.baselineClusterUrl = urlBuilder.buildFromMetadata({
-        type: 'clusters',
-        application: $scope.stage.context.application,
-        cluster: $scope.deployment.baselineCluster.name,
-        account: $scope.deployment.baselineCluster.accountName,
-      });
+      if ($scope.deployment.baselineCluster) {
+        $scope.baselineClusterUrl = urlBuilder.buildFromMetadata({
+          type: 'clusters',
+          application: $scope.stage.context.application,
+          cluster: $scope.deployment.baselineCluster.name,
+          account: $scope.deployment.baselineCluster.accountName,
+        });
 
-      $scope.canaryClusterUrl = urlBuilder.buildFromMetadata({
-        type: 'clusters',
-        application: $scope.stage.context.application,
-        cluster: $scope.deployment.canaryCluster.name,
-        account: $scope.deployment.canaryCluster.accountName,
-      });
+        $scope.canaryClusterUrl = urlBuilder.buildFromMetadata({
+          type: 'clusters',
+          application: $scope.stage.context.application,
+          cluster: $scope.deployment.canaryCluster.name,
+          account: $scope.deployment.canaryCluster.accountName,
+        });
 
-      $scope.loadHistory();
+        $scope.loadHistory();
+      }
     }
 
     $scope.loadHistory = function() {
@@ -57,13 +59,15 @@ angular.module('deckApp.pipelines.stage.canary.canaryDeployment.details.controll
           }
         );
       } else {
+        $scope.analysisHistory = [];
         $scope.viewState.loadingHistory = false;
       }
     };
 
-
     initialize();
 
-    $scope.$on('$stateChangeSuccess', initialize, true);
+    $scope.$on('$stateChangeSuccess',
+      function() { $timeout(initialize); },
+    true);
 
   });
