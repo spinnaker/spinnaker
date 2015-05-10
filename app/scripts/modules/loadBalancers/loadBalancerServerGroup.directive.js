@@ -8,6 +8,7 @@ angular.module('deckApp.loadBalancer.serverGroup', [])
       replace: true,
       templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancerServerGroup.html',
       scope: {
+        loadBalancer: '=',
         serverGroup: '=',
         displayOptions: '='
       },

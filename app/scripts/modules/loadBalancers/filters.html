@@ -1,5 +1,5 @@
 <div class="sort-filter">
-  <div class="form-inline">
+  <div class="form-inline" style="margin-top: 5px">
     <div class="form-group">
       <label>
         Sort by
@@ -13,32 +13,32 @@
     <div class="form-group pull-right has-feedback">
       <label>
         Filter
-        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, Server Group"
+        <input type="text" class="form-control input-sm" name="filter" placeholder="Region, Account, Server Group, Instance"
                ng-model="sortFilter.filter"
-               style="width: 235px"
+               style="width: 265px"
                ng-change="ctrl.updateLoadBalancerGroups()"/>
         <span class="glyphicon glyphicon-search form-control-feedback"></span>
       </label>
     </div>
   </div>
-  <div class="form-inline">
+  <div class="form-inline" style="margin-top: 5px">
     <label>Show</label>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.showAsgs" ng-change="ctrl.updateLoadBalancerGroups()" />
-        Server Groups
+        Server Groups <help-field key="loadBalancers.filter.serverGroups"></help-field>
       </label>
     </div>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.showAllInstances" ng-change="ctrl.updateLoadBalancerGroups()"/>
-        Instances
+        Instances <help-field key="loadBalancers.filter.instances"></help-field>
       </label>
     </div>
     <div class="checkbox">
       <label>
         <input type="checkbox" ng-model="sortFilter.hideHealthy" ng-change="ctrl.updateLoadBalancerGroups()"/>
-        Only Unhealthy
+        Only Unhealthy <help-field key="loadBalancers.filter.onlyUnhealthy"></help-field>
       </label>
     </div>
   </div>

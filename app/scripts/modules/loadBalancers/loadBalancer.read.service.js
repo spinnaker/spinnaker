@@ -2,46 +2,19 @@
 
 
 angular
-  .module('deckApp.loadBalancer.read.service', ['deckApp.caches.infrastructure'])
-  .factory('loadBalancerReader', function ($q, Restangular, searchService, infrastructureCaches) {
+  .module('deckApp.loadBalancer.read.service', [
+    'deckApp.caches.infrastructure',
+    'deckApp.aws.loadBalancer.transformer.service',
+  ])
+  .factory('loadBalancerReader', function ($q, Restangular, searchService, awsLoadBalancerTransformer, infrastructureCaches) {
 
-    function loadLoadBalancersByApplicationName(applicationName) {
-      return searchService.search('gate', {q: applicationName, type: 'loadBalancers', pageSize: 10000}).then(function(searchResults) {
-        return _.filter(searchResults.results, { application: applicationName });
-      });
-    }
-
-    function loadLoadBalancers(application, loadBalancersFromSearch) {
-
-      var allLoadBalancers = [];
-      application.serverGroups.forEach(function(serverGroup) {
-        serverGroup.loadBalancers.forEach(function(loadBalancer) {
-          allLoadBalancers.push({
-            name: loadBalancer,
-            vpcId: serverGroup.vpcId,
-            provider: serverGroup.type,
-            account: serverGroup.account,
-            region: serverGroup.region
-          });
+    function loadLoadBalancers(applicationName) {
+      return Restangular
+        .one('applications', applicationName)
+        .all('loadBalancers').getList().then(function(loadBalancers) {
+          loadBalancers.forEach(awsLoadBalancerTransformer.normalizeLoadBalancerWithServerGroups);
+          return loadBalancers;
         });
-      });
-      loadBalancersFromSearch.forEach(function(loadBalancer) {
-        allLoadBalancers.push({
-          name: loadBalancer.loadBalancer,
-          vpcId: loadBalancer.vpcId,
-          provider: loadBalancer.provider,
-          account: loadBalancer.account,
-          region: loadBalancer.region
-        });
-      });
-
-      if (allLoadBalancers) {
-        return _.uniq(allLoadBalancers, function(lb) {
-          return [lb.name, lb.vpcId, lb.provider, lb.account, lb.region].join(':');
-        });
-      }
-
-      return [];
     }
 
 
@@ -64,7 +37,6 @@ angular
     }
 
     return {
-      loadLoadBalancersByApplicationName: loadLoadBalancersByApplicationName,
       loadLoadBalancers: loadLoadBalancers,
       getLoadBalancerDetails: getLoadBalancerDetails,
       listAWSLoadBalancers: listAWSLoadBalancers,

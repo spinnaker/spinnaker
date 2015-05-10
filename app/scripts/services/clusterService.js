@@ -214,7 +214,11 @@ angular.module('deckApp.cluster.service', [
     function updateLoadBalancers(application) {
       application.serverGroups.forEach(function(serverGroup) {
         serverGroup.loadBalancers = application.loadBalancers.filter(function(loadBalancer) {
-          return loadBalancer.serverGroups.indexOf(serverGroup) !== -1;
+          return loadBalancer.serverGroups.some(function(loadBalancerGroup) {
+            return loadBalancerGroup.name === serverGroup.name &&
+              loadBalancer.region === serverGroup.region &&
+              loadBalancer.account === serverGroup.account;
+          });
         }).map(function(loadBalancer) { return loadBalancer.name; });
       });
     }

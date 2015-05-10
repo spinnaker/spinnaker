@@ -185,7 +185,7 @@ angular
 
     function getApplication(applicationName, options) {
       var securityGroupsByApplicationNameLoader = securityGroupReader.loadSecurityGroupsByApplicationName(applicationName),
-        loadBalancersFromSearch = loadBalancerReader.loadLoadBalancersByApplicationName(applicationName),
+        loadBalancerLoader = loadBalancerReader.loadLoadBalancers(applicationName),
         applicationLoader = getApplicationEndpoint(applicationName).get(),
         serverGroupLoader = clusterService.loadServerGroups(applicationName);
 
@@ -195,14 +195,14 @@ angular
 
       return $q.all({
         securityGroups: securityGroupsByApplicationNameLoader,
-        loadBalancersFromSearch: loadBalancersFromSearch,
+        loadBalancers: loadBalancerLoader,
         application: applicationLoader
       })
         .then(function(applicationLoader) {
           application = applicationLoader.application;
           application.lastRefresh = new Date().getTime();
           securityGroupAccounts = _(applicationLoader.securityGroups).pluck('account').unique().value();
-          loadBalancerAccounts = _(applicationLoader.loadBalancersFromSearch).pluck('account').unique().value();
+          loadBalancerAccounts = _(applicationLoader.loadBalancers).pluck('account').unique().value();
           application.accounts = _([applicationLoader.application.accounts, securityGroupAccounts, loadBalancerAccounts])
             .flatten()
             .compact()
@@ -227,9 +227,8 @@ angular
               serverGroups = results.serverGroups.plain();
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
-              application.loadBalancers = loadBalancerReader.loadLoadBalancers(application, applicationLoader.loadBalancersFromSearch);
+              application.loadBalancers = applicationLoader.loadBalancers;
 
-              loadBalancerTransformer.normalizeLoadBalancersWithServerGroups(application);
               clusterService.normalizeServerGroupsWithLoadBalancers(application);
               // If the tasks were loaded already, add them to the server groups
               if (application.tasks) {

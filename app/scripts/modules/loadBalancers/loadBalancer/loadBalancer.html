@@ -6,9 +6,7 @@
       <h5>
         <span class="account-tag account-tag-{{loadBalancer.account}}">{{loadBalancer.account}}</span>
         <span class="icon icon-elb"></span> {{loadBalancer.name}}
-        <span ng-if="!displayOptions.showServerGroups">
-          <health-counts container="loadBalancer.healthCounts"></health-counts>
-        </span>
+        <health-counts container="loadBalancer.healthCounts"></health-counts>
       </h5>
     </div>
   </div>
@@ -19,6 +17,7 @@
         ng-if="displayServerGroup(serverGroup)"
         ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy:'-name'"
         display-options="displayOptions"
+        load-balancer="loadBalancer"
         server-group="serverGroup"></load-balancer-server-group>
     </div>
     <div ng-if="!displayOptions.showServerGroups && displayOptions.showInstances">
