@@ -127,4 +127,14 @@ angular.module('deckApp.help')
       '<p>If you wish to destroy all ASGs except the newly created one, select "Highlander" as the strategy.</p>' +
       '<p><strong>Minimum value:</strong> 2</p>',
 
+    'loadBalancers.filter.serverGroups': '<p>Displays all server groups configured to use the load balancer.</p>' +
+      '<p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>',
+    'loadBalancers.filter.instances': '<p>Displays all instances in the context of their parent server group. The color of the instance icon ' +
+      'indicates <em>only its health in relation to the load balancer</em>. That is, if the load balancer health check reports the instance ' +
+      'as healthy, the instance will appear green - even if other health indicators (Discovery, other load balancers, etc.) report the instance ' +
+      'as unhealthy.</p>' +
+      '<p>A red icon indicates the instance is failing the health check for the load balancer.</p>' +
+      '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
+    'loadBalancers.filter.onlyUnhealthy': '<p>Filters the list of load balancers and server groups (if enabled) ' +
+      'to only show load balancers with instances failing the health check for the load balancer.</p>',
   });

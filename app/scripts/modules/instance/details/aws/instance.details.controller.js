@@ -69,6 +69,20 @@ angular.module('deckApp.instance.detail.aws.controller', [
             }
           });
         });
+        if (!instanceSummary) {
+          application.loadBalancers.some(function (loadBalancer) {
+            return loadBalancer.instances.some(function (possibleInstance) {
+              if (possibleInstance.id === instance.instanceId) {
+                instanceSummary = possibleInstance;
+                loadBalancers = [loadBalancer.name];
+                account = loadBalancer.account;
+                region = loadBalancer.region;
+                vpcId = loadBalancer.vpcId;
+                return true;
+              }
+            });
+          });
+        }
       }
 
       if (instanceSummary && account && region) {
@@ -87,6 +101,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
           // When an instance is first starting up, we may not have the details cached in oort yet, but we still
           // want to let the user see what details we have
           $scope.state.loading = false;
+          $state.go('^');
         });
       }
 
@@ -102,14 +117,9 @@ angular.module('deckApp.instance.detail.aws.controller', [
     }
 
     this.canDeregisterFromLoadBalancer = function() {
-      var instance = $scope.instance;
-      if (!instance.loadBalancers || !instance.loadBalancers.length) {
-        return false;
-      }
-      var hasLoadBalancerHealth = instance.health.some(function(health) {
+      return $scope.instance.health.some(function(health) {
         return health.type === 'LoadBalancer';
       });
-      return hasLoadBalancerHealth;
     };
 
     this.canRegisterWithLoadBalancer = function() {
@@ -187,7 +197,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
       var instance = $scope.instance;
-      var loadBalancerNames = _.pluck(instance.loadBalancers, 'name').join(' and ');
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
         application: application,
@@ -210,7 +220,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
       var instance = $scope.instance;
-      var loadBalancerNames = _.pluck(instance.loadBalancers, 'name').join(' and ');
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
         application: application,

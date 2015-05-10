@@ -1,11 +1,11 @@
 <div class="rollup-row load-balancer-server-group" ng-class="{disabled: serverGroup.isDisabled}">
   <a
-    ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})"
+    ui-sref=".serverGroup({region: loadBalancer.region, accountId: loadBalancer.account, serverGroup: serverGroup.name, provider: loadBalancer.type})"
     ui-sref-active="active">
-    <span class="icon icon-server-group icon-{{serverGroup.type}} small"></span> {{serverGroup.name}}
+    <span class="icon icon-server-group icon-{{loadBalancer.type}} small"></span> {{serverGroup.name}}
   </a>
   <span ng-if="!serverGroup.isDisabled">
-    <health-counts container="serverGroup"></health-counts>
+    <health-counts container="serverGroup.healthCounts"></health-counts>
   </span>
   <div ng-if="displayOptions.showInstances">
     <instances instances="serverGroup.instances"></instances>

@@ -7,27 +7,45 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
 ])
   .factory('awsLoadBalancerTransformer', function ( settings, _) {
 
-    function updateHealthCounts(loadBalancer) {
-      var instances = loadBalancer.instances;
-      loadBalancer.healthCounts = {
+    function updateHealthCounts(container) {
+      var instances = container.instances;
+      container.healthCounts = {
         upCount: instances.filter(function (instance) {
-          return instance.healthState === 'Up';
+          return instance.health[0].state === 'InService';
         }).length,
         downCount: instances.filter(function (instance) {
-          return instance.healthState === 'Down' || instance.healthState === 'Starting';
+          return instance.health[0].state === 'OutOfService';
         }).length,
-        unknownCount: instances.filter(function (instance) {
-          return instance.healthState === 'Unknown';
-        }).length
+        unknownCount: container.detachedInstances.length,
       };
     }
 
-    function normalizeLoadBalancerWithServerGroups(loadBalancer, application) {
-      var serverGroups = application.serverGroups.filter(function(serverGroup) {
-        return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+    function transformInstance(instance, loadBalancer) {
+      instance.health = instance.health || {};
+      instance.provider = loadBalancer.type;
+      instance.account = loadBalancer.account;
+      instance.region = loadBalancer.region;
+      instance.health.type = 'LoadBalancer';
+      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.health = [instance.health];
+      instance.loadBalancers = [loadBalancer.name];
+    }
+
+    function normalizeLoadBalancerWithServerGroups(loadBalancer) {
+      loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+          return { id: instanceId };
+        });
+        serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        serverGroup.instances.forEach(function(instance) {
+          transformInstance(instance, loadBalancer);
+        });
+        updateHealthCounts(serverGroup);
       });
-      loadBalancer.serverGroups = _.sortBy(serverGroups, 'name');
-      loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      loadBalancer.provider = loadBalancer.type;
+      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
+      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
       updateHealthCounts(loadBalancer);
     }
 

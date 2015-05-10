@@ -31,7 +31,8 @@ angular.module('deckApp.loadBalancer.controller', [
             loadBalancer.name,
             loadBalancer.region.toLowerCase(),
             loadBalancer.account,
-            _.pluck(loadBalancer.serverGroups, 'name').join(' ')
+            _.pluck(loadBalancer.serverGroups, 'name').join(' '),
+            _.pluck(loadBalancer.instances, 'id').join(' '),
           ].join(' ');
         }
       });
@@ -46,10 +47,7 @@ angular.module('deckApp.loadBalancer.controller', [
     function filterLoadBalancersForDisplay(loadBalancers, hideHealthy, filter) {
       return loadBalancers.filter(function (loadBalancer) {
         if (hideHealthy) {
-          var hasUnhealthy = loadBalancer.serverGroups.some(function (serverGroup) {
-            return serverGroup.downCount > 0;
-          });
-          if (!hasUnhealthy) {
+          if (loadBalancer.healthCounts.downCount === 0) {
             return false;
           }
         }

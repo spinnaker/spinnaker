@@ -15,11 +15,11 @@ angular.module('deckApp.loadBalancer.directive', [])
 
         scope.$state = $rootScope.$state;
 
-        scope.loadDetails = function(e) {
+        scope.loadDetails = function(event) {
           $timeout(function() {
             var loadBalancer = scope.loadBalancer;
             // anything handled by ui-sref or actual links should be ignored
-            if (e.isDefaultPrevented() || (e.originalEvent && e.originalEvent.target.href)) {
+            if (event.isDefaultPrevented() || (event.originalEvent && (event.originalEvent.defaultPrevented || event.originalEvent.target.href))) {
               return;
             }
             var params = {
@@ -36,7 +36,7 @@ angular.module('deckApp.loadBalancer.directive', [])
 
         scope.displayServerGroup = function (serverGroup) {
           if (scope.displayOptions.hideHealthy) {
-            return serverGroup.downCount > 0;
+            return _.some(serverGroup.instances, {healthState: 'Down'});
           }
           return scope.displayOptions.showServerGroups;
         };
