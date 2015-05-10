@@ -10,10 +10,16 @@
                         score="stage.context.status.score"></canary-score>
         </div>
         <div class="canary-summary-section">
+          <span ng-if="deployment.canaryResult.lastUpdated">
             <strong>Last updated: </strong>
-            {{ 1429126669006 | timestamp}}
-            <br/>
-            <a target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
+            {{ deployment.canaryResult.lastUpdated | timestamp}}
+          </span>
+          <span ng-if="!deployment.canaryResult.lastUpdated">
+            No canary results reported
+          </span>
+          <br/>
+          <a ng-if="deployment.status.reportUrl" target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
+          <span ng-if="!deployment.status.reportUrl">No report available</span>
         </div>
       </div>
     </div>

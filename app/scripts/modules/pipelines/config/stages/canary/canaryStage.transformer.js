@@ -85,7 +85,6 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
           canaryCluster: deployment.canaryCluster,
           baselineCluster: deployment.baselineCluster,
           canaryResult: deployment.canaryResult,
-          lastUpdated: deployment.lastUpdated,
           status: {
             reportUrl: deployment.canaryResult.canaryReportURL,
             score: deployment.canaryResult.score,
