@@ -70,6 +70,7 @@ angular.module('deckApp.instance.detail.aws.controller', [
           });
         });
         if (!instanceSummary) {
+          // perhaps it is in a server group that is part of another application
           application.loadBalancers.some(function (loadBalancer) {
             return loadBalancer.instances.some(function (possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
@@ -82,6 +83,26 @@ angular.module('deckApp.instance.detail.aws.controller', [
               }
             });
           });
+          if (!instanceSummary) {
+            // perhaps it is in a disabled server group via a load balancer
+            application.loadBalancers.some(function(loadBalancer) {
+              return loadBalancer.serverGroups.some(function(serverGroup) {
+                if (!serverGroup.isDisabled) {
+                  return false;
+                }
+                return serverGroup.instances.some(function(possibleInstance) {
+                  if (possibleInstance.id === instance.instanceId) {
+                    instanceSummary = possibleInstance;
+                    loadBalancers = [loadBalancer.name];
+                    account = loadBalancer.account;
+                    region = loadBalancer.region;
+                    vpcId = loadBalancer.vpcId;
+                    return true;
+                  }
+                });
+              });
+            });
+          }
         }
       }
 
