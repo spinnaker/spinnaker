@@ -189,7 +189,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
       def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
-      serverGroup.detachedInstances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { !instances.get(it) }
+      serverGroup.detachedInstances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) ? null : Keys.parse(it).instanceId }
       [(serverGroupEntry.id) : serverGroup]
     }
 
