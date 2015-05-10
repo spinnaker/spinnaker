@@ -164,6 +164,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
             def health = instance.health.find { it.loadBalancerName == loadBalancer.name }
             [
               id: instance.name,
+              zone: instance.zone,
               health:
                 [
                   state: health.state,
@@ -171,7 +172,8 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
                   description: health.description
                 ]
             ]
-          } : []
+          } : [],
+          detachedInstances: serverGroup.detachedInstances
 
         ]
       }
@@ -187,6 +189,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
       def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
+      serverGroup.detachedInstances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { !instances.get(it) }
       [(serverGroupEntry.id) : serverGroup]
     }
 
