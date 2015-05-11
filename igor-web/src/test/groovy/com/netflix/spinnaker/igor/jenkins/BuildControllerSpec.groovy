@@ -51,43 +51,29 @@ class BuildControllerSpec extends Specification {
     void 'trigger a build without parameters'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig()
-        1 * client.getBuild(JOB_NAME,BUILD_NUMBER) >> new Build(number: BUILD_NUMBER)
-        1 * client.getQueuedItem(QUEUED_JOB_NUMBER) >> [number : BUILD_NUMBER]
         1 * client.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
-        when:
-        Build build = controller.build(MASTER,JOB_NAME,null)
+        expect:
+        controller.build(MASTER,JOB_NAME,null) == QUEUED_JOB_NUMBER.toString()
 
-        then:
-        build.number == BUILD_NUMBER
     }
 
     void 'trigger a build with parameters to a job with parameters'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
-        1 * client.getBuild(JOB_NAME,BUILD_NUMBER) >> new Build(number: BUILD_NUMBER)
-        1 * client.getQueuedItem(QUEUED_JOB_NUMBER) >> [number : BUILD_NUMBER]
         1 * client.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
-        when:
-        Build build = controller.build(MASTER, JOB_NAME, [name:"myName"])
-
-        then:
-        build.number == BUILD_NUMBER
+        expect:
+        controller.build(MASTER,JOB_NAME, [name:"myName"]) == QUEUED_JOB_NUMBER.toString()
     }
 
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
         1 * client.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
-        1 * client.getBuild(JOB_NAME,BUILD_NUMBER) >> new Build(number: BUILD_NUMBER)
-        1 * client.getQueuedItem(QUEUED_JOB_NUMBER) >> [number : BUILD_NUMBER]
         1 * client.buildWithParameters(JOB_NAME, ['startedBy' : "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${QUEUED_JOB_NUMBER}")], null)
 
-        when:
-        Build build = controller.build(MASTER, JOB_NAME, null)
-
-        then:
-        build.number == BUILD_NUMBER
+        expect:
+        controller.build(MASTER, JOB_NAME, null)  == QUEUED_JOB_NUMBER.toString()
     }
 
     void 'trigger a build with parameters to a job without parameters'() {
@@ -98,6 +84,6 @@ class BuildControllerSpec extends Specification {
         controller.build(MASTER, JOB_NAME, [foo:"bar"])
 
         then:
-        thrown(ExecutionException)
+        thrown(RuntimeException)
     }
 }

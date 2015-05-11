@@ -21,6 +21,7 @@ import com.netflix.spinnaker.igor.jenkins.client.JenkinsClient
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.jenkins.client.model.QueuedJob
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,10 +33,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.yaml.snakeyaml.Yaml
-import retrofit.RetrofitError
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @RestController
@@ -67,31 +66,60 @@ class BuildController {
         result
     }
 
+    @RequestMapping(value = '/jobs/{master}/queue/{item}')
+    QueuedJob getQueueLocation(@PathVariable String master, @PathVariable int item){
+        if (!masters.map.containsKey(master)) {
+            throw new MasterNotFoundException()
+        }
+        masters.map[master].getQueuedItem(item)
+    }
+
     @RequestMapping(value = '/jobs/{master}/{job}/builds')
     List<Build> getBuilds(@PathVariable String master, @PathVariable String job) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
         def lists = masters.map[master].getBuilds(job)
-
         masters.map[master].getBuilds(job).list
     }
 
     @RequestMapping(value = '/masters/{name}/jobs/{job}', method = RequestMethod.PUT)
-    Build build(
+    String build(
         @PathVariable("name") String master,
         @PathVariable String job, @RequestParam Map<String, String> requestParams) {
         if (!masters.map.containsKey(master)) {
             throw new MasterNotFoundException()
         }
-        try {
-            def poller = new BuildJobPoller(job, masters.map[master], requestParams)
-            executor.submit(poller).get(2, TimeUnit.HOURS)
-            poller.build
-        } catch (RuntimeException e) {
-            log.error("Unable to build job `${job}`", e)
-            throw e
+
+        def response
+        JenkinsClient client = masters.map[master]
+        JobConfig jobConfig = client.getJobConfig(job)
+
+        if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+            response = client.buildWithParameters(job, requestParams)
+        } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
+            // account for when you just want to fire a job with the default parameter values by adding a dummy param
+            response = client.buildWithParameters(job, ['startedBy': "igor"])
+        } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
+            response = client.build(job)
+        } else { // Jenkins will reject the build, so don't even try
+            log.error("job : ${job}, passing params to a job which doesn't need them")
+            // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
+            throw new RuntimeException()
         }
+
+        if (response.status != 201) {
+            throw new BuildJobError()
+        }
+
+        log.info("Submitted build job `${job}`")
+        def locationHeader = response.headers.find { it.name == "Location" }
+        if (!locationHeader) {
+            throw new QueuedJobDeterminationError()
+        }
+        def queuedLocation = locationHeader.value
+
+        queuedLocation.split('/')[-1]
     }
 
     @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/properties/{fileName:.+}')
@@ -113,7 +141,7 @@ class BuildController {
             if (fileName.endsWith('.yml') || fileName.endsWith('.yaml')) {
                 Yaml yml = new Yaml()
                 map = yml.load(propertyStream)
-            } else if(fileName.endsWith('.json')){
+            } else if (fileName.endsWith('.json')) {
                 map = objectMapper.readValue(propertyStream, Map)
             } else {
                 Properties properties = new Properties()
@@ -124,76 +152,6 @@ class BuildController {
             log.error("Unable to get properties `${job}`", e)
         }
         map
-    }
-
-    static class BuildJobPoller implements Runnable {
-        private final String job
-        private final JenkinsClient client
-        private final Map<String, String> requestParams
-
-        private Build build;
-
-        BuildJobPoller(String job, JenkinsClient client) {
-            this.job = job
-            this.client = client
-        }
-
-        BuildJobPoller(String job, JenkinsClient client, Map<String, String> requestParams) {
-            this.job = job
-            this.client = client
-            this.requestParams = requestParams
-        }
-
-        void run() {
-            def response
-            // fetch the build configuration and make sure that it's configured as we expect
-            JobConfig jobConfig = client.getJobConfig(job)
-
-            if (requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-                response = client.buildWithParameters(job, requestParams)
-            } else if (!requestParams && jobConfig.parameterDefinitionList?.size() > 0) {
-                // account for when you just want to fire a job with the default parameter values by adding a dummy param
-                response = client.buildWithParameters(job, ['startedBy': "igor"])
-            } else if (!requestParams && (!jobConfig.parameterDefinitionList || jobConfig.parameterDefinitionList.size() == 0)) {
-                response = client.build(job)
-            } else { // Jenkins will reject the build, so don't even try
-                log.error("job : ${job}, passing params to a job which doesn't need them")
-                // we should throw a BuildJobError, but I get a bytecode error : java.lang.VerifyError: Bad <init> method call from inside of a branch
-                throw new RuntimeException()
-            }
-
-            if (response.status != 201) {
-                throw new BuildJobError()
-            }
-
-            log.info("Submitted build job `${job}`")
-            def locationHeader = response.headers.find { it.name == "Location" }
-            if (!locationHeader) {
-                throw new QueuedJobDeterminationError()
-            }
-            def queuedLocation = locationHeader.value
-            def item = queuedLocation.split('/')[-1].toInteger()
-
-            log.info("Polling for queued job item `${job}:${item}`")
-            while (true) {
-                try {
-                    def queue = client.getQueuedItem(item)
-                    if (queue && queue.number) {
-                        this.build = client.getBuild(job, queue.number)
-                        log.info("Found build for queued job item `${job}:${item}`")
-                        break
-                    }
-                    sleep 500
-                } catch (RetrofitError e) {
-                    log.error("Failed to get build for job `${job}`", e)
-                    throw new QueuedJobDeterminationError()
-                }
-            }
-        }
-
-        public Build getBuild() {
-            this.build
-        }
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Jenkins master not found!")
