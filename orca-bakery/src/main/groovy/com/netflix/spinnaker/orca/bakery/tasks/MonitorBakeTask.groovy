@@ -48,7 +48,7 @@ class MonitorBakeTask implements RetryableTask {
       def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
       new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
     } catch (RetrofitError e) {
-      if (e.response.status == 404) {
+      if (e.response?.status == 404) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
       throw e

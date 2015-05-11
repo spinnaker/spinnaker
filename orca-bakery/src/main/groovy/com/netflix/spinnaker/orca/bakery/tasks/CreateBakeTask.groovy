@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import groovy.transform.CompileDynamic
@@ -24,7 +24,6 @@ import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeRequest
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -32,10 +31,14 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 @CompileStatic
-class CreateBakeTask implements Task {
+class CreateBakeTask implements RetryableTask {
+
+  long backoffPeriod = 30000
+  long timeout = 300000
 
   @Autowired BakeryService bakery
   @Autowired ObjectMapper mapper
@@ -48,31 +51,38 @@ class CreateBakeTask implements Task {
     String region = stage.context.region
     def bake = bakeFromContext(stage)
 
-    def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
+    try {
+      def bakeStatus = bakery.createBake(region, bake).toBlocking().single()
 
-    def stageOutputs = [
-      status: bakeStatus,
-      bakePackageName: bake.packageName
-    ] as Map<String, ? extends Object>
+      def stageOutputs = [
+        status: bakeStatus,
+        bakePackageName: bake.packageName
+      ] as Map<String, ? extends Object>
 
-    if (bake.buildHost) {
-      stageOutputs << [
-        buildHost: bake.buildHost,
-        job: bake.job,
-        buildNumber: bake.buildNumber
-      ]
+      if (bake.buildHost) {
+        stageOutputs << [
+          buildHost: bake.buildHost,
+          job      : bake.job,
+          buildNumber: bake.buildNumber
+        ]
 
-      if (bake.commitHash) {
-        stageOutputs.commitHash = bake.commitHash
+        if (bake.commitHash) {
+          stageOutputs.commitHash = bake.commitHash
+        }
       }
-    }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      }
+      throw e
+    }
   }
 
   @CompileDynamic
   private BakeRequest bakeFromContext(Stage stage) {
-    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs)
+    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs as String)
 
     PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
       operatingSystem.packageType.versionDelimiter, extractBuildDetails, false, mapper)

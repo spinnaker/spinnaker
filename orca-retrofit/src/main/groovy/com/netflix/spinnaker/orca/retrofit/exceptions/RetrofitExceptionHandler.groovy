@@ -34,10 +34,12 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
 
       try {
         def body = e.getBodyAs(Map) as Map
-        response.details = new ExceptionHandler.ResponseDetails(
-          body.error ?: reason,
-          (body.errors ?: (body.message ? [body.message] : [])) as List<String>
-        )
+
+        def error = body.error ?: reason
+        def errors = body.errors ?: (body.messages ?: []) as List<String>
+        errors = errors ?: (body.message ? [body.message] : [])
+
+        response.details = new ExceptionHandler.ResponseDetails(error, errors as List<String>)
 
         if (body.exception) {
           response.details.rootException = body.exception
