@@ -90,7 +90,8 @@
             <tr ng-repeat="scoreReport in analysisHistory | orderBy: '-lastUpdated'">
               <td>
                 <canary-score result="scoreReport.result"
-                              score="scoreReport.score"></canary-score>
+                              score="scoreReport.score"
+                              health="scoreReport.health"></canary-score>
               </td>
               <td>
                 {{ scoreReport.lastUpdated | timestamp }}
