@@ -33,10 +33,15 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
 
     function normalizeLoadBalancerWithServerGroups(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
-        serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
-          return { id: instanceId };
-        });
-        serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        if (serverGroup.detachedInstances) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+            return { id: instanceId };
+          });
+          serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        } else {
+          serverGroup.detachedInstances = [];
+        }
+
         serverGroup.instances.forEach(function(instance) {
           transformInstance(instance, loadBalancer);
         });
