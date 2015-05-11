@@ -157,7 +157,7 @@ class AutoScalingWorker {
     def ancestorAsg = asgService.getAncestorAsg(application, stack, freeFormDetails)
     Integer nextSequence
     if (ancestorAsg) {
-      task.updateStatus AWS_PHASE, "Found ancestor ASG: parsing details."
+      task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${ancestorAsg.autoScalingGroupName})"
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
       nextSequence = ((ancestorNames.sequence ?: 0) + 1) % 1000
     } else {

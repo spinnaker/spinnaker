@@ -149,7 +149,8 @@ class AsgServiceSpec extends Specification {
         new AutoScalingGroup(autoScalingGroupName: 'app-test-v010'),
         new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail-v015'),
         new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail2-v020'),
-        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail3-v025')
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-detail3-v025'),
+        new AutoScalingGroup(autoScalingGroupName: 'app-dev-c0usca-v000')
       ]
     )
 
@@ -161,6 +162,7 @@ class AsgServiceSpec extends Specification {
     'test'  | null             || 'app-test-v010'
     'dev'   | 'detail'         || 'app-dev-detail-v015'
     'dev'   | 'detail2'        || 'app-dev-detail2-v020'
+    'dev'   | 'c0usca'         || 'app-dev-c0usca-v000'
     'none'  | null             || null
     'dev'   | 'none'           || null
   }
