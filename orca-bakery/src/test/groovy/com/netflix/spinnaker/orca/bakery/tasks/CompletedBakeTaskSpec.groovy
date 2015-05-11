@@ -77,10 +77,10 @@ class CompletedBakeTaskSpec extends Specification {
       .asImmutable()
 
     when:
-    def result = task.execute(stage)
+    task.execute(stage)
 
     then:
-    result.status == ExecutionStatus.FAILED
+    thrown(RetrofitError)
 
     where:
     region = "us-west-1"

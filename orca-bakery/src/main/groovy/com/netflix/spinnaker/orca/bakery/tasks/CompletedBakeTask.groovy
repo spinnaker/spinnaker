@@ -32,23 +32,19 @@ import retrofit.RetrofitError
 @CompileStatic
 class CompletedBakeTask implements Task {
 
-  @Autowired BakeryService bakery
+  @Autowired
+  BakeryService bakery
 
   @Override
   TaskResult execute(Stage stage) {
     def region = stage.context.region as String
     def bakeStatus = stage.context.status as BakeStatus
-    try {
-      def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
-      // This treatment of ami allows both the aws and gce bake results to be propagated.
-      def results = [ami: bake.ami ?: bake.imageName]
-      if(bake.imageName){
-        results.imageName = bake.imageName
-      }
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results )
-    } catch (RetrofitError e) {
-      // TODO: attach some reporting info here
-      new DefaultTaskResult(ExecutionStatus.FAILED)
+    def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
+    // This treatment of ami allows both the aws and gce bake results to be propagated.
+    def results = [ami: bake.ami ?: bake.imageName]
+    if (bake.imageName) {
+      results.imageName = bake.imageName
     }
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results)
   }
 }
