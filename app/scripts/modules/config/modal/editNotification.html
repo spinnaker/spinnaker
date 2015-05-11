@@ -36,7 +36,7 @@
       </div>
 
       <div class="form-group row" ng-if="editNotification.notification.type === 'hipchat'">
-        <div class="col-sm-9 col-sm-offset-3"><strong>Please Note:</strong> You need to invite the Skynet T-800 bot to your room to
+        <div class="col-sm-9 col-sm-offset-3"><strong>Please Note:</strong> You need to invite the Skynet T-800 bot to <strong>private</strong> rooms to
           receive hipchat notifications<br/>
         </div>
         <div class="col-sm-3 sm-label-left">Hipchat Room:</div>
@@ -50,10 +50,25 @@
         </div>
       </div>
 
+      <div class="form-group row" ng-if="editNotification.notification.type === 'sms'">
+        <div class="col-sm-3 sm-label-left">Phone Number:</div>
+        <div class="col-sm-9">
+          <input name="sms"
+                 ng-pattern="onlyNumbers"
+                 ng-minlength="10"
+                 ng-maxlength="10"
+                 class="form-control input-sm "
+                 ng-model="editNotification.sms"
+                 placeholder="enter a phone number"
+                 required>
+          </input>
+        </div>
+      </div>
+
       <div class="form-group row slide-in animated"
-           ng-if="editNotificationForm.hipchat.$dirty && editNotificationForm.hipchat.$invalid && editNotification.notification.type === 'hipchat'">
+           ng-if="editNotificationForm.sms.$dirty && editNotificationForm.sms.$invalid && editNotification.notification.type === 'sms'">
         <div class="col-sm-9 col-sm-offset-3 error-message">
-          <span>Please enter a valid hipchat room</span>
+          <span>Please enter a valid number</span>
         </div>
       </div>
 
@@ -84,6 +99,7 @@
           ng-disabled="
           ( editNotification.notification.type === 'hipchat' && !editNotification.hipchat.length ) ||
           ( editNotification.notification.type === 'email' && !editNotification.email.length ) ||
+          ( editNotification.notification.type === 'sms' && !editNotification.sms.length ) ||
           !editNotification.hasSelectedWhen
           "
     >
