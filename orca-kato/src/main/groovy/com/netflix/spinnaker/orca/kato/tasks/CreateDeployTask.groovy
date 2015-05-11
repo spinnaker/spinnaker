@@ -60,12 +60,19 @@ class CreateDeployTask implements Task {
   TaskResult execute(Stage stage) {
     def deployOperations = deployOperationFromContext(stage)
     def taskId = deploy(deployOperations)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+
+    def outputs = [
       "notification.type"  : "createdeploy",
       "kato.last.task.id"  : taskId,
-      "kato.task.id"       : taskId, // TODO retire this.
       "deploy.account.name": deployOperations.credentials
-    ] )
+    ]
+
+    def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
+    if (suspendedProcesses?.contains("AddToLoadBalancer")) {
+      outputs.interestingHealthProviderNames = ["Amazon"]
+    }
+
+    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   private Map deployOperationFromContext(Stage stage) {

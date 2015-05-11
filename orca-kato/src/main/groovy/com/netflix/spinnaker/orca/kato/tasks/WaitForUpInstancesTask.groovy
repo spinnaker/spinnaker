@@ -43,6 +43,10 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         health.type in interestingHealthProviderNames
       } : instance.health
       boolean someAreUp = healths.any { Map health -> health.state == 'Up' }
+      if (interestingHealthProviderNames?.contains("Amazon")) {
+        // given that Amazon health never reports as 'Up' (only 'Unknown') we can only verify it isn't 'Down'.
+        someAreUp = someAreUp || healths.any { Map health -> health.type == 'Amazon' && health.state != 'Down' }
+      }
       boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
       someAreUp && noneAreDown
     }
