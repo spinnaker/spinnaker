@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.igor.pipeline
 
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
+import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartJenkinsJobTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -35,8 +36,10 @@ class JenkinsStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "startJenkinsJob", StartJenkinsJobTask)
-    def step2 = buildStep(stage, "monitorJenkinsJob", MonitorJenkinsJobTask)
-    [step1, step2]
+    [
+      buildStep(stage, "startJenkinsJob", StartJenkinsJobTask),
+      buildStep(stage, "waitForJenkinsJobStart", MonitorQueuedJenkinsJobTask),
+      buildStep(stage, "monitorJenkinsJob", MonitorJenkinsJobTask)
+    ]
   }
 }

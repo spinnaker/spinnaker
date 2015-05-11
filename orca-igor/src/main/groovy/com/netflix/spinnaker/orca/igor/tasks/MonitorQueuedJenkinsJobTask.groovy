@@ -16,30 +16,48 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
+import java.util.concurrent.TimeUnit
+
+@Slf4j
 @Component
-class StartJenkinsJobTask implements Task {
+class MonitorQueuedJenkinsJobTask implements RetryableTask {
+
+  long backoffPeriod = 1000
+  long timeout = TimeUnit.HOURS.toMillis(2)
 
   @Autowired
   IgorService igorService
-
-  @Autowired
-  ObjectMapper objectMapper
 
   @Override
   TaskResult execute(Stage stage) {
     String master = stage.context.master
     String job = stage.context.job
-    String queuedBuild = igorService.build(master, job, stage.context.parameters)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [queuedBuild: queuedBuild] )
+    String queuedBuild = stage.context.queuedBuild
+
+    try {
+      Map<String, Object> build = igorService.queuedBuild(master, queuedBuild)
+      if (build?.number == null) {
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      } else {
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
+      }
+    } catch (RetrofitError e) {
+      if ([503, 500, 404].contains(e.response?.status)) {
+        log.warn("Http ${e.response.status} received from `igor`, retrying...")
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      }
+      throw e
+    }
   }
 }
