@@ -8,7 +8,7 @@ angular
     vm.notification = angular.copy(notification);
 
     vm.types = [
-      'email', 'hipchat'
+      'email', 'hipchat', 'sms'
     ];
 
     vm.hasSelectedWhen = false;
@@ -41,8 +41,10 @@ angular
 
       if(vm.notification.type ==='email'){
         vm.email = vm.notification.address;
-      } else {
+      } else if(vm.notification.type === 'hipchat') {
         vm.hipchat = vm.notification.address;
+      } else {
+        vm.sms = vm.notification.address;
       }
 
     } else {
@@ -62,11 +64,15 @@ angular
       });
       if(vm.notification.type ==='email'){
         vm.notification.address = vm.email;
-      } else {
+      } else if(vm.notification.type === 'hipchat' ){
         vm.notification.address = vm.hipchat;
+      } else {
+        vm.notification.address = vm.sms;
       }
       $modalInstance.close([notification, vm.notification]);
     };
+
+    $scope.onlyNumbers = /^\d+$/;
 
     $scope.$watch('selectedWhenOptions', function (a,b) {
       if(a!==b) {
