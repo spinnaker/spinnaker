@@ -127,7 +127,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
-          new AmazonLoadBalancer(parts.loadBalancer, parts.region)
+          new AmazonLoadBalancer(parts.loadBalancer, parts.account, parts.region)
         }
         cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroupKey ->
           Map parts = Keys.parse(serverGroupKey)

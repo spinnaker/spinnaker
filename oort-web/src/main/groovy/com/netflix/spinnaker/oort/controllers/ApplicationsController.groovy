@@ -22,12 +22,14 @@ import com.netflix.spinnaker.oort.model.Cluster
 import com.netflix.spinnaker.oort.model.ClusterProvider
 import com.netflix.spinnaker.oort.model.view.ApplicationClusterViewModel
 import com.netflix.spinnaker.oort.model.view.ApplicationViewModel
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
+@Slf4j
 @RestController
 @RequestMapping("/applications")
 class ApplicationsController {
@@ -61,7 +63,8 @@ class ApplicationsController {
       } else {
         return transform(apps)
       }
-    } catch (IGNORE) {
+    } catch (e) {
+      log.error("Unable to fetch application (${name})", e)
       throw new ApplicationNotFoundException(name: name)
     }
   }

@@ -60,7 +60,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   AmazonLoadBalancer translate(CacheData cacheData) {
     Map<String, String> keyParts = Keys.parse(cacheData.id)
-    def lb = new AmazonLoadBalancer(keyParts.loadBalancer, keyParts.region)
+    def lb = new AmazonLoadBalancer(keyParts.loadBalancer, keyParts.account, keyParts.region)
     lb.account = keyParts.account
     lb.elb = cacheData.attributes
     lb.serverGroups = cacheData.relationships[SERVER_GROUPS.ns]?.collect {
