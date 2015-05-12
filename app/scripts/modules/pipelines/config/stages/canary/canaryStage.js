@@ -32,7 +32,7 @@ angular.module('deckApp.pipelines.stage.canary')
     $scope.stage = stage;
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
     $scope.stage.canary = $scope.stage.canary || {};
-    $scope.stage.canary.owner = $scope.stage.canary.owner || { email: user.authenticated ? user.name : null };
+    $scope.stage.canary.owner = $scope.stage.canary.owner || user.authenticated ? user.email : null;
     $scope.stage.canary.watchers = $scope.stage.canary.watchers || [];
     $scope.stage.canary.canaryConfig = $scope.stage.canary.canaryConfig || { name: [$scope.pipeline.name, 'Canary'].join(' - ') };
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig = $scope.stage.canary.canaryConfig.canaryAnalysisConfig || {};
