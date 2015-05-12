@@ -55,12 +55,14 @@ class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> {
   void onSuccess(TargetPool targetPool, HttpHeaders responseHeaders) throws IOException {
     def region = Utils.getLocalName(targetPool.region)
     def targetPoolName = targetPool.name
+    def instanceNames = []
 
     targetPool?.instances?.each { instanceUrl ->
+      def instanceName = Utils.getLocalName(instanceUrl)
       def instanceReference = new InstanceReference(instance: instanceUrl)
       def targetPoolInstanceHealthCallback =
         new TargetPoolInstanceHealthCallback(forwardingRuleName,
-                                             Utils.getLocalName(instanceUrl),
+                                             instanceName,
                                              instanceNameToLoadBalancerHealthStatusMap,
                                              (boolean)targetPool?.healthChecks)
 
@@ -68,6 +70,8 @@ class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> {
                                       region,
                                       targetPoolName,
                                       instanceReference).queue(httpHealthCheckBatch, targetPoolInstanceHealthCallback)
+
+      instanceNames.add(instanceName)
     }
 
     // TODO(duftler): Figure out how to return multiple health checks associated with 1 load balancer.
@@ -77,6 +81,8 @@ class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> {
 
       compute.httpHealthChecks().get(project, localHealthCheckName).queue(httpHealthCheckBatch, httpHealthCheckCallback)
     }
+
+    googleLoadBalancer["instanceNames"] = instanceNames
   }
 
   @Override

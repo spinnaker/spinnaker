@@ -87,7 +87,7 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
             // Collect all load balancer names at the cluster level as well.
             for (loadBalancerName in loadBalancerNameList) {
               if (!googleCluster.loadBalancers.find { it.name == loadBalancerName }) {
-                googleCluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, googleServerGroup.region)
+                googleCluster.loadBalancers << new GoogleLoadBalancer(loadBalancerName, googleCluster.accountName, googleServerGroup.region)
               }
             }
           }

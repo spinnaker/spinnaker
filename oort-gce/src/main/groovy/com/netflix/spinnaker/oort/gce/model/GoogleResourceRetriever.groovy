@@ -150,6 +150,7 @@ class GoogleResourceRetriever {
           // Retrieve all available network load balancers for this project.
           def networkLoadBalancersCallback = new NetworkLoadBalancersCallback(tempNetworkLoadBalancerMap[accountName],
                                                                               instanceNameToLoadBalancerHealthStatusMap,
+                                                                              accountName,
                                                                               project,
                                                                               compute,
                                                                               migsBatch,
@@ -176,6 +177,8 @@ class GoogleResourceRetriever {
         }
       }
 
+      populateLoadBalancerServerGroups(tempAppMap, tempNetworkLoadBalancerMap)
+
       appMap = tempAppMap
       standaloneInstanceMap = tempStandaloneInstanceMap
       imageMap = tempImageMap
@@ -185,6 +188,77 @@ class GoogleResourceRetriever {
     }
 
     log.info "Finished loading GCE resources."
+  }
+
+  public static void populateLoadBalancerServerGroups(HashMap<String, GoogleApplication> tempAppMap,
+                                                      Map<String, Map<String, List<GoogleLoadBalancer>>> tempNetworkLoadBalancerMap) {
+    // Build a reverse index from load balancers to server groups.
+    // First level is keyed by accountName and second level is keyed by load balancer name.
+    // Value at end of path is a list of google server groups.
+    def loadBalancerNameToServerGroupsMap = [:].withDefault { [:].withDefault { [] } }
+
+    tempAppMap.each { applicationName, googleApplication ->
+      googleApplication.clusters.each { accountName, clusterMap ->
+        clusterMap.each { clusterName, googleCluster ->
+          googleCluster.serverGroups.each { googleServerGroup ->
+            def loadBalancerNames = googleServerGroup.getLoadBalancers()
+
+            loadBalancerNames.each { loadBalancerName ->
+              loadBalancerNameToServerGroupsMap[accountName][loadBalancerName] << googleServerGroup
+            }
+          }
+        }
+      }
+    }
+
+    // Populate each load balancer with its summary server group and instance data.
+    loadBalancerNameToServerGroupsMap.each { accountName, lbNameToServerGroupsMap ->
+      lbNameToServerGroupsMap.each { loadBalancerName, serverGroupList ->
+        serverGroupList.each { serverGroup ->
+          def loadBalancer = tempNetworkLoadBalancerMap[accountName]?.get(serverGroup.getRegion())?.find {
+            it.name == loadBalancerName
+          }
+
+          def instances = [] as Set
+
+          serverGroup.instances.each { instance ->
+            // Only include the instances from the server group that are also registered with the load balancer.
+            if (loadBalancer["instanceNames"].contains(instance.name)) {
+              // Only include the health returned by this load balancer.
+              def loadBalancerHealth = instance.health.find {
+                it.type == "LoadBalancer"
+              }?.loadBalancers?.find {
+                it.loadBalancerName == loadBalancerName
+              }
+
+              def health = loadBalancerHealth
+                           ? [
+                             state      : loadBalancerHealth.state,
+                             description: loadBalancerHealth.description
+                           ]
+                           : [
+                             state      : "Unknown",
+                             description: "Unable to determine load balancer health."
+                           ]
+
+              instances << [
+                id    : instance.name,
+                zone  : Utils.getLocalName(instance.getZone()),
+                health: health
+              ]
+            }
+          }
+
+          def serverGroupSummary = [
+            name      : serverGroup.name,
+            isDisabled: serverGroup.isDisabled(),
+            instances : instances
+          ]
+
+          loadBalancer?.serverGroups << serverGroupSummary
+        }
+      }
+    }
   }
 
   private static executeIfRequestsAreQueued(BatchRequest batch) {

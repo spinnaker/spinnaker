@@ -77,16 +77,16 @@ class GoogleSearchProviderSpec extends Specification {
       searchProvider.googleResourceRetriever = resourceRetrieverMock
       def networkLoadBalancerMap = [
         "$ACCOUNT_NAME": [
-          'us-central1' : [new GoogleLoadBalancer('testapp1-dev-frontend', 'us-central1'),
-                           new GoogleLoadBalancer('testapp2-dev-frontend', 'us-central1'),
-                           new GoogleLoadBalancer('testapp3a-dev-frontend', 'us-central1'),
-                           new GoogleLoadBalancer('testapp3b-dev', 'us-central1')],
-          'europe-west1': [new GoogleLoadBalancer('testapp4-dev-frontend', 'europe-west1'),
-                           new GoogleLoadBalancer('testapp5-dev-frontend', 'europe-west1'),
-                           new GoogleLoadBalancer('testapp6-prod-frontend', 'europe-west1')],
-          'asia-east1'  : [new GoogleLoadBalancer('testapp7-prod-frontend', 'asia-east1'),
-                           new GoogleLoadBalancer('testapp8-prod-frontend', 'asia-east1'),
-                           new GoogleLoadBalancer('testapp9-prod-frontend', 'asia-east1')],
+          'us-central1' : [new GoogleLoadBalancer('testapp1-dev-frontend', ACCOUNT_NAME, 'us-central1'),
+                           new GoogleLoadBalancer('testapp2-dev-frontend', ACCOUNT_NAME, 'us-central1'),
+                           new GoogleLoadBalancer('testapp3a-dev-frontend', ACCOUNT_NAME, 'us-central1'),
+                           new GoogleLoadBalancer('testapp3b-dev', ACCOUNT_NAME, 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer('testapp4-dev-frontend', ACCOUNT_NAME, 'europe-west1'),
+                           new GoogleLoadBalancer('testapp5-dev-frontend', ACCOUNT_NAME, 'europe-west1'),
+                           new GoogleLoadBalancer('testapp6-prod-frontend', ACCOUNT_NAME, 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer('testapp7-prod-frontend', ACCOUNT_NAME, 'asia-east1'),
+                           new GoogleLoadBalancer('testapp8-prod-frontend', ACCOUNT_NAME, 'asia-east1'),
+                           new GoogleLoadBalancer('testapp9-prod-frontend', ACCOUNT_NAME, 'asia-east1')],
         ]
       ]
       resourceRetrieverMock.getApplicationsMap() >> [:]

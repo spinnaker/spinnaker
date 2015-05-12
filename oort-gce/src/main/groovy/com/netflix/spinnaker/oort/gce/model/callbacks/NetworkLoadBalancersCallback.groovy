@@ -31,6 +31,7 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
 
   private Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap
   private Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap
+  private String accountName
   private String project
   private Compute compute
   private BatchRequest targetPoolBatch
@@ -38,12 +39,14 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
 
   public NetworkLoadBalancersCallback(Map<String, List<GoogleLoadBalancer>> networkLoadBalancerMap,
                                       Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap,
+                                      String accountName,
                                       String project,
                                       Compute compute,
                                       BatchRequest targetPoolBatch,
                                       BatchRequest httpHealthCheckBatch) {
     this.networkLoadBalancerMap = networkLoadBalancerMap
     this.instanceNameToLoadBalancerHealthStatusMap = instanceNameToLoadBalancerHealthStatusMap
+    this.accountName = accountName
     this.project = project
     this.compute = compute
     this.targetPoolBatch = targetPoolBatch
@@ -67,7 +70,7 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
           }
 
           forwardingRules?.each { forwardingRule ->
-            def googleLoadBalancer = new GoogleLoadBalancer(forwardingRule.name, region)
+            def googleLoadBalancer = new GoogleLoadBalancer(forwardingRule.name, accountName, region)
 
             networkLoadBalancerMap[region] << googleLoadBalancer
 
