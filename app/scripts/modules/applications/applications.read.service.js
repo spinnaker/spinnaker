@@ -174,6 +174,7 @@ angular
       original.loadBalancers = newApplication.loadBalancers;
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
+      original.securityGroupsIndex = newApplication.securityGroupsIndex;
       clusterService.addTasksToServerGroups(original);
       clusterService.addExecutionsToServerGroups(original);
 
