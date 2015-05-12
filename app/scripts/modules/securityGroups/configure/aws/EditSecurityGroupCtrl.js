@@ -80,8 +80,9 @@ angular.module('deckApp.securityGroup.aws.edit.controller', [
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         var account = securityGroup.accountName,
           region = securityGroup.region,
-          vpcId = securityGroup.vpcId || null;
-        $scope.availableSecurityGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
+          vpcId = securityGroup.vpcId || null,
+          availableGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
+        $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
       });
     }
 
