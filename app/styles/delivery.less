@@ -282,16 +282,17 @@ body, html {
     border-radius: 3px;
     box-shadow: 0 8px 6px -6px @lightest_grey;
     h4 {
+      display: inline-block;
+      vertical-align: top;
+      .disabled {
+        color: @mid_lighter_grey;
+      }
       cursor: pointer;
       .glyphicon {
-        font-size: 80%;
         &.glyphicon-certificate {
           margin-left: 5px;
-          padding: 2px 5px 0 0;
+          padding: 2px 0 0 0;
           font-size: 75%;
-        }
-        &.disabled {
-          color: @mid_lighter_grey;
         }
       }
     }

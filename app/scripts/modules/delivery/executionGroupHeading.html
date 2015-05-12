@@ -13,11 +13,18 @@
               </span>
               {{ value }}
             </span>
-            <span class="glyphicon glyphicon-certificate"
-                  ng-class="{disabled: ctrl.triggerCount && !ctrl.activeTriggerCount}"
-                  tooltip-html-unsafe="{{ctrl.triggerTooltip}}"
-                  ng-click="ctrl.toggleTriggers(); $event.stopPropagation()"
-                  ng-if="ctrl.triggerCount"></span>
+          </h4>
+          <h4>
+            <a href class="btn btn-xs btn-link link-inverse"
+               tooltip-html-unsafe="{{ctrl.triggerTooltip}}"
+               ng-click="ctrl.toggleTriggers(); $event.stopPropagation()"
+               ng-if="ctrl.triggerCount"
+              >
+              <span ng-class="{disabled: !ctrl.activeTriggerCount}">
+                <span class="glyphicon glyphicon-certificate"></span>
+                Trigger{{ctrl.triggerCount > 1 ? 's' : ''}} {{ctrl.activeTriggerCount ? 'enabled' : 'disabled'}}
+              </span>
+            </a>
           </h4>
         </div>
         <div class="col-md-2 text-right" ng-if="ctrl.canTriggerPipelineManually">
