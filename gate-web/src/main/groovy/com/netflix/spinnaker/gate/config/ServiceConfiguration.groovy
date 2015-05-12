@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties
 class ServiceConfiguration {
   List<String> discoveryHosts
-  Map<String, Service> services
+  Map<String, Service> services = [:]
 
   @Autowired
   ApplicationContext ctx
