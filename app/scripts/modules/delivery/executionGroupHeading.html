@@ -1,6 +1,6 @@
 <div class="col-md-12">
   <div class="row clickable" sticky-header added-offset-height="-6" ng-click="ctrl.toggle()">
-    <div class="col-md-12 execution-group-heading" ng-class="ctrl.canTriggerPipelineManually() || filter.execution.groupBy !== 'name' ? 'active' : 'inactive'">
+    <div class="col-md-12 execution-group-heading" ng-class="ctrl.canTriggerPipelineManually ? 'active' : 'inactive'">
       <div class="row">
         <div class="col-md-10">
           <h4>
@@ -8,14 +8,19 @@
                   ng-class="{'glyphicon-chevron-up': !viewState.open, 'glyphicon-chevron-down': viewState.open}">
             </span>
             <span class="execution-group-title">
-            {{ value }}
               <span ng-if="ctrl.getCurrentlyRunningExecutions().length" class="badge" style="margin-left: 10px">
                 {{ctrl.getCurrentlyRunningExecutions().length}}
               </span>
+              {{ value }}
             </span>
+            <span class="glyphicon glyphicon-certificate"
+                  ng-class="{disabled: ctrl.triggerCount && !ctrl.activeTriggerCount}"
+                  tooltip-html-unsafe="{{ctrl.triggerTooltip}}"
+                  ng-click="ctrl.toggleTriggers(); $event.stopPropagation()"
+                  ng-if="ctrl.triggerCount"></span>
           </h4>
         </div>
-        <div class="col-md-2 text-right" ng-if="ctrl.canTriggerPipelineManually()">
+        <div class="col-md-2 text-right" ng-if="ctrl.canTriggerPipelineManually">
           <h4><a href
                  class="btn btn-xs btn-link link-inverse"
                  ng-click="ctrl.triggerPipeline(); $event.stopPropagation();">
@@ -28,7 +33,7 @@
           </a>
           </h4>
         </div>
-        <div class="col-md-2 text-right" ng-if="!ctrl.canTriggerPipelineManually() && filter.execution.groupBy === 'name'">
+        <div class="col-md-2 text-right" ng-if="!ctrl.canTriggerPipelineManually">
           <h4><span class="label-retired" tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
         </div>
       </div>
