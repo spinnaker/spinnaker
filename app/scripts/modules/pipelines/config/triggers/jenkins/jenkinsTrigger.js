@@ -8,7 +8,8 @@ angular.module('deckApp.pipelines.trigger.jenkins')
       key: 'jenkins',
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsTrigger.html'
+      templateUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsTrigger.html',
+      popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsPopoverLabel.html'
     });
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, cacheInitializer, infrastructureCaches, $filter) {

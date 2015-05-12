@@ -5,11 +5,14 @@ angular.module('deckApp.pipelines.config.service', [
   'restangular',
   'deckApp.settings',
   'deckApp.utils.lodash',
+  'deckApp.pipelines.config',
   'deckApp.authentication.service',
   'deckApp.caches.viewStateCache',
   'deckApp.confirmationModal.service',
 ])
-  .factory('pipelineConfigService', function (_, $q, settings, Restangular, authenticationService, viewStateCache, confirmationModalService) {
+  .factory('pipelineConfigService', function (_, $q, settings, Restangular,
+                                              authenticationService, viewStateCache,
+                                              $modal) {
 
     var configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
 
@@ -132,23 +135,17 @@ angular.module('deckApp.pipelines.config.service', [
       delete pipeline.parallel;
     }
 
-    function toggleTriggers(pipeline) {
-      var multiple = pipeline.triggers && pipeline.triggers.length,
-          triggerText = multiple ? 'triggers' : 'trigger',
-          enabled = _.some(pipeline.triggers, 'enabled'),
-          action = enabled ? 'disable' : 'enable',
-          buttonText = (enabled ? 'Disable ' : 'Enable ') + triggerText;
-      return confirmationModalService.confirm({
-        header: 'Really ' + action + ' ' + triggerText + '?',
-        buttonText: buttonText,
-        body: '<p>This will ' + action + ' triggered executions of <b>' + pipeline.name + '</b>.</p>',
-        submitMethod: function() {
-          pipeline.triggers.forEach(function(trigger) {
-            trigger.enabled = !enabled;
-          });
-          return savePipeline(pipeline);
+    function toggleTrigger(pipeline, index) {
+      var trigger = pipeline.triggers[index];
+      return $modal.open({
+        templateUrl: 'scripts/modules/delivery/triggers/toggleTrigger.modal.html',
+        controller: 'ToggleTriggerModalCtrl',
+        controllerAs: 'toggleTriggerCtrl',
+        resolve: {
+          pipeline: function() { return pipeline; },
+          trigger: function() { return trigger; }
         }
-      });
+      }).result;
     }
 
     return {
@@ -162,7 +159,7 @@ angular.module('deckApp.pipelines.config.service', [
       getAllUpstreamDependencies: getAllUpstreamDependencies,
       enableParallelExecution: enableParallelExecution,
       disableParallelExecution: disableParallelExecution,
-      toggleTriggers: toggleTriggers,
+      toggleTrigger: toggleTrigger,
     };
 
   });

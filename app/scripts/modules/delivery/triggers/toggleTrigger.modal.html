@@ -1,0 +1,23 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3>{{action}} Trigger</h3>
+  </div>
+  <div class="modal-body">
+    <form role="form" name="form" class="form-horizontal">
+      <div class="form-group">
+        <div class="col-md-10 col-md-offset-1">
+          <p>This will {{action | lowercase }} the following trigger: </p>
+          <p ng-include="triggerLabelUrl"></p>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="toggleTriggerCtrl.cancel()">Cancel</button>
+    <button class="btn btn-primary"
+            ng-click="toggleTriggerCtrl.toggleTrigger()">
+      <span class="glyphicon glyphicon-ok-circle"></span> {{action}} trigger
+    </button>
+  </div>
+</div>

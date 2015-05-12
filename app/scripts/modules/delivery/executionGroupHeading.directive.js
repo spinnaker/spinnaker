@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionGroupHeading.directive', [])
+angular.module('deckApp.delivery.executionGroupHeading.directive', [
+  'deckApp.delivery.execution.triggers',
+])
   .directive('executionGroupHeading', function() {
     return {
       restrict: 'E',

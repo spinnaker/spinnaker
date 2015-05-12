@@ -34,33 +34,7 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
 
     var configuration = _.find($scope.configurations, { name: $scope.value });
 
-    function updateTriggerInfo() {
-
-      if (configuration) {
-
-        controller.triggerCount = configuration.triggers ? configuration.triggers.length : 0;
-        controller.activeTriggerCount = _.filter(configuration.triggers, { enabled: true }).length;
-        if (controller.activeTriggerCount) {
-          if (controller.activeTriggerCount > 1) {
-            controller.triggerTooltip = 'This pipeline has ' + controller.activeTriggerCount + ' active triggers.<br/> <b>Click to disable</b>';
-          } else {
-            controller.triggerTooltip = 'This pipeline has an active trigger.<br/> <b>Click to disable</b>';
-          }
-        } else {
-          if (controller.triggerCount) {
-            if (controller.triggerCount > 1) {
-              controller.triggerTooltip = 'This pipeline has multiple triggers, but they are all currently disabled.<br/> <b>Click to enable all triggers</b>';
-            } else {
-              controller.triggerTooltip = 'This pipeline has a trigger, but it is currently disabled.<br/> <b>Click to enable.</b>';
-            }
-          }
-        }
-      }
-    }
-
-    controller.toggleTriggers = function() {
-      pipelineConfigService.toggleTriggers(configuration).then(updateTriggerInfo);
-    };
+    $scope.configuration = configuration;
 
     controller.canTriggerPipelineManually = $scope.filter.execution.groupBy === 'name' && configuration;
 
@@ -104,7 +78,5 @@ angular.module('deckApp.delivery.executionGroupHeading.controller', [
         }
       }).result.then(startPipeline);
     };
-
-    updateTriggerInfo();
   });
 

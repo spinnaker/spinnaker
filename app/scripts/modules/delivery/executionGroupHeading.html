@@ -14,18 +14,7 @@
               {{ value }}
             </span>
           </h4>
-          <h4>
-            <a href class="btn btn-xs btn-link link-inverse"
-               tooltip-html-unsafe="{{ctrl.triggerTooltip}}"
-               ng-click="ctrl.toggleTriggers(); $event.stopPropagation()"
-               ng-if="ctrl.triggerCount"
-              >
-              <span ng-class="{disabled: !ctrl.activeTriggerCount}">
-                <span class="glyphicon glyphicon-certificate"></span>
-                Trigger{{ctrl.triggerCount > 1 ? 's' : ''}} {{ctrl.activeTriggerCount ? 'enabled' : 'disabled'}}
-              </span>
-            </a>
-          </h4>
+          <triggers-tag pipeline="configuration"></triggers-tag>
         </div>
         <div class="col-md-2 text-right" ng-if="ctrl.canTriggerPipelineManually">
           <h4><a href
