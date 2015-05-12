@@ -75,13 +75,13 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
-      <dl>
+      <dl class="dl-horizontal dl-narrow">
         <dt>Created:</dt>
         <dd>{{serverGroup.launchConfig.createdTime | timestamp}}</dd>
         <dt>In:</dt>
         <dd>
-          {{serverGroup.cluster}}:{{serverGroup.region}}
-          <account-tag account="serverGroup.account" pad="left"></account-tag>
+          <account-tag account="serverGroup.account" pad="right"></account-tag>
+          {{serverGroup.region}}
         </dd>
       </dl>
     </collapsible-section>
