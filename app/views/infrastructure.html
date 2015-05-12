@@ -19,10 +19,15 @@
   </div>
 </div>
 <span ng-if="ctrl.hasResults()">
-  <div class="row infrastructure" ng-repeat="group in categories" ng-if="$index % 3 === 0">
-    <div class="col-md-4" ng-repeat="category in categories.slice($index, $index + 3)">
+  <div class="row" ng-if="moreResults">
+    <div class="col-md-12">
+      <p style="margin: 10px 20px 0">Only showing the first {{pageSize}} results found.</p>
+    </div>
+  </div>
+  <div class="row infrastructure">
+    <div class="col-md-4" ng-repeat="category in categories | orderBy:'category'">
       <div class="panel category row">
-        <div class="summary">{{ category.category }}</div>
+        <div class="summary">{{ category.category }} ({{category.results.length}})</div>
         <div class="col-md-12 details-container">
           <div class="details row padding">
             <div class="col-md-12" ng-repeat="result in category.results">

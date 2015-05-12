@@ -77,7 +77,7 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
     }
 
     function initializeLoadBalancerNames() {
-      searchService.search('gate', {q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
+      searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
         searchResults.results.forEach(function(result) {
           if (!allLoadBalancerNames[result.account]) {
             allLoadBalancerNames[result.account] = {};

@@ -35,7 +35,7 @@ angular.module('deckApp.securityGroup.read.service', [
     }
 
     function loadSecurityGroupsByApplicationName(applicationName) {
-      return searchService.search('gate', {q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
+      return searchService.search({q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
         if (!searchResults || !searchResults.results) {
           notificationsService.create({
             message: 'Warning: Security Group endpoint appears to be down. Security group info will not be displayed.',
