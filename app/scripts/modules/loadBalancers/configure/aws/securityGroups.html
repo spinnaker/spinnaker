@@ -3,6 +3,21 @@
     <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
   </div>
   <div class="modal-body" ng-if="state.securityGroupsLoaded">
+    <div class="form-group" ng-if="state.removedSecurityGroups.length">
+    <div class="col-md-12">
+      <div class="alert alert-warning">
+        <p><span class="glyphicon glyphicon-warning-sign"></span>
+          The following security groups could not be found in the selected account/region/VPC and were removed:
+        </p>
+        <ul>
+          <li ng-repeat="securityGroup in state.removedSecurityGroups">{{securityGroup}}</li>
+        </ul>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="state.removedSecurityGroups = []; wizard.markClean('Security Groups');">Okay</a>
+        </p>
+      </div>
+    </div>
+    </div>
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Security Groups</div>
       <div class="col-md-9">
