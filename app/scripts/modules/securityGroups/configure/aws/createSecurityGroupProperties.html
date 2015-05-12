@@ -1,7 +1,5 @@
   <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
     <div class="modal-body">
-      <kato-error task-status="taskStatus" title="We could not {{isNew ? 'create': 'update'}} your security group."></kato-error>
-      <kato-progress task-status="taskStatus" title="{{isNew ? 'Creating': 'Updating'}}  your security group."></kato-progress>
       <div class="form-group">
         <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
           <strong>Your security group will be named:</strong>
@@ -39,13 +37,9 @@
         </div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 sm-label-left">Region</div>
+        <div class="col-md-4 sm-label-left">Regions</div>
         <div class="col-md-8">
-          <select class="form-control input-sm" ng-model="securityGroup.region"
-                  ng-change="ctrl.regionUpdated()"
-                  ng-options="region.name as region.name for region in regions"
-                  required>
-          </select>
+          <checklist items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
         </div>
       </div>
       <div class="form-group">
@@ -53,7 +47,7 @@
         <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
-                  ng-options="vpc.id as vpc.label for vpc in vpcs">
+                  ng-options="vpc.ids[0] as vpc.label for vpc in vpcs">
             <option value="">None (Classic)</option>
           </select>
         </div>
