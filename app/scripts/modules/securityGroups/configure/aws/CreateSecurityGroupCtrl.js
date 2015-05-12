@@ -9,9 +9,10 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
   'deckApp.tasks.monitor.service',
   'deckApp.securityGroup.write.service',
   'deckApp.vpc.read.service',
+  'deckApp.modalWizard',
 ])
-  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
-                                                  accountService, securityGroupReader,
+  .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $state,
+                                                  accountService, securityGroupReader, modalWizardService,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   _, application, securityGroup, securityGroupWriter, vpcReader) {
 
@@ -24,6 +25,7 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
     $scope.state = {
       submitting: false,
       refreshingSecurityGroups: false,
+      removedRules: [],
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -68,7 +70,7 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.securityGroup.credentials).then(function(regions) {
-        $scope.regions = regions;
+        $scope.regions = _.pluck(regions, 'name');
         clearSecurityGroups();
         ctrl.regionUpdated();
         ctrl.updateName();
@@ -77,30 +79,83 @@ angular.module('deckApp.securityGroup.aws.create.controller', [
 
     this.regionUpdated = function() {
       vpcReader.listVpcs().then(function(vpcs) {
-        var account = $scope.securityGroup.credentials,
-            region = $scope.securityGroup.region,
-            availableVpcs = _(vpcs)
-              .filter({ account: account, region: region })
-              .map(function(vpc) {
-                return {
-                  id: vpc.id,
-                  label: (vpc.name || '[No Name] ') + ' (' + vpc.id + ')'
-                };
-              })
-              .value();
-        $scope.vpcs = availableVpcs;
-        $scope.securityGroup.vpcId = null;
+        var vpcsByName = _.groupBy(vpcs, 'name');
+        $scope.allVpcs = vpcs;
+        var available = [];
+        _.forOwn(vpcsByName, function(vpcsToTest, name) {
+          var foundInAllRegions = true;
+          _.forEach($scope.securityGroup.regions, function(region) {
+            if (!_.some(vpcsToTest, { region: region, account: $scope.securityGroup.credentials })) {
+              foundInAllRegions = false;
+            }
+          });
+          if (foundInAllRegions) {
+            available.push( {
+              ids: _.pluck(vpcsToTest, 'id'),
+              label: name,
+            });
+          }
+        });
+        $scope.vpcs = available;
+        var match = _.find(available, function(vpc) {
+          return vpc.ids.indexOf($scope.securityGroup.vpcId) !== -1;
+        });
+        $scope.securityGroup.vpcId = match ? match.ids[0] : null;
         ctrl.vpcUpdated();
       });
     };
 
+    function configureFilteredSecurityGroups() {
+      var vpcId = $scope.securityGroup.vpcId || null,
+          account = $scope.securityGroup.credentials,
+          regions = $scope.securityGroup.regions || [],
+          existingSecurityGroupNames = [],
+          availableSecurityGroups = [];
+
+      regions.forEach(function (region) {
+        var regionalVpcId = null;
+        if (vpcId) {
+          var baseVpc = _.find($scope.allVpcs, { id: vpcId });
+          regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
+        }
+
+        var regionalSecurityGroups = _.filter(allSecurityGroups[account].aws[region], { vpcId: regionalVpcId }),
+          regionalGroupNames = _.pluck(regionalSecurityGroups, 'name');
+
+        existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
+
+        if (!availableSecurityGroups.length) {
+          availableSecurityGroups = existingSecurityGroupNames;
+        } else {
+          availableSecurityGroups = _.intersection(availableSecurityGroups, regionalGroupNames);
+        }
+
+      });
+
+      $scope.availableSecurityGroups = availableSecurityGroups;
+      $scope.existingSecurityGroupNames = existingSecurityGroupNames;
+      clearInvalidSecurityGroups();
+    }
+
+    function clearInvalidSecurityGroups() {
+      var removed = $scope.state.removedRules;
+      $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
+        if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1) {
+          removed.push(rule.name);
+          return false;
+        }
+        return true;
+      });
+      if (removed.length) {
+        modalWizardService.getWizard().markDirty('Ingress');
+      }
+    }
+
     this.vpcUpdated = function() {
       var account = $scope.securityGroup.credentials,
-        region = $scope.securityGroup.region,
-        vpcId = $scope.securityGroup.vpcId || null;
-      if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
-        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], { vpcId: vpcId });
-        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
+        regions = $scope.securityGroup.regions;
+      if (account && regions && regions.length) {
+        configureFilteredSecurityGroups();
       } else {
         clearSecurityGroups();
       }

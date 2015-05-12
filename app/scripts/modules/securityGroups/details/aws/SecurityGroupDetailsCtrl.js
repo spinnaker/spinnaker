@@ -20,11 +20,11 @@ angular.module('deckApp.securityGroup.aws.details.controller', [
     function extractSecurityGroup() {
       securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
-        $scope.securityGroup = details;
 
-        var restangularlessDetails = details.plain();
-        if (_.isEmpty(restangularlessDetails)) {
+        if (!details || _.isEmpty( details.plain())) {
           fourOhFour();
+        } else {
+          $scope.securityGroup = details;
         }
       },
       function() {

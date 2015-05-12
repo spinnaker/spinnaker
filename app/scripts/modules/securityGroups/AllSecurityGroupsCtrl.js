@@ -61,6 +61,7 @@ angular.module('deckApp.securityGroup.all.controller', [
               return {
                 credentials: 'test',
                 subnet: 'none',
+                regions: [],
                 vpcId: null,
                 securityGroupIngress: []
               };

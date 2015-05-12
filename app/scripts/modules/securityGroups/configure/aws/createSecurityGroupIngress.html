@@ -1,7 +1,20 @@
   <form role="form" class="container-fluid form-horizontal" name="form" novalidate>
     <div class="modal-body">
-      <kato-error task-status="taskStatus" title="We could not {{isNew ? 'create': 'update'}} your security group."></kato-error>
-      <kato-progress task-status="taskStatus" title="{{isNew ? 'Creating': 'Updating'}}  your security group."></kato-progress>
+      <div class="row">
+        <div class="col-md-12" ng-if="state.removedRules.length">
+          <div class="alert alert-warning">
+            <p><span class="glyphicon glyphicon-warning-sign"></span>
+              The following security groups could not be found in the selected account/region/VPC and were removed:
+            </p>
+            <ul>
+              <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
+            </ul>
+            <p class="text-right">
+              <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="state.removedRules = []">Okay</a>
+            </p>
+          </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <p class="info">
@@ -25,10 +38,9 @@
             <tr ng-repeat="rule in securityGroup.securityGroupIngress">
               <td>
                 <ui-select ng-model="rule.name" class="form-control input-sm" style="width: 244px">
-                  <ui-select-match>{{$select.selected.name}} ({{$select.selected.id}})</ui-select-match>
-                  <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
-                    <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
-                    (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
+                  <ui-select-match>{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search">
+                    <span ng-bind-html="securityGroup | highlight: $select.search"></span>
                   </ui-select-choices>
                 </ui-select>
               </td>
