@@ -39,6 +39,7 @@
       <div class="form-group">
         <div class="col-md-4 sm-label-left">Regions</div>
         <div class="col-md-8">
+          <input type="hidden" ng-model="securityGroup.regions[0]" required/>
           <checklist items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
         </div>
       </div>
