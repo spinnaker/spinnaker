@@ -16,11 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 import com.google.common.base.Preconditions
+import com.netflix.spinnaker.gate.config.Service
+import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,6 +40,9 @@ import java.util.concurrent.Future
 @Slf4j
 class ApplicationService {
   private static final String GROUP = "applications"
+
+  @Autowired
+  ServiceConfiguration serviceConfiguration
 
   @Autowired
   OortService oortService
@@ -63,7 +69,7 @@ class ApplicationService {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
-      mergeApps(flat).collect { it.attributes }
+      mergeApps(flat, serviceConfiguration.getService('front50')).collect { it.attributes }
     } execute()
   }
 
@@ -74,7 +80,7 @@ class ApplicationService {
       def futures = executorService.invokeAll(applicationRetrievers)
       List<Map> applications = (List<Map>) futures.collect { it.get() }
 
-      def mergedApps = mergeApps(applications)
+      def mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
       return mergedApps ? mergedApps[0] : null
     } execute()
   }
@@ -156,50 +162,70 @@ class ApplicationService {
     } as Collection<Callable<Map>>)
   }
 
-  private static List<Map> mergeApps(List<Map<String, Object>> applications) {
-    Map<String, Map<String, Object>> merged = [:]
-    for (Map<String, Object> app in applications) {
-      if (!app) continue
-      String key = (app.name as String)?.toLowerCase()
-      if (key && !merged.containsKey(key)) {
-        merged[key] = [name: key, attributes:[:], clusters: [:]] as Map<String, Object>
-      }
-      Map mergedApp = (Map)merged[key]
-      if (app.containsKey("clusters")) {
-        // Oort
-        (mergedApp.clusters as Map).putAll(app.clusters as Map)
+  @CompileDynamic
+  private static List<Map> mergeApps(List<Map<String, Object>> applications, Service applicationServiceConfig) {
 
-        (app["attributes"] as Map).entrySet().each {
-          if (it.value && !(mergedApp.attributes as Map)[it.key]) {
-            // don't overwrite existing attributes with metadata from oort
-            (mergedApp.attributes as Map)[it.key] = it.value
-          }
+    try {
+      Closure<String> mergeAccounts = { String s1, String s2 ->
+        [s1, s2].collect { String s ->
+          s?.split(',')?.toList()?.findResults { it.trim() ?: null } ?: []
+        }.flatten().toSet().sort().join(',')
+      }
+      Map<String, Map<String, Object>> merged = [:]
+      for (Map<String, Object> app in applications) {
+        if (!app) continue
+        String key = (app.name as String)?.toLowerCase()
+        if (key && !merged.containsKey(key)) {
+          merged[key] = [name: key, attributes: [:], clusters: [:]] as Map<String, Object>
         }
-      } else {
-        if (app.containsKey("attributes")) {
-          // previously merged
-          ((app.attributes as Map).entrySet()).each {
-            if (it.value) {
+        Map mergedApp = (Map) merged[key]
+        if (app.containsKey("clusters") || app.containsKey("clusterNames")) {
+          // Oort
+          if (app.clusters) {
+            (mergedApp.clusters as Map).putAll(app.clusters as Map)
+          }
+          String accounts = (app.clusters as Map)?.keySet()?.join(',') ?:
+            (app.clusterNames as Map)?.keySet()?.join(',')
+
+          mergedApp.attributes.accounts = mergeAccounts(accounts, mergedApp.attributes.accounts)
+
+          (app["attributes"] as Map).entrySet().each {
+            if (it.value && !(mergedApp.attributes as Map)[it.key]) {
+              // don't overwrite existing attributes with metadata from oort
               (mergedApp.attributes as Map)[it.key] = it.value
             }
           }
         } else {
-          // Front50
-          app.entrySet().each {
-            if (it.value) {
+          Map attributes = app.attributes ?: app
+          attributes.entrySet().each {
+            if (it.key == 'accounts') {
+              mergedApp.attributes.accounts = mergeAccounts(mergedApp.attributes.accounts, it.value)
+            } else if (it.value) {
               (mergedApp.attributes as Map)[it.key] = it.value
             }
           }
         }
+
+        // ensure that names are consistently lower-cased.
+        mergedApp.name = key.toLowerCase()
+        mergedApp.attributes['name'] = mergedApp.name
       }
 
-      // ensure that names are consistently lower-cased.
-      mergedApp.name = key.toLowerCase()
-      mergedApp.attributes['name'] = mergedApp.name
+      Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults { it.trim() ?: null } ?: null
+      return merged.values().toList().findAll { Map<String, Object> account ->
+        if (applicationFilter == null) {
+          return true
+        }
+        String[] accounts = account?.attributes?.accounts?.split(',')
+        if (accounts == null) {
+          return true
+        }
+        return accounts.any { applicationFilter.contains(it) }
+      }
+    } catch (Throwable t) {
+      t.printStackTrace()
+      throw t
     }
-
-    // application doesn't exist if no attributes were found
-    return merged.values().toList()
   }
 
   static class ApplicationListRetriever implements Callable<List<Map>> {
