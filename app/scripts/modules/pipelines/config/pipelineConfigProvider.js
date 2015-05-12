@@ -42,12 +42,18 @@ angular.module('deckApp.pipelines.config', [])
       return matches.length ? matches[0] : null;
     }
 
+    function getTriggerConfig(type) {
+      var matches = getTriggerTypes().filter(function(triggerType) { return triggerType.key === type; });
+      return matches.length ? matches[0] : null;
+    }
+
     this.registerTrigger = registerTrigger;
     this.registerStage = registerStage;
     this.$get = function() {
       return {
         getTriggerTypes: getTriggerTypes,
         getStageTypes: getStageTypes,
+        getTriggerConfig: getTriggerConfig,
         getStageConfig: getStageConfig,
         getConfigurableStageTypes: getConfigurableStageTypes,
         getExecutionTransformers: getExecutionTransformers,

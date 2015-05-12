@@ -1,0 +1,51 @@
+<h4 ng-if="triggerCount > 0" class="triggers-toggle">
+  <a href class="btn btn-xs btn-link link-inverse"
+     tooltip-html-unsafe="{{triggerTooltip}}"
+     ng-click="popover.show = !popover.show; $event.stopPropagation();"
+    >
+        <span ng-class="{disabled: !activeTriggerCount}">
+          <span class="glyphicon glyphicon-certificate"></span>
+          <span ng-if="activeTriggerCount === triggerCount">
+            <span ng-if="triggerCount === 1">
+              Trigger enabled
+            </span>
+            <span ng-if="triggerCount > 1">
+              All triggers enabled
+            </span>
+          </span>
+          <span ng-if="triggerCount === 1 && activeTriggerCount === 0">
+            Trigger disabled
+          </span>
+          <span ng-if="triggerCount > 1 && activeTriggerCount === 0">
+            All triggers disabled
+          </span>
+          <span ng-if="activeTriggerCount && activeTriggerCount !== triggerCount">
+            Some triggers enabled
+          </span>
+        </span>
+  </a>
+  <div class="menu-manage-triggers" ng-if="popover.show">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md-12">
+          <p>
+            Triggers configured for <strong>{{pipeline.name}}</strong>:
+          </p>
+          <ul>
+            <li ng-repeat="trigger in pipeline.triggers" style="margin: 10px 0">
+              <div ng-include="triggersTagCtrl.getTriggerTemplateUrl(trigger)"></div>
+              <div>
+                <strong>Status:</strong> {{trigger.enabled ? 'enabled' : 'disabled'}}
+              </div>
+              <div>
+                <a href ng-click="triggersTagCtrl.toggleTrigger($index); $event.stopPropagation();">
+                  <strong>{{trigger.enabled ? 'Disable' : 'Enable'}} trigger</strong>
+                </a>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</h4>
