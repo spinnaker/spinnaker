@@ -20,13 +20,19 @@ angular.module('deckApp.search')
       }
 
       var displayNameFormatter = {
-        serverGroups: simpleField('serverGroup'),
+        serverGroups: function(entry) {
+          return entry.serverGroup + ' (' + entry.account + ': ' + entry.region + ')';
+        },
         instances: function(entry) {
           return entry.instanceId + ' (' + (entry.serverGroup || 'standalone instance') + ')';
         },
-        clusters: simpleField('cluster'),
+        clusters: function(entry) {
+          return entry.cluster + ' (' + entry.account + ')';
+        },
         applications: simpleField('application'),
-        loadBalancers: simpleField('loadBalancer')
+        loadBalancers: function(entry) {
+          return entry.loadBalancer + ' (' + entry.account + ': ' + entry.region + ')';
+        }
       };
 
       var querySubject = new RxService.Subject();
@@ -36,7 +42,7 @@ angular.module('deckApp.search')
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just(searchService.getFallbackResults());
           }
-          return RxService.Observable.fromPromise(searchService.search('gate', {
+          return RxService.Observable.fromPromise(searchService.search({
             q: query,
             type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
           }));

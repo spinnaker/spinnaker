@@ -5,17 +5,19 @@ angular.module('deckApp.search.service', [
 ])
   .factory('searchService', function($q, $http, $log, settings) {
 
+    var defaultPageSize = 200;
+
     function getFallbackResults() {
       return { results: [] };
     }
 
-    function search(source, params) {
+    function search(params) {
       var defaultParams = {
-        pageSize: 100
+        pageSize: defaultPageSize
       };
 
       return $http({
-        url: settings[source + 'Url'] + '/search',
+        url: settings.gateUrl + '/search',
         params: angular.extend(defaultParams, params)
       })
         .then(
@@ -31,6 +33,7 @@ angular.module('deckApp.search.service', [
 
     return {
       search: search,
-      getFallbackResults: getFallbackResults
+      getFallbackResults: getFallbackResults,
+      defaultPageSize: defaultPageSize,
     };
   });
