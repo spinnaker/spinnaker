@@ -81,6 +81,19 @@ angular.module('deckApp.loadBalancer.aws.details.controller',[
       });
     };
 
+    this.cloneLoadBalancer = function () {
+      var provider = $scope.loadBalancer.provider;
+      $modal.open({
+        templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
+        controller: provider + 'CreateLoadBalancerCtrl as ctrl',
+        resolve: {
+          application: function() { return application; },
+          loadBalancer: function() { return angular.copy($scope.loadBalancer); },
+          isNew: function() { return true; }
+        }
+      });
+    };
+
     this.deleteLoadBalancer = function deleteLoadBalancer() {
       if ($scope.loadBalancer.instances && $scope.loadBalancer.instances.length) {
         return;

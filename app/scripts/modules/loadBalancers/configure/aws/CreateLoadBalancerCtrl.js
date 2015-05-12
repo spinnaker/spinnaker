@@ -11,12 +11,13 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
   'deckApp.subnet.read.service',
   'deckApp.caches.initializer',
   'deckApp.caches.infrastructure',
+  'deckApp.naming',
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
                                                     cacheInitializer, infrastructureCaches, searchService,
                                                     modalWizardService, loadBalancerWriter, taskMonitorService,
-                                                    subnetReader,
+                                                    subnetReader, namingService,
                                                     application, loadBalancer, isNew) {
 
     var ctrl = this;
@@ -27,7 +28,8 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
       securityGroupsLoaded: false,
       accountsLoaded: false,
       loadBalancerNamesLoaded: false,
-      submitting: false
+      submitting: false,
+      removedSecurityGroups: [],
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
@@ -69,8 +71,16 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
       if (loadBalancer) {
         $scope.loadBalancer = awsLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
         initializeEditMode();
+        if (isNew) {
+          var nameParts = namingService.parseLoadBalancerName($scope.loadBalancer.name);
+          $scope.loadBalancer.stack = nameParts.stack;
+          $scope.loadBalancer.detail = nameParts.freeFormDetails;
+          delete $scope.loadBalancer.name;
+        }
       } else {
         $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate();
+      }
+      if (isNew) {
         initializeLoadBalancerNames();
         initializeCreateMode();
       }
@@ -110,12 +120,17 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
             var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
             if (matches.length) {
               existingNames.push(matches[0].name);
+            } else {
+              $scope.state.removedSecurityGroups.push(securityGroup);
             }
           } else {
             existingNames.push(securityGroup);
           }
         });
         $scope.loadBalancer.securityGroups = _.unique(existingNames);
+        if ($scope.state.removedSecurityGroups.length) {
+          modalWizardService.getWizard().markDirty('Security Groups');
+        }
       } else {
         clearSecurityGroups();
       }
@@ -167,12 +182,27 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
           }
           return accumulator;
         }, {});
+
+        setSubnetTypeFromVpc(subnetOptions);
+
         if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnetType}).length === 0) {
           $scope.loadBalancer.subnetType = '';
         }
         $scope.subnets = _.values(subnetOptions);
         ctrl.subnetUpdated();
       });
+    }
+
+    function setSubnetTypeFromVpc(subnetOptions) {
+      if ($scope.loadBalancer.vpcId) {
+        var currentSelection = _.find(subnetOptions, function(option) {
+          return option.vpcIds.indexOf($scope.loadBalancer.vpcId) !== -1;
+        });
+        if (currentSelection) {
+          $scope.loadBalancer.subnetType = currentSelection.purpose;
+        }
+        delete $scope.loadBalancer.vpcId;
+      }
     }
 
     function clearSecurityGroups() {

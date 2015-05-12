@@ -55,8 +55,26 @@ angular.module('deckApp.naming', [])
       return null;
     }
 
+    function parseLoadBalancerName(loadBalancerName) {
+      var split = loadBalancerName.split('-'),
+        result = {
+          application: split[0],
+          stack: '',
+          freeFormDetails: ''
+        };
+
+      if (split.length > 1) {
+        result.stack = split[1];
+      }
+      if (split.length > 2) {
+        result.freeFormDetails = split.slice(2, split.length).join('-');
+      }
+      return result;
+    }
+
     return {
       parseServerGroupName: parseServerGroupName,
+      parseLoadBalancerName: parseLoadBalancerName,
       getClusterName: getClusterName,
       getSequence: getSequence,
     };
