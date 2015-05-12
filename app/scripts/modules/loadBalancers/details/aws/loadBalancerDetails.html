@@ -33,7 +33,7 @@
           </button>
           <ul class="dropdown-menu" role="menu">
             <li><a href ng-click="ctrl.editLoadBalancer()">Edit Load Balancer</a></li>
-            <li><a href ng-click="ctrl.cloneLoadBalancer()">Clone Load Balancer</a></li>
+            <!--<li><a href ng-click="ctrl.cloneLoadBalancer()">Clone Load Balancer</a></li>-->
             <li ng-if="!loadBalancer.instances.length"><a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a></li>
             <li ng-if="loadBalancer.instances.length" class="disabled" tooltip="You must detach all instances before you can delete this load balancer.">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
