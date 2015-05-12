@@ -112,7 +112,8 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
         });
         $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
         // TODO: Move to settings
-        var existingNames = ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'].filter(function(defaultName) {
+        var defaultSecurityGroups = ['nf-datacenter-vpc', 'nf-infrastructure-vpc', 'nf-datacenter', 'nf-infrastructure'];
+        var existingNames = defaultSecurityGroups.filter(function(defaultName) {
           return $scope.existingSecurityGroupNames.indexOf(defaultName) !== -1;
         });
         $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
@@ -121,7 +122,9 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
             if (matches.length) {
               existingNames.push(matches[0].name);
             } else {
-              $scope.state.removedSecurityGroups.push(securityGroup);
+              if (defaultSecurityGroups.indexOf(securityGroup) === -1) {
+                $scope.state.removedSecurityGroups.push(securityGroup);
+              }
             }
           } else {
             existingNames.push(securityGroup);
