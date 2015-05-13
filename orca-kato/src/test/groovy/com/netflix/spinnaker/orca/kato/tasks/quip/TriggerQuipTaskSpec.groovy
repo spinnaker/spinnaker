@@ -87,9 +87,9 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
 
     instances | response | dnsTaskMap
-    ["foo.com"] | [instanceResponse] | ["foo.com" : "93fa4"]
-    ["foo.com", "foo2.com"] | [instanceResponse,instanceResponse2]  | ["foo.com" : "93fa4", "foo2.com" : "abcd"]
-    ["foo.com", "foo2.com", "foo3.com"] | [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
+    ["i-1234" : "foo.com"] | [instanceResponse] | ["foo.com" : "93fa4"]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | [instanceResponse,instanceResponse2]  | ["foo.com" : "93fa4", "foo2.com" : "abcd"]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com", "i-3456" : "foo3.com"] | [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
   }
 
   @Unroll
@@ -132,9 +132,9 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
     patchVersion = "1.2"
     instances | throwException
-    ["foo.com"] | [ true ]
-    ["foo.com", "foo2.com"] | [false, true]
-    ["foo.com", "foo2.com"] | [true, true]
+    ["i-1234" : "foo.com"] | [ true ]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | [false, true]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | [true, true]
  }
 
   @Unroll
