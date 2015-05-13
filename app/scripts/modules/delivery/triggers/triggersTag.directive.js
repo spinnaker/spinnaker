@@ -28,7 +28,6 @@ angular.module('deckApp.delivery.execution.triggers', [
 
     function updateTriggerInfo() {
       var pipeline = $scope.pipeline;
-      console.warn(pipeline);
       if (pipeline && pipeline.triggers && pipeline.triggers.length) {
         var triggerCount = pipeline.triggers.length,
             activeTriggerCount = _.filter(pipeline.triggers, { enabled: true }).length,
