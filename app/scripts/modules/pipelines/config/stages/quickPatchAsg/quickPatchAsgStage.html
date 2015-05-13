@@ -33,14 +33,26 @@
     </div>
   </div>
   <div class="form-group">
-    <help-field key="pipeline.config.quickPatchAsg.baseOs"></help-field>
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS</label>
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS<help-field key="pipeline.config.quickPatchAsg.baseOs"></help-field>
+    </label>
     <div class="col-md-6">
       <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
         <input type="radio"
                ng-model="stage.baseOs"
                ng-value="baseOsOption"/>
         {{baseOsOption}}
+      </label>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="col-md-2 col-md-offset-1 sm-label-left">Rolling Patch<help-field key="pipeline.config.quickPatchAsg.rollingPatch"></help-field></label>
+    <div class="col-md-6">
+      <label class="checkbox-inline">
+        <input
+          type="checkbox"
+          ng-model="stage.rollingPatch"
+          name="rollingPatch"/>
+        {{rollingPatch}}
       </label>
     </div>
   </div>
