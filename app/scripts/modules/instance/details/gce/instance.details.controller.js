@@ -32,6 +32,18 @@ angular.module('deckApp.instance.detail.gce.controller', [
         function(metric) {
           return metric.type !== 'GCE' || metric.state !== 'Unknown';
         });
+
+      // backfill details where applicable
+      if (latest.health) {
+        displayableMetrics.forEach(function (metric) {
+          var detailsMatch = latest.health.filter(function (latestHealth) {
+            return latestHealth.type === metric.type;
+          });
+          if (detailsMatch.length) {
+            _.defaults(metric, detailsMatch[0]);
+          }
+        });
+      }
       $scope.healthMetrics = displayableMetrics;
     }
 
@@ -56,6 +68,41 @@ angular.module('deckApp.instance.detail.gce.controller', [
             }
           });
         });
+        if (!instanceSummary) {
+          // perhaps it is in a server group that is part of another application
+          application.loadBalancers.some(function (loadBalancer) {
+            return loadBalancer.instances.some(function (possibleInstance) {
+              if (possibleInstance.id === instance.instanceId) {
+                instanceSummary = possibleInstance;
+                loadBalancers = [loadBalancer.name];
+                account = loadBalancer.account;
+                region = loadBalancer.region;
+                vpcId = loadBalancer.vpcId;
+                return true;
+              }
+            });
+          });
+          if (!instanceSummary) {
+            // perhaps it is in a disabled server group via a load balancer
+            application.loadBalancers.some(function (loadBalancer) {
+              return loadBalancer.serverGroups.some(function (serverGroup) {
+                if (!serverGroup.isDisabled) {
+                  return false;
+                }
+                return serverGroup.instances.some(function (possibleInstance) {
+                  if (possibleInstance.id === instance.instanceId) {
+                    instanceSummary = possibleInstance;
+                    loadBalancers = [loadBalancer.name];
+                    account = loadBalancer.account;
+                    region = loadBalancer.region;
+                    vpcId = loadBalancer.vpcId;
+                    return true;
+                  }
+                });
+              });
+            });
+          }
+        }
       }
 
       if (instanceSummary && account && region) {

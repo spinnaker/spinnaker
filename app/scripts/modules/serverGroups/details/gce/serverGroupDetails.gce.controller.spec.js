@@ -18,6 +18,7 @@ describe('Controller: gceServerGroupDetailsCtrl', function () {
         $scope: scope,
         application: {
           serverGroups: [],
+          loadBalancers: [],
           registerAutoRefreshHandler: angular.noop
         },
         serverGroup: {}

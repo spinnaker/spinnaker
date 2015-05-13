@@ -3,8 +3,8 @@
 angular.module('deckApp.pipelines.stage.resizeAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Resize ASG',
-      description: 'Resizes an ASG',
+      label: 'Resize Server Group',
+      description: 'Resizes a server group',
       key: 'resizeAsg',
       controller: 'ResizeAsgStageCtrl',
       controllerAs: 'resizeAsgStageCtrl',
@@ -48,11 +48,11 @@ angular.module('deckApp.pipelines.stage.resizeAsg')
 
     $scope.resizeTargets = [
       {
-        label: 'Current ASG',
+        label: 'Current Server Group',
         val: 'current_asg'
       },
       {
-        label: 'Last ASG',
+        label: 'Last Server Group',
         val: 'ancestor_asg'
       }
     ];

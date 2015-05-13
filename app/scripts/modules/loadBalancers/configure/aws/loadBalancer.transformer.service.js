@@ -18,6 +18,7 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
         }).length,
         unknownCount: container.detachedInstances.length,
       };
+      angular.extend(container, container.healthCounts);
     }
 
     function transformInstance(instance, loadBalancer) {
@@ -33,6 +34,8 @@ angular.module('deckApp.aws.loadBalancer.transformer.service', [
 
     function normalizeLoadBalancerWithServerGroups(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.account = loadBalancer.account;
+        serverGroup.region = loadBalancer.region;
         if (serverGroup.detachedInstances) {
           serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
             return { id: instanceId };

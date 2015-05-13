@@ -38,10 +38,22 @@ angular.module('deckApp.serverGroup.details.aws.controller', [
     }
 
     function extractServerGroupSummary() {
-      var found = application.serverGroups.filter(function (toCheck) {
+      var summary = _.find(application.serverGroups, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
-      return found ? found[0] : null;
+      if (!summary) {
+        application.loadBalancers.some(function (loadBalancer) {
+          if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
+            return loadBalancer.serverGroups.some(function (possibleServerGroup) {
+              if (possibleServerGroup.name === serverGroup.name) {
+                summary = possibleServerGroup;
+                return true;
+              }
+            });
+          }
+        });
+      }
+      return summary;
     }
 
     function retrieveServerGroup() {
