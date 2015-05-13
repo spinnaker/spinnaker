@@ -224,7 +224,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
     ]
   }
 
-  void "application load balancers are returned based on naming-convention and server group associations, and do not include server groups from other applications"() {
+  void "application load balancers are returned based on naming-convention and server group associations, and do include server groups from other applications"() {
     setup:
       def resourceRetrieverMock = Mock(GoogleResourceRetriever)
       @Subject
@@ -369,6 +369,20 @@ class GoogleLoadBalancerProviderSpec extends Specification {
                   ]
                 ]
               ]
+            ],
+            [
+              name: "roscoapp3-dev-v002",
+              isDisabled: false,
+              instances: [
+                [
+                  id: "roscoapp3-dev-v002-gh07",
+                  zone: "asia-east1-a",
+                  health: [
+                    state: "InService",
+                    description: null
+                  ]
+                ]
+              ]
             ]
           ]
         ]
@@ -399,7 +413,36 @@ class GoogleLoadBalancerProviderSpec extends Specification {
           type: "gce",
           region: "asia-east1",
           account: "my-account-name",
-          serverGroups: []
+          serverGroups: [
+            [
+              name: "roscoapp-dev-v001",
+              isDisabled: false,
+              instances: [
+                [
+                  id: "roscoapp-dev-v001-vx09",
+                  zone: "asia-east1-a",
+                  health: [
+                    state: "InService",
+                    description: null
+                  ]
+                ]
+              ]
+            ],
+            [
+              name: "roscoapp3-dev-v002",
+              isDisabled: false,
+              instances: [
+                [
+                  id: "roscoapp3-dev-v002-gh07",
+                  zone: "asia-east1-a",
+                  health: [
+                    state: "InService",
+                    description: null
+                  ]
+                ]
+              ]
+            ]
+          ]
         ],
         [
           name: "testapp-dev-frontend4",

@@ -96,7 +96,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
             if (loadBalancer.serverGroups.find { loadBalancerServerGroup ->
               Names.parseName(loadBalancerServerGroup.name).app == application
             }) {
-              // Clone the load balancer so the original is not mutated when we prune the server groups.
+              // Clone the load balancer so the original is not mutated when we delete the instanceNames key/value.
               applicationLoadBalancers << new GoogleLoadBalancer(loadBalancer)
             }
           }
@@ -104,13 +104,8 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       }
     }
 
-    // Filter out server groups not in this application from the returned load balancers.
     // Remove instanceNames key/value since we don't need to return it.
     applicationLoadBalancers.each { loadBalancer ->
-      loadBalancer.serverGroups = loadBalancer.serverGroups.findAll { loadBalancerServerGroup ->
-        Names.parseName(loadBalancerServerGroup.name).app == application
-      }
-
       loadBalancer.remove("instanceNames")
     }
 
