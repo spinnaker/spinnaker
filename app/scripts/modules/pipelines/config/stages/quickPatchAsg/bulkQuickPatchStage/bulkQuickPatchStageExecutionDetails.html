@@ -1,6 +1,6 @@
-<div ng-controller="QuickPatchAsgExecutionDetailsCtrl">
+<div ng-controller="BulkQuickPatchAsgExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details" ng-if="detailsSection === 'quickPatchServerGroupConfig'">
+  <div class="step-section-details" ng-if="detailsSection === 'bulkQuickPatchStageConfig'">
     <div class="row">
       <div class="col-md-9">
         <dl class="dl-narrow dl-horizontal">
@@ -34,6 +34,12 @@
           </a>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
 </div>

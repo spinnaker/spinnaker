@@ -1,0 +1,12 @@
+'use strict';
+
+angular.module('deckApp.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
+  .config(function(pipelineConfigProvider) {
+    pipelineConfigProvider.registerStage({
+      synthetic: true,
+      key: 'bulkQuickPatch',
+      label: 'Bulk Quick Patch ASG',
+      description: 'Bulk Quick Patches an ASG',
+      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStageExecutionDetails.html'
+    });
+  });
