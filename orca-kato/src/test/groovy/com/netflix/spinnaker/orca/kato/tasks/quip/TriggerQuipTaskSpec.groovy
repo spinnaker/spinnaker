@@ -78,6 +78,7 @@ class TriggerQuipTaskSpec extends Specification {
     then:
     instances.size() * instanceService.patchInstance(app, "1.2") >>> response
     result.stageOutputs.taskIds == dnsTaskMap
+    result.stageOutputs.version == "1.2"
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
