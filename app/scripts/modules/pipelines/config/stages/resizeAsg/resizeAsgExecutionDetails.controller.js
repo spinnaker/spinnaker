@@ -7,7 +7,7 @@ angular.module('deckApp.pipelines.stage.resizeAsg.executionDetails.controller', 
 ])
   .controller('ResizeAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['resizeASGConfig', 'taskStatus'];
+    $scope.configSections = ['resizeServerGroupConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);

@@ -7,7 +7,7 @@ angular.module('deckApp.pipelines.stage.disableAsg.executionDetails.controller',
 ])
   .controller('DisableAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['disableASGConfig', 'taskStatus'];
+    $scope.configSections = ['disableServerGroupConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);

@@ -66,20 +66,20 @@ angular.module('deckApp.help')
     'loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between ELB health checks.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the ELB’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the ELB.</p><p>Default: <b>2</b></p>',
-    'pipeline.config.resizeAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
-    'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this modify scaling process operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
-    'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this enable operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
-    'pipeline.config.disableAsg.cluster': '<p>Configures the cluster upon which this disable operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
-    'pipeline.config.destroyAsg.cluster': '<p>Configures the cluster upon which this destroy operation will act. The <em>target</em> specifies what ASG to resolve for the operation.</p>',
+    'pipeline.config.resizeAsg.cluster': '<p>Configures the cluster upon which this resize operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
+    'pipeline.config.modifyScalingProcess.cluster': '<p>Configures the cluster upon which this modify scaling process operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
+    'pipeline.config.enableAsg.cluster': '<p>Configures the cluster upon which this enable operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
+    'pipeline.config.disableAsg.cluster': '<p>Configures the cluster upon which this disable operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
+    'pipeline.config.destroyAsg.cluster': '<p>Configures the cluster upon which this destroy operation will act. The <em>target</em> specifies what server group to resolve for the operation.</p>',
     'pipeline.config.quickPatchAsg.cluster': '<p>Configures the cluster upon which this quick patch operation will act.</p>',
     'pipeline.config.quickPatchAsg.package': '<p>The name of the package you want installed (without any version identifiers).</p>',
     'pipeline.config.quickPatchAsg.baseOs': '<p>The operating system running on the target instances.</p>',
     'pipeline.config.quickPatchAsg.rollingPatch': '<p>Patch one instance at a time vs. all at once.</p>',
-    'pipeline.config.resizeAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
-    'pipeline.config.modifyScalingProcess.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
-    'pipeline.config.enableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
-    'pipeline.config.disableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
-    'pipeline.config.destroyAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
+    'pipeline.config.resizeAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
+    'pipeline.config.modifyScalingProcess.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
+    'pipeline.config.enableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
+    'pipeline.config.disableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
+    'pipeline.config.destroyAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
       '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>',
@@ -125,7 +125,7 @@ angular.module('deckApp.help')
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
       '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
     'strategy.redblack.maxRemainingAsgs': '<p>Indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
-      '<p>If you wish to destroy all ASGs except the newly created one, select "Highlander" as the strategy.</p>' +
+      '<p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>' +
       '<p><strong>Minimum value:</strong> 2</p>',
 
     'loadBalancers.filter.serverGroups': '<p>Displays all server groups configured to use the load balancer.</p>' +

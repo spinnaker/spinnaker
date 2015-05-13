@@ -7,7 +7,7 @@ angular.module('deckApp.pipelines.stage.quickPatchAsg.executionDetails.controlle
 ])
   .controller('QuickPatchAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['quickPatchAsgConfig', 'taskStatus'];
+    $scope.configSections = ['quickPatchServerGroupConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
