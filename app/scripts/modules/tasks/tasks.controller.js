@@ -75,7 +75,7 @@ angular.module('deckApp.tasks.main', [
         controller.sortedTasks = _.filter(joinedLists, function(task) {
           return task.name.toLowerCase().indexOf(normalizedSearch) !== -1 ||
             task.id.toLowerCase().indexOf(normalizedSearch) !== -1 ||
-            task.getValueFor('user').toLowerCase().indexOf(normalizedSearch) !== -1;
+            (task.getValueFor('user') || '').toLowerCase().indexOf(normalizedSearch) !== -1;
         });
       }
       if ($scope.viewState.taskStateFilter) {
