@@ -72,7 +72,7 @@ class UtilsSpec extends Specification {
       originalServerGroup.instances << new GoogleInstance(name: INSTANCE_NAME)
       def originalClusterDev = new GoogleCluster(name: CLUSTER_DEV_NAME)
       originalClusterDev.serverGroups << originalServerGroup
-      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, REGION)
+      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, ACCOUNT_NAME, REGION)
       def originalClusterProd = new GoogleCluster(name: CLUSTER_PROD_NAME)
       def originalApplication = new GoogleApplication(name: APPLICATION_NAME)
       originalApplication.clusterNames[ACCOUNT_NAME] = [CLUSTER_DEV_NAME, CLUSTER_PROD_NAME] as Set
@@ -203,7 +203,7 @@ class UtilsSpec extends Specification {
       originalServerGroup.setDisabled(false)
       def originalClusterDev = new GoogleCluster(name: CLUSTER_DEV_NAME)
       originalClusterDev.serverGroups << originalServerGroup
-      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, REGION)
+      originalClusterDev.loadBalancers << new GoogleLoadBalancer(LOAD_BALANCER_NAME, ACCOUNT_NAME, REGION)
       def originalClusterProd = new GoogleCluster(name: CLUSTER_PROD_NAME)
       def originalApplication = new GoogleApplication(name: APPLICATION_NAME)
       originalApplication.clusterNames[ACCOUNT_NAME] = [CLUSTER_DEV_NAME, CLUSTER_PROD_NAME] as Set

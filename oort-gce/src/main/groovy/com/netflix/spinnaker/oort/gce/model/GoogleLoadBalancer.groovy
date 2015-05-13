@@ -24,10 +24,11 @@ import groovy.transform.CompileStatic
 class GoogleLoadBalancer extends HashMap implements LoadBalancer {
 
   GoogleLoadBalancer() {
-    this(null, null)
+    this(null, null, null)
   }
 
-  GoogleLoadBalancer(String name, String region) {
+  GoogleLoadBalancer(String name, String account, String region) {
+    setProperty "account", account
     setProperty "name", name
     setProperty "type", "gce"
     setProperty "region", region
@@ -47,6 +48,10 @@ class GoogleLoadBalancer extends HashMap implements LoadBalancer {
     }
 
     copyGoogleLoadBalancer
+  }
+
+  String getAccount() {
+    getProperty "account"
   }
 
   @Override
@@ -94,11 +99,11 @@ class GoogleLoadBalancer extends HashMap implements LoadBalancer {
       return false
     }
     GoogleLoadBalancer other = (GoogleLoadBalancer)o
-    other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
+    other.getAccount() == this.getAccount() && other.getName() == this.getName() && other.getType() == this.getType() && other.getServerGroups() == this.getServerGroups() && other.getRegion() == this.getRegion()
   }
 
   @Override
   int hashCode() {
-    getName().hashCode() + getType().hashCode() + getServerGroups().hashCode() + getRegion().hashCode()
+    getAccount().hashCode() + getName().hashCode() + getType().hashCode() + getServerGroups().hashCode() + getRegion().hashCode()
   }
 }
