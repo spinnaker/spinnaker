@@ -7,20 +7,18 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
 ])
   .factory('gceLoadBalancerTransformer', function ( settings, _) {
 
-    function updateHealthCounts(loadBalancer) {
-      var instances = loadBalancer.instances;
-      loadBalancer.healthCounts = {
+    function updateHealthCounts(container) {
+      var instances = container.instances;
+      container.healthCounts = {
         upCount: instances.filter(function (instance) {
-          return instance.isHealthy;
+          return instance.health[0].state === 'InService';
         }).length,
         downCount: instances.filter(function (instance) {
-          return instance.healthState === 'Down';
+          return instance.health[0].state === 'OutOfService';
         }).length,
-        unknownCount: instances.filter(function (instance) {
-          return instance.healthState === 'Unknown' || instance.healthState === 'Starting';
-        }).length
+        unknownCount: container.detachedInstances.length,
       };
-      angular.extend(loadBalancer, loadBalancer.healthCounts);
+      angular.extend(container, container.healthCounts);
     }
 
     function transformInstance(instance, loadBalancer) {
