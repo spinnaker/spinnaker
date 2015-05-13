@@ -234,7 +234,9 @@ angular.module('deckApp.pipelines')
       var base = pipeline.fromServer ? pipeline.plain() : angular.copy(pipeline);
       return {
         stages: base.stages,
-        triggers: base.triggers
+        triggers: base.triggers,
+        parallel: base.parallel,
+        stageCounter: base.stageCounter,
       };
     }
 
