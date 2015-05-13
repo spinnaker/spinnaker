@@ -6,12 +6,18 @@
           <div class="row">
             <label class="col-md-3 sm-label-left">Type</label>
             <div class="col-md-9" ng-if="stage.isNew">
-              <select class="input-sm"
-                      ng-change="stageConfigCtrl.selectStage()"
-                      ng-options="option.key as option.label for option in options.stageTypes"
-                      ng-model="stage.type">
-                <option value="">Select...</option>
-              </select>
+              <ui-select ng-model="stage.type"
+                         style="width: 250px"
+                         class="form-control input-sm"
+                         on-select="stageConfigCtrl.selectStage()">
+                <ui-select-match>
+                  <strong>{{$select.selected.label}}</strong>
+                </ui-select-match>
+                <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {name: $select.search, description: $select.search}">
+                  <div><strong>{{option.label}}</strong></div>
+                  <div>{{option.description}}</div>
+                </ui-select-choices>
+              </ui-select>
               {{description}}
             </div>
             <div class="col-md-6" ng-if="!stage.isNew">

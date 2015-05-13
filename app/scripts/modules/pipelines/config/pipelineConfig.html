@@ -1,12 +1,12 @@
 <div class="container">
   <div class="row" ng-if="application.pipelines.length">
-    <div class="col-md-3">
+    <div class="col-md-3 col-md-offset-1">
       <a class="btn btn-link" ui-sref="^.executions">
         <span class="small glyphicon glyphicon glyphicon-circle-arrow-left"></span>
         Pipeline Executions
       </a>
     </div>
-    <div class="col-md-5 text-right">
+    <div class="col-md-7 text-right">
       <p class="form-control-static">
         <strong>Tip:</strong>
         Pipelines are sortable - just drag them into the desired position.
@@ -15,7 +15,7 @@
   </div>
   <div class="row" ng-if="application.pipelines.length">
     <div class="row">
-      <div class="col-md-8" style="margin-top: 20px">
+      <div class="col-md-10 col-md-offset-1" style="margin-top: 20px">
         <create-pipeline-button application="application" target="top"
                                 reinitialize="pipelineConfigCtrl.initialize()"></create-pipeline-button>
       </div>
@@ -26,7 +26,7 @@
        ng-model="application.pipelines">
     <div class="row pipeline-configurer"
          ng-repeat="pipeline in application.pipelines | orderBy:'index'">
-      <div class="col-md-8">
+      <div class="col-md-10 col-md-offset-1">
         <pipeline-configurer pipeline="pipeline" application="application"></pipeline-configurer>
       </div>
     </div>
@@ -38,7 +38,7 @@
   </div>
   <div class="row" ng-if="state.pipelinesLoaded">
     <div class="row">
-      <div class="col-md-8">
+      <div class="col-md-10 col-md-offset-1">
         <h4 ng-if="!application.pipelines.length" class="text-center">You don't have any pipelines configured for
           {{application.name}}.</h4>
         <create-pipeline-button application="application"
