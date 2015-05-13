@@ -22,7 +22,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
-import com.netflix.spinnaker.orca.kato.pipeline.ShrinkClusterStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -46,7 +45,6 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyAsgStage destroyAsgStage
-  @Autowired ShrinkClusterStage shrinkClusterStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
 
   DeployStrategyStage(String name) {
@@ -170,18 +168,7 @@ abstract class DeployStrategyStage extends LinearStage {
             continue
           }
         }
-
-        if (stageData.scaleDown) {
-          nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
-        }
         injectAfter(stage, "disable", disableAsgStage, nextStageContext)
-        if (stageData.shrinkCluster) {
-          Names names = Names.parseName(latestAsg as String)
-          def shrinkContext = [application: names.app, clusterName: names.cluster,
-                               forceDelete: true, regions: [region], credentials: cleanupConfig.account]
-          injectAfter(stage, "shrinkCluster", shrinkClusterStage, shrinkContext)
-        }
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
         if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
@@ -189,6 +176,10 @@ abstract class DeployStrategyStage extends LinearStage {
             nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
             injectAfter(stage, "destroyAsg", destroyAsgStage, nextStageContext)
           }
+        }
+        if (stageData.scaleDown) {
+          nextStageContext.capacity = [min: 0, max: 0, desired: 0]
+          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
       }
     }
@@ -275,7 +266,6 @@ abstract class DeployStrategyStage extends LinearStage {
     String stack
     String providerType = "aws"
     boolean scaleDown
-    boolean shrinkCluster
     Map<String, List<String>> availabilityZones
     int maxRemainingAsgs
 
