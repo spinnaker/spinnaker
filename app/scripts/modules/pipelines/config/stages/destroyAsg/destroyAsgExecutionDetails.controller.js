@@ -7,7 +7,7 @@ angular.module('deckApp.pipelines.stage.destroyAsg.executionDetails.controller',
 ])
   .controller('DestroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
-    $scope.configSections = ['destroyASGConfig', 'taskStatus'];
+    $scope.configSections = ['destroyServerGroupConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);

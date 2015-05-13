@@ -3,8 +3,8 @@
 angular.module('deckApp.pipelines.stage.destroyAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Destroy ASG',
-      description: 'Destroys an ASG',
+      label: 'Destroy Server Group',
+      description: 'Destroys a server group',
       key: 'destroyAsg',
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
@@ -50,11 +50,11 @@ angular.module('deckApp.pipelines.stage.destroyAsg')
 
     $scope.targets = [
       {
-        label: 'Current ASG',
+        label: 'Current Server Group',
         val: 'current_asg'
       },
       {
-        label: 'Last ASG',
+        label: 'Last Server Group',
         val: 'ancestor_asg'
       }
     ];

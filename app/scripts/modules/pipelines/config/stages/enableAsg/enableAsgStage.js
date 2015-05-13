@@ -3,8 +3,8 @@
 angular.module('deckApp.pipelines.stage.enableAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Enable ASG',
-      description: 'Enables an ASG',
+      label: 'Enable Server Group',
+      description: 'Enables a server group',
       key: 'enableAsg',
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
@@ -47,11 +47,11 @@ angular.module('deckApp.pipelines.stage.enableAsg')
 
     $scope.targets = [
       {
-        label: 'Current ASG',
+        label: 'Current Server Group',
         val: 'current_asg'
       },
       {
-        label: 'Last ASG',
+        label: 'Last Server Group',
         val: 'ancestor_asg'
       }
     ];

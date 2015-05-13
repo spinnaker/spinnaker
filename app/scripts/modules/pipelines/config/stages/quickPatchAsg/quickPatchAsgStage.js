@@ -3,8 +3,8 @@
 angular.module('deckApp.pipelines.stage.quickPatchAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Quick Patch ASG',
-      description: 'Quick Patches an ASG',
+      label: 'Quick Patch Server Group',
+      description: 'Quick Patches a server group',
       key: 'quickPatch',
       controller: 'QuickPatchAsgStageCtrl',
       controllerAs: 'QuickPatchAsgStageCtrl',
