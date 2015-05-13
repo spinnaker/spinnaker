@@ -69,12 +69,12 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds | status | executionStatus
-    ["foo.com"] | ["foo.com" : "abcd"] | ["Running"] | ExecutionStatus.RUNNING
-    ["foo.com"] | ["foo.com" : "abcd"] | ["Successful"] | ExecutionStatus.SUCCEEDED
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Successful"] | ExecutionStatus.RUNNING
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Running"] | ExecutionStatus.RUNNING
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Running"] | ExecutionStatus.RUNNING
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Successful"] | ExecutionStatus.SUCCEEDED
+    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Successful"] | ExecutionStatus.SUCCEEDED
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Successful"] | ExecutionStatus.RUNNING
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Successful"] | ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
@@ -104,11 +104,12 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds | status
-    ["foo.com"] | ["foo.com" : "abcd"] | ["Failed"]
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"]
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"]
+    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Failed"]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"]
   }
 
+  @Unroll
   def "servers return non-200 responses"() {
     given:
     def pipe = new Pipeline.Builder()
@@ -131,8 +132,8 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds
-    ["foo.com"] | ["foo.com" : "abcd"]
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
+    ["i-123" : "foo.com"] | ["foo.com" : "abcd"]
+    ["i-234" : "foo.com", "i-345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
   }
 
   def "servers return bad data"() {
@@ -157,8 +158,8 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds
-    ["foo.com"] | ["foo.com" : "abcd"]
-    ["foo.com", "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
+    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"]
+    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
   }
 
   @Unroll

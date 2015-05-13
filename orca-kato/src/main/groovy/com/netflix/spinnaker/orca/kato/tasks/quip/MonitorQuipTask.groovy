@@ -30,20 +30,20 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
       throw new RuntimeException("missing taskIds and/or instances")
     }
 
-    stage.context?.instances.each {
-      def taskId = stage.context.taskIds.get(it)
-      def instanceService = createInstanceService("http://${it}:5050")
+    stage.context?.instances.each { key, value ->
+      def taskId = stage.context.taskIds.get(value)
+      def instanceService = createInstanceService("http://${value}:5050")
       try {
         def instanceResponse = instanceService.listTask(taskId)
         def status = objectMapper.readValue(instanceResponse.body.in().text, Map).status
         if(status == "Successful") {
           // noop unless they all succeeded
         } else if(status == "Failed") {
-          throw new RuntimeException("quip task failed for ${it} with a result of ${status}, see http://${it}:5050/tasks/${taskId}")
+          throw new RuntimeException("quip task failed for ${value} with a result of ${status}, see http://${value}:5050/tasks/${taskId}")
         } else if(status == "Running") {
           result = new DefaultTaskResult(ExecutionStatus.RUNNING)
         } else {
-          throw new RuntimeException("quip task failed for ${it} with a result of ${status}, see http://${it}:5050/tasks/${taskId}")
+          throw new RuntimeException("quip task failed for ${value} with a result of ${status}, see http://${value}:5050/tasks/${taskId}")
         }
       } catch(RetrofitError e) {
         result = new DefaultTaskResult(ExecutionStatus.RUNNING)
