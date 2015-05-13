@@ -20,14 +20,42 @@ angular.module('deckApp.gce.loadBalancer.transformer.service', [
           return instance.healthState === 'Unknown' || instance.healthState === 'Starting';
         }).length
       };
+      angular.extend(loadBalancer, loadBalancer.healthCounts);
     }
 
-    function normalizeLoadBalancerWithServerGroups(loadBalancer, application) {
-      var serverGroups = application.serverGroups.filter(function(serverGroup) {
-        return serverGroupIsInLoadBalancer(serverGroup, loadBalancer);
+    function transformInstance(instance, loadBalancer) {
+      instance.health = instance.health || {};
+      instance.provider = loadBalancer.type;
+      instance.account = loadBalancer.account;
+      instance.region = loadBalancer.region;
+      instance.health.type = 'LoadBalancer';
+      instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
+      instance.health = [instance.health];
+      instance.loadBalancers = [loadBalancer.name];
+    }
+
+    function normalizeLoadBalancerWithServerGroups(loadBalancer) {
+      loadBalancer.serverGroups.forEach(function(serverGroup) {
+        serverGroup.account = loadBalancer.account;
+        serverGroup.region = loadBalancer.region;
+        if (serverGroup.detachedInstances) {
+          serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
+            return { id: instanceId };
+          });
+          serverGroup.instances = serverGroup.instances.concat(serverGroup.detachedInstances);
+        } else {
+          serverGroup.detachedInstances = [];
+        }
+
+        serverGroup.instances.forEach(function(instance) {
+          transformInstance(instance, loadBalancer);
+        });
+        updateHealthCounts(serverGroup);
       });
-      loadBalancer.serverGroups = _.sortBy(serverGroups, 'name');
-      loadBalancer.instances = _(serverGroups).filter({isDisabled: false}).collect('instances').flatten().valueOf();
+      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+      loadBalancer.provider = loadBalancer.type;
+      loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
+      loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
       updateHealthCounts(loadBalancer);
     }
 
