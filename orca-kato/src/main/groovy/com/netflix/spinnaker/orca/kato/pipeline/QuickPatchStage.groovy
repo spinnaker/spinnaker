@@ -113,6 +113,8 @@ class QuickPatchStage extends LinearStage {
     if(instanceMap.size() == 0 ) {
       throw new RuntimeException("could not find any instances")
     }
+
+    stage.context.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
     return instanceMap
   }
 }
