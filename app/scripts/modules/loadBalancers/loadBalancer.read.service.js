@@ -4,15 +4,15 @@
 angular
   .module('deckApp.loadBalancer.read.service', [
     'deckApp.caches.infrastructure',
-    'deckApp.aws.loadBalancer.transformer.service',
+    'deckApp.loadBalancer.transformer.service',
   ])
-  .factory('loadBalancerReader', function ($q, Restangular, searchService, awsLoadBalancerTransformer, infrastructureCaches) {
+  .factory('loadBalancerReader', function ($q, Restangular, searchService, loadBalancerTransformer, infrastructureCaches) {
 
     function loadLoadBalancers(applicationName) {
       return Restangular
         .one('applications', applicationName)
         .all('loadBalancers').getList().then(function(loadBalancers) {
-          loadBalancers.forEach(awsLoadBalancerTransformer.normalizeLoadBalancerWithServerGroups);
+          loadBalancers.forEach(loadBalancerTransformer.normalizeLoadBalancerWithServerGroups);
           return loadBalancers;
         });
     }

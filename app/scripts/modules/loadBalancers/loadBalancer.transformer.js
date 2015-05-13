@@ -8,15 +8,13 @@ angular.module('deckApp.loadBalancer.transformer.service', [
 ])
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {
 
-    function normalizeLoadBalancersWithServerGroups(application) {
-      application.loadBalancers.forEach(function(loadBalancer) {
-        serviceDelegate.getDelegate(loadBalancer.provider, 'LoadBalancerTransformer').
-          normalizeLoadBalancerWithServerGroups(loadBalancer, application);
-      });
+    function normalizeLoadBalancerWithServerGroups(loadBalancer) {
+      serviceDelegate.getDelegate(loadBalancer.provider || loadBalancer.type, 'LoadBalancerTransformer').
+        normalizeLoadBalancerWithServerGroups(loadBalancer);
     }
 
     return {
-      normalizeLoadBalancersWithServerGroups: normalizeLoadBalancersWithServerGroups,
+      normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
     };
 
   });
