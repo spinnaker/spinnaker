@@ -3,8 +3,8 @@
 angular.module('deckApp.pipelines.stage.findAmi')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      label: 'Find AMI',
-      description: 'Finds AMI to deploy from existing cluster',
+      label: 'Find Image',
+      description: 'Finds an image to deploy from an existing cluster',
       key: 'findAmi',
       controller: 'findAmiStageCtrl',
       controllerAs: 'findAmiStageCtrl',
@@ -48,19 +48,19 @@ angular.module('deckApp.pipelines.stage.findAmi')
     $scope.selectionStrategies = [{
       label: 'Largest',
       val: 'LARGEST',
-      description: 'When multiple ASGs exist, prefer the ASG with the most instances'
+      description: 'When multiple server groups exist, prefer the server group with the most instances'
     },{
       label: 'Newest',
       val: 'NEWEST',
-      description: 'When multiple ASGs exist, prefer the newest'
+      description: 'When multiple server group exist, prefer the newest'
     },{
       label: 'Oldest',
       val: 'OLDEST',
-      description: 'When multiple ASGs exist, prefer the oldest'
+      description: 'When multiple server group exist, prefer the oldest'
     },{
       label: 'Fail',
       val: 'FAIL',
-      description: 'When multiple ASGs exist, fail'
+      description: 'When multiple server group exist, fail'
     }];
 
     (function() {
