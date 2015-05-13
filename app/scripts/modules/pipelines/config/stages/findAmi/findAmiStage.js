@@ -52,15 +52,15 @@ angular.module('deckApp.pipelines.stage.findAmi')
     },{
       label: 'Newest',
       val: 'NEWEST',
-      description: 'When multiple server group exist, prefer the newest'
+      description: 'When multiple server groups exist, prefer the newest'
     },{
       label: 'Oldest',
       val: 'OLDEST',
-      description: 'When multiple server group exist, prefer the oldest'
+      description: 'When multiple server groups exist, prefer the oldest'
     },{
       label: 'Fail',
       val: 'FAIL',
-      description: 'When multiple server group exist, fail'
+      description: 'When multiple server groups exist, fail'
     }];
 
     (function() {
