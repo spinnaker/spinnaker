@@ -74,6 +74,7 @@ angular.module('deckApp.help')
     'pipeline.config.quickPatchAsg.cluster': '<p>Configures the cluster upon which this quick patch operation will act.</p>',
     'pipeline.config.quickPatchAsg.package': '<p>The name of the package you want installed (without any version identifiers).</p>',
     'pipeline.config.quickPatchAsg.baseOs': '<p>The operating system running on the target instances.</p>',
+    'pipeline.config.quickPatchAsg.rollingPatch': '<p>Patch one instance at a time vs all at once.</p>',
     'pipeline.config.resizeAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
     'pipeline.config.modifyScalingProcess.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
     'pipeline.config.enableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> Current ASG refers to the one currently active.</p><p> Last ASG is the one prior to the currently active one.</p>',
