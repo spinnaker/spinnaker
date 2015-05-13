@@ -27,6 +27,8 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
       operatingSystem.packageType.versionDelimiter, true, true, objectMapper)
     String packageName = stage.context?.package
     String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
+    Map stageOutputs = [:]
+    stageOutputs.put("version", version) // so the ui can display the discovered package version
     def instances = stage.context?.instances
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     // verify instance list, package, and version are in the context
@@ -46,6 +48,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
     } else {
       throw new RuntimeException("one or more required parameters are missing : version (${version}) || package (${packageName})|| instances (${instances})")
     }
-    return new DefaultTaskResult(executionStatus, ["taskIds" : taskIdMap])
+    stageOutputs.put("taskIds", taskIdMap)
+    return new DefaultTaskResult(executionStatus, stageOutputs)
   }
 }

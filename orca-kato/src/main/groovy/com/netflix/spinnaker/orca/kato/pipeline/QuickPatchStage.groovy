@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstanceHealthTask
@@ -80,6 +81,8 @@ class QuickPatchStage extends LinearStage {
       nextStageContext.put("instanceIds", instances.collect {key, value -> key}) // for WaitForDown/UpInstancesTask
       injectAfter(stage, "bulkQuickPatchStage", bulkQuickPatchStage, nextStageContext)
     }
+    // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
+    stage.status = ExecutionStatus.SUCCEEDED
     return steps
   }
 
