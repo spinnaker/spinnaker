@@ -39,7 +39,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
         if(status == "Successful") {
           // noop unless they all succeeded
         } else if(status == "Failed") {
-          throw new RuntimeException("quip task failed for ${value} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
+          throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         } else if(status == "Running") {
           result = new DefaultTaskResult(ExecutionStatus.RUNNING)
         } else {
