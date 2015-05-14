@@ -2,7 +2,7 @@
 
 angular.module('deckApp.serverGroup.configure.gce')
   .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
-                                                          instanceTypeService,
+                                                          instanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader) {
 
 
@@ -97,6 +97,15 @@ angular.module('deckApp.serverGroup.configure.gce')
         .valueOf();
     }
 
+    function refreshLoadBalancers(command) {
+      return cacheInitializer.refreshCache('loadBalancers').then(function() {
+        return loadBalancerReader.listGCELoadBalancers().then(function(loadBalancers) {
+          command.backingData.loadBalancers = loadBalancers;
+          configureLoadBalancerOptions(command);
+        });
+      });
+    }
+
     function attachEventHandlers(command) {
 
       command.regionChanged = function regionChanged() {
@@ -140,6 +149,7 @@ angular.module('deckApp.serverGroup.configure.gce')
       configureImages: configureImages,
       configureZones: configureZones,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
+      refreshLoadBalancers: refreshLoadBalancers,
     };
 
 
