@@ -42,6 +42,7 @@ angular.module('deckApp.help')
       '<li>Jenkins host</li>' +
       '<li>Jenkins job name</li>' +
       '<li>Cluster (prefixed, e.g. <samp>cluster:myapp-int</samp>)' +
+      '<li>Clusters (comma-separated list, e.g. <samp>clusters:myapp-int, myapp-test</samp>)' +
       '<li>Server Group Name</li>' +
       '<li>Region</li>' +
       '<li>Account</li>' +

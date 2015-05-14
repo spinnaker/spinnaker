@@ -186,6 +186,45 @@ describe('Service: clusterFilterService', function () {
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
     });
 
+    describe('filter by cluster', function () {
+      it('should filter by cluster name as an exact match', function () {
+        ClusterFilterModel.sortFilter.filter = 'cluster:in-us-west-1-only';
+        var expected = _.filter(groupedJSON, {subgroups: [{heading: 'in-us-west-1-only' }]});
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      });
+
+      it('should not match on partial cluster name', function () {
+        ClusterFilterModel.sortFilter.filter = 'cluster:in-us-west-1';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual([]);
+      });
+
+    });
+
+    describe('filter by clusters', function () {
+      it('should filter by cluster names as an exact match', function () {
+        ClusterFilterModel.sortFilter.filter = 'clusters:in-us-west-1-only';
+        var expected = _.filter(groupedJSON, {subgroups: [{heading: 'in-us-west-1-only' }]});
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      });
+
+      it('should not match on partial cluster name', function () {
+        ClusterFilterModel.sortFilter.filter = 'clusters:in-us-west-1';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual([]);
+      });
+
+      it('should perform an OR match on comma separated list, ignoring spaces', function () {
+        ClusterFilterModel.sortFilter.filter = 'clusters:in-us-west-1-only, in-eu-east-2-only';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+        ClusterFilterModel.sortFilter.filter = 'clusters:in-us-west-1-only,in-eu-east-2-only';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+        ClusterFilterModel.sortFilter.filter = 'clusters: in-us-west-1-only,in-eu-east-2-only';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+        ClusterFilterModel.sortFilter.filter = 'clusters: in-us-west-1-only, in-eu-east-2-only';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      });
+
+    });
+
     describe('filtering by account type', function () {
       it('1 account filter: should be transformed showing only prod accounts', function () {
         ClusterFilterModel.sortFilter.account = {prod: true};
