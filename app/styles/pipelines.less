@@ -301,6 +301,7 @@ path.link {
       stroke: lighten(@spinnaker-blue, 25);
     }
     stroke-width: 2.5px;
+    transition: stroke .2s, stroke-width .2s;
   }
 }
 
@@ -313,6 +314,7 @@ g.connected {
 g.active, g.highlighted {
   circle {
     fill: @healthy_green_border;
+    transition: fill .2s;
   }
 }
 
