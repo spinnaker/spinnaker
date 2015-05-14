@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.kato.tasks.quip.InstanceHealthCheckTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.MonitorQuipTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.TriggerQuipTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.VerifyQuipTask
@@ -47,7 +48,7 @@ class BulkQuickPatchStage extends LinearStage {
     def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     def step4 = buildStep(stage, "waitForDownInstances", WaitForDownInstanceHealthTask)
     def step5 = buildStep(stage, "monitorQuip", MonitorQuipTask)
-    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step6 = buildStep(stage, "instanceHealthCheck", InstanceHealthCheckTask)
     def step7 = buildStep(stage, "waitForDiscoveryState", WaitForUpInstanceHealthTask)
     [step1, step2, step3, step4, step5, step6, step7]
   }

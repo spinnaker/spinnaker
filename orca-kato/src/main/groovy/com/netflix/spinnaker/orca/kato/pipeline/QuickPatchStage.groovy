@@ -105,9 +105,25 @@ class QuickPatchStage extends LinearStage {
     }
 
     asgsForCluster.get(0).instances.each { instance ->
-      def id = instance.instanceId
-      def dns = instance.publicDnsName
-      instanceMap.put(id, dns)
+      String hostName = instance.publicDnsName
+      if(!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
+        hostName = instance.privateIpAddress
+      }
+
+     int index = -1
+     instance.health.eachWithIndex { health, idx ->
+       if (health.healthCheckUrl != null && !health.healthCheckUrl.isEmpty()) {
+         index = idx
+       }
+     }
+
+      if(index == -1 || instance.health.get(index).status == "STARTING") {
+        throw new RuntimeException("at least one instance is down or in the STARTING state, exiting")
+      }
+
+      String healthCheckUrl = instance.health.get(index).healthCheckUrl
+      Map instanceInfo = [hostName : hostName, healthCheckUrl : healthCheckUrl]
+      instanceMap.put(instance.instanceId, instanceInfo)
     }
 
     if(instanceMap.size() == 0 ) {

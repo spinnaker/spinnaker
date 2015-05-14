@@ -232,7 +232,7 @@ class VerifyQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "healthProviders" : ['Discovery'],
-      "instances" : ["i-123" : "http://foo.com", "i-234" : "http://foo2.com"]
+      "instances" : ["i-123" : ["hostName" : "http://foo.com"], "i-234" : ["hostName" : "http://foo2.com"] ]
     ])
 
     Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))
@@ -269,7 +269,7 @@ class VerifyQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "healthProviders" : ['Discovery'],
-      "instances" : ["i-123" : "http://foo.com", "i-234" : "http://foo2.com"]
+      "instances" : ["i-123" : ["hostName" : "http://foo.com" ], "i-234" : ["hostName" : "http://foo2.com"] ]
     ])
 
     //Response oortResponse = new Response('http://oort', 200, 'OK', [], new TypedString(oort))

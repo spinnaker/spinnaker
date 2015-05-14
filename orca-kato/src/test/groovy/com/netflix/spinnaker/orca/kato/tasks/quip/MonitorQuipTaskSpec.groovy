@@ -69,12 +69,12 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds | status | executionStatus
-    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Running"] | ExecutionStatus.RUNNING
-    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Successful"] | ExecutionStatus.SUCCEEDED
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Successful"] | ExecutionStatus.RUNNING
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Running"] | ExecutionStatus.RUNNING
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Running"] | ExecutionStatus.RUNNING
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Successful"] | ExecutionStatus.SUCCEEDED
+    ["i-1234" : ["hostName" : "foo.com"] ] | ["foo.com" : "abcd"] | ["Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : ["hostName" : "foo.com"] ] | ["foo.com" : "abcd"] | ["Successful"] | ExecutionStatus.SUCCEEDED
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ]  | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Successful"] | ExecutionStatus.RUNNING
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Running", "Running"] | ExecutionStatus.RUNNING
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Successful"] | ExecutionStatus.SUCCEEDED
   }
 
   @Unroll
@@ -104,9 +104,9 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds | status
-    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"] | ["Failed"]
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"]
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"]
+    ["i-1234" : ["hostName" : "foo.com"] ] | ["foo.com" : "abcd"] | ["Failed"]
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ]| ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Successful", "Failed"]
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ]| ["foo.com" : "abcd", "foo2.com" : "efghij"] | ["Failed", "Successful"]
   }
 
   @Unroll
@@ -132,8 +132,8 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds
-    ["i-123" : "foo.com"] | ["foo.com" : "abcd"]
-    ["i-234" : "foo.com", "i-345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
+    ["i-123" : ["hostName" : "foo.com"] ]| ["foo.com" : "abcd"]
+    ["i-234" : ["hostName" : "foo.com"], "i-345" : ["hostName" : "foo2.com"] ] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
   }
 
   def "servers return bad data"() {
@@ -158,8 +158,8 @@ class MonitorQuipTaskSpec extends Specification {
 
     where:
     instances | taskIds
-    ["i-1234" : "foo.com"] | ["foo.com" : "abcd"]
-    ["i-1234" : "foo.com", "i-2345" : "foo2.com"] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
+    ["i-1234" : ["hostName" : "foo.com"] ] | ["foo.com" : "abcd"]
+    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | ["foo.com" : "abcd", "foo2.com" : "efghij"]
   }
 
   @Unroll
@@ -182,6 +182,6 @@ class MonitorQuipTaskSpec extends Specification {
     instances | taskIds
     null | ["foo.com" : "abcd"]
     [:] | ["foo.com" : "abcd"]
-    [["publicDnsName": "foo.com"]] | null
+    ["i-1234": ["hostName" : "foo.com"] ]| null
   }
 }

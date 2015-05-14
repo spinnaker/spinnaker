@@ -34,13 +34,14 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
     // verify instance list, package, and version are in the context
     if(version && packageName && instances) {
       // trigger patch on target server
-      instances.each { key, value ->
-        def instanceService = createInstanceService("http://${value}:5050")
+      instances.each { String key, Map valueMap ->
+        String hostName = valueMap.hostName
+        def instanceService = createInstanceService("http://${hostName}:5050")
 
         try {
           def instanceResponse = instanceService.patchInstance(packageName, version)
           def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
-          taskIdMap.put(value, ref.substring(1+ref.lastIndexOf('/')))
+          taskIdMap.put(hostName, ref.substring(1+ref.lastIndexOf('/')))
         } catch(RetrofitError e) {
           executionStatus = ExecutionStatus.RUNNING
         }
