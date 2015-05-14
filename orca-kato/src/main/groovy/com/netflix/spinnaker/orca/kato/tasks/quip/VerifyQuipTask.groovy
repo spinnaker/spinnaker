@@ -32,7 +32,7 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
     Map stageOutputs = [:]
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     if (cluster && region && account && healthProviders && app && instances) {
-      stageOutputs.put("relevant.health.providers",healthProviders) // for waitForUpInstanceHealthTask
+      stageOutputs.put("relevant.health.providers", healthProviders) // for waitForUpInstanceHealthTask
 
       if(!checkInstancesForQuip(instances)) {
         throw new RuntimeException("quip is not running on all instances : ${instances}")
@@ -46,8 +46,9 @@ class VerifyQuipTask extends AbstractQuipTask implements Task {
   private boolean checkInstancesForQuip(Map instances) {
     // verify that /tasks endpoint responds
     boolean allInstancesHaveQuip = true
-    instances.each { key, value ->
-      def instanceService = createInstanceService("http://${value}:5050")
+    instances.each { String key, Map valueMap ->
+      String hostName = valueMap.hostName
+      def instanceService = createInstanceService("http://${hostName}:5050")
       try {
         instanceService.listTasks()
       } catch(RetrofitError e) {
