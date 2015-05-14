@@ -32,5 +32,5 @@ interface InstanceService {
   Response patchInstance(@Path("app") String app, @Path("version") String version)
 
   @GET("/{healthCheckPath}")
-  Response healthCheck(@Path("healthCheckPath") String healthCheckPath)
+  Response healthCheck(@Path(value="healthCheckPath",encode=false) String healthCheckPath)
 }
