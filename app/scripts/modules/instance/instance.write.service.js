@@ -4,7 +4,7 @@ angular
   .module('deckApp.instance.write.service', [
     'deckApp.taskExecutor.service'
   ])
-  .factory('instanceWriter', function (taskExecutor, _) {
+  .factory('instanceWriter', function (taskExecutor) {
 
     function terminateInstance(instance, application) {
       return taskExecutor.executeTask({
@@ -48,7 +48,7 @@ angular
           {
             type: 'deregisterInstancesFromLoadBalancer',
             instanceIds: [instance.instanceId],
-            loadBalancers: _.pluck(instance.loadBalancers, 'name'),
+            loadBalancers: instance.loadBalancers,
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType
@@ -65,7 +65,7 @@ angular
           {
             type: 'registerInstancesWithLoadBalancer',
             instanceIds: [instance.instanceId],
-            loadBalancers: _.pluck(instance.loadBalancers, 'name'),
+            loadBalancers: instance.loadBalancers,
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType

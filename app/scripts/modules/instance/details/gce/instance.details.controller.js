@@ -230,7 +230,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
 
     this.registerInstanceWithLoadBalancer = function registerInstanceWithLoadBalancer() {
       var instance = $scope.instance;
-      var loadBalancerNames = _.pluck(instance.loadBalancers, 'name').join(' and ');
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
         application: application,
@@ -253,7 +253,7 @@ angular.module('deckApp.instance.detail.gce.controller', [
 
     this.deregisterInstanceFromLoadBalancer = function deregisterInstanceFromLoadBalancer() {
       var instance = $scope.instance;
-      var loadBalancerNames = _.pluck(instance.loadBalancers, 'name').join(' and ');
+      var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
         application: application,
