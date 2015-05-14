@@ -60,9 +60,9 @@ class InstanceHealthCheckTaskSpec extends Specification {
     then:
     instances.eachWithIndex { def entry, int i ->
       if (responseCode.get(i) == 200) {
-        1 * instanceService.healthCheck("/healthCheck") >> responses.get(i)
+        1 * instanceService.healthCheck("healthCheck") >> responses.get(i)
       } else {
-        1 * instanceService.healthCheck("/healthCheck") >> { throw new RetrofitError(null, null, null, null, null, null, null) }
+        1 * instanceService.healthCheck("healthCheck") >> { throw new RetrofitError(null, null, null, null, null, null, null) }
       }
     }
 
