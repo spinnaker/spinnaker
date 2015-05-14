@@ -60,7 +60,7 @@ class QuickPatchStageSpec extends Specification {
     given:
     def config = [
       application: "deck",
-      cluster: "deck-cluster",
+      clusterName: "deck-cluster",
       account: "account",
       region: "us-east-1"
     ]
@@ -101,7 +101,7 @@ class QuickPatchStageSpec extends Specification {
     given:
     def config = [
         application: "deck",
-        cluster: "deck-cluster",
+        clusterName: "deck-cluster",
         account: "account",
         region: "us-east-1"
     ]
@@ -141,9 +141,8 @@ class QuickPatchStageSpec extends Specification {
       application == "deck"
       account == "account"
       region == "us-east-1"
-      cluster == "deck-cluster"
+      clusterName == "deck-cluster"
       instanceIds == ["i-1234", "i-2345"]
-      //instances == expectedInstances
       instances.size() == expectedInstances.size()
       instances.every {
         it.value.hostName == expectedInstances.get(it.key).hostName
@@ -161,15 +160,6 @@ class QuickPatchStageSpec extends Specification {
 
   def "configures rolling quickpatch"() {
     given:
-    def config = [
-      application: "deck",
-      cluster: "deck-cluster",
-      account: "account",
-      region: "us-east-1",
-      rollingPatch: true
-    ]
-
-    and:
     def stage = new PipelineStage(null, "quickPatch", config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
@@ -204,7 +194,7 @@ class QuickPatchStageSpec extends Specification {
       application == "deck"
       account == "account"
       region == "us-east-1"
-      cluster == "deck-cluster"
+      clusterName == config.clusterName
       instanceIds == ["i-1234"]
       instances.size() == 1
       instances.every {
@@ -218,7 +208,7 @@ class QuickPatchStageSpec extends Specification {
       application == "deck"
       account == "account"
       region == "us-east-1"
-      cluster == "deck-cluster"
+      clusterName == config.clusterName
       instanceIds == ["i-2345"]
       instances.size() == 1
       instances.every {
@@ -232,5 +222,9 @@ class QuickPatchStageSpec extends Specification {
     instance1 = [instanceId : "i-1234", publicDnsName : "foo.com", health : [ [foo : "bar"], [ healthCheckUrl : "http://foo.com:7001/healthCheck"] ]]
     instance2 = [instanceId : "i-2345", publicDnsName : "foo2.com", health : [ [foo2 : "bar"], [ healthCheckUrl : "http://foo2.com:7001/healthCheck"] ]]
     expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"], "i-2345" : [hostName : "foo2.com", healthCheckUrl : "http://foo.com:7001/healthCheck" ] ]
+
+   config | _
+    [ application: "deck", clusterName: "deck-cluster", account: "account", region: "us-east-1", rollingPatch: true ] | _
+    [ application: "deck", clusterName: "deck", account: "account", region: "us-east-1", rollingPatch: true ] | _
   }
 }
