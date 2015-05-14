@@ -169,6 +169,10 @@ abstract class DeployStrategyStage extends LinearStage {
           }
         }
         injectAfter(stage, "disable", disableAsgStage, nextStageContext)
+        if (stageData.scaleDown) {
+          nextStageContext.capacity = [min: 0, max: 0, desired: 0]
+          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
+        }
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
         if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
@@ -176,10 +180,6 @@ abstract class DeployStrategyStage extends LinearStage {
             nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
             injectAfter(stage, "destroyAsg", destroyAsgStage, nextStageContext)
           }
-        }
-        if (stageData.scaleDown) {
-          nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
       }
     }
