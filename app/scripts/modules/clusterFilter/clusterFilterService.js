@@ -104,6 +104,11 @@ angular
           if (!filter) {
             return true;
           }
+          if (filter.indexOf('clusters:') !== -1) {
+            var clusterNames = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
+            console.warn('cluster names:', clusterNames);
+            return clusterNames.indexOf(serverGroup.cluster) !== -1;
+          }
 
           if(filter.indexOf('cluster:') !== -1) {
               var clusterName = /cluster:([\w-]*)/.exec(filter);
