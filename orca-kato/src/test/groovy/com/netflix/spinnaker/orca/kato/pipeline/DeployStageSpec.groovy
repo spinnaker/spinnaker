@@ -80,7 +80,6 @@ class DeployStageSpec extends Specification {
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyAsgStage destroyAsgStage
   @Shared ResizeAsgStage resizeAsgStage
-  @Shared ShrinkClusterStage shrinkClusterStage
   @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
   def setup() {
@@ -88,11 +87,10 @@ class DeployStageSpec extends Specification {
     disableAsgStage = Mock(DisableAsgStage)
     destroyAsgStage = Mock(DestroyAsgStage)
     resizeAsgStage = Mock(ResizeAsgStage)
-    shrinkClusterStage = Mock(ShrinkClusterStage)
     modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
     deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-        resizeAsgStage: resizeAsgStage, shrinkClusterStage: shrinkClusterStage,
+        resizeAsgStage: resizeAsgStage,
         modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
@@ -174,16 +172,15 @@ class DeployStageSpec extends Specification {
       )
     }
     2 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
+    stage.afterStages*.stageBuilder == [disableAsgStage, resizeAsgStage]
   }
 
-  void "should create stages of deploy, resizeAsg, disableAsg, and shrinkCluster stages when strategy is redblack and scaleDown is true and shrinkCluster is true"() {
+  void "should create stages of deploy, resizeAsg, disableAsg stages when strategy is redblack and scaleDown is true"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
     config.cluster.scaleDown = true
     config.cluster.strategy = "redblack"
-    config.cluster.shrinkCluster = true
     def stage = new PipelineStage(pipeline, config.remove("type") as String, config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
@@ -206,8 +203,8 @@ class DeployStageSpec extends Specification {
         )
       )
     }
-    3 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage, shrinkClusterStage]
+    2 == stage.afterStages.size()
+    stage.afterStages*.stageBuilder == [disableAsgStage, resizeAsgStage]
   }
 
   @Unroll
