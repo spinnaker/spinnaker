@@ -200,7 +200,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   void "should copy spot price and block devices from source provider if not specified explicitly"() {
     given:
     def asgService = Mock(AsgService) {
-      1 * getLaunchConfiguration(_) >> {
+      (launchConfig ? 1 : 0) * getLaunchConfiguration(_) >> {
         return new LaunchConfiguration()
           .withSpotPrice("OLD_SPOT")
           .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
@@ -208,14 +208,15 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
       }
     }
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
-      1 * getAsgService() >> { return asgService }
+      (launchConfig ? 1 : 0) * getAsgService() >> { return asgService }
     }
 
     def amazonClientProvider = Mock(AmazonClientProvider) {
       1 * getAutoScaling(_, _) >> {
         return Mock(AmazonAutoScaling) {
           1 * describeAutoScalingGroups(_) >> {
-            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(new AutoScalingGroup())
+            return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+              new AutoScalingGroup().withLaunchConfigurationName(launchConfig))
           }
         }
       }
@@ -223,7 +224,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     when:
     def targetDescription = handler.copySourceAttributes(
-      sourceRegionScopedProvider, amazonClientProvider, "sourceAsg", sourceDescription
+      sourceRegionScopedProvider, amazonClientProvider, "sourceAsg", description
     )
 
     then:
@@ -231,11 +232,12 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     targetDescription.blockDevices*.deviceName == expectedBlockDevices
 
     where:
-    sourceDescription                                                                             || expectedSpotPrice || expectedBlockDevices
-    new BasicAmazonDeployDescription()                                                            || "OLD_SPOT"        || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription(spotPrice: "SPOT")                                           || "SPOT"            || ["OLD_DEVICE"]
-    new BasicAmazonDeployDescription(blockDevices: [])                                            || "OLD_SPOT"        || []
-    new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) || "OLD_SPOT"        || ["DEVICE"]
+    description                                                                                   | launchConfig   || expectedSpotPrice || expectedBlockDevices
+    new BasicAmazonDeployDescription()                                                            | "launchConfig" || "OLD_SPOT"        || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription(spotPrice: "SPOT")                                           | "launchConfig" || "SPOT"            || ["OLD_DEVICE"]
+    new BasicAmazonDeployDescription(blockDevices: [])                                            | "launchConfig" || "OLD_SPOT"        || []
+    new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) | "launchConfig" || "OLD_SPOT"        || ["DEVICE"]
+    new BasicAmazonDeployDescription(spotPrice: "SPOT", blockDevices: [])                         | null           || "SPOT"            || []
   }
 
   @Unroll

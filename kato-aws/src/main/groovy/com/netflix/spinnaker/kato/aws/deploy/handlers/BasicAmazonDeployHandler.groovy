@@ -77,7 +77,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       String region = entry.key
 
-      def sourceRegionScopedProvider = buildSourceRegionScopedProvider(description.source)
+      def sourceRegionScopedProvider = buildSourceRegionScopedProvider(task, description.source)
       description = copySourceAttributes(
         sourceRegionScopedProvider, amazonClientProvider, description.source.asgName, description
       )
@@ -202,6 +202,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     ).autoScalingGroups
     def sourceAsg = ancestorAsgs.getAt(0)
 
+    if (!sourceAsg?.launchConfigurationName) {
+      return description
+    }
+
     def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
       sourceAsg.launchConfigurationName
     )
@@ -245,11 +249,23 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     }
   }
 
-  private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(BasicAmazonDeployDescription.Source source) {
+  private RegionScopedProviderFactory.RegionScopedProvider buildSourceRegionScopedProvider(Task task,
+                                                                                           BasicAmazonDeployDescription.Source source) {
     if (source.account && source.region && source.asgName) {
       def sourceRegion = source.region
       def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account) as NetflixAmazonCredentials
-      return regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
+
+      def sourceAsgs = regionScopedProvider.asgService.amazonAutoScaling.describeAutoScalingGroups(
+        new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [source.asgName])
+      )
+
+      if (!sourceAsgs.autoScalingGroups) {
+        task.updateStatus BASE_PHASE, "Unable to locate source asg (${source.account}:${source.region}:${source.asgName})"
+        return null
+      }
+
+      return regionScopedProvider
     }
 
     return null
