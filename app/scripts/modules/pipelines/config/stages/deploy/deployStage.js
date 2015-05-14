@@ -4,7 +4,7 @@ angular.module('deckApp.pipelines.stage.deploy')
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
-      description: 'Deploys the previously baked or found AMI',
+      description: 'Deploys the previously baked or found image',
       key: 'deploy',
       templateUrl: 'scripts/modules/pipelines/config/stages/deploy/deployStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
@@ -14,7 +14,7 @@ angular.module('deckApp.pipelines.stage.deploy')
         {
           type: 'stageBeforeType',
           stageTypes: ['bake', 'findAmi'],
-          message: 'You must have a Bake or Find AMI stage before any deploy stage.'
+          message: 'You must have a Bake or Find Image stage before any deploy stage.'
         },
       ],
     });
