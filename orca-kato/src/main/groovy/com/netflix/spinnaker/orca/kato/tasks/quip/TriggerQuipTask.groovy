@@ -10,7 +10,6 @@ import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
 import com.netflix.spinnaker.orca.pipeline.util.PackageInfo
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RestAdapter
 import retrofit.RetrofitError
 
 @Component
@@ -28,25 +27,28 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
       operatingSystem.packageType.versionDelimiter, true, true, objectMapper)
     String packageName = stage.context?.package
     String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
+    Map stageOutputs = [:]
+    stageOutputs.put("version", version) // so the ui can display the discovered package version
     def instances = stage.context?.instances
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     // verify instance list, package, and version are in the context
     if(version && packageName && instances) {
       // trigger patch on target server
-      instances.each {
-        def instanceService = createInstanceService("http://${it}:5050")
+      instances.each { key, value ->
+        def instanceService = createInstanceService("http://${value}:5050")
 
         try {
           def instanceResponse = instanceService.patchInstance(packageName, version)
           def ref = objectMapper.readValue(instanceResponse.body.in().text, Map).ref
-          taskIdMap.put(it, ref.substring(1+ref.lastIndexOf('/')))
+          taskIdMap.put(value, ref.substring(1+ref.lastIndexOf('/')))
         } catch(RetrofitError e) {
           executionStatus = ExecutionStatus.RUNNING
         }
       }
     } else {
-      throw new RuntimeException("one or more required parameters are missing : version || package || instances")
+      throw new RuntimeException("one or more required parameters are missing : version (${version}) || package (${packageName})|| instances (${instances})")
     }
-    return new DefaultTaskResult(executionStatus, ["taskIds" : taskIdMap])
+    stageOutputs.put("taskIds", taskIdMap)
+    return new DefaultTaskResult(executionStatus, stageOutputs)
   }
 }
