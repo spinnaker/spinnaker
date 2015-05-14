@@ -87,7 +87,15 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    def response = oortService.getCluster(stage.context.application, stage.context.account, stage.context.clusterName, stage.context.providerType ?: "aws")
+    // infer the app from the cluster prefix since we want to be able to quick patch different apps from the same pipeline
+    def app
+    if(stage.context.clusterName.indexOf("-") > 0) {
+      app = stage.context.clusterName.substring(0, stage.context.clusterName.indexOf("-"))
+    } else {
+      app = stage.context.clusterName
+    }
+
+    def response = oortService.getCluster(app, stage.context.account, stage.context.clusterName, stage.context.providerType ?: "aws")
     def oortCluster = objectMapper.readValue(response.body.in().text, Map)
     def instanceMap = [:]
 
