@@ -16,6 +16,10 @@
           <dd>{{stage.context.package}}</dd>
           <dt>Version</dt>
           <dd>{{stage.context.version}}</dd>
+          <dt>Instance Id(s)</dt>
+          <dd ng-repeat="key in stage.context.instanceIds">{{key}}</dd>
+          <dt>Quip Tasks</dt>
+          <dd ng-repeat="(key, value) in stage.context.taskIds"><a target="_blank" href="http://{{key}}:5050/tasks/{{value}}">{{value}}</a></dd>
           <dt>BaseOS</dt>
           <dd>{{stage.context.baseOs}}</dd>
           <dt>Rolling Patch</dt>
