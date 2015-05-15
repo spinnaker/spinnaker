@@ -18,7 +18,6 @@ package com.netflix.spinnaker.oort.aws.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -41,11 +40,11 @@ class AwsProviderConfig {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []
 
-    for (AccountCredentials cred : accountCredentialsRepository.all) {
-      if (!(cred instanceof NetflixAmazonCredentials)) {
-        continue
-      }
-      NetflixAmazonCredentials credentials = (NetflixAmazonCredentials) cred
+    def allAccounts = accountCredentialsRepository.all.findAll {
+      it instanceof NetflixAmazonCredentials
+    } as Collection<NetflixAmazonCredentials>
+
+    allAccounts.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
         agents << new ClusterCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
@@ -64,6 +63,10 @@ class AwsProviderConfig {
         }
       }
     }
+
+    // this caching agent runs across all accounts in one iteration (to maintain consistency)
+    agents << new ReservationReportCachingAgent(amazonClientProvider, allAccounts, objectMapper)
+
     discoveryAccounts.each { disco, actMap ->
       actMap.each { region, accounts ->
         agents << new DiscoveryCachingAgent(discoveryApiFactory.createApi(disco, region), accounts, region, objectMapper)
@@ -72,6 +75,4 @@ class AwsProviderConfig {
 
     new AwsProvider(agents)
   }
-
-
 }
