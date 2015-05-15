@@ -148,7 +148,9 @@ class ReservationReportCachingAgent implements CachingAgent {
     }
 
     amazonReservationReport.end = new Date()
-    amazonReservationReport.reservations = reservations.values()
+    amazonReservationReport.reservations = reservations.values().sort {
+      a,b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
+    }
 
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [new MutableCacheData("latest", ["report": amazonReservationReport], [:])]

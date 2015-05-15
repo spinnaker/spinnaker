@@ -24,13 +24,13 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/reservations")
-class ReservationsController {
+@RequestMapping("/reports/reservation")
+class ReservationReportController {
   @Autowired
   List<ReservationReportProvider> reservationProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  Collection<ReservationReport> getReservations() {
-    reservationProviders.collect { it.reservationReport }
+  Collection<ReservationReport> getReservationReport() {
+    reservationProviders.collect { it.reservationReport } - null
   }
 }

@@ -37,6 +37,10 @@ class CatsReservationReportProvider implements ReservationReportProvider {
   @Override
   ReservationReport getReservationReport() {
     def cacheData = cacheView.get(RESERVATION_REPORTS.ns, "latest")
+    if (!cacheData) {
+      return null
+    }
+
     return objectMapper.readValue(objectMapper.writeValueAsString(cacheData.attributes.report), AmazonReservationReport)
   }
 }
