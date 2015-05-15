@@ -1,0 +1,124 @@
+@import "app/styles/imports/commonImports.less";
+
+.fastProperty-wrapper {
+  display: flex;
+  display: -webkit-flex;
+}
+
+.fastProperty {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  -webkit-flex-direction: column;
+
+  @media (min-width: 768px) and (max-width: 992px) {
+    width: 768px;
+  }
+
+  @media (min-width: 992px) {
+    width: 992px;
+  }
+  @media (min-width: 1200px) {
+    width: 1200px;
+  }
+  @media (min-width: 1400px) {
+    width: 1400px;
+  }
+
+}
+
+
+.fastProperty .fp-header {
+  flex: 0 0 auto;
+  -webkit-flex: 0 0 auto;
+  z-index: 4;
+  box-shadow: 0 20px 10px -10px @lightest_grey;
+  padding-bottom: 0;
+}
+
+.fastProperty .fp-header  h3 {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.fastProperty .content {
+  padding: 10px 15px;
+  flex: 1 1 auto;
+  -webkit-flex: 1 1 auto;
+  overflow-y: auto;
+
+}
+
+.fastProperty .search {
+  width: 500px;
+  margin-left: 15px;
+}
+
+.fastProperty .pagination-footer {
+  margin-bottom: 15px;
+  margin-top: 5px;
+  .pagination {
+    margin: 0;
+  }
+  z-index: 4;
+  box-shadow: 0 -15px 8px -8px @lightest_grey;
+}
+
+
+.rollout-status {
+  //min-width: 70px;
+}
+
+.scope-box .select2-drop {
+  position: relative !important;
+}
+
+
+.fastPropertyWizard dl dt {
+  float: left;
+  width: 75px;
+}
+
+.small-fp-scopes dl {
+  margin-bottom: 0px;
+}
+
+.small-fp-scopes dl dt {
+  float: left;
+  width: 60px;
+}
+
+div.clickable {
+  cursor: pointer;
+}
+
+div.clickable:hover {
+  color: @spinnaker-blue;
+}
+
+.rollout {
+  margin-bottom: 40px;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+.rollout .progress {
+  margin-bottom: 5px;
+}
+
+.rollout .history {
+  background: #eee;
+  font-size: 90%;
+}
+
+.rollout h3>.badge {
+  vertical-align: middle;
+}
+
+.fastProperty span[class*="glyphicon-chevron"] {
+  margin-top: 5px;
+  margin-right: 5px;
+}
+
+

@@ -22,6 +22,7 @@ angular.module('deckApp', [
     'angular.filter',
     'deckApp.states',
     'deckApp.delivery.states',
+    'infinite-scroll',
 
     'deckApp.insight',
     'deckApp.application',
@@ -94,8 +95,9 @@ angular.module('deckApp', [
     'deckApp.help.directive',
     'deckApp.networking',
     'deckApp.blesk',
+    'deckApp.fastproperties',
 ])
-  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService) {
+  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
@@ -149,6 +151,8 @@ angular.module('deckApp', [
       });
       pageTitleService.handleRoutingSuccess(toState.data);
     });
+
+    $rootScope.feature = settings.feature;
   })
   .config(function($animateProvider) {
     $animateProvider.classNameFilter(/animated/);

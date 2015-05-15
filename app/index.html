@@ -34,6 +34,9 @@
                         <li state-active="home.infrastructure.**">
                             <a ui-sref="home.infrastructure">Infrastructure</a>
                         </li>
+                        <li ng-if="feature.fastProperty" state-active="home.data.**">
+                          <a ui-sref="home.data.properties">Data</a>
+                        </li>
                     </ul>
 
                     <whats-new></whats-new>

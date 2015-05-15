@@ -22,4 +22,17 @@ angular.module('deckApp.utils.timeFormatters', [
       var format = moment.hours() ? 'HH:mm:ss' : 'mm:ss';
       return moment.isValid() ? moment.format(format) : '-';
     };
+  })
+  .filter('conformTime', function (momentService) {
+    return function (input) {
+      var moment = momentService(input);
+      return moment.format('YYYY-MM-DD HH:mm:ss');
+    };
+  })
+  .filter('fastPropertyTime', function(momentService) {
+    return function (input) {
+      var realTime = input.replace('[GMT]', '');
+      var moment = momentService(realTime);
+      return moment.format('MM/DD/YY @ h:mma');
+    };
   });

@@ -3,7 +3,7 @@
   <modal-close></modal-close>
   <div class="modal-header">
     <h3>{{wizard.heading}}</h3>
-    <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!hideIndicators">
+    <ul class="steps-indicator steps-{{wizard.renderedPages.length}}" ng-if="!wizard.hideIndicators">
       <li ng-repeat="page in wizard.renderedPages"
           class="animated"
          ng-class="{

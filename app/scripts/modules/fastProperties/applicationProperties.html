@@ -1,0 +1,206 @@
+<div class="row fastProperty-wrapper">
+
+  <div class="col-md-12" ng-if="!fp.properties" style="position: relative; height: 300px">
+    <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
+  </div>
+
+  <div class="col-md-12 fastProperty" ng-if="fp.properties">
+    <div class="row fp-header">
+      <div class="col-md-3">
+        <h3>Fast Properties</h3>
+      </div>
+      <div class="col-md-6">
+        <form class="form form-inline">
+          <div class="form-group">
+            <!--<div class="col-md-12">-->
+            <label >Filter </label>
+            <input type="search"
+                   placeholder="Search properties"
+                   class="form-control input-md search"
+                   focus
+                   ng-model="fp.filterString"
+                   ng-change="fp.setFilteredProperties()"/>
+          </div>
+        </form>
+      </div>
+
+      <div class="col-md-3 ">
+        <button type="button" class="btn btn-primary pull-right" ng-click="fp.newFastPropertyModal()">Create New Property</button>
+      </div>
+
+    </div>
+
+
+     <div class="row content">
+       <div class="rollout">
+         <div class="clickable" ng-click="fp.togglePromotionPane()">
+           <span class="pull-left glyphicon glyphicon-chevron-{{fp.promotionPaneOpen ? 'down' : 'up'}}"></span>
+
+           <h3>
+             Rollouts
+           <span class="badge" ng-if="( fp.promotions | filter:{state:'Running'}).length > 0">
+            {{ (fp.promotions | filter:{state:'Running'}).length }}</span>
+           </h3>
+         </div>
+         <div class="row" ng-show="fp.promotionPaneOpen">
+           <div class="col-md-12">
+
+             <table ng-if="fp.promotions" class="table table-hover">
+               <thead>
+               <tr>
+                 <th width="2%"><!-- arrow --></th>
+                 <th width="20%" key="property" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
+                 <th width="20%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
+                 <th width="50%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
+               </tr>
+               </thead>
+               <tbody>
+               <tr class="clickable"
+                   ng-click="fp.toggleRolloutDetails(promotion)"
+                   ng-repeat-start="promotion in fp.filteredPromotions">
+                 <td>
+                   <span class="pull-left glyphicon glyphicon-chevron-{{fp.isRolloutDetailsOpen(promotion.id) ? 'down' : 'up'}}"></span>
+                 </td>
+                 <td>
+                   {{ promotion.key }}
+                 </td>
+                 <td>
+                   {{ promotion.history[0].when | fastPropertyTime}}
+                 </td>
+                 <td>
+                   <div class="row">
+                     <div class="col-md-2">
+                       <div class="rollout-status pull-left">{{promotion.state}}</div>
+                     </div>
+                     <div class="col-md-8">
+                       <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
+                       <div>{{fp.getLastMessage(promotion)}}</div>
+                     </div>
+                     <div class="col-md-2">
+                       <span class="icon" ng-if="promotion.isPromoting"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
+                       <div ng-if="!promotion.isPromoting && promotion.state == 'Running'">
+                         <div>Continue?</div>
+                       <span>
+                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">yes</button>
+                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">no</button>
+                       </span>
+                       </div>
+                     </div>
+                   </div>
+                 </td>
+               </tr>
+               <tr class="history"
+                   ng-repeat="history in promotion.history"
+                   ng-if="fp.isRolloutDetailsOpen(promotion.id)"
+                   ng-repeat-end>
+                 <td></td>
+                 <td></td>
+                 <td>{{history.when | fastPropertyTime}}</td>
+                 <td colspan="2">{{history.message}}</td>
+               </tr>
+               </tbody>
+             </table>
+           </div>
+         </div>
+       </div>
+
+
+
+       <h3>Properties</h3>
+       <div class="row">
+         <div class="col-md-12">
+           <table ng-if="fp.properties" class="table table-hover" style="table-layout: fixed; width: 100%">
+             <thead>
+             <tr>
+               <th width="10%" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
+               <th width="15%" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Value</th>
+               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Updated</th>
+               <th width="5%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Region</th>
+               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Stack</th>
+               <th width="20%" label="Updated" skrt-model="fp.sortModel" on-change="ctrl.filterApplications()">Additional Scope</th>
+               <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Expiration</th>
+               <th width="5%" label="edit"></th>
+             </tr>
+             </thead>
+             <tbody>
+             <tr class="" ng-repeat="property in fp.filteredPage"  ui-sref=".application.properties({ application: application.name.toLowerCase() })">
+               <td style="word-wrap: break-word">
+                 <a >
+                   {{ property.key }}
+                 </a>
+               </td>
+               <td style="word-wrap: break-word">
+                 {{ property.value}}
+               </td>
+               <td>
+                 {{ property.ts | fastPropertyTime }}
+               </td>
+               <td>
+                 {{ property.region }}
+               </td>
+               <td>
+                 {{ property.stack}}
+               </td>
+               <td class="small-fp-scopes">
+                 <dl>
+                   <dt ng-if="property.env">Env:</dt>
+                   <dd ng-if="property.env">{{property.env}}</dd>
+
+                   <dt ng-if="property.cluster">Cluster:</dt>
+                   <dd ng-if="property.cluster">{{property.cluster}}</dd>
+
+                   <dt ng-if="property.asg">ASG:</dt>
+                   <dd ng-if="property.asg">{{property.asg}}</dd>
+
+                   <dt ng-if="property.zone">AZ:</dt>
+                   <dd ng-if="property.zone">{{property.zone}}</dd>
+
+                   <dt ng-if="property.serverId">Instance:</dt>
+                   <dd ng-if="property.serverId">{{property.serverId}}</dd>
+                 </dl>
+               </td>
+               <td>
+                 {{ property.ttl }}
+               </td>
+               <td>
+                 <span class="clickable clickable-sm glyphicon glyphicon-pencil" ng-click="fp.editFastProperty(property)"></span>
+                 <span class="clickable clickable-sm glyphicon glyphicon-trash" ng-click="fp.delete(property)"></span>
+               </td>
+             </tr>
+             </tbody>
+           </table>
+
+
+         </div>
+
+       </div>
+     </div>
+
+    <div class="row pagination-footer">
+      <div class="col-md-2">
+        <select class="form-control input-sm"
+                ng-model="fp.itemsPerPage"
+                ng-options="i for i in [10, 25, 50, 100]"
+                ng-change="fp.setFilteredProperties()">
+        </select>
+      </div>
+      <div class="col-md-10">
+        <pagination class="pull-right"
+                    ng-if="fp.filteredProps"
+                    total-items="fp.filteredProps.length"
+                    max-size="fp.pagination.maxSize"
+                    ng-model="fp.pagination.currentPage"
+                    ng-change="fp.setFilteredProperties()">
+
+        </pagination>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+
+
+
