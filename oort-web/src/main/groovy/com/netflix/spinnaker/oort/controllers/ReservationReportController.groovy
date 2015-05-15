@@ -30,7 +30,7 @@ class ReservationReportController {
   List<ReservationReportProvider> reservationProviders
 
   @RequestMapping(method = RequestMethod.GET)
-  Collection<ReservationReport> getReservationReport() {
+  Collection<ReservationReport> getReservationReports() {
     reservationProviders.collect { it.reservationReport } - null
   }
 }

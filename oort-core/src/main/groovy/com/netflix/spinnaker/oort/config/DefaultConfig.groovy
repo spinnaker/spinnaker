@@ -118,6 +118,12 @@ class DefaultConfig {
   }
 
   @Bean
+  @ConditionalOnMissingBean(ReservationReportProvider)
+  ReservationReportProvider noopReservationReportProvider() {
+    new NoopReservationReportProvider()
+  }
+
+  @Bean
   @ConditionalOnMissingBean(OnDemandCacheUpdater)
   OnDemandCacheUpdater noopOnDemandCacheUpdater() {
     new NoopOnDemandCacheUpdater()
