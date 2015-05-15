@@ -30,8 +30,10 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import groovy.transform.PackageScope
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_SG"
 
@@ -151,12 +153,12 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   List<IpPermission> filterUnsupportedRemovals(SecurityGroup securityGroup, List<IpPermission> ipPermissions) {
     return ipPermissions.findAll {
       if (it.ipRanges) {
-        task.updateStatus BASE_PHASE, "[UNSUPPORTED] Unable to remove CIDR-based permission from ${description.name} (${it.toString()})."
+        log.info("[UNSUPPORTED] Unable to modify CIDR-based permission from ${description.name} (${it.toString()}).")
         return false
       }
 
       if (it.userIdGroupPairs.find { it.userId != securityGroup.ownerId }) {
-        task.updateStatus BASE_PHASE, "[UNSUPPORTED] Unable to cross account security group permission from ${description.name} (${it.toString()})."
+        log.info("[UNSUPPORTED] Unable to modify account security group permission from ${description.name} (${it.toString()}).")
         return false
       }
 
