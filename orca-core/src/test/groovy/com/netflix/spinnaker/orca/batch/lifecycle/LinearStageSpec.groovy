@@ -123,6 +123,12 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     pipeline.stages << new PipelineStage(pipeline, "", [:])
 
     when:
+    linearStage.wireSteps(jobBuilder, [], pipeline.stages[0])
+
+    then:
+    !pipeline.builtPipelineObjects.contains(jobBuilder)
+
+    when:
     linearStage.wireSteps(jobBuilder, [buildStep("Step1"), buildStep("Step2")], pipeline.stages[0])
 
     then:

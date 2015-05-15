@@ -122,7 +122,9 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
       }
     }
 
-    stage.execution.builtPipelineObjects << jobBuilder
+    if (steps) {
+      stage.execution.builtPipelineObjects << jobBuilder
+    }
     return jobBuilder
   }
 }
