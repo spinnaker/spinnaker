@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import groovy.json.JsonSlurper
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 class OperationsControllerSpec extends Specification {
 
@@ -134,7 +135,7 @@ class OperationsControllerSpec extends Specification {
         master     : master,
         job        : job,
         buildNumber: buildNumber,
-        user: triggerUser
+        user       : triggerUser
       ]
     ]
     buildInfo = [result: "SUCCESS"]
@@ -175,4 +176,36 @@ class OperationsControllerSpec extends Specification {
     ]
     propertyFileContent = [foo: "bar"]
   }
+
+  def "context parameters are processed before pipeline is started"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    Map requestedPipeline = [
+      trigger: [
+        type        : "manual",
+        properties  : [
+          key1: 'val1',
+          key2: 'val2',
+          replaceValue: ['val3']
+        ],
+        replaceMe: '${trigger.properties.replaceValue}'
+      ],
+      id: '${trigger.properties.key1}',
+      name: '${trigger.properties.key2}'
+    ]
+
+    when:
+    controller.orchestrate(requestedPipeline, null)
+
+    then:
+    startedPipeline.id == 'val1'
+    startedPipeline.name == 'val2'
+    startedPipeline.trigger.replaceMe instanceof ArrayList
+    startedPipeline.trigger.replaceMe.first() == 'val3'
+  }
+
 }
