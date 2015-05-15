@@ -168,11 +168,11 @@ abstract class DeployStrategyStage extends LinearStage {
             continue
           }
         }
-        injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
           injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
         }
+        injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
         if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->

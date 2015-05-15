@@ -172,7 +172,7 @@ class DeployStageSpec extends Specification {
       )
     }
     2 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [disableAsgStage, resizeAsgStage]
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
   }
 
   void "should create stages of deploy, resizeAsg, disableAsg stages when strategy is redblack and scaleDown is true"() {
@@ -204,7 +204,7 @@ class DeployStageSpec extends Specification {
       )
     }
     2 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [disableAsgStage, resizeAsgStage]
+    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
   }
 
   @Unroll
