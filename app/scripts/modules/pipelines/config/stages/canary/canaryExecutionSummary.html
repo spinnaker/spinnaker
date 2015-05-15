@@ -2,9 +2,9 @@
   <h4 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
-    <span style="margin-left: 10px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">
-        {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
-      </span>
+    <span style="margin-left: 50px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">
+      {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
+    </span>
 
     <div dropdown class="btn-group pull-right">
       <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" ng-disabled="disabled">
@@ -20,9 +20,8 @@
   <table class="table canary-summary">
     <thead>
     <tr>
-      <th width="34%">Deployment</th>
-      <th width="33%">Score</th>
-      <th width="33%">Running Time</th>
+      <th width="60%">Deployment</th>
+      <th width="40%">Running Time</th>
     </tr>
     </thead>
     <tbody>
@@ -30,11 +29,6 @@
         ng-class="{ info: ctrl.isStepCurrent(stageSummary.masterStageIndex) }"
         ng-click="ctrl.toggleDetails(stageSummary.masterStageIndex)">
       <td><strong>Canary Summary</strong></td>
-      <td>
-        <canary-score result="stageSummary.masterStage.context.canary.canaryResult.overallResult"
-                      score="stageSummary.masterStage.context.canary.canaryResult.overallScore"
-                      health="stageSummary.masterStage.context.canary.health.health"></canary-score>
-      </td>
       <td>{{stageSummary.runningTimeInMs | duration}}</td>
     </tr>
     <tr class="clickable canary-deployment-row"
@@ -43,11 +37,6 @@
         ng-if="stage.type === 'canaryDeployment'"
         ng-click="ctrl.toggleDetails($index)">
       <td>{{ stage.name }}</td>
-      <td>
-        <canary-score result="stage.context.status.result"
-                      health="stage.context.status.health"
-                      score="stage.context.status.score"></canary-score>
-      </td>
       <td>{{stage.runningTimeInMs | duration}}</td>
     </tr>
     </tbody>

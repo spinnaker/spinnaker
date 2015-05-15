@@ -11,15 +11,20 @@
         </div>
         <div class="canary-summary-section">
           <span ng-if="deployment.canaryResult.lastUpdated">
-            <strong>Last updated: </strong>
+            <strong>Last updated&nbsp;:&nbsp;&nbsp;</strong>
             {{ deployment.canaryResult.lastUpdated | timestamp}}
           </span>
-          <span ng-if="!deployment.canaryResult.lastUpdated">
-            No canary results reported
-          </span>
           <br/>
+          <span ng-if="deployment.canaryResult.lastUpdated">
+            <strong>Score duration&nbsp;:&nbsp;&nbsp;</strong>
+            {{ deployment.canaryResult.timeDuration.durationString }}
+          </span>
+        </div>
+        <div class="canary-summary-section">
           <a ng-if="deployment.status.reportUrl" target="_blank" ng-href="{{deployment.status.reportUrl}}">Canary Report</a>
-          <span ng-if="!deployment.status.reportUrl">No report available</span>
+          <!--<span ng-if="!deployment.status.reportUrl">No report available</span>-->
+          <br/>
+          <span style="visibility: hidden;">Diff Report</span>
         </div>
       </div>
     </div>
@@ -81,9 +86,10 @@
         <table class="table" ng-if="!viewState.loadingHistory && !viewState.loadingHistoryError">
           <thead>
           <tr>
-            <th width="10%">Score</th>
-            <th width="20%">Generated On</th>
-            <th width="20%">Report</th>
+            <th>Score</th>
+            <th>Score Duration</th>
+            <th>Generated On</th>
+            <th>Report</th>
           </tr>
           </thead>
           <tbody>
@@ -93,9 +99,8 @@
                               score="scoreReport.score"
                               health="scoreReport.health"></canary-score>
               </td>
-              <td>
-                {{ scoreReport.lastUpdated | timestamp }}
-              </td>
+              <td>{{ scoreReport.timeDuration.durationString }}</td>
+              <td>{{ scoreReport.lastUpdated | timestamp }}</td>
               <td><a target="_blank" ng-href="{{scoreReport.canaryReportURL}}">Canary Report</a></td>
             </tr>
           </tbody>
