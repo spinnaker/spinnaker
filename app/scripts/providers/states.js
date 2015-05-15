@@ -372,8 +372,7 @@ angular.module('deckApp.states', [
         url: '/config',
         views: {
           'insight': {
-
-            templateUrl: 'scripts/modules/fastProperties/fastPropertyRollouts.html',
+            templateUrl: 'scripts/modules/config/config.html',
             controller: 'ConfigController',
             controllerAs: 'config'
           },
