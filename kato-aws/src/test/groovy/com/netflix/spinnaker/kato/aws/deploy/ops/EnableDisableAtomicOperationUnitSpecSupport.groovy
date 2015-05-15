@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
+import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
@@ -62,12 +64,29 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   }
 
   def wireOpMocks(AbstractEnableDisableAtomicOperation op) {
-    op.discoverySupport = new DiscoverySupport(restTemplate: restTemplate)
+    def regionScopedProviderFactory = Mock(RegionScopedProviderFactory) {
+      _ * getAmazonClientProvider() >> {
+        return Mock(AmazonClientProvider)
+      }
+      _ * forRegion(_, _) >> {
+        return Mock(RegionScopedProviderFactory.RegionScopedProvider)
+      }
+    }
+
+    op.discoverySupport = new DiscoverySupport(
+      restTemplate: restTemplate,
+      regionScopedProviderFactory: regionScopedProviderFactory
+    )
+    op.discoverySupport.metaClass.verifyInstanceAndAsgExist = {
+      AmazonEC2 amazonEC2, AsgService asgService, String instanceId, String asgName -> true
+    }
+
     def rspf = Mock(RegionScopedProviderFactory)
     def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
     rspf.forRegion(_, _) >> rsp
     op.regionScopedProviderFactory = rspf
+
     def provider = Mock(AmazonClientProvider)
     provider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
     op.amazonClientProvider = provider
