@@ -32,7 +32,8 @@ class Keys {
     CLUSTERS,
     APPLICATIONS,
     HEALTH,
-    ON_DEMAND
+    ON_DEMAND,
+    RESERVATION_REPORTS
 
     final String ns
 

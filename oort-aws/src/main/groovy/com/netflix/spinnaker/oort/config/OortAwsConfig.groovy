@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.config
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.awsobjectmapper.AmazonObjectMapper
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -32,7 +32,7 @@ class OortAwsConfig {
 
   @Bean
   AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
+    new AmazonClientProvider(amazonObjectMapper())
   }
 
   @Bean
