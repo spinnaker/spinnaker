@@ -21,6 +21,9 @@ services:
     enabled: false
   igor:
     enabled: false
+  mahe:
+    baseUrl: http://mahe-${netflix.stack}.${netflix.environment}.netflix.net
+    enabled: false
 
 redis:
   connection: redis://localhost:6379
