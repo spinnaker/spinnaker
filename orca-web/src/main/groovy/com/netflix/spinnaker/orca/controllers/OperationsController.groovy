@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -45,6 +47,9 @@ class OperationsController {
     @RequestBody Map pipeline,
     @RequestParam(value = "user", required = false) String user) {
 
+    def json = objectMapper.writeValueAsString(pipeline)
+    log.info('received pipeline {}:{}', pipeline.id, json)
+
     if (!(pipeline.trigger instanceof Map)) {
       pipeline.trigger = [:]
     }
@@ -58,7 +63,12 @@ class OperationsController {
     if (igorService) {
       getBuildInfo(pipeline.trigger)
     }
-    startPipeline(pipeline)
+
+    def augmentedContext = [:]
+    augmentedContext.put('trigger', pipeline.trigger)
+    def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext)
+
+    startPipeline(processedPipeline)
   }
 
   private void getBuildInfo(Map trigger) {
