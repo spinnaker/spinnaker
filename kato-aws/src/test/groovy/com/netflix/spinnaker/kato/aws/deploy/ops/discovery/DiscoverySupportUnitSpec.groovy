@@ -17,8 +17,16 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.discovery
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeInstancesResult
+import com.amazonaws.services.ec2.model.Reservation
+import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
+import com.netflix.spinnaker.kato.aws.services.AsgService
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskState
@@ -30,6 +38,7 @@ import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DiscoverySupportUnitSpec extends Specification {
   def mockRestTemplate = Mock(RestTemplate)
@@ -44,6 +53,22 @@ class DiscoverySupportUnitSpec extends Specification {
     protected long getDiscoveryRetryMs() {
       return 0
     }
+
+    @Override
+    boolean verifyInstanceAndAsgExist(AmazonEC2 amazonEC2, AsgService asgService, String instanceId, String asgName) {
+      return true
+    }
+  }
+
+  void setup() {
+    discoverySupport.regionScopedProviderFactory = Mock(RegionScopedProviderFactory) {
+      _ * getAmazonClientProvider() >> {
+        return Mock(AmazonClientProvider)
+      }
+      _ * forRegion(_, _) >> {
+        return Mock(RegionScopedProviderFactory.RegionScopedProvider)
+      }
+    }
   }
 
   void "should fail if discovery is not enabled"() {
@@ -51,7 +76,7 @@ class DiscoverySupportUnitSpec extends Specification {
     def description = new EnableDisableInstanceDiscoveryDescription(credentials: TestCredential.named('test'))
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, null, null, null, null, null)
+    discoverySupport.updateDiscoveryStatusForInstances(description, null, null, null, null)
 
     then:
     thrown(DiscoverySupport.DiscoveryNotConfiguredException)
@@ -61,13 +86,13 @@ class DiscoverySupportUnitSpec extends Specification {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
-        credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+      credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
     )
     def instances = ["i-123456"]
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(
-        description, task, "phase", "us-west-1", DiscoverySupport.DiscoveryStatus.Disable, instances
+      description, task, "phase", DiscoverySupport.DiscoveryStatus.Disable, instances
     )
 
     then:
@@ -80,12 +105,12 @@ class DiscoverySupportUnitSpec extends Specification {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
-        credentials: TestCredential.named('test', [discovery: discoveryUrl])
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
     )
 
     when:
     discoverySupport.updateDiscoveryStatusForInstances(
-        description, task, "PHASE", region, discoveryStatus, instanceIds
+      description, task, "PHASE", discoveryStatus, instanceIds
     )
 
     then:
@@ -93,11 +118,11 @@ class DiscoverySupportUnitSpec extends Specification {
     0 * task.fail()
     instanceIds.each {
       1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
-          [
-              instance: [
-                  app: appName
-              ]
-          ], HttpStatus.OK
+        [
+          instance: [
+            app: appName
+          ]
+        ], HttpStatus.OK
       )
       1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
     }
@@ -118,7 +143,7 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should retry on NOT_FOUND"
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
@@ -138,7 +163,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should retry on SERVICE_UNAVAILABLE"
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
@@ -158,7 +183,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
     DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
@@ -171,7 +196,7 @@ class DiscoverySupportUnitSpec extends Specification {
     thrown(HttpClientErrorException)
 
     when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then: "should never retry on BAD_REQUEST"
     1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
@@ -191,28 +216,58 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123"]
   }
 
-
   void "should retry when encounters a ResourceAccessException"() {
     given:
     def task = Mock(Task)
 
     def description = new EnableDisableInstanceDiscoveryDescription(
-     credentials: TestCredential.named('test', [discovery: discoveryUrl])
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
     )
 
     when:
-        discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", region, discoveryStatus, instanceIds)
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
     then:
-        DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED);
-        DiscoverySupport.DISCOVERY_RETRY_MAX * task.updateStatus(_, _) >> {throw new ResourceAccessException("msg")}
-        thrown ResourceAccessException
+    DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED);
+    DiscoverySupport.DISCOVERY_RETRY_MAX * task.updateStatus(_, _) >> { throw new ResourceAccessException("msg") }
+    thrown ResourceAccessException
     where:
-        discoveryUrl = "http://us-west-1.discovery.netflix.net"
-        region = "us-west-1"
-        discoveryStatus = DiscoverySupport.DiscoveryStatus.Disable
-        appName = "kato"
-        instanceIds = ["i-123"]
+    discoveryUrl = "http://us-west-1.discovery.netflix.net"
+    region = "us-west-1"
+    discoveryStatus = DiscoverySupport.DiscoveryStatus.Disable
+    appName = "kato"
+    instanceIds = ["i-123"]
+  }
 
+  @Unroll
+  void "should fail verification if asg does not exist"() {
+    given:
+    def discoverySupport = new DiscoverySupport()
+    def amazonEC2 = Mock(AmazonEC2) {
+      _ * describeInstances(_) >> {
+        return new DescribeInstancesResult().withReservations(
+          new Reservation().withInstances(instanceIds.collect {
+            new com.amazonaws.services.ec2.model.Instance().withInstanceId(it)
+          })
+        )
+      }
+    }
+    def asgService = Mock(AsgService) {
+      1 * getAutoScalingGroup(_) >> autoScalingGroup
+    }
+
+    expect:
+    discoverySupport.verifyInstanceAndAsgExist(amazonEC2, asgService, "i-12345", "asgName") == isVerified
+
+    where:
+    autoScalingGroup                                                               | instanceIds || isVerified
+    new AutoScalingGroup()                                                         | []          || false
+    new AutoScalingGroup().withStatus("Deleting")                                  | []          || false
+    new AutoScalingGroup().withInstances(new Instance().withInstanceId("---"))     | []          || false
+    null                                                                           | []          || false
+    new AutoScalingGroup()                                                         | []          || false
+    new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-12345")) | ["---"]     || false
+    new AutoScalingGroup().withInstances(new Instance().withInstanceId("---"))     | ["i-12345"] || false
+    new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-12345")) | ["i-12345"] || true
   }
 }

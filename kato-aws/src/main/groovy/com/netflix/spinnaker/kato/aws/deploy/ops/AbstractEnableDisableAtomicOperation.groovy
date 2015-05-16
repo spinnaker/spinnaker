@@ -20,6 +20,7 @@ import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
@@ -69,6 +70,13 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           task.updateStatus phaseName, "No ASG named '$description.asgName' found in $region"
           continue
         }
+
+        if (asg.status) {
+          // a non-null status indicates that a DeleteAutoScalingGroup action is in progress
+          task.updateStatus phaseName, "ASG '$description.asgName' is currently being destroyed and cannot be modified (status: ${asg.status})"
+          continue
+        }
+
         task.updateStatus phaseName, "${presentParticipling} ASG '$description.asgName' in $region..."
         if (disable) {
           asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
@@ -91,8 +99,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (description.credentials.discoveryEnabled) {
           def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
           task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
+
+          def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
+            credentials: description.credentials,
+            region: region,
+            asgName: description.asgName,
+            instanceIds: asg.instances*.instanceId
+          )
           discoverySupport.updateDiscoveryStatusForInstances(
-            description, task, phaseName, region, status, asg.instances*.instanceId
+            enableDisableInstanceDiscoveryDescription, task, phaseName, status, asg.instances*.instanceId
           )
         }
         task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
