@@ -49,7 +49,10 @@ abstract class AbstractAsgTask implements Task {
       "kato.task.id"                                  : taskId, // TODO retire this.
       "deploy.account.name"                           : operation.credentials,
       ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
-      ("targetop.asg.${asgAction}.regions".toString()): operation.regions
+      ("targetop.asg.${asgAction}.regions".toString()): operation.regions,
+      "deploy.server.groups"                          : (operation.regions as Collection<String>).collectEntries {
+        [(it): [operation.asgName]]
+      }
     ])
   }
 }

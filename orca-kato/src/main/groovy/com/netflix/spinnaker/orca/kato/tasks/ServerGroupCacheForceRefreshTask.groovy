@@ -42,7 +42,7 @@ class ServerGroupCacheForceRefreshTask implements Task {
     }
     Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."deploy.server.groups"
     def outputs = [:]
-    capturedServerGroups.each { region, serverGroups ->
+    capturedServerGroups?.each { region, serverGroups ->
       for (serverGroup in serverGroups) {
         def model = [asgName: serverGroup, region: region, account: account]
         try {
