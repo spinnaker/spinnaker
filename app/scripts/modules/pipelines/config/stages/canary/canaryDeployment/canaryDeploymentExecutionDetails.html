@@ -14,6 +14,7 @@
             <strong>Last updated&nbsp;:&nbsp;&nbsp;</strong>
             {{ deployment.canaryResult.lastUpdated | timestamp}}
           </span>
+          <span ng-if="!deployment.canaryResult.lastUpdated">No canary result available</span>
           <br/>
           <span ng-if="deployment.canaryResult.lastUpdated">
             <strong>Score duration&nbsp;:&nbsp;&nbsp;</strong>

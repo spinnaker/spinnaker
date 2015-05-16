@@ -3,15 +3,18 @@
 
   <div class="step-section-details" ng-if="detailsSection === 'canarySummary'">
     <div class="row">
-      <div class="col-md-12 canary-summary">
+      <div class="col-md-12 canary-summary" style="margin-bottom: 20px;">
         <div class="score score-large">
           <canary-score health="canary.health.health"
                         result="canary.canaryResult.overallResult"
                         score="canary.canaryResult.overallScore"></canary-score>
         </div>
         <div class="canary-summary-section">
-          <strong>Last updated&nbsp;:&nbsp;&nbsp;</strong>
-          {{ canary.canaryResult.lastUpdated | timestamp }}
+          <strong>Launched Time : </strong>
+          <span ng-if="canary.launchedDate">{{ canary.launchedDate | timestamp }}</span>
+          <span ng-if="!canary.launchedDate">Not Available</span>
+          <br/>
+          <span ng-if="canary.canaryResult.manual" class="label label-warning">Manual Canary Result</span>
         </div>
       </div>
     </div>
@@ -121,6 +124,21 @@
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-left compact">Unhealthy Canary Actions</div>
+          <div class="col-md-6">
+            <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
+              <strong>{{ canaryAction.action }}</strong>
+              <span ng-if="canaryAction.delayBeforeActionInMins <= 0">
+                immediately
+              </span>
+              <span ng-if="!(canaryAction.delayBeforeActionInMins <= 0)">
+                after {{ canaryAction.delayBeforeActionInMins }} minutes
+              </span>
+              <br/>
+            </span>
+          </div>
         </div>
       </div>
     </div>
