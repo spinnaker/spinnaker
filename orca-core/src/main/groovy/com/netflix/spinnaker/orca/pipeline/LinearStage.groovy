@@ -114,8 +114,16 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
 
   private FlowBuilder wireStepsParallel(FlowBuilder jobBuilder, List<Step> steps, Stage stage) {
     steps.eachWithIndex { step, index ->
-      if (index == 0 && !stage.execution.builtPipelineObjects.contains(jobBuilder)) {
-        // no steps have been built against this flow builder so start a new path
+      boolean isFirstStep = (index == 0 && !stage.execution.builtPipelineObjects.contains(jobBuilder))
+      if (isFirstStep && stage.parentStageId) {
+        // consider all sibling stages when determining if this step is the first
+        def allStages = stage.execution.stages
+        def siblings = stage.execution.stages.findAll { it.parentStageId == stage.parentStageId && it.id != stage.id }
+        isFirstStep = siblings.every { allStages.indexOf(it) > allStages.indexOf(stage) }
+      }
+
+      if (isFirstStep) {
+        // no steps or siblings have been built so start a new path
         jobBuilder.from(step)
       } else {
         jobBuilder.next(step)
