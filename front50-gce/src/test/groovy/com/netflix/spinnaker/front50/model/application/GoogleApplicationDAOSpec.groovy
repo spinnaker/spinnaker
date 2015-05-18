@@ -46,7 +46,9 @@ class GoogleApplicationDAOSpec extends Specification {
     then:
       1 * datastoreMock.beginTransaction(_)
       1 * datastoreMock.lookup(_)
+      1 * dao.applicationPropertiesTransformer.transformApplicationProperties(_) >> [:]
       1 * datastoreMock.commit(_)
+      1 * dao.entityToApplicationConverter.mapToApp(_) >> [:]
   }
 
   void 'should delete an item'() {
@@ -62,11 +64,12 @@ class GoogleApplicationDAOSpec extends Specification {
       1 * datastoreMock.commit(_)
   }
 
-  void 'should save'() {
+  void 'should lowercase application name and save'() {
     setup:
       def dao = buildDAO()
       def datastoreMock = dao.datastoreFactory.create(null)
       def attributes = [
+        "name"       : "SampleApp1",
         "group"      : "tst-group",
         "type"       : "test type",
         "description": "test",
@@ -83,7 +86,15 @@ class GoogleApplicationDAOSpec extends Specification {
       application.createTs != null
       1 * datastoreMock.beginTransaction(_)
       1 * datastoreMock.lookup(_)
+      1 * dao.applicationPropertiesTransformer.transformApplicationProperties({
+        it.name == "SampleApp1"
+      }) >> { args -> new ApplicationPropertiesTransformer().transformApplicationProperties(args) }
       1 * datastoreMock.commit(_)
+      1 * dao.entityToApplicationConverter.mapToApp({
+        it.propertyList.find { property ->
+          property.name == 'name' && property.value.getStringValue() == 'sampleapp1'
+        }
+      }) >> { args -> new EntityToApplicationConverter().mapToApp(args) }
   }
 
   void 'should throw exception if no application is found'() {
@@ -140,6 +151,7 @@ class GoogleApplicationDAOSpec extends Specification {
       }
 
     then:
+      1 * dao.entityToApplicationConverter.mapToApp(_) >> { args -> new EntityToApplicationConverter().mapToApp(args) }
       notThrown(NotFoundException)
 
     when:
@@ -153,6 +165,7 @@ class GoogleApplicationDAOSpec extends Specification {
       }
 
     then:
+      1 * dao.entityToApplicationConverter.mapToApp(_) >> { args -> new EntityToApplicationConverter().mapToApp(args) }
       notThrown(NotFoundException)
 
     where:
@@ -192,6 +205,7 @@ class GoogleApplicationDAOSpec extends Specification {
       }
 
     then:
+      1 * dao.entityToApplicationConverter.mapToApp(_) >> { args -> new EntityToApplicationConverter().mapToApp(args) }
       app != null
       app.name == "SAMPLEAPP"
       app.description == "netflix.com application"
@@ -216,6 +230,7 @@ class GoogleApplicationDAOSpec extends Specification {
       }
 
     then:
+      2 * dao.entityToApplicationConverter.mapToApp(_) >> { args -> new EntityToApplicationConverter().mapToApp(args) }
       apps != null
       apps.size() == 2
   }
@@ -232,9 +247,14 @@ class GoogleApplicationDAOSpec extends Specification {
     def credentialsMock = Mock(GoogleNamedAccountCredentials)
     credentialsMock.credentials >> Mock(GoogleCredentials)
 
+    def applicationPropertiesTransformer = Mock(ApplicationPropertiesTransformer)
+    def entityToApplicationConverterMock = Mock(EntityToApplicationConverter)
+
     new GoogleApplicationDAO(datastoreFactory: datastoreFactoryMock,
                              datastoreOptionsBuilder: datastoreOptionsBuilderMock,
-                             credentials: credentialsMock)
+                             credentials: credentialsMock,
+                             applicationPropertiesTransformer: applicationPropertiesTransformer,
+                             entityToApplicationConverter: entityToApplicationConverterMock)
   }
 
   private def buildDatastoreGroovyMock(int numResults) {

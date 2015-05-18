@@ -45,6 +45,8 @@ class GoogleApplicationDAO implements ApplicationDAO {
   protected DatastoreFactory datastoreFactory
   protected DatastoreOptions.Builder datastoreOptionsBuilder
   protected GoogleNamedAccountCredentials credentials
+  protected ApplicationPropertiesTransformer applicationPropertiesTransformer
+  protected EntityToApplicationConverter entityToApplicationConverter
 
   @Override
   boolean isHealthly() {
@@ -135,7 +137,7 @@ class GoogleApplicationDAO implements ApplicationDAO {
                          credentials)
 
     if (entities?.size() > 0) {
-      return mapToApp(entities[0].getEntity())
+      return entityToApplicationConverter.mapToApp(entities[0].getEntity())
     } else {
       throw new NotFoundException("No Application found by name of $name in dataset $datasetId.")
     }
@@ -152,17 +154,17 @@ class GoogleApplicationDAO implements ApplicationDAO {
                          credentials)
 
     if (entities?.size() > 0) {
-      return entities.collect { mapToApp(it.entity) }
+      return entities.collect { entityToApplicationConverter.mapToApp(it.entity) }
     } else {
       throw new NotFoundException("No Applications found in dataset $datasetId.")
     }
   }
 
-  private static Application createOrUpdate(String id,
-                                            Map<String, String> properties,
-                                            DatastoreFactory datastoreFactory,
-                                            DatastoreOptions.Builder datastoreOptionsBuilder,
-                                            GoogleNamedAccountCredentials credentials) {
+  private Application createOrUpdate(String id,
+                                     Map<String, String> properties,
+                                     DatastoreFactory datastoreFactory,
+                                     DatastoreOptions.Builder datastoreOptionsBuilder,
+                                     GoogleNamedAccountCredentials credentials) {
     String datasetId = credentials.projectName
     Datastore datastore = createDatastoreConnection(datasetId, datastoreFactory, datastoreOptionsBuilder, credentials)
 
@@ -204,6 +206,9 @@ class GoogleApplicationDAO implements ApplicationDAO {
 
       def entity
 
+      // The application name is lowercased prior to a lookup, so we must lowercase it on creation as well.
+      properties = applicationPropertiesTransformer.transformApplicationProperties(properties)
+
       // Iterate over each of the properties passed in.
       properties.each { newProperty ->
         // And check if each exists already.
@@ -235,17 +240,12 @@ class GoogleApplicationDAO implements ApplicationDAO {
       datastore.commit(creq.build())
 
       // Return the application, whether it already existed or was newly created.
-      Application application = mapToApp(entity)
+      Application application = entityToApplicationConverter.mapToApp(entity)
       application.name = id
       return application
     } catch (DatastoreException exception) {
       throw new IllegalArgumentException("Unable to update Application $id in $datasetId: ${exception.message}.")
     }
-  }
-
-  private static Application mapToApp(Entity entity) {
-    Map<String, String> map = entity.propertyList.collectEntries { [it.name, (it.value.getStringValue() ?: null)] }
-    return new Application(map)
   }
 
   private static List<EntityResult> query(String datasetId,
