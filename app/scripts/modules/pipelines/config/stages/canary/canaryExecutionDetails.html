@@ -126,7 +126,7 @@
           <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
         </div>
-        <div class="row">
+        <div class="row" ng-if="canaryConfig.actionsForUnhealthyCanary">
           <div class="col-md-4 sm-label-left compact">Unhealthy Canary Actions</div>
           <div class="col-md-6">
             <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
