@@ -1,10 +1,80 @@
 <div class="canary-details" ng-controller="CanaryExecutionDetailsCtrl as canaryDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
-  <div class="step-section-details" ng-if="detailsSection === 'canary'">
+  <div class="step-section-details" ng-if="detailsSection === 'canarySummary'">
+    <div class="row">
+      <div class="col-md-12 canary-summary">
+        <div class="score score-large">
+          <canary-score health="canary.health.health"
+                        result="canary.canaryResult.overallResult"
+                        score="canary.canaryResult.overallScore"></canary-score>
+        </div>
+        <div class="canary-summary-section">
+          <strong>Launched Time : </strong>
+          <span ng-if="canary.launchedDate">{{ canary.launchedDate | timestamp }}</span>
+          <span ng-if="!canary.launchedDate">Not Available</span>
+          <br/>
+          <span ng-if="canary.canaryResult.manual" class="label label-warning">Manual Canary Result</span>
+        </div>
+      </div>
+    </div>
+    <div class="horizontal-rule"></div>
     <div class="row">
       <div class="col-md-12">
-        <h5 ng-bind="canaryConfig.name"></h5>
+        <table class="table">
+          <tbody>
+          <tr>
+            <td style="border-top: none !important;"><strong>Deployment</strong></td>
+            <td style="border-top: none !important;"><strong>Canary Result</strong></td>
+            <td style="border-top: none !important;"><strong>Duration</strong></td>
+            <td style="border-top: none !important;"><strong>Report</strong></td>
+            <td style="border-top: none !important;"><strong>Last Updated</strong></td>
+          </tr>
+          <tr ng-repeat="canaryDeployment in canaryDeployments">
+            <td>
+              <strong>{{ canaryDeployment.canaryCluster.region }}</strong>
+            </td>
+            <td>
+              <canary-score result="canaryDeployment.canaryResult.result"
+                            score="canaryDeployment.canaryResult.score"
+                            health="canaryDeployment.health.health"></canary-score>
+            </td>
+            <td>
+              <span ng-if="canaryDeployment.canaryResult.timeDuration.durationString">
+                {{ canaryDeployment.canaryResult.timeDuration.durationString }}
+              </span>
+              <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString">
+                -
+              </span>
+            </td>
+            <td>
+              <a ng-if="canaryDeployment.canaryAnalysisResult.canaryReportURL"
+                 target="_blank" ng-href="{{canaryDeployment.canaryAnalysisResult.canaryReportURL}}">
+                Canary Report
+              </a>
+            </td>
+            <td>
+              <span ng-if="canaryDeployment.canaryAnalysisResult.lastUpdated">
+                {{ canaryDeployment.canaryResult.lastUpdated | timestamp}}
+              </span>
+              <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated">
+                -
+              </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'canaryConfig'">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="row">
+          <div class="col-md-4"><h5>Name</h5></div>
+          <div class="col-md-6"><h5 ng-bind="canaryConfig.name"></h5></div>
+        </div>
         <div class="horizontal-rule"></div>
       </div>
     </div>
@@ -55,6 +125,21 @@
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
+        </div>
+        <div class="row" ng-if="canaryConfig.actionsForUnhealthyCanary">
+          <div class="col-md-4 sm-label-left compact">Unhealthy Canary Actions</div>
+          <div class="col-md-6">
+            <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
+              <strong>{{ canaryAction.action }}</strong>
+              <span ng-if="canaryAction.delayBeforeActionInMins <= 0">
+                immediately
+              </span>
+              <span ng-if="!(canaryAction.delayBeforeActionInMins <= 0)">
+                after {{ canaryAction.delayBeforeActionInMins }} minutes
+              </span>
+              <br/>
+            </span>
+          </div>
         </div>
       </div>
     </div>
