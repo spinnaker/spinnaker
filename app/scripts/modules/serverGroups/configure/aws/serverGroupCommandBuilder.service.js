@@ -133,7 +133,7 @@ angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
 
         var command = {
           application: application.name,
-          strategy: 'redblack',
+          strategy: '',
           stack: serverGroupName.stack,
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
