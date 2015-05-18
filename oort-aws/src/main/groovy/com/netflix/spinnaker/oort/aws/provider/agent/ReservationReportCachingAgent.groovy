@@ -128,7 +128,7 @@ class ReservationReportCachingAgent implements CachingAgent {
           def productDescription = operatingSystemType(it.productDescription)
           def reservation = reservations["${it.availabilityZone}:${productDescription}:${it.instanceType}"]
           reservation.totalReserved.addAndGet(it.instanceCount)
-          reservation.details[credentials.name].reserved.addAndGet(it.instanceCount)
+          reservation.accounts[credentials.name].reserved.addAndGet(it.instanceCount)
         }
 
         def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
@@ -144,7 +144,7 @@ class ReservationReportCachingAgent implements CachingAgent {
               def productDescription = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX")
               def reservation = reservations["${it.placement.availabilityZone}:${productDescription}:${it.instanceType}"]
               reservation.totalUsed.incrementAndGet()
-              reservation.details[credentials.name].used.incrementAndGet()
+              reservation.accounts[credentials.name].used.incrementAndGet()
             }
           }
 
