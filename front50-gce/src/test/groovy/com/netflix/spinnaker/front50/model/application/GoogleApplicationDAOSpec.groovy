@@ -46,6 +46,7 @@ class GoogleApplicationDAOSpec extends Specification {
     then:
       1 * datastoreMock.beginTransaction(_)
       1 * datastoreMock.lookup(_)
+      1 * dao.applicationPropertiesTransformer.transformApplicationProperties(_) >> [:]
       1 * datastoreMock.commit(_)
       1 * dao.entityToApplicationConverter.mapToApp(_) >> [:]
   }
@@ -85,6 +86,9 @@ class GoogleApplicationDAOSpec extends Specification {
       application.createTs != null
       1 * datastoreMock.beginTransaction(_)
       1 * datastoreMock.lookup(_)
+      1 * dao.applicationPropertiesTransformer.transformApplicationProperties({
+        it.name == "SampleApp1"
+      }) >> { args -> new ApplicationPropertiesTransformer().transformApplicationProperties(args) }
       1 * datastoreMock.commit(_)
       1 * dao.entityToApplicationConverter.mapToApp({
         it.propertyList.find { property ->
@@ -243,11 +247,13 @@ class GoogleApplicationDAOSpec extends Specification {
     def credentialsMock = Mock(GoogleNamedAccountCredentials)
     credentialsMock.credentials >> Mock(GoogleCredentials)
 
+    def applicationPropertiesTransformer = Mock(ApplicationPropertiesTransformer)
     def entityToApplicationConverterMock = Mock(EntityToApplicationConverter)
 
     new GoogleApplicationDAO(datastoreFactory: datastoreFactoryMock,
                              datastoreOptionsBuilder: datastoreOptionsBuilderMock,
                              credentials: credentialsMock,
+                             applicationPropertiesTransformer: applicationPropertiesTransformer,
                              entityToApplicationConverter: entityToApplicationConverterMock)
   }
 

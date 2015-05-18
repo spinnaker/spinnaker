@@ -45,6 +45,7 @@ class GoogleApplicationDAO implements ApplicationDAO {
   protected DatastoreFactory datastoreFactory
   protected DatastoreOptions.Builder datastoreOptionsBuilder
   protected GoogleNamedAccountCredentials credentials
+  protected ApplicationPropertiesTransformer applicationPropertiesTransformer
   protected EntityToApplicationConverter entityToApplicationConverter
 
   @Override
@@ -205,13 +206,11 @@ class GoogleApplicationDAO implements ApplicationDAO {
 
       def entity
 
+      // The application name is lowercased prior to a lookup, so we must lowercase it on creation as well.
+      properties = applicationPropertiesTransformer.transformApplicationProperties(properties)
+
       // Iterate over each of the properties passed in.
       properties.each { newProperty ->
-        // The application name is lowercased prior to a lookup, so we must lowercase it on creation as well.
-        if (newProperty.key == "name") {
-          newProperty.value = newProperty.value.toLowerCase()
-        }
-
         // And check if each exists already.
         def existingPropertyBuilder = entityBuilder.propertyBuilderList.find {
           existingPropertyBuilder -> existingPropertyBuilder.name == newProperty.key

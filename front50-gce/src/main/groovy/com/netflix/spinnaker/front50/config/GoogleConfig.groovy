@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.config
 
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.front50.model.application.ApplicationPropertiesTransformer
 import com.netflix.spinnaker.front50.model.application.EntityToApplicationConverter
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
@@ -40,6 +41,11 @@ class GoogleConfig {
   @Bean
   EntityToApplicationConverter entityToApplicationConverter() {
     new EntityToApplicationConverter()
+  }
+
+  @Bean
+  ApplicationPropertiesTransformer applicationPropertiesTransformer() {
+    new ApplicationPropertiesTransformer()
   }
 
   static class ManagedAccount {

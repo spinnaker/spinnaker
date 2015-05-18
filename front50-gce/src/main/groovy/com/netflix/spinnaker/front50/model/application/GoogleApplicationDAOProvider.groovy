@@ -26,6 +26,9 @@ import org.springframework.stereotype.Component
 class GoogleApplicationDAOProvider implements ApplicationDAOProvider<GoogleNamedAccountCredentials> {
 
   @Autowired
+  ApplicationPropertiesTransformer applicationPropertiesTransformer
+
+  @Autowired
   EntityToApplicationConverter entityToApplicationConverter
 
   @Override
@@ -38,6 +41,7 @@ class GoogleApplicationDAOProvider implements ApplicationDAOProvider<GoogleNamed
     new GoogleApplicationDAO(datastoreFactory: DatastoreFactory.get(),
                              datastoreOptionsBuilder: new DatastoreOptions.Builder(),
                              credentials: credentials,
+                             applicationPropertiesTransformer: applicationPropertiesTransformer,
                              entityToApplicationConverter: entityToApplicationConverter)
   }
 }
