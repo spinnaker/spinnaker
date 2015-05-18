@@ -22,15 +22,12 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask  {
   @Override
   TaskResult execute(Stage stage) {
     Map taskIdMap = [:]
-    OperatingSystem operatingSystem = OperatingSystem.valueOf(stage.context.baseOs)
-    PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
-      operatingSystem.packageType.versionDelimiter, true, true, objectMapper)
-    String packageName = stage.context?.package
-    String version = stage.context?.patchVersion ?:  packageInfo.findTargetPackage()?.packageVersion
     Map stageOutputs = [:]
-    stageOutputs.put("version", version) // so the ui can display the discovered package version
+
     def instances = stage.context?.instances
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
+    String packageName = stage.context?.package
+    String version = stage.context.version
     // verify instance list, package, and version are in the context
     if(version && packageName && instances) {
       // trigger patch on target server
