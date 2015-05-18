@@ -19,10 +19,15 @@ package com.netflix.spinnaker.front50.model.application
 import com.google.api.services.datastore.client.DatastoreFactory
 import com.google.api.services.datastore.client.DatastoreOptions
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class GoogleApplicationDAOProvider implements ApplicationDAOProvider<GoogleNamedAccountCredentials> {
+
+  @Autowired
+  EntityToApplicationConverter entityToApplicationConverter
+
   @Override
   boolean supports(Class<?> credentialsClass) {
     GoogleNamedAccountCredentials.isAssignableFrom(credentialsClass)
@@ -32,6 +37,7 @@ class GoogleApplicationDAOProvider implements ApplicationDAOProvider<GoogleNamed
   ApplicationDAO getForAccount(GoogleNamedAccountCredentials credentials) {
     new GoogleApplicationDAO(datastoreFactory: DatastoreFactory.get(),
                              datastoreOptionsBuilder: new DatastoreOptions.Builder(),
-                             credentials: credentials)
+                             credentials: credentials,
+                             entityToApplicationConverter: entityToApplicationConverter)
   }
 }
