@@ -28,7 +28,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
- * @author clin
  */
 class ContextParameterProcessor {
 
@@ -57,13 +56,31 @@ class ContextParameterProcessor {
     transform(parameters, precomputeValues(context))
   }
 
-  static Map precomputeValues(Map context){
+  static Map precomputeValues(Map context) {
     context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
-    if(context.scmInfo && context.scmInfo.size() >= 2){
-      def scmInfo = context.scmInfo.find{ it.branch != 'master' && it.branch != 'develop' }
+    if (context.scmInfo && context.scmInfo.size() >= 2) {
+      def scmInfo = context.scmInfo.find { it.branch != 'master' && it.branch != 'develop' }
       context.scmInfo = scmInfo ?: context.scmInfo?.first()
     } else {
       context.scmInfo = context.scmInfo?.first()
+    }
+
+    if (context.execution) {
+      def deployedServerGroups = []
+      context.execution.stages.findAll {
+        it.context.type == 'linearDeploy'
+      }.each { deployStage ->
+        Map deployDetails = [
+          account    : deployStage.context.account,
+          capacity   : deployStage.context.capacity,
+          parentStage: deployStage.context.parentStageId,
+          region     : deployStage.context.availabilityZones.keySet().first(),
+        ]
+        deployDetails.details = deployStage.context.deploymentDetails.find { it.region == deployDetails.region }
+        deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
+        deployedServerGroups << deployDetails
+      }
+      context.deployedServerGroups = deployedServerGroups
     }
     context
   }

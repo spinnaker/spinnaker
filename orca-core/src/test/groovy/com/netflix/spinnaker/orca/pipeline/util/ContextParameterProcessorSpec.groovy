@@ -88,4 +88,162 @@ class ContextParameterProcessorSpec extends Specification {
     [trigger: [buildInfo: [scm: [[branch: 'jenkinsBranch']]]], buildInfo: [scm: [[branch: 'buildBranch']]]] | 'buildBranch'
   }
 
+  def "is able to parse deployment details correctly from execution"() {
+
+    given:
+    def source = ['deployed': '${deployedServerGroups}']
+    def context = [execution: execution]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.deployed.size == 2
+    result.deployed.serverGroup == ['flex-test-v043', 'flex-prestaging-v011']
+    result.deployed.region == ['us-east-1', 'us-west-1']
+    result.deployed[0].details.ami == 'ami-06362b6e'
+
+    where:
+    execution = [
+      "stages": [
+        [
+          "type"         : "deploy",
+          "name"         : "Deploy in us-east-1",
+          "context"      : [
+            "account"             : "test",
+            "application"         : "flex",
+            "availabilityZones"   : [
+              "us-east-1": [
+                "us-east-1c",
+                "us-east-1d",
+                "us-east-1e"
+              ]
+            ],
+            "capacity"            : [
+              "desired": 1,
+              "max"    : 1,
+              "min"    : 1
+            ],
+            "deploy.account.name" : "test",
+            "deploy.server.groups": [
+              "us-east-1": [
+                "flex-test-v043"
+              ]
+            ],
+            "deploymentDetails"   : [
+              [
+                "ami"      : "ami-06362b6e",
+                "amiSuffix": "201505150627",
+                "baseLabel": "candidate",
+                "baseOs"   : "ubuntu",
+                "package"  : "flex",
+                "region"   : "us-east-1",
+                "storeType": "ebs",
+                "vmType"   : "pv"
+              ],
+              [
+                "ami"      : "ami-f759b7b3",
+                "amiSuffix": "201505150627",
+                "baseLabel": "candidate",
+                "baseOs"   : "ubuntu",
+                "package"  : "flex",
+                "region"   : "us-west-1",
+                "storeType": "ebs",
+                "vmType"   : "pv"
+              ]
+            ],
+            "stack"               : "test",
+            "strategy"            : "highlander",
+            "subnetType"          : "internal",
+            "suspendedProcesses"  : [],
+            "terminationPolicies" : [
+              "Default"
+            ],
+            "type"                : "linearDeploy"
+          ],
+          "parentStageId": "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7",
+        ],
+        [
+          "id"     : "dca27ddd-ce7d-42a0-a1db-5b43c6b2f0c7-2-destroyAsg",
+          "type"   : "destroyAsg",
+          "name"   : "destroyAsg",
+          "context": [
+          ]
+        ],
+        [
+          "id"           : "68ad3566-4857-4c76-839e-f4afc14410c5-1-Deployinuswest1",
+          "type"         : "deploy",
+          "name"         : "Deploy in us-west-1",
+          "startTime"    : 1431672074613,
+          "endTime"      : 1431672487124,
+          "status"       : "SUCCEEDED",
+          "context"      : [
+            "account"             : "prod",
+            "application"         : "flex",
+            "availabilityZones"   : [
+              "us-west-1": [
+                "us-west-1a",
+                "us-west-1c"
+              ]
+            ],
+            "capacity"            : [
+              "desired": 1,
+              "max"    : 1,
+              "min"    : 1
+            ],
+            "cooldown"            : 10,
+            "deploy.account.name" : "prod",
+            "deploy.server.groups": [
+              "us-west-1": [
+                "flex-prestaging-v011"
+              ]
+            ],
+            "deploymentDetails"   : [
+              [
+                "ami"      : "ami-f759b7b3",
+                "amiSuffix": "201505150627",
+                "baseLabel": "candidate",
+                "baseOs"   : "ubuntu",
+                "package"  : "flex",
+                "region"   : "us-west-1",
+                "storeType": "ebs",
+                "vmType"   : "pv"
+              ],
+              [
+                "ami"      : "ami-06362b6e",
+                "amiSuffix": "201505150627",
+                "baseLabel": "candidate",
+                "baseOs"   : "ubuntu",
+                "package"  : "flex",
+                "region"   : "us-east-1",
+                "storeType": "ebs",
+                "vmType"   : "pv"
+              ]
+            ],
+            "keyPair"             : "nf-prod-keypair-a",
+            "loadBalancers"       : [
+              "flex-prestaging-frontend"
+            ],
+            "provider"            : "aws",
+            "securityGroups"      : [
+              "sg-d2c3dfbe",
+              "sg-d3c3dfbf"
+            ],
+            "stack"               : "prestaging",
+            "strategy"            : "highlander",
+            "subnetType"          : "internal",
+            "suspendedProcesses"  : [],
+            "terminationPolicies" : [
+              "Default"
+            ],
+            "type"                : "linearDeploy"
+          ],
+          "parentStageId": "68ad3566-4857-4c76-839e-f4afc14410c5",
+          "scheduledTime": 0
+        ]
+      ]
+    ]
+
+  }
+
 }
