@@ -95,9 +95,9 @@ class ReservationReportCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    Map<String, AmazonReservationReport.ReservationDetail> reservations = [:].withDefault { String key ->
+    Map<String, AmazonReservationReport.OverallReservationDetail> reservations = [:].withDefault { String key ->
       def (availabilityZone, operatingSystemType, instanceType) = key.split(":")
-      new AmazonReservationReport.ReservationDetail(
+      new AmazonReservationReport.OverallReservationDetail(
         availabilityZone: availabilityZone,
         os: AmazonReservationReport.OperatingSystemType.valueOf(operatingSystemType as String),
         instanceType: instanceType,
@@ -105,6 +105,14 @@ class ReservationReportCachingAgent implements CachingAgent {
     }
 
     def amazonReservationReport = new AmazonReservationReport(start: new Date())
+    accounts.each { NetflixAmazonCredentials credentials ->
+      amazonReservationReport.accounts << [
+        accountId: credentials.accountId,
+        name: credentials.name,
+        regions: credentials.regions*.name
+      ]
+    }
+
     accounts.each { NetflixAmazonCredentials credentials ->
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Fetching reservation report for ${credentials.name}:${region.name}")
@@ -119,7 +127,8 @@ class ReservationReportCachingAgent implements CachingAgent {
         reservedInstancesResult.reservedInstances.each {
           def productDescription = operatingSystemType(it.productDescription)
           def reservation = reservations["${it.availabilityZone}:${productDescription}:${it.instanceType}"]
-          reservation.reserved.addAndGet(it.instanceCount)
+          reservation.totalReserved.addAndGet(it.instanceCount)
+          reservation.details[credentials.name].reserved.addAndGet(it.instanceCount)
         }
 
         def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
@@ -134,7 +143,8 @@ class ReservationReportCachingAgent implements CachingAgent {
             it.getInstances().each {
               def productDescription = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX")
               def reservation = reservations["${it.placement.availabilityZone}:${productDescription}:${it.instanceType}"]
-              reservation.used.incrementAndGet()
+              reservation.totalUsed.incrementAndGet()
+              reservation.details[credentials.name].used.incrementAndGet()
             }
           }
 

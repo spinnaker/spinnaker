@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.oort.aws.model
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.netflix.spinnaker.oort.model.ReservationReport
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -25,7 +26,9 @@ class AmazonReservationReport implements ReservationReport {
   Date start
   Date end
   String type = "aws"
-  Collection<ReservationDetail> reservations = []
+
+  Collection<Map> accounts = []
+  Collection<OverallReservationDetail> reservations = []
 
   static enum OperatingSystemType {
     LINUX,
@@ -34,10 +37,25 @@ class AmazonReservationReport implements ReservationReport {
     UNKNOWN
   }
 
-  static class ReservationDetail {
+  @JsonPropertyOrder([ "availabilityZone", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details"])
+  static class OverallReservationDetail {
     String availabilityZone
     String instanceType
     OperatingSystemType os
+    AtomicInteger totalReserved = new AtomicInteger(0)
+    AtomicInteger totalUsed = new AtomicInteger(0)
+
+    Map<String, AccountReservationDetail> accounts = [:].withDefault { String accountName ->
+      new AccountReservationDetail()
+    }
+
+    @JsonProperty
+    int totalSurplus() {
+      return (totalReserved.intValue() - totalUsed.intValue())
+    }
+  }
+
+  static class AccountReservationDetail {
     AtomicInteger reserved = new AtomicInteger(0)
     AtomicInteger used = new AtomicInteger(0)
 
