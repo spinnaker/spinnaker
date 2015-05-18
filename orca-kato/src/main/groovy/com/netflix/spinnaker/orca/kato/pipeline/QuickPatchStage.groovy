@@ -69,8 +69,9 @@ class QuickPatchStage extends LinearStage {
     stage.context.put("version", version) // so the ui can display the discovered package version and we can verify for skipUpToDate
     def instances = getInstancesForCluster(stage)
 
-    // rolling means instances in the asg will be updated sequentially
-    if(stage.context.rollingPatch) {
+    if(instances.size() == 0) {
+      // skip since nothing to do
+    } else if(stage.context.rollingPatch) { // rolling means instances in the asg will be updated sequentially
       instances.each { key, value ->
         def instance = [:]
         instance.put(key, value)
@@ -147,10 +148,11 @@ class QuickPatchStage extends LinearStage {
       }
     }
 
-    if(instanceMap.size() == 0 ) {
+    stage.context.put("skippedInstances", skippedMap)
+
+    if(instanceMap.size() == 0 && skippedMap.size() == 0) {
       throw new RuntimeException("could not find any instances")
     }
-    stage.context.put("skippedInstances", skippedMap)
     stage.context.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
     return instanceMap
   }
