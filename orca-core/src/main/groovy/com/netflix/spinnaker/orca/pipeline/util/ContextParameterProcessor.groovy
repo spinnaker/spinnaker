@@ -73,10 +73,10 @@ class ContextParameterProcessor {
         Map deployDetails = [
           account    : deployStage.context.account,
           capacity   : deployStage.context.capacity,
-          parentStage: deployStage.context.parentStageId,
+          parentStage: deployStage.parentStageId,
           region     : deployStage.context.availabilityZones.keySet().first(),
         ]
-        deployDetails.details = deployStage.context.deploymentDetails.find { it.region == deployDetails.region }
+        deployDetails.putAll( deployStage.context.deploymentDetails.find { it.region == deployDetails.region } ?: [:])
         deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
         deployedServerGroups << deployDetails
       }

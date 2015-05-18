@@ -101,7 +101,7 @@ class ContextParameterProcessorSpec extends Specification {
     result.deployed.size == 2
     result.deployed.serverGroup == ['flex-test-v043', 'flex-prestaging-v011']
     result.deployed.region == ['us-east-1', 'us-west-1']
-    result.deployed[0].details.ami == 'ami-06362b6e'
+    result.deployed[0].ami == 'ami-06362b6e'
 
     where:
     execution = [
