@@ -65,11 +65,11 @@ class TriggerQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "baseOs" : OperatingSystem.ubuntu.toString(),
-      "package" : app
+      "package" : app,
+      "version" : "1.2"
     ])
 
     stage.context.instances = instances
-    stage.context.patchVersion = "1.2"
     instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
@@ -78,7 +78,6 @@ class TriggerQuipTaskSpec extends Specification {
     then:
     instances.size() * instanceService.patchInstance(app, "1.2") >>> response
     result.stageOutputs.taskIds == dnsTaskMap
-    result.stageOutputs.version == "1.2"
     result.status == ExecutionStatus.SUCCEEDED
 
     where:
@@ -105,11 +104,11 @@ class TriggerQuipTaskSpec extends Specification {
       "region" : region,
       "application" : app,
       "baseOs" : OperatingSystem.ubuntu.toString(),
-      "package" : app
+      "package" : app,
+      "version" : "1.2"
     ])
 
     stage.context.instances = instances
-    stage.context.patchVersion = patchVersion
     instances.size() * task.createInstanceService(_) >> instanceService
 
     when:
