@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 class Constants {
-  private static final String HEALTH_CHECK_NAME_PREFIX = "health-check"
+  private static final String HEALTH_CHECK_NAME_PREFIX = "hc"
 
   // These match the values described in the GCE client library documentation.
   private static final String  DEFAULT_IP_PROTOCOL = "TCP"
