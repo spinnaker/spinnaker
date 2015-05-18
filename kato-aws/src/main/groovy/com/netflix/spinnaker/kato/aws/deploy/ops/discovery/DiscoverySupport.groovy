@@ -35,6 +35,8 @@ import org.springframework.web.client.HttpServerErrorException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestTemplate
 
+import java.util.regex.Pattern
+
 @Slf4j
 @Component
 class DiscoverySupport {
@@ -59,7 +61,7 @@ class DiscoverySupport {
     }
 
     def region = description.region
-    def discovery = String.format(description.credentials.discovery, region)
+    def discovery = description.credentials.discovery.replaceAll(Pattern.quote('{{region}}'), region)
 
     def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
     def amazonEC2 = regionScopedProviderFactory.amazonClientProvider.getAmazonEC2(description.credentials, region)
