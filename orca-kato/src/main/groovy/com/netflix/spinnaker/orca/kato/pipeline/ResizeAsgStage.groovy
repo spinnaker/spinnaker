@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import com.netflix.spinnaker.orca.kato.tasks.*
+import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ResizeAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
@@ -112,9 +114,9 @@ class ResizeAsgStage extends LinearStage {
         newMax = currentMax + optionalConfig.scaleNum
 
         if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = Math.min(currentMin - optionalConfig.scaleNum, 0)
-          newDesired = Math.min(currentDesired - optionalConfig.scaleNum, 0)
-          newMax = Math.min(currentMax - optionalConfig.scaleNum, 0)
+          newMin = Math.max(currentMin - optionalConfig.scaleNum, 0)
+          newDesired = Math.max(currentDesired - optionalConfig.scaleNum, 0)
+          newMax = Math.max(currentMax - optionalConfig.scaleNum, 0)
         }
       }
 

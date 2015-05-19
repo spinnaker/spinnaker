@@ -65,12 +65,16 @@ class ResizeAsgStageSpec extends Specification {
     }
 
     stage.status == ExecutionStatus.SUCCEEDED
-    stage.beforeStages.collect { it.context } == asgs.collect{[
+    stage.beforeStages.collect { it.context } == asgs.collect {
+      [
         asgName: it.name, credentials: 'test', regions: [it.region], action: 'resume', processes: ['Launch', 'Terminate']
-    ]}
-    stage.afterStages.collect { it.context } == [config] + asgs.collect{[
-      asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend'
-    ]}
+      ]
+    }
+    stage.afterStages.collect { it.context } == [config] + asgs.collect {
+      [
+        asgName: it.name, credentials: 'test', regions: [it.region], action: 'suspend'
+      ]
+    }
 
     where:
     asgs = [[
@@ -223,7 +227,7 @@ class ResizeAsgStageSpec extends Specification {
   void "should be able to derive scaling direction from inputs"() {
     setup:
     def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  scalePct: 50, credentials: "test", action: action]
+                  scalePct: scalePct, scaleNum: scaleNum, credentials: "test", action: action]
     def pipeline = new Pipeline()
     def stage = new PipelineStage(pipeline, "resizeAsg", config)
 
@@ -247,8 +251,10 @@ class ResizeAsgStageSpec extends Specification {
     stage.beforeStages*.name == ["resumeScalingProcesses"]
 
     where:
-    action       | capacity
-    "scale_up"   | [min: 8, max: 8, desired: 8]
-    "scale_down" | [min: 2, max: 2, desired: 2]
+    action       | scalePct | scaleNum | capacity
+    "scale_up"   | 50       | null     | [min: 8, max: 8, desired: 8]
+    "scale_down" | 50       | null     | [min: 2, max: 2, desired: 2]
+    "scale_up"   | null     | 2        | [min: 7, max: 7, desired: 7]
+    "scale_down" | null     | 2        | [min: 3, max: 3, desired: 3]
   }
 }
