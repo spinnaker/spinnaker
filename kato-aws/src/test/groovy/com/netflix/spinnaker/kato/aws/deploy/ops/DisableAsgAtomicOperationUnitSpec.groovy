@@ -30,7 +30,7 @@ import org.springframework.http.ResponseEntity
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   void setupSpec() {
-    def cred = TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+    def cred = TestCredential.named('test', [discovery: 'http://{{region}}.discovery.netflix.net'])
     description.credentials = cred
     op = new DisableAsgAtomicOperation(description)
   }

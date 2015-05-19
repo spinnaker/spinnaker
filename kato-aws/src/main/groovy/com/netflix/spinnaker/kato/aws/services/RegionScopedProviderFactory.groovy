@@ -15,10 +15,14 @@
  */
 package com.netflix.spinnaker.kato.aws.services
 
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.ec2.AmazonEC2
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
+import com.netflix.spinnaker.kato.aws.deploy.DefaultLaunchConfigurationBuilder
+import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
+import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -28,6 +32,9 @@ class RegionScopedProviderFactory {
 
   @Autowired
   AmazonClientProvider amazonClientProvider
+
+  @Autowired
+  List<UserDataProvider> userDataProviders
 
   RegionScopedProvider forRegion(NetflixAmazonCredentials amazonCredentials, String region) {
     new RegionScopedProvider(amazonCredentials, region)
@@ -43,8 +50,12 @@ class RegionScopedProviderFactory {
       this.region = region
     }
 
-    private AmazonEC2 getAmazonEC2() {
-      amazonClientProvider.getAmazonEC2(amazonCredentials, region)
+    AmazonEC2 getAmazonEC2() {
+      amazonClientProvider.getAmazonEC2(amazonCredentials, region, true)
+    }
+
+    AmazonAutoScaling getAutoScaling() {
+      amazonClientProvider.getAutoScaling(amazonCredentials, region, true)
     }
 
     SubnetAnalyzer getSubnetAnalyzer() {
@@ -60,11 +71,15 @@ class RegionScopedProviderFactory {
     }
 
     AsgService getAsgService() {
-      new AsgService(amazonClientProvider.getAutoScaling(amazonCredentials, region))
+      new AsgService(amazonClientProvider.getAutoScaling(amazonCredentials, region, true))
     }
 
     AsgReferenceCopier getAsgReferenceCopier(NetflixAmazonCredentials targetCredentials, String targetRegion) {
       new AsgReferenceCopier(amazonClientProvider, amazonCredentials, region, targetCredentials, targetRegion, new IdGenerator())
+    }
+
+    LaunchConfigurationBuilder getLaunchConfigurationBuilder() {
+      new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders)
     }
   }
 

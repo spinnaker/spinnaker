@@ -7,7 +7,7 @@ import groovy.transform.CompileStatic
 class TestCredential {
     public static NetflixAmazonCredentials named(String name, Map params = [:]) {
         def credJson = [
-                name: 'name',
+                name: name,
                 accountId: "123456789012",
                 defaultKeyPair: 'default-keypair',
                 regions: [[name: 'us-east-1', availabilityZones: ['us-east-1b', 'us-east-1c', 'us-east-1d']],

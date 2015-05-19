@@ -89,6 +89,8 @@ class AutoScalingWorker {
 
   private List<UserDataProvider> userDataProviders = []
 
+  private LaunchConfigurationBuilder launchConfigurationBuilder
+
   public void setAutoScaling(AmazonAutoScaling autoScaling) {
     this.asgService = new AsgService(autoScaling)
     this.autoScaling = autoScaling
@@ -118,6 +120,8 @@ class AutoScalingWorker {
       suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
     }
 
+
+/*
     task.updateStatus AWS_PHASE, "Looking up security groups..."
     if (securityGroups) {
       def securityGroupsWithIds = []
@@ -152,7 +156,7 @@ class AutoScalingWorker {
 
       securityGroups << applicationSecurityGroup
     }
-
+*/
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
     def ancestorAsg = asgService.getAncestorAsg(application, stack, freeFormDetails)
     Integer nextSequence
@@ -165,11 +169,31 @@ class AutoScalingWorker {
     }
 
     String asgName = getAutoScalingGroupName(nextSequence)
-    String launchConfigName = getLaunchConfigurationName(nextSequence)
 
-    def userData = getUserData(asgName, launchConfigName)
-    task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
-    createLaunchConfiguration(launchConfigName, userData, securityGroups?.unique())
+    def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+      account: environment,
+      region: region,
+      baseName: asgName,
+      suffix: null,
+      ami: ami,
+      iamRole: iamRole,
+      instanceType: instanceType,
+      keyPair: keyPair,
+      associatePublicIpAddress: associatePublicIpAddress,
+      ramdiskId: ramdiskId,
+      ebsOptimized: ebsOptimized,
+      spotPrice: spotPrice,
+      instanceMonitoring: instanceMonitoring,
+      blockDevices: blockDevices,
+      securityGroups: securityGroups)
+
+    String launchConfigName = launchConfigurationBuilder.buildLaunchConfiguration(application, subnetType, settings)
+
+    //String launchConfigName = getLaunchConfigurationName(nextSequence)
+
+    //def userData = getUserData(asgName, launchConfigName)
+    //task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
+    //createLaunchConfiguration(launchConfigName, userData, securityGroups?.unique())
     task.updateStatus AWS_PHASE, "Deploying ASG."
 
     createAutoScalingGroup(asgName, launchConfigName)
