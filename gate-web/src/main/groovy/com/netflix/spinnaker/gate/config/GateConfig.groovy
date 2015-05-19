@@ -18,7 +18,8 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
@@ -39,6 +40,7 @@ import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
+import retrofit.http.Body
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -91,7 +93,7 @@ class GateConfig {
   ServiceConfiguration serviceConfiguration
 
   @Autowired
-  OkHttpClientConfig okHttpClientConfig
+  OkHttpClientConfiguration okHttpClientConfig
 
   @Bean
   OortService oortDeployService() {
@@ -144,10 +146,89 @@ class GateConfig {
   }
 
   @Bean
+  @ConditionalOnProperty('services.mahe.enabled')
+  MaheService maheService() {
+    createClient "mahe", MaheService
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(MaheService)
+  MaheService noopMaheService() {
+    new MaheService() {
+      @Override
+      Map getFastPropertiesByApplication(@Path("appName") String appName) {
+        return [:]
+      }
+
+      @Override
+      Map getAll() {
+        return [:]
+      }
+
+      @Override
+      Map getByKey(@Path("key") String key) {
+        return [:]
+      }
+
+      @Override
+      List<String> getAllKeys() {
+        return []
+      }
+
+      @Override
+      Map getImpact(@Body Map scope) {
+        return [:]
+      }
+
+      @Override
+      Map queryScope(@Body Map scope) {
+        return [:]
+      }
+
+      @Override
+      Map create(@Body Map fastProperty) {
+        return [:]
+      }
+
+      @Override
+      String promote(@Body Map fastProperty) {
+        return [:]
+      }
+
+      @Override
+      Map promotionStatus(@Path("promotionId") String promotionId) {
+        return [:]
+      }
+
+      @Override
+      Map passPromotion(@Path("promotionId") String promotionId, @Body Boolean pass) {
+        return [:]
+      }
+
+      @Override
+      List promotions() {
+        return []
+      }
+
+      @Override
+      List promotionsByApp(@Path("appId") String appId) {
+        return []
+      }
+
+      @Override
+      Map delete(@Query("propId") String propId, @Query("cmcTicket") String cmcTicket, @Query("env") String env) {
+        return [:]
+      }
+    }
+  }
+
+
+  @Bean
   @ConditionalOnProperty('services.flex.enabled')
   FlexService flexService() {
     createClient "flex", FlexService
   }
+
 
   @Bean
   @ConditionalOnMissingBean(FlexService)
@@ -236,7 +317,7 @@ class GateConfig {
 
   @Bean
   Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestFilter()
+    new AuthenticatedRequestLoggingFilter()
   }
 
   @Component

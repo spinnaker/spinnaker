@@ -90,6 +90,10 @@ interface OortService {
   List<Map> getLoadBalancers(@Path("provider") String provider)
 
   @Headers("Accept: application/json")
+  @GET("/applications/{name}/loadBalancers")
+  List<Map> getApplicationLoadBalancers(@Path("name") String appName)
+
+  @Headers("Accept: application/json")
   @GET("/{provider}/loadBalancers/{name}")
   Map getLoadBalancer(@Path("provider") String provider,
                       @Path("name") String name)
@@ -113,6 +117,10 @@ interface OortService {
                             @Path("account") String account,
                             @Path("region") String region,
                             @Path("imageId") String imageId)
+
+  @Headers("Accept: application/json")
+  @GET("/reports/reservation")
+  List<Map> getReservationReports()
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/find")

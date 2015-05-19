@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
 import com.netflix.spinnaker.gate.security.onelogin.AccountSettings
 import com.netflix.spinnaker.gate.security.onelogin.AppSettings
 import com.netflix.spinnaker.gate.security.onelogin.saml.AuthRequest
@@ -23,20 +24,18 @@ import com.netflix.spinnaker.gate.security.onelogin.saml.Response
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
+import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.RememberMeServices
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices
 import org.springframework.stereotype.Component
@@ -48,13 +47,10 @@ import org.springframework.web.bind.annotation.RestController
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@ConditionalOnProperty('onelogin.enabled')
-@EnableWebSecurity
+@ConditionalOnExpression('${onelogin.enabled:false}')
 @Configuration
 @EnableConfigurationProperties
-@Import(SecurityAutoConfiguration)
-class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
-
+class OneLoginSecurityConfig implements WebSecurityAugmentor {
   @Component
   @ConfigurationProperties("onelogin")
   static class OneLoginSecurityConfigProperties {
@@ -70,21 +66,30 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
   OneLoginSecurityConfigProperties oneLoginSecurityConfigProperties
 
   @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  void configure(HttpSecurity http,
+                 UserDetailsService userDetailsService,
+                 AuthenticationManager authenticationManager) {
+    http
+      .csrf().disable()
+      .rememberMe().rememberMeServices(rememberMeServices(userDetailsService))
 
-    http.csrf().disable()
-       .rememberMe().rememberMeServices(rememberMeServices())
     if (oneLoginSecurityConfigProperties.requireAuthentication) {
       http.authorizeRequests()
-              .antMatchers('/auth/**').permitAll()
-              .antMatchers('/**').authenticated()
-          .and()
+        .antMatchers('/auth/**').permitAll()
+        .antMatchers('/health').permitAll()
+        .antMatchers('/**').authenticated()
+        .and()
     }
   }
 
+  @Override
+  void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
+    // do nothing
+  }
+
   @Bean
-  public RememberMeServices rememberMeServices() {
-    TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("password", userDetailsService())
+  public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+    TokenBasedRememberMeServices rememberMeServices = new TokenBasedRememberMeServices("password", userDetailsService)
     rememberMeServices.setCookieName("cookieName")
     rememberMeServices.setParameter("rememberMe")
     rememberMeServices
@@ -112,9 +117,9 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @RequestMapping(method = RequestMethod.GET)
     void get(
-        @RequestParam(value = "callback", required = false) String cb,
-        @RequestParam(value = "path", required = false) String hash,
-        HttpServletRequest request, HttpServletResponse response) {
+      @RequestParam(value = "callback", required = false) String cb,
+      @RequestParam(value = "path", required = false) String hash,
+      HttpServletRequest request, HttpServletResponse response) {
       URL redirect
       if (oneLoginProperties.redirectBase) {
         redirect = (oneLoginProperties.redirectBase + '/auth/signIn').toURI().normalize().toURL()
@@ -134,14 +139,15 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @RequestMapping(value = "/signIn", method = RequestMethod.POST)
-    void signIn(
-        @RequestParam("SAMLResponse") String samlResponse, HttpServletRequest request, HttpServletResponse response) {
+    void signIn(@RequestParam("SAMLResponse") String samlResponse,
+                HttpServletRequest request,
+                HttpServletResponse response) {
       def accountSettings = new AccountSettings(certificate: certificate)
       def resp = new Response(accountSettings)
       resp.loadXmlFromBase64(samlResponse)
 
       def user = new User(resp.nameId, resp.getAttribute("User.FirstName"), resp.getAttribute("User.LastName"),
-          resp.getAttribute("memberOf"))
+        resp.getAttribute("memberOf"))
       if (!hasRequiredRole(user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
@@ -166,7 +172,7 @@ class OneLoginSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @RequestMapping(value = "/info", method = RequestMethod.GET)
-    User getUser(HttpServletResponse response) {
+    User getUser(HttpServletRequest request, HttpServletResponse response) {
       Object whoami = SecurityContextHolder.context.authentication.principal
       if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(whoami))) {
         response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"

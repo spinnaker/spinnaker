@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
+import com.netflix.spinnaker.gate.config.Service
+import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -34,14 +36,16 @@ class ApplicationServiceSpec extends Specification {
       def front50 = Mock(Front50Service)
       def credentialsService = Mock(CredentialsService)
       def oort = Mock(OortService)
+      def config = new ServiceConfiguration(services: [front50: new Service()])
 
+      service.serviceConfiguration = config
       service.front50Service = front50
       service.oortService = oort
       service.credentialsService = credentialsService
       service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-      def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [prod: [cluster]]]
+      def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(account): [cluster]]]
       def front50App = [name: name, email: email, owner: owner]
 
     when:
@@ -64,6 +68,89 @@ class ApplicationServiceSpec extends Specification {
       providerType = "aws"
   }
 
+  void "should include accounts from front50 and from oort clusters"() {
+    setup:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def credentialsService = Mock(CredentialsService)
+    def oort = Mock(OortService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.oortService = oort
+    service.credentialsService = credentialsService
+    service.executorService = Executors.newFixedThreadPool(1)
+
+    and:
+    def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(oortAccount): [cluster]]]
+    def front50App = [name: name, email: email, owner: owner]
+
+    when:
+    def app = service.get(name)
+
+    then:
+    1 * front50.credentials >> { [] }
+    1 * credentialsService.getAccounts() >> [[name: front50Account, type: providerType]]
+    1 * oort.getApplication(name) >> oortApp
+    1 * front50.getMetaData(front50Account, name) >> front50App
+
+    app == [name: name, attributes: (oortApp.attributes + front50App + [accounts: [oortAccount, front50Account].toSet().sort().join(',')]), clusters: oortApp.clusters]
+
+    where:
+    name = "foo"
+    email = "bar@baz.bz"
+    owner = "danw"
+    cluster = "cluster1"
+    oortAccount = "test"
+    front50Account = "prod"
+    providerType = "aws"
+
+  }
+
+  void "should return null when application account does not match includedAccounts"() {
+    setup:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def credentialsService = Mock(CredentialsService)
+    def oort = Mock(OortService)
+    def config = new ServiceConfiguration(services: [front50: new Service(config: [includedAccounts: includedAccount])])
+
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.oortService = oort
+    service.credentialsService = credentialsService
+    service.executorService = Executors.newFixedThreadPool(1)
+
+    when:
+    def app = service.get(name)
+
+    then:
+    1 * front50.credentials >> { [] }
+    1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
+    1 * oort.getApplication(name) >> null
+    1 * front50.getMetaData(account, name) >> [name: name, foo: 'bar']
+
+    (app == null) == expectedNull
+
+    where:
+    account | includedAccount | expectedNull
+    "test" | "test" | false
+    "prod" | "test" | true
+    "prod" | "prod,test" | false
+    "prod" | "test,dev" | true
+    "test" | null | false
+    "test" | "" | false
+
+    name = "foo"
+    providerType = "aws"
+  }
+
+
   void "should return null when no application attributes are available"() {
     setup:
     HystrixRequestContext.initializeContext()
@@ -72,7 +159,9 @@ class ApplicationServiceSpec extends Specification {
     def front50 = Mock(Front50Service)
     def credentialsService = Mock(CredentialsService)
     def oort = Mock(OortService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
 
+    service.serviceConfiguration = config
     service.front50Service = front50
     service.oortService = oort
     service.credentialsService = credentialsService
@@ -99,7 +188,8 @@ class ApplicationServiceSpec extends Specification {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
+      def config = new ServiceConfiguration(services: [front50: new Service()])
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service, serviceConfiguration: config)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
@@ -118,7 +208,8 @@ class ApplicationServiceSpec extends Specification {
     setup:
       def credentialsService = Mock(CredentialsService)
       def front50Service = Mock(Front50Service)
-      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service)
+      def config = new ServiceConfiguration(services: [front50: new Service()])
+      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service, serviceConfiguration: config)
 
     when:
       def applicationListRetrievers = service.buildApplicationListRetrievers()
@@ -141,7 +232,9 @@ class ApplicationServiceSpec extends Specification {
       def front50 = Mock(Front50Service)
       def credentialsService = Mock(CredentialsService)
       def oort = Mock(OortService)
+      def config = new ServiceConfiguration(services: [front50: new Service()])
 
+      service.serviceConfiguration = config
       service.front50Service = front50
       service.oortService = oort
       service.credentialsService = credentialsService
@@ -178,7 +271,9 @@ class ApplicationServiceSpec extends Specification {
       def front50 = Mock(Front50Service)
       def credentialsService = Mock(CredentialsService)
       def oort = Mock(OortService)
+      def config = new ServiceConfiguration(services: [front50: new Service()])
 
+      service.serviceConfiguration = config
       service.front50Service = front50
       service.oortService = oort
       service.credentialsService = credentialsService

@@ -54,4 +54,11 @@ class LoadBalancerService {
       oortService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
+
+  List getApplicationLoadBalancers(String appName) {
+    HystrixFactory.newListCommand(GROUP,
+      "getApplicationLoadBalancers", true) {
+      oortService.getApplicationLoadBalancers(appName)
+    } execute()
+  }
 }
