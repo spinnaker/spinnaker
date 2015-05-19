@@ -38,8 +38,8 @@ class CanaryService {
     mineService ? mineService.getCanaryAnalysisHistory(canaryDeploymentId) : []
   }
 
-  Map overrideCanaryResult(String canaryId, String result, String reason) {
-    mineService ? mineService.overrideCanaryResult(canaryId, result, reason) : [:]
+  Map endCanary(String canaryId, String result, String reason) {
+    mineService ? mineService.endCanary(canaryId, result, reason) : [:]
   }
 
   Map showCanary(String canaryId) {
