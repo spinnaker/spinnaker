@@ -70,6 +70,8 @@ dependencies {
   compile spinnaker.dependency("kork")
 }
 
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+
 ospackage {
   packageName = project.applicationName
   version = project.version.replaceAll("-SNAPSHOT", "")
