@@ -137,7 +137,6 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('application', _)
-      1 * errors.rejectValue('stack', _)
       1 * errors.rejectValue('image', _)
       1 * errors.rejectValue('instanceType', _)
       1 * errors.rejectValue('zone', _)

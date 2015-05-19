@@ -38,7 +38,6 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateZone(description.zone)
     helper.validateName(description.application, "application")
     helper.validateNonNegativeInt(description.initialNumReplicas, "initialNumReplicas")
-    helper.validateNotEmpty(description.stack, "stack")
 
     if (description.diskSizeGb != null && description.diskSizeGb < 10) {
       errors.rejectValue "diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid"
