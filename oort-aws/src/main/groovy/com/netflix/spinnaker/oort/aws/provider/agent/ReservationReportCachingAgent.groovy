@@ -120,11 +120,12 @@ class ReservationReportCachingAgent implements CachingAgent {
         def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
         def reservedInstancesResult = amazonEC2.describeReservedInstances(
           new DescribeReservedInstancesRequest()
-            .withOfferingType(OfferingTypeValues.HeavyUtilization)
             .withFilters(new Filter().withName("state").withValues("active"))
         )
 
-        reservedInstancesResult.reservedInstances.each {
+        reservedInstancesResult.reservedInstances.findAll {
+          ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
+        }.each {
           def productDescription = operatingSystemType(it.productDescription)
           def reservation = reservations["${it.availabilityZone}:${productDescription}:${it.instanceType}"]
           reservation.totalReserved.addAndGet(it.instanceCount)
