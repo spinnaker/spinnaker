@@ -70,17 +70,21 @@ class ContextParameterProcessor {
       context.execution.stages.findAll {
         it.context.type == 'linearDeploy'
       }.each { deployStage ->
-        Map deployDetails = [
-          account    : deployStage.context.account,
-          capacity   : deployStage.context.capacity,
-          parentStage: deployStage.parentStageId,
-          region     : deployStage.context.availabilityZones.keySet().first(),
-        ]
-        deployDetails.putAll( deployStage.context.deploymentDetails.find { it.region == deployDetails.region } ?: [:])
-        deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
-        deployedServerGroups << deployDetails
+        if(deployStage.context.'deploy.server.groups') {
+          Map deployDetails = [
+            account    : deployStage.context.account,
+            capacity   : deployStage.context.capacity,
+            parentStage: deployStage.parentStageId,
+            region     : deployStage.context.availabilityZones.keySet().first(),
+          ]
+          deployDetails.putAll(deployStage.context.deploymentDetails.find { it.region == deployDetails.region } ?: [:])
+          deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()
+          deployedServerGroups << deployDetails
+        }
       }
-      context.deployedServerGroups = deployedServerGroups
+      if(!deployedServerGroups.empty) {
+        context.deployedServerGroups = deployedServerGroups
+      }
     }
     context
   }
