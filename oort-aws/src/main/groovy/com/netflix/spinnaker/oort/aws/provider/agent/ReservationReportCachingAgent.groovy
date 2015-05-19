@@ -113,7 +113,13 @@ class ReservationReportCachingAgent implements CachingAgent {
       ]
     }
 
-    accounts.each { NetflixAmazonCredentials credentials ->
+    Set<String> processedAccountIds = []
+    accounts.sort { it.name }.each { NetflixAmazonCredentials credentials ->
+      if (processedAccountIds.contains(credentials.accountId)) {
+        log.info("Already processed account (accountId: ${credentials.accountId} / ${credentials.name})")
+        return
+      }
+
       credentials.regions.each { AmazonCredentials.AWSRegion region ->
         log.info("Fetching reservation report for ${credentials.name}:${region.name}")
 
@@ -156,6 +162,8 @@ class ReservationReportCachingAgent implements CachingAgent {
           }
         }
       }
+
+      processedAccountIds << credentials.accountId
     }
 
     amazonReservationReport.end = new Date()
