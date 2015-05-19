@@ -119,6 +119,10 @@ interface OortService {
                             @Path("imageId") String imageId)
 
   @Headers("Accept: application/json")
+  @GET("/reports/reservation")
+  List<Map> getReservationReports()
+
+  @Headers("Accept: application/json")
   @GET("/{provider}/images/find")
   List<Map> findImages(@Path("provider") String provider,
                        @Query("q") String query,
