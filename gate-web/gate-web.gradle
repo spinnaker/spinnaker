@@ -60,6 +60,7 @@ startScripts {
 }
 
 applicationName = 'gate'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
   into 'config'
 }
