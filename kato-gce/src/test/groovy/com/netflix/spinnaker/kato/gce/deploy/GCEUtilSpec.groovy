@@ -223,8 +223,8 @@ class GCEUtilSpec extends Specification {
 
   void "can derive network load balancer names from target pool urls"() {
     setup:
-      def targetPoolUrls = ["https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb1-target-pool-1417811497341",
-                            "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb2-target-pool-1417811497567"]
+      def targetPoolUrls = ["https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb1-tp-1417811497341",
+                            "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/regions/us-central1/targetPools/testlb2-tp-1417811497567"]
 
     when:
       def networkLoadBalancerNames = GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(targetPoolUrls)
