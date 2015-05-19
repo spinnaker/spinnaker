@@ -20,10 +20,10 @@ angular.module('deckApp.pipelines.stage.canary.summary.controller', [
       });
     };
 
-    this.overrideCanaryResult = function() {
+    this.endCanary = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/stages/canary/actions/overrideResult.modal.html',
-        controller: 'OverrideResultCtrl as ctrl',
+        templateUrl: 'scripts/modules/pipelines/config/stages/canary/actions/endCanary.modal.html',
+        controller: 'EndCanaryCtrl as ctrl',
         resolve: {
           canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },
         },

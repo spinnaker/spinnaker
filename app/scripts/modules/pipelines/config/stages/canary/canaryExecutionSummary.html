@@ -6,14 +6,16 @@
       {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
     </span>
 
-    <div dropdown class="btn-group pull-right">
+    <div ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
+                stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||
+                stageSummary.masterStage.context.canary.status.status === 'DISABLED'" dropdown class="btn-group pull-right">
       <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false" ng-disabled="disabled">
         Actions
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" role="menu">
-        <li><a href ng-click="canaryExecutionSummaryCtrl.generateCanaryScore()">Generate canary score</a></li>
-        <li><a href ng-click="canaryExecutionSummaryCtrl.overrideCanaryResult()">Override canary result</a></li>
+        <li><a href ng-click="canaryExecutionSummaryCtrl.generateCanaryScore()">Generate Canary Result</a></li>
+        <li><a href ng-click="canaryExecutionSummaryCtrl.endCanary()">End Canary</a></li>
       </ul>
     </div>
   </h4>
