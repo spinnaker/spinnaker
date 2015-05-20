@@ -3,19 +3,43 @@
 
   <div class="step-section-details" ng-if="detailsSection === 'canarySummary'">
     <div class="row">
-      <div class="col-md-12 canary-summary">
+      <div class="col-md-2 canary-summary">
         <div class="score score-large">
           <canary-score health="canary.health.health"
                         result="canary.canaryResult.overallResult"
                         score="canary.canaryResult.overallScore"></canary-score>
         </div>
-        <div class="canary-summary-section">
-          <strong>Launched Time : </strong>
-          <span ng-if="canary.launchedDate">{{ canary.launchedDate | timestamp }}</span>
-          <span ng-if="!canary.launchedDate">Not Available</span>
-          <br/>
-          <span ng-if="canary.canaryResult.manual" class="label label-warning">Manual Canary Result</span>
+      </div>
+      <div class="col-md-5">
+        <div class="row">
+          <span ng-if="canary.canaryResult.manual">
+            <div class="alert alert-danger canary-summary-alert">
+              <strong>Canary result has been set manually</strong>
+            </div>
+          </span>
         </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 4px;">
+      <div style="margin-left: 5px;" class="col-md-3">
+        <strong>Launched Time</strong>
+      </div>
+      <div class="col-md-8">
+        <span ng-if="canary.launchedDate">{{ canary.launchedDate | timestamp }}</span>
+        <span ng-if="!canary.launchedDate">Not Available</span>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 4px; margin-bottom: 10px;">
+      <div style="margin-left: 5px;" class="col-md-3">
+        <strong>Status</strong>
+      </div>
+      <div class="col-md-2">
+        <h5>
+          <canary-status status="canary.status.status"></canary-status>
+        </h5>
+      </div>
+      <div ng-if="canary.status.reason" class="col-md-6 canary-execution-message">
+        <span>{{ canary.status.reason }}</span>
       </div>
     </div>
     <div class="horizontal-rule"></div>
@@ -115,6 +139,10 @@
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Notification Hours</div>
           <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.notificationHours.join(', ')}}</div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 sm-label-left compact">Canary Report Recipients</div>
+          <div class="col-md-6">{{canary.recipients.join(', ')}}</div>
         </div>
       </div>
     </div>
