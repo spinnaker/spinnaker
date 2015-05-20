@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
-
 import com.netflix.spinnaker.gate.services.CanaryService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,10 +23,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-
 /**
  *
  * @author sthadeshwar
@@ -56,7 +53,7 @@ class CanaryController {
     canaryService.showCanary(id)
   }
 
-  @RequestMapping(value = "/canaries/{id:.+}/end", method = RequestMethod.DELETE)
+  @RequestMapping(value = "/canaries/{id:.+}/end", method = RequestMethod.PUT)
   Map endCanary(@PathVariable String id, @RequestBody OverrideResultCommand command) {
     canaryService.endCanary(id, command.result, command.reason)
   }

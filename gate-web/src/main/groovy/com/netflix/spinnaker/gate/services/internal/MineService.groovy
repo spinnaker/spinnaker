@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services.internal
 import retrofit.client.Response
-import retrofit.http.DELETE
 import retrofit.http.GET
 import retrofit.http.POST
 import retrofit.http.PUT
@@ -41,7 +40,7 @@ public interface MineService {
                            @Path("result") String result,
                            @Query("reason") String reason)
 
-  @DELETE("/canaries/{id}/end")
+  @PUT("/canaries/{id}/end")
   Map endCanary(@Path("id") String canaryId,
                 @Query("result") String result,
                 @Query("reason") String reason)
