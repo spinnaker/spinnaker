@@ -48,6 +48,7 @@ class ExecutionContextManager {
       def augmentedContext = [:] + stage.context
       if (stage.execution instanceof Pipeline) {
         augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
+        augmentedContext.put('execution', stage.execution)
       }
       stage.context.putAll(ContextParameterProcessor.process(stage.context, augmentedContext))
     }
