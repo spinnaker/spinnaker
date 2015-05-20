@@ -70,7 +70,7 @@ class ContextParameterProcessor {
       context.execution.stages.findAll {
         it.context.type == 'linearDeploy'
       }.each { deployStage ->
-        if(deployStage.context.'deploy.server.groups') {
+        if (deployStage.context.'deploy.server.groups' && !deployStage.context.amiName) {
           Map deployDetails = [
             account    : deployStage.context.account,
             capacity   : deployStage.context.capacity,
@@ -82,7 +82,7 @@ class ContextParameterProcessor {
           deployedServerGroups << deployDetails
         }
       }
-      if(!deployedServerGroups.empty) {
+      if (!deployedServerGroups.empty) {
         context.deployedServerGroups = deployedServerGroups
       }
     }
