@@ -37,7 +37,7 @@ class AmazonReservationReport implements ReservationReport {
     UNKNOWN
   }
 
-  @JsonPropertyOrder([ "availabilityZone", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details"])
+  @JsonPropertyOrder(["availabilityZone", "region", "availabilityZoneId", "instanceType", "os", "totalReserved", "totalUsed", "totalSurplus", "details"])
   static class OverallReservationDetail {
     String availabilityZone
     String instanceType
@@ -52,6 +52,16 @@ class AmazonReservationReport implements ReservationReport {
     @JsonProperty
     int totalSurplus() {
       return (totalReserved.intValue() - totalUsed.intValue())
+    }
+
+    @JsonProperty
+    String region() {
+      return availabilityZone[0..-2]
+    }
+
+    @JsonProperty
+    String availabilityZoneId() {
+      return availabilityZone[-1..-1]
     }
   }
 
