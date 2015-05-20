@@ -20,7 +20,14 @@ angular.module('deckApp.utils.timeFormatters', [
     return function(input) {
       var moment = momentService.utc(isNaN(parseInt(input)) ? input : parseInt(input));
       var format = moment.hours() ? 'HH:mm:ss' : 'mm:ss';
-      return moment.isValid() ? moment.format(format) : '-';
+      var dayLabel = '';
+      if(moment.isValid()) {
+        var days = Math.floor(input / 86400000);
+        if (days > 0) {
+          dayLabel = days + 'd';
+        }
+      }
+      return moment.isValid() ? dayLabel +  moment.format(format): '-';
     };
   })
   .filter('conformTime', function (momentService) {
