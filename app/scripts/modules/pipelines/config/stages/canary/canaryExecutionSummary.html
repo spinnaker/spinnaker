@@ -2,9 +2,9 @@
   <h4 class="execution-details-title">
     {{stageSummary.name || stageSummary.type }} Details
 
-    <span style="margin-left: 50px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">
-      {{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}
-    </span>
+    <!--<span style="margin-left: 50px" class="label label-default label-{{ stageSummary.masterStage.context.canary.status.status | lowercase }}">-->
+      <!--{{ stageSummary.masterStage.context.canary.status.status | lowercase | robotToHuman }}-->
+    <!--</span>-->
 
     <div ng-if="stageSummary.masterStage.context.canary.status.status === 'LAUNCHED' ||
                 stageSummary.masterStage.context.canary.status.status === 'RUNNING' ||

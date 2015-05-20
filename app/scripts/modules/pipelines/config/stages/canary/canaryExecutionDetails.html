@@ -10,13 +10,14 @@
                         score="canary.canaryResult.overallScore"></canary-score>
         </div>
       </div>
-      <div class="col-md-5">
+      <div class="col-md-9">
         <div class="row">
-          <span ng-if="canary.canaryResult.manual">
-            <div class="alert alert-danger canary-summary-alert">
-              <strong>Canary result has been set manually</strong>
-            </div>
-          </span>
+          <div ng-if="canary.canaryResult.manual">
+            <div class="alert canary-summary-alert alert-danger">Canary result has been manually set</div>
+          </div>
+          <div ng-if="!canary.canaryResult.manual && canary.canaryResult.overallResult === 'failure' && canary.canaryResult.message">
+            <div class="alert canary-summary-alert alert-danger">{{canary.canaryResult.message}}</div>
+          </div>
         </div>
       </div>
     </div>
@@ -29,16 +30,19 @@
         <span ng-if="!canary.launchedDate">Not Available</span>
       </div>
     </div>
-    <div class="row" style="margin-top: 4px; margin-bottom: 10px;">
+    <div class="row" style="margin-top: 4px;">
       <div style="margin-left: 5px;" class="col-md-3">
         <strong>Status</strong>
       </div>
-      <div class="col-md-2">
-        <h5>
-          <canary-status status="canary.status.status"></canary-status>
-        </h5>
+      <div class="col-md-8">
+        <h5><canary-status status="canary.status.status"></canary-status></h5>
       </div>
-      <div ng-if="canary.status.reason" class="col-md-6 canary-execution-message">
+    </div>
+    <div class="row" ng-if="canary.status.reason" style="margin-bottom: 10px;">
+      <div class="col-md-3" style="margin-left: 5px;">
+        <strong>Status Message</strong>
+      </div>
+      <div class="col-md-8">
         <span>{{ canary.status.reason }}</span>
       </div>
     </div>
