@@ -5,7 +5,7 @@
   <div class="rollup-summary">
     <div class="rollup-title-cell">
       <h5>
-        <span class="account-tag account-tag-{{securityGroup.accountName}}">{{securityGroup.accountName}}</span>
+        <account-label-color account="{{securityGroup.accountName}}" provider="{{securityGroup.usages.serverGroups[0].type || 'aws'}}"></account-label-color>
         <span class="glyphicon glyphicon-transfer"></span> {{securityGroup.name}}
       </h5>
     </div>
