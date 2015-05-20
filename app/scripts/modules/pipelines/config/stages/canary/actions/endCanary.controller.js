@@ -6,7 +6,7 @@ angular.module('deckApp.pipelines.stage.canary.actions.override.result.controlle
   'deckApp.executionDetails.section.service',
   'deckApp.executionDetails.section.nav.directive',
 ])
-  .controller('OverrideResultCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
+  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
 
     $scope.command = {
       reason: null,
@@ -15,9 +15,9 @@ angular.module('deckApp.pipelines.stage.canary.actions.override.result.controlle
 
     $scope.state = 'editing';
 
-    this.overrideResult = function() {
+    this.endCanary = function() {
       $scope.state = 'submitting';
-      var targetUrl = [settings.gateUrl, 'canaries', canaryId, 'overrideCanaryResult', $scope.command.result].join('/');
+      var targetUrl = [settings.gateUrl, 'canaries', canaryId, 'end'].join('/');
       $http.put(targetUrl, $scope.command)
         .success(function() {
           $scope.state = 'success';
