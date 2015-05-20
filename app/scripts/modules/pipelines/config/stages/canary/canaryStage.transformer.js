@@ -129,13 +129,16 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
           var canaryStatus = stage.context.canary.status;
           if (canaryStatus && status !== 'CANCELED') {
             if (canaryStatus.status === 'LAUNCHED' || monitorStage.status === 'RUNNING') {
-              status = 'RUNNING';
+              status = 'LAUNCHED';
             }
             if (canaryStatus.complete) {
               status = 'COMPLETED';
             }
             if (canaryStatus.status === 'DISABLED') {
               status = 'DISABLED';
+            }
+            if (canaryStatus.status === 'FAILED') {
+              status = 'FAILED';
             }
             canaryStatus.status = status;
           } else {
