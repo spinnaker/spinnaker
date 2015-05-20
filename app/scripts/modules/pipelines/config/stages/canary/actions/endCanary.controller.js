@@ -18,7 +18,7 @@ angular.module('deckApp.pipelines.stage.canary.actions.override.result.controlle
     this.endCanary = function() {
       $scope.state = 'submitting';
       var targetUrl = [settings.gateUrl, 'canaries', canaryId, 'end'].join('/');
-      $http.delete(targetUrl, $scope.command)
+      $http.put(targetUrl, $scope.command)
         .success(function() {
           $scope.state = 'success';
         })
