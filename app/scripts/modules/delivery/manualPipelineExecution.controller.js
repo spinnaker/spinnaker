@@ -9,6 +9,13 @@ angular.module('deckApp.delivery.manualPipelineExecution.controller', [
     $scope.pipeline = pipeline;
     $scope.currentlyRunningExecutions = currentlyRunningExecutions;
 
+    if(pipeline.parameterConfig.length){
+      $scope.parameters = {};
+      _.each(pipeline.parameterConfig, function(parameter) {
+        $scope.parameters[parameter.name] = parameter.default;
+      });
+    }
+
     $scope.triggers = _.chain(pipeline.triggers)
       .filter('type', 'jenkins')
       .sortBy('enabled')
