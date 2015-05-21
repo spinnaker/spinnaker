@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.Expression
@@ -103,6 +104,7 @@ class ContextParameterProcessor {
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
+      evaluationContext.registerFunction('toJson', ContextStringUtilities.getDeclaredMethod("toJson", Object))
       try {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
@@ -119,6 +121,9 @@ class ContextParameterProcessor {
 abstract class ContextStringUtilities {
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
+  }
+  static String toJson(Object o){
+    new ObjectMapper().writeValueAsString(o)
   }
 }
 
