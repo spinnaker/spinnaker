@@ -86,7 +86,8 @@ class DiscoverySupportUnitSpec extends Specification {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
-      credentials: TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+      region: 'us-east-1',
+      credentials: TestCredential.named('test', [discovery: 'http://{{region}}.discovery.netflix.net'])
     )
     def instances = ["i-123456"]
 
@@ -105,6 +106,7 @@ class DiscoverySupportUnitSpec extends Specification {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
       credentials: TestCredential.named('test', [discovery: discoveryUrl])
     )
 
@@ -139,6 +141,7 @@ class DiscoverySupportUnitSpec extends Specification {
     given:
     def task = Mock(Task)
     def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
       credentials: TestCredential.named('test', [discovery: discoveryUrl])
     )
 
@@ -221,6 +224,7 @@ class DiscoverySupportUnitSpec extends Specification {
     def task = Mock(Task)
 
     def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
       credentials: TestCredential.named('test', [discovery: discoveryUrl])
     )
 
