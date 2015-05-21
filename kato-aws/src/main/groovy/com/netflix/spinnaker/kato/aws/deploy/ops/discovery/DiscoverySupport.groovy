@@ -28,6 +28,7 @@ import groovy.transform.InheritConstructors
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpClientErrorException
@@ -48,6 +49,10 @@ class DiscoverySupport {
   @Autowired
   RestTemplate restTemplate
 
+  @Value('${discovery.retry.max:#{T(com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport).DISCOVERY_RETRY_MAX}}')
+  int discoveryRetry = DISCOVERY_RETRY_MAX
+
+
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
@@ -67,57 +72,79 @@ class DiscoverySupport {
     def amazonEC2 = regionScopedProviderFactory.amazonClientProvider.getAmazonEC2(description.credentials, region)
     def asgService = regionScopedProvider.asgService
 
+
+    def random = new Random()
+    def applicationName = retry(task, discoveryRetry) { retryCount ->
+      def instanceId = instanceIds[random.nextInt(instanceIds.size())]
+      task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId"
+      def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
+      def applicationName = instanceDetails?.body?.instance?.app
+      if (!applicationName) {
+        throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId}")
+      }
+      return applicationName
+    }
+
     instanceIds.eachWithIndex { instanceId, index ->
       if (index > 0) {
         sleep THROTTLE_MS
       }
 
-      def retryCount = 0
-      while (true) {
-        try {
-          if (!task.status.isFailed()) {
-            task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
+      def errors = [:]
+      try {
+        retry(task, discoveryRetry) { retryCount ->
+          task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
-            if (discoveryStatus == DiscoveryStatus.Disable && !verifyInstanceAndAsgExist(amazonEC2, asgService, instanceId, description.asgName)) {
-              task.updateStatus phaseName, "Instance (${instanceId}) or ASG (${description.asgName}) no longer exist, skipping"
-              return
-            }
-
-            def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
-            def applicationName = instanceDetails?.body?.instance?.app
-            if (applicationName) {
-              restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
-              task.updateStatus phaseName, "Marked ${instanceId} as '${discoveryStatus.value}' in discovery."
-            } else {
-              task.updateStatus phaseName, "Instance '${instanceId}' does not exist in discovery, unable to mark as '${discoveryStatus.value}'"
-              task.fail()
-            }
-          }
-          break
-        } catch (ResourceAccessException ex) {
-          if (retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
-            throw ex
+          if (discoveryStatus == DiscoveryStatus.Disable && !verifyInstanceAndAsgExist(amazonEC2, asgService, instanceId, description.asgName)) {
+            task.updateStatus phaseName, "Instance (${instanceId}) or ASG (${description.asgName}) no longer exist, skipping"
+            return
           }
 
+          restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
+          task.updateStatus phaseName, "Marked ${instanceId} in application $applicationName as '${discoveryStatus.value}' in discovery."
+        }
+      } catch (ex) {
+        errors[instanceId] = ex
+      }
+      if (errors) {
+        task.updateStatus phaseName, "Failed marking instances '${discoveryStatus.value}' in discovery for instances ${errors.keySet()}"
+        task.fail()
+        log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
+      }
+    }
+  }
+
+  def retry(Task task, int maxRetries, Closure c) {
+    def retryCount = 0
+    while (true) {
+      try {
+        if (!task.status.isFailed()) {
+          return c.call(retryCount)
+        }
+        break
+      } catch (RetryableException | ResourceAccessException ex) {
+        if (retryCount >= (maxRetries - 1)) {
+          throw ex
+        }
+
+        retryCount++
+        sleep(getDiscoveryRetryMs());
+
+      } catch (HttpServerErrorException | HttpClientErrorException e) {
+        if (retryCount >= (maxRetries - 1)) {
+          throw e
+        }
+
+        if (e.statusCode.is5xxServerError()) {
+          // automatically retry on server errors (but wait a little longer between attempts)
+          sleep(getDiscoveryRetryMs() * 10)
           retryCount++
-          sleep(getDiscoveryRetryMs());
-
-        } catch (HttpServerErrorException | HttpClientErrorException e) {
-          if (retryCount >= (DISCOVERY_RETRY_MAX - 1)) {
-            throw e
-          }
-
-          if (e.statusCode.is5xxServerError()) {
-            // automatically retry on server errors (but wait a little longer between attempts)
-            sleep(getDiscoveryRetryMs() * 10)
-            retryCount++
-          } else if (e.statusCode == HttpStatus.NOT_FOUND) {
-            // automatically retry on 404's
-            retryCount++
-            sleep(getDiscoveryRetryMs())
-          } else {
-            throw e
-          }
+        } else if (e.statusCode == HttpStatus.NOT_FOUND) {
+          // automatically retry on 404's
+          retryCount++
+          sleep(getDiscoveryRetryMs())
+        } else {
+          throw e
         }
       }
     }
@@ -170,4 +197,7 @@ class DiscoverySupport {
 
   @InheritConstructors
   static class DiscoveryNotConfiguredException extends RuntimeException {}
+
+  @InheritConstructors
+  static class RetryableException extends RuntimeException {}
 }

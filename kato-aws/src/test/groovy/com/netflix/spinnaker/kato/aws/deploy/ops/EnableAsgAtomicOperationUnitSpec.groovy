@@ -28,7 +28,7 @@ import org.springframework.http.ResponseEntity
 class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
   def setupSpec() {
-    def cred = TestCredential.named('test', [discovery: 'http://%s.discovery.netflix.net'])
+    def cred = TestCredential.named('test', [discovery: 'http://{{region}}.discovery.netflix.net'])
     description.credentials = cred
     op = new EnableAsgAtomicOperation(description)
 
@@ -63,7 +63,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     op.operate([])
 
     then:
-    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * restTemplate.getForEntity("http://us-west-1.discovery.netflix.net/v2/instances/i1", Map) >> new ResponseEntity<Map>(
         [
