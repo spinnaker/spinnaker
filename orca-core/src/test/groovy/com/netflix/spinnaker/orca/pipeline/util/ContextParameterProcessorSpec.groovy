@@ -444,5 +444,19 @@ class ContextParameterProcessorSpec extends Specification {
 
   }
 
+  def 'helper method to convert objects into json'(){
+
+    given:
+    def source = ['json': '${#toJson( map )}']
+    def context = [map: [ [ "v1":"k1" ], [ "v2":"k2" ] ]]
+
+    when:
+    def result = ContextParameterProcessor.process(source, context)
+
+    then:
+    result.json == '[{"v1":"k1"},{"v2":"k2"}]'
+
+  }
+
 
 }
