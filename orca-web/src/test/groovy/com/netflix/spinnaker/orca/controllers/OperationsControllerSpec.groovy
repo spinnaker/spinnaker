@@ -208,4 +208,28 @@ class OperationsControllerSpec extends Specification {
     startedPipeline.trigger.replaceMe.first() == 'val3'
   }
 
+  def "processes pipeline parameters"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    Map requestedPipeline = [
+      parameters:[
+        key1: 'value1',
+        key2: 'value2'
+      ],
+      id: '${parameters.key1}',
+      name: '${parameters.key2}'
+    ]
+
+    when:
+    controller.orchestrate(requestedPipeline, null)
+
+    then:
+    startedPipeline.id == 'value1'
+    startedPipeline.name == 'value2'
+  }
+
 }
