@@ -33,6 +33,7 @@ interface LaunchConfigurationBuilder {
     String instanceType
     String keyPair
     boolean associatePublicIpAddress
+    String kernelId
     String ramdiskId
     boolean ebsOptimized
     String spotPrice

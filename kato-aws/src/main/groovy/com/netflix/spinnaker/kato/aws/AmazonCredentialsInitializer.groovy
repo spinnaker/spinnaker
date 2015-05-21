@@ -78,11 +78,9 @@ class AmazonCredentialsInitializer {
 
     @Bean
     @DependsOn('netflixAmazonCredentials')
-    BasicAmazonDeployHandler basicAmazonDeployHandler(List<UserDataProvider> userDataProviders,
-                                                      AmazonClientProvider amazonClientProvider,
-                                                      RegionScopedProviderFactory regionScopedProviderFactory,
+    BasicAmazonDeployHandler basicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                                                       AccountCredentialsRepository accountCredentialsRepository,
                                                       KatoAWSConfig.DeployDefaults deployDefaults) {
-        new BasicAmazonDeployHandler(userDataProviders, amazonClientProvider, regionScopedProviderFactory, accountCredentialsRepository, deployDefaults)
+        new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults)
     }
 }

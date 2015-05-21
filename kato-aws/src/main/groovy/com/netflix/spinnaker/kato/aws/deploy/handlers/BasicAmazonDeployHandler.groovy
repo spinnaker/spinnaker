@@ -46,19 +46,13 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     TaskRepository.threadLocalTask.get()
   }
 
-  private final List<UserDataProvider> userDataProviders
-  private final AmazonClientProvider amazonClientProvider
   private final RegionScopedProviderFactory regionScopedProviderFactory
   private final AccountCredentialsRepository accountCredentialsRepository
   private final KatoAWSConfig.DeployDefaults deployDefaults
 
-  BasicAmazonDeployHandler(List<UserDataProvider> userDataProviders,
-                           AmazonClientProvider amazonClientProvider,
-                           RegionScopedProviderFactory regionScopedProviderFactory,
+  BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
                            KatoAWSConfig.DeployDefaults deployDefaults) {
-    this.userDataProviders = userDataProviders
-    this.amazonClientProvider = amazonClientProvider
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
     this.deployDefaults = deployDefaults
@@ -79,7 +73,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def sourceRegionScopedProvider = buildSourceRegionScopedProvider(task, description.source)
       description = copySourceAttributes(
-        sourceRegionScopedProvider, amazonClientProvider, description.source.asgName, description
+        sourceRegionScopedProvider, description.source.asgName, description
       )
 
       List<String> availabilityZones = entry.value
@@ -97,9 +91,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
       description.loadBalancers.addAll suppliedLoadBalancers?.name
 
-      def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
+      def amazonEC2 = regionScopedProvider.amazonEC2
 
       if (!description.blockDevices) {
         def blockDeviceConfig = deployDefaults.instanceClassBlockDevices.find {
@@ -152,21 +145,18 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         instanceType: description.instanceType,
         availabilityZones: availabilityZones,
         subnetType: subnetType,
-        amazonEC2: amazonEC2,
-        autoScaling: autoScaling,
         loadBalancers: description.loadBalancers,
-        userDataProviders: userDataProviders,
-        securityGroupService: regionScopedProvider.securityGroupService,
         cooldown: description.cooldown,
         healthCheckGracePeriod: description.healthCheckGracePeriod,
         healthCheckType: description.healthCheckType,
         terminationPolicies: description.terminationPolicies,
         spotPrice: description.spotPrice,
         suspendedProcesses: description.suspendedProcesses,
+        kernelId: description.kernelId,
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
         ebsOptimized: description.ebsOptimized,
-      )
+        regionScopedProvider: regionScopedProvider)
 
       def asgName = autoScalingWorker.deploy()
 
@@ -184,7 +174,6 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   @VisibleForTesting
   @PackageScope
   BasicAmazonDeployDescription copySourceAttributes(RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
-                                                    AmazonClientProvider amazonClientProvider,
                                                     String sourceAsgName,
                                                     BasicAmazonDeployDescription description) {
     if (!sourceRegionScopedProvider) {
@@ -193,10 +182,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     description = description.clone()
 
-    def sourceAutoScaling = amazonClientProvider.getAutoScaling(
-      sourceRegionScopedProvider.amazonCredentials,
-      sourceRegionScopedProvider.region
-    )
+    def sourceAutoScaling = sourceRegionScopedProvider.autoScaling
     def ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(
       new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [sourceAsgName])
     ).autoScalingGroups
@@ -256,7 +242,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def sourceAsgCredentials = accountCredentialsRepository.getOne(source.account) as NetflixAmazonCredentials
       def regionScopedProvider = regionScopedProviderFactory.forRegion(sourceAsgCredentials, sourceRegion)
 
-      def sourceAsgs = regionScopedProvider.asgService.amazonAutoScaling.describeAutoScalingGroups(
+      def sourceAsgs = regionScopedProvider.autoScaling.describeAutoScalingGroups(
         new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [source.asgName])
       )
 

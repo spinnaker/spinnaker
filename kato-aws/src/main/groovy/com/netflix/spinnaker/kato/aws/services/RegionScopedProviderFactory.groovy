@@ -71,7 +71,7 @@ class RegionScopedProviderFactory {
     }
 
     AsgService getAsgService() {
-      new AsgService(amazonClientProvider.getAutoScaling(amazonCredentials, region, true))
+      new AsgService(getAutoScaling())
     }
 
     AsgReferenceCopier getAsgReferenceCopier(NetflixAmazonCredentials targetCredentials, String targetRegion) {

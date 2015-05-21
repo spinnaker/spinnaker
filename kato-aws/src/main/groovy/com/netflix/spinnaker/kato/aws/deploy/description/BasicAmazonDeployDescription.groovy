@@ -40,6 +40,7 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   String spotPrice
   Collection<String> suspendedProcesses = []
   Collection<String> terminationPolicies
+  String kernelId
   String ramdiskId
   Boolean instanceMonitoring
   Boolean ebsOptimized

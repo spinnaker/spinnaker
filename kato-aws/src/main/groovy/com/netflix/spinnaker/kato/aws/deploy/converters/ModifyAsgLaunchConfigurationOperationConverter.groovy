@@ -22,7 +22,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component
+@Component("modifyAsgLaunchConfigurationDescription")
 class ModifyAsgLaunchConfigurationOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {

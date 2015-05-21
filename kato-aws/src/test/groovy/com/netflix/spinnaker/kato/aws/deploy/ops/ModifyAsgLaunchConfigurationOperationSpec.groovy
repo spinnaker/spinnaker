@@ -20,6 +20,10 @@ import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
+import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.DescribeImagesResult
+import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.kato.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
@@ -43,7 +47,14 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     def task = Stub(Task)
     TaskRepository.threadLocalTask.set(task)
 
+    def amazonEC2 = Stub(AmazonEC2) {
+      describeImages(_) >> { DescribeImagesRequest req ->
+        new DescribeImagesResult().withImages(req.imageIds.collect { new Image(imageId: it)})
+      }
+    }
+
     def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+      getAmazonEC2() >> amazonEC2
       getAutoScaling() >> autoScaling
       getLaunchConfigurationBuilder() >> lcBuilder
       getAsgService() >> asgService

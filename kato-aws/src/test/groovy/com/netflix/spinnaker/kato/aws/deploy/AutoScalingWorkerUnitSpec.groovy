@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.aws.deploy
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.kato.aws.services.AsgService
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
@@ -29,22 +30,26 @@ class AutoScalingWorkerUnitSpec extends Specification {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
+  def lcBuilder = Mock(LaunchConfigurationBuilder)
+  def asgService = Mock(AsgService)
+  def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+    getLaunchConfigurationBuilder() >> lcBuilder
+    getAsgService() >> asgService
+  }
+
   void "deploy workflow is create launch config, create asg"() {
     setup:
     def asgName = "myasg-v000"
     def launchConfigName = "launchConfig"
-    def lcBuilder = Mock(LaunchConfigurationBuilder)
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
-    mockAutoScalingWorker.launchConfigurationBuilder = lcBuilder
-    mockAutoScalingWorker.asgService = Mock(AsgService) {
-      1 * getAncestorAsg(_, _, _) >> null
-    }
+    mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
 
     when:
     mockAutoScalingWorker.deploy()
 
     then:
+    1 * asgService.getAncestorAsg(_, _, _) >> null
     1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
@@ -52,19 +57,16 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   void "deploy derives name from ancestor asg"() {
     setup:
-    def lcBuilder = Mock(LaunchConfigurationBuilder)
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
-    mockAutoScalingWorker.launchConfigurationBuilder = lcBuilder
+    mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
     mockAutoScalingWorker.application = "myasg"
     mockAutoScalingWorker.region = "us-east-1"
-    mockAutoScalingWorker.asgService = Mock(AsgService) {
-      1 * getAncestorAsg('myasg', _, _) >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
-    }
 
     when:
     mockAutoScalingWorker.deploy()
 
     then:
+    1 * asgService.getAncestorAsg('myasg', _, _) >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
   }

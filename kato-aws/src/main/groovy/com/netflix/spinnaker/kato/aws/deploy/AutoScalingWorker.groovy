@@ -17,26 +17,19 @@
 
 package com.netflix.spinnaker.kato.aws.deploy
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.*
-import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.SubnetData
 import com.netflix.spinnaker.kato.aws.model.SubnetTarget
-import com.netflix.spinnaker.kato.aws.services.AsgService
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
-import com.netflix.spinnaker.kato.aws.services.SecurityGroupService
-import java.util.regex.Pattern
-import org.apache.commons.codec.binary.Base64
-import org.joda.time.LocalDateTime
 
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
@@ -45,7 +38,6 @@ import org.joda.time.LocalDateTime
  */
 class AutoScalingWorker {
   private static final String AWS_PHASE = "AWS_DEPLOY"
-  private static final Pattern SG_PATTERN = Pattern.compile(/^sg-[0-9a-f]+$/)
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -67,34 +59,23 @@ class AutoScalingWorker {
   private Integer cooldown
   private Integer healthCheckGracePeriod
   private String healthCheckType
-  String spotPrice
-  Collection<String> suspendedProcesses
+  private String spotPrice
+  private Collection<String> suspendedProcesses
   private Collection<String> terminationPolicies
+  private String kernelId
   private String ramdiskId
   private Boolean instanceMonitoring
   private Boolean ebsOptimized
   private List<String> loadBalancers
   private List<String> securityGroups
   private List<String> availabilityZones
-  private AmazonEC2 amazonEC2
-  private AmazonAutoScaling autoScaling
-  private AsgService asgService
   private List<AmazonBlockDevice> blockDevices
-
-  private SecurityGroupService securityGroupService
 
   private int minInstances
   private int maxInstances
   private int desiredInstances
 
-  private List<UserDataProvider> userDataProviders = []
-
-  private LaunchConfigurationBuilder launchConfigurationBuilder
-
-  public void setAutoScaling(AmazonAutoScaling autoScaling) {
-    this.asgService = new AsgService(autoScaling)
-    this.autoScaling = autoScaling
-  }
+  private RegionScopedProviderFactory.RegionScopedProvider regionScopedProvider
 
   AutoScalingWorker() {
 
@@ -120,44 +101,8 @@ class AutoScalingWorker {
       suspendedProcesses.addAll(AutoScalingProcessType.getDisableProcesses()*.name())
     }
 
-
-/*
-    task.updateStatus AWS_PHASE, "Looking up security groups..."
-    if (securityGroups) {
-      def securityGroupsWithIds = []
-      def securityGroupsWithNames = []
-      for (securityGroup in securityGroups) {
-        if (SG_PATTERN.matcher(securityGroup).matches()) {
-          securityGroupsWithIds << securityGroup
-        } else {
-          securityGroupsWithNames << securityGroup
-        }
-      }
-      if (securityGroupsWithNames) {
-        Map<String, String> lookedUpIds
-        if (subnetType) {
-          lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames, securityGroupService.subnetAnalyzer.getVpcIdForSubnetPurpose(subnetType))
-        } else {
-          lookedUpIds = securityGroupService.getSecurityGroupIds(securityGroupsWithNames)
-        }
-        securityGroupsWithIds.addAll(lookedUpIds.values())
-      }
-      securityGroups = securityGroupsWithIds
-    } else {
-      securityGroups = []
-    }
-
-    if (!securityGroups) {
-      task.updateStatus AWS_PHASE, "Checking for security package."
-      String applicationSecurityGroup = securityGroupService.getSecurityGroupForApplication(application, subnetType)
-      if (!applicationSecurityGroup) {
-        applicationSecurityGroup = securityGroupService.createSecurityGroup(application, subnetType)
-      }
-
-      securityGroups << applicationSecurityGroup
-    }
-*/
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
+    def asgService = regionScopedProvider.asgService
     def ancestorAsg = asgService.getAncestorAsg(application, stack, freeFormDetails)
     Integer nextSequence
     if (ancestorAsg) {
@@ -180,6 +125,7 @@ class AutoScalingWorker {
       instanceType: instanceType,
       keyPair: keyPair,
       associatePublicIpAddress: associatePublicIpAddress,
+      kernelId: kernelId,
       ramdiskId: ramdiskId,
       ebsOptimized: ebsOptimized,
       spotPrice: spotPrice,
@@ -187,27 +133,11 @@ class AutoScalingWorker {
       blockDevices: blockDevices,
       securityGroups: securityGroups)
 
-    String launchConfigName = launchConfigurationBuilder.buildLaunchConfiguration(application, subnetType, settings)
+    String launchConfigName = regionScopedProvider.getLaunchConfigurationBuilder().buildLaunchConfiguration(application, subnetType, settings)
 
-    //String launchConfigName = getLaunchConfigurationName(nextSequence)
-
-    //def userData = getUserData(asgName, launchConfigName)
-    //task.updateStatus AWS_PHASE, "Building launch configuration for new ASG."
-    //createLaunchConfiguration(launchConfigName, userData, securityGroups?.unique())
     task.updateStatus AWS_PHASE, "Deploying ASG."
 
     createAutoScalingGroup(asgName, launchConfigName)
-  }
-
-  /**
-   * Builds the launch configuration name for this deployment following Netflix naming conventions.
-   *
-   * @param nextSequence
-   * @return
-   */
-  String getLaunchConfigurationName(Integer nextSequence) {
-    def nowTime = new LocalDateTime().toString("MMddYYYYHHmmss")
-    "${getAutoScalingGroupName(nextSequence)}-${nowTime}"
   }
 
   /**
@@ -222,7 +152,7 @@ class AutoScalingWorker {
   }
 
   private List<Subnet> getSubnets() {
-    DescribeSubnetsResult result = amazonEC2.describeSubnets()
+    DescribeSubnetsResult result = regionScopedProvider.amazonEC2.describeSubnets()
     List<Subnet> mySubnets = []
     for (subnet in result.subnets) {
       if (availabilityZones && !availabilityZones.contains(subnet.availabilityZone)) {
@@ -236,65 +166,6 @@ class AutoScalingWorker {
     mySubnets
   }
 
-  /**
-   * Creates a launch configuration from this deployment with supplied name, userdata, and security groups.
-   *
-   * @param name
-   * @param userData
-   * @param securityGroups
-   * @return name of the launch configuration
-   */
-  String createLaunchConfiguration(String name, String userData, List<String> securityGroups) {
-    CreateLaunchConfigurationRequest request = new CreateLaunchConfigurationRequest()
-      .withImageId(ami)
-      .withIamInstanceProfile(iamRole)
-      .withLaunchConfigurationName(name)
-      .withUserData(userData)
-      .withInstanceType(instanceType)
-      .withSecurityGroups(securityGroups)
-      .withKeyName(keyPair)
-      .withAssociatePublicIpAddress(associatePublicIpAddress)
-      .withRamdiskId(ramdiskId)
-      .withEbsOptimized(ebsOptimized)
-      .withSpotPrice(spotPrice)
-    if (instanceMonitoring) {
-      request.withInstanceMonitoring(new InstanceMonitoring(enabled: instanceMonitoring))
-    }
-
-    if (blockDevices) {
-      def mappings = []
-      for (blockDevice in blockDevices) {
-        def mapping = new BlockDeviceMapping(deviceName: blockDevice.deviceName)
-        if (blockDevice.virtualName) {
-          mapping.withVirtualName(blockDevice.virtualName)
-        } else {
-          def ebs = new Ebs()
-          blockDevice.with {
-            ebs.withVolumeSize(size)
-            if (deleteOnTermination != null) {
-              ebs.withDeleteOnTermination(deleteOnTermination)
-            }
-            if (volumeType) {
-              ebs.withVolumeType(volumeType)
-            }
-            if (iops) {
-              ebs.withIops(iops)
-            }
-            if (snapshotId) {
-              ebs.withSnapshotId(snapshotId)
-            }
-          }
-          mapping.withEbs(ebs)
-        }
-        mappings << mapping
-      }
-      request.withBlockDeviceMappings(mappings)
-    }
-
-    autoScaling.createLaunchConfiguration(request)
-
-    name
-  }
 
   /**
    * Asgard's convention for naming AutoScaling Groups.
@@ -343,6 +214,7 @@ class AutoScalingWorker {
       request.withAvailabilityZones(availabilityZones)
     }
 
+    def autoScaling = regionScopedProvider.autoScaling
     autoScaling.createAutoScalingGroup(request)
     if (suspendedProcesses) {
       autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
@@ -352,23 +224,4 @@ class AutoScalingWorker {
 
     asgName
   }
-
-  /**
-   * Traverses all supplied instances of {@link UserDataProvider} and concatenates their results to a Base64-encoded
-   * string.
-   *
-   * @param asgName
-   * @param launchConfigName
-   * @return base64-encoded String
-   */
-  String getUserData(String asgName, String launchConfigName) {
-    def data = userDataProviders.collect { udp ->
-      udp.getUserData(asgName, launchConfigName, region, environment)
-    }?.join("\n")
-    if (data.startsWith("\n")) {
-      data = data.substring(1)
-    }
-    data ? new String(Base64.encodeBase64(data?.bytes)) : null
-  }
-
 }

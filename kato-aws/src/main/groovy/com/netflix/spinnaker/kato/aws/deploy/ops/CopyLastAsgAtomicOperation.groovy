@@ -53,9 +53,6 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
-  @Autowired
-  ObjectMapper objectMapper
-
   final BasicAmazonDeployDescription description
 
   CopyLastAsgAtomicOperation(BasicAmazonDeployDescription description) {
@@ -77,7 +74,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       if (description.source.account && description.source.region && description.source.asgName) {
         sourceRegion = description.source.region
         sourceAsgCredentials = accountCredentialsProvider.getCredentials(description.source.account) as NetflixAmazonCredentials
-        def sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceAsgCredentials, sourceRegion)
+        def sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceAsgCredentials, sourceRegion, true)
         def request = new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.source.asgName])
         List<AutoScalingGroup> ancestorAsgs = sourceAutoScaling.describeAutoScalingGroups(request).autoScalingGroups
         ancestorAsg = ancestorAsgs.getAt(0)
@@ -126,6 +123,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
       newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
       newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
       newDescription.terminationPolicies = description.terminationPolicies != null ? description.terminationPolicies : ancestorAsg.terminationPolicies
+      newDescription.kernelId = description.kernelId ?: (ancestorLaunchConfiguration.kernelId ?: null)
       newDescription.ramdiskId = description.ramdiskId ?: (ancestorLaunchConfiguration.ramdiskId ?: null)
       newDescription.instanceMonitoring = description.instanceMonitoring != null ? description.instanceMonitoring : ancestorLaunchConfiguration.instanceMonitoring
       newDescription.ebsOptimized = description.ebsOptimized != null ? description.ebsOptimized : ancestorLaunchConfiguration.ebsOptimized
@@ -143,10 +141,12 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
   }
 
   String getPurposeForSubnet(String region, String subnetId) {
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
     def result = amazonEC2.describeSubnets(new DescribeSubnetsRequest().withSubnetIds(subnetId))
-    def json = result.subnets?.getAt(0)?.tags?.find { it.key == SubnetData.METADATA_TAG_KEY }?.value
-    def metadata = objectMapper.readValue(json, Map)
-    (metadata && metadata.purpose) ? metadata.purpose : null
+    if (result && result.subnets) {
+      def data = SubnetData.from(result.subnets.first())
+      return data.purpose
+    }
+    return null
   }
 }

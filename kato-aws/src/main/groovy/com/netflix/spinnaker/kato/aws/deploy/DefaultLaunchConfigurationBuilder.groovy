@@ -90,7 +90,8 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       lc.instanceType,
       lc.keyName,
       lc.associatePublicIpAddress,
-      lc.ramdiskId,
+      lc.kernelId ?: null,
+      lc.ramdiskId ?: null,
       lc.ebsOptimized,
       lc.spotPrice,
       lc.instanceMonitoring == null ? false : lc.instanceMonitoring.enabled,
@@ -182,6 +183,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
       .withSecurityGroups(settings.securityGroups)
       .withKeyName(settings.keyPair)
       .withAssociatePublicIpAddress(settings.associatePublicIpAddress)
+      .withKernelId(settings.kernelId)
       .withRamdiskId(settings.ramdiskId)
       .withEbsOptimized(settings.ebsOptimized)
       .withSpotPrice(settings.spotPrice)

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
@@ -58,7 +60,21 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     props = props.findResults { k, v -> (v != null && settingsKeys.contains(k)) ? [k, v] : null}.collectEntries()
 
     if (description.amiName) {
-      props.ami = description.amiName
+      // find by 1) result of a previous step (we performed allow launch)
+      //         2) explicitly granted launch permission
+      //            (making this the default because AllowLaunch will always
+      //             stick an explicit launch permission on the image)
+      //         3) owner
+      //         4) global
+      def amazonEC2 = regionScopedProvider.amazonEC2
+      ResolvedAmiResult ami = priorOutputs.find({
+        it instanceof ResolvedAmiResult && it.region == description.region && it.amiName == description.amiName
+      }) ?:
+        AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, description.credentials.accountId) ?:
+          AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, description.credentials.accountId) ?:
+            AmiIdResolver.resolveAmiId(amazonEC2, description.region, description.amiName, null, null)
+
+      props.ami = ami.amiId
     }
 
     def newSettings = settings.copyWith(props)
@@ -84,7 +100,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
           .withLaunchConfigurationName(newLc))
     }
 
-    task.updateStatus BASE_PHASE, "completeed for $description.asgName in $description.region."
+    task.updateStatus BASE_PHASE, "completed for $description.asgName in $description.region."
     null
   }
 
