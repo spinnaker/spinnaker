@@ -14,6 +14,7 @@ angular.module('deckApp.pipelines.stages.canary.status.directive', [])
             : scope.status === 'RUNNING' ? 'running'
             : scope.status === 'COMPLETED' ? 'completed'
             : scope.status === 'FAILED' ? 'failed'
+            : scope.status === 'TERMINATED' ? 'terminated'
             : scope.status === 'CANCELED' ? 'canceled'
             : 'unknown';
         }

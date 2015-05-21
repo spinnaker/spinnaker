@@ -140,6 +140,9 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             if (canaryStatus.status === 'FAILED') {
               status = 'FAILED';
             }
+            if (canaryStatus.status === 'TERMINATED') {
+              status = 'TERMINATED';
+            }
             canaryStatus.status = status;
           } else {
             stage.context.canary.status = { status: status };
