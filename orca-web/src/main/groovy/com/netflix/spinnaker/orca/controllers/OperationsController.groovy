@@ -66,6 +66,7 @@ class OperationsController {
 
     def augmentedContext = [:]
     augmentedContext.put('trigger', pipeline.trigger)
+    augmentedContext.put('parameters', pipeline.parameters)
     def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext)
 
     startPipeline(processedPipeline)
