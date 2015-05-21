@@ -11,6 +11,7 @@ angular.module('deckApp.pipelines.stages.canary.status.directive', [])
       link: function(scope) {
         function applyLabel() {
           scope.statusLabel = scope.status === 'LAUNCHED' ? 'launched'
+            : scope.status === 'RUNNING' ? 'running'
             : scope.status === 'COMPLETED' ? 'completed'
             : scope.status === 'FAILED' ? 'failed'
             : scope.status === 'CANCELED' ? 'canceled'

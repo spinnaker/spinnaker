@@ -69,6 +69,14 @@
               <span>{{ canary.launchedDate | timestamp }}</span>
             </div>
           </div>
+          <div class="row" ng-if="canary.endDate" style="margin-top: 6px;">
+            <div class="col-md-2">
+              <strong>Ended</strong>
+            </div>
+            <div class="col-md-9">
+              <span>{{ canary.endDate | timestamp }}</span>
+            </div>
+          </div>
           <div class="row" style="margin-top: 6px;">
             <div class="col-md-2">
               <strong>Status</strong>
@@ -83,14 +91,6 @@
             </div>
             <div class="col-md-9">
               <span>{{ canary.status.reason }}</span>
-            </div>
-          </div>
-          <div class="row" ng-if="canary.endDate">
-            <div class="col-md-2">
-              <strong>Ended</strong>
-            </div>
-            <div class="col-md-9">
-              <span>{{ canary.endDate | timestamp }}</span>
             </div>
           </div>
           <div class="row" ng-if="canary.canaryResult.manual" style="margin-top: 6px;">
