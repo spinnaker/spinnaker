@@ -97,8 +97,8 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     then:
-    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    1 * task.fail()
+    thrown(DiscoverySupport.RetryableException)
+    discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * discoverySupport.restTemplate.put(_, _)
   }
 
@@ -116,16 +116,16 @@ class DiscoverySupportUnitSpec extends Specification {
     )
 
     then:
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+      [
+        instance: [
+          app: appName
+        ]
+      ], HttpStatus.OK)
+
     0 * task.fail()
     instanceIds.each {
-      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
-        [
-          instance: [
-            app: appName
-          ]
-        ], HttpStatus.OK
-      )
       1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
     }
 
@@ -135,6 +135,45 @@ class DiscoverySupportUnitSpec extends Specification {
     discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
     appName = "kato"
     instanceIds = ["i-123", "i-456"]
+  }
+
+  void "should retry on http errors from discovery"() {
+    given:
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
+    )
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
+
+    then: "should retry on NOT_FOUND"
+    3 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> {
+      throw failure
+    }
+    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+      [
+        instance: [
+          app: appName
+        ]
+      ], HttpStatus.OK
+    )
+    instanceIds.each {
+      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
+    }
+
+    where:
+    failure << [ new HttpClientErrorException(HttpStatus.NOT_FOUND), new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)]
+
+    discoveryUrl = "http://us-west-1.discovery.netflix.net"
+    region = "us-west-1"
+    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    appName = "kato"
+    instanceIds = ["i-123"]
+
   }
 
   void "should retry on NOT_FOUND from discovery up to DISCOVERY_RETRY_MAX times"() {
@@ -148,67 +187,12 @@ class DiscoverySupportUnitSpec extends Specification {
     when:
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
-    then: "should retry on NOT_FOUND"
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    0 * task.fail()
-    instanceIds.each {
-      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> {
-        throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
-      }
-      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
-        [
-          instance: [
-            app: appName
-          ]
-        ], HttpStatus.OK
-      )
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
-    }
-
-    when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
-
-    then: "should retry on SERVICE_UNAVAILABLE"
-    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    0 * task.fail()
-    instanceIds.each {
-      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> {
-        throw new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)
-      }
-      1 * discoverySupport.restTemplate.getForEntity("${discoveryUrl}/v2/instances/${it}", Map) >> new ResponseEntity<Map>(
-        [
-          instance: [
-            app: appName
-          ]
-        ], HttpStatus.OK
-      )
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
-    }
-
-    when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
-
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
-    DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    0 * task.fail()
-    instanceIds.each {
-      DiscoverySupport.DISCOVERY_RETRY_MAX * discoverySupport.restTemplate.getForEntity(*_) >> {
-        throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
-      }
+    discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    discoverySupport.discoveryRetry * discoverySupport.restTemplate.getForEntity(*_) >> {
+      throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
     }
-    thrown(HttpClientErrorException)
-
-    when:
-    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
-
-    then: "should never retry on BAD_REQUEST"
-    1 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
-    instanceIds.each {
-      1 * discoverySupport.restTemplate.getForEntity(*_) >> {
-        throw new HttpClientErrorException(HttpStatus.BAD_REQUEST)
-      }
-    }
     thrown(HttpClientErrorException)
 
     where:
@@ -219,10 +203,9 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123"]
   }
 
-  void "should retry when encounters a ResourceAccessException"() {
+  void "should attempt to mark each instance in discovery even if some fail"() {
     given:
     def task = Mock(Task)
-
     def description = new EnableDisableInstanceDiscoveryDescription(
       region: 'us-west-1',
       credentials: TestCredential.named('test', [discovery: discoveryUrl])
@@ -231,16 +214,32 @@ class DiscoverySupportUnitSpec extends Specification {
     when:
     discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
 
-    then:
-    DiscoverySupport.DISCOVERY_RETRY_MAX * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED);
-    DiscoverySupport.DISCOVERY_RETRY_MAX * task.updateStatus(_, _) >> { throw new ResourceAccessException("msg") }
-    thrown ResourceAccessException
+    then: "should retry on NOT_FOUND"
+    (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+      [
+        instance: [
+          app: appName
+        ]
+      ], HttpStatus.OK
+    )
+    1 * task.fail()
+    instanceIds.eachWithIndex { it, idx ->
+      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:]) >> {
+        if (!result[idx]) {
+          throw new RuntimeException("blammo")
+        }
+        return null
+      }
+    }
+
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
-    discoveryStatus = DiscoverySupport.DiscoveryStatus.Disable
+    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
     appName = "kato"
-    instanceIds = ["i-123"]
+    instanceIds = ["i-123", "i-345", "i-456"]
+    result = [true, false, true]
   }
 
   @Unroll
