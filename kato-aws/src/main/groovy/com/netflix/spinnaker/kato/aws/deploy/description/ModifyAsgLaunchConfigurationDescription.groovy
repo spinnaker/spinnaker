@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,58 +14,29 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.aws.deploy.description
 
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
-import com.netflix.spinnaker.kato.deploy.DeployDescription
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription implements DeployDescription {
-  String application
+class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsDescription {
+  String region
+  String asgName
   String amiName
-  String stack
-  String freeFormDetails
   String instanceType
   String subnetType
   String iamRole
   String keyPair
   Boolean associatePublicIpAddress
-  Integer cooldown
-  Integer healthCheckGracePeriod
-  String healthCheckType
   String spotPrice
-  Collection<String> suspendedProcesses = []
-  Collection<String> terminationPolicies
-  String kernelId
   String ramdiskId
   Boolean instanceMonitoring
   Boolean ebsOptimized
 
-  boolean ignoreSequence
-  boolean startDisabled
 
   List<AmazonBlockDevice> blockDevices
-  List<String> loadBalancers
   List<String> securityGroups
-  Map<String, List<String>> availabilityZones = [:]
-  Capacity capacity = new Capacity()
-  Source source = new Source()
-
-  @Canonical
-  static class Capacity {
-    int min
-    int max
-    int desired
-  }
-
-  @Canonical
-  static class Source {
-    String account
-    String region
-    String asgName
-  }
 }

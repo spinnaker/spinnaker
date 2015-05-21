@@ -43,8 +43,8 @@ class AsgReferenceCopier {
   IdGenerator idGenerator
 
   void copyScheduledActionsForAsg(Task task, String sourceAsgName, String targetAsgName) {
-    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion)
-    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion)
+    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
+    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
     def sourceScheduledActions = new ScheduledActionsRetriever(sourceAutoScaling).retrieve(new DescribeScheduledActionsRequest(autoScalingGroupName: sourceAsgName))
     sourceScheduledActions.each { sourceScheduledAction ->
       String newScheduledActionName = [targetAsgName, 'schedule', idGenerator.nextId()].join('-')
@@ -68,8 +68,8 @@ class AsgReferenceCopier {
   }
 
   void copyScalingPoliciesWithAlarms(Task task, String sourceAsgName, String targetAsgName) {
-    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion)
-    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion)
+    AmazonAutoScaling sourceAutoScaling = amazonClientProvider.getAutoScaling(sourceCredentials, sourceRegion, true)
+    AmazonAutoScaling targetAutoScaling = amazonClientProvider.getAutoScaling(targetCredentials, targetRegion, true)
     List<ScalingPolicy> sourceAsgScalingPolicies = new ScalingPolicyRetriever(sourceAutoScaling).retrieve(new DescribePoliciesRequest(autoScalingGroupName: sourceAsgName))
     Map<String, String> sourcePolicyArnToTargetPolicyArn = [:]
     sourceAsgScalingPolicies.each { sourceAsgScalingPolicy ->
@@ -94,8 +94,8 @@ class AsgReferenceCopier {
   }
 
   void copyAlarmsForAsg(String newAutoScalingGroupName, Collection<String> sourceAlarmNames, Map<String, String> sourcePolicyArnToTargetPolicyArn) {
-    AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion)
-    AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion)
+    AmazonCloudWatch sourceCloudWatch = amazonClientProvider.getCloudWatch(sourceCredentials, sourceRegion, true)
+    AmazonCloudWatch targetCloudWatch = amazonClientProvider.getCloudWatch(targetCredentials, targetRegion, true)
     List<MetricAlarm> sourceAlarms = new AlarmRetriever(sourceCloudWatch).retrieve(new DescribeAlarmsRequest(alarmNames: sourceAlarmNames))
     def replacePolicyArnActions = { Collection<String> actions ->
       sourcePolicyArnToTargetPolicyArn.each { sourcePolicyArn, targetPolicyArn ->

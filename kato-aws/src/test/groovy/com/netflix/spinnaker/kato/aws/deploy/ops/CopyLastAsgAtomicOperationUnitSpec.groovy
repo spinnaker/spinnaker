@@ -73,7 +73,7 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
         source: new BasicAmazonDeployDescription.Source(
           asgName: "asgard-stack-v000",
-          account: "name",
+          account: 'baz',
           region: null
         ))
     }

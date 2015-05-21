@@ -67,20 +67,18 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
   def setup() {
     amazonEC2 = Mock(AmazonEC2)
-    def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-      getAutoScaling(_, _) >> Mock(AmazonAutoScaling)
-      getAmazonEC2(_, _) >> amazonEC2
-    }
-
     amazonEC2.describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-12345"))
     this.blockDevices = [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
     def rspf = Stub(RegionScopedProviderFactory) {
-      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider)
+      forRegion(_, _) >> Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+        getAutoScaling() >> Stub(AmazonAutoScaling)
+        getAmazonEC2() >> amazonEC2
+      }
     }
     def defaults = new KatoAWSConfig.DeployDefaults(iamRole: 'IamRole', instanceClassBlockDevices: [new AmazonInstanceClassBlockDevice(instanceClass: "m3", blockDevices: this.blockDevices)])
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
-    this.handler = new BasicAmazonDeployHandler([], mockAmazonClientProvider, rspf, credsRepo, defaults)
+    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults)
     Task task = Stub(Task) {
       getResultObjects() >> []
     }
@@ -209,10 +207,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     }
     def sourceRegionScopedProvider = Mock(RegionScopedProvider) {
       (launchConfig ? 1 : 0) * getAsgService() >> { return asgService }
-    }
-
-    def amazonClientProvider = Mock(AmazonClientProvider) {
-      1 * getAutoScaling(_, _) >> {
+      1 * getAutoScaling() >> {
         return Mock(AmazonAutoScaling) {
           1 * describeAutoScalingGroups(_) >> {
             return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
@@ -224,7 +219,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     when:
     def targetDescription = handler.copySourceAttributes(
-      sourceRegionScopedProvider, amazonClientProvider, "sourceAsg", description
+      sourceRegionScopedProvider, "sourceAsg", description
     )
 
     then:

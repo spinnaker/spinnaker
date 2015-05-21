@@ -45,10 +45,10 @@ class AsgReferenceCopierSpec extends Specification {
   def sourceCloudWatch = Mock(AmazonCloudWatch)
   def targetCloudWatch = Mock(AmazonCloudWatch)
   def amazonClientProvider = Stub(AmazonClientProvider) {
-    getAutoScaling(_, 'us-east-1') >> sourceAutoScaling
-    getAutoScaling(_, 'us-west-1') >> targetAutoScaling
-    getCloudWatch(_, 'us-east-1') >> sourceCloudWatch
-    getCloudWatch(_, 'us-west-1') >> targetCloudWatch
+    getAutoScaling(_, 'us-east-1', true) >> sourceAutoScaling
+    getAutoScaling(_, 'us-west-1', true) >> targetAutoScaling
+    getCloudWatch(_, 'us-east-1', true) >> sourceCloudWatch
+    getCloudWatch(_, 'us-west-1', true) >> targetCloudWatch
   }
 
   long now = System.currentTimeMillis()

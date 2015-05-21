@@ -18,18 +18,22 @@ package com.netflix.spinnaker.kato.aws.services
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateSecurityGroupRequest
 import com.amazonaws.services.ec2.model.CreateSecurityGroupResult
+import com.amazonaws.services.ec2.model.DescribeSecurityGroupsRequest
 import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.netflix.spinnaker.kato.aws.model.SecurityGroupNotFoundException
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
 import groovy.transform.Canonical
 
-@Canonical
 class SecurityGroupService {
 
-  final AmazonEC2 amazonEC2
-  final SubnetAnalyzer subnetAnalyzer
+  private final AmazonEC2 amazonEC2
+  private final SubnetAnalyzer subnetAnalyzer
 
-  /**
+  SecurityGroupService(AmazonEC2 amazonEC2, SubnetAnalyzer subnetAnalyzer) {
+    this.amazonEC2 = amazonEC2
+    this.subnetAnalyzer = subnetAnalyzer
+  }
+/**
    * Find a security group that matches the name of this application.
    *
    * @param applicationName the name of the application to lookup
@@ -38,11 +42,7 @@ class SecurityGroupService {
    */
   String getSecurityGroupForApplication(String applicationName, String subnetPurpose = null) {
     try {
-      if (subnetPurpose) {
-        getSecurityGroupIds([applicationName], subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose))?.values()?.getAt(0)
-      } else {
-        getSecurityGroupIds([applicationName])?.values()?.getAt(0)
-      }
+      getSecurityGroupIdsWithSubnetPurpose([applicationName], subnetPurpose)?.values()?.getAt(0)
     } catch (SecurityGroupNotFoundException ignore) {
       null
     }
@@ -68,6 +68,18 @@ class SecurityGroupService {
     }
     securityGroups
   }
+
+  /**
+   * Find security group ids for provided security group names
+    * @param securityGroupNames names to resolve to ids
+   * @param subnetPurpose if not null, will find the vpcId matching the subnet purpose and locate groups in that vpc
+   * @return group ids
+   */
+  Map<String, String> getSecurityGroupIdsWithSubnetPurpose(Collection<String> securityGroupNames, String subnetPurpose = null) {
+    String vpcId = subnetPurpose == null ? null : subnetAnalyzer.getVpcIdForSubnetPurpose(subnetPurpose)
+    getSecurityGroupIds(securityGroupNames, vpcId)
+  }
+
 
   /**
    * Create a security group for this this application. Security Group name will equal the application's.
