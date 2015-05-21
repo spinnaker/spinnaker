@@ -4,7 +4,7 @@
   <div class="rollup-summary">
     <div class="rollup-title-cell">
       <h5>
-        <span class="account-tag account-tag-{{loadBalancer.account}}">{{loadBalancer.account}}</span>
+        <account-label-color account="{{loadBalancer.account}}" provider="{{loadBalancer.type}}"></account-label-color>
         <span class="icon icon-elb"></span> {{loadBalancer.name}}
         <health-counts container="loadBalancer.healthCounts"></health-counts>
       </h5>

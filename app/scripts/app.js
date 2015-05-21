@@ -96,6 +96,7 @@ angular.module('deckApp', [
     'deckApp.networking',
     'deckApp.blesk',
     'deckApp.fastproperties',
+    'deckApp.accountLabelColor.directive'
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {
     // This can go away when the next version of ui-router is available (0.2.11+)

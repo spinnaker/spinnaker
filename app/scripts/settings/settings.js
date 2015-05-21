@@ -1,5 +1,6 @@
 'use strict';
 
+
 angular.module('deckApp.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
@@ -13,7 +14,7 @@ angular.module('deckApp.settings', [])
         },
         primaryAccounts: ['prod', 'test'],
         primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2'],
-        challengeDestructiveActions: ['prod'],
+        challengeDestructiveActions: ['prod', 'mceprod', 'cpl'],
         preferredZonesByAccount: {
           prod: {
             'us-east-1': ['us-east-1c', 'us-east-1d', 'us-east-1e'],
