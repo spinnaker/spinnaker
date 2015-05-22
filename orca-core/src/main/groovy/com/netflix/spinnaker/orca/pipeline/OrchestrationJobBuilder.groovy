@@ -16,12 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Job
+import org.springframework.batch.core.Step
+import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
+import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
 import static java.util.UUID.randomUUID
@@ -31,17 +35,19 @@ import static java.util.UUID.randomUUID
 class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   @Override
-  @CompileDynamic
   Job build(Orchestration orchestration) {
-    def jobBuilder = jobs.get(jobNameFor(orchestration))
-    jobBuilder = jobBuilder.flow(createTasklet(steps, orchestration)) as JobFlowBuilder
+    String name = jobNameFor(orchestration)
+    JobBuilder jobBuilder = jobs.get(name)
+    Tasklet t = new OrchestrationInitializerTasklet(orchestration)
+    Step tasklet = t.createTasklet(steps)
+    JobFlowBuilder jobFlowBuilder = jobBuilder.flow(tasklet)
     List<Stage<Orchestration>> orchestrationStages = []
     orchestrationStages.addAll(orchestration.stages)
-    orchestrationStages.each { stage ->
-      stages.get(stage.type).build(jobBuilder, stage)
+    for (stage in orchestrationStages) {
+      stages.get(stage.type).build(jobFlowBuilder, stage)
     }
 
-    jobBuilder.build().build()
+    jobFlowBuilder.build().build()
   }
 
   @Override
