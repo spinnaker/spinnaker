@@ -30,16 +30,21 @@ import org.springframework.batch.repeat.RepeatStatus
 import static org.springframework.batch.repeat.RepeatStatus.FINISHED
 
 @CompileStatic
-@TupleConstructor(includeFields = true)
 class OrchestrationInitializerTasklet implements Tasklet {
 
   static Step createTasklet(StepBuilderFactory steps, Orchestration orchestration) {
-    steps.get("orca-init-step")
-      .tasklet(new OrchestrationInitializerTasklet(orchestration))
-      .build()
+    new OrchestrationInitializerTasklet(orchestration).createTasklet(steps)
+  }
+
+  Step createTasklet(StepBuilderFactory steps) {
+    steps.get('orca-init-step').tasklet(this).build()
   }
 
   private final Orchestration orchestration
+
+  OrchestrationInitializerTasklet(Orchestration orchestration) {
+    this.orchestration = orchestration
+  }
 
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
