@@ -30,6 +30,7 @@ angular.module('deckApp.pipelines.stage.canary')
 
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
+    $scope.stage.baseline = $scope.stage.baseline || {};
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
     $scope.stage.canary = $scope.stage.canary || {};
     $scope.stage.canary.owner = $scope.stage.canary.owner || (user.authenticated ? user.name : null);
