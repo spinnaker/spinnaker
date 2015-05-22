@@ -21,6 +21,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
     })
   );
 
+
   it('should instantiate the controller', function () {
     expect(controller).toBeDefined();
   });
