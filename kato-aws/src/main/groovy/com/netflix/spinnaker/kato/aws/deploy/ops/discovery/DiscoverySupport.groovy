@@ -72,7 +72,6 @@ class DiscoverySupport {
     def amazonEC2 = regionScopedProviderFactory.amazonClientProvider.getAmazonEC2(description.credentials, region)
     def asgService = regionScopedProvider.asgService
 
-
     def random = new Random()
     def applicationName = retry(task, discoveryRetry) { retryCount ->
       def instanceId = instanceIds[random.nextInt(instanceIds.size())]
@@ -171,18 +170,19 @@ class DiscoverySupport {
                                     AsgService asgService,
                                     String instanceId,
                                     String asgName) {
-    def autoScalingGroup = asgService.getAutoScalingGroup(asgName)
-    if (!autoScalingGroup || autoScalingGroup.status) {
-      // ASG does not exist or is in the process of being deleted
-      return false
-    }
-    log.info("AutoScalingGroup (${asgName}) exists")
+    if (asgName) {
+      def autoScalingGroup = asgService.getAutoScalingGroup(asgName)
+      if (!autoScalingGroup || autoScalingGroup.status) {
+        // ASG does not exist or is in the process of being deleted
+        return false
+      }
+      log.info("AutoScalingGroup (${asgName}) exists")
 
-
-    if (!autoScalingGroup.instances.find { it.instanceId == instanceId }) {
-      return false
+      if (!autoScalingGroup.instances.find { it.instanceId == instanceId }) {
+        return false
+      }
+      log.info("AutoScalingGroup (${asgName}) contains instance (${instanceId})")
     }
-    log.info("AutoScalingGroup (${asgName}) contains instance (${instanceId})")
 
     def instances = amazonEC2.describeInstances(
       new DescribeInstancesRequest().withInstanceIds(instanceId)
