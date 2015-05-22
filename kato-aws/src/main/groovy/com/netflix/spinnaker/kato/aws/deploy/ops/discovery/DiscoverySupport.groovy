@@ -178,7 +178,6 @@ class DiscoverySupport {
     }
     log.info("AutoScalingGroup (${asgName}) exists")
 
-
     if (!autoScalingGroup.instances.find { it.instanceId == instanceId }) {
       return false
     }
@@ -191,6 +190,11 @@ class DiscoverySupport {
       return false
     }
     log.info("Instance (${instanceId}) exists")
+
+    if (autoScalingGroup.desiredCapacity == 0) {
+      return false
+    }
+    log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity})")
 
     return true
   }
