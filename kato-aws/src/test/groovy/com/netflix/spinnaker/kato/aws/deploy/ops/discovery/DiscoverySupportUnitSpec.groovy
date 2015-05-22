@@ -166,7 +166,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     where:
-    failure << [ new HttpClientErrorException(HttpStatus.NOT_FOUND), new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)]
+    failure << [new HttpClientErrorException(HttpStatus.NOT_FOUND), new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)]
 
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
@@ -263,14 +263,27 @@ class DiscoverySupportUnitSpec extends Specification {
     discoverySupport.verifyInstanceAndAsgExist(amazonEC2, asgService, "i-12345", "asgName") == isVerified
 
     where:
-    autoScalingGroup                                                               | instanceIds || isVerified
-    new AutoScalingGroup()                                                         | []          || false
-    new AutoScalingGroup().withStatus("Deleting")                                  | []          || false
-    new AutoScalingGroup().withInstances(new Instance().withInstanceId("---"))     | []          || false
-    null                                                                           | []          || false
-    new AutoScalingGroup()                                                         | []          || false
-    new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-12345")) | ["---"]     || false
-    new AutoScalingGroup().withInstances(new Instance().withInstanceId("---"))     | ["i-12345"] || false
-    new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-12345")) | ["i-12345"] || true
+    autoScalingGroup         | instanceIds || isVerified
+    bASG()                   | []          || false
+    bASG("Deleting")         | []          || false
+    bASG(null, "---")        | []          || false
+    null                     | []          || false
+    bASG(null, "i-12345")    | ["---"]     || false
+    bASG(null, "---")        | ["i-12345"] || false
+    bASG(null, "i-12345", 0) | ["i-12345"] || false
+    bASG(null, "i-12345")    | ["i-12345"] || true
+  }
+
+  private static bASG(String status = null, String instanceId = null, int capacity = 1) {
+    def autoScalingGroup = new AutoScalingGroup()
+    if (status) {
+      autoScalingGroup = autoScalingGroup.withStatus(status)
+    }
+    if (instanceId) {
+      autoScalingGroup = autoScalingGroup.withInstances(new Instance().withInstanceId(instanceId))
+    }
+    autoScalingGroup = autoScalingGroup.withDesiredCapacity(capacity)
+
+    return autoScalingGroup
   }
 }

@@ -182,6 +182,11 @@ class DiscoverySupport {
         return false
       }
       log.info("AutoScalingGroup (${asgName}) contains instance (${instanceId})")
+
+      if (autoScalingGroup.desiredCapacity == 0) {
+        return false
+      }
+      log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity})")
     }
 
     def instances = amazonEC2.describeInstances(
