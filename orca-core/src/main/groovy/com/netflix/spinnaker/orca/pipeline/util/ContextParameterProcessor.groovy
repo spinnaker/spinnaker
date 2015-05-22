@@ -58,6 +58,11 @@ class ContextParameterProcessor {
   }
 
   static Map precomputeValues(Map context) {
+
+    if(context.trigger?.parameters) {
+      context.parameters = context.trigger.parameters
+    }
+
     context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
     if (context.scmInfo && context.scmInfo.size() >= 2) {
       def scmInfo = context.scmInfo.find { it.branch != 'master' && it.branch != 'develop' }
@@ -109,8 +114,14 @@ class ContextParameterProcessor {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
       } catch (e) {
+        convertedValue = parameters
       }
-      return convertedValue ?: parameters
+
+      if(convertedValue == null){
+        convertedValue = parameters
+      }
+
+      return convertedValue
     } else {
       return parameters
     }
