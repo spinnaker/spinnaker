@@ -32,7 +32,7 @@ interface LaunchConfigurationBuilder {
     String iamRole
     String instanceType
     String keyPair
-    boolean associatePublicIpAddress
+    Boolean associatePublicIpAddress
     String kernelId
     String ramdiskId
     boolean ebsOptimized
