@@ -24,9 +24,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * Created by aglover on 9/29/14.
- */
 @Component
 public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
   static final String REFRESH_TYPE = "AmazonLoadBalancer"
@@ -36,16 +33,14 @@ public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context.credentials
-    String name = stage.context.clusterName ?
-        "${stage.context.clusterName}-frontend" :
-        stage.context.name
-    List<String> regions = [stage.context.region].flatten()
-
-    regions.each { region ->
-      def model = [loadBalancerName: name, region: region, account: account]
-      oort.forceCacheUpdate(REFRESH_TYPE, model)
+    stage.context.targets.each { Map target ->
+      target.availabilityZones.keySet().each { String region ->
+        oort.forceCacheUpdate(
+          REFRESH_TYPE, [loadBalancerName: target.name, region: region, account: target.credentials]
+        )
+      }
     }
+
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

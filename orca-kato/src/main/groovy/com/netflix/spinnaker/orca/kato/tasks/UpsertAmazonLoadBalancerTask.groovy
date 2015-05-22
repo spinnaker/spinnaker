@@ -37,24 +37,30 @@ class UpsertAmazonLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[upsertAmazonLoadBalancerDescription: stage.context]])
-                     .toBlocking()
-                     .first()
+    def context = new HashMap(stage.context)
+    context.name = context.name ?: "${stage.context.clusterName}-frontend"
+    context.availabilityZones = context.availabilityZones ?: [(context.region): context.regionZones]
 
-    Map outputs = [
-        "notification.type": "upsertamazonloadbalancer",
-        "kato.last.task.id": taskId,
-        "kato.task.id"     : taskId, // TODO retire this.
-        "upsert.account"   : stage.context.credentials,
-        "upsert.regions"   : ((Map) stage.context.availabilityZones).keySet().join(',')
+    def operations = [
+      [upsertAmazonLoadBalancerDescription: context]
     ]
 
-    if (stage.context.clusterName) {
-      outputs.clusterName = stage.context.clusterName
-    }
-    if (stage.context.name) {
-      outputs.name = stage.context.name
-    }
+    def taskId = kato.requestOperations(operations)
+      .toBlocking()
+      .first()
+
+    Map outputs = [
+      "notification.type": "upsertamazonloadbalancer",
+      "kato.last.task.id": taskId,
+      "targets"          : operations.collect {
+        [
+          credentials      : it.upsertAmazonLoadBalancerDescription.credentials,
+          availabilityZones: it.upsertAmazonLoadBalancerDescription.availabilityZones,
+          vpcId            : it.upsertAmazonLoadBalancerDescription.vpcId,
+          name             : it.upsertAmazonLoadBalancerDescription.name,
+        ]
+      }
+    ]
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
