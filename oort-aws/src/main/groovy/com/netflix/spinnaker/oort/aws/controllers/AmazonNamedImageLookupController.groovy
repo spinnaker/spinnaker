@@ -83,7 +83,7 @@ class AmazonNamedImageLookupController {
 
     Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
-    render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region)
+    render(matchesByName, matchesByImageId, null, lookupOptions.q, lookupOptions.region)
   }
 
   private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, Collection<CacheData> imageTags, String requestedName = null, String requiredRegion = null) {
@@ -101,7 +101,7 @@ class AmazonNamedImageLookupController {
         thisImage.amis[imageParts.region].add(imageParts.imageId)
       }
 
-      imageTags.each {
+      imageTags?.each {
         thisImage.tags.put(it.key, it.value)
       }
     }
@@ -115,7 +115,7 @@ class AmazonNamedImageLookupController {
         thisImage.tags << [it.key, it.value]
       }
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
-      imageTags.each {
+      imageTags?.each {
         thisImage.tags.put(it.key, it.value)
       }
     }
