@@ -17,5 +17,6 @@
 dependencies {
   compile project(":orca-core")
   spinnaker.group('retrofitDefault')
+  compile spinnaker.dependency('korkWeb')
   compile spinnaker.dependency('rxJava')
 }
