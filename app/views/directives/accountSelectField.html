@@ -1,4 +1,4 @@
-<div>
+<div ng-if="!multiselect">
 <select class="form-control input-sm"
         ng-model="component[field]"
         ng-change="onChange()"
@@ -8,5 +8,17 @@
   <option ng-if="primaryAccounts.length && secondaryAccounts.length" disabled>---------------</option>
   <option ng-repeat="account in secondaryAccounts" value="{{account}}" ng-selected="component[field] === account">{{account}}</option>
 </select>
+
   <p class="form-control-static" ng-if="readOnly">{{component[field]}}</p>
+</div>
+
+<div ng-if="multiselect">
+  <ui-select multiple ng-model="component[field]" class="form-control input-sm" style="width:200px" >
+    <ui-select-match>
+      {{$item}}
+    </ui-select-match>
+    <ui-select-choices group-by="groupBy" repeat="account in mergedAccounts | filter: $select.search">
+        {{account}}
+    </ui-select-choices>
+  </ui-select>
 </div>

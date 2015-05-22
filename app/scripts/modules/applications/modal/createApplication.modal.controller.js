@@ -6,7 +6,7 @@ angular
     'ui.bootstrap',
     'deckApp.applications.write.service',
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $log, $state, $modalInstance, applicationWriter) {
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter) {
     var vm = this;
 
     vm.appNameList = _.pluck($scope.applications, 'name');
@@ -19,32 +19,63 @@ angular
       vm.emailErrorMsg = '';
     };
 
-    vm.submit = function() {
 
+    vm.createAppForAccount = function(application, accounts, deferred) {
+      if(!deferred) {
+        deferred = $q.defer();
+      }
+
+      var account = _.head(accounts);
+
+      if (account) {
+        applicationWriter.createApplication(application, account)
+          .then(
+            function(taskResponse){
+              console.log('taskResponse', taskResponse);
+              taskResponse
+                .watchForTaskComplete()
+                .then(
+                  vm.createAppForAccount(application, _.tail(accounts), deferred)
+                );
+            },
+            function() {
+              vm.errorMsgs.push('Could not create application');
+              goIdle();
+              return deferred.reject();
+            }
+        );
+
+      } else {
+        deferred.resolve();
+      }
+
+      deferred.notify();
+      return deferred.promise;
+    };
+
+
+    vm.submit = function() {
       submitting();
 
       vm.application.name = vm.application.name.toLowerCase();
 
-      applicationWriter.createApplication(vm.application)
-        .then(function(taskResponse) {
-          taskResponse
-            .watchForTaskComplete()
-            .then(
-              routeToApplication,
-              extractErrorMsg
-            );
-        }, function() {
-          vm.errorMsgs.push('Could not create application');
-          goIdle();
-        });
+      var promise = vm.createAppForAccount(vm.application, vm.application.account);
+      promise.then(
+        routeToApplication,
+        extractErrorMsg
+      );
+
     };
 
+
     function routeToApplication() {
-      $state.go(
-        'home.applications.application.insight.clusters', {
-          application: vm.application.name,
-        }
-      );
+      _.delay( function() {
+          $state.go(
+            'home.applications.application.insight.clusters', {
+              application: vm.application.name,
+            }
+          );
+      } , 1000 );
     }
 
     function submitting() {
