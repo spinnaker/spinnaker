@@ -37,7 +37,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   });
 
-  it('includes SSL Certificate field when any listener is HTTPS', function() {
+  it('includes SSL Certificate field when any listener is HTTPS or SSL', function() {
     var loadBalancer = {
       listeners: [],
     };
@@ -49,6 +49,13 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     loadBalancer.listeners.push({ externalProtocol: 'HTTP' });
     expect(this.ctrl.showSslCertificateIdField()).toBe(false);
 
+    loadBalancer.listeners.push({ externalProtocol: 'TCP' });
+    expect(this.ctrl.showSslCertificateIdField()).toBe(false);
+
+    loadBalancer.listeners.push({ externalProtocol: 'SSL' });
+    expect(this.ctrl.showSslCertificateIdField()).toBe(true);
+
+    loadBalancer.listeners = [{externalProtocol: 'HTTP'}];
     loadBalancer.listeners.push({ externalProtocol: 'HTTPS' });
     expect(this.ctrl.showSslCertificateIdField()).toBe(true);
 
