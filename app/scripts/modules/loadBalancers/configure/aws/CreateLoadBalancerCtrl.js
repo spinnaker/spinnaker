@@ -279,7 +279,7 @@ angular.module('deckApp.loadBalancer.aws.create.controller', [
 
     this.showSslCertificateIdField = function() {
       return $scope.loadBalancer.listeners.some(function(listener) {
-        return listener.externalProtocol === 'HTTPS';
+        return listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL';
       });
     };
 
