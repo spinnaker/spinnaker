@@ -188,6 +188,8 @@ class ReservationReportCachingAgent implements CachingAgent {
         return AmazonReservationReport.OperatingSystemType.WINDOWS
       case "Red Hat Enterprise Linux".toUpperCase():
         return AmazonReservationReport.OperatingSystemType.RHEL
+      case "Windows with SQL Server Standard".toUpperCase():
+        return AmazonReservationReport.OperatingSystemType.WINDOWS_SQL_SERVER
       default:
         log.error("Unknown product description (${productDescription})")
         return AmazonReservationReport.OperatingSystemType.UNKNOWN

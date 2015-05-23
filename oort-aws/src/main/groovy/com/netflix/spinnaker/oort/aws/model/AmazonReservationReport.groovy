@@ -33,6 +33,7 @@ class AmazonReservationReport implements ReservationReport {
   static enum OperatingSystemType {
     LINUX,
     WINDOWS,
+    WINDOWS_SQL_SERVER,
     RHEL,
     UNKNOWN
   }
