@@ -73,15 +73,24 @@ class DiscoverySupport {
     def asgService = regionScopedProvider.asgService
 
     def random = new Random()
-    def applicationName = retry(task, discoveryRetry) { retryCount ->
-      def instanceId = instanceIds[random.nextInt(instanceIds.size())]
-      task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId"
-      def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
-      def applicationName = instanceDetails?.body?.instance?.app
-      if (!applicationName) {
-        throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId}")
+    def applicationName = null
+
+    try {
+      applicationName = retry(task, discoveryRetry) { retryCount ->
+        def instanceId = instanceIds[random.nextInt(instanceIds.size())]
+        task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId"
+
+        def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
+        def appName = instanceDetails?.body?.instance?.app
+        if (!appName) {
+          throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId}")
+        }
+        return appName
       }
-      return applicationName
+    } catch (e) {
+      if (discoveryStatus == DiscoveryStatus.Enable || verifyInstanceAndAsgExist(amazonEC2, asgService, null, description.asgName)) {
+        throw e
+      }
     }
 
     instanceIds.eachWithIndex { instanceId, index ->
@@ -189,13 +198,15 @@ class DiscoverySupport {
       log.info("AutoScalingGroup (${asgName}) has non-zero desired capacity (desiredCapacity: ${autoScalingGroup.desiredCapacity})")
     }
 
-    def instances = amazonEC2.describeInstances(
-      new DescribeInstancesRequest().withInstanceIds(instanceId)
-    ).reservations*.instances.flatten()
-    if (!instances.find { it.instanceId == instanceId }) {
-      return false
+    if (instanceId) {
+      def instances = amazonEC2.describeInstances(
+        new DescribeInstancesRequest().withInstanceIds(instanceId)
+      ).reservations*.instances.flatten()
+      if (!instances.find { it.instanceId == instanceId }) {
+        return false
+      }
+      log.info("Instance (${instanceId}) exists")
     }
-    log.info("Instance (${instanceId}) exists")
 
     return true
   }

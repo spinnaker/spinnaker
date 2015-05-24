@@ -69,7 +69,11 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
         return Mock(AmazonClientProvider)
       }
       _ * forRegion(_, _) >> {
-        return Mock(RegionScopedProviderFactory.RegionScopedProvider)
+        return Mock(RegionScopedProviderFactory.RegionScopedProvider) {
+          _ * getAsgService() >> {
+            return asgService
+          }
+        }
       }
     }
 
