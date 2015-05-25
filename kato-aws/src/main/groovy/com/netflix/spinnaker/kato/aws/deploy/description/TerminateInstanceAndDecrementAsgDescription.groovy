@@ -21,4 +21,6 @@ class TerminateInstanceAndDecrementAsgDescription extends AbstractAmazonCredenti
   String asgName
   String instance
   String region
+  Boolean adjustMinIfNecessary
+  Boolean setMaxToNewDesired
 }
