@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup.transformer.service')
+  .module('spinnaker.serverGroup.transformer.service')
   .factory('gceServerGroupTransformer', function () {
 
     function convertServerGroupCommandToDeployConfiguration(base) {

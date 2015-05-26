@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.providerSelection')
+angular.module('spinnaker.providerSelection')
   .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings, providerOptions) {
 
     $scope.command = {

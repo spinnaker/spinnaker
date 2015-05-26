@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.executionDetails.controller', [
+angular.module('spinnaker.executionDetails.controller', [
   'ui.router',
-  'deckApp.pipelines.config'
+  'spinnaker.pipelines.config'
 ])
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;

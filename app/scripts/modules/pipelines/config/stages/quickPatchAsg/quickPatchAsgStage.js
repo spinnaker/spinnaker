@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.quickPatchAsg')
+angular.module('spinnaker.pipelines.stage.quickPatchAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Quick Patch Server Group',

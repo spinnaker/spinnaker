@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.caches.scheduled', ['deckApp.scheduler'])
+angular.module('spinnaker.caches.scheduled', ['spinnaker.scheduler'])
   .factory('scheduledCache', function($cacheFactory, $http, scheduler) {
     // returns a cache that is cleared according to the scheduler
     var that = {};

@@ -7,7 +7,7 @@ describe('Service: confirmationModalService', function () {
   var confirmationModalService;
 
   beforeEach(
-    module('deckApp.confirmationModal.service')
+    module('spinnaker.confirmationModal.service')
   );
 
   beforeEach(

@@ -1,8 +1,8 @@
 'use strict';
 
 /* jshint newcap: false */
-angular.module('deckApp.caches.viewStateCache', [
-  'deckApp.caches.core',
+angular.module('spinnaker.caches.viewStateCache', [
+  'spinnaker.caches.core',
 
 ]).factory('viewStateCache', function(deckCacheFactory) {
 

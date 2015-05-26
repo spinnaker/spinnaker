@@ -1,11 +1,11 @@
 'use strict';
 
 angular
-  .module('deckApp.config', [
-    'deckApp.editApplication.modal.controller',
-    'deckApp.editNotification.modal.controller',
-    'deckApp.config.controller',
-    'deckApp.config.notification.service',
-    'deckApp.config.notification.details.filter'
+  .module('spinnaker.config', [
+    'spinnaker.editApplication.modal.controller',
+    'spinnaker.editNotification.modal.controller',
+    'spinnaker.config.controller',
+    'spinnaker.config.notification.service',
+    'spinnaker.config.notification.details.filter'
   ]);
 

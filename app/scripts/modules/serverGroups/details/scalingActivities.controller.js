@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.scalingActivities.controller', [
-  'deckApp.serverGroup.read.service',
+angular.module('spinnaker.scalingActivities.controller', [
+  'spinnaker.serverGroup.read.service',
 ])
   .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup) {
     var ctrl = this;

@@ -2,7 +2,7 @@
 
 describe('DeployInitializerCtrl', function() {
 
-  beforeEach(module('deckApp.serverGroup.configure.aws.deployInitialization.controller'));
+  beforeEach(module('spinnaker.serverGroup.configure.aws.deployInitialization.controller'));
 
   beforeEach(inject(function ($controller, $rootScope, _, $q) {
     this.$controller = $controller;

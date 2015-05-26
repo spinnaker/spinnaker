@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.feedback', [
-    'deckApp.feedback.modal.controller',
-    'deckApp.feedback.directive'
+  .module('spinnaker.feedback', [
+    'spinnaker.feedback.modal.controller',
+    'spinnaker.feedback.directive'
   ]);

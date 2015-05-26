@@ -4,7 +4,7 @@ describe('Filter: ipSort', function() {
   var filter;
 
   beforeEach(
-    module('deckApp.networking.ip.sort.filter')
+    module('spinnaker.networking.ip.sort.filter')
   );
 
   beforeEach(

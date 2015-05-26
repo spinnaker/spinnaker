@@ -1,13 +1,13 @@
 'use strict';
 
 angular
-  .module('deckApp.fastproperties', [
-    'deckApp.fastProperties.controller',
-    'deckApp.applicationProperties.controller',
-    'deckApp.fastPropertyScope.selection.directive',
-    'deckApp.deleteFastProperty.controller',
-    'deckApp.fastProperties.rollouts.controller',
-    'deckApp.fastProperties.data.controller',
-    'deckApp.fastProperty.progressBar.directive',
-    'deckApp.fastProperty.constraints.directive',
+  .module('spinnaker.fastproperties', [
+    'spinnaker.fastProperties.controller',
+    'spinnaker.applicationProperties.controller',
+    'spinnaker.fastPropertyScope.selection.directive',
+    'spinnaker.deleteFastProperty.controller',
+    'spinnaker.fastProperties.rollouts.controller',
+    'spinnaker.fastProperties.data.controller',
+    'spinnaker.fastProperty.progressBar.directive',
+    'spinnaker.fastProperty.constraints.directive',
   ]);

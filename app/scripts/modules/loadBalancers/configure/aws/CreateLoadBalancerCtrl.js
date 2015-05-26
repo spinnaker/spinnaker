@@ -1,17 +1,17 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.aws.create.controller', [
-  'deckApp.loadBalancer.write.service',
-  'deckApp.account.service',
-  'deckApp.aws.loadBalancer.transformer.service',
-  'deckApp.securityGroup.read.service',
-  'deckApp.modalWizard',
-  'deckApp.tasks.monitor.service',
-  'deckApp.subnet.read.service',
-  'deckApp.caches.initializer',
-  'deckApp.caches.infrastructure',
-  'deckApp.naming',
+angular.module('spinnaker.loadBalancer.aws.create.controller', [
+  'spinnaker.loadBalancer.write.service',
+  'spinnaker.account.service',
+  'spinnaker.aws.loadBalancer.transformer.service',
+  'spinnaker.securityGroup.read.service',
+  'spinnaker.modalWizard',
+  'spinnaker.tasks.monitor.service',
+  'spinnaker.subnet.read.service',
+  'spinnaker.caches.initializer',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.naming',
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,

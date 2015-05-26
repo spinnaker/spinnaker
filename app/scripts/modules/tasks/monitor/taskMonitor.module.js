@@ -1,5 +1,5 @@
 
 angular
-  .module('deckApp.tasks.monitor', [
-    'deckApp.tasks.monitor.directive'
+  .module('spinnaker.tasks.monitor', [
+    'spinnaker.tasks.monitor.directive'
   ]);

@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.editNotification.modal.controller',[
+  .module('spinnaker.editNotification.modal.controller',[
   ])
   .controller('EditNotificationController', function ($scope, $modalInstance, notification) {
     var vm = this;

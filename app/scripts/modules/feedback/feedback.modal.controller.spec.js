@@ -8,7 +8,7 @@ describe('Controller: FeedbackModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.feedback.modal.controller')
+    module('spinnaker.feedback.modal.controller')
   );
 
   beforeEach(

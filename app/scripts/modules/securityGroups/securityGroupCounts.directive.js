@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.counts', [])
+angular.module('spinnaker.securityGroup.counts', [])
   .directive('securityGroupCounts', function () {
     return {
       templateUrl: 'scripts/modules/securityGroups/securityGroupCounts.html',

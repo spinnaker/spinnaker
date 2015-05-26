@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.ajaxError.interceptor', [
-    'deckApp.utils.lodash'
+  .module('spinnaker.ajaxError.interceptor', [
+    'spinnaker.utils.lodash'
   ])
   .factory('ajaxErrorInterceptor', function($q, $analytics, _) {
 

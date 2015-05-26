@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.config.validator.directive', ['deckApp.pipelines.config.validator.service'])
+angular.module('spinnaker.pipelines.config.validator.directive', ['spinnaker.pipelines.config.validator.service'])
   .directive('pipelineConfigErrors', function() {
     return {
       restrict: 'E',

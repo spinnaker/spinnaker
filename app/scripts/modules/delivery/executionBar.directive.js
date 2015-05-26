@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionBar.directive', [])
+angular.module('spinnaker.delivery.executionBar.directive', [])
   .directive('executionBar', function() {
     return {
       restrict: 'E',

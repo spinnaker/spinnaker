@@ -7,7 +7,7 @@ describe('FastPropertyScopeService', function () {
   var appId = 'mahe';
 
 
-  beforeEach(module('deckApp.fastPropertyScope.service'));
+  beforeEach(module('spinnaker.fastPropertyScope.service'));
 
   beforeEach(inject(function (_$q_, _$rootScope_, _FastPropertyScopeService_) {
     $rootScope = _$rootScope_;

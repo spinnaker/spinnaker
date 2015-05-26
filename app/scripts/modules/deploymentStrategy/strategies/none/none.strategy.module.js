@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy.none', [])
+angular.module('spinnaker.deploymentStrategy.none', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'None',

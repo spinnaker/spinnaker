@@ -41,7 +41,7 @@ describe('Service: instanceTypeService', function () {
   var categories = [generalFamily, memoryFamily, microFamily];
 
   beforeEach(
-    module('deckApp.instanceType.service')
+    module('spinnaker.instanceType.service')
   );
 
   beforeEach(

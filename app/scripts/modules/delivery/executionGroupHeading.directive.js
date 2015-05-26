@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionGroupHeading.directive', [
-  'deckApp.delivery.execution.triggers',
+angular.module('spinnaker.delivery.executionGroupHeading.directive', [
+  'spinnaker.delivery.execution.triggers',
 ])
   .directive('executionGroupHeading', function() {
     return {

@@ -10,7 +10,7 @@ describe('Controller: LoadBalancersNavCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.loadBalancer.nav.controller')
+    module('spinnaker.loadBalancer.nav.controller')
   );
 
   beforeEach(

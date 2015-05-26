@@ -1,7 +1,7 @@
 'use strict';
 
 describe('pipelineConfigService', function () {
-  beforeEach(module('deckApp.pipelines'));
+  beforeEach(module('spinnaker.pipelines'));
 
   beforeEach(inject(function (pipelineConfigService, settings, $httpBackend, $rootScope) {
     this.service = pipelineConfigService;

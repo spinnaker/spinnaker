@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.states', [])
+angular.module('spinnaker.delivery.states', [])
   .constant('deliveryStates', {
     executions: {
       name: 'executions',

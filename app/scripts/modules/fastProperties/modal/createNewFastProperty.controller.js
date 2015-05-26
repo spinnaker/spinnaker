@@ -2,8 +2,8 @@
 
 // newFP
 angular
-  .module('deckApp.newFastProperty.controller', [
-    'deckApp.fastProperty.write.service'
+  .module('spinnaker.newFastProperty.controller', [
+    'spinnaker.fastProperty.write.service'
   ])
   .controller('CreateFastPropertyModalController', function($modalInstance, clusters, appName, fastProperty, fastPropertyWriter, isEditing ){
     var vm = this;

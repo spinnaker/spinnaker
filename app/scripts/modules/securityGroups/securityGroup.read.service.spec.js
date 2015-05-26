@@ -10,7 +10,7 @@ describe('Service: securityGroupReader', function () {
     $scope;
 
   beforeEach(
-    module('deckApp.securityGroup.read.service')
+    module('spinnaker.securityGroup.read.service')
   );
 
   beforeEach(

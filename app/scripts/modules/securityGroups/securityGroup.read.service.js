@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.read.service', [
+angular.module('spinnaker.securityGroup.read.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.search.service',
-  'deckApp.utils.lodash',
-  'deckApp.caches.scheduled',
-  'deckApp.caches.infrastructure',
-  'deckApp.notifications.service'
+  'spinnaker.settings',
+  'spinnaker.search.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.caches.scheduled',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.notifications.service'
 ])
   .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
 

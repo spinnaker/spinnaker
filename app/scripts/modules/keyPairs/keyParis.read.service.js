@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.keyPairs.read.service', ['restangular', 'deckApp.caches.infrastructure'])
+  .module('spinnaker.keyPairs.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
   .factory('keyPairsReader', function ($q, Restangular, infrastructureCaches) {
 
     function listKeyPairs() {

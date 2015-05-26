@@ -2,7 +2,7 @@
 
 describe('namingService', function() {
   beforeEach(function() {
-    module('deckApp.naming')
+    module('spinnaker.naming')
   });
 
   beforeEach(inject(function(namingService) {

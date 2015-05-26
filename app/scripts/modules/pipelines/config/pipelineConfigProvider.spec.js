@@ -5,7 +5,7 @@ describe('authenticationProvider: application startup', function() {
 
   describe('registration', function() {
     beforeEach(
-      module('deckApp.pipelines', function(pipelineConfigProvider) {
+      module('spinnaker.pipelines', function(pipelineConfigProvider) {
         configurer = pipelineConfigProvider;
       }));
 

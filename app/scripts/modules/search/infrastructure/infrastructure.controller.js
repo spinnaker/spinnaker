@@ -2,7 +2,7 @@
 
 
 
-angular.module('deckApp.search.infrastructure')
+angular.module('spinnaker.search.infrastructure')
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService) {
 
     var search = infrastructureSearchService();

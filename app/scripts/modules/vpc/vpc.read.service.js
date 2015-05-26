@@ -2,7 +2,7 @@
 
 
 angular
-  .module('deckApp.vpc.read.service', ['restangular', 'deckApp.caches.infrastructure'])
+  .module('spinnaker.vpc.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
   .factory('vpcReader', function ($q, Restangular, infrastructureCaches ) {
 
     function listVpcs() {

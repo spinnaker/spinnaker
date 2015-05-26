@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.findAmi', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.account',
-  'deckApp.pipelines.stage.findAmi.executionDetails.controller',
+angular.module('spinnaker.pipelines.stage.findAmi', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.account',
+  'spinnaker.pipelines.stage.findAmi.executionDetails.controller',
 ]);

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delegation', [])
+angular.module('spinnaker.delegation', [])
   .factory('serviceDelegate', function($injector) {
 
     function getDelegate(provider, serviceBaseName) {

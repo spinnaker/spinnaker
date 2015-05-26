@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
+angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,

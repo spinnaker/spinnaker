@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.aws.image.service', [
+angular.module('spinnaker.aws.image.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.caches.scheduled',
+  'spinnaker.settings',
+  'spinnaker.caches.scheduled',
 ])
   .factory('awsImageService', function ($q, Restangular,  settings, scheduledCache) {
 

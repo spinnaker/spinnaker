@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pageTitle', ['ui.router'])
+angular.module('spinnaker.pageTitle', ['ui.router'])
   .factory('pageTitleService', function($rootScope, $stateParams) {
 
     function handleRoutingStart() {

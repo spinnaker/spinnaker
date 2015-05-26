@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.account.service', [
+angular.module('spinnaker.account.service', [
   'restangular',
-  'deckApp.utils.lodash',
-  'deckApp.caches.scheduled',
-  'deckApp.caches.infrastructure'
+  'spinnaker.utils.lodash',
+  'spinnaker.caches.scheduled',
+  'spinnaker.caches.infrastructure'
 ])
   .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
 

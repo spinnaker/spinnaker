@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy.highlander', [])
+angular.module('spinnaker.deploymentStrategy.highlander', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Highlander',

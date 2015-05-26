@@ -1,15 +1,15 @@
 'use strict';
 
 angular
-  .module('deckApp.securityGroup', [
-    'deckApp.securityGroup.all.controller',
-    'deckApp.securityGroup.single.controller',
-    'deckApp.securityGroup.rollup',
-    'deckApp.securityGroup.read.service',
-    'deckApp.securityGroup.write.service',
-    'deckApp.securityGroup.counts',
-    'deckApp.securityGroup.aws.details.controller',
-    'deckApp.securityGroup.aws.edit.controller',
-    'deckApp.securityGroup.aws.create.controller',
-    'deckApp.securityGroup.navigation.controller'
+  .module('spinnaker.securityGroup', [
+    'spinnaker.securityGroup.all.controller',
+    'spinnaker.securityGroup.single.controller',
+    'spinnaker.securityGroup.rollup',
+    'spinnaker.securityGroup.read.service',
+    'spinnaker.securityGroup.write.service',
+    'spinnaker.securityGroup.counts',
+    'spinnaker.securityGroup.aws.details.controller',
+    'spinnaker.securityGroup.aws.edit.controller',
+    'spinnaker.securityGroup.aws.create.controller',
+    'spinnaker.securityGroup.navigation.controller'
   ]);

@@ -1,15 +1,15 @@
 'use strict';
 
-angular.module('deckApp.utils', [
-  'deckApp.utils.appendTransform',
-  'deckApp.utils.d3',
-  'deckApp.utils.isEmpty',
-  'deckApp.utils.jQuery',
-  'deckApp.utils.lodash',
-  'deckApp.utils.moment',
-  'deckApp.utils.scrollTrigger',
-  'deckApp.utils.selectOnDblClick',
-  'deckApp.utils.rx',
-  'deckApp.utils.stickyHeader',
-  'deckApp.utils.timeFormatters',
+angular.module('spinnaker.utils', [
+  'spinnaker.utils.appendTransform',
+  'spinnaker.utils.d3',
+  'spinnaker.utils.isEmpty',
+  'spinnaker.utils.jQuery',
+  'spinnaker.utils.lodash',
+  'spinnaker.utils.moment',
+  'spinnaker.utils.scrollTrigger',
+  'spinnaker.utils.selectOnDblClick',
+  'spinnaker.utils.rx',
+  'spinnaker.utils.stickyHeader',
+  'spinnaker.utils.timeFormatters',
 ]);

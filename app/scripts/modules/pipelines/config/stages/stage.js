@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stageConfig', [
+angular.module('spinnaker.pipelines.stageConfig', [
 
 ])
   .directive('pipelineConfigStage', function() {

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.monitor.service', [])
+angular.module('spinnaker.tasks.monitor.service', [])
   .factory('taskMonitorService', function($exceptionHandler) {
 
     /**

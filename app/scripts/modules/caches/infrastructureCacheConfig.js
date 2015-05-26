@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.caches.infrastructure.config', [])
+angular.module('spinnaker.caches.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
     credentials: {},
     vpcs: {},

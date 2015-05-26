@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionGroupHeading.controller', [
-  'deckApp.utils.lodash',
-  'deckApp.pipelines.config.service',
-  'deckApp.delivery.executions.service',
-  'deckApp.caches.collapsibleSectionState',
-  'deckApp.delivery.manualPipelineExecution.controller',
-  'deckApp.confirmationModal.service'
+angular.module('spinnaker.delivery.executionGroupHeading.controller', [
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines.config.service',
+  'spinnaker.delivery.executions.service',
+  'spinnaker.caches.collapsibleSectionState',
+  'spinnaker.delivery.manualPipelineExecution.controller',
+  'spinnaker.confirmationModal.service'
 ])
   .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;

@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.destroyAsg.executionDetails.controller', [
+angular.module('spinnaker.pipelines.stage.destroyAsg.executionDetails.controller', [
   'ui.router',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive',
 ])
   .controller('DestroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

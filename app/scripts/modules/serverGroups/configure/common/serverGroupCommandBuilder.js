@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.common.service', [
+angular.module('spinnaker.serverGroup.configure.common.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.delegation'
+  'spinnaker.settings',
+  'spinnaker.delegation'
 ])
   .factory('serverGroupCommandBuilder', function (settings, Restangular, serviceDelegate) {
 

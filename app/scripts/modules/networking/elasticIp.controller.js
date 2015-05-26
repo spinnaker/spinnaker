@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.elasticIp.controller', [
+angular.module('spinnaker.elasticIp.controller', [
   'ui.bootstrap',
-  'deckApp.account.service',
-  'deckApp.elasticIp.write.service',
-  'deckApp.tasks.monitor.service'
+  'spinnaker.account.service',
+  'spinnaker.elasticIp.write.service',
+  'spinnaker.tasks.monitor.service'
 ])
   .controller('ElasticIpCtrl', function($scope, $modalInstance, accountService, elasticIpWriter, taskMonitorService,
                                                 application, serverGroup, elasticIp, onTaskComplete) {

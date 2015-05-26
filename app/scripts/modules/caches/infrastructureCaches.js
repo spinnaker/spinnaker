@@ -1,8 +1,8 @@
 'use strict';
 
 /* jshint newcap: false */
-angular.module('deckApp.caches.infrastructure', [
-  'deckApp.caches.core',
+angular.module('spinnaker.caches.infrastructure', [
+  'spinnaker.caches.core',
 ])
   .factory('infrastructureCaches', function(deckCacheFactory) {
 

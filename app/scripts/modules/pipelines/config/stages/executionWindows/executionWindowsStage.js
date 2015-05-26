@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.executionWindows')
+angular.module('spinnaker.pipelines.stage.executionWindows')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Restrict Execution During',

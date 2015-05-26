@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.authentication.service', [
+angular.module('spinnaker.authentication.service', [
   'ui.bootstrap',
-  'deckApp.settings',
+  'spinnaker.settings',
 ])
   .factory('authenticationService', function ( $rootScope, $http, $location, $window, $modal, settings, redirectService ) {
     var user = {

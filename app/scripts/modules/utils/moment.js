@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.moment', [])
+angular.module('spinnaker.utils.moment', [])
   .factory('momentService', function() {
     return moment;
   });

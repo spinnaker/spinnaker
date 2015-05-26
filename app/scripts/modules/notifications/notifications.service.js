@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.notifications.service', [
-  'deckApp.utils.rx',
-  'deckApp.settings',
+angular.module('spinnaker.notifications.service', [
+  'spinnaker.utils.rx',
+  'spinnaker.settings',
 ])
   .factory('notificationsService', function(RxService, settings) {
     var stream = new RxService.Subject();

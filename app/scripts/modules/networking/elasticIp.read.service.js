@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.elasticIp.read.service', [
+  .module('spinnaker.elasticIp.read.service', [
     'restangular',
   ])
   .factory('elasticIpReader', function (Restangular, $exceptionHandler) {

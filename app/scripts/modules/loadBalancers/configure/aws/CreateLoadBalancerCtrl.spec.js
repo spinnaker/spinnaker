@@ -3,7 +3,7 @@
 describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('deckApp.loadBalancer.aws.create.controller'));
+  beforeEach(module('spinnaker.loadBalancer.aws.create.controller'));
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope) {

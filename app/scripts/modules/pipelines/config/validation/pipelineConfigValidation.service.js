@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.config.validator.service', [
-  'deckApp.pipelines.config',
-  'deckApp.pipelines.config.service',
-  'deckApp.utils.lodash',
+angular.module('spinnaker.pipelines.config.validator.service', [
+  'spinnaker.pipelines.config',
+  'spinnaker.pipelines.config.service',
+  'spinnaker.utils.lodash',
 ])
   .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService) {
 

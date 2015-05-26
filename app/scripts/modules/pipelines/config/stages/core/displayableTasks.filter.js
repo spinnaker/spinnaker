@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stages.core.displayableTasks.filter', [])
+angular.module('spinnaker.pipelines.stages.core.displayableTasks.filter', [])
   .filter('displayableTasks', function() {
     var blacklist = [
       'forceCacheRefresh',

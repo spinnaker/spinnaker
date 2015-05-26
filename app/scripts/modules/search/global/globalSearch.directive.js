@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.search.global')
+angular.module('spinnaker.search.global')
   .directive('globalSearch', function($window, $) {
     return {
       restrict: 'E',

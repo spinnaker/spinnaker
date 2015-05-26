@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp.aws.serverGroupCommandBuilder.service', [
+angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
   'restangular',
-  'deckApp.account.service',
-  'deckApp.subnet.read.service',
-  'deckApp.instanceType.service',
-  'deckApp.naming',
+  'spinnaker.account.service',
+  'spinnaker.subnet.read.service',
+  'spinnaker.instanceType.service',
+  'spinnaker.naming',
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService) {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.script')
+angular.module('spinnaker.pipelines.stage.script')
   .factory('scriptService', function($q) {
 
     function getCredentials() {

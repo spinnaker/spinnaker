@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.delete', [
-  'deckApp.pipelines',
-  'deckApp.settings',
-  'deckApp.pipelines.dirtyTracker.service',
+angular.module('spinnaker.pipelines.delete', [
+  'spinnaker.pipelines',
+  'spinnaker.settings',
+  'spinnaker.pipelines.dirtyTracker.service',
 ]);

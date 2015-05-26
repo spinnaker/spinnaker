@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create', [
-  'deckApp.utils.lodash',
-  'deckApp.pipelines',
-  'deckApp.settings',
+angular.module('spinnaker.pipelines.create', [
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines',
+  'spinnaker.settings',
 ]);

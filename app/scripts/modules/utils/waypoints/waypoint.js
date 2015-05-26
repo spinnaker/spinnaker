@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.utils.waypoints.container.directive', [
-  'deckApp.utils.waypoints.service',
+angular.module('spinnaker.utils.waypoints.container.directive', [
+  'spinnaker.utils.waypoints.service',
 
 ])
   .directive('waypoint', function () {

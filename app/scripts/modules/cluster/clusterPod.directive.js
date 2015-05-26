@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.cluster.pod', [
-  'deckApp.serverGroup.sequence.filter',
-  'deckApp.urlBuilder',
+angular.module('spinnaker.cluster.pod', [
+  'spinnaker.serverGroup.sequence.filter',
+  'spinnaker.urlBuilder',
 ])
   .directive('clusterPod', function(urlBuilder) {
     return {

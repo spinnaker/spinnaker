@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.bake.executionDetails.controller', [
+angular.module('spinnaker.pipelines.stage.bake.executionDetails.controller', [
   'ui.router',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive',
 ])
   .controller('BakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout) {
 

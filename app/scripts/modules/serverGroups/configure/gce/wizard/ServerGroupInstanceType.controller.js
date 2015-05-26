@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.gce')
+angular.module('spinnaker.serverGroup.configure.gce')
   .controller('gceInstanceTypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('instance-type');

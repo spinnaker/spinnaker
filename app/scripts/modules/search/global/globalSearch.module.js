@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.search.global', [
-  'deckApp.utils.jQuery',
-  'deckApp.utils.lodash',
+angular.module('spinnaker.search.global', [
+  'spinnaker.utils.jQuery',
+  'spinnaker.utils.lodash',
   'cluster.filter.model',
   'cluster.filter.service',
 ]);

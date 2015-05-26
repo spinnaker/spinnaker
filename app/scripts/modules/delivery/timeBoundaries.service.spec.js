@@ -7,7 +7,7 @@ describe('Service: timeBoundaries', function () {
   var timeBoundaries;
 
   beforeEach(
-    module('deckApp.timeBoundaries.service')
+    module('spinnaker.timeBoundaries.service')
   );
 
   beforeEach(

@@ -1,10 +1,10 @@
 'use strict';
 
 angular
-  .module('deckApp.loadBalancer.write.service', [
-    'deckApp.taskExecutor.service',
-    'deckApp.caches.infrastructure',
-    'deckApp.caches.scheduled'
+  .module('spinnaker.loadBalancer.write.service', [
+    'spinnaker.taskExecutor.service',
+    'spinnaker.caches.infrastructure',
+    'spinnaker.caches.scheduled'
   ])
   .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 

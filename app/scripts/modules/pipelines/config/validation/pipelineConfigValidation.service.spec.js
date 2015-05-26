@@ -3,8 +3,8 @@
 describe('pipelineConfigValidator', function() {
 
   beforeEach(module(
-    'deckApp.pipelines.config.validator.service',
-    'deckApp.pipelines.config'
+    'spinnaker.pipelines.config.validator.service',
+    'spinnaker.pipelines.config'
   ));
 
   beforeEach(inject(function(pipelineConfigValidator, pipelineConfig) {

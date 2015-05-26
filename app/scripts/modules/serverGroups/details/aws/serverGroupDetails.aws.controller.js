@@ -2,16 +2,16 @@
 /* jshint camelcase:false */
 
 
-angular.module('deckApp.serverGroup.details.aws.controller', [
+angular.module('spinnaker.serverGroup.details.aws.controller', [
   'ui.bootstrap',
-  'deckApp.notifications',
-  'deckApp.confirmationModal.service',
-  'deckApp.serverGroup.write.service',
-  'deckApp.utils.lodash',
-  'deckApp.serverGroup.details.aws.autoscaling.process',
-  'deckApp.serverGroup.read.service',
-  'deckApp.aws.serverGroupCommandBuilder.service',
-  'deckApp.executionFilter.service',
+  'spinnaker.notifications',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.serverGroup.write.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.serverGroup.details.aws.autoscaling.process',
+  'spinnaker.serverGroup.read.service',
+  'spinnaker.aws.serverGroupCommandBuilder.service',
+  'spinnaker.executionFilter.service',
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,

@@ -1,13 +1,13 @@
 'use strict';
 
-angular.module('deckApp.networking.controller', [
+angular.module('spinnaker.networking.controller', [
   'ui.bootstrap',
-  'deckApp.notifications',
-  'deckApp.confirmationModal.service',
-  'deckApp.utils.lodash',
-  'deckApp.elasticIp.read.service',
-  'deckApp.elasticIp.controller',
-  'deckApp.networking.ip.sort.filter',
+  'spinnaker.notifications',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.elasticIp.read.service',
+  'spinnaker.elasticIp.controller',
+  'spinnaker.networking.ip.sort.filter',
 ])
   .controller('networkingCtrl', function ($scope, $modal, elasticIpReader) {
     var application = $scope.application;

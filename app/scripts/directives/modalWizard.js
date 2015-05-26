@@ -17,7 +17,7 @@
 'use strict';
 
 
-angular.module('deckApp.modalWizard', [])
+angular.module('spinnaker.modalWizard', [])
   .directive('modalWizard', function () {
     return {
       restrict: 'E',

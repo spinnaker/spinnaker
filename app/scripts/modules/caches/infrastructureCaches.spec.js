@@ -1,10 +1,10 @@
 'use strict';
 
-describe('deckApp.caches.infrastructure', function() {
+describe('spinnaker.caches.infrastructure', function() {
 
   var infrastructureCaches, deckCacheFactory;
 
-  beforeEach(module('deckApp.caches.infrastructure'));
+  beforeEach(module('spinnaker.caches.infrastructure'));
   beforeEach(inject(function(_infrastructureCaches_, _deckCacheFactory_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;

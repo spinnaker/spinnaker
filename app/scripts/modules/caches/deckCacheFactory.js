@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.caches.core', [
+angular.module('spinnaker.caches.core', [
   'angular-data.DSCacheFactory',
 ])
 .factory('deckCacheFactory', function(DSCacheFactory) {

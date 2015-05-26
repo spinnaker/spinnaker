@@ -1,12 +1,12 @@
 'use strict';
 
 angular
-  .module('deckApp.whatsNew.directive', [
+  .module('spinnaker.whatsNew.directive', [
     'ui.bootstrap',
     'hc.marked',
-    'deckApp.caches.viewStateCache',
-    'deckApp.whatsNew.read.service',
-    'deckApp.utils.timeFormatters',
+    'spinnaker.caches.viewStateCache',
+    'spinnaker.whatsNew.read.service',
+    'spinnaker.utils.timeFormatters',
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(

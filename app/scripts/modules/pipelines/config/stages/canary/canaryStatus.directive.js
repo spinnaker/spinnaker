@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stages.canary.status.directive', [])
+angular.module('spinnaker.pipelines.stages.canary.status.directive', [])
   .directive('canaryStatus', function() {
     return {
       restrict: 'E',

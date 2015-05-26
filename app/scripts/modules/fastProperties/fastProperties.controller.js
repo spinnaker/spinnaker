@@ -1,9 +1,9 @@
 'use strict';
 
 angular
-  .module('deckApp.fastProperties.controller', [
-    'deckApp.applications.read.service',
-    'deckApp.settings',
+  .module('spinnaker.fastProperties.controller', [
+    'spinnaker.applications.read.service',
+    'spinnaker.settings',
   ])
   .controller('FastPropertiesController', function ($filter, applicationReader, settings) {
     var vm = this;

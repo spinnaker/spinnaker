@@ -1,7 +1,7 @@
 'use strict';
 
 describe('executionDetailsSectionService', function() {
-  beforeEach(module('deckApp.executionDetails.section.service'));
+  beforeEach(module('spinnaker.executionDetails.section.service'));
 
   beforeEach(inject(function(executionDetailsSectionService, $state, $stateParams) {
     this.service = executionDetailsSectionService;

@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.states', [
+angular.module('spinnaker.states', [
   'ui.router',
-  'deckApp.stateHelper',
-  'deckApp.delivery.states'
+  'spinnaker.stateHelper',
+  'spinnaker.delivery.states'
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {

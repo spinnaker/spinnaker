@@ -8,7 +8,7 @@ describe('Controller: executionStatus', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.delivery.executionStatus.controller')
+    module('spinnaker.delivery.executionStatus.controller')
   );
 
   beforeEach(

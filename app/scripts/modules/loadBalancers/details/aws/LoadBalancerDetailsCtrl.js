@@ -1,15 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.aws.details.controller',[
+angular.module('spinnaker.loadBalancer.aws.details.controller',[
   'ui.router',
   'ui.bootstrap',
-  'deckApp.notifications.service',
-  'deckApp.securityGroup.read.service',
-  'deckApp.loadBalancer.write.service',
-  'deckApp.loadBalancer.read.service',
-  'deckApp.utils.lodash',
-  'deckApp.confirmationModal.service'
+  'spinnaker.notifications.service',
+  'spinnaker.securityGroup.read.service',
+  'spinnaker.loadBalancer.write.service',
+  'spinnaker.loadBalancer.read.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.confirmationModal.service'
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {

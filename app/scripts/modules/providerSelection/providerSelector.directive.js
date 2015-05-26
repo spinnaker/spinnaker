@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.providerSelection.directive', [
-  'deckApp.account.service',
+angular.module('spinnaker.providerSelection.directive', [
+  'spinnaker.account.service',
 ])
   .directive('providerSelector', function(accountService) {
     return {

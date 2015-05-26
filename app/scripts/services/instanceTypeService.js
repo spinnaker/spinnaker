@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.instanceType.service', [
-  'deckApp.settings',
-  'deckApp.utils.lodash',
-  'deckApp.aws.instanceType.service',
-  'deckApp.gce.instanceType.service'
+angular.module('spinnaker.instanceType.service', [
+  'spinnaker.settings',
+  'spinnaker.utils.lodash',
+  'spinnaker.aws.instanceType.service',
+  'spinnaker.gce.instanceType.service'
 ])
   .factory('instanceTypeService', function ($http, $q, settings, _, $window, awsInstanceTypeService, gceInstanceTypeService) {
 

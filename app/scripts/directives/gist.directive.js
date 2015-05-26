@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.gist.directive', [])
+  .module('spinnaker.gist.directive', [])
   .directive('gist', function ($http) {
     return {
       restrict: 'E',
