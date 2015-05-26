@@ -51,13 +51,14 @@ class AmazonNamedImageLookupController {
       throw new ImageNotFoundException("${imageId} not found in ${account}/${region}")
     }
     Collection<String> namedImageKeys = cd.relationships[NAMED_IMAGES.ns]
+    Collection<Map> imageTags = cd.attributes.tags
 
     if (!namedImageKeys) {
       throw new ImageNotFoundException("Name not found on image ${imageId} in ${account}/${region}")
     }
 
     Collection<CacheData> namedImages = cacheView.getAll(NAMED_IMAGES.ns, namedImageKeys)
-    render(namedImages, null, region)
+    render(namedImages, null, imageTags, region)
   }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
@@ -82,10 +83,10 @@ class AmazonNamedImageLookupController {
 
     Collection<CacheData> matchesByImageId = cacheView.getAll(IMAGES.ns, imageIdentifiers)
 
-    render(matchesByName, matchesByImageId, lookupOptions.q, lookupOptions.region)
+    render(matchesByName, matchesByImageId, null, lookupOptions.q, lookupOptions.region)
   }
 
-  private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, String requestedName = null, String requiredRegion = null) {
+  private List<NamedImage> render(Collection<CacheData> namedImages, Collection<CacheData> images, Collection<CacheData> imageTags, String requestedName = null, String requiredRegion = null) {
     if (!namedImages && !images) {
       throw new ImageNotFoundException('Not found')
     }
@@ -94,9 +95,14 @@ class AmazonNamedImageLookupController {
       Map<String, String> keyParts = Keys.parse(data.id)
       NamedImage thisImage = byImageName[keyParts.imageName]
       thisImage.accounts.add(keyParts.account)
+
       for (String imageKey : data.relationships[IMAGES.ns] ?: []) {
         Map<String, String> imageParts = Keys.parse(imageKey)
         thisImage.amis[imageParts.region].add(imageParts.imageId)
+      }
+
+      imageTags?.each {
+        thisImage.tags.put(it.key, it.value)
       }
     }
 
@@ -105,7 +111,13 @@ class AmazonNamedImageLookupController {
       Map<String, String> namedImageKeyParts = Keys.parse(data.relationships[NAMED_IMAGES.ns][0])
       NamedImage thisImage = byImageName[namedImageKeyParts.imageName]
       thisImage.accounts.add(namedImageKeyParts.account)
+      amiKeyParts.tags.each {
+        thisImage.tags << [it.key, it.value]
+      }
       thisImage.amis[amiKeyParts.region].add(amiKeyParts.imageId)
+      imageTags?.each {
+        thisImage.tags.put(it.key, it.value)
+      }
     }
 
     List<NamedImage> results = byImageName.values().findAll { requiredRegion ? it.amis.containsKey(requiredRegion) : true }
@@ -142,6 +154,7 @@ class AmazonNamedImageLookupController {
 
   private static class NamedImage {
     String imageName
+    Map<String,String> tags = [:]
     Set<String> accounts = []
     Map<String, Collection<String>> amis = [:].withDefault { new HashSet<String>() }
   }
