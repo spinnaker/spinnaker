@@ -23,6 +23,8 @@ import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescrip
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Status
+import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.data.task.TaskState
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -66,14 +68,13 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     then:
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.getForEntity("http://us-west-1.discovery.netflix.net/v2/instances/i1", Map) >> new ResponseEntity<Map>(
+    1 * eureka.getInstanceInfo('i1') >>
         [
             instance: [
                 app: "asg1"
             ]
-        ], HttpStatus.OK
-    )
-    1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=OUT_OF_SERVICE", [:])
+        ]
+    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
   }
 
   void 'should skip discovery if not enabled for account'() {
@@ -96,7 +97,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    0 * restTemplate.put(_, [:])
+    0 * eureka.updateInstanceStatus(*_)
   }
 
 }

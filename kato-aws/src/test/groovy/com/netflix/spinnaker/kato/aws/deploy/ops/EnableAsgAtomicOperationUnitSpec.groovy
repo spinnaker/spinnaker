@@ -65,14 +65,13 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     then:
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
-    1 * restTemplate.getForEntity("http://us-west-1.discovery.netflix.net/v2/instances/i1", Map) >> new ResponseEntity<Map>(
+    1 * eureka.getInstanceInfo('i1') >>
         [
             instance: [
                 app: "asg1"
             ]
-        ], HttpStatus.OK
-    )
-    1 * restTemplate.put("http://us-west-1.discovery.netflix.net/v2/apps/asg1/i1/status?value=UP", [:])
+        ]
+    1 * eureka.updateInstanceStatus('asg1', 'i1', 'UP')
   }
 
   void 'should skip discovery if not enabled for account'() {
@@ -95,7 +94,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     then:
     1 * asgService.getAutoScalingGroup(_) >> asg
-    0 * restTemplate.put(_, [:])
+    0 * eureka.updateInstanceStatus(*_)
   }
 
 }

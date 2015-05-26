@@ -30,25 +30,17 @@ import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskState
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.client.RestTemplate
+import retrofit.RetrofitError
+import retrofit.client.Response
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
 class DiscoverySupportUnitSpec extends Specification {
-  def mockRestTemplate = Mock(RestTemplate)
+  def eureka = Mock(Eureka)
 
   @Subject
   def discoverySupport = new DiscoverySupport() {
-    {
-      this.restTemplate = mockRestTemplate
-    }
-
     @Override
     protected long getDiscoveryRetryMs() {
       return 0
@@ -61,12 +53,15 @@ class DiscoverySupportUnitSpec extends Specification {
   }
 
   void setup() {
-    discoverySupport.regionScopedProviderFactory = Mock(RegionScopedProviderFactory) {
-      _ * getAmazonClientProvider() >> {
-        return Mock(AmazonClientProvider)
+    discoverySupport.regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      getAmazonClientProvider() >> {
+        return Stub(AmazonClientProvider)
       }
-      _ * forRegion(_, _) >> {
-        return Mock(RegionScopedProviderFactory.RegionScopedProvider)
+
+      forRegion(_, _) >> {
+        return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+          getEureka() >> eureka
+        }
       }
     }
   }
@@ -99,7 +94,7 @@ class DiscoverySupportUnitSpec extends Specification {
     then:
     thrown(DiscoverySupport.RetryableException)
     discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    0 * discoverySupport.restTemplate.put(_, _)
+    0 * eureka.updateInstanceStatus(*_)
   }
 
   void "should enable each instance individually in discovery"() {
@@ -117,16 +112,16 @@ class DiscoverySupportUnitSpec extends Specification {
 
     then:
     (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+    1 * eureka.getInstanceInfo(_) >>
       [
         instance: [
           app: appName
         ]
-      ], HttpStatus.OK)
+      ]
 
     0 * task.fail()
     instanceIds.each {
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
+      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value)
     }
 
     where:
@@ -151,22 +146,20 @@ class DiscoverySupportUnitSpec extends Specification {
     then: "should retry on NOT_FOUND"
     3 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
-    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> {
+    2 * eureka.getInstanceInfo(_) >> {
       throw failure
-    }
-    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+    } >>
       [
         instance: [
           app: appName
         ]
-      ], HttpStatus.OK
-    )
+      ]
     instanceIds.each {
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:])
+      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value)
     }
 
     where:
-    failure << [new HttpClientErrorException(HttpStatus.NOT_FOUND), new HttpServerErrorException(HttpStatus.SERVICE_UNAVAILABLE)]
+    failure << [httpError(404), httpError(503)]
 
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
@@ -189,11 +182,11 @@ class DiscoverySupportUnitSpec extends Specification {
 
     then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
     discoverySupport.discoveryRetry * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    discoverySupport.discoveryRetry * discoverySupport.restTemplate.getForEntity(*_) >> {
-      throw new HttpClientErrorException(HttpStatus.NOT_FOUND)
+    discoverySupport.discoveryRetry * eureka.getInstanceInfo(_) >> {
+      throw httpError(404)
     }
     0 * task.fail()
-    thrown(HttpClientErrorException)
+    thrown(RetrofitError)
 
     where:
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
@@ -216,16 +209,15 @@ class DiscoverySupportUnitSpec extends Specification {
 
     then: "should retry on NOT_FOUND"
     (instanceIds.size() + 1) * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
-    1 * discoverySupport.restTemplate.getForEntity(_, Map) >> new ResponseEntity<Map>(
+    1 * eureka.getInstanceInfo(_) >>
       [
         instance: [
           app: appName
         ]
-      ], HttpStatus.OK
-    )
+      ]
     1 * task.fail()
     instanceIds.eachWithIndex { it, idx ->
-      1 * discoverySupport.restTemplate.put("${discoveryUrl}/v2/apps/${appName}/${it}/status?value=${discoveryStatus.value}", [:]) >> {
+      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> {
         if (!result[idx]) {
           throw new RuntimeException("blammo")
         }
@@ -272,6 +264,10 @@ class DiscoverySupportUnitSpec extends Specification {
     bASG(null, "---")        | ["i-12345"] || false
     bASG(null, "i-12345", 0) | ["i-12345"] || false
     bASG(null, "i-12345")    | ["i-12345"] || true
+  }
+
+  private static RetrofitError httpError(int code) {
+    RetrofitError.httpError('http://foo', new Response('http://foo', code, 'testing', [], null), null, Map)
   }
 
   private static bASG(String status = null, String instanceId = null, int capacity = 1) {

@@ -22,10 +22,14 @@ import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AsgReferenceCopier
 import com.netflix.spinnaker.kato.aws.deploy.DefaultLaunchConfigurationBuilder
 import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder
+import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.SubnetAnalyzer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RestAdapter
+
+import java.util.regex.Pattern
 
 @Component
 class RegionScopedProviderFactory {
@@ -80,6 +84,14 @@ class RegionScopedProviderFactory {
 
     LaunchConfigurationBuilder getLaunchConfigurationBuilder() {
       new DefaultLaunchConfigurationBuilder(getAutoScaling(), getAsgService(), getSecurityGroupService(), userDataProviders)
+    }
+
+    Eureka getEureka() {
+      if (!amazonCredentials.discoveryEnabled) {
+        throw new IllegalStateException('discovery not enabled')
+      }
+      String endpoint = amazonCredentials.discovery.replaceAll(Pattern.quote('{{region}}'), region)
+      new RestAdapter.Builder().setEndpoint(endpoint).build().create(Eureka)
     }
   }
 

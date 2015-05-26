@@ -23,4 +23,5 @@ dependencies {
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
   compile spinnaker.dependency('httpclient')
   compile spinnaker.dependency('guava')
+  spinnaker.group('retrofitDefault')
 }
