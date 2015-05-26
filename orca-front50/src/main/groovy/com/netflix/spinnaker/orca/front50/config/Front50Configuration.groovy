@@ -46,7 +46,7 @@ class Front50Configuration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint front50Endpoint(
-      @Value('${front50.baseUrl:http://front50.prod.netflix.net}') String front50BaseUrl) {
+      @Value('${front50.baseUrl:http://localhost:7004}') String front50BaseUrl) {
     newFixedEndpoint(front50BaseUrl)
   }
 

@@ -49,7 +49,7 @@ class EchoConfiguration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint echoEndpoint(
-    @Value('${echo.baseUrl:http://echo.prod.netflix.net}') String echoBaseUrl) {
+    @Value('${echo.baseUrl:http://localhost:7002}') String echoBaseUrl) {
     newFixedEndpoint(echoBaseUrl)
   }
 
