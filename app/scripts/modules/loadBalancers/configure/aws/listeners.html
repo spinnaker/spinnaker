@@ -17,16 +17,16 @@
           <tbody>
           <tr ng-repeat="listener in loadBalancer.listeners">
             <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP']"></select></td>
+                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.externalPort"
                        required/></td>
             <td class="small" style="padding-top: 10px;">&rarr;</td>
             <td><select class="form-control input-sm" ng-model="listener.internalProtocol"
-                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP']"></select></td>
+                        ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>
             <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.internalPort"
                        required/></td>
-            <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'HTTPS'"></td>
-            <td ng-if="listener.externalProtocol === 'HTTPS'">
+            <td ng-if="ctrl.showSslCertificateIdField() && listener.externalProtocol !== 'HTTPS' && listener.externalProtocol !== 'SSL'"></td>
+            <td ng-if="listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL'">
               <input class="form-control input-sm" type="text" ng-model="listener.sslCertificateId"
                      required/></td>
             </td>
