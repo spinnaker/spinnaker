@@ -23,8 +23,10 @@ import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
+import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.Eureka
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.data.task.Status
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import org.springframework.web.client.RestTemplate
@@ -46,10 +48,10 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   Task task
 
   @Shared
-  RestTemplate restTemplate
+  AsgService asgService
 
   @Shared
-  AsgService asgService
+  Eureka eureka
 
   @Shared
   AmazonElasticLoadBalancing loadBalancing
@@ -57,42 +59,37 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
   def setup() {
     task = Mock(Task)
     TaskRepository.threadLocalTask.set(task)
-    restTemplate = Mock(RestTemplate)
+    eureka = Mock(Eureka)
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
     wireOpMocks(op)
   }
 
   def wireOpMocks(AbstractEnableDisableAtomicOperation op) {
-    def regionScopedProviderFactory = Mock(RegionScopedProviderFactory) {
-      _ * getAmazonClientProvider() >> {
-        return Mock(AmazonClientProvider)
+    def regionScopedProviderFactory = Stub(RegionScopedProviderFactory) {
+      getAmazonClientProvider() >> {
+        return Stub(AmazonClientProvider)
       }
-      _ * forRegion(_, _) >> {
-        return Mock(RegionScopedProviderFactory.RegionScopedProvider) {
-          _ * getAsgService() >> {
-            return asgService
-          }
+      forRegion(_, _) >> {
+        return Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+          getAsgService() >> asgService
+          getEureka() >> eureka
         }
       }
     }
 
     op.discoverySupport = new DiscoverySupport(
-      restTemplate: restTemplate,
       regionScopedProviderFactory: regionScopedProviderFactory
     )
     op.discoverySupport.metaClass.verifyInstanceAndAsgExist = {
       AmazonEC2 amazonEC2, AsgService asgService, String instanceId, String asgName -> true
     }
 
-    def rspf = Mock(RegionScopedProviderFactory)
-    def rsp = Mock(RegionScopedProviderFactory.RegionScopedProvider)
-    rsp.getAsgService() >> asgService
-    rspf.forRegion(_, _) >> rsp
-    op.regionScopedProviderFactory = rspf
+    op.regionScopedProviderFactory = regionScopedProviderFactory
 
-    def provider = Mock(AmazonClientProvider)
-    provider.getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+    def provider = Stub(AmazonClientProvider) {
+      getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+    }
     op.amazonClientProvider = provider
   }
 }

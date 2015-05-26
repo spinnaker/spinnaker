@@ -29,14 +29,8 @@ import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.HttpServerErrorException
-import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.client.RestTemplate
-
-import java.util.regex.Pattern
+import retrofit.RetrofitError
 
 @Slf4j
 @Component
@@ -45,9 +39,6 @@ class DiscoverySupport {
 
   static final int DISCOVERY_RETRY_MAX = 10
   private static final long DEFAULT_DISCOVERY_RETRY_MS = 3000
-
-  @Autowired
-  RestTemplate restTemplate
 
   @Value('${discovery.retry.max:#{T(com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport).DISCOVERY_RETRY_MAX}}')
   int discoveryRetry = DISCOVERY_RETRY_MAX
@@ -66,11 +57,11 @@ class DiscoverySupport {
     }
 
     def region = description.region
-    def discovery = description.credentials.discovery.replaceAll(Pattern.quote('{{region}}'), region)
-
     def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
     def amazonEC2 = regionScopedProviderFactory.amazonClientProvider.getAmazonEC2(description.credentials, region)
     def asgService = regionScopedProvider.asgService
+
+    def eureka = regionScopedProvider.eureka
 
     def random = new Random()
     def applicationName = null
@@ -80,8 +71,8 @@ class DiscoverySupport {
         def instanceId = instanceIds[random.nextInt(instanceIds.size())]
         task.updateStatus phaseName, "Looking up discovery application name for instance $instanceId"
 
-        def instanceDetails = restTemplate.getForEntity("${discovery}/v2/instances/${instanceId}", Map)
-        def appName = instanceDetails?.body?.instance?.app
+        def instanceDetails = eureka.getInstanceInfo(instanceId)
+        def appName = instanceDetails?.instance?.app
         if (!appName) {
           throw new RetryableException("Looking up instance application name in Discovery failed for instance ${instanceId}")
         }
@@ -108,7 +99,7 @@ class DiscoverySupport {
             return
           }
 
-          restTemplate.put("${discovery}/v2/apps/${applicationName}/${instanceId}/status?value=${discoveryStatus.value}", [:])
+          eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
           task.updateStatus phaseName, "Marked ${instanceId} in application $applicationName as '${discoveryStatus.value}' in discovery."
         }
       } catch (ex) {
@@ -130,29 +121,27 @@ class DiscoverySupport {
           return c.call(retryCount)
         }
         break
-      } catch (RetryableException | ResourceAccessException ex) {
+      } catch (RetryableException ex) {
         if (retryCount >= (maxRetries - 1)) {
           throw ex
         }
 
         retryCount++
         sleep(getDiscoveryRetryMs());
-
-      } catch (HttpServerErrorException | HttpClientErrorException e) {
+      } catch (RetrofitError re) {
         if (retryCount >= (maxRetries - 1)) {
-          throw e
+          throw re
         }
 
-        if (e.statusCode.is5xxServerError()) {
+        if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404) {
+          retryCount++
+          sleep(getDiscoveryRetryMs())
+        } else if (re.response.status >= 500) {
           // automatically retry on server errors (but wait a little longer between attempts)
           sleep(getDiscoveryRetryMs() * 10)
           retryCount++
-        } else if (e.statusCode == HttpStatus.NOT_FOUND) {
-          // automatically retry on 404's
-          retryCount++
-          sleep(getDiscoveryRetryMs())
         } else {
-          throw e
+          throw re
         }
       }
     }
