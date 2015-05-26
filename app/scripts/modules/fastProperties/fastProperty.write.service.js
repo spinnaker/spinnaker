@@ -2,9 +2,9 @@
 
 
 angular
-  .module('deckApp.fastProperty.write.service', [
+  .module('spinnaker.fastProperty.write.service', [
     'restangular',
-    'deckApp.authentication.service'
+    'spinnaker.authentication.service'
   ])
   .factory('fastPropertyWriter', function (Restangular, authenticationService) {
 

@@ -2,7 +2,7 @@
 
 describe('isEmpty', function() {
 
-  beforeEach(module('deckApp.utils.isEmpty'));
+  beforeEach(module('spinnaker.utils.isEmpty'));
 
   beforeEach(inject(function(_isEmpty_) {
     this.isEmpty = _isEmpty_;

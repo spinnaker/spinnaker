@@ -7,7 +7,7 @@ describe('Service: accountService ', function () {
   var $rootScope, accountService, $http, $q, settings;
 
   beforeEach(
-    module('deckApp.account.service')
+    module('spinnaker.account.service')
   );
 
   beforeEach(

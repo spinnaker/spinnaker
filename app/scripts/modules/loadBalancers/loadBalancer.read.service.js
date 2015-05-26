@@ -2,9 +2,9 @@
 
 
 angular
-  .module('deckApp.loadBalancer.read.service', [
-    'deckApp.caches.infrastructure',
-    'deckApp.loadBalancer.transformer.service',
+  .module('spinnaker.loadBalancer.read.service', [
+    'spinnaker.caches.infrastructure',
+    'spinnaker.loadBalancer.transformer.service',
   ])
   .factory('loadBalancerReader', function ($q, Restangular, searchService, loadBalancerTransformer, infrastructureCaches) {
 

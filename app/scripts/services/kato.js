@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.kato.service', [
+angular.module('spinnaker.kato.service', [
   'restangular',
-  'deckApp.utils.lodash',
-  'deckApp.settings'
+  'spinnaker.utils.lodash',
+  'spinnaker.settings'
 ])
   .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.help')
+angular.module('spinnaker.help')
   .constant('helpContents', {
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
       '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +

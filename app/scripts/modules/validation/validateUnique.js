@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.validation')
+angular.module('spinnaker.validation')
   .directive('validateUnique', function () {
     return {
       restrict: 'A',

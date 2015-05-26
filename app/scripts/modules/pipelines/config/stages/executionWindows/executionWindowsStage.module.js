@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.executionWindows', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.pipelines.stage.executionWindows.directive',
+angular.module('spinnaker.pipelines.stage.executionWindows', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.pipelines.stage.executionWindows.directive',
 ]);

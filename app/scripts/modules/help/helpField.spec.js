@@ -19,7 +19,7 @@
 describe('Directives: helpField', function () {
 
   beforeEach(function() {
-    module('deckApp.help', function($provide) {
+    module('spinnaker.help', function($provide) {
       $provide.constant('helpContents', {'aws.serverGroup.stack': 'expected stack help'});
     });
   });

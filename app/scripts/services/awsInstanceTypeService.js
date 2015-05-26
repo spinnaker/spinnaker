@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.aws.instanceType.service', [
+angular.module('spinnaker.aws.instanceType.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.utils.lodash',
-  'deckApp.caches.infrastructure',
+  'spinnaker.settings',
+  'spinnaker.utils.lodash',
+  'spinnaker.caches.infrastructure',
 ])
   .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
 

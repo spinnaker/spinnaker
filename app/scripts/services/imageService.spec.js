@@ -21,7 +21,7 @@ describe('Service: ImageService', function() {
   var service, $http, config, scope, timeout;
 
   beforeEach(
-    module('deckApp.image.service')
+    module('spinnaker.image.service')
   );
 
 

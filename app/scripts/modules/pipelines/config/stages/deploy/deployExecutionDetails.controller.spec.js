@@ -2,7 +2,7 @@
 
 describe('DeployExecutionDetailsCtrl', function() {
 
-  beforeEach(module('deckApp.pipelines.stage.deploy.details.controller'));
+  beforeEach(module('spinnaker.pipelines.stage.deploy.details.controller'));
 
   beforeEach(inject(function ($controller, $rootScope, _, $timeout) {
     this.$controller = $controller;

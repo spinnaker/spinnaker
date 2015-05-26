@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.applications.write.service', [
-    'deckApp.taskExecutor.service'
+  .module('spinnaker.applications.write.service', [
+    'spinnaker.taskExecutor.service'
   ])
   .factory('applicationWriter', function($q, taskExecutor) {
 

@@ -7,7 +7,7 @@ describe('Service: taskMonitorService', function () {
   var taskMonitorService;
 
   beforeEach(
-    module('deckApp.tasks.monitor.service')
+    module('spinnaker.tasks.monitor.service')
   );
 
   beforeEach(

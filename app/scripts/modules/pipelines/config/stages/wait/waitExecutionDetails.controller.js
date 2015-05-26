@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.wait.executionDetails.controller', [
+angular.module('spinnaker.pipelines.stage.wait.executionDetails.controller', [
   'ui.router',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive',
 ])
   .controller('WaitExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.subnet.read.service', ['restangular', 'deckApp.caches.infrastructure'])
+  .module('spinnaker.subnet.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
   .factory('subnetReader', function (Restangular, infrastructureCaches) {
 
     function listSubnets() {

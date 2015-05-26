@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.insight.controller', [
+angular.module('spinnaker.insight.controller', [
   'ui.router',
 ])
   .controller('InsightCtrl', function($scope, $state) {

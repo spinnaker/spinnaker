@@ -1,17 +1,17 @@
 'use strict';
 
 angular
-  .module('deckApp.applications.read.service', [
+  .module('spinnaker.applications.read.service', [
     'restangular',
-    'deckApp.cluster.service',
-    'deckApp.tasks.tracker',
-    'deckApp.tasks.read.service',
-    'deckApp.loadBalancer.read.service',
-    'deckApp.loadBalancer.transformer.service',
-    'deckApp.securityGroup.read.service',
-    'deckApp.caches.infrastructure',
-    'deckApp.scheduler',
-    'deckApp.delivery.executions.service',
+    'spinnaker.cluster.service',
+    'spinnaker.tasks.tracker',
+    'spinnaker.tasks.read.service',
+    'spinnaker.loadBalancer.read.service',
+    'spinnaker.loadBalancer.transformer.service',
+    'spinnaker.securityGroup.read.service',
+    'spinnaker.caches.infrastructure',
+    'spinnaker.scheduler',
+    'spinnaker.delivery.executions.service',
   ])
   .factory('applicationReader', function ($q,$log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,

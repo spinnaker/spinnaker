@@ -1,21 +1,21 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary', [
-  'deckApp.pipelines.stage.canary.details.controller',
-  'deckApp.pipelines.stage.canary.summary.controller',
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.deploymentStrategy',
-  'deckApp.authentication.service',
-  'deckApp.utils.lodash',
-  'deckApp.serverGroup.read.service',
-  'deckApp.aws.serverGroupCommandBuilder.service',
-  'deckApp.pipelines.stage.canary.canaryDeployment',
-  'deckApp.pipelines.stage.canary.transformer',
-  'deckApp.pipelines.stages.canary.score.directive',
-  'deckApp.pipelines.stages.canary.status.directive',
-  'deckApp.account.service',
-  'deckApp.naming'
+angular.module('spinnaker.pipelines.stage.canary', [
+  'spinnaker.pipelines.stage.canary.details.controller',
+  'spinnaker.pipelines.stage.canary.summary.controller',
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.deploymentStrategy',
+  'spinnaker.authentication.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.serverGroup.read.service',
+  'spinnaker.aws.serverGroupCommandBuilder.service',
+  'spinnaker.pipelines.stage.canary.canaryDeployment',
+  'spinnaker.pipelines.stage.canary.transformer',
+  'spinnaker.pipelines.stages.canary.score.directive',
+  'spinnaker.pipelines.stages.canary.status.directive',
+  'spinnaker.account.service',
+  'spinnaker.naming'
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);

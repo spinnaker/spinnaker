@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create')
+angular.module('spinnaker.pipelines.create')
   .directive('createPipelineButton', function() {
     return {
       restrict: 'E',

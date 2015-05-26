@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.disableAsg', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.account',
-  'deckApp.pipelines.stage.disableAsg.executionDetails.controller',
+angular.module('spinnaker.pipelines.stage.disableAsg', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.account',
+  'spinnaker.pipelines.stage.disableAsg.executionDetails.controller',
 ]);

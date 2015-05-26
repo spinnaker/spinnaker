@@ -3,7 +3,7 @@
 describe('Controller: GlobalSearch', function () {
 
   // load the controller's module
-  beforeEach(module('deckApp.search.global'));
+  beforeEach(module('spinnaker.search.global'));
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope

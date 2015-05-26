@@ -1,7 +1,7 @@
 'use strict';
 
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/  **/
-angular.module('deckApp.utils.selectOnDblClick', [])
+angular.module('spinnaker.utils.selectOnDblClick', [])
   .directive('selectOnDblClick', function($window, $document) {
     return {
       restrict: 'A',

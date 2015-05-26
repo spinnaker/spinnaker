@@ -1,5 +1,5 @@
 'use strict';
 
-angular.module('deckApp.notifications', [
-  'deckApp.utils.rx',
+angular.module('spinnaker.notifications', [
+  'spinnaker.utils.rx',
 ]);

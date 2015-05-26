@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy.redblack', [])
+angular.module('spinnaker.deploymentStrategy.redblack', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Red/Black',

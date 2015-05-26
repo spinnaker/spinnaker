@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.nav.controller', [
- 'deckApp.utils.lodash'
+angular.module('spinnaker.loadBalancer.nav.controller', [
+ 'spinnaker.utils.lodash'
 ])
   .controller('LoadBalancersNavCtrl', function ($scope, application, _) {
 

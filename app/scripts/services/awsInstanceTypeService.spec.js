@@ -19,8 +19,8 @@
 describe('Service: InstanceType', function () {
 
   beforeEach(function() {
-      module('deckApp.instanceType.service');
-      module('deckApp.caches.initializer');
+      module('spinnaker.instanceType.service');
+      module('spinnaker.caches.initializer');
   });
 
 

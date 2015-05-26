@@ -2,9 +2,9 @@
 
 // delete
 angular
-  .module('deckApp.deleteFastProperty.controller', [
-    'deckApp.account.service',
-    'deckApp.fastProperty.write.service',
+  .module('spinnaker.deleteFastProperty.controller', [
+    'spinnaker.account.service',
+    'spinnaker.fastProperty.write.service',
   ])
   .controller('DeleteFastPropertyModalController', function ($modalInstance, accountService, fastProperty, fastPropertyWriter) {
     var vm = this;

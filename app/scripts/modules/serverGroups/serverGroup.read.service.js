@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup.read.service', [
+  .module('spinnaker.serverGroup.read.service', [
     'restangular',
   ])
   .factory('serverGroupReader', function (Restangular, $exceptionHandler) {

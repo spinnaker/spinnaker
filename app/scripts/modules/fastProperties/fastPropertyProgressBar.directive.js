@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.fastProperty.progressBar.directive', [])
+angular.module('spinnaker.fastProperty.progressBar.directive', [])
   .directive('fastPropertyProgressBar', function() {
     return {
       restrict: 'E',

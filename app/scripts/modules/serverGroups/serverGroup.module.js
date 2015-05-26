@@ -1,19 +1,19 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup', [
-    'deckApp.closable.modal.controller',
-    'deckApp.scalingActivities.controller',
-    'deckApp.resizeServerGroup.controller',
+  .module('spinnaker.serverGroup', [
+    'spinnaker.closable.modal.controller',
+    'spinnaker.scalingActivities.controller',
+    'spinnaker.resizeServerGroup.controller',
 
-    'deckApp.serverGroup.write.service',
-    'deckApp.serverGroup.transformer.service',
-    'deckApp.serverGroup.configure.aws',
-    'deckApp.serverGroup.configure.gce',
-    'deckApp.serverGroup.configure.common',
-    'deckApp.serverGroup.display.tasks.tag',
-    'deckApp.serverGroup.details.aws',
+    'spinnaker.serverGroup.write.service',
+    'spinnaker.serverGroup.transformer.service',
+    'spinnaker.serverGroup.configure.aws',
+    'spinnaker.serverGroup.configure.gce',
+    'spinnaker.serverGroup.configure.common',
+    'spinnaker.serverGroup.display.tasks.tag',
+    'spinnaker.serverGroup.details.aws',
 
-    'deckApp.serverGroup.details.gce.controller',
-    'deckApp.aws.cloneServerGroup.controller'
+    'spinnaker.serverGroup.details.gce.controller',
+    'spinnaker.aws.cloneServerGroup.controller'
   ]);

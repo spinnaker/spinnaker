@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.detail.controller', [])
+angular.module('spinnaker.tasks.detail.controller', [])
   .controller('TaskDetailsCtrl', function($scope, $log, $state,
                                           tasksReader, tasksWriter,
                                           taskId, application) {

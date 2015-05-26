@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.resizeAsg', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.account',
-  'deckApp.pipelines.stage.resizeAsg.executionDetails.controller',
+angular.module('spinnaker.pipelines.stage.resizeAsg', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.account',
+  'spinnaker.pipelines.stage.resizeAsg.executionDetails.controller',
 ]);

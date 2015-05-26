@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.deploymentStrategy')
+angular.module('spinnaker.deploymentStrategy')
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
 
     function listAvailableStrategies() {

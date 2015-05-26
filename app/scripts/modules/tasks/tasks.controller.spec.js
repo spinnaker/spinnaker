@@ -14,7 +14,7 @@ describe('Controller: tasks', function () {
     };
   };
 
-  beforeEach(module('deckApp.tasks.main'));
+  beforeEach(module('spinnaker.tasks.main'));
 
   beforeEach(
     inject(

@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.disableParallel', [
-  'deckApp.pipelines.config.service',
+angular.module('spinnaker.pipelines.disableParallel', [
+  'spinnaker.pipelines.config.service',
 ])
   .controller('DisableParallelModalCtrl', function($scope, pipeline, _, $modalInstance, pipelineConfigService) {
 

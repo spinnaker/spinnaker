@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.jQuery', [])
+angular.module('spinnaker.utils.jQuery', [])
   .factory('$', function() {
     return $;
   });

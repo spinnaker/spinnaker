@@ -16,7 +16,7 @@
 
 'use strict';
 
-angular.module('deckApp.utils.scrollTo', ['deckApp.utils.jQuery'])
+angular.module('spinnaker.utils.scrollTo', ['spinnaker.utils.jQuery'])
   .factory('scrollToService', function($timeout, $) {
 
     function scrollTo(elementId, scrollableContainer, offset) {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.rename')
+angular.module('spinnaker.pipelines.rename')
   .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $modalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService) {
 

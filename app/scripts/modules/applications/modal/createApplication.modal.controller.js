@@ -1,10 +1,10 @@
 'use strict';
 
 angular
-  .module('deckApp.application.create.modal.controller', [
+  .module('spinnaker.application.create.modal.controller', [
     'ui.router',
     'ui.bootstrap',
-    'deckApp.applications.write.service',
+    'spinnaker.applications.write.service',
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter) {
     var vm = this;

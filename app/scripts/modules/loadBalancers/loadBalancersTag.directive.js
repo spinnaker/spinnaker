@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.tag', [])
+angular.module('spinnaker.loadBalancer.tag', [])
   .directive('loadBalancersTag', function () {
     return {
       restrict: 'E',

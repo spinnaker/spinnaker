@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionGroup.controller', [])
+angular.module('spinnaker.delivery.executionGroup.controller', [])
   .controller('executionGroup', function() {
 
   });

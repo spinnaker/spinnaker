@@ -3,7 +3,7 @@
 describe('Controller: ScalingActivitiesCtrl', function () {
 
   beforeEach(
-    module('deckApp.scalingActivities.controller')
+    module('spinnaker.scalingActivities.controller')
   );
 
   beforeEach(loadDeckWithoutCacheInitializer);

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.validation')
+angular.module('spinnaker.validation')
   .directive('triggerValidation', function () {
     return {
       restrict: 'A',

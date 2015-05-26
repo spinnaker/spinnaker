@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.bake', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.pipelines.stage.bake.executionDetails.controller',
-  'deckApp.providerSelection.directive',
-  'deckApp.account.service',
-  'deckApp.utils.lodash',
+angular.module('spinnaker.pipelines.stage.bake', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.pipelines.stage.bake.executionDetails.controller',
+  'spinnaker.providerSelection.directive',
+  'spinnaker.account.service',
+  'spinnaker.utils.lodash',
 ]);

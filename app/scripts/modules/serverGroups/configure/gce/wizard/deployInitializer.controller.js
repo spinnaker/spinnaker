@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.gce.deployInitialization.controller', [
-  'deckApp.serverGroup.read.service',
-  'deckApp.utils.lodash',
-  'deckApp.aws.serverGroupCommandBuilder.service',
+angular.module('spinnaker.serverGroup.configure.gce.deployInitialization.controller', [
+  'spinnaker.serverGroup.read.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.aws.serverGroupCommandBuilder.service',
 ])
   .controller('gceDeployInitializerCtrl', function($scope, gceServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;

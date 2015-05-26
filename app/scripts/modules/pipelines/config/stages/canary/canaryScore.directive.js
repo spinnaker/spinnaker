@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stages.canary.score.directive', [])
+angular.module('spinnaker.pipelines.stages.canary.score.directive', [])
   .directive('canaryScore', function() {
     return {
       restrict: 'E',

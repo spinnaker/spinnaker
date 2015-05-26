@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.sequence.filter', [
-  'deckApp.naming',
+angular.module('spinnaker.serverGroup.sequence.filter', [
+  'spinnaker.naming',
 ])
   .filter('serverGroupSequence', function(namingService) {
       return function(input) {

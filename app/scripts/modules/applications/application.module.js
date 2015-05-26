@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.application', [
-    'deckApp.application.controller',
-    'deckApp.applications.controller',
-    'deckApp.application.create.modal.controller'
+  .module('spinnaker.application', [
+    'spinnaker.application.controller',
+    'spinnaker.applications.controller',
+    'spinnaker.application.create.modal.controller'
   ]);

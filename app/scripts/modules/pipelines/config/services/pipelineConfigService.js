@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines.config.service', [
+angular.module('spinnaker.pipelines.config.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.utils.lodash',
-  'deckApp.pipelines.config',
-  'deckApp.authentication.service',
-  'deckApp.caches.viewStateCache',
-  'deckApp.confirmationModal.service',
+  'spinnaker.settings',
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines.config',
+  'spinnaker.authentication.service',
+  'spinnaker.caches.viewStateCache',
+  'spinnaker.confirmationModal.service',
 ])
   .factory('pipelineConfigService', function (_, $q, settings, Restangular,
                                               authenticationService, viewStateCache,

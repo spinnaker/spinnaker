@@ -10,7 +10,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
   var $q;
 
   beforeEach(
-    module('deckApp.instance.detail.aws.controller')
+    module('spinnaker.instance.detail.aws.controller')
   );
 
   beforeEach(

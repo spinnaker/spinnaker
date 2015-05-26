@@ -2,7 +2,7 @@
 
 describe('scheduledCache', function() {
   beforeEach(function() {
-    module('deckApp.caches.scheduled');
+    module('spinnaker.caches.scheduled');
   });
 
   beforeEach(inject(function(scheduledCache, $http, $cacheFactory, scheduler) {

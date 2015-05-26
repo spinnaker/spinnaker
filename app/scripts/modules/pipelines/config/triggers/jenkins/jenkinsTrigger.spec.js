@@ -2,7 +2,7 @@
 
 describe('Controller: jenkinsTrigger', function() {
 
-  beforeEach(module('deckApp.pipelines.trigger.jenkins'));
+  beforeEach(module('spinnaker.pipelines.trigger.jenkins'));
 
   beforeEach(inject(function ($controller, $rootScope, $q, igorService) {
     this.$q = $q;

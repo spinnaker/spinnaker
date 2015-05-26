@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.confirmationModal.service', [
+angular.module('spinnaker.confirmationModal.service', [
   'ui.bootstrap',
-  'deckApp.tasks.monitor',
-  'deckApp.account',
+  'spinnaker.tasks.monitor',
+  'spinnaker.account',
   'ui.router'
 ])
   .factory('confirmationModalService', function($modal) {

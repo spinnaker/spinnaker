@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.feedback.modal.controller', [
-  'deckApp.settings',
-  'deckApp.authentication.service'
+angular.module('spinnaker.feedback.modal.controller', [
+  'spinnaker.settings',
+  'spinnaker.authentication.service'
 ])
   .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
 

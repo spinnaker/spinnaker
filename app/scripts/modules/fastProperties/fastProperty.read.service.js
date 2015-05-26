@@ -2,9 +2,9 @@
 
 
 angular
-  .module('deckApp.fastProperty.read.service', [
+  .module('spinnaker.fastProperty.read.service', [
     'restangular',
-    'deckApp.settings'
+    'spinnaker.settings'
   ])
   .factory('fastPropertyReader', function (Restangular) {
 

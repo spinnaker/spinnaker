@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.editApplication.modal.controller',[
-    'deckApp.applications.write.service'
+  .module('spinnaker.editApplication.modal.controller',[
+    'spinnaker.applications.write.service'
   ])
   .controller('EditApplicationController', function ($window, $state, application, applicationWriter) {
     var vm = this;

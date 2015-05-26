@@ -2,7 +2,7 @@
 
 
 angular
-  .module('deckApp.fastProperties.data.controller', [])
+  .module('spinnaker.fastProperties.data.controller', [])
   .controller('FastPropertyDataController', function () {
 
   });

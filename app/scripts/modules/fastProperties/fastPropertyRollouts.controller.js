@@ -2,9 +2,9 @@
 
 
 angular
-  .module('deckApp.fastProperties.rollouts.controller', [
-    'deckApp.fastProperty.read.service',
-    'deckApp.fastProperty.write.service'
+  .module('spinnaker.fastProperties.rollouts.controller', [
+    'spinnaker.fastProperty.read.service',
+    'spinnaker.fastProperty.write.service'
   ])
   .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter) {
     var vm = this;

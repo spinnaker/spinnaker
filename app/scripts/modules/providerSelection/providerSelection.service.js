@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.providerSelection.service', [
-  'deckApp.account.service',
+angular.module('spinnaker.providerSelection.service', [
+  'spinnaker.account.service',
 ])
   .factory('providerSelectionService', function($modal, $q, accountService) {
     function selectProvider() {

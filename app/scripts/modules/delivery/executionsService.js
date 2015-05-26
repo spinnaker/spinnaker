@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('deckApp.delivery.executions.service', [
+angular.module('spinnaker.delivery.executions.service', [
   'ui.router',
-  'deckApp.scheduler',
-  'deckApp.orchestratedItem.service',
-  'deckApp.settings',
-  'deckApp.utils.appendTransform',
-  'deckApp.delivery.executionTransformer.service'
+  'spinnaker.scheduler',
+  'spinnaker.orchestratedItem.service',
+  'spinnaker.settings',
+  'spinnaker.utils.appendTransform',
+  'spinnaker.delivery.executionTransformer.service'
 ])
   .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, appendTransform, executionsTransformer) {
 

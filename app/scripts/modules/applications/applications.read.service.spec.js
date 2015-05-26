@@ -7,7 +7,7 @@ describe('Service: applicationReader', function () {
   var applicationReader;
 
   beforeEach(
-    module('deckApp.applications.read.service')
+    module('spinnaker.applications.read.service')
   );
 
   beforeEach(

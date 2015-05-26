@@ -10,7 +10,7 @@ describe('Controller: pipelineExecutions', function () {
   var $q;
 
   beforeEach(
-    module('deckApp.delivery.pipelineExecutions.controller')
+    module('spinnaker.delivery.pipelineExecutions.controller')
   );
 
   beforeEach(

@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines.stages.canary.deployment.history.service', [
+angular.module('spinnaker.pipelines.stages.canary.deployment.history.service', [
   'restangular',
-  'deckApp.settings',
+  'spinnaker.settings',
 ])
   .factory('canaryDeploymentHistoryService', function (settings, Restangular) {
 

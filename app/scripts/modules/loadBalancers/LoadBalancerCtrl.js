@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.controller')
+angular.module('spinnaker.loadBalancer.controller')
   .controller('LoadBalancerCtrl', function ($scope, $state, notificationsService, application, loadBalancer) {
     $scope.application = application;
 

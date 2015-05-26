@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy')
+angular.module('spinnaker.deploymentStrategy')
   .provider('deploymentStrategyConfig', function() {
 
     var strategies = [];

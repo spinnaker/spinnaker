@@ -7,7 +7,7 @@ describe('Service: taskExecutor', function () {
   var taskExecutor;
 
   beforeEach(
-    module('deckApp.taskExecutor.service')
+    module('spinnaker.taskExecutor.service')
   );
 
   beforeEach(

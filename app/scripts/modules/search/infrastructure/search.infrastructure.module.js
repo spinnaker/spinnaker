@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.search.infrastructure', []);
+angular.module('spinnaker.search.infrastructure', []);

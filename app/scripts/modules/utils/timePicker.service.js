@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.utils.timePicker.service', [
-  'deckApp.utils.lodash',
+angular.module('spinnaker.utils.timePicker.service', [
+  'spinnaker.utils.lodash',
 ])
   .factory('timePickerService', function(_) {
 

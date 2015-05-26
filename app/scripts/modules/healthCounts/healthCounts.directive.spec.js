@@ -2,8 +2,8 @@
 
 describe('Directives: healthCounts', function () {
 
-  beforeEach(module('deckApp.healthCounts.directive'));
-  beforeEach(module('deckApp.templates'));
+  beforeEach(module('spinnaker.healthCounts.directive'));
+  beforeEach(module('spinnaker.templates'));
 
   beforeEach(inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();

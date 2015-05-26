@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.transformer.service', [
-  'deckApp.settings',
-  'deckApp.utils.lodash',
-  'deckApp.delegation',
+angular.module('spinnaker.loadBalancer.transformer.service', [
+  'spinnaker.settings',
+  'spinnaker.utils.lodash',
+  'spinnaker.delegation',
 ])
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {
 

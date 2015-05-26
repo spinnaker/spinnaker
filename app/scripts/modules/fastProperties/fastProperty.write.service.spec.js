@@ -4,7 +4,7 @@ describe('FastProperty Write Service:', function () {
 
   var service;
 
-  beforeEach(module('deckApp.fastProperty.write.service'));
+  beforeEach(module('spinnaker.fastProperty.write.service'));
 
   beforeEach(inject(function (_fastPropertyWriter_) {
     service = _fastPropertyWriter_;

@@ -1,8 +1,8 @@
 'use strict';
 
 
-angular.module('deckApp.utils.timeFormatters', [
-  'deckApp.utils.moment',
+angular.module('spinnaker.utils.timeFormatters', [
+  'spinnaker.utils.moment',
 ])
   .filter('timestamp', function(momentService) {
     return function(input) {

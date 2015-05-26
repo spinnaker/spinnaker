@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.gce.loadBalancer.transformer.service', [
-  'deckApp.settings',
-  'deckApp.utils.lodash'
+angular.module('spinnaker.gce.loadBalancer.transformer.service', [
+  'spinnaker.settings',
+  'spinnaker.utils.lodash'
 ])
   .factory('gceLoadBalancerTransformer', function ( settings, _) {
 

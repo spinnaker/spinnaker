@@ -1,15 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.aws.create.controller', [
+angular.module('spinnaker.securityGroup.aws.create.controller', [
   'ui.router',
-  'deckApp.account.service',
-  'deckApp.caches.infrastructure',
-  'deckApp.caches.initializer',
-  'deckApp.tasks.monitor.service',
-  'deckApp.securityGroup.write.service',
-  'deckApp.vpc.read.service',
-  'deckApp.modalWizard',
+  'spinnaker.account.service',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.caches.initializer',
+  'spinnaker.tasks.monitor.service',
+  'spinnaker.securityGroup.write.service',
+  'spinnaker.vpc.read.service',
+  'spinnaker.modalWizard',
 ])
   .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $state,
                                                   accountService, securityGroupReader, modalWizardService,

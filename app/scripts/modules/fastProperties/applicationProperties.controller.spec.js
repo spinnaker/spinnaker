@@ -3,7 +3,7 @@
 describe('Application Property Controller:', function () {
   var controller;
 
-  beforeEach(module('deckApp.applicationProperties.controller'));
+  beforeEach(module('spinnaker.applicationProperties.controller'));
 
   beforeEach(inject(function($controller, $rootScope){
     controller = $controller('ApplicationPropertiesController',{

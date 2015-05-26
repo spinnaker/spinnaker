@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.lodash', [])
+angular.module('spinnaker.utils.lodash', [])
   .factory('_', function() {
     return _;
   });

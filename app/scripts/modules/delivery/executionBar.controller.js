@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionBar.controller', [
-  'deckApp.pipelines.config',
+angular.module('spinnaker.delivery.executionBar.controller', [
+  'spinnaker.pipelines.config',
   'ui.router',
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {

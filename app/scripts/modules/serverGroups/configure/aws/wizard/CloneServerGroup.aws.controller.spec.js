@@ -8,7 +8,7 @@
 describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(
-    module('deckApp.aws.cloneServerGroup.controller')
+    module('spinnaker.aws.cloneServerGroup.controller')
   );
 
 

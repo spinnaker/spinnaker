@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stages.core.executionStepDetails', [
-  'deckApp.pipelines.config',
+angular.module('spinnaker.pipelines.stages.core.executionStepDetails', [
+  'spinnaker.pipelines.config',
 ])
   .directive('executionStepDetails', function() {
     return {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.buildDisplayName.filter', [])
+angular.module('spinnaker.delivery.buildDisplayName.filter', [])
   .filter('buildDisplayName', function() {
     return function(input) {
       var formattedInput = '';

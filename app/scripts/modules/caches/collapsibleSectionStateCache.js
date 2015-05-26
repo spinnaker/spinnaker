@@ -1,7 +1,7 @@
 'use strict';
 
 /* jshint newcap: false */
-angular.module('deckApp.caches.collapsibleSectionState', [
+angular.module('spinnaker.caches.collapsibleSectionState', [
   'angular-data.DSCacheFactory',
 ])
   .factory('collapsibleSectionStateCache', function(DSCacheFactory) {

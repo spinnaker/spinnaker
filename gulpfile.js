@@ -237,7 +237,7 @@ gulp.task('scripts:templates', ['clean:scripts:templates'], function() {
     .pipe($.if(release, min))
     .pipe(templateCache('templates.js', {
       standalone: true,
-      module: 'deckApp.templates',
+      module: 'spinnaker.templates',
       root: '',
     }))
     .pipe($.rev())

@@ -1,11 +1,11 @@
 'use strict';
 
-angular.module('deckApp.pipelines.config.controller', [
+angular.module('spinnaker.pipelines.config.controller', [
   'ui.router',
-  'deckApp.pipelines.config.service',
-  'deckApp.utils.lodash',
-  'deckApp.pageTitle',
-  'deckApp.pipelines.dirtyTracker.service',
+  'spinnaker.pipelines.config.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.pageTitle',
+  'spinnaker.pipelines.dirtyTracker.service',
 ])
   .controller('PipelineConfigCtrl', function($scope, $rootScope, $timeout, $stateParams, _, $q, $window,
                                              pageTitleService, dirtyPipelineTracker, pipelineConfigService) {

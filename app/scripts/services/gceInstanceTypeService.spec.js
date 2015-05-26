@@ -7,7 +7,7 @@ describe('Service: gceInstanceTypeService', function () {
   var gceInstanceTypeService;
 
   beforeEach(
-    module('deckApp.gce.instanceType.service')
+    module('spinnaker.gce.instanceType.service')
   );
 
   beforeEach(

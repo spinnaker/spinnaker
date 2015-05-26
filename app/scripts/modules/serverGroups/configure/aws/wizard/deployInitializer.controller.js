@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.aws.deployInitialization.controller', [
-  'deckApp.serverGroup.read.service',
-  'deckApp.utils.lodash',
-  'deckApp.aws.serverGroupCommandBuilder.service',
+angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
+  'spinnaker.serverGroup.read.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.aws.serverGroupCommandBuilder.service',
 ])
   .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;

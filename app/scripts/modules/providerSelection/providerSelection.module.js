@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.providerSelection', [
+angular.module('spinnaker.providerSelection', [
   'ui.bootstrap',
-  'deckApp.settings',
+  'spinnaker.settings',
 ]);

@@ -1,11 +1,11 @@
 'use strict';
 
 angular
-  .module('deckApp.caches', [
-    'deckApp.caches.core',
-    'deckApp.caches.initializer',
-    'deckApp.caches.applicationLevelScheduled',
-    'deckApp.caches.collapsibleSectionState',
-    'deckApp.caches.infrastructure',
-    'deckApp.caches.scheduled'
+  .module('spinnaker.caches', [
+    'spinnaker.caches.core',
+    'spinnaker.caches.initializer',
+    'spinnaker.caches.applicationLevelScheduled',
+    'spinnaker.caches.collapsibleSectionState',
+    'spinnaker.caches.infrastructure',
+    'spinnaker.caches.scheduled'
   ]);

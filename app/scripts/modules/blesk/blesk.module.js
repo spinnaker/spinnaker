@@ -1,7 +1,7 @@
 'use strict';
 
 // TODO: Move to external plugins
-angular.module('deckApp.blesk', ['deckApp.settings'])
+angular.module('spinnaker.blesk', ['spinnaker.settings'])
   .factory('blesk', function() {
     function initialize() {
       if (angular.element('.spinnaker-header').length && !angular.element('#blesk').length) {

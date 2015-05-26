@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.networking.ip.sort.filter', [])
+angular.module('spinnaker.networking.ip.sort.filter', [])
   .filter('ipSorter', function() {
 
     return function(input) {

@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.executionWindows.controller', [
-  'deckApp.utils.timePicker.service'
+angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
+  'spinnaker.utils.timePicker.service'
 ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
 

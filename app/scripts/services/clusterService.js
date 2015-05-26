@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.cluster.service', [
+angular.module('spinnaker.cluster.service', [
   'restangular'
 ])
   .factory('clusterService', function ($q, Restangular) {

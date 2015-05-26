@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.quickPatchAsg.bulkQuickPatchStage', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.account',
-  'deckApp.pipelines.stage.quickPatchAsg.bulkQuickPatchStage.executionDetails.controller'
+angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.account',
+  'spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage.executionDetails.controller'
 ]);

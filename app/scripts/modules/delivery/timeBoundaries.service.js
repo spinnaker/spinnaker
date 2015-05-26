@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.timeBoundaries.service', [
-  'deckApp.utils.moment'
+angular.module('spinnaker.timeBoundaries.service', [
+  'spinnaker.utils.moment'
 ])
   .factory('timeBoundaries', function(momentService) {
     var boundaries = [

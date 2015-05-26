@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.naming', [])
+angular.module('spinnaker.naming', [])
   .factory('namingService', function() {
     var versionPattern = /(v\d{3})/;
 

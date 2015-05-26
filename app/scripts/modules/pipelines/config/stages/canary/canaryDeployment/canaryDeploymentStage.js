@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary.canaryDeployment')
+angular.module('spinnaker.pipelines.stage.canary.canaryDeployment')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,
