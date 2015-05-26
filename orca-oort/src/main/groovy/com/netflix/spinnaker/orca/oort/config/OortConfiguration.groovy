@@ -47,7 +47,7 @@ class OortConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint oortEndpoint(@Value('${oort.baseUrl:http://oort.prod.netflix.net}') String oortBaseUrl) {
+  @Bean Endpoint oortEndpoint(@Value('${oort.baseUrl:http://localhost:7008}') String oortBaseUrl) {
     newFixedEndpoint(oortBaseUrl)
   }
 

@@ -49,7 +49,7 @@ class BakeryConfiguration {
   @Autowired LogLevel retrofitLogLevel
 
   @Bean
-  Endpoint bakeryEndpoint(@Value('${bakery.baseUrl:http://bakery.test.netflix.net:7001}') String bakeryBaseUrl) {
+  Endpoint bakeryEndpoint(@Value('${bakery.baseUrl:http://localhost:7001}') String bakeryBaseUrl) {
     newFixedEndpoint(bakeryBaseUrl)
   }
 
