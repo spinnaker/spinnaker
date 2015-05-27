@@ -111,7 +111,7 @@ class DeployCanaryStage extends ParallelDeployStage {
               def ami = deployStage.context.deploymentDetails.find { it.region == region }
 
               cluster.amiName = ami?.ami
-              cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger.buildInfo.url
+              cluster.buildUrl = createBuildUrl(ami) ?: ((Pipeline) stage.execution).trigger?.buildInfo?.url
             }
             resultPair[type + "Cluster"] = [
               name: nameBuilder.combineAppStackDetail(cluster.application, cluster.stack, cluster.freeFormDetails),

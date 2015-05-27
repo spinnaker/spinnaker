@@ -54,7 +54,7 @@ class KatoConfiguration {
   }
 
   @Bean Endpoint katoEndpoint(
-      @Value('${kato.baseUrl:http://kato.prod.netflix.net}') String katoBaseUrl) {
+      @Value('${kato.baseUrl:http://localhost:7006}') String katoBaseUrl) {
     newFixedEndpoint(katoBaseUrl)
   }
 

@@ -109,6 +109,23 @@ interface MortService {
         }
       }.flatten()
     }
+
+    static SecurityGroup findById(MortService mortService, String securityGroupId) {
+      def searchResults = mortService.getSearchResults(securityGroupId, "securityGroups")
+      def securityGroup = searchResults?.getAt(0)?.results?.getAt(0)
+
+      if (!securityGroup?.name) {
+        throw new IllegalArgumentException("Security group (${securityGroupId}) does not exist")
+      }
+
+      return mortService.getSecurityGroup(
+        securityGroup.account as String,
+        searchResults[0].platform,
+        securityGroup.name as String,
+        securityGroup.region as String,
+        securityGroup.vpcId as String
+      )
+    }
   }
 
   static class VPC {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class UpsertAmazonLoadBalancerForceRefreshTask implements Task {
-  static final String REFRESH_TYPE = "AmazonLoadBalancer"
-
+class TerminateInstanceAndDecrementAsgTask implements Task {
   @Autowired
-  OortService oort
+  KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    stage.context.targets.each { Map target ->
-      target.availabilityZones.keySet().each { String region ->
-        oort.forceCacheUpdate(
-          REFRESH_TYPE, [loadBalancerName: target.name, region: region, account: target.credentials]
-        )
-      }
-    }
-
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    def taskId = kato.requestOperations([[terminateInstanceAndDecrementAsgDescription: stage.context]])
+      .toBlocking()
+      .first()
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+      "notification.type"     : "terminateinstanceanddecrementasg",
+      "terminate.account.name": stage.context.credentials,
+      "terminate.region"      : stage.context.region,
+      "kato.last.task.id"     : taskId,
+      "kato.task.id"          : taskId, // TODO retire this.
+      "terminate.instance.ids": [stage.context.instance],
+    ])
   }
+
 }

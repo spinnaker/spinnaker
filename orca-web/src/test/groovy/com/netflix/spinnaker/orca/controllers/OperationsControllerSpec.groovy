@@ -186,16 +186,16 @@ class OperationsControllerSpec extends Specification {
 
     Map requestedPipeline = [
       trigger: [
-        type        : "manual",
-        properties  : [
-          key1: 'val1',
-          key2: 'val2',
+        type      : "manual",
+        properties: [
+          key1        : 'val1',
+          key2        : 'val2',
           replaceValue: ['val3']
         ],
-        replaceMe: '${trigger.properties.replaceValue}'
+        replaceMe : '${trigger.properties.replaceValue}'
       ],
-      id: '${trigger.properties.key1}',
-      name: '${trigger.properties.key2}'
+      id     : '${trigger.properties.key1}',
+      name   : '${trigger.properties.key2}'
     ]
 
     when:
@@ -206,6 +206,106 @@ class OperationsControllerSpec extends Specification {
     startedPipeline.name == 'val2'
     startedPipeline.trigger.replaceMe instanceof ArrayList
     startedPipeline.trigger.replaceMe.first() == 'val3'
+  }
+
+  def "processes pipeline parameters"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    Map requestedPipeline = [
+      trigger: [
+        parameters: [
+          key1: 'value1',
+          key2: 'value2'
+        ]
+      ],
+      id     : '${parameters.key1}',
+      name   : '${parameters.key2}'
+    ]
+
+    when:
+    controller.orchestrate(requestedPipeline, null)
+
+    then:
+    startedPipeline.id == 'value1'
+    startedPipeline.name == 'value2'
+  }
+
+  def "fills out pipeline parameters with defaults"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    Map requestedPipeline = [
+      trigger        : [
+        parameters: [
+          otherParam: 'from pipeline'
+        ]
+      ],
+      parameterConfig: [
+        [
+          name       : "region",
+          default    : "us-west-1",
+          description: "region for the deployment"
+        ],
+        [
+          name       : "key1",
+          default    : "value1",
+          description: "region for the deployment"
+        ],
+        [
+          name       : "otherParam",
+          default    : "defaultOther",
+          description: "region for the deployment"
+        ]
+      ],
+      pipelineConfigId : '${parameters.otherParam}',
+      id   : '${parameters.key1}',
+      name : '${parameters.region}'
+    ]
+
+    when:
+    controller.orchestrate(requestedPipeline, null)
+
+    then:
+    startedPipeline.id == 'value1'
+    startedPipeline.name == 'us-west-1'
+    startedPipeline.pipelineConfigId == 'from pipeline'
+  }
+
+  def "an empty string does not get overriden with default values"() {
+    given:
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+
+    Map requestedPipeline = [
+      trigger        : [
+        parameters: [
+          otherParam: ''
+        ]
+      ],
+      parameterConfig: [
+        [
+          name       : "otherParam",
+          default    : "defaultOther",
+          description: "region for the deployment"
+        ]
+      ],
+      pipelineConfigId : '${parameters.otherParam}'
+    ]
+
+    when:
+    controller.orchestrate(requestedPipeline, null)
+
+    then:
+    startedPipeline.pipelineConfigId == ''
   }
 
 }

@@ -64,8 +64,19 @@ class OperationsController {
       getBuildInfo(pipeline.trigger)
     }
 
+    if (pipeline.parameterConfig){
+      if(!pipeline.trigger.parameters){
+        pipeline.trigger.parameters = [:]
+      }
+
+      pipeline.parameterConfig.each{
+        pipeline.trigger.parameters[it.name] = pipeline.trigger.parameters.containsKey(it.name) ? pipeline.trigger.parameters[it.name] : it.default
+      }
+    }
+
     def augmentedContext = [:]
     augmentedContext.put('trigger', pipeline.trigger)
+    augmentedContext.put('parameters', pipeline.parameters)
     def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext)
 
     startPipeline(processedPipeline)

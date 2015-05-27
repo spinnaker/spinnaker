@@ -17,34 +17,52 @@
 
 package com.netflix.spinnaker.orca.retrofit
 
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
-import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.Interceptor
+import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import com.google.common.base.Optional
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.orca.retrofit.gson.GsonOptionalDeserializer
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.config.ConfigurableBeanFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
 import retrofit.client.OkClient
 
-import java.util.concurrent.TimeUnit
-
 @Configuration
 @CompileStatic
+@EnableConfigurationProperties
 class RetrofitConfiguration {
-  @Bean Client retrofitClient(@Value('${retrofit.connectTimeoutMs:15000}') int connectTimeout,
-                              @Value('${retrofit.readTimeoutMs:20000}') int readTimeout) {
-    def okHttpClient = new OkHttpClient()
-    okHttpClient.setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-    okHttpClient.setReadTimeout(readTimeout, TimeUnit.MILLISECONDS)
 
-    return new OkClient(okHttpClient)
+   @Bean
+   @ConfigurationProperties('okHttpClient')
+   OkHttpClientConfiguration okHttpClientConfig() {
+     new OkHttpClientConfiguration()
+   }
+
+   @Bean
+   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+   Client retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {
+     def cfg = okHttpClientConfig.create()
+     cfg.networkInterceptors().add(new Interceptor() {
+       @Override
+       Response intercept(Interceptor.Chain chain) throws IOException {
+         def userAgent = "Spinnaker-${System.getProperty('spring.config.name', 'unknown')}/1.0"
+         def req = chain.request().newBuilder().removeHeader('User-Agent').addHeader('User-Agent', userAgent).build()
+         chain.proceed(req)
+       }
+     })
+    new OkClient(okHttpClientConfig.create())
   }
 
   @Bean LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {

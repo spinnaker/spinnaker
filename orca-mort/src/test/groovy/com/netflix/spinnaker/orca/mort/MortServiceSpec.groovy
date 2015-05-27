@@ -118,5 +118,46 @@ class MortServiceSpec extends Specification {
     "vpc1-0"    | "us-west-1" | "prod"
   }
 
+  void "should find security group by id"() {
+    given:
+    def mortService = Mock(MortService) {
+      1 * getSearchResults(sg.id, "securityGroups") >> {
+        [
+          new MortService.SearchResult(
+            platform: "aws",
+            results: [
+              [account: sg.accountName, name: sg.name, region: sg.region, vpcId: sg.vpcId]
+            ]
+          )
+        ]
+      }
+      1 * getSecurityGroup(sg.accountName, sg.type, sg.name, sg.region, sg.vpcId ) >> { return sg }
+      1 * getSearchResults("does-not-exist", "securityGroups") >> { [] }
+      0 * _
+    }
+
+    expect:
+    findById(mortService, sg.id) == sg
+
+    try {
+      findById(mortService, "does-not-exist")
+      assert false
+    } catch (IllegalArgumentException e) {
+      // expected
+    }
+
+    where:
+    sg = new MortService.SecurityGroup(
+      type: "aws",
+      id: "sg-1",
+      name: "SG1",
+      description: "Description",
+      accountName: "test",
+      region: "us-west-1",
+      vpcId: "vpc-12345"
+    )
+
+  }
+
 
 }

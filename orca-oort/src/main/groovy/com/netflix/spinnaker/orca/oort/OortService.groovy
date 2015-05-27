@@ -45,6 +45,12 @@ interface OortService {
   Response getInstance(@Path("account") String account, @Path("region") String region,
                        @Path("instanceId") String instanceId)
 
+  @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
+  List<Map> getLoadBalancerDetails(@Path("provider") String provider,
+                                   @Path("account") String account,
+                                   @Path("region") String region,
+                                   @Path("name") String name)
+
   @POST("/cache/{type}")
   Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
 

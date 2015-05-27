@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.Expression
@@ -57,6 +58,11 @@ class ContextParameterProcessor {
   }
 
   static Map precomputeValues(Map context) {
+
+    if(context.trigger?.parameters) {
+      context.parameters = context.trigger.parameters
+    }
+
     context.scmInfo = context.buildInfo?.scm ?: context.trigger?.buildInfo?.scm ?: null
     if (context.scmInfo && context.scmInfo.size() >= 2) {
       def scmInfo = context.scmInfo.find { it.branch != 'master' && it.branch != 'develop' }
@@ -103,12 +109,19 @@ class ContextParameterProcessor {
       EvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.addPropertyAccessor(MapPropertyAccessor)
       evaluationContext.registerFunction('alphanumerical', ContextStringUtilities.getDeclaredMethod("alphanumerical", String))
+      evaluationContext.registerFunction('toJson', ContextStringUtilities.getDeclaredMethod("toJson", Object))
       try {
         Expression exp = parser.parseExpression(parameters, parserContext)
         convertedValue = exp.getValue(evaluationContext)
       } catch (e) {
+        convertedValue = parameters
       }
-      return convertedValue ?: parameters
+
+      if(convertedValue == null){
+        convertedValue = parameters
+      }
+
+      return convertedValue
     } else {
       return parameters
     }
@@ -119,6 +132,9 @@ class ContextParameterProcessor {
 abstract class ContextStringUtilities {
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
+  }
+  static String toJson(Object o){
+    new ObjectMapper().writeValueAsString(o)
   }
 }
 
