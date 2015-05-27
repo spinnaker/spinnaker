@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile spinnaker.dependency('frigga')
-  compile project(":orca-retrofit")
-  compile project(":orca-oort")
-  compile project(":orca-mort")
-  compile project(":orca-echo")
-  compile project(":orca-sock")
-  testCompile project(":orca-test")
+package com.netflix.spinnaker.orca.sock
+
+import retrofit.http.GET
+import retrofit.http.Path
+import retrofit.http.QueryMap
+
+interface SockService {
+
+  @GET("/{master}/compareCommits")
+  List compareCommits(@Path("master") String master, @QueryMap Map<String, String> requestParams)
 }

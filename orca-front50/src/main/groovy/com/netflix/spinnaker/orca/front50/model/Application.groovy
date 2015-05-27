@@ -34,6 +34,8 @@ class Application {
   String tags
   String accounts
   String regions
+  String repoProjectKey
+  String repoSlug
 
   @JsonIgnore
   Set<String> listAccounts() {
