@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('accountSelectField', function (settings) {
     return {
       restrict: 'E',

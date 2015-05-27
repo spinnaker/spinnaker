@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp')
+  .module('spinnaker')
   .directive('modalClose', function () {
     return {
       scope:true,

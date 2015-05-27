@@ -2,7 +2,7 @@
 
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .config(function ($logProvider, statesProvider) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);

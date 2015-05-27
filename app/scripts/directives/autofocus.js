@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('autoFocus', function($timeout) {
     return {
       restrict: 'A',
