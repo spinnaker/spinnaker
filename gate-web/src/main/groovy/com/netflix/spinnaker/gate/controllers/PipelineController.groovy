@@ -45,7 +45,7 @@ class PipelineController {
     pipelineService.deleteForApplication(applicationName, pipelineName)
   }
 
-  @RequestMapping(value = '/', method = RequestMethod.POST)
+  @RequestMapping(value = '', method = RequestMethod.POST)
   void savePipeline(@RequestBody Map pipeline) {
     pipelineService.save(pipeline)
   }
