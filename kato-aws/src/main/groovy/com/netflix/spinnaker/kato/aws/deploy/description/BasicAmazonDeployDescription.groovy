@@ -67,5 +67,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
     String account
     String region
     String asgName
+    Boolean useSourceCapacity
   }
 }
