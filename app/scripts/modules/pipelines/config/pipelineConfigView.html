@@ -8,7 +8,7 @@
                            view-state="viewState"
                            pipeline="pipeline">
     </pipeline-config-stage>
-    <parameters ng-if="viewState.section === 'parameters'" pipeline="pipeline">
+    <parameters ng-if="viewState.section === 'parameters' || (viewState.section === 'triggers' && pipeline.parallel )" pipeline="pipeline">
     </parameters>
   </div>
 </div>
