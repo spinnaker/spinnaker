@@ -17,7 +17,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('checklist', function() {
     return {
       restrict: 'E',

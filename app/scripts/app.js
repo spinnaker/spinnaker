@@ -2,14 +2,14 @@
 
 /**
  * @ngdoc overview
- * @name deckApp
+ * @name spinnaker
  * @description
- * # deckApp
+ * # spinnaker
  *
  * Main module of the application.
  */
 
-angular.module('deckApp', [
+angular.module('spinnaker', [
     'angulartics',
     'angulartics.google.analytics',
     'ngAnimate',

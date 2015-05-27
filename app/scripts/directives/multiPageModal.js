@@ -17,7 +17,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('multiPageModal', function () {
     return {
       restrict: 'A',

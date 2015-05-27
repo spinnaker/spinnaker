@@ -24,7 +24,7 @@
  * Allows us to use HTML in popover content. The only change is:
  *   ng-bind="content" => ng-bind-html="content"
  */
-angular.module('deckApp')
+angular.module('spinnaker')
   .run(function($templateCache) {
     $templateCache.put('template/popover/popover.html',
         '<div class="popover {{placement}}" ng-class="{ in: isOpen(), fade: animation() }">\n' +
