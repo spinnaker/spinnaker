@@ -45,7 +45,7 @@ class SockConfiguration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint sockEndpoint(
-    @Value('${sock.baseUrl:http://sock.prod.netflix.net}') String sockBaseUrl) {
+    @Value('${sock.baseUrl::http://localhost:7010}') String sockBaseUrl) {
     newFixedEndpoint(sockBaseUrl)
   }
 
