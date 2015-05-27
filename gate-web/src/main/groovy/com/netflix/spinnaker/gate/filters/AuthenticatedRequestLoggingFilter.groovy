@@ -16,7 +16,7 @@ import javax.servlet.ServletResponse
 @Slf4j
 class AuthenticatedRequestLoggingFilter implements Filter {
   private static final String X509_CERTIFICATE = "javax.servlet.request.X509Certificate"
-  private static final String AUTHENTICATED_USER = "AUTHENTICATED_USER"
+  static final String AUTHENTICATED_USER = "AUTHENTICATED_USER"
 
   /*
     otherName                       [0]

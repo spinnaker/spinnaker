@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter
 import com.netflix.spinnaker.gate.services.PipelineService
 import groovy.transform.CompileStatic
+import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -43,7 +45,7 @@ class PipelineController {
     pipelineService.deleteForApplication(applicationName, pipelineName)
   }
 
-  @RequestMapping(method = RequestMethod.POST)
+  @RequestMapping(value = '/', method = RequestMethod.POST)
   void savePipeline(@RequestBody Map pipeline) {
     pipelineService.save(pipeline)
   }
@@ -66,6 +68,12 @@ class PipelineController {
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   Map deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
+  }
+
+  @RequestMapping(value = '/start', method = RequestMethod.POST)
+  Map start(@RequestBody Map map) {
+    String authenticatedUser = MDC.get(AuthenticatedRequestLoggingFilter.AUTHENTICATED_USER) ?: 'anonymous'
+    pipelineService.startPipeline(map, authenticatedUser)
   }
 
   @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.POST)
