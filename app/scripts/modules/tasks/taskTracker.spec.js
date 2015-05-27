@@ -14,7 +14,7 @@ describe('Service: taskTracker', function() {
     spyOn(notificationsService, 'create');
     spyOn(scheduler, 'scheduleImmediate');
 
-    module('deckApp');
+    module('spinnaker');
 
     module(function($provide) {
       $provide.value('notificationsService', notificationsService);

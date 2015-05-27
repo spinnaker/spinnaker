@@ -5,7 +5,7 @@
 
 var loadDeck = function(config) {
   config = config || {};
-  return module('deckApp', function($provide, $injector) {
+  return module('spinnaker', function($provide, $injector) {
     if (!config.initializeCache) {
       $provide.decorator('cacheInitializer', function() {
         return {

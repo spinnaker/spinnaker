@@ -1,9 +1,9 @@
 'use strict';
 
 angular
-  .module('deckApp.securityGroup.write.service', [
-    'deckApp.caches.infrastructure',
-    'deckApp.taskExecutor.service'
+  .module('spinnaker.securityGroup.write.service', [
+    'spinnaker.caches.infrastructure',
+    'spinnaker.taskExecutor.service'
   ])
   .factory('securityGroupWriter' ,function (taskExecutor, infrastructureCaches) {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.gce.image.service', [])
+angular.module('spinnaker.gce.image.service', [])
   .factory('gceImageService', function (settings, $q, Restangular, scheduledCache) {
 
     function findImages(params) {

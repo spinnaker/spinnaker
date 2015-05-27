@@ -1,8 +1,8 @@
 'use strict';
 
 /*jshint camelcase: false */
-angular.module('deckApp.whatsNew.read.service', [
-  'deckApp.settings',
+angular.module('spinnaker.whatsNew.read.service', [
+  'spinnaker.settings',
 ])
   .factory('whatsNewReader', function ($http, settings, $log) {
     function extractFileContent(data) {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.executionDetails.section.nav.directive', [])
+angular.module('spinnaker.executionDetails.section.nav.directive', [])
   .directive('executionDetailsSectionNav', function() {
     return {
       restrict: 'E',

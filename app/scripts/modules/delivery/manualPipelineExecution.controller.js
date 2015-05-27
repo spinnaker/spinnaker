@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery.manualPipelineExecution.controller', [
-  'deckApp.utils.lodash',
-  'deckApp.pipelines.trigger.jenkins',
+angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines.trigger.jenkins',
 ])
   .controller('ManualPipelineExecutionCtrl', function($scope, $filter, _, igorService, $modalInstance, pipeline, currentlyRunningExecutions) {
 

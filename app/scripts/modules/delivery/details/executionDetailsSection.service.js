@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.executionDetails.section.service', [
+angular.module('spinnaker.executionDetails.section.service', [
   'ui.router',
 ])
   .factory('executionDetailsSectionService', function($stateParams, $state) {

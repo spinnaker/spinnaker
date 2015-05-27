@@ -6,8 +6,8 @@ describe('Controller: Applications', function () {
 
   beforeEach(
     module(
-      'deckApp.application.controller',
-      'deckApp.applications.read.service'
+      'spinnaker.application.controller',
+      'spinnaker.applications.read.service'
     )
   );
 

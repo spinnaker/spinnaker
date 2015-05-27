@@ -8,7 +8,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.application.create.modal.controller')
+    module('spinnaker.application.create.modal.controller')
   );
 
   beforeEach(
@@ -20,6 +20,7 @@ describe('Controller: CreateApplicationModalCtrl', function () {
       });
     })
   );
+
 
   it('should instantiate the controller', function () {
     expect(controller).toBeDefined();

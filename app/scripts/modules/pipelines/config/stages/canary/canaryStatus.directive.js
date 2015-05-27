@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stages.canary.status.directive', [])
+angular.module('spinnaker.pipelines.stages.canary.status.directive', [])
   .directive('canaryStatus', function() {
     return {
       restrict: 'E',
@@ -11,8 +11,10 @@ angular.module('deckApp.pipelines.stages.canary.status.directive', [])
       link: function(scope) {
         function applyLabel() {
           scope.statusLabel = scope.status === 'LAUNCHED' ? 'launched'
+            : scope.status === 'RUNNING' ? 'running'
             : scope.status === 'COMPLETED' ? 'completed'
             : scope.status === 'FAILED' ? 'failed'
+            : scope.status === 'TERMINATED' ? 'terminated'
             : scope.status === 'CANCELED' ? 'canceled'
             : 'unknown';
         }

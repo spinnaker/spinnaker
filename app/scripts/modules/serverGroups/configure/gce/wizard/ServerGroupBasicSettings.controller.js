@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.gce')
+angular.module('spinnaker.serverGroup.configure.gce')
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {

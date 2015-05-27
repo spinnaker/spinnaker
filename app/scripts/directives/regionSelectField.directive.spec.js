@@ -19,7 +19,7 @@
 describe('Directives: regionSelectField', function () {
 
   beforeEach(function() {
-    module('deckApp', function($provide) {
+    module('spinnaker', function($provide) {
       $provide.decorator('cacheInitializer', function() {
         return {
           initialize: angular.noop

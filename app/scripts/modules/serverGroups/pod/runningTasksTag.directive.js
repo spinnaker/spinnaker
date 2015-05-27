@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.display.tasks.tag', [
-  'deckApp.executionFilter.service'
+angular.module('spinnaker.serverGroup.display.tasks.tag', [
+  'spinnaker.executionFilter.service'
 ])
   .directive('runningTasksTag', function() {
     return {

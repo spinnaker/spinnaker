@@ -1,8 +1,8 @@
 angular
-  .module('deckApp.cluster', [
-    'deckApp.instanceList.filter',
+  .module('spinnaker.cluster', [
+    'spinnaker.instanceList.filter',
     'cluster',
     'clusters.all',
     'cluster.filter.collapse',
-    'deckApp.utils.lodash',
+    'spinnaker.utils.lodash',
   ]);

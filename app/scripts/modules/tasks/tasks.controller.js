@@ -1,15 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.main', [
-  'deckApp.utils.lodash',
-  'deckApp.tasks.progressBar.directive',
-  'deckApp.caches.viewStateCache',
-  'deckApp.tasks.write.service',
-  'deckApp.confirmationModal.service',
-  'deckApp.pipelines.stages.core.displayableTasks.filter',
+angular.module('spinnaker.tasks.main', [
+  'spinnaker.utils.lodash',
+  'spinnaker.tasks.progressBar.directive',
+  'spinnaker.caches.viewStateCache',
+  'spinnaker.tasks.write.service',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.pipelines.stages.core.displayableTasks.filter',
   'ui.router',
-  'deckApp.settings',
+  'spinnaker.settings',
 ])
   .controller('TasksCtrl', function ($scope, $state, settings, application, _, viewStateCache, tasksWriter, confirmationModalService) {
     var controller = this;

@@ -6,7 +6,7 @@ describe('Servcie: applicationWriter', function () {
 
   beforeEach(
     module(
-      'deckApp.applications.write.service'
+      'spinnaker.applications.write.service'
     )
   );
 

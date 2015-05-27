@@ -2,7 +2,7 @@
 
 describe('Service: pageTitleService', function() {
 
-  beforeEach(module('deckApp.pageTitle'));
+  beforeEach(module('spinnaker.pageTitle'));
 
   beforeEach(inject(function (pageTitleService, $stateParams, $rootScope) {
     this.pageTitleService = pageTitleService;

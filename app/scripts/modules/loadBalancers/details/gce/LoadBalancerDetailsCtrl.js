@@ -1,15 +1,15 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.gce.details.controller',[
+angular.module('spinnaker.loadBalancer.gce.details.controller',[
   'ui.router',
   'ui.bootstrap',
-  'deckApp.notifications.service',
-  'deckApp.confirmationModal.service',
-  'deckApp.loadBalancer.write.service',
-  'deckApp.loadBalancer.read.service',
-  'deckApp.utils.lodash',
-  'deckApp.confirmationModal.service'
+  'spinnaker.notifications.service',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.loadBalancer.write.service',
+  'spinnaker.loadBalancer.read.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.confirmationModal.service'
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.rollup', [])
+angular.module('spinnaker.securityGroup.rollup', [])
   .directive('securityGroup', function ($rootScope, $timeout) {
     return {
       restrict: 'E',

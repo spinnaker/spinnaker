@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.notifications')
+angular.module('spinnaker.notifications')
   .directive('notifications', function ($exceptionHandler, $timeout) {
     return {
       scope: {},

@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.help.directive', [
+  .module('spinnaker.help.directive', [
     'ui.bootstrap',
     'hc.marked'
   ])

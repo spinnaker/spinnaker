@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.fastProperty.constraints.directive', [])
+  .module('spinnaker.fastProperty.constraints.directive', [])
   .directive('fastPropertyConstraints', function() {
     return {
       restrict: 'E',

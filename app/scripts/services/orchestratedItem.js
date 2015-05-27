@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.orchestratedItem.service', [
-  'deckApp.utils.moment'
+angular.module('spinnaker.orchestratedItem.service', [
+  'spinnaker.utils.moment'
 ])
   .factory('orchestratedItem', function(momentService, $log) {
     function defineProperties(item) {

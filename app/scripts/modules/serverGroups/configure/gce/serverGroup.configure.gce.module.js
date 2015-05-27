@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.gce', [
-  'deckApp.account',
-  'deckApp.serverGroup.configure.gce.deployInitialization.controller',
+angular.module('spinnaker.serverGroup.configure.gce', [
+  'spinnaker.account',
+  'spinnaker.serverGroup.configure.gce.deployInitialization.controller',
 ]);

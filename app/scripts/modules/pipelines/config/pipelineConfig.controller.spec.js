@@ -10,7 +10,7 @@ describe('Controller: PipelineConfigCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.pipelines.config.controller')
+    module('spinnaker.pipelines.config.controller')
   );
 
   beforeEach(

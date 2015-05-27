@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.delivery.execution.triggers.toggle.modal.controller', [
-  'deckApp.pipelines.config.service',
+angular.module('spinnaker.delivery.execution.triggers.toggle.modal.controller', [
+  'spinnaker.pipelines.config.service',
 ])
   .controller('ToggleTriggerModalCtrl', function($scope, pipeline, trigger, $modalInstance, pipelineConfig, pipelineConfigService) {
 

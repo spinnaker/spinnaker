@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.tasks.write.service', ['restangular'])
+  .module('spinnaker.tasks.write.service', ['restangular'])
   .factory('tasksWriter', function(Restangular) {
 
     var endpoint = Restangular.all('applications');

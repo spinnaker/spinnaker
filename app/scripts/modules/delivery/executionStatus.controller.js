@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionStatus.controller', [])
+angular.module('spinnaker.delivery.executionStatus.controller', [])
   .controller('executionStatus', function() {
     var controller = this;
 

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .filter('robotToHuman', function() {
     return function(input) {
 

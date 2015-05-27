@@ -17,7 +17,7 @@
 'use strict';
 
 
-angular.module('deckApp.help')
+angular.module('spinnaker.help')
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('serverGroup', function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService) {
     return {
       restrict: 'E',

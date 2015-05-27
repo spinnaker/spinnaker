@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.serverGroup', [])
+angular.module('spinnaker.loadBalancer.serverGroup', [])
   .directive('loadBalancerServerGroup', function ($rootScope) {
     return {
       restrict: 'E',

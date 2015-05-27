@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.gce', []);
+angular.module('spinnaker.gce', []);

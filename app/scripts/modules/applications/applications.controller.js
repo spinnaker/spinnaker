@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.applications.controller', [
+angular.module('spinnaker.applications.controller', [
   'ui.bootstrap',
-  'deckApp.applications.read.service',
-  'deckApp.account.service'
+  'spinnaker.applications.read.service',
+  'spinnaker.account.service'
 ])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
                                            $state, applicationReader) {

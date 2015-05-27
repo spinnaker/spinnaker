@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.caches.applicationLevelScheduled', [])
+angular.module('spinnaker.caches.applicationLevelScheduled', [])
   .factory('applicationLevelScheduledCache', function(scheduledCache, $rootScope, $stateParams) {
     var currentApplication = '';
     var toRemove = [];

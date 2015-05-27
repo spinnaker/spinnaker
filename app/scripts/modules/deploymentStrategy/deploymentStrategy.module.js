@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy', ['deckApp.utils']);
+angular.module('spinnaker.deploymentStrategy', ['spinnaker.utils']);

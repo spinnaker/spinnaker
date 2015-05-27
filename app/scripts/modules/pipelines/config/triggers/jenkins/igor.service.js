@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.pipelines.trigger.jenkins.service', [
+angular.module('spinnaker.pipelines.trigger.jenkins.service', [
   'restangular',
-  'deckApp.settings',
+  'spinnaker.settings',
 ])
   .factory('igorService', function (settings, Restangular) {
 

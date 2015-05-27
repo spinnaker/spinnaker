@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.instance.loadBalancer.health.directive', [])
+angular.module('spinnaker.instance.loadBalancer.health.directive', [])
   .directive('instanceLoadBalancerHealth', function() {
     return {
       restrict: 'E',

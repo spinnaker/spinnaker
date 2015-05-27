@@ -1,7 +1,7 @@
 'use strict';
 
 // TODO: Move everything in here to config
-angular.module('deckApp.pipelines.stage.bake')
+angular.module('spinnaker.pipelines.stage.bake')
   .factory('bakeryService', function($q) {
 
     function getRegions(provider) {

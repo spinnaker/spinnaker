@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create.controller', [
-  'deckApp.utils.lodash',
-  'deckApp.pipelines.config.service',
-  'deckApp.utils.scrollTo',
+angular.module('spinnaker.pipelines.create.controller', [
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines.config.service',
+  'spinnaker.utils.scrollTo',
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application, target, reinitialize,
                                                   _, pipelineConfigService, $modalInstance, $log) {

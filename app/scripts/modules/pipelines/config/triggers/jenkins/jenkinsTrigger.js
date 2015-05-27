@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.trigger.jenkins')
+angular.module('spinnaker.pipelines.trigger.jenkins')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
       label: 'Jenkins',

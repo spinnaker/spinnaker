@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.aws.edit.controller', [
+angular.module('spinnaker.securityGroup.aws.edit.controller', [
   'ui.router',
-  'deckApp.account.service',
-  'deckApp.caches.infrastructure',
-  'deckApp.caches.initializer',
-  'deckApp.tasks.monitor.service',
-  'deckApp.securityGroup.write.service',
-  'deckApp.vpc.read.service',
+  'spinnaker.account.service',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.caches.initializer',
+  'spinnaker.tasks.monitor.service',
+  'spinnaker.securityGroup.write.service',
+  'spinnaker.vpc.read.service',
 ])
   .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                 accountService,  securityGroupReader,

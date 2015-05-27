@@ -1,7 +1,7 @@
 'use strict';
 
 // TODO: Clean this up on the backend - this is a mess
-angular.module('deckApp.pipelines.stage.canary.transformer', [])
+angular.module('spinnaker.pipelines.stage.canary.transformer', [])
   .service('canaryStageTransformer', function() {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
@@ -136,6 +136,12 @@ angular.module('deckApp.pipelines.stage.canary.transformer', [])
             }
             if (canaryStatus.status === 'DISABLED') {
               status = 'DISABLED';
+            }
+            if (canaryStatus.status === 'FAILED') {
+              status = 'FAILED';
+            }
+            if (canaryStatus.status === 'TERMINATED') {
+              status = 'TERMINATED';
             }
             canaryStatus.status = status;
           } else {

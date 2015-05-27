@@ -7,7 +7,7 @@ describe('Service: executionsService', function () {
   var executionsService;
 
   beforeEach(
-    module('deckApp.delivery.executions.service')
+    module('spinnaker.delivery.executions.service')
   );
 
   beforeEach(

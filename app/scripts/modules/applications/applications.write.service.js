@@ -1,18 +1,18 @@
 'use strict';
 
 angular
-  .module('deckApp.applications.write.service', [
-    'deckApp.taskExecutor.service'
+  .module('spinnaker.applications.write.service', [
+    'spinnaker.taskExecutor.service'
   ])
   .factory('applicationWriter', function($q, taskExecutor) {
 
-    function createApplication(app) {
+    function createApplication(app, account) {
       return taskExecutor.executeTask({
         suppressNotification: true,
         job: [
           {
             type: 'createApplication',
-            account: app.account,
+            account: account,
             application: {
               name: app.name,
               description: app.description,

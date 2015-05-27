@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.elasticIp.write.service', [
-    'deckApp.taskExecutor.service'
+  .module('spinnaker.elasticIp.write.service', [
+    'spinnaker.taskExecutor.service'
   ])
   .factory('elasticIpWriter', function (taskExecutor) {
     function associateElasticIpWithCluster(application, account, cluster, region, elasticIp) {

@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionTransformer.service', [
-  'deckApp.orchestratedItem.service',
-  'deckApp.utils.lodash',
-  'deckApp.pipelines.config',
+angular.module('spinnaker.delivery.executionTransformer.service', [
+  'spinnaker.orchestratedItem.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.pipelines.config',
 ])
   .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 

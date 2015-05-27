@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.urlBuilder', ['ui.router'])
+angular.module('spinnaker.urlBuilder', ['ui.router'])
   .factory('urlBuilder', function($state) {
     var lookup = {
       // url for a single serverGroup

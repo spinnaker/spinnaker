@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.script', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.pipelines.stage.script.executionDetails.controller',
+angular.module('spinnaker.pipelines.stage.script', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.pipelines.stage.script.executionDetails.controller',
 ]);

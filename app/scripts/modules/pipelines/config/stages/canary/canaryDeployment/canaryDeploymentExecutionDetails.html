@@ -29,11 +29,12 @@
         </div>
       </div>
     </div>
-    <div class="horizontal-rule"></div>
-    <div class="row divider"></div>
+
+    <div class="row divider" style="margin-top: 10px;"></div>
     <div class="row">
       <div class="col-md-6">
-        <h5>Baseline</h5>
+        <strong>Baseline</strong>
+        <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
           <div class="col-md-9"><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
@@ -54,7 +55,8 @@
         </div>
       </div>
       <div class="col-md-6">
-        <h5>Canary</h5>
+        <strong>Canary</strong>
+        <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
           <div class="col-md-9"><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>

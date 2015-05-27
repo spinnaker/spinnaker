@@ -10,7 +10,7 @@ xdescribe('Controller: Config', function () {
   var $q;
 
   beforeEach(module(
-    'deckApp.config.controller'
+    'spinnaker.config.controller'
   ));
 
   beforeEach(

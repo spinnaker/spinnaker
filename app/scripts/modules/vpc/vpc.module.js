@@ -1,6 +1,6 @@
 'use strict';
 
 angular
-  .module('deckApp.vpc', [
-    'deckApp.vpc.read.service'
+  .module('spinnaker.vpc', [
+    'spinnaker.vpc.read.service'
   ]);

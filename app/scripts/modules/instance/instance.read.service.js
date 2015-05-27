@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.instance.read.service', ['restangular'])
+  .module('spinnaker.instance.read.service', ['restangular'])
   .factory('instanceReader', function (Restangular) {
 
     function getInstanceDetails(account, region, id) {

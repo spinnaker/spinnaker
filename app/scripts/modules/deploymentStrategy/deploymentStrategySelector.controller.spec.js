@@ -2,7 +2,7 @@
 
 describe('Controller: deploymentStrategySelector', function() {
 
-  beforeEach(module('deckApp.deploymentStrategy'));
+  beforeEach(module('spinnaker.deploymentStrategy'));
 
 
   beforeEach(inject(function($controller, $rootScope, deploymentStrategyService) {

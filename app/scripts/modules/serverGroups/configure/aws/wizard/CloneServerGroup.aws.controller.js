@@ -1,14 +1,14 @@
 'use strict';
 
 
-angular.module('deckApp.aws.cloneServerGroup.controller', [
+angular.module('spinnaker.aws.cloneServerGroup.controller', [
   'ui.router',
-  'deckApp.utils.lodash',
-  'deckApp.image.service',
-  'deckApp.aws.serverGroup.configure.service',
-  'deckApp.serverGroup.write.service',
-  'deckApp.modalWizard',
-  'deckApp.tasks.monitor.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.image.service',
+  'spinnaker.aws.serverGroup.configure.service',
+  'spinnaker.serverGroup.write.service',
+  'spinnaker.modalWizard',
+  'spinnaker.tasks.monitor.service',
 
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,

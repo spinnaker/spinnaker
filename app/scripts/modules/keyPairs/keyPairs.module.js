@@ -1,6 +1,6 @@
 'use strict';
 
 angular
-  .module('deckApp.keyPairs', [
-    'deckApp.keyPairs.read.service'
+  .module('spinnaker.keyPairs', [
+    'spinnaker.keyPairs.read.service'
   ]);

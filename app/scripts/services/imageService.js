@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.image.service', [
-  'deckApp.aws.image.service',
-  'deckApp.gce.image.service'
+angular.module('spinnaker.image.service', [
+  'spinnaker.aws.image.service',
+  'spinnaker.gce.image.service'
 ])
   .factory('imageService', function (awsImageService, gceImageService) {
 

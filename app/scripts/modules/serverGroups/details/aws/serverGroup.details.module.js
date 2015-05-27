@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.details.aws', [
-  'deckApp.notifications',
-  'deckApp.serverGroup.details.aws.controller',
-  'deckApp.serverGroup.details.aws.autoscaling.process',
-  'deckApp.serverGroup.details.aws.autoscaling.process.controller',
+angular.module('spinnaker.serverGroup.details.aws', [
+  'spinnaker.notifications',
+  'spinnaker.serverGroup.details.aws.controller',
+  'spinnaker.serverGroup.details.aws.autoscaling.process',
+  'spinnaker.serverGroup.details.aws.autoscaling.process.controller',
 ]);

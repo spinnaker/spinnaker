@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.create')
+angular.module('spinnaker.pipelines.create')
   .controller('CreatePipelineButtonCtrl', function($scope, $modal) {
     this.createPipeline = function() {
       $modal.open({

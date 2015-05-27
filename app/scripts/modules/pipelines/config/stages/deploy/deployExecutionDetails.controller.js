@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.deploy.details.controller', [
-  'deckApp.utils.lodash',
+angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
+  'spinnaker.utils.lodash',
   'ui.router',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive',
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout) {
 

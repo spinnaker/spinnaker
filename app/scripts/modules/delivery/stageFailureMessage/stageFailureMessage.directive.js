@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionDetails.stageFailureMessage.directive', [])
+angular.module('spinnaker.delivery.executionDetails.stageFailureMessage.directive', [])
   .directive('stageFailureMessage', function () {
     return {
       restrict: 'E',

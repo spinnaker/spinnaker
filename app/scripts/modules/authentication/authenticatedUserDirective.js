@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.authentication.directive', [
-  'deckApp.authentication.service'
+angular.module('spinnaker.authentication.directive', [
+  'spinnaker.authentication.service'
 ])
   .directive('authenticatedUser', function(authenticationService) {
     return {

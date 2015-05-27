@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary.details.controller', [
+angular.module('spinnaker.pipelines.stage.canary.details.controller', [
   'ui.router',
-  'deckApp.utils.lodash',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive'
+  'spinnaker.utils.lodash',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive'
 ])
   .controller('CanaryExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService) {
 

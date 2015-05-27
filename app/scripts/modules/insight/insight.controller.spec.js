@@ -8,7 +8,7 @@ describe('Controller: InsightCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.insight.controller')
+    module('spinnaker.insight.controller')
   );
 
   beforeEach(

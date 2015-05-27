@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('gceZoneSelectField', function () {
     return {
       restrict: 'E',

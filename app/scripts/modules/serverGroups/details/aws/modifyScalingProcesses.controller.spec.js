@@ -2,7 +2,7 @@
 
 describe('Controller: modifyScalingProcesses', function() {
 
-  beforeEach(module('deckApp.serverGroup.details.aws.autoscaling.process.controller'));
+  beforeEach(module('spinnaker.serverGroup.details.aws.autoscaling.process.controller'));
 
   beforeEach(inject(function($controller, $rootScope, _) {
     this.$modalInstance = { close: angular.noop };

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary')
+angular.module('spinnaker.pipelines.stage.canary')
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
         pipelineConfigProvider.registerStage({
@@ -30,6 +30,7 @@ angular.module('deckApp.pipelines.stage.canary')
 
     var user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;
+    $scope.stage.baseline = $scope.stage.baseline || {};
     $scope.stage.scaleUp = $scope.stage.scaleUp || {};
     $scope.stage.canary = $scope.stage.canary || {};
     $scope.stage.canary.owner = $scope.stage.canary.owner || (user.authenticated ? user.name : null);

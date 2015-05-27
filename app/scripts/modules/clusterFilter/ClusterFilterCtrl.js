@@ -2,7 +2,7 @@
 
 // controllerAs: clustersFilters
 
-angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'deckApp.utils.lodash'])
+angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'spinnaker.utils.lodash'])
   .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
     $scope.application = application;

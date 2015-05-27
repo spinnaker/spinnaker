@@ -8,7 +8,7 @@ describe('Controller: gceInstanceDetailsCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.instance.detail.gce.controller')
+    module('spinnaker.instance.detail.gce.controller')
   );
 
   beforeEach(

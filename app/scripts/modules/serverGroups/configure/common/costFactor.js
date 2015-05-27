@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.common')
+angular.module('spinnaker.serverGroup.configure.common')
   .directive('costFactor', function() {
     return {
       restrict: 'E',

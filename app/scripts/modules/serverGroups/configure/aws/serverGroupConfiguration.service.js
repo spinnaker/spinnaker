@@ -1,14 +1,14 @@
 'use strict';
 
-angular.module('deckApp.aws.serverGroup.configure.service', [
-  'deckApp.image.service',
-  'deckApp.account.service',
-  'deckApp.securityGroup.read.service',
-  'deckApp.instanceType.service',
-  'deckApp.subnet.read.service',
-  'deckApp.keyPairs.read.service',
-  'deckApp.loadBalancer.read.service',
-  'deckApp.caches.initializer',
+angular.module('spinnaker.aws.serverGroup.configure.service', [
+  'spinnaker.image.service',
+  'spinnaker.account.service',
+  'spinnaker.securityGroup.read.service',
+  'spinnaker.instanceType.service',
+  'spinnaker.subnet.read.service',
+  'spinnaker.keyPairs.read.service',
+  'spinnaker.loadBalancer.read.service',
+  'spinnaker.caches.initializer',
 ])
   .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,

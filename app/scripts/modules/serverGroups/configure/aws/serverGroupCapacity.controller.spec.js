@@ -2,7 +2,7 @@
 
 describe('Controller: ServerGroupCapacitySelector', function () {
 
-  beforeEach(module('deckApp.serverGroup.configure.aws'));
+  beforeEach(module('spinnaker.serverGroup.configure.aws'));
 
   beforeEach(inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();

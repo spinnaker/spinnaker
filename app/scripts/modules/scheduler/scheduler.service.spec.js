@@ -3,7 +3,7 @@
 describe('scheduler', function() {
   beforeEach(function() {
     var pollSchedule = 25;
-    module('deckApp', function($provide) {
+    module('spinnaker', function($provide) {
       return $provide.constant('settings', {
         pollSchedule: pollSchedule,
       });

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.account')
+angular.module('spinnaker.account')
   .directive('ifMultipleProviders', function(accountService) {
     return {
       restrict: 'A',

@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.healthCounts.directive', [])
+angular.module('spinnaker.healthCounts.directive', [])
   .directive('healthCounts', function ($templateCache) {
     return {
       templateUrl: 'scripts/modules/healthCounts/healthCounts.html',

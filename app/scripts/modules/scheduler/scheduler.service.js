@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.scheduler', ['deckApp.utils.rx', 'deckApp.settings'])
+angular.module('spinnaker.scheduler', ['spinnaker.utils.rx', 'spinnaker.settings'])
   .factory('scheduler', function(RxService, settings, $q) {
     var scheduler = new RxService.Subject();
 

@@ -1,12 +1,12 @@
 
 angular
-  .module('deckApp.tasks', [
-    'deckApp.tasks.api',
-    'deckApp.tasks.main',
-    'deckApp.tasks.detail.controller',
-    'deckApp.tasks.monitor',
-    'deckApp.tasks.tracker',
-    'deckApp.tasks.read.service',
-    'deckApp.tasks.write.service',
-    'deckApp.statusGlyph.directive',
+  .module('spinnaker.tasks', [
+    'spinnaker.tasks.api',
+    'spinnaker.tasks.main',
+    'spinnaker.tasks.detail.controller',
+    'spinnaker.tasks.monitor',
+    'spinnaker.tasks.tracker',
+    'spinnaker.tasks.read.service',
+    'spinnaker.tasks.write.service',
+    'spinnaker.statusGlyph.directive',
   ]);

@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.delivery.executions.filter', [
-  'deckApp.timeBoundaries.service'
+angular.module('spinnaker.delivery.executions.filter', [
+  'spinnaker.timeBoundaries.service'
 ])
   .filter('executions', function(timeBoundaries) {
     return function(executions, filter, grouping) {

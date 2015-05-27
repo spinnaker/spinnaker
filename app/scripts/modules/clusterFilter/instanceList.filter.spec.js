@@ -5,7 +5,7 @@ describe('Filter: instanceList', function () {
   var filter;
 
   beforeEach(
-    module('deckApp.instanceList.filter')
+    module('spinnaker.instanceList.filter')
   );
 
   beforeEach(

@@ -1,9 +1,9 @@
 'use strict';
 
 angular
-  .module('deckApp.serverGroup.write.service', [
-    'deckApp.serverGroup.transformer.service',
-    'deckApp.taskExecutor.service'
+  .module('spinnaker.serverGroup.write.service', [
+    'spinnaker.serverGroup.transformer.service',
+    'spinnaker.taskExecutor.service'
   ])
   .factory('serverGroupWriter', function (taskExecutor, serverGroupTransformer) {
 

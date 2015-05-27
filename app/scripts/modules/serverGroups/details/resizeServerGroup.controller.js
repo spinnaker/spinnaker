@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.resizeServerGroup.controller', [
+angular.module('spinnaker.resizeServerGroup.controller', [
   'ui.bootstrap',
-  'deckApp.account.service',
-  'deckApp.serverGroup.write.service',
-  'deckApp.tasks.monitor.service'
+  'spinnaker.account.service',
+  'spinnaker.serverGroup.write.service',
+  'spinnaker.tasks.monitor.service'
 ])
   .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {

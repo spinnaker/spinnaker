@@ -2,7 +2,7 @@
 
 describe('Controller: ExecutionDetails', function () {
 
-  beforeEach(module('deckApp.executionDetails.controller'));
+  beforeEach(module('spinnaker.executionDetails.controller'));
 
   beforeEach(inject(function ($controller, $rootScope) {
     this.$scope = $rootScope.$new();

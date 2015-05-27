@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.networking', [
-    'deckApp.networking.controller',
-    'deckApp.elasticIp.read.service',
-    'deckApp.elasticIp.write.service'
+  .module('spinnaker.networking', [
+    'spinnaker.networking.controller',
+    'spinnaker.elasticIp.read.service',
+    'spinnaker.elasticIp.write.service'
   ]);

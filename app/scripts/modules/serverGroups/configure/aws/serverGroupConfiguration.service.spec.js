@@ -20,7 +20,7 @@ describe('Service: awsServerGroupConfiguration', function () {
 
   beforeEach(
     module(
-      'deckApp.aws.serverGroup.configure.service'
+      'spinnaker.aws.serverGroup.configure.service'
     )
   );
 

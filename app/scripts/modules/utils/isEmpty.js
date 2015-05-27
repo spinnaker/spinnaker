@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.isEmpty', [])
+angular.module('spinnaker.utils.isEmpty', [])
   .factory('isEmpty', function () {
     // Essentially the same as lodash's isEmpty method, except returns false for 0
     return function (value) {

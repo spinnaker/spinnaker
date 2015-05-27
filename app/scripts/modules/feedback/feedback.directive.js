@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.feedback.directive', [])
+angular.module('spinnaker.feedback.directive', [])
   .directive('feedback', function() {
     return {
       restrict: 'E',

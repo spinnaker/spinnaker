@@ -2,7 +2,7 @@
 
 describe('Controller: deletePipelineModal', function() {
 
-  beforeEach(module('deckApp.pipelines.delete'));
+  beforeEach(module('spinnaker.pipelines.delete'));
 
   beforeEach(inject(function($controller, $rootScope, $log, $q, pipelineConfigService) {
     this.$q = $q;

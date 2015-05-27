@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.pipelines.trigger', ['deckApp.pipelines']);
+angular.module('spinnaker.pipelines.trigger', ['spinnaker.pipelines']);

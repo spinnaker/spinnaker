@@ -2,8 +2,8 @@
 
 
 angular
-  .module('deckApp.fastPropertyScope.service', [
-    'deckApp.naming'
+  .module('spinnaker.fastPropertyScope.service', [
+    'spinnaker.naming'
   ])
   .factory('FastPropertyScopeService', function ($q, namingService) {
 

@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.pipelines.editJson', ['deckApp.pipelines', 'deckApp.settings', 'deckApp.utils.lodash']);
+angular.module('spinnaker.pipelines.editJson', ['spinnaker.pipelines', 'spinnaker.settings', 'spinnaker.utils.lodash']);

@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.instance', [
-    'deckApp.instance.detail.aws.controller',
-    'deckApp.instance.detail.gce.controller',
-    'deckApp.instance.loadBalancer.health.directive',
+  .module('spinnaker.instance', [
+    'spinnaker.instance.detail.aws.controller',
+    'spinnaker.instance.detail.gce.controller',
+    'spinnaker.instance.loadBalancer.health.directive',
   ]);

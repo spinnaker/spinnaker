@@ -17,7 +17,7 @@
 'use strict';
 
 
-angular.module('deckApp.modalWizard', [])
+angular.module('spinnaker.modalWizard', [])
   .directive('modalWizard', function () {
     return {
       restrict: 'E',
@@ -26,7 +26,7 @@ angular.module('deckApp.modalWizard', [])
       controller: 'ModalWizardCtrl as wizardCtrl',
       link: function(scope, elem, attrs) {
         scope.wizard.setHeading(attrs.heading);
-        scope.wizard.hideIndicators = attrs.hideIndicators !== 'true';
+        scope.wizard.hideIndicators = attrs.hideIndicators ? attrs.hideIndicators === 'true' : false;
         scope.showSubheadings = attrs.showSubheadings !== 'false';
       }
     };

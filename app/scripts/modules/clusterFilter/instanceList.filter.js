@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.instanceList.filter', [])
+  .module('spinnaker.instanceList.filter', [])
   .filter('instanceSearch', function () {
     return function (instanceList, query) {
       if (!query) {

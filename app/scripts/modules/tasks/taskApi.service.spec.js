@@ -24,7 +24,7 @@ describe('Service: Pond - task complete, task force refresh', function() {
   var service, $http, config, scope, timeout, task, lodash;
 
   beforeEach(
-    module('deckApp.tasks.api')
+    module('spinnaker.tasks.api')
   );
 
   beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {

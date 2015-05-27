@@ -18,7 +18,7 @@
 
 
 // Source: https://gist.github.com/c0bra/5859295
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('isVisible', function () {
     return function (scope, element, attr) {
       scope.$watch(attr.isVisible, function (visible) {

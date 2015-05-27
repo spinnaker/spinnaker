@@ -3,7 +3,7 @@
 describe('Controller: gceCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('deckApp.loadBalancer.gce.create.controller'));
+  beforeEach(module('spinnaker.loadBalancer.gce.create.controller'));
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function ($controller, $rootScope) {

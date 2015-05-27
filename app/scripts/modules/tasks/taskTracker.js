@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.tracker', [
-  'deckApp.scheduler',
-  'deckApp.notifications.service'
+angular.module('spinnaker.tasks.tracker', [
+  'spinnaker.scheduler',
+  'spinnaker.notifications.service'
 ])
   .factory('taskTracker', function(notificationsService, scheduler) {
     var that = {};

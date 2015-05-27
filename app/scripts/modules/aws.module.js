@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.aws', []);
+angular.module('spinnaker.aws', []);
