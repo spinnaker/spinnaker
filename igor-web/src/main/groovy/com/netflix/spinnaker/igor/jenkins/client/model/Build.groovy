@@ -37,7 +37,7 @@ class Build {
     String result
     String timestamp
     @Element(required = false)
-    Integer duration
+    Long duration
     @Element(required = false)
     Integer estimatedDuration
     @Element(required = false)
@@ -47,7 +47,7 @@ class Build {
     String builtOn
     @Element(required = false)
     String fullDisplayName
-    
+
     @ElementList(required = false, name = "artifact", inline = true)
     List<BuildArtifact> artifacts
     /*
