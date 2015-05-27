@@ -3,11 +3,11 @@
 
 /**
  * @ngdoc directive
- * @name deckApp.directive:insightMenu
+ * @name spinnaker.directive:insightMenu
  * @description
  * # insightMenu
  */
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('insightMenu', function () {
     return {
       templateUrl: 'scripts/modules/insight/insightmenu.html',

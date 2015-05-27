@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .filter('stageNames', function() {
     return function(executions) {
       return Object.keys(executions.reduce(function(acc, cur) {

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('availabilityZoneSelector', function() {
     return {
       restrict: 'E',

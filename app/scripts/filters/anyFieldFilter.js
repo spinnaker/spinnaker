@@ -11,7 +11,7 @@
 
 'use strict';
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .filter('anyFieldFilter', function () {
     return function (items, props) {
       var out = [];

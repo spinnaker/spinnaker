@@ -30,7 +30,7 @@
  *   - lazy (optional, default: false): when set to true, the page will actually be rendered and initialized but will
  *     not be displayed. This is useful if the page's controller should be initialized immediately
  */
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('wizardPage', function () {
     return {
       restrict: 'E',

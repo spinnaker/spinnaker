@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp')
+angular.module('spinnaker')
   .directive('panelProgress', function() {
     return {
       restrict: 'E',
