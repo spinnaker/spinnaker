@@ -51,4 +51,10 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
+  <div class="step-section-details" ng-if="detailsSection === 'diffDetails'">
+    <table>
+      <tr><th>#</th><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
+      <tr ng-repeat="commit in stage.context.commits"><td>{{i+1}}</td><td>{{commit.timestamp}}</td><td>{{commit.displayId}}</td><td>{{commit.message}}</td><td>{{commit.authorDisplayName}}</td></tr>
+    </table>
+  </div>
 </div>
