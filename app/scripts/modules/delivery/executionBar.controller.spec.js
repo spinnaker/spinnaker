@@ -9,7 +9,7 @@ describe('Controller: executionBar', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.delivery.executionBar.controller')
+    module('spinnaker.delivery.executionBar.controller')
   );
 
   beforeEach(

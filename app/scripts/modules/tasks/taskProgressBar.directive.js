@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.tasks.progressBar.directive', [])
+angular.module('spinnaker.tasks.progressBar.directive', [])
   .directive('taskProgressBar', function($filter) {
     return {
       restrict: 'E',

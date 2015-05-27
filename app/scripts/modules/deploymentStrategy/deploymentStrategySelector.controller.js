@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.deploymentStrategy')
+angular.module('spinnaker.deploymentStrategy')
   .controller('DeploymentStrategySelectorCtrl', function($scope, deploymentStrategyService) {
 
     function selectStrategy(newStrategyKey, oldStrategyKey) {

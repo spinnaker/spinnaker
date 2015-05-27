@@ -8,7 +8,7 @@ describe('Controller: CloseableModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.closable.modal.controller')
+    module('spinnaker.closable.modal.controller')
   );
 
   beforeEach(

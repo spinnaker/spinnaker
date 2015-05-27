@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.delivery.execution.triggers', [
-  'deckApp.delivery.executions.service',
-  'deckApp.pipelines.config',
-  'deckApp.delivery.execution.triggers.toggle.modal.controller',
+angular.module('spinnaker.delivery.execution.triggers', [
+  'spinnaker.delivery.executions.service',
+  'spinnaker.pipelines.config',
+  'spinnaker.delivery.execution.triggers.toggle.modal.controller',
 ])
   .directive('triggersTag', function() {
     return {

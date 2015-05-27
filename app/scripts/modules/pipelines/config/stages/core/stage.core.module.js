@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.core', [
-  'deckApp.pipelines.stages.core.executionStepDetails',
-  'deckApp.pipelines.stages.core.displayableTasks.filter',
+angular.module('spinnaker.pipelines.stage.core', [
+  'spinnaker.pipelines.stages.core.executionStepDetails',
+  'spinnaker.pipelines.stages.core.displayableTasks.filter',
 ]);

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.findAmi')
+angular.module('spinnaker.pipelines.stage.findAmi')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Find Image',

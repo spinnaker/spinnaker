@@ -1,13 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp.instance.detail.gce.controller', [
+angular.module('spinnaker.instance.detail.gce.controller', [
   'ui.router',
-  'deckApp.notifications.service',
-  'deckApp.instance.write.service',
-  'deckApp.instance.read.service',
-  'deckApp.confirmationModal.service',
-  'deckApp.utils.lodash',
+  'spinnaker.notifications.service',
+  'spinnaker.instance.write.service',
+  'spinnaker.instance.read.service',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.utils.lodash',
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, notificationsService,
                                                instanceWriter, confirmationModalService,

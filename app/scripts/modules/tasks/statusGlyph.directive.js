@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.statusGlyph.directive', [])
+angular.module('spinnaker.statusGlyph.directive', [])
   .directive('statusGlyph', function() {
     return {
       restrict: 'E',

@@ -4,9 +4,9 @@
  * Based on https://github.com/polarblau/stickySectionHeaders
  */
 
-angular.module('deckApp.utils.stickyHeader', [
-  'deckApp.utils.jQuery',
-  'deckApp.utils.lodash',
+angular.module('spinnaker.utils.stickyHeader', [
+  'spinnaker.utils.jQuery',
+  'spinnaker.utils.lodash',
 ])
   .directive('stickyHeader', function ($log, $window, _, $) {
     return {

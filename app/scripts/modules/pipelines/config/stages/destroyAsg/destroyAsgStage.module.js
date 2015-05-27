@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.destroyAsg', [
-  'deckApp.pipelines.stage',
-  'deckApp.pipelines.stage.core',
-  'deckApp.account',
-  'deckApp.pipelines.stage.destroyAsg.executionDetails.controller',
+angular.module('spinnaker.pipelines.stage.destroyAsg', [
+  'spinnaker.pipelines.stage',
+  'spinnaker.pipelines.stage.core',
+  'spinnaker.account',
+  'spinnaker.pipelines.stage.destroyAsg.executionDetails.controller',
 ]);

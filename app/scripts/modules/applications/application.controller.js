@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.application.controller', [])
+angular.module('spinnaker.application.controller', [])
   .controller('ApplicationCtrl', function($scope, application) {
     $scope.application = application;
     $scope.insightTarget = application;

@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.executionFilter.service', [])
+  .module('spinnaker.executionFilter.service', [])
   .factory('executionFilterService', function () {
 
     function filterRunningExecutions(executions) {

@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.utils.waypoints.service', [
-  'deckApp.utils.jQuery',
+angular.module('spinnaker.utils.waypoints.service', [
+  'spinnaker.utils.jQuery',
 ])
   .factory('waypointService', function($timeout, $) {
 

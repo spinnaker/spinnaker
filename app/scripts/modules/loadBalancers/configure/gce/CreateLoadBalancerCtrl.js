@@ -1,13 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.gce.create.controller', [
-  'deckApp.loadBalancer.write.service',
-  'deckApp.account.service',
-  'deckApp.gce.loadBalancer.transformer.service',
-  'deckApp.securityGroup.read.service',
-  'deckApp.modalWizard',
-  'deckApp.tasks.monitor.service'
+angular.module('spinnaker.loadBalancer.gce.create.controller', [
+  'spinnaker.loadBalancer.write.service',
+  'spinnaker.account.service',
+  'spinnaker.gce.loadBalancer.transformer.service',
+  'spinnaker.securityGroup.read.service',
+  'spinnaker.modalWizard',
+  'spinnaker.tasks.monitor.service'
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,

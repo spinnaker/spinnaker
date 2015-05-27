@@ -2,11 +2,11 @@
 
 
 angular
-  .module('deckApp.config.controller', [
-    'deckApp.applications.write.service',
-    'deckApp.confirmationModal.service',
-    'deckApp.caches.initializer',
-    'deckApp.caches.infrastructure',
+  .module('spinnaker.config.controller', [
+    'spinnaker.applications.write.service',
+    'spinnaker.confirmationModal.service',
+    'spinnaker.caches.initializer',
+    'spinnaker.caches.infrastructure',
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, application, notificationService) {

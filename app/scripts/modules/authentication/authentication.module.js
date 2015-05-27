@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.authentication', [
+angular.module('spinnaker.authentication', [
   'ui.bootstrap',
-  'deckApp.authentication.service',
-  'deckApp.authentication.directive',
-  'deckApp.settings',
+  'spinnaker.authentication.service',
+  'spinnaker.authentication.directive',
+  'spinnaker.settings',
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');

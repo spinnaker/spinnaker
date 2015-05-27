@@ -1,8 +1,8 @@
 'use strict';
 
 angular
-  .module('deckApp.accountLabelColor.directive', [
-    'deckApp.settings'
+  .module('spinnaker.accountLabelColor.directive', [
+    'spinnaker.settings'
   ])
   .directive('accountLabelColor', function () {
     return {

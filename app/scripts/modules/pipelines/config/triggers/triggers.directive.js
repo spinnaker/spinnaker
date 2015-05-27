@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.trigger')
+angular.module('spinnaker.pipelines.trigger')
   .directive('triggers', function() {
     return {
       restrict: 'E',

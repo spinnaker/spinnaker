@@ -17,9 +17,9 @@ function selectScopeDirective() {
 
 
 angular
-  .module('deckApp.fastPropertyScope.selection.directive', [
-    'deckApp.fastPropertyScope.service',
-    'deckApp.fastProperty.read.service'
+  .module('spinnaker.fastPropertyScope.selection.directive', [
+    'spinnaker.fastPropertyScope.service',
+    'spinnaker.fastProperty.read.service'
   ])
   .directive('scopeSelect', selectScopeDirective)
   .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader) {

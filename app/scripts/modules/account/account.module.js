@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.account', [
+angular.module('spinnaker.account', [
   'restangular',
-  'deckApp.caches',
-  'deckApp.settings',
+  'spinnaker.caches',
+  'spinnaker.settings',
 ]);

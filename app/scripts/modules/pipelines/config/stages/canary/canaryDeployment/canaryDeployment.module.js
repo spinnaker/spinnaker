@@ -1,5 +1,5 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary.canaryDeployment', [
-  'deckApp.pipelines.stage.canary.canaryDeployment.details.controller',
+angular.module('spinnaker.pipelines.stage.canary.canaryDeployment', [
+  'spinnaker.pipelines.stage.canary.canaryDeployment.details.controller',
 ]);

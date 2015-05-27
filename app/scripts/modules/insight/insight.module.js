@@ -1,6 +1,6 @@
 'use strict';
 
 angular
-  .module('deckApp.insight', [
-    'deckApp.insight.controller'
+  .module('spinnaker.insight', [
+    'spinnaker.insight.controller'
   ]);

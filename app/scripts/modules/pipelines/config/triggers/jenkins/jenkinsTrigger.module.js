@@ -1,10 +1,10 @@
 'use strict';
 
-angular.module('deckApp.pipelines.trigger.jenkins', [
-  'deckApp.pipelines.trigger',
+angular.module('spinnaker.pipelines.trigger.jenkins', [
+  'spinnaker.pipelines.trigger',
   'restangular',
-  'deckApp.pipelines.trigger.jenkins.service',
-  'deckApp.caches.initializer',
-  'deckApp.caches.infrastructure',
-  'deckApp.utils.timeFormatters',
+  'spinnaker.pipelines.trigger.jenkins.service',
+  'spinnaker.caches.initializer',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.utils.timeFormatters',
 ]);

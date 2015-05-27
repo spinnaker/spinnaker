@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.config.notification.service', [
+angular.module('spinnaker.config.notification.service', [
   'restangular',
-  'deckApp.settings'
+  'spinnaker.settings'
 ])
   .factory('notificationService', function (settings, Restangular) {
 

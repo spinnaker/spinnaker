@@ -1,13 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp.gce.serverGroupCommandBuilder.service', [
+angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.account.service',
-  'deckApp.naming',
-  'deckApp.instanceType.service',
-  'deckApp.gce.instanceType.service',
+  'spinnaker.settings',
+  'spinnaker.account.service',
+  'spinnaker.naming',
+  'spinnaker.instanceType.service',
+  'spinnaker.gce.instanceType.service',
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, instanceTypeService, gceInstanceTypeService, namingService) {

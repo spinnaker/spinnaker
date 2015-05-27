@@ -8,7 +8,7 @@ describe('Controller: AllLoadBalancerCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.loadBalancer.controller')
+    module('spinnaker.loadBalancer.controller')
   );
 
   beforeEach(

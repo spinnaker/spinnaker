@@ -2,7 +2,7 @@
 
 describe('Controller: renamePipelineModal', function() {
 
-  beforeEach(module('deckApp.pipelines.rename'));
+  beforeEach(module('spinnaker.pipelines.rename'));
 
   beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
     this.$q = $q;

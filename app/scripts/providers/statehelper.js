@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.stateHelper', [
+angular.module('spinnaker.stateHelper', [
   'ui.router'
 ])
   .provider('stateHelper', function($stateProvider) {

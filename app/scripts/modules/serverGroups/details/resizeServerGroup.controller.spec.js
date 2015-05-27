@@ -8,7 +8,7 @@ describe('Controller: ResizeServerGroupCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.resizeServerGroup.controller')
+    module('spinnaker.resizeServerGroup.controller')
   );
 
   beforeEach(

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.gce')
+angular.module('spinnaker.serverGroup.configure.gce')
   .directive('gceServerGroupLoadBalancersSelector', function(gceServerGroupConfigurationService, infrastructureCaches) {
     return {
       restrict: 'E',

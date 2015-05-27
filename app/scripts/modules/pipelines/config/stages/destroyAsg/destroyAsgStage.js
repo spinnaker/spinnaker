@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.destroyAsg')
+angular.module('spinnaker.pipelines.stage.destroyAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Destroy Server Group',

@@ -6,7 +6,7 @@ describe('Controller: AWS ServerGroupDetailsCtrl', function () {
   var $scope;
 
   beforeEach(
-    module('deckApp.serverGroup.details.aws.controller')
+    module('spinnaker.serverGroup.details.aws.controller')
   );
 
   beforeEach(

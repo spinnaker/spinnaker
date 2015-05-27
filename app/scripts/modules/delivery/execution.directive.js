@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.delivery.execution.directive',[])
+angular.module('spinnaker.delivery.execution.directive',[])
   .directive('execution', function($location) {
     return {
       restrict: 'E',

@@ -18,8 +18,8 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     module(
-      'deckApp.loadBalancer.aws.details.controller',
-      'deckApp.states'
+      'spinnaker.loadBalancer.aws.details.controller',
+      'spinnaker.states'
     )
   );
 

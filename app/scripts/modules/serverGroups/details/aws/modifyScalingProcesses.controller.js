@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.details.aws.autoscaling.process.controller', [
-  'deckApp.utils.lodash',
-  'deckApp.tasks.monitor',
-  'deckApp.taskExecutor.service',
+angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
+  'spinnaker.utils.lodash',
+  'spinnaker.tasks.monitor',
+  'spinnaker.taskExecutor.service',
 ])
   .controller('ModifyScalingProcessesCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, application, serverGroup, processes, _) {
     $scope.command = angular.copy(processes);

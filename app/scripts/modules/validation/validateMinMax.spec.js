@@ -18,7 +18,7 @@
 
 describe('Directives: validateMin, validateMax', function () {
 
-  beforeEach(module('deckApp.validation'));
+  beforeEach(module('spinnaker.validation'));
 
   beforeEach(inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();

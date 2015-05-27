@@ -18,8 +18,8 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     module(
-      'deckApp.loadBalancer.gce.details.controller',
-      'deckApp.states'
+      'spinnaker.loadBalancer.gce.details.controller',
+      'spinnaker.states'
     )
   );
 

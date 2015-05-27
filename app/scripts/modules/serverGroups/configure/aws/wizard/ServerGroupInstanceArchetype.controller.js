@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.aws')
+angular.module('spinnaker.serverGroup.configure.aws')
   .controller('awsInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     var wizard = modalWizardService.getWizard();

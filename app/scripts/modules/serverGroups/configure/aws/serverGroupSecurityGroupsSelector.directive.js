@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.aws')
+angular.module('spinnaker.serverGroup.configure.aws')
   .directive('awsServerGroupSecurityGroupsSelector', function(awsServerGroupConfigurationService, infrastructureCaches) {
     return {
       restrict: 'E',

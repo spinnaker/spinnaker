@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.search.global')
+angular.module('spinnaker.search.global')
   .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();

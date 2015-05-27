@@ -1,3 +1,3 @@
 'use strict';
 
-angular.module('deckApp.help', ['deckApp.templates']);
+angular.module('spinnaker.help', ['spinnaker.templates']);

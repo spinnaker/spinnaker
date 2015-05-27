@@ -1,7 +1,7 @@
 'use strict';
 
 angular
-  .module('deckApp.tasks.read.service', ['deckApp.tasks.api'])
+  .module('spinnaker.tasks.read.service', ['spinnaker.tasks.api'])
   .factory('tasksReader', function(tasksApi) {
 
     function listAllTasksForApplication(applicationName) {

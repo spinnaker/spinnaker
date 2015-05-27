@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.serverGroup.configure.aws')
+angular.module('spinnaker.serverGroup.configure.aws')
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {

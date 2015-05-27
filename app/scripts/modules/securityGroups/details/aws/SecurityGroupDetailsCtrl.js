@@ -1,13 +1,13 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.aws.details.controller', [
+angular.module('spinnaker.securityGroup.aws.details.controller', [
   'ui.router',
   'ui.bootstrap',
-  'deckApp.notifications.service',
-  'deckApp.securityGroup.read.service',
-  'deckApp.securityGroup.write.service',
-  'deckApp.confirmationModal.service'
+  'spinnaker.notifications.service',
+  'spinnaker.securityGroup.read.service',
+  'spinnaker.securityGroup.write.service',
+  'spinnaker.confirmationModal.service'
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,

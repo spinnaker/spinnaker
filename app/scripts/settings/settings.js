@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.settings', [])
+angular.module('spinnaker.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
     gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',

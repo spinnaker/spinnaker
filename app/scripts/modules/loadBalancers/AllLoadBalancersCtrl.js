@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp.loadBalancer.controller', [
+angular.module('spinnaker.loadBalancer.controller', [
   'ui.bootstrap',
-  'deckApp.account.service',
-  'deckApp.providerSelection.service',
-  'deckApp.utils.lodash',
-  'deckApp.settings',
+  'spinnaker.account.service',
+  'spinnaker.providerSelection.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.settings',
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, application ) {
     $scope.application = application;

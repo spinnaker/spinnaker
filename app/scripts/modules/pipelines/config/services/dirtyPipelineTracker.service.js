@@ -3,7 +3,7 @@
 /**
  * Simple registry to track pipelines that have been changed without being saved
  */
-angular.module('deckApp.pipelines.dirtyTracker.service', [])
+angular.module('spinnaker.pipelines.dirtyTracker.service', [])
   .factory('dirtyPipelineTracker', function() {
 
     var dirtyPipelines = [];

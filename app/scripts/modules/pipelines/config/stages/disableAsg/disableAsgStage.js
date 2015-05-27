@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.disableAsg')
+angular.module('spinnaker.pipelines.stage.disableAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Disable Server Group',

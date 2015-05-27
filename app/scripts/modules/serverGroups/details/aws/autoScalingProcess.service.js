@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.details.aws.autoscaling.process', [])
+angular.module('spinnaker.serverGroup.details.aws.autoscaling.process', [])
   .factory('autoScalingProcessService', function() {
     function listProcesses() {
       return [

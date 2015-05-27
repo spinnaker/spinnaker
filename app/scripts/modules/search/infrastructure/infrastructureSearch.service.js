@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.search')
+angular.module('spinnaker.search')
   .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;

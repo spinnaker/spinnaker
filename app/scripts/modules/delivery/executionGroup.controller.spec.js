@@ -10,7 +10,7 @@ describe('Controller: executionGroup', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.delivery.executionGroup.controller')
+    module('spinnaker.delivery.executionGroup.controller')
   );
 
   beforeEach(

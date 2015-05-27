@@ -3,7 +3,7 @@
 describe('Service: whatsNew reader ', function () {
 
   beforeEach(
-    module('deckApp.whatsNew.read.service')
+    module('spinnaker.whatsNew.read.service')
   );
 
   beforeEach(inject(function(whatsNewReader, $httpBackend, settings) {

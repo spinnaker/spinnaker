@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines.rename')
+angular.module('spinnaker.pipelines.rename')
   .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $modalInstance) {
 
     this.cancel = $modalInstance.dismiss;

@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('spinnaker.pipelines')
   .directive('pipelineConfigNav', function() {
     return {
       restrict: 'E',

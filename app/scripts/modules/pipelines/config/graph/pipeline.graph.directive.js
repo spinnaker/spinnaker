@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.pipelines.graph.directive', [
-  'deckApp.utils.d3',
-  'deckApp.utils.lodash',
-  'deckApp.utils.jQuery',
+angular.module('spinnaker.pipelines.graph.directive', [
+  'spinnaker.utils.d3',
+  'spinnaker.utils.lodash',
+  'spinnaker.utils.jQuery',
 ])
   .directive('pipelineGraph', function ($window, d3Service, _, $) {
     return {

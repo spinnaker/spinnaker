@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.pipelines')
+angular.module('spinnaker.pipelines')
   .filter('clusterName', function(namingService) {
     return function(input) {
       if (!input) {

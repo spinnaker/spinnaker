@@ -3,8 +3,8 @@
 angular
   .module('cluster.filter.service', [
     'cluster.filter.model',
-    'deckApp.utils.lodash',
-    'deckApp.utils.waypoints.service',
+    'spinnaker.utils.lodash',
+    'spinnaker.utils.waypoints.service',
   ])
   .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log) {
 

@@ -1,12 +1,12 @@
 'use strict';
 
 
-angular.module('deckApp.tasks.api', [
+angular.module('spinnaker.tasks.api', [
   'restangular',
-  'deckApp.kato.service',
-  'deckApp.settings',
-  'deckApp.urlBuilder',
-  'deckApp.orchestratedItem.service'
+  'spinnaker.kato.service',
+  'spinnaker.settings',
+  'spinnaker.urlBuilder',
+  'spinnaker.orchestratedItem.service'
 ])
   .factory('tasksApi', function(settings, Restangular, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
 

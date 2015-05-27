@@ -7,7 +7,7 @@ describe('Service: cacheInitializer', function () {
   var cacheInitializer;
 
   beforeEach(
-    module('deckApp.caches.initializer')
+    module('spinnaker.caches.initializer')
   );
 
   beforeEach(

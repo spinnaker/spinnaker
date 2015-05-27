@@ -4,7 +4,7 @@ describe('Controller: CreateSecurityGroup', function () {
 
   beforeEach(
     module(
-      'deckApp.securityGroup.aws.create.controller'
+      'spinnaker.securityGroup.aws.create.controller'
     )
   );
 

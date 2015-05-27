@@ -8,7 +8,7 @@
  Changed to leave the model pristine on $watch updates
  */
 
-angular.module('deckApp.validation')
+angular.module('spinnaker.validation')
   .directive('validateMin', function (isEmpty) {
     return {
       restrict: 'A',

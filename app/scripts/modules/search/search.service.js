@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('deckApp.search.service', [
-  'deckApp.settings'
+angular.module('spinnaker.search.service', [
+  'spinnaker.settings'
 ])
   .factory('searchService', function($q, $http, $log, settings) {
 

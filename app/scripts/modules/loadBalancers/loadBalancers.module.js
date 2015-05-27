@@ -1,14 +1,14 @@
 'use strict';
 
 angular
-  .module('deckApp.loadBalancer', [
-    'deckApp.loadBalancer.controller',
-    'deckApp.loadBalancer.serverGroup',
-    'deckApp.loadBalancer.tag',
-    'deckApp.loadBalancer.aws.details.controller',
-    'deckApp.loadBalancer.gce.details.controller',
-    'deckApp.loadBalancer.aws.create.controller',
-    'deckApp.loadBalancer.gce.create.controller',
-    'deckApp.loadBalancer.nav.controller',
-    'deckApp.loadBalancer.directive',
+  .module('spinnaker.loadBalancer', [
+    'spinnaker.loadBalancer.controller',
+    'spinnaker.loadBalancer.serverGroup',
+    'spinnaker.loadBalancer.tag',
+    'spinnaker.loadBalancer.aws.details.controller',
+    'spinnaker.loadBalancer.gce.details.controller',
+    'spinnaker.loadBalancer.aws.create.controller',
+    'spinnaker.loadBalancer.gce.create.controller',
+    'spinnaker.loadBalancer.nav.controller',
+    'spinnaker.loadBalancer.directive',
   ]);

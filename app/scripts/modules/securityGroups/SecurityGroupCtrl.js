@@ -1,11 +1,11 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.single.controller', [
+angular.module('spinnaker.securityGroup.single.controller', [
   'ui.router',
   'ui.bootstrap',
-  'deckApp.notifications.service',
-  'deckApp.securityGroup.read.service',
+  'spinnaker.notifications.service',
+  'spinnaker.securityGroup.read.service',
 ])
   .controller('SecurityGroupCtrl', function($scope, $state, notificationsService, securityGroup, application, securityGroupReader, $modal) {
 

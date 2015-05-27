@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('deckApp.pipelines.stage.canary.summary.controller', [
+angular.module('spinnaker.pipelines.stage.canary.summary.controller', [
   'ui.router',
-  'deckApp.utils.lodash',
-  'deckApp.executionDetails.section.service',
-  'deckApp.executionDetails.section.nav.directive',
-  'deckApp.pipelines.stage.canary.actions.generate.score.controller',
-  'deckApp.pipelines.stage.canary.actions.override.result.controller',
+  'spinnaker.utils.lodash',
+  'spinnaker.executionDetails.section.service',
+  'spinnaker.executionDetails.section.nav.directive',
+  'spinnaker.pipelines.stage.canary.actions.generate.score.controller',
+  'spinnaker.pipelines.stage.canary.actions.override.result.controller',
 ])
   .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, settings, $modal) {
 

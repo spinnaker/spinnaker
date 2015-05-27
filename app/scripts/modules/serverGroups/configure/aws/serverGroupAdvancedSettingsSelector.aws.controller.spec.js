@@ -4,7 +4,7 @@ describe('Controller: ServerGroupAdvancedSettingsSelector', function () {
 
   beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(module('deckApp.serverGroup.configure.aws'));
+  beforeEach(module('spinnaker.serverGroup.configure.aws'));
 
   beforeEach(inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();

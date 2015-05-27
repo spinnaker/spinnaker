@@ -1,19 +1,19 @@
 'use strict';
 
 
-angular.module('deckApp.taskExecutor.service', [
+angular.module('spinnaker.taskExecutor.service', [
   'restangular',
-  'deckApp.settings',
-  'deckApp.scheduler',
-  'deckApp.urlBuilder',
-  'deckApp.authentication',
-  'deckApp.authentication.service',
-  'deckApp.notifications',
-  'deckApp.caches.scheduled',
-  'deckApp.caches.infrastructure',
-  'deckApp.tasks.read.service',
-  'deckApp.tasks.write.service',
-  'deckApp.notifications.service',
+  'spinnaker.settings',
+  'spinnaker.scheduler',
+  'spinnaker.urlBuilder',
+  'spinnaker.authentication',
+  'spinnaker.authentication.service',
+  'spinnaker.notifications',
+  'spinnaker.caches.scheduled',
+  'spinnaker.caches.infrastructure',
+  'spinnaker.tasks.read.service',
+  'spinnaker.tasks.write.service',
+  'spinnaker.notifications.service',
 ])
   .factory('taskExecutor', function(settings, Restangular, scheduler, notificationsService, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 

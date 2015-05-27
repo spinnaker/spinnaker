@@ -2,14 +2,14 @@
 /* jshint camelcase:false */
 
 
-angular.module('deckApp.serverGroup.details.gce.controller', [
+angular.module('spinnaker.serverGroup.details.gce.controller', [
   'ui.router',
   'ui.bootstrap',
-  'deckApp.notifications.service',
-  'deckApp.gce.serverGroupCommandBuilder.service',
-  'deckApp.serverGroup.read.service',
-  'deckApp.confirmationModal.service',
-  'deckApp.serverGroup.write.service',
+  'spinnaker.notifications.service',
+  'spinnaker.gce.serverGroupCommandBuilder.service',
+  'spinnaker.serverGroup.read.service',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.serverGroup.write.service',
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
                                                   gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter) {

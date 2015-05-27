@@ -1,5 +1,5 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.transformer.service', [
-  'deckApp.delegation',
+angular.module('spinnaker.serverGroup.transformer.service', [
+  'spinnaker.delegation',
 ]);

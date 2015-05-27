@@ -1,11 +1,11 @@
 'use strict';
 
 angular
-  .module('deckApp.applicationProperties.controller', [
-    'deckApp.fastProperty.read.service',
-    'deckApp.fastProperty.write.service',
-    'deckApp.newFastProperty.controller',
-    'deckApp.confirmationModal.service',
+  .module('spinnaker.applicationProperties.controller', [
+    'spinnaker.fastProperty.read.service',
+    'spinnaker.fastProperty.write.service',
+    'spinnaker.newFastProperty.controller',
+    'spinnaker.confirmationModal.service',
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter ) {
     var vm = this;

@@ -2,9 +2,9 @@
 
 describe('Directives: whatsNew', function () {
 
-  beforeEach(module('deckApp.whatsNew.directive'));
-  beforeEach(module('deckApp.templates'));
-  beforeEach(module('deckApp.utils.timeFormatters'));
+  beforeEach(module('spinnaker.whatsNew.directive'));
+  beforeEach(module('spinnaker.templates'));
+  beforeEach(module('spinnaker.utils.timeFormatters'));
 
   beforeEach(inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $modal) {
     this.scope = $rootScope.$new();

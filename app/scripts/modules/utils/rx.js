@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('deckApp.utils.rx', [])
+angular.module('spinnaker.utils.rx', [])
   .factory('RxService', function () {
     return Rx;
   }

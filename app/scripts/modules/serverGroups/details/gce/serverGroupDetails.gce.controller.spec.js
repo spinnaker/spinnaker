@@ -8,7 +8,7 @@ describe('Controller: gceServerGroupDetailsCtrl', function () {
   var scope;
 
   beforeEach(
-    module('deckApp.serverGroup.details.gce.controller')
+    module('spinnaker.serverGroup.details.gce.controller')
   );
 
   beforeEach(

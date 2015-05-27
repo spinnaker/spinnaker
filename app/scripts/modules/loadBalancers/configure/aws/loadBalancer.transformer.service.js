@@ -1,9 +1,9 @@
 'use strict';
 
 
-angular.module('deckApp.aws.loadBalancer.transformer.service', [
-  'deckApp.settings',
-  'deckApp.utils.lodash'
+angular.module('spinnaker.aws.loadBalancer.transformer.service', [
+  'spinnaker.settings',
+  'spinnaker.utils.lodash'
 ])
   .factory('awsLoadBalancerTransformer', function ( settings, _) {
 

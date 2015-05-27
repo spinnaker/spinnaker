@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('deckApp.delivery.pipelineExecutions.controller', [
-  'deckApp.delivery.executions.service',
-  'deckApp.utils.d3',
-  'deckApp.pipelines.config.service',
-  'deckApp.utils.scrollTo',
-  'deckApp.caches.collapsibleSectionState',
-  'deckApp.caches.viewStateCache',
+angular.module('spinnaker.delivery.pipelineExecutions.controller', [
+  'spinnaker.delivery.executions.service',
+  'spinnaker.utils.d3',
+  'spinnaker.pipelines.config.service',
+  'spinnaker.utils.scrollTo',
+  'spinnaker.caches.collapsibleSectionState',
+  'spinnaker.caches.viewStateCache',
 ])
   .controller('pipelineExecutions', function($scope, $state, d3Service,
                                              pipelineConfigService, scrollToService, executionsService,

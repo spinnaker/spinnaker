@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.serverGroup.configure.gce')
+angular.module('spinnaker.serverGroup.configure.gce')
   .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader) {

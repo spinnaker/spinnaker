@@ -1,8 +1,8 @@
 'use strict';
 
-angular.module('deckApp.delivery.executionGroups.filter', [
-  'deckApp.utils.lodash',
-  'deckApp.timeBoundaries.service'
+angular.module('spinnaker.delivery.executionGroups.filter', [
+  'spinnaker.utils.lodash',
+  'spinnaker.timeBoundaries.service'
 ])
   .filter('executionGroups', function(timeBoundaries, _) {
     return function(executions, filter, configurations) {

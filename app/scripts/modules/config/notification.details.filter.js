@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('deckApp.config.notification.details.filter', [])
+angular.module('spinnaker.config.notification.details.filter', [])
   .filter('notificationWhen', function() {
     return function(input) {
       input = input.replace('.', ' ').replace('pipeline', 'A pipeline is');

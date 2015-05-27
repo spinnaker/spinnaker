@@ -1,10 +1,10 @@
 'use strict';
 
 
-angular.module('deckApp.securityGroup.all.controller', [
+angular.module('spinnaker.securityGroup.all.controller', [
   'ui.bootstrap',
-  'deckApp.utils.lodash',
-  'deckApp.providerSelection.service',
+  'spinnaker.utils.lodash',
+  'spinnaker.providerSelection.service',
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {
     $scope.application = application;

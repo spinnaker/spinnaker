@@ -1,9 +1,9 @@
 'use strict';
 
-angular.module('deckApp.delivery.execution.controller', [
+angular.module('spinnaker.delivery.execution.controller', [
   'ui.router',
-  'deckApp.confirmationModal.service',
-  'deckApp.delivery.executions.service',
+  'spinnaker.confirmationModal.service',
+  'spinnaker.delivery.executions.service',
 ])
   .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService, settings) {
     var controller = this;
