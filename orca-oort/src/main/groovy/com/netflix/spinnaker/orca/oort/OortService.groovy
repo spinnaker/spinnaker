@@ -54,4 +54,6 @@ interface OortService {
   @POST("/cache/{type}")
   Response forceCacheUpdate(@Path("type") String type, @Body Map<String, ? extends Object> data)
 
+  @GET("/{type}/images/{account}/{region}/{imageId}")
+  Response getByAmiId(@Path("type") String type, @Path("account") String account, @Path("region") String region, @Path("imageId") imageId)
 }

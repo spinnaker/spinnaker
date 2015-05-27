@@ -38,7 +38,9 @@ class UpsertApplicationTaskSpec extends Specification {
     account    : "test",
     application: [
       "name" : "application",
-      "owner": "owner"
+      "owner": "owner",
+      "repoProjectKey" : "project-key",
+      "repoSlug" : "repo-slug"
     ]
   ]
 
@@ -148,8 +150,8 @@ class UpsertApplicationTaskSpec extends Specification {
 
   void "should merge properties from source to target application"() {
     given:
-    def source = new Application(email: "source@netflix.com", description: "sourceDescription", owner: "sourceOwner")
-    def target = new Application(owner: "targetOwner")
+    def source = new Application(email: "source@netflix.com", description: "sourceDescription", owner: "sourceOwner", repoProjectKey: "project-key", repoSlug: "repo-slug")
+    def target = new Application(owner: "targetOwner", repoProjectKey: "another-project-key", repoSlug: "another-repo-slug")
 
     when:
     UpsertApplicationTask.mergeApplicationProperties(source, target)
@@ -158,6 +160,8 @@ class UpsertApplicationTaskSpec extends Specification {
     target.email == source.email
     target.description == source.description
     target.owner == "targetOwner"
+    target.repoProjectKey == "another-project-key"
+    target.repoSlug == "another-repo-slug"
   }
 
   @Unroll

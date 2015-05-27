@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
+import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
@@ -41,9 +42,10 @@ class DeployStage extends DeployStrategyStage {
   protected List<Step> basicSteps(Stage stage) {
     def step1 = buildStep(stage, "createDeploy", CreateDeployTask)
     def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step4 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    def step5 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4, step5]
+    def step3 = buildStep(stage, "getCommits", GetCommitsTask)
+    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    def step5 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
+    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    [step1, step2, step3, step4, step5, step6]
   }
 }

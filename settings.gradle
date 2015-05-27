@@ -28,6 +28,7 @@ include "orca-core",
   "orca-test",
   "orca-rush",
   "orca-flex",
+  "orca-sock",
   "orca-web",
   "orca-smoke-test"
 

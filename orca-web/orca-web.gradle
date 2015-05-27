@@ -44,6 +44,7 @@ dependencies {
   compile project(":orca-mine")
   compile project(":orca-rush")
   compile project(":orca-igor")
+  compile project(":orca-sock")
   compile project(":orca-eureka")
 
   runtime spinnaker.dependency("kork")
@@ -95,3 +96,8 @@ buildDeb {
   requires("openjdk-7-jre")
   requires("redis-server")
 }
+/*
+applicationDefaultJvmArgs = [
+  "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
+]
+*/
