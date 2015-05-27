@@ -237,6 +237,7 @@ angular.module('spinnaker.pipelines')
         triggers: base.triggers,
         parallel: base.parallel,
         stageCounter: base.stageCounter,
+        parameterConfig: base.parameterConfig
       };
     }
 
