@@ -44,7 +44,7 @@ class MortConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint mortEndpoint(@Value('${mort.baseUrl:http://localhost:7007}') String mortBaseUrl) {
+  @Bean Endpoint mortEndpoint(@Value('${mort.baseUrl}') String mortBaseUrl) {
     newFixedEndpoint(mortBaseUrl)
   }
 

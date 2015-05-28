@@ -47,7 +47,7 @@ class FlexConfiguration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint flexEndpoint(
-    @Value('${flex.baseUrl:http://localhost:7003}') String flexBaseUrl) {
+    @Value('${flex.baseUrl}') String flexBaseUrl) {
     newFixedEndpoint(flexBaseUrl)
   }
 

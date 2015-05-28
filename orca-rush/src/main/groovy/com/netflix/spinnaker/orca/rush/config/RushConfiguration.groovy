@@ -54,7 +54,7 @@ class RushConfiguration {
 
   @Bean
   Endpoint rushEndpoint(
-      @Value('${rush.baseUrl:http://localhost:7009}') String rushBaseUrl) {
+      @Value('${rush.baseUrl}') String rushBaseUrl) {
     newFixedEndpoint(rushBaseUrl)
   }
 

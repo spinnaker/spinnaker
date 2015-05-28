@@ -47,7 +47,7 @@ class IgorConfiguration {
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
   @Bean Endpoint igorEndpoint(
-    @Value('${igor.baseUrl:http://localhost:7005}') String igorBaseUrl) {
+    @Value('${igor.baseUrl}') String igorBaseUrl) {
     newFixedEndpoint(igorBaseUrl)
   }
 
