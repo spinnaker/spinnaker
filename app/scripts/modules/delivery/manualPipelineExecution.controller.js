@@ -9,7 +9,7 @@ angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
     $scope.pipeline = pipeline;
     $scope.currentlyRunningExecutions = currentlyRunningExecutions;
 
-    if(pipeline.parameterConfig.length){
+    if(pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length){
       $scope.parameters = {};
       _.each(pipeline.parameterConfig, function(parameter) {
         $scope.parameters[parameter.name] = parameter.default;
