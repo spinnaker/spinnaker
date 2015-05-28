@@ -22,7 +22,9 @@ import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OortService
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.Executors
 
@@ -301,5 +303,28 @@ class ApplicationServiceSpec extends Specification {
       email = "foo@bar.bz"
       account = "global"
       globalAccount = [name: account, global: true]
+  }
+
+  @Unroll
+  def "should fall back to last known good result if Orca times out getting #list"() {
+    setup:
+      HystrixRequestContext.initializeContext()
+
+      def service = new ApplicationService()
+      service.orcaService = Mock(OrcaService)
+
+    and:
+      service.orcaService."$methodName"(app) >> [] >> { throw new SocketTimeoutException() }
+
+    expect:
+      service."$methodName"(app) == []
+
+    and:
+      service."$methodName"(app) == []
+
+    where:
+      app = "bivl"
+      list << ["tasks", "pipelines"]
+      methodName = "get" + list.capitalize()
   }
 }
