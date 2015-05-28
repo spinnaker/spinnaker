@@ -1,12 +1,14 @@
 <div class="row">
   <div class="col-md-12">
     <triggers ng-if="viewState.section === 'triggers'"
-                              pipeline="pipeline">
+              pipeline="pipeline">
     </triggers>
     <pipeline-config-stage ng-if="viewState.section === 'stage'"
                            application="application"
                            view-state="viewState"
                            pipeline="pipeline">
     </pipeline-config-stage>
+    <parameters ng-if="viewState.section === 'parameters' || (viewState.section === 'triggers' && pipeline.parallel )" pipeline="pipeline">
+    </parameters>
   </div>
 </div>

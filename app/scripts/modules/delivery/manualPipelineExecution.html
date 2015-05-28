@@ -44,6 +44,17 @@
           </div>
         </div>
       </div>
+      <div class="form-group" ng-if="pipeline.parameterConfig.length">
+        <div class="form-group" ng-repeat="parameter in pipeline.parameterConfig | orderBy:'name' ">
+          <div class="col-md-offset-1 col-md-2 sm-label-left">
+            <b>{{parameter.name}}</b>
+            <help-field content="{{parameter.description}}" ng-if="parameter.description"></help-field>
+          </div>
+          <div class="col-md-6">
+            <input type="text" class="form-control input-sm" ng-model="parameters[parameter.name]"/>
+          </div>
+        </div>
+      </div>
       <div class="form-group" ng-if="triggers.length">
         <div class="form-group">
           <label class="col-md-2 col-md-offset-1 sm-label-left">Trigger</label>

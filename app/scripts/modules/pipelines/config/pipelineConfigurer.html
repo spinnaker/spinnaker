@@ -30,6 +30,13 @@
               <span class="glyphicon glyphicon-certificate"></span> Triggers
             </a>
           </li>
+          <li class="config-section">
+            <a href class="btn btn-default"
+               ng-class="{active: pipelineConfigurerCtrl.isActive('parameters') }"
+               ng-click="pipelineConfigurerCtrl.navigateTo('parameters')">
+              <span class="glyphicon glyphicon-edit"></span> Parameters
+            </a>
+          </li>
           <li class="config-section nav-stages">
             <h4>Stages</h4>
             <div class="sortable-stages" ui-sortable="stageSortOptions" ng-model="pipeline.stages">
