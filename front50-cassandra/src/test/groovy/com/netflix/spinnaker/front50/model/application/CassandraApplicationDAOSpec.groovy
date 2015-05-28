@@ -44,7 +44,8 @@ class CassandraApplicationDAOSpec extends Specification {
 
   @Shared
   Map<String, String> newApplicationAttrs = [
-      name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey", accounts: "prod,test"
+      name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey",
+      accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo"
   ]
 
   void setupSpec() {
@@ -175,6 +176,8 @@ class CassandraApplicationDAOSpec extends Specification {
     "email"       | "updated@netflix.com"
     "description" | null
     "pdApiKey"    | "another pdApiKey"
+    "repoProjectKey" | "project-key"
+    "repoSlug" | "repo"
   }
 
   void "application updates should merge with existing details"() {
@@ -182,19 +185,23 @@ class CassandraApplicationDAOSpec extends Specification {
     cassandraApplicationDAO.create(name, [name: name, email: email, owner: owner])
 
     when:
-    cassandraApplicationDAO.update(name, [pdApiKey: pdApiKey])
+    cassandraApplicationDAO.update(name, [pdApiKey: pdApiKey, repoProjectKey: "project-key", repoSlug: "repo"])
 
     then:
     def foundApplication = cassandraApplicationDAO.findByName(name)
     foundApplication.email == email
     foundApplication.owner == owner
     foundApplication.pdApiKey == pdApiKey
+    foundApplication.repoProjectKey  == "project-key"
+    foundApplication.repoSlug == "repo"
 
     where:
     name = "another-app"
     email = "another@netflix.com"
     owner = "owner"
     pdApiKey = "pdApiKey"
+    repoProjectKey = "project-key"
+    repoSlug = "repo"
   }
 }
 
