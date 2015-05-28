@@ -338,6 +338,7 @@ class OperationsControllerSpec extends Specification {
     1            | 'deb'              | ['foo1.deb']
     2            | 'deb'              | ['foo1.deb', 'foo2.rpm']
     2            | 'deb,properties'   | ['foo1.deb', 'foo3.properties']
+    2            | 'properties,rpm'   | ['foo3.properties', 'foo2.rpm']
 
 
     master = "master"
