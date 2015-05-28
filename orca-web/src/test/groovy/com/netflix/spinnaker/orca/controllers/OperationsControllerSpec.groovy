@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import org.springframework.mock.env.MockEnvironment
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import com.netflix.spinnaker.orca.igor.IgorService
@@ -34,8 +36,9 @@ class OperationsControllerSpec extends Specification {
   def pipelineStarter = Mock(PipelineStarter)
   def igor = Stub(IgorService)
   def mapper = new OrcaObjectMapper()
+  def env = new MockEnvironment()
   @Subject
-    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, igorService: igor)
+    controller = new OperationsController(objectMapper: mapper, pipelineStarter: pipelineStarter, igorService: igor, environment: env)
 
   @Unroll
   void '#endpoint accepts #contentType'() {
@@ -242,12 +245,12 @@ class OperationsControllerSpec extends Specification {
     }
 
     Map requestedPipeline = [
-      trigger        : [
+      trigger         : [
         parameters: [
           otherParam: 'from pipeline'
         ]
       ],
-      parameterConfig: [
+      parameterConfig : [
         [
           name       : "region",
           default    : "us-west-1",
@@ -264,9 +267,9 @@ class OperationsControllerSpec extends Specification {
           description: "region for the deployment"
         ]
       ],
-      pipelineConfigId : '${parameters.otherParam}',
-      id   : '${parameters.key1}',
-      name : '${parameters.region}'
+      pipelineConfigId: '${parameters.otherParam}',
+      id              : '${parameters.key1}',
+      name            : '${parameters.region}'
     ]
 
     when:
@@ -286,19 +289,19 @@ class OperationsControllerSpec extends Specification {
     }
 
     Map requestedPipeline = [
-      trigger        : [
+      trigger         : [
         parameters: [
           otherParam: ''
         ]
       ],
-      parameterConfig: [
+      parameterConfig : [
         [
           name       : "otherParam",
           default    : "defaultOther",
           description: "region for the deployment"
         ]
       ],
-      pipelineConfigId : '${parameters.otherParam}'
+      pipelineConfigId: '${parameters.otherParam}'
     ]
 
     when:
@@ -306,6 +309,58 @@ class OperationsControllerSpec extends Specification {
 
     then:
     startedPipeline.pipelineConfigId == ''
+  }
+
+  def 'limits artifacts in buildInfo based on environment configuration'() {
+    given:
+    env.withProperty(OperationsController.MAX_ARTIFACTS_PROP, maxArtifacts.toString())
+    env.withProperty(OperationsController.PREFERRED_ARTIFACTS_PROP, preferredArtifacts)
+    Pipeline startedPipeline = null
+    pipelineStarter.start(_) >> { String json ->
+      startedPipeline = mapper.readValue(json, Pipeline)
+    }
+    igor.getBuild(master, job, buildNumber) >> buildInfo
+
+    when:
+    controller.orchestrate(requestedPipeline, 'foo')
+
+    then:
+    with(startedPipeline) {
+      trigger.type == requestedPipeline.trigger.type
+      trigger.master == master
+      trigger.job == job
+      trigger.buildNumber == buildNumber
+      trigger.buildInfo.artifacts == expectedArtifacts.collect { [fileName: it] }
+    }
+
+    where:
+    maxArtifacts | preferredArtifacts | expectedArtifacts
+    1            | 'deb'              | ['foo1.deb']
+    2            | 'deb'              | ['foo1.deb', 'foo2.rpm']
+    2            | 'deb,properties'   | ['foo1.deb', 'foo3.properties']
+
+
+    master = "master"
+    job = "job"
+    buildNumber = 1337
+    requestedPipeline = [
+      trigger: [
+        type       : "jenkins",
+        master     : master,
+        job        : job,
+        buildNumber: buildNumber,
+        user       : 'foo'
+      ]
+    ]
+    buildInfo = [result: "SUCCESS", artifacts: [
+      [fileName: 'foo1.deb'],
+      [fileName: 'foo2.rpm'],
+      [fileName: 'foo3.properties'],
+      [fileName: 'foo4.yml'],
+      [fileName: 'foo5.json'],
+      [fileName: 'foo6.xml'],
+      [fileName: 'foo7.txt'],
+    ]]
   }
 
 }

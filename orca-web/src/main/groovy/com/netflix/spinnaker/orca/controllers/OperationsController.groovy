@@ -20,18 +20,35 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.igor.IgorService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.core.env.Environment
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @Slf4j
 class OperationsController {
 
+  static final String MAX_ARTIFACTS_PROP = OperationsController.simpleName + ".maxArtifacts"
+  static final int MAX_ARTIFACTS_DEFAULT = 20
+
+  static final String PREFERRED_ARTIFACTS_PROP = OperationsController.simpleName + ".preferredArtifacts"
+  static final String PREFERRED_ARTIFACTS_DEFAULT = ['deb', 'rpm', 'properties', 'yml', 'json', 'xml', 'html', 'txt'].join(',')
+
+  int getMaxArtifacts() {
+    environment.getProperty(MAX_ARTIFACTS_PROP, Integer, MAX_ARTIFACTS_DEFAULT)
+  }
+
+  List<String> getPreferredArtifacts() {
+    environment.getProperty(PREFERRED_ARTIFACTS_PROP, String, PREFERRED_ARTIFACTS_DEFAULT).split(',')
+  }
+
   @Autowired
   PipelineStarter pipelineStarter
+
+  @Autowired
+  Environment environment
 
   @Autowired
   OrchestrationStarter orchestrationStarter
@@ -84,7 +101,11 @@ class OperationsController {
 
   private void getBuildInfo(Map trigger) {
     if (trigger.master && trigger.job && trigger.buildNumber) {
-      trigger.buildInfo = igorService.getBuild(trigger.master, trigger.job, trigger.buildNumber)
+      def buildInfo = igorService.getBuild(trigger.master, trigger.job, trigger.buildNumber)
+      if (buildInfo?.artifacts) {
+        buildInfo.artifacts = filterArtifacts(buildInfo.artifacts)
+      }
+      trigger.buildInfo = buildInfo
       if (trigger.propertyFile) {
         trigger.properties = igorService.getPropertyFile(
           trigger.master as String,
@@ -94,6 +115,42 @@ class OperationsController {
         )
       }
     }
+  }
+
+  private List<Map> filterArtifacts(List<Map> artifacts) {
+    if (!artifacts) {
+      return artifacts
+    }
+
+    final int maxArtifacts = getMaxArtifacts()
+    final List<String> preferred = getPreferredArtifacts()
+
+    if (artifacts.size() < maxArtifacts) {
+      return artifacts
+    }
+
+    def ext = { String filename ->
+      if (!filename) {
+        return null
+      }
+      int idx = filename.lastIndexOf('.')
+      if (idx == -1) {
+        return null
+      }
+      filename.substring(idx + 1).toLowerCase()
+    }
+
+    def pri = { String extension ->
+      int pri = preferred.indexOf(extension)
+      if (pri == -1) {
+        return preferred.size() + 1
+      }
+      return pri
+    }
+
+    artifacts.sort { Map a, Map b ->
+      pri(ext(a?.fileName)) <=> pri(ext(b?.fileName))
+    }.take(maxArtifacts)
   }
 
   @RequestMapping(value = "/ops", method = RequestMethod.POST)
