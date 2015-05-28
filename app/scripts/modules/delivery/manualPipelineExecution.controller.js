@@ -69,7 +69,12 @@ angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
       if ($scope.trigger && $scope.selectedBuild) {
         $scope.trigger.buildNumber = $scope.selectedBuild.number;
       }
-      $scope.trigger.parameters = $scope.parameters;
+      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
+        if (!$scope.trigger) {
+          $scope.trigger = {};
+        }
+        $scope.trigger.parameters = $scope.parameters;
+      }
       $modalInstance.close($scope.trigger);
     };
 
