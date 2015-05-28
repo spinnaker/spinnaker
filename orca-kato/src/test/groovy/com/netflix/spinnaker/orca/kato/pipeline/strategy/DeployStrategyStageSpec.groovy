@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -42,7 +44,7 @@ class DeployStrategyStageSpec extends Specification {
     )
 
     expect:
-    stage.mapTo(DeployStrategyStage.StageData).getCluster() == cluster
+    stage.mapTo(StageData).getCluster() == cluster
 
     where:
     application | stack        | freeFormDetails || cluster
@@ -67,7 +69,7 @@ class DeployStrategyStageSpec extends Specification {
     when:
     def mappedAccount
     try {
-      mappedAccount = stage.mapTo(DeployStrategyStage.StageData).getAccount()
+      mappedAccount = stage.mapTo(StageData).getAccount()
     } catch (Exception e) {
       mappedAccount = e.class.simpleName
     }
@@ -91,20 +93,13 @@ class DeployStrategyStageSpec extends Specification {
       strategy         : 'redblack', //Strategy.RED_BLACK.key, -- y u no work
       availabilityZones: ['us-east-1': [], 'us-west-2': []]])
 
-    TypedByteArray oortClusters = new TypedByteArray('application/json', new ObjectMapper().writeValueAsBytes([
-      serverGroups: [
-        [region: 'us-east-1', name: 'foo-test-v000'],
-        [region: 'us-east-1', name: 'foo-test-v001']
-      ]
-    ]))
-
-    def oort = Mock(OortService)
+    def resolver = Mock(SourceResolver)
 
     when:
-    new TestDeployStrategyStage(oort: oort, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
+    new TestDeployStrategyStage(sourceResolver: resolver, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
 
     then:
-    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oortse.cx', 200, 'OK', [], oortClusters)
+    1 * resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws') >> [[region: 'us-east-1', name: 'foo-test-v000'], [region: 'us-east-1', name: 'foo-test-v001']]
 
     and:
     stage.afterStages.size() == 1
@@ -114,87 +109,30 @@ class DeployStrategyStageSpec extends Specification {
     }
   }
 
-  @Unroll
-  void "sortAsgs works as expected for (#inputAsgs => #expectedSortedAsgs)"() {
+  void 'should include source in context'() {
+    given:
+    Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
+      account          : account,
+      application      : 'foo',
+      availabilityZones: [(region): []]])
+
+    def resolver = Mock(SourceResolver)
+
     when:
-    def testDeployStrategyStage = new TestDeployStrategyStage()
-    def sorted = testDeployStrategyStage.sortAsgs(inputAsgs)
+    new TestDeployStrategyStage(sourceResolver: resolver).buildSteps(stage)
 
     then:
-    sorted == expectedSortedAsgs
-
-    where:
-    inputAsgs                                                    | expectedSortedAsgs
-    ["asgard-test", "asgard-test-v000"]                          | ["asgard-test", "asgard-test-v000"]
-    ["asgard-test-v000", "asgard-test"]                          | ["asgard-test", "asgard-test-v000"]
-    ["asgard-test", "asgard-test-v999"]                          | ["asgard-test-v999", "asgard-test"]
-    ["asgard-test-v999", "asgard-test"]                          | ["asgard-test-v999", "asgard-test"]
-    ["asgard-test-v999", "asgard-test-v002"]                     | ["asgard-test-v999", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v999"]                     | ["asgard-test-v999", "asgard-test-v002"]
-    ["asgard-test-v999", "asgard-test-v002", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
-    ["asgard-test-v999", "asgard-test", "asgard-test-v002"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
-    ["asgard-test-v001", "asgard-test-v002"]                     | ["asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v001"]                     | ["asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v003", "asgard-test-v001"] | ["asgard-test-v001", "asgard-test-v002", "asgard-test-v003"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v998"] | ["asgard-test-v998", "asgard-test-v999", "asgard-test-v000"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v001"] | ["asgard-test-v999", "asgard-test-v000", "asgard-test-v001"]
-    ["asgard-test-v001", "asgard-test-v000", "asgard-test-v002"] | ["asgard-test-v000", "asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v001", "asgard-test-v000", "asgard-test"]      | ["asgard-test", "asgard-test-v000", "asgard-test-v001"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v000"]
-  }
-
-  @Unroll
-  void "should populate deploy stage 'source' with latest ASG details if not explicitly specified"() {
-    given:
-    def exampleContexts = [
-      empty               : [:],
-      existingSource      : [source: [asgName: "test-v000", account: "test", region: "us-west-1"]],
-      specifiedEmptySource: [source: [:]]
-    ] as Map<String, Map>
-
-    def exampleAsgs = [
-      empty       : [],
-      singleRegion: [
-        [name: "test-v000", region: "us-west-1"],
-        [name: "test-v003", region: "us-west-1"],
-        [name: "test-v001", region: "us-west-1"]
-      ],
-      mixedRegions: [
-        [name: "test-v000", region: "us-west-1"],
-        [name: "test-v003", region: "us-west-2"],
-        [name: "test-v001", region: "us-west-1"]
-      ]
-    ]
-
-    def stageBuilder = Spy(TestDeployStrategyStage) {
-      (0..1) * getExistingAsgs("app", "test", "app-test", "aws") >> {
-        return exampleAsgs[existingAsgsName]
-      }
-    }
+    1 * resolver.getSource(_) >> new StageData.Source(account: account, region: region, asgName: asgName)
 
     and:
-    def context = exampleContexts[exampleContextName]
-    def stage = new PipelineStage(new Pipeline(), "test", context + [
-      application: "app", stack: "test", account: "test", availabilityZones: ["us-west-1": []]
-    ])
-
-    when:
-    stageBuilder.buildSteps(stage)
-    def source = stage.mapTo(DeployStrategyStage.StageData).source
-
-    then:
-    source?.asgName == expectedAsgName
-    source?.account == expectedAccount
-    source?.region == expectedRegion
+    stage.context.source.account == account
+    stage.context.source.region == region
+    stage.context.source.asgName == asgName
 
     where:
-    exampleContextName     | existingAsgsName || expectedAsgName || expectedAccount || expectedRegion
-    "empty"                | "empty"          || null            || null            || null
-    "specifiedEmptySource" | "empty"          || null            || null            || null
-    "specifiedEmptySource" | "singleRegion"   || null            || null            || null
-    "existingSource"       | "empty"          || "test-v000"     || "test"          || "us-west-1"
-    "empty"                | "singleRegion"   || "test-v003"     || "test"          || "us-west-1"
-    "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
+    account = 'test'
+    region = 'us-east-1'
+    asgName = 'foo-test-v000'
   }
 
   static class TestDeployStrategyStage extends DeployStrategyStage {
