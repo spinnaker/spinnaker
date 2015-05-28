@@ -87,12 +87,16 @@ class ApplicationService {
 
   List getTasks(String app) {
     Preconditions.checkNotNull(app)
-    orcaService.getTasks(app)
+    HystrixFactory.newListCommand(GROUP, "getTasksForApp", true) {
+      orcaService.getTasks(app)
+    } execute()
   }
 
   List getPipelines(String app) {
     Preconditions.checkNotNull(app)
-    orcaService.getPipelines(app)
+    HystrixFactory.newListCommand(GROUP, "getPipelinesForApp", true) {
+      orcaService.getPipelines(app)
+    } execute()
   }
 
   List<Map> getPipelineConfigs(String app) {
