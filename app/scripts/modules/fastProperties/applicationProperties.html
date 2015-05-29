@@ -45,7 +45,7 @@
             {{ (fp.promotions | filter:{state:'Running'}).length }}</span>
            </h3>
          </div>
-         <div class="row" ng-show="fp.promotionPaneOpen">
+         <div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length > 0">
            <div class="col-md-5 col-md-offset-4">
              <div class="btn-group">
                <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" btn-radio="''">
