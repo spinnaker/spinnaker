@@ -9,6 +9,9 @@
       <div class="col-md-3">
         <h3>Fast Properties</h3>
       </div>
+
+
+
       <div class="col-md-6">
         <form class="form form-inline">
           <div class="form-group">
@@ -41,6 +44,27 @@
            <span class="badge" ng-if="( fp.promotions | filter:{state:'Running'}).length > 0">
             {{ (fp.promotions | filter:{state:'Running'}).length }}</span>
            </h3>
+         </div>
+         <div class="row" ng-show="fp.promotionPaneOpen">
+           <div class="col-md-5 col-md-offset-4">
+             <div class="btn-group">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" btn-radio="''">
+                 <a href>All</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Pending')" btn-radio="'Pending'">
+                 <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Pending</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Running')" btn-radio="'Running'">
+                 <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Completd')" btn-radio="'Successful'">
+                 <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Failed')" btn-radio="'Failed'">
+                 <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
+               </label>
+             </div>
+           </div>
          </div>
          <div class="row" ng-show="fp.promotionPaneOpen">
            <div class="col-md-12">

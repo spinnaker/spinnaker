@@ -14,6 +14,25 @@
   </form>
 </div>
 
+<div class="col-md-5">
+  <div class="btn-group">
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('')" btn-radio="''">
+      <a href>All</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Pending')" btn-radio="'Pending'">
+      <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Pending</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Running')" btn-radio="'Running'">
+      <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Completd')" btn-radio="'Successful'">
+      <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Failed')" btn-radio="'Failed'">
+      <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
+    </label>
+  </div>
+</div>
 
 <div class="row">
   <div class="col-md-12">
