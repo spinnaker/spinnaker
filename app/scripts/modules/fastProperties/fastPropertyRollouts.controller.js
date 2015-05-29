@@ -4,9 +4,10 @@
 angular
   .module('spinnaker.fastProperties.rollouts.controller', [
     'spinnaker.fastProperty.read.service',
-    'spinnaker.fastProperty.write.service'
+    'spinnaker.fastProperty.write.service',
+    'spinnaker.fastProperty.transformer.service',
   ])
-  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter) {
+  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {
     var vm = this;
 
     vm.applicationFilter = '';
@@ -45,15 +46,22 @@ angular
     };
 
     function loadPromotions() {
-      fastPropertyReader.loadPromotions().then(function(promotionList) {
-        vm.promotions = vm.filteredPromotions = promotionList;
-        vm.filter();
-        return vm.promotions;
-      }).then(function(){
-        return vm.updateStateFilter(vm.promotionStateFilter);
-      }).catch(function(error) {
-        console.warn(error);
-      });
+      fastPropertyReader.loadPromotions()
+        .then(function(promotionList) {
+          vm.promotions = vm.filteredPromotions = promotionList;
+          vm.filter();
+          return vm.promotions;
+        })
+        .then(fastPropertyTransformer.sortRunningPromotionsFirst)
+        .then(function(sortedPromotions) {
+          vm.promotions = sortedPromotions;
+          return vm.promotions;
+        })
+        .then(function(){
+          return vm.updateStateFilter(vm.promotionStateFilter);
+        }).catch(function(error) {
+          console.warn(error);
+        });
     }
 
     loadPromotions();

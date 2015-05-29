@@ -6,8 +6,9 @@ angular
     'spinnaker.fastProperty.write.service',
     'spinnaker.newFastProperty.controller',
     'spinnaker.confirmationModal.service',
+    'spinnaker.fastProperty.transformer.service',
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter ) {
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer ) {
     var vm = this;
 
     vm.app = application.name;
@@ -170,12 +171,19 @@ angular
     }
 
     function loadPromotions() {
-      fastPropertyReader.loadPromotionsByApp(application.name).then(function(promotionList) {
-        vm.promotions = vm.filteredPromotions = promotionList;
-        return vm.promotions;
-      }).then(function() {
-        vm.updateStateFilter(vm.promotionStateFilter);
-      }).catch(function(error){
+      fastPropertyReader.loadPromotionsByApp(application.name)
+        .then(function(promotionList) {
+          vm.promotions = vm.filteredPromotions = promotionList;
+          return vm.promotions;
+        })
+        .then(fastPropertyTransformer.sortRunningPromotionsFirst)
+        .then(function(sortedPromotions) {
+          vm.promotions = sortedPromotions;
+        })
+        .then(function() {
+          vm.updateStateFilter(vm.promotionStateFilter);
+        })
+        .catch(function(error){
         console.warn(error);
       });
 
