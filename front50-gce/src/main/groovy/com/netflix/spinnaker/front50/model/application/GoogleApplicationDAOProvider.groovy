@@ -20,8 +20,10 @@ import com.google.api.services.datastore.client.DatastoreFactory
 import com.google.api.services.datastore.client.DatastoreOptions
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
+@ConditionalOnExpression('${google.enabled:false}')
 @Component
 class GoogleApplicationDAOProvider implements ApplicationDAOProvider<GoogleNamedAccountCredentials> {
 
