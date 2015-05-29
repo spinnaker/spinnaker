@@ -163,7 +163,11 @@ angular
     };
 
     vm.getLastMessage = function(promotion) {
-      return _(promotion.history).last().message;
+      if(promotion.history.length > 0) {
+        return _(promotion.history).last().message;
+      } else {
+        return 'no history';
+      }
     };
 
     function loadPromotions() {

@@ -72,17 +72,17 @@
                      <div class="col-md-2">
                        <div class="rollout-status pull-left">{{promotion.state}}</div>
                      </div>
-                     <div class="col-md-8">
+                     <div class="col-md-7">
                        <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
                        <div>{{fp.getLastMessage(promotion)}}</div>
                      </div>
-                     <div class="col-md-2">
+                     <div class="col-md-3">
                        <span class="icon" ng-if="promotion.isPromoting"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
-                       <div ng-if="!promotion.isPromoting && promotion.state == 'Running'">
-                         <div>Continue?</div>
-                       <span>
-                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">yes</button>
-                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">no</button>
+                       <!--<div ng-if="!promotion.isPromoting && promotion.state == 'Running'">-->
+                         <!--<div>Continue?</div>-->
+                       <!--<span>-->
+                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">continue</button>
+                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">rollback</button>
                        </span>
                        </div>
                      </div>

@@ -13,11 +13,11 @@ angular
 
     vm.filter = function() {
       if (!_(vm.applicationFilter).isEmpty()) {
-        vm.filteredPropmotions = vm.promotions.filter(function(promotion) {
+        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
           return promotion.scopes.from.appId.indexOf(vm.applicationFilter) > -1;
         });
       } else {
-        vm.filteredPropmotions = vm.promotions;
+        vm.filteredPromotions = vm.promotions;
       }
     };
 
@@ -35,7 +35,7 @@ angular
 
     function loadPropmotions() {
       fastPropertyReader.loadPromotions().then(function(promotionList) {
-        vm.promotions = vm.filteredPropmotions = promotionList;
+        vm.promotions = vm.filteredPromotions = promotionList;
         vm.filter();
       });
     }
