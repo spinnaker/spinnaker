@@ -108,15 +108,13 @@
                          <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">continue</button>
                          <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">rollback</button>
                        </span>
-                       </div>
                      </div>
                    </div>
                  </td>
                </tr>
-               <tr class="history"
+               <tr class="history" ng-repeat-end
                    ng-repeat="history in promotion.history"
-                   ng-if="fp.isRolloutDetailsOpen(promotion.id)"
-                   ng-repeat-end>
+                   ng-if="fp.isRolloutDetailsOpen(promotion.id)" >
                  <td></td>
                  <td></td>
                  <td>{{history.when | fastPropertyTime}}</td>
