@@ -6,21 +6,22 @@ angular
     'spinnaker.fastProperty.write.service',
     'spinnaker.newFastProperty.controller',
     'spinnaker.confirmationModal.service',
+    'spinnaker.fastProperty.transformer.service',
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter ) {
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer ) {
     var vm = this;
 
     vm.app = application.name;
     vm.itemsPerPage = 25;
     vm.filterString = '';
-
+    vm.promotionStateFilter = '';
     vm.pagination = {
       currentPage : 1,
       maxSize: 10,
       itemsPerPage : vm.itemsPerPage,
     };
-
     vm.promotionPaneOpen = true;
+
 
     vm.getToggleButtonName = function() {
       if(vm.promotionPaneOpen) {
@@ -69,6 +70,16 @@ angular
       return $filter('anyFieldFilter') (vm.properties,  {key: vm.filterString, value: vm.filterString});
     };
 
+    vm.updateStateFilter = function(state) {
+      if(state) {
+        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
+          return promotion.state === state;
+        });
+      } else {
+        vm.filteredPromotions = vm.promotions;
+      }
+
+    };
 
     vm.filteredResultPage = function() {
       return vm.resultsPage(vm.filterProperties());
@@ -128,28 +139,6 @@ angular
       }).result.then(routeToApplication);
     };
 
-
-
-    function routeToApplication() {
-      $state.go(
-        'home.applications.application.properties', {
-          application: application.name
-        }
-      );
-    }
-
-    function fetchFastProperties() {
-      fastPropertyReader.fetchForAppName(application.name)
-        .then(
-        function(data) {
-          var list = data.propertiesList || [];
-          vm.properties = sortProperties(list) ;
-        }
-      )
-      .then(vm.setFilteredProperties);
-    }
-
-
     vm.continue = function($event, promotion) {
       $event.stopPropagation();
       promotion.isPromoting = true;
@@ -163,21 +152,54 @@ angular
     };
 
     vm.getLastMessage = function(promotion) {
-      return _(promotion.history).last().message;
+      if(promotion.history.length > 0) {
+        return _(promotion.history).last().message;
+      } else {
+        return 'no history';
+      }
     };
 
-    function loadPromotions() {
-      fastPropertyReader.loadPromotionsByApp(application.name).then(function(promotionList) {
-        vm.promotions = vm.filteredPromotions = promotionList;
-      });
+    function fetchFastProperties() {
+      fastPropertyReader.fetchForAppName(application.name)
+        .then(
+        function(data) {
+          var list = data.propertiesList || [];
+          vm.properties = sortProperties(list) ;
+        }
+      )
+        .then(vm.setFilteredProperties);
     }
 
+    function loadPromotions() {
+      fastPropertyReader.loadPromotionsByApp(application.name)
+        .then(function(promotionList) {
+          vm.promotions = vm.filteredPromotions = promotionList;
+          return vm.promotions;
+        })
+        .then(fastPropertyTransformer.sortRunningPromotionsFirst)
+        .then(function(sortedPromotions) {
+          vm.promotions = sortedPromotions;
+        })
+        .then(function() {
+          vm.updateStateFilter(vm.promotionStateFilter);
+        })
+        .catch(function(error){
+        console.warn(error);
+      });
 
+    }
+
+    function routeToApplication() {
+      $state.go(
+        'home.applications.application.properties', {
+          application: application.name
+        }
+      );
+    }
 
 
     application.registerAutoRefreshHandler(fetchFastProperties, $scope);
     application.registerAutoRefreshHandler(loadPromotions, $scope);
-
 
     fetchFastProperties();
     loadPromotions();

@@ -4,25 +4,27 @@
 angular
   .module('spinnaker.fastProperties.rollouts.controller', [
     'spinnaker.fastProperty.read.service',
-    'spinnaker.fastProperty.write.service'
+    'spinnaker.fastProperty.write.service',
+    'spinnaker.fastProperty.transformer.service',
   ])
-  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter) {
+  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {
     var vm = this;
 
     vm.applicationFilter = '';
+    vm.promotionStateFilter = 'Running';
 
     vm.filter = function() {
       if (!_(vm.applicationFilter).isEmpty()) {
-        vm.filteredPropmotions = vm.promotions.filter(function(promotion) {
+        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
           return promotion.scopes.from.appId.indexOf(vm.applicationFilter) > -1;
         });
       } else {
-        vm.filteredPropmotions = vm.promotions;
+        vm.filteredPromotions = vm.promotions;
       }
     };
 
     vm.continue = function(promotionId) {
-      fastPropertyWriter.continuePromotion(promotionId).then(loadPropmotions);
+      fastPropertyWriter.continuePromotion(promotionId).then(loadPromotions);
     };
 
     vm.stop= function(promotionId) {
@@ -33,13 +35,35 @@ angular
       return _(promotion.history).last().message;
     };
 
-    function loadPropmotions() {
-      fastPropertyReader.loadPromotions().then(function(promotionList) {
-        vm.promotions = vm.filteredPropmotions = promotionList;
-        vm.filter();
-      });
+    vm.updateStateFilter = function(state) {
+      if(state) {
+        vm.filteredPromotions = vm.promotions.filter(function(promotion) {
+          return promotion.state === state;
+        });
+      } else {
+        vm.filteredPromotions = vm.promotions;
+      }
+    };
+
+    function loadPromotions() {
+      fastPropertyReader.loadPromotions()
+        .then(function(promotionList) {
+          vm.promotions = vm.filteredPromotions = promotionList;
+          vm.filter();
+          return vm.promotions;
+        })
+        .then(fastPropertyTransformer.sortRunningPromotionsFirst)
+        .then(function(sortedPromotions) {
+          vm.promotions = sortedPromotions;
+          return vm.promotions;
+        })
+        .then(function(){
+          return vm.updateStateFilter(vm.promotionStateFilter);
+        }).catch(function(error) {
+          console.warn(error);
+        });
     }
 
-    loadPropmotions();
+    loadPromotions();
     return vm;
   });

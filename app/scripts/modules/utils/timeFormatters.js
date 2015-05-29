@@ -38,8 +38,12 @@ angular.module('spinnaker.utils.timeFormatters', [
   })
   .filter('fastPropertyTime', function(momentService) {
     return function (input) {
-      var realTime = input.replace('[GMT]', '');
-      var moment = momentService(realTime);
-      return moment.format('MM/DD/YY @ h:mma');
+      if(input) {
+        var realTime = input.replace('[GMT]', '');
+        var moment = momentService(realTime);
+        return moment.format('MM/DD/YY @ h:mma');
+      } else {
+        return '--';
+      }
     };
   });

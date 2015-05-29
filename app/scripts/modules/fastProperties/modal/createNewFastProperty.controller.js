@@ -28,7 +28,7 @@ angular
     };
 
     vm.update = function() {
-      var updatedParams = _(vm.property).omit(['ts', 'createdAsCanary']);
+      var updatedParams = _(vm.property).omit(['ts', 'createdAsCanary']).value();
       fastPropertyWriter.upsertFastProperty(updatedParams).then(
         function(result) {
           $modalInstance.close(result);

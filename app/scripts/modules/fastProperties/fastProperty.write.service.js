@@ -9,7 +9,7 @@ angular
   .factory('fastPropertyWriter', function (Restangular, authenticationService) {
 
     function upsertFastProperty(fastProperty) {
-      var payload = createPromotedPayload(fastProperty); //{property:flattenFastProperty(fastProperty)};
+      var payload = createPromotedPayload(fastProperty);
       return Restangular
         .all('fastproperties')
         .all('promote')
@@ -47,11 +47,6 @@ angular
         .assign(fastProperty.scope, {sourceOfUpdate: 'spinnaker', updatedBy: authenticationService.getAuthenticatedUser().name})
         .omit(['selectedScope', 'impactCount'])
         .value();
-      //return {
-      //  key: fastProperty.key,
-      //  value: fastProperty.value,
-      //  scope: fastProperty.selectedScope
-      //};
     }
 
     function flattenFastProperty(fastProperty) {

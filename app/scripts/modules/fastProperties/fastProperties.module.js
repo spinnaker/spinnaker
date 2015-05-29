@@ -10,4 +10,5 @@ angular
     'spinnaker.fastProperties.data.controller',
     'spinnaker.fastProperty.progressBar.directive',
     'spinnaker.fastProperty.constraints.directive',
+    'spinnaker.fastProperty.transformer.service',
   ]);
