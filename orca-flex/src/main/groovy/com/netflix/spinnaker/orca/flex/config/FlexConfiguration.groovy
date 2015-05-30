@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -36,6 +37,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
+@ConditionalOnProperty(value = 'flex.baseUrl')
 @ComponentScan([
   "com.netflix.spinnaker.orca.flex.pipeline",
   "com.netflix.spinnaker.orca.flex.tasks"

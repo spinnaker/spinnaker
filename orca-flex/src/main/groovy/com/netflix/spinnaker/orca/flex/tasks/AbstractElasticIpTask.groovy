@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
 abstract class AbstractElasticIpTask implements Task {
-  @Autowired
+  @Autowired(required = false)
   FlexService flexService
 
   abstract ElasticIpResult performRequest(StageData stageData)
