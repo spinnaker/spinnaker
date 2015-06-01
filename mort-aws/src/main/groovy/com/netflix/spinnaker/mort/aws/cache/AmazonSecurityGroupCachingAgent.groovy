@@ -26,6 +26,7 @@ import com.netflix.spinnaker.mort.model.CachingAgent
 import com.netflix.spinnaker.mort.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import com.netflix.spinnaker.mort.model.securitygroups.SecurityGroupRule
+import groovy.transform.Canonical
 import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
 
@@ -36,6 +37,11 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
   final String region
   final AmazonEC2 ec2
   final CacheService cacheService
+
+  @Canonical
+  static class GroupAndProtocol {
+      String groupId, protocol
+  }
 
   @Override
   String getDescription() {
@@ -79,7 +85,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
   }
 
   private AmazonSecurityGroup convertToAmazonSecurityGroup(SecurityGroup securityGroup) {
-    Map<String, Map> rules = [:]
+    Map<GroupAndProtocol, Map> rules = [:]
     Map<String, Map> ipRangeRules = [:]
 
     securityGroup.ipPermissions.each { permission ->
@@ -114,7 +120,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     rangeRules
   }
 
-  private List<SecurityGroupRule> buildSecurityGroupRules(LinkedHashMap<String, Map> rules) {
+  private List<SecurityGroupRule> buildSecurityGroupRules(LinkedHashMap<GroupAndProtocol, Map> rules) {
     List<SecurityGroupRule> securityGroupRules = rules.values().collect { rule ->
       new SecurityGroupRule(
           securityGroup: rule.securityGroup,
@@ -125,10 +131,11 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
     securityGroupRules
   }
 
-  private void addSecurityGroupRules(IpPermission permission, Map<String, Map> rules) {
+  private void addSecurityGroupRules(IpPermission permission, Map<GroupAndProtocol, Map> rules) {
     permission.userIdGroupPairs.each { sg ->
-      if (!rules.containsKey(sg.groupId)) {
-        rules.put(sg.groupId, [
+      def groupAndProtocol = new GroupAndProtocol(sg.groupId, permission.ipProtocol)
+      if (!rules.containsKey(groupAndProtocol)) {
+        rules.put(groupAndProtocol, [
             protocol     : permission.ipProtocol,
             securityGroup:
                 new AmazonSecurityGroup(
@@ -140,7 +147,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent {
             portRanges   : [] as SortedSet
         ])
       }
-      rules.get(sg.groupId).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
+      rules.get(groupAndProtocol).portRanges += new Rule.PortRange(startPort: permission.fromPort, endPort: permission.toPort)
     }
   }
 

@@ -206,6 +206,56 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
   }
 
+  void "should add security group ingress with different protocols"() {
+      given:
+      securityGroupB.ipPermissions = [
+              new IpPermission(ipProtocol: "TCP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
+                      new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
+              ]),
+              new IpPermission(ipProtocol: "UDP", fromPort: 7001, toPort: 7001, userIdGroupPairs: [
+                      new UserIdGroupPair(groupId: securityGroupA.groupId, groupName: securityGroupA.groupName)
+              ])
+      ]
+      DescribeSecurityGroupsResult result = new DescribeSecurityGroupsResult(
+              securityGroups: [securityGroupB])
+
+      when:
+      agent.call()
+
+      then:
+      1 * ec2.describeSecurityGroups() >> result
+      1 * cacheService.keysByType(Keys.Namespace.SECURITY_GROUPS.ns) >> []
+      1 * cacheService.put(keyGroupB, new AmazonSecurityGroup(type: "aws", id: "id-b", name: "name-b", description: "b",
+              accountName: "account", region: "region", inboundRules: [
+              new SecurityGroupRule(protocol: "TCP",
+                      securityGroup: new AmazonSecurityGroup(
+                              type: 'aws',
+                              id: 'id-a',
+                              name: 'name-a',
+                              accountName: 'account',
+                              region: 'region'
+                      ),
+                      portRanges: [
+                              new Rule.PortRange(startPort: 7001, endPort: 7001)
+                      ] as SortedSet
+              ),
+              new SecurityGroupRule(protocol: "UDP",
+                      securityGroup: new AmazonSecurityGroup(
+                              type: 'aws',
+                              id: 'id-a',
+                              name: 'name-a',
+                              accountName: 'account',
+                              region: 'region'
+                      ),
+                      portRanges: [
+                              new Rule.PortRange(startPort: 7001, endPort: 7001)
+                      ] as SortedSet
+              )
+      ])
+      )
+      0 * _
+  }
+
   void "should group ipRangeRules by addressable range"() {
     given:
     SecurityGroup group = new SecurityGroup(
