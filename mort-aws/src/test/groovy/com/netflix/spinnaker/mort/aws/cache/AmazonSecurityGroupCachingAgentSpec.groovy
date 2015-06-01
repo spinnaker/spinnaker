@@ -238,6 +238,18 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
                       portRanges: [
                               new Rule.PortRange(startPort: 7001, endPort: 7001)
                       ] as SortedSet
+              ),
+              new SecurityGroupRule(protocol: "UDP",
+                      securityGroup: new AmazonSecurityGroup(
+                              type: 'aws',
+                              id: 'id-a',
+                              name: 'name-a',
+                              accountName: 'account',
+                              region: 'region'
+                      ),
+                      portRanges: [
+                              new Rule.PortRange(startPort: 7001, endPort: 7001)
+                      ] as SortedSet
               )
       ])
       )
