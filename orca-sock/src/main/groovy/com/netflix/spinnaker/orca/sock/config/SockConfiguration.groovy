@@ -39,6 +39,7 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Import(RetrofitConfiguration)
 @CompileStatic
 @ComponentScan("com.netflix.spinnaker.orca.sock.tasks")
+@ConditionalOnProperty('sock.baseUrl')
 class SockConfiguration {
 
   @Autowired Client retrofitClient

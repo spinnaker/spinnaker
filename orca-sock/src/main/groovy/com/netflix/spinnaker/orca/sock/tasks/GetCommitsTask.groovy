@@ -44,10 +44,11 @@ class GetCommitsTask implements RetryableTask {
 
   @Autowired
   OortService oortService
+
   @Autowired
   ObjectMapper objectMapper
 
-  @Autowired
+  @Autowired(required = false)
   SockService sockService
 
   @Autowired
@@ -58,7 +59,15 @@ class GetCommitsTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    Application application = front50Service.get(stage.context.account, stage.context.application)
+    if (!sockService) {
+      return DefaultTaskResult.SUCCEEDED
+    }
+
+    def globalAccount = front50Service.credentials.find { it.global }
+
+    def applicationAccount = globalAccount?.name ?: stage.context.account
+
+    Application application = front50Service.get(applicationAccount, stage.context.application)
 
     String projectKey = application.repoProjectKey
     String repositorySlug = application.repoSlug
