@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
 import org.springframework.batch.core.Step
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
@@ -37,15 +38,23 @@ class DeployStage extends DeployStrategyStage {
     super(MAYO_CONFIG_TYPE)
   }
 
+  @Autowired(required = false)
+  GetCommitsTask commitsTask
+
   @VisibleForTesting
   @Override
   protected List<Step> basicSteps(Stage stage) {
-    def step1 = buildStep(stage, "createDeploy", CreateDeployTask)
-    def step2 = buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    def step3 = buildStep(stage, "getCommits", GetCommitsTask)
-    def step4 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step5 = buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
-    def step6 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    [step1, step2, step3, step4, step5, step6]
+    def steps = [
+      buildStep(stage, "createDeploy", CreateDeployTask),
+      buildStep(stage, "monitorDeploy", MonitorKatoTask)
+    ]
+    if (commitsTask) {
+      steps << buildStep(stage, "getCommits", GetCommitsTask)
+    }
+    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+    steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
+    steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+
+    return steps
   }
 }
