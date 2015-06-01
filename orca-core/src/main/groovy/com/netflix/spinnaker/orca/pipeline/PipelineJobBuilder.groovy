@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.google.common.annotations.VisibleForTesting
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationStage
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
@@ -85,6 +86,8 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
       null as Stage,
       null as Stage.SyntheticStageOwner
     ) as Stage
+
+    ((AbstractStage)initializationStage).id = "${pipeline.id}-initialize"
     initializationStage.initializationStage = true
     initializationStage.refId = "*"
 
