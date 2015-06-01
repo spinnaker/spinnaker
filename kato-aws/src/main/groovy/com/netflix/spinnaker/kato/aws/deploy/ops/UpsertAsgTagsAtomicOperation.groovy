@@ -45,12 +45,15 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
+    boolean hasFailure = false
+
     task.updateStatus BASE_PHASE, "Initializing Upsert Asg Tags operation for $description.asgName..."
     for (region in description.regions) {
       def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
       def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
       if (!result.autoScalingGroups) {
         task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
+        hasFailure = true
         continue
       }
       task.updateStatus BASE_PHASE, "Preparing tags for $description.asgName in $region..."
@@ -61,6 +64,10 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus BASE_PHASE, "Tags created for $description.asgName in $region"
     }
     task.updateStatus BASE_PHASE, "Done tagging ASG $description.asgName."
+
+    if (hasFailure) {
+      task.fail()
+    }
     null
   }
 }

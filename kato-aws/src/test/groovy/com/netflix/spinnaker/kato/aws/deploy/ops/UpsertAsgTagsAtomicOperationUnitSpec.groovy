@@ -24,13 +24,14 @@ import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAsgTagsDescription
+import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import spock.lang.Specification
 
 class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
   def setupSpec() {
-    TaskRepository.threadLocalTask.set(Mock(Task))
+    TaskRepository.threadLocalTask.set(new DefaultTask("taskId"))
   }
 
   void "operation invokes update to autoscaling group"() {
@@ -58,5 +59,27 @@ class UpsertAsgTagsAtomicOperationUnitSpec extends Specification {
       assert request.tags.first().key == "key"
       assert request.tags.first().value == "value"
     }
+    !TaskRepository.threadLocalTask.get().status.isFailed()
+  }
+
+  void "should fail task if ASG does not exist"() {
+    setup:
+    def mockAutoScaling = Mock(AmazonAutoScaling)
+    def mockAmazonClientProvider = Mock(AmazonClientProvider)
+    mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
+    def description = new UpsertAsgTagsDescription(asgName: "myasg-stack-v000", tags: ["key": "value"], regions: ["us-west-1"])
+    description.credentials = TestCredential.named('baz')
+    def operation = new UpsertAsgTagsAtomicOperation(description)
+    operation.amazonClientProvider = mockAmazonClientProvider
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * mockAutoScaling.describeAutoScalingGroups(_) >> { DescribeAutoScalingGroupsRequest request ->
+      new DescribeAutoScalingGroupsResult()
+    }
+    0 * mockAutoScaling.createOrUpdateTags(_)
+    TaskRepository.threadLocalTask.get().status.isFailed()
   }
 }
