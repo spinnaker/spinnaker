@@ -11,6 +11,7 @@ angular.module('spinnaker.pipelines', [
   'restangular',
   'spinnaker.pipelines.stage',
   'spinnaker.pipelines.trigger',
+  'spinnaker.pipelines.parameters',
   'spinnaker.pipelines.create',
   'spinnaker.pipelines.delete',
   'spinnaker.pipelines.enableParallel',

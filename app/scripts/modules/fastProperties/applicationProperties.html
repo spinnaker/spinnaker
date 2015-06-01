@@ -9,6 +9,9 @@
       <div class="col-md-3">
         <h3>Fast Properties</h3>
       </div>
+
+
+
       <div class="col-md-6">
         <form class="form form-inline">
           <div class="form-group">
@@ -42,6 +45,27 @@
             {{ (fp.promotions | filter:{state:'Running'}).length }}</span>
            </h3>
          </div>
+         <div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length > 0">
+           <div class="col-md-5 col-md-offset-4">
+             <div class="btn-group">
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('')" btn-radio="''">
+                 <a href>All</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Pending')" btn-radio="'Pending'">
+                 <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Pending</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Running')" btn-radio="'Running'">
+                 <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Completd')" btn-radio="'Successful'">
+                 <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
+               </label>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Failed')" btn-radio="'Failed'">
+                 <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
+               </label>
+             </div>
+           </div>
+         </div>
          <div class="row" ng-show="fp.promotionPaneOpen">
            <div class="col-md-12">
 
@@ -72,27 +96,25 @@
                      <div class="col-md-2">
                        <div class="rollout-status pull-left">{{promotion.state}}</div>
                      </div>
-                     <div class="col-md-8">
+                     <div class="col-md-7">
                        <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
                        <div>{{fp.getLastMessage(promotion)}}</div>
                      </div>
-                     <div class="col-md-2">
+                     <div class="col-md-3">
                        <span class="icon" ng-if="promotion.isPromoting"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
-                       <div ng-if="!promotion.isPromoting && promotion.state == 'Running'">
-                         <div>Continue?</div>
-                       <span>
-                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">yes</button>
-                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">no</button>
+                       <!--<div ng-if="!promotion.isPromoting && promotion.state == 'Running'">-->
+                         <!--<div>Continue?</div>-->
+                       <!--<span>-->
+                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">continue</button>
+                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">rollback</button>
                        </span>
-                       </div>
                      </div>
                    </div>
                  </td>
                </tr>
-               <tr class="history"
+               <tr class="history" ng-repeat-end
                    ng-repeat="history in promotion.history"
-                   ng-if="fp.isRolloutDetailsOpen(promotion.id)"
-                   ng-repeat-end>
+                   ng-if="fp.isRolloutDetailsOpen(promotion.id)" >
                  <td></td>
                  <td></td>
                  <td>{{history.when | fastPropertyTime}}</td>

@@ -9,6 +9,13 @@ angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
     $scope.pipeline = pipeline;
     $scope.currentlyRunningExecutions = currentlyRunningExecutions;
 
+    if(pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length){
+      $scope.parameters = {};
+      _.each(pipeline.parameterConfig, function(parameter) {
+        $scope.parameters[parameter.name] = parameter.default;
+      });
+    }
+
     $scope.triggers = _.chain(pipeline.triggers)
       .filter('type', 'jenkins')
       .sortBy('enabled')
@@ -61,6 +68,12 @@ angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
     this.execute = function() {
       if ($scope.trigger && $scope.selectedBuild) {
         $scope.trigger.buildNumber = $scope.selectedBuild.number;
+      }
+      if (pipeline.parameterConfig !== undefined && pipeline.parameterConfig.length) {
+        if (!$scope.trigger) {
+          $scope.trigger = {};
+        }
+        $scope.trigger.parameters = $scope.parameters;
       }
       $modalInstance.close($scope.trigger);
     };

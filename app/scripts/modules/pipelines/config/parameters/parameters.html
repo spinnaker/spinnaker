@@ -1,0 +1,14 @@
+<div class="form-horizontal">
+  <h4>Parameters</h4>
+  <parameter ng-repeat="parameter in pipeline.parameterConfig" parameter="parameter" pipeline="pipeline"></parameter>
+  <div class="row">
+    <div class="col-md-12 text-center">
+      <span ng-if="!pipeline.parameterConfig.length">
+        You don't have any parameters configured for {{pipeline.name}}.
+      </span>
+      <button class="btn btn-block btn-add-trigger add-new" ng-click="parametersCtrl.addParameter()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Parameter
+      </button>
+    </div>
+  </div>
+</div>

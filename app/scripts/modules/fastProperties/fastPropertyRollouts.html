@@ -14,47 +14,63 @@
   </form>
 </div>
 
-<!--<h2 ng-if="!fp.applicationsLoaded" class="text-center" style="margin-bottom: 250px">-->
-  <!--<span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>-->
-<!--</h2>-->
-
+<div class="col-md-5">
+  <div class="btn-group">
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('')" btn-radio="''">
+      <a href>All</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Pending')" btn-radio="'Pending'">
+      <a href><status-glyph item="{hasNotStarted: true}"></status-glyph> Pending</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Running')" btn-radio="'Running'">
+      <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Completd')" btn-radio="'Successful'">
+      <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
+    </label>
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Failed')" btn-radio="'Failed'">
+      <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
+    </label>
+  </div>
+</div>
 
 <div class="row">
   <div class="col-md-12">
     <table ng-if="rollout.promotions" class="table table-hover">
       <thead>
       <tr>
-        <th width="20%" key="application" label="Name" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Application</th>
-        <th width="20%" key="property" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
+
+        <th width="10%">Application</th>
+        <th width="10%" key="property" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
         <th width="20%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
-        <th width="10%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
-        <th width="20%"> <!--progress bar--></th>
-        <th width="10%"> Continue</th>
+        <th width="40%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
+
       </tr>
       </thead>
       <tbody>
-      <tr class="clickable" ng-repeat="promotion in rollout.filteredPropmotions">
+      <tr class="clickable" ng-repeat="promotion in rollout.filteredPromotions">
         <td>
           <a ui-sref="home.applications.application.properties({ application: promotion.scopes.from.appId.toLowerCase() })">
             {{ promotion.scopes.from.appId }}
           </a>
         </td>
         <td>
-          {{ promotion.keyValue[0] }}
+          {{ promotion.key }}
         </td>
         <td>
           {{ promotion.history[0].when | fastPropertyTime}}
         </td>
         <td>
-          {{ promotion.state }}
-        </td>
-        <td>
-          <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
-          <small>{{rollout.getLastMessage(promotion)}}</small>
-        </td>
-        <td>
-          <button class="btn btn-success" ng-if="promotion.state == 'Running'" ng-click="rollout.continue(promotion.id)">yes</button>
-          <button class="btn btn-danger" ng-if="promotion.state == 'Running'" ng-click="rollout.stop(promotion.id)">no</button>
+
+          <div class="row">
+            <div class="col-md-2">
+              <div class="rollout-status pull-left">{{promotion.state}}</div>
+            </div>
+            <div class="col-md-8" style="height: 20px;" >
+              <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
+            </div>
+          </div>
+
         </td>
       </tr>
       </tbody>

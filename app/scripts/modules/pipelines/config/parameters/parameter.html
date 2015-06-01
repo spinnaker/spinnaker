@@ -1,0 +1,42 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="form-horizontal panel-pipeline-phase">
+      <div class="form-group">
+        <div class="col-md-8 col-md-offset-1">
+          <div class="row">
+            <label class="col-md-3 sm-label-left">Name</label>
+            <div class="col-md-6">
+              <input type="text" required ng-model="parameter.name"
+                     class="form-control input-sm"/>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-1 col-md-offset-2">
+          <button class="btn-link" ng-click="parameterCtrl.remove(parameter)">
+            <span class="glyphicon glyphicon-trash" tooltip="Remove parameter"></span><span class="sr-only">Remove Parameter</span>
+          </button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>Description</b>
+          <help-field key="pipeline.config.parameter.description"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" required ng-model="parameter.description"
+                 class="form-control input-sm"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>Default Value</b>
+          <help-field key="pipeline.config.parameter.default"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" required ng-model="parameter.default"
+                 class="form-control input-sm"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
