@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -43,6 +44,42 @@ class GetCommitsTaskSpec extends Specification {
 
   @Shared
   Pipeline pipeline = new Pipeline()
+
+  def "sockService should be optional"() {
+    given:
+    task.sockService = null
+
+    when:
+    def result = task.execute(null)
+
+    then:
+    0 * _
+    result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  def "global credential is preferred to the stage account for application lookup"() {
+    given:
+    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account])
+    task.sockService = sockService
+    task.front50Service = front50Service
+
+    when:
+    task.execute(stage)
+
+    then:
+
+    1 * front50Service.getCredentials() >> credentials
+    1 * front50Service.get(expectedAccount, app) >> new Application(repoSlug: null, repoProjectKey: null)
+    0 * _
+
+    where:
+    credentials                                           | account | expectedAccount
+    []                                                    | 'test'  | 'test'
+    [new Front50Credential(global: true, name: 'global')] | 'test'  | 'global'
+    [new Front50Credential(global: false, name: 'prod')]  | 'test'  | 'test'
+
+    app = "myapp"
+  }
 
   @Unroll
   def "get commits from serverGroup source #serverGroup"() {
@@ -161,7 +198,9 @@ class GetCommitsTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
 
     and:
+    task.sockService = sockService
     task.front50Service = front50Service
+    1 * front50Service.getCredentials() >> []
     1 * front50Service.get(account, app) >> new Application()
 
     when:
