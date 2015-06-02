@@ -79,16 +79,9 @@ abstract class DeployStrategyStage extends LinearStage {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
 
-    def source = sourceResolver.getSource(stage)
-    if (source) {
-      stage.getContext().put("source", [
-        asgName: source.asgName,
-        account: source.account,
-        region : source.region
-      ])
-    }
-
-    basicSteps(stage)
+    List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
+    steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+    return steps
   }
 
   /**

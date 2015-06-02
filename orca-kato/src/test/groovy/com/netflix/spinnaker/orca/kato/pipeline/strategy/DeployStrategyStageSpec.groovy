@@ -109,31 +109,6 @@ class DeployStrategyStageSpec extends Specification {
     }
   }
 
-  void 'should include source in context'() {
-    given:
-    Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
-      account          : account,
-      application      : 'foo',
-      availabilityZones: [(region): []]])
-
-    def resolver = Mock(SourceResolver)
-
-    when:
-    new TestDeployStrategyStage(sourceResolver: resolver).buildSteps(stage)
-
-    then:
-    1 * resolver.getSource(_) >> new StageData.Source(account: account, region: region, asgName: asgName)
-
-    and:
-    stage.context.source.account == account
-    stage.context.source.region == region
-    stage.context.source.asgName == asgName
-
-    where:
-    account = 'test'
-    region = 'us-east-1'
-    asgName = 'foo-test-v000'
-  }
 
   static class TestDeployStrategyStage extends DeployStrategyStage {
     TestDeployStrategyStage() {

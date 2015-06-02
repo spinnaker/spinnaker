@@ -268,8 +268,11 @@ class DeployStageSpec extends Specification {
     def steps = deployStage.buildSteps(stage)
 
     then:
-    steps*.name.collect {
+    steps.size() > 1
+    steps[0].name.tokenize('.')[2] == 'determineSourceServerGroup'
+    steps.subList(1, steps.size())*.name.collect {
       it.tokenize('.')[1]
     } == deployStage.basicSteps(stage)*.name.collect { it.tokenize('.')[1] }
+
   }
 }
