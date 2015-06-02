@@ -66,17 +66,19 @@ class ApplicationModelSpec extends Specification {
     application.owner = null
     application.repoProjectKey = "project-key"
     application.repoSlug = "repo"
+    application.repoType = "github"
 
     def props = application.allSetColumnProperties()
 
     expect:
     props != null
-    props.size() == 5
+    props.size() == 6
     props['name'] == 'TEST_APP'
     props['email'] == "aglover@netflix.com"
     props['pdApiKey'] == ''
     props['repoProjectKey'] == "project-key"
     props['repoSlug'] == "repo"
+    props['repoType'] == 'github'
   }
 
   void 'update should update the underlying model'() {

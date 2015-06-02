@@ -51,6 +51,7 @@ class Application {
   String accounts
   String repoProjectKey
   String repoSlug
+  String repoType
 
   @JsonIgnore
   ApplicationDAO dao
@@ -75,7 +76,9 @@ class Application {
               @JsonProperty("createTs") String createdAt,
               @JsonProperty("updateTs") String updatedAt,
               @JsonProperty("repoProjectKey") String repoProjectKey,
-              @JsonProperty("repoSlug") String repoSlug
+              @JsonProperty("repoSlug") String repoSlug,
+              @JsonProperty("repoType") String repoType
+
   ) {
     this.group = group
     this.monitorBucketType = monitorBucketType
@@ -92,6 +95,7 @@ class Application {
     this.updateTs = updatedAt
     this.repoProjectKey = repoProjectKey
     this.repoSlug = repoSlug
+    this.repoType = repoType
   }
 
   void update(Map<String, String> newAttributes) {
