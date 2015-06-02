@@ -27,14 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.functions.Func1
 
-/**
- *
- */
 @Component
 class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "suspendedPipeline"
-  final long pollingInterval = 120
+  final long pollingInterval = 5
   final String notificationType = NOTIFICATION_TYPE
 
   @Autowired
