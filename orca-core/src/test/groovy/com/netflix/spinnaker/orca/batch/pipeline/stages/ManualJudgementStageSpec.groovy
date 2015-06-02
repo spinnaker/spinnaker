@@ -37,11 +37,11 @@ class ManualJudgementStageSpec extends Specification {
 
     where:
     context                       || expectedStatus
-    [:]                           || ExecutionStatus.SUSPENDED
+    [:]                           || ExecutionStatus.RUNNING
     [judgementStatus: "continue"] || ExecutionStatus.SUCCEEDED
     [judgementStatus: "Continue"] || ExecutionStatus.SUCCEEDED
     [judgementStatus: "stop"]     || ExecutionStatus.TERMINAL
     [judgementStatus: "STOP"]     || ExecutionStatus.TERMINAL
-    [judgementStatus: "unknown"]  || ExecutionStatus.SUSPENDED
+    [judgementStatus: "unknown"]  || ExecutionStatus.RUNNING
   }
 }

@@ -31,7 +31,7 @@ import rx.functions.Func1
 class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotificationAgent {
 
   static final String NOTIFICATION_TYPE = "suspendedPipeline"
-  final long pollingInterval = 5
+  final long pollingInterval = 30
   final String notificationType = NOTIFICATION_TYPE
 
   @Autowired
@@ -46,7 +46,7 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
   protected List<Map> filterEvents(List<Map> pipelines) {
     long now = new Date().time
     def filteredEvents = pipelines.findAll {
-      it.status == ExecutionStatus.SUSPENDED.name() &&
+      (it.status == ExecutionStatus.SUSPENDED.name()) &&
       it.stages.find { Map stage -> now >= extractScheduledTime(stage) } != null
     } as List<Map>
 

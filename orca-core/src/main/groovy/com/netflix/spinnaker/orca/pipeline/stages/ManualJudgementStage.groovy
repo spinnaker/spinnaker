@@ -55,8 +55,7 @@ class ManualJudgementStage extends LinearStage {
           return new DefaultTaskResult(ExecutionStatus.TERMINAL)
       }
 
-      stage.scheduledTime = System.currentTimeMillis() + backoffPeriod
-      return new DefaultTaskResult(ExecutionStatus.SUSPENDED)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING)
     }
   }
 }
