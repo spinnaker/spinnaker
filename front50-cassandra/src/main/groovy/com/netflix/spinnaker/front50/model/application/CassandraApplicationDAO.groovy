@@ -216,6 +216,7 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
           pdApiKey: details.pdApiKey ?: null,
           repoProjectKey: details.repoProjectKey ?: null,
           repoSlug: details.repoSlug ?: null,
+          repoType: details.repoType ?: null,
           tags: details.tags ?: null,
           regions: details.regions ?: null,
           accounts: accounts ? accounts.join(",") : null,
