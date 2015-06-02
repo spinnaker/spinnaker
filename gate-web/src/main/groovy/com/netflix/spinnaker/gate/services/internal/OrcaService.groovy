@@ -63,4 +63,8 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @POST("/orchestrate")
   Map startPipeline(@Body Map pipelineConfig, @Query("user") String user)
+
+  @Headers("Accept: application/json")
+  @PATCH("/pipelines/{executionId}/stages/{stageId}")
+  Map updatePipelineStage(@Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map context)
 }
