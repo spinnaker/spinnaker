@@ -57,8 +57,8 @@
                <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Running')" btn-radio="'Running'">
                  <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
                </label>
-               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Completd')" btn-radio="'Successful'">
-                 <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
+               <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Successful')" btn-radio="'Successful'">
+                 <a href><status-glyph item="{isCompleted: true}"></status-glyph> Successful</a>
                </label>
                <label class="btn btn-sm btn-default" ng-model="fp.promotionStateFilter" ng-click="fp.updateStateFilter('Failed')" btn-radio="'Failed'">
                  <a href><status-glyph item="{isFailed: true}"></status-glyph> Failed</a>
@@ -105,8 +105,8 @@
                        <!--<div ng-if="!promotion.isPromoting && promotion.state == 'Running'">-->
                          <!--<div>Continue?</div>-->
                        <!--<span>-->
-                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)">continue</button>
-                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)">rollback</button>
+                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)" ng-disabled="promotion.isPromoting">continue</button>
+                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)" ng-disabled="promotion.isPromoting">rollback</button>
                        </span>
                      </div>
                    </div>
