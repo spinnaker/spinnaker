@@ -65,6 +65,11 @@ class PipelineController {
     pipelineService.cancelPipeline(id)
   }
 
+  @RequestMapping(value = "/{id}/stages/{stageId}", method = RequestMethod.PATCH)
+  Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+    pipelineService.updatePipelineStage(id, stageId, context)
+  }
+
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   Map deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
