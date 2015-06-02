@@ -89,6 +89,7 @@ angular.module('spinnaker.help')
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
+    'pipeline.config.manualJudgement.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgement.</p><p>May contain HTML.</p>',
 
     'pipeline.config.canary.clusterPairs': '' +
       '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +

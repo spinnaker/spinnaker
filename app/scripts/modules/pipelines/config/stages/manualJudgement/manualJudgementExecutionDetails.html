@@ -1,0 +1,28 @@
+<div ng-controller="ManualJudgementExecutionDetailsCtrl as manualCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'manualJudgement'">
+    <div class="row">
+      <div class="col-md-9">
+        <dl class="dl-narrow dl-horizontal">
+          <dt ng-if="stage.context.judgementStatus">Judgement</dt>
+          <dd ng-if="stage.context.judgementStatus">{{ stage.context.judgementStatus | robotToHuman }}</dd>
+          <dt>Instructions</dt>
+          <dd ng-bind-html="stage.context.instructions"></dd>
+        </dl>
+      </div>
+      <div class="col-md-9" ng-if="!stage.context.judgementStatus">
+        <button class="btn btn-primary" ng-click="manualCtrl.continue()">Continue</button>
+        <button class="btn btn-danger" ng-click="manualCtrl.stop()">Stop</button>
+      </div>
+    </div>
+
+    <stage-failure-message is-failed="stage.isFailed && !stage.context.judgementStatus" message="ctrl.getException(stage)"></stage-failure-message>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>
+
