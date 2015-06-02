@@ -23,12 +23,14 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
@@ -37,6 +39,7 @@ import spock.lang.Specification
 import java.time.Clock
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 
 class TaskControllerSpec extends Specification {
 
@@ -45,6 +48,8 @@ class TaskControllerSpec extends Specification {
 
   Clock clock = Mock(Clock)
   int daysOfExecutionHistory = 14
+
+  ObjectMapper objectMapper = new ObjectMapper()
 
   void setup() {
     executionRepository = Mock(ExecutionRepository)
@@ -202,5 +207,30 @@ class TaskControllerSpec extends Specification {
     then:
     1 * executionRepository.retrievePipelinesForApplication(app) >> pipelines
     results.id == [ 'not-started', 'also-not-started', 'newer']
+  }
+
+  void 'should update existing stage context'() {
+    given:
+    def pipelineStage = new PipelineStage(new Pipeline(), "", [value: "1"])
+    pipelineStage.id = "s1"
+
+    when:
+    def response = mockMvc.perform(patch("/pipelines/p1/stages/s1").content(
+      objectMapper.writeValueAsString([judgementStatus: "stop"])
+    ).contentType(MediaType.APPLICATION_JSON)).andReturn().response
+
+    then:
+    1 * executionRepository.retrievePipeline("p1") >> {
+      [
+          stages: [pipelineStage]
+      ]
+    }
+    1 * executionRepository.storeStage({ stage -> stage.id == "s1" && stage.context == [
+        judgementStatus: "stop", value: "1"
+    ]} as PipelineStage)
+    objectMapper.readValue(response.contentAsString, Map).stages*.context == [
+        [ value: "1", judgementStatus: "stop"]
+    ]
+    0 * _
   }
 }

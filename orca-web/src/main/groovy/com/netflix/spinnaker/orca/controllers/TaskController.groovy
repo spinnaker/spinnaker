@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.controllers
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -40,9 +41,7 @@ class TaskController {
   List<Orchestration> list(@PathVariable String application) {
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrieveOrchestrationsForApplication(application)
-      .findAll {
-        !it.startTime || (it.startTime > startTimeCutoff)
-      }
+      .findAll { !it.startTime || (it.startTime > startTimeCutoff) }
       .collect { convert it }
       .sort(startTimeOrId)
   }
@@ -70,7 +69,6 @@ class TaskController {
     convert orchestration
   }
 
-
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.GET)
   Pipeline getPipeline(@PathVariable String id) {
     executionRepository.retrievePipeline(id)
@@ -89,6 +87,19 @@ class TaskController {
     pipeline
   }
 
+  @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
+  Pipeline updatePipelineStage(@PathVariable String id, @PathVariable String stageId, @RequestBody Map context) {
+    def pipeline = executionRepository.retrievePipeline(id)
+
+    def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
+    if (stage) {
+      stage.context.putAll(context)
+      executionRepository.storeStage(stage)
+    }
+
+    pipeline
+  }
+
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelines() {
     executionRepository.retrievePipelines().sort { it.startTime ?: it.id }.reverse()
@@ -98,9 +109,7 @@ class TaskController {
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrievePipelinesForApplication(application)
-      .findAll {
-        !it.startTime || (it.startTime > startTimeCutoff)
-      }
+      .findAll { !it.startTime || (it.startTime > startTimeCutoff) }
       .sort(startTimeOrId)
   }
 
@@ -123,7 +132,7 @@ class TaskController {
       status: orchestration.getStatus(),
       variables: variables.collect { key, value ->
         [
-          "key": key,
+          "key"  : key,
           "value": value
         ]
       },
