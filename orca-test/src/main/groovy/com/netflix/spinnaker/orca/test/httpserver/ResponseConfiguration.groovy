@@ -20,12 +20,16 @@
 
 package com.netflix.spinnaker.orca.test.httpserver
 
-import groovy.transform.TupleConstructor
+import groovy.transform.CompileStatic
 
-@TupleConstructor(includeFields = true)
+@CompileStatic
 class ResponseConfiguration {
 
   private final ResponseBuilder responseBuilder
+
+  ResponseConfiguration(ResponseBuilder responseBuilder) {
+    this.responseBuilder = responseBuilder
+  }
 
   ResponseBuilder andRespond() {
     responseBuilder
