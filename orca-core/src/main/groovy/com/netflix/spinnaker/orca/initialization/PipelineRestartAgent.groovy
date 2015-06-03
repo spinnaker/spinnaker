@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
@@ -37,6 +38,7 @@ class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEve
   private final ExecutionRepository executionRepository
   private final PipelineStarter pipelineStarter
 
+  @Autowired
   PipelineRestartAgent(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
