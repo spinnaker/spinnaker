@@ -20,10 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 class SourceResolver {
 
   @Autowired OortService oortService
@@ -47,9 +49,8 @@ class SourceResolver {
 
     def targetRegion = stageData.availabilityZones.keySet()[0]
 
-    def sortedAsgNames = sortAsgs(existingAsgs.findAll { it.region == targetRegion }.collect { it.name })
-    def latestAsgName = sortedAsgNames ? sortedAsgNames.last() : null
-    def latestAsg = latestAsgName ? existingAsgs.find { it.name == latestAsgName && it.region == targetRegion } : null
+    def regionalAsgs = existingAsgs.findAll { it.region == targetRegion }
+    def latestAsg = regionalAsgs ? regionalAsgs.last() : null
 
     return latestAsg ? new StageData.Source(
       account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
@@ -67,31 +68,53 @@ class SourceResolver {
     }
   }
 
-  protected List sortAsgs(List asgs) {
-    def mc = [
-      compare: {
-        String a, String b ->
-          // cases where there is no version
-          if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-            1
-          } else if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-            -1
-          } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900) {
-            1
-          } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900) {
-            -1
-            // cases where versions cross 999
-          } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-            1
-          } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-            -1
-          } else { // normal case
-            int aNum = Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2))
-            int bNum = Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2))
-            aNum.equals(bNum) ? 0 : Math.abs(aNum) < Math.abs(bNum) ? -1 : 1
-          }
-      }
-    ] as Comparator
-    return asgs?.sort(true, mc)
+  protected List<Map> sortAsgs(List<Map> asgs) {
+    return asgs?.sort(true, ServerGroupNameComparator.forServerGroups())
   }
+
+  static class ServerGroupNameComparator {
+
+    static Comparator<String> forNames() {
+      return new NameComparator()
+    }
+
+    static Comparator<Map> forServerGroups() {
+      return new ServerGroupComparator()
+    }
+
+    static class NameComparator implements Comparator<String> {
+      @Override
+      int compare(String a, String b) {
+        // cases where there is no version
+        if (a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
+          1
+        } else if (a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
+          -1
+        } else if (b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900) {
+          1
+        } else if (b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900) {
+          -1
+          // cases where versions cross 999
+        } else if (Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
+          1
+        } else if (Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
+          -1
+        } else { // normal case
+          int aNum = Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2))
+          int bNum = Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2))
+          aNum.equals(bNum) ? 0 : Math.abs(aNum) < Math.abs(bNum) ? -1 : 1
+        }
+      }
+    }
+
+    static class ServerGroupComparator implements Comparator<Map> {
+      private final NameComparator comparator = new NameComparator()
+
+      @Override
+      int compare(Map o1, Map o2) {
+        comparator.compare(o1.name as String, o2.name as String)
+      }
+    }
+  }
+
 }

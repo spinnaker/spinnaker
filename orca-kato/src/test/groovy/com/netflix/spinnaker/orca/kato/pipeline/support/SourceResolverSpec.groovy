@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import retrofit.client.Response
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -25,8 +29,7 @@ class SourceResolverSpec extends Specification {
   @Unroll
   void "sortAsgs works as expected for (#inputAsgs => #expectedSortedAsgs)"() {
     when:
-    def resolver = new SourceResolver()
-    def sorted = resolver.sortAsgs(inputAsgs)
+    def sorted = inputAsgs.sort(true, SourceResolver.ServerGroupNameComparator.forNames())
 
     then:
     sorted == expectedSortedAsgs
@@ -102,6 +105,34 @@ class SourceResolverSpec extends Specification {
     "existingSource"       | "empty"          || "test-v000"     || "test"          || "us-west-1"
     "empty"                | "singleRegion"   || "test-v003"     || "test"          || "us-west-1"
     "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
+  }
+
+  void 'should sort oort server groups by name'() {
+    given:
+    OortService oort = Mock(OortService)
+    SourceResolver resolver = new SourceResolver(oortService: oort, mapper: new ObjectMapper())
+
+    when:
+    def existing = resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws')
+
+    then:
+    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oortse.cx', 200, 'Okay', [], new TypedString('''\
+    {
+      "serverGroups": [{
+        "name": "foo-test-v001",
+        "region": "us-west-1"
+      },{
+        "name": "foo-test-v000",
+        "region": "us-west-1"
+      },{
+        "name": "foo-test-v000",
+        "region": "us-east-1"
+      },{
+        "name": "foo-test-v003",
+        "region": "us-east-1"
+      }]
+    }'''.stripIndent()))
+    existing*.name == ['foo-test-v000', 'foo-test-v000', 'foo-test-v001', 'foo-test-v003']
   }
 
 }
