@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.discovery
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.ec2.AmazonEC2
@@ -159,7 +160,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     where:
-    failure << [httpError(404), httpError(503)]
+    failure << [httpError(404), httpError(503), amazonError(503)]
 
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
@@ -268,6 +269,12 @@ class DiscoverySupportUnitSpec extends Specification {
 
   private static RetrofitError httpError(int code) {
     RetrofitError.httpError('http://foo', new Response('http://foo', code, 'testing', [], null), null, Map)
+  }
+
+  private static AmazonServiceException amazonError(int code) {
+    def ase = new AmazonServiceException("boom")
+    ase.setStatusCode(code)
+    return ase
   }
 
   private static bASG(String status = null, String instanceId = null, int capacity = 1) {
