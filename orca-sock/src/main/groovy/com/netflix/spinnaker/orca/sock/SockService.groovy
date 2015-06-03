@@ -22,6 +22,6 @@ import retrofit.http.QueryMap
 
 interface SockService {
 
-  @GET("/{master}/compareCommits")
-  List compareCommits(@Path("master") String master, @QueryMap Map<String, String> requestParams)
+  @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
+  List compareCommits(@Path("repoType") String repoType, @Path("projectKey") String projectKey, @Path("repositorySlug") String repositorySlug, @QueryMap Map<String, String> requestParams)
 }

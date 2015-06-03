@@ -88,15 +88,14 @@ class GetCommitsTaskSpec extends Specification {
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
 
     and:
-    task.sockMaster = "master"
     task.sockService = Stub(SockService) {
-      compareCommits("master", _) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d']) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                       [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey")
+    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
     task.objectMapper = new ObjectMapper()
@@ -152,10 +151,9 @@ class GetCommitsTaskSpec extends Specification {
 
     and:
     task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey")
+    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
 
     and:
-    task.sockMaster = "master"
     task.objectMapper = new ObjectMapper()
     def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
     Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
@@ -174,7 +172,7 @@ class GetCommitsTaskSpec extends Specification {
     def result = task.execute(stage)
 
     then:
-    sockService.compareCommits("master", _) >> {
+    1 * sockService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d']) >> {
       throw new RetrofitError(null, null,
         new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
     }

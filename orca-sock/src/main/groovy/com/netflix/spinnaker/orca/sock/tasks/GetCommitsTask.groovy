@@ -54,8 +54,6 @@ class GetCommitsTask implements RetryableTask {
   @Autowired
   Front50Service front50Service
 
-  @Value('${sock.master:master}')
-  String sockMaster
 
   @Override
   TaskResult execute(Stage stage) {
@@ -69,10 +67,11 @@ class GetCommitsTask implements RetryableTask {
 
     Application application = front50Service.get(applicationAccount, stage.context.application)
 
+    String repoType = application.repoType
     String projectKey = application.repoProjectKey
     String repositorySlug = application.repoSlug
 
-    if (projectKey && repositorySlug) {
+    if (projectKey && repositorySlug && repoType) {
 
       try {
 
@@ -120,8 +119,7 @@ class GetCommitsTask implements RetryableTask {
         String targetAppVersion = targetAmiDetails[0]?.tags?.appversion
         String fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
 
-        List commits = sockService.compareCommits(sockMaster, [projectKey: projectKey, repositorySlug: repositorySlug,
-                                                               toCommit: toCommit, fromCommit: fromCommit])
+        List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: toCommit, from: fromCommit, limit: 100])
         def commitsList = []
         commits.each {
           // add commits to the task output
