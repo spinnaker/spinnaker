@@ -82,10 +82,8 @@ angular
       if (command.viewState.mode === 'clone') {
         description = 'Create Cloned Server Group from ' + command.source.asgName;
         command.type = 'copyLastAsg';
-        command.preferSourceCapacity = true;
       } else {
         command.type = 'linearDeploy';
-        delete command.preferSourceCapacity;
         var asgName = application.name;
         if (command.stack) {
           asgName += '-' + command.stack;
