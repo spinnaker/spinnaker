@@ -12,6 +12,11 @@ angular.module('spinnaker.delivery.executionBar.controller', [
     };
 
     controller.getStageColor = function(stage) {
+      var stageConfig = pipelineConfig.getStageConfig(stage.type);
+      if (stageConfig.executionBarColorProvider && stageConfig.executionBarColorProvider(stage)) {
+        return stageConfig.executionBarColorProvider(stage);
+      }
+
       return $scope.scale[$scope.filter.stage.colorOverlay](
         stage[$scope.filter.stage.colorOverlay].toLowerCase()
       );

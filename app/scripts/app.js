@@ -81,6 +81,7 @@ angular.module('spinnaker', [
     'spinnaker.pipelines.stage.findAmi',
     'spinnaker.pipelines.stage.quickPatchAsg',
     'spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage',
+    'spinnaker.pipelines.stage.manualJudgement',
     'spinnaker.authentication',
     'spinnaker.search',
     'spinnaker.notifications',

@@ -24,7 +24,11 @@ angular.module('spinnaker.pipelines.stageConfig', [
 
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;
-    $scope.options = { stageTypes: stageTypes };
+    $scope.options = {
+      stageTypes: _.sortBy(stageTypes, function (stageType) {
+        return stageType.label;
+      })
+    };
 
     function getConfig(type) {
       var matches = stageTypes.filter(function(config) {

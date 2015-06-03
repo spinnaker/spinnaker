@@ -13,7 +13,7 @@
                 <ui-select-match>
                   <strong>{{$select.selected.label}}</strong>
                 </ui-select-match>
-                <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {name: $select.search, description: $select.search}">
+                <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {label: $select.search, description: $select.search}">
                   <div><strong>{{option.label}}</strong></div>
                   <div>{{option.description}}</div>
                 </ui-select-choices>
