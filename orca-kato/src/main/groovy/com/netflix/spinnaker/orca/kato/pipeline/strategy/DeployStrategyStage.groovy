@@ -17,20 +17,19 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.frigga.Names
-import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
-import groovy.transform.PackageScope
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
@@ -40,12 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired
 abstract class DeployStrategyStage extends LinearStage {
   Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
-  @Autowired OortService oort
   @Autowired ObjectMapper mapper
   @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyAsgStage destroyAsgStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
+  @Autowired SourceResolver sourceResolver
 
   DeployStrategyStage(String name) {
     super(name)
@@ -80,16 +79,9 @@ abstract class DeployStrategyStage extends LinearStage {
     correctContext(stage)
     strategy(stage).composeFlow(this, stage)
 
-    def source = getSource(stage)
-    if (source) {
-      stage.getContext().put("source", [
-        asgName: source.asgName,
-        account: source.account,
-        region : source.region
-      ])
-    }
-
-    basicSteps(stage)
+    List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
+    steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+    return steps
   }
 
   /**
@@ -105,45 +97,12 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
-  /**
-   * Determine an appropriate source asg for the current deploy stage:
-   * - If a 'source' is available in the stage context, use it
-   * - Otherwise, lookup the latest ASG in the target account/region/cluster and use it
-   */
-  @VisibleForTesting
-  @PackageScope
-  StageData.Source getSource(Stage stage) {
-    def stageData = stage.mapTo(StageData)
-    if (stageData.source) {
-      // has an existing source, return it
-      return stageData.source
-    }
-
-    def existingAsgs = getExistingAsgs(
-      stageData.application, stageData.account, stageData.cluster, stageData.providerType
-    )
-
-    if (!existingAsgs || !stageData.availabilityZones) {
-      return null
-    }
-
-    def targetRegion = stageData.availabilityZones.keySet()[0]
-
-    def sortedAsgNames = sortAsgs(existingAsgs.findAll { it.region == targetRegion }.collect { it.name })
-    def latestAsgName = sortedAsgNames ? sortedAsgNames.last() : null
-    def latestAsg = latestAsgName ? existingAsgs.find { it.name == latestAsgName && it.region == targetRegion } : null
-
-    return latestAsg ? new StageData.Source(
-      account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
-    ) : null
-  }
-
   @VisibleForTesting
   @CompileDynamic
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(
+    def existingAsgs = sourceResolver.getExistingAsgs(
       stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
     )
 
@@ -153,7 +112,7 @@ abstract class DeployStrategyStage extends LinearStage {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
-        def asgs = sortAsgs(existingAsgs.findAll { it.region == region }.collect { it.name })
+        def asgs = existingAsgs.findAll { it.region == region }.collect { it.name }
         def latestAsg = asgs.size() > 0 ? asgs?.last() : null
 
         if (!latestAsg) {
@@ -189,7 +148,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(
+    def existingAsgs = sourceResolver.getExistingAsgs(
       stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
     )
     if (existingAsgs) {
@@ -213,84 +172,6 @@ abstract class DeployStrategyStage extends LinearStage {
           injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
         }
       }
-    }
-  }
-
-  protected List sortAsgs(List asgs) {
-    def mc = [
-        compare: {
-          String a, String b ->
-            // cases where there is no version
-            if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-              1
-            } else if(a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-              -1
-            } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900) {
-              1
-            } else if(b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900) {
-              -1
-              // cases where versions cross 999
-            } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-              1
-            } else if(Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-              -1
-            } else { // normal case
-              int aNum = Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2))
-              int bNum = Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2))
-              aNum.equals(bNum) ? 0 : Math.abs(aNum) < Math.abs(bNum) ? -1 : 1
-            }
-        }
-      ] as Comparator
-    return asgs.sort(true, mc)
-  }
-
-  @VisibleForTesting
-  @PackageScope
-  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
-    try {
-      def response = oort.getCluster(app, account, cluster, providerType)
-      def json = response.body.in().text
-      def map = mapper.readValue(json, Map)
-      map.serverGroups as List<Map>
-    } catch (e) {
-      null
-    }
-  }
-
-  static class StageData {
-    String strategy
-    String account
-    String credentials
-    String freeFormDetails
-    String application
-    String stack
-    String providerType = "aws"
-    boolean scaleDown
-    Map<String, List<String>> availabilityZones
-    int maxRemainingAsgs
-
-    Source source
-
-    String getCluster() {
-      def builder = new AutoScalingGroupNameBuilder()
-      builder.appName = application
-      builder.stack = stack
-      builder.detail = freeFormDetails
-
-      return builder.buildGroupName()
-    }
-
-    String getAccount() {
-      if (account && credentials && account != credentials) {
-        throw new IllegalStateException("Cannot specify different values for 'account' and 'credentials' (${application})")
-      }
-      return account ?: credentials
-    }
-
-    static class Source {
-      String account
-      String region
-      String asgName
     }
   }
 
