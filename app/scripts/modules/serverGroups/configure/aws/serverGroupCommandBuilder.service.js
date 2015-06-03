@@ -168,7 +168,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
         };
 
         if (mode === 'clone') {
-          command.preferSourceCapacity = true;
+          command.useSourceCapacity = true;
           command.viewState.useSimpleCapacity = false;
         }
 

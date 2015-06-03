@@ -35,10 +35,10 @@
                                    required/></div>
     </div>
     <div class="form-group">
-      <div class="col-md-5 sm-label-left"><b>Existing server group?</b><help-field key="serverGroupCapacity.preferSourceCapacity"></help-field></div>
+      <div class="col-md-5 sm-label-left"><b>Existing server group?</b><help-field key="serverGroupCapacity.useSourceCapacity"></help-field></div>
       <div class="col-md-6 radio">
         <label>
-          <input type="radio" ng-model="command.preferSourceCapacity" ng-value="true" id="preferSourceCapacityTrue"/>
+          <input type="radio" ng-model="command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
           Use the existing server group capacity
         </label>
       </div>
@@ -46,7 +46,7 @@
     <div class="form-group">
       <div class="col-md-offset-5 col-md-6 radio">
         <label>
-          <input type="radio" ng-model="command.preferSourceCapacity" ng-value="false" id="preferSourceCapacityFalse"/>
+          <input type="radio" ng-model="command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
           Use the configured capacity
         </label>
       </div>
