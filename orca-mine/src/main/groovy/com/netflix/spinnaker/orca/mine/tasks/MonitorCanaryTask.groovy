@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 import java.util.concurrent.TimeUnit
 
@@ -46,7 +47,7 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     Map context = stage.context
 
     Map outputs = [
-      canary : mineService.getCanary(stage.context.canary.id)
+      canary : getCanary(stage.context.canary.id)
     ]
     if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
@@ -92,5 +93,19 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     def taskId = katoService.requestOperations(ops).toBlocking().first()
     outputs << ['kato.last.task.id': taskId]
     return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
+  }
+
+  // Adding retries for the call to mine service. See https://jira.netflix.com/browse/SPIN-535
+  Map getCanary(String id) {
+    RetrofitError retrofitError
+    int i = 4
+    while (--i > 0) {
+      try {
+        return mineService.getCanary(id)
+      } catch (RetrofitError e) {
+        retrofitError = e
+      }
+    }
+    if (retrofitError) throw retrofitError
   }
 }
