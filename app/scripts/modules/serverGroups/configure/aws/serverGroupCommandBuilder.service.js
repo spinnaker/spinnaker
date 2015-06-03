@@ -167,6 +167,11 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
           },
         };
 
+        if (mode === 'clone') {
+          command.preferSourceCapacity = true;
+          command.viewState.useSimpleCapacity = false;
+        }
+
         var vpcZoneIdentifier = serverGroup.asg.vpczoneIdentifier;
         if (vpcZoneIdentifier !== '') {
           var subnetId = vpcZoneIdentifier.split(',')[0];
