@@ -38,6 +38,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
         $scope.pipelines = pipelines;
         $scope.viewState.pipelinesLoaded = true;
+        updatePipelineConfig();
       });
     }
 
@@ -75,25 +76,29 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       }
       */
     }
-/*
-    function updateJobConfig() {
-      if ($scope.stage && $scope.stage.master && $scope.stage.job) {
-        igorService.getJobConfig($scope.stage.master, $scope.stage.job).then(function(config){
-        if(!$scope.stage.parameters) {
-          $scope.stage.parameters = {};
-        }
-        $scope.jobParams = config.parameterDefinitionList;
-        $scope.userSuppliedParameters = $scope.stage.parameters;
-        $scope.useDefaultParameters = {};
-         _.each($scope.jobParams, function(property){
-            if(!(property.name in $scope.stage.parameters) && (property.defaultValue!==null)){
+
+    function updatePipelineConfig() {
+      if ($scope.stage && $scope.stage.application && $scope.stage.pipeline) {
+        var config = _.find( $scope.pipelines, function(pipeline){ return pipeline.id === $scope.stage.pipeline; } );
+        if(config && config.parameterConfig) {
+          if (!$scope.stage.pipelineParameters) {
+            $scope.stage.pipelineParameters = {};
+          }
+          $scope.pipelineParameters = config.parameterConfig;
+          $scope.userSuppliedParameters = $scope.stage.pipelineParameters;
+          $scope.useDefaultParameters = {};
+          _.each($scope.pipelineParameters, function (property) {
+            if (!(property.name in $scope.stage.pipelineParameters) && (property.default !== null)) {
               $scope.useDefaultParameters[property.name] = true;
             }
-         });
-       });
+          });
+        } else {
+          $scope.pipelineParameters = {};
+          $scope.useDefaultParameters = {};
+          $scope.userSuppliedParameters = {};
+        }
       }
     }
-*/
 
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
@@ -103,14 +108,14 @@ angular.module('spinnaker.pipelines.stage.pipeline')
         delete $scope.userSuppliedParameters[parameter];
         delete $scope.stage.parameters[parameter];
       } else if($scope.userSuppliedParameters[parameter]){
-        $scope.stage.parameters[parameter] = $scope.userSuppliedParameters[parameter];
+        $scope.stage.pipelineParameters[parameter] = $scope.userSuppliedParameters[parameter];
       }
     };
 
     initializeMasters();
 
     //$scope.$watch('stage.application', updatePipelineList);
-    //$scope.$watch('stage.pipeline', updatePipelineConfig);
+    $scope.$watch('stage.pipeline', updatePipelineConfig);
 
   });
 
