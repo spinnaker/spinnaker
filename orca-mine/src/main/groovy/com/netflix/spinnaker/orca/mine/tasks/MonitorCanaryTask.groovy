@@ -45,10 +45,19 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
   @Override
   TaskResult execute(Stage stage) {
     Map context = stage.context
-
     Map outputs = [
-      canary : getCanary(stage.context.canary.id)
+      canary : context.canary
     ]
+
+    try {
+      outputs << [
+        canary : mineService.getCanary(context.canary.id)
+      ]
+    } catch (RetrofitError e) {
+      log.error("Exception occurred while getting canary with id ${context.canary.id} from mine service", e)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+    }
+
     if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
@@ -95,17 +104,4 @@ class MonitorCanaryTask implements RetryableTask, CancellableTask {
     return new DefaultTaskResult(ExecutionStatus.CANCELED, outputs)
   }
 
-  // Adding retries for the call to mine service. See https://jira.netflix.com/browse/SPIN-535
-  Map getCanary(String id) {
-    RetrofitError retrofitError
-    int i = 4
-    while (--i > 0) {
-      try {
-        return mineService.getCanary(id)
-      } catch (RetrofitError e) {
-        retrofitError = e
-      }
-    }
-    if (retrofitError) throw retrofitError
-  }
 }
