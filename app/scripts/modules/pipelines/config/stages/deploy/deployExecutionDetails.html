@@ -54,7 +54,7 @@
   <div class="step-section-details" ng-if="detailsSection === 'diffDetails'">
     <table>
       <tr><th>#</th><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
-      <tr ng-repeat="commit in stage.context.commits"><td>{{i+1}}</td><td>{{commit.timestamp}}</td><td>{{commit.displayId}}</td><td>{{commit.message}}</td><td>{{commit.authorDisplayName}}</td></tr>
+      <tr ng-repeat="commit in stage.context.commits"><td><b>{{$index+1}}</b>&nbsp;&nbsp;</td><td>{{commit.timestamp | date:'MM/dd'}}&nbsp;&nbsp;</td><td><a href="{{commit.commitUrl}}">{{commit.displayId}}</a>&nbsp;&nbsp;</td><td>{{commit.message | limitTo: 50}}&nbsp;&nbsp;</td><td>{{commit.authorDisplayName}}</td></tr>
     </table>
   </div>
 </div>

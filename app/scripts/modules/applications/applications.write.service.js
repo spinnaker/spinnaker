@@ -24,7 +24,10 @@ angular
               pdApiKey: app.pdApiKey,
               updateTs: app.updateTs,
               createTs: app.createTs,
-              tags: app.tags
+              tags: app.tags,
+              repoProjectKey: app.repoProjectKey,
+              repoSlug: app.repoSlug,
+              repoType: app.repoType
             }
           }
         ],
@@ -57,7 +60,8 @@ angular
                 createTs: app.createTs,
                 tags: app.tags,
                 repoProjectKey: app.repoProjectKey,
-                repoSlug: app.repoSlug
+                repoSlug: app.repoSlug,
+                repoType: app.repoType
               }
             }
           ],
