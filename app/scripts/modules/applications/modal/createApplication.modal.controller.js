@@ -31,20 +31,19 @@ angular
         applicationWriter.createApplication(application, account)
           .then(
             function(taskResponse){
-              console.log('taskResponse', taskResponse);
               taskResponse
                 .watchForTaskComplete()
-                .then(
-                  vm.createAppForAccount(application, _.tail(accounts), deferred)
-                );
+                .then(function() {
+                  var tailAccounts = _.tail(accounts);
+                  vm.createAppForAccount(application, tailAccounts, deferred);
+                });
             },
             function() {
               vm.errorMsgs.push('Could not create application');
               goIdle();
               return deferred.reject();
             }
-        );
-
+          );
       } else {
         deferred.resolve();
       }
