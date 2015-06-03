@@ -73,7 +73,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def sourceRegionScopedProvider = buildSourceRegionScopedProvider(task, description.source)
       description = copySourceAttributes(
-        sourceRegionScopedProvider, description.source.asgName, description
+        sourceRegionScopedProvider, description.source.asgName, description.source.useSourceCapacity, description
       )
 
       List<String> availabilityZones = entry.value
@@ -174,7 +174,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   @VisibleForTesting
   @PackageScope
   BasicAmazonDeployDescription copySourceAttributes(RegionScopedProviderFactory.RegionScopedProvider sourceRegionScopedProvider,
-                                                    String sourceAsgName,
+                                                    String sourceAsgName, Boolean useSourceCapacity,
                                                     BasicAmazonDeployDescription description) {
     if (!sourceRegionScopedProvider) {
       return description
@@ -190,6 +190,12 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     if (!sourceAsg?.launchConfigurationName) {
       return description
+    }
+
+    if (useSourceCapacity) {
+      description.capacity.min = sourceAsg.minSize
+      description.capacity.max = sourceAsg.maxSize
+      description.capacity.desired = sourceAsg.desiredCapacity
     }
 
     def sourceLaunchConfiguration = sourceRegionScopedProvider.asgService.getLaunchConfiguration(
