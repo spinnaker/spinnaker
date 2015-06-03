@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.initialization
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
+
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
 @Component
@@ -61,8 +62,14 @@ class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEve
 
   private Collection<Pipeline> executionsToPipelines(Collection<JobExecution> executions) {
     def ids = executions*.getJobParameters()*.getString("pipeline")
-    ids.collect { id ->
-      executionRepository.retrievePipeline(id)
+    def pipelines = []
+    ids.each { id ->
+      try {
+        pipelines << executionRepository.retrievePipeline(id)
+      } catch (Exception e) {
+        log.error("Failed to retrieve pipeline $id", e)
+      }
     }
+    return pipelines
   }
 }

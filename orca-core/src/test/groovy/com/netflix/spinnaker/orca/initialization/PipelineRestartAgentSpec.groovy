@@ -28,6 +28,7 @@ import org.springframework.batch.core.explore.JobExplorer
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
 import static com.google.common.collect.Sets.newHashSet
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static org.apache.commons.lang.math.JVMRandom.nextLong
@@ -73,6 +74,30 @@ class PipelineRestartAgentSpec extends Specification {
     UP             | OUT_OF_SERVICE
     UP             | DOWN
     OUT_OF_SERVICE | DOWN
+  }
+
+  def "if a pipeline fails to restart the restarter should continue"() {
+    given:
+    jobExplorer.getJobNames() >> jobNames
+    jobNames.eachWithIndex { name, i ->
+      jobExplorer.findRunningJobExecutions(name) >> newHashSet(executions[i])
+    }
+    executionRepository.retrievePipeline("pipeline-${jobNames[0]}") >> {
+      throw new RuntimeException("failed to load pipeline")
+    }
+    executionRepository.retrievePipeline("pipeline-${jobNames[1]}") >> new Pipeline(id: "pipeline-${jobNames[1]}")
+
+    when:
+    pipelineRestarter.onApplicationEvent(statusChangeEvent(STARTING, UP))
+
+    then:
+    1 * pipelineStarter.resume({ it.id == "pipeline-${jobNames[1]}" })
+
+    where:
+    jobNames = ["job1", "job2"]
+    executions = jobNames.collect {
+      new JobExecution(nextLong(100L), new JobParametersBuilder().addString("pipeline", "pipeline-$it").toJobParameters())
+    }
   }
 
   private static EurekaStatusChangedEvent statusChangeEvent(
