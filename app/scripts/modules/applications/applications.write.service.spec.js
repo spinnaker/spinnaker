@@ -59,7 +59,7 @@ describe('Servcie: applicationWriter', function () {
   });
 
   describe('delete an application', function () {
-    it('should execute one taks if the applicaiton has one account', function () {
+    it('should execute one task if the application has one account', function () {
       spyOn(taskExecutor, 'executeTask');
 
       var application = {

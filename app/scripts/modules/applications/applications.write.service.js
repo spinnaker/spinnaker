@@ -76,26 +76,54 @@ angular
 
 
     function deleteApplication(app) {
-      //var taskList = [];
+      var taskList = [];
       var accounts = app.accounts && app.accounts.length ? app.accounts.split(',') : [];
 
-      return taskExecutor.executeTask({
-        suppressNotification: true,
-        job: [
+      accounts.forEach(function(account) {
+        taskList.push(
           {
-            type: 'deleteApplication',
-            account: accounts[0],
-            application: {
-              name: app.name,
-            }
+            suppressNotification: true,
+            job: [
+              {
+                type: 'deleteApplication',
+                account: account,
+                application: {
+                  name: app.name,
+                }
+              }
+            ],
+            application: app,
+            description: 'Deleting Application: ' + app.name
           }
-        ],
-        application: app,
-        description: 'Deleting Application: ' + app.name
+        );
       });
+
+      return executeDeleteTasks(taskList);
 
     }
 
+    function executeDeleteTasks(taskList, deferred) {
+      if(!deferred) {
+        deferred = $q.defer();
+      }
+
+      if(taskList.length > 1) {
+        taskExecutor.executeTask(_(taskList).head())
+          .then(function(taskResponse) {
+            taskResponse.watchForTaskComplete()
+              .then( function() {
+                executeDeleteTasks(_(taskList).tail(), deferred);
+              })
+              .catch(function(err) {
+                console.warn(err);
+              });
+          });
+      } else {
+        deferred.resolve(taskExecutor.executeTask(_(taskList).head()));
+      }
+
+      return deferred.promise;
+    }
 
     return {
       createApplication: createApplication,
