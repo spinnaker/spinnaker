@@ -8,7 +8,7 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout) {
 
-    $scope.configSections = ['deploymentConfig', 'taskStatus'];
+    $scope.configSections = ['deploymentConfig', 'taskStatus', 'codeChanges'];
 
     function initialize() {
 
