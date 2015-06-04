@@ -49,7 +49,7 @@
         <dt>Created:</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
         <dt>In:</dt>
-        <dd><account-tag account="loadBalancer.account" pad="right"></account-tag> {{loadBalancer.region}}</dd>
+        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
         <dt>VPC:</dt>
         <dd>{{loadBalancer.elb.vpcid || 'None (EC2 Classic)'}}</dd>
       </dl>

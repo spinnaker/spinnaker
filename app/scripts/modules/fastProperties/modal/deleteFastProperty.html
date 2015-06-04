@@ -9,7 +9,7 @@
 
       <div class="row" ng-if="delete.fastProperty.env == 'prod'">
         <div class="col-sm-offset-1 col-sm-10">
-          <p>Type the name of the account ( <account-tag account="delete.fastProperty.env.toUpperCase()"></account-tag> ) below to continue.</p>
+          <p>Type the name of the account ( <account-tag account="delete.fastProperty.env" provider="'aws'"></account-tag> ) below to continue.</p>
           <div class="form-inline">
             <div class="form-group">
               <input type="text" auto-focus ng-model="delete.verification.verifyAccount" class="form-control input-sm highlight-pristine" ng-class="{'ng-invalid': delete.verification.verifyAccount !== delete.fastProperty.env.toUpperCase()}"/>
