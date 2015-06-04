@@ -3,15 +3,12 @@
     <div class="form-group">
       <div class="col-md-12">
         <p>Sets up auto-scaling for this server group.</p>
-
         <p>To disable auto-scaling, use the <a href ng-click="setSimpleCapacity(true)">Simple Mode</a>.</p>
       </div>
     </div>
 
     <div class="form-group">
-      <div class="col-md-4 sm-label-left"><b>Capacity Source</b>
-        <help-field key="serverGroupCapacity.useSourceCapacity"></help-field>
-      </div>
+      <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
     </div>
     <div class="form-group">
       <div class="col-md-offset-2 col-md-9 radio">
@@ -19,37 +16,41 @@
           <input type="radio" ng-model="command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
           Copy the capacity from the current server group
         </label>
+        <help-field key="serverGroupCapacity.useSourceCapacityTrue"></help-field>
       </div>
     </div>
     <div class="form-group">
       <div class="col-md-offset-2 col-md-9 radio">
         <label>
           <input type="radio" ng-model="command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
-          Use the configured capacity
+          Use the provided values
         </label>
+        <help-field key="serverGroupCapacity.useSourceCapacityFalse"></help-field>
       </div>
     </div>
-    <div ng-if="!command.useSourceCapacity">
+    <div>
       <div class="form-group">
         <div class="col-md-2 col-md-offset-4"><b>Min</b></div>
         <div class="col-md-2"><b>Max</b></div>
         <div class="col-md-2"><b>Desired</b></div>
       </div>
       <div class="form-group">
-        <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
-        <div class="col-md-2"><input type="number"
+        <div class="col-md-2 col-md-offset-4"><input type="number"
+                                     ng-disabled="command.useSourceCapacity"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.min"
                                      min="0"
                                      validate-max="command.capacity.max"
                                      required/></div>
         <div class="col-md-2"><input type="number"
+                                     ng-disabled="command.useSourceCapacity"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.max"
                                      min="0"
                                      validate-min="command.capacity.min"
                                      required/></div>
         <div class="col-md-2"><input type="number"
+                                     ng-disabled="command.useSourceCapacity"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.desired"
                                      min="0"
