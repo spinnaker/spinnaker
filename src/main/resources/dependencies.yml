@@ -4,7 +4,7 @@ versions:
   amos: "0.26"
   cats: "0.14"
   kork: "1.31"
-  redbatch: "0.1"
+  redbatch: "0.2"
 # third party
   akka: "2.3.9"
   astyanax: "2.0.2"
