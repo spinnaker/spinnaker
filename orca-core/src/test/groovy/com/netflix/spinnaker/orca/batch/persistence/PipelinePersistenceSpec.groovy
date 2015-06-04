@@ -1,68 +1,61 @@
 package com.netflix.spinnaker.orca.batch.persistence
 
-import groovy.transform.CompileStatic
-import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
-import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
-import com.netflix.spinnaker.orca.batch.pipeline.TestStage
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
-import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import groovy.transform.CompileStatic
+import org.springframework.batch.core.Step
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
+
+import java.util.concurrent.CountDownLatch
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
-@ContextConfiguration(classes = [
-  EmbeddedRedisConfiguration,
-  JesqueConfiguration,
-  AsyncJobLauncherConfiguration,
-  BatchTestConfiguration,
-  OrcaConfiguration
-])
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelinePersistenceSpec extends Specification {
 
+  def applicationContext = new AnnotationConfigApplicationContext()
   @Autowired ThreadPoolTaskExecutor taskExecutor
-  @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired PipelineStarter pipelineStarter
-  @Autowired AbstractApplicationContext applicationContext
-  @Autowired StepBuilderFactory steps
-  @Autowired ExecutionRepository executionRepository
   @Autowired ObjectMapper mapper
   @Autowired JobRegistry jobRegistry
+  @Autowired
+  JobExplorer jobExplorer
 
   def task1 = Mock(Task)
   def task2 = Mock(Task)
 
   def setup() {
-    def testStage = new TestStage("test", steps, executionRepository, task1, task2)
-    testStage.setTaskListeners([new StageStatusPropagationListener(executionRepository), new StageTaskPropagationListener(executionRepository)])
-    applicationContext.beanFactory.registerSingleton("testStage", testStage)
+    def testStage = new AutowiredTestStage("test", task1, task2)
 
-    pipelineJobBuilder.initialize()
+    applicationContext.with {
+      register(EmbeddedRedisConfiguration, JesqueConfiguration, AsyncJobLauncherConfiguration, BatchTestConfiguration, OrcaConfiguration)
+      beanFactory.registerSingleton("testStage", testStage)
+      refresh()
+
+      beanFactory.autowireBean(testStage)
+      beanFactory.autowireBean(this)
+    }
   }
 
   def "if a pipeline dies we can reconstitute it"() {
@@ -74,6 +67,7 @@ class PipelinePersistenceSpec extends Specification {
 
     and:
     taskExecutor.shutdown()
+    taskExecutor.initialize()
 
     expect:
     with(jobRegistry.getJob(jobNameFor(pipeline))) {
@@ -86,12 +80,9 @@ class PipelinePersistenceSpec extends Specification {
     given:
     def latch = new CountDownLatch(1)
     task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    task2.execute(_) >> new DefaultTaskResult(RUNNING) >>
-      new DefaultTaskResult(RUNNING) >>
-      new DefaultTaskResult(RUNNING) >>
-      {
+    task2.execute(_) >> {
         try {
-          throw new RuntimeException()
+          new DefaultTaskResult(RUNNING)
         } finally {
           latch.countDown()
         }
@@ -100,6 +91,10 @@ class PipelinePersistenceSpec extends Specification {
     and:
     def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
     latch.await()
+
+    and:
+    taskExecutor.shutdown()
+    taskExecutor.initialize()
 
     when:
     pipelineStarter.resume(pipeline)
@@ -130,7 +125,8 @@ class PipelinePersistenceSpec extends Specification {
       new ThreadPoolTaskExecutor(
         maxPoolSize: 1,
         corePoolSize: 1,
-        waitForTasksToCompleteOnShutdown: false
+        waitForTasksToCompleteOnShutdown: false,
+        awaitTerminationSeconds: 3
       )
     }
 
@@ -155,6 +151,25 @@ class PipelinePersistenceSpec extends Specification {
             jobRepository: jobRepository
           )
         }
+      }
+    }
+  }
+
+  @CompileStatic
+  class AutowiredTestStage extends LinearStage {
+
+    private final List<Task> tasks = []
+
+    AutowiredTestStage(String name, Task... tasks) {
+      super(name)
+      this.tasks.addAll tasks
+    }
+
+    @Override
+    public List<Step> buildSteps(Stage stage) {
+      def i = 1
+      tasks.collect { Task task ->
+        buildStep(stage, "task${i++}", task)
       }
     }
   }

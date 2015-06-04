@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.config
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
@@ -43,13 +44,8 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
-import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Scope
+import org.springframework.context.annotation.*
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 
@@ -82,7 +78,9 @@ class OrcaConfiguration {
     return jobOperator
   }
 
-  @Bean @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) ObjectMapper mapper() {
+  @Bean
+  @Scope(SCOPE_PROTOTYPE)
+  ObjectMapper mapper() {
     new OrcaObjectMapper()
   }
 
