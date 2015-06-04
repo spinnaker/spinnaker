@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.igor.tasks
+package com.netflix.spinnaker.orca.mayo.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -46,14 +46,14 @@ class MonitorPipelineTask implements RetryableTask {
 
     switch (childPipeline.status) {
       case ExecutionStatus.SUCCEEDED:
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [])
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:])
         break
       case {
         ExecutionStatus.NOT_STARTED ||
           ExecutionStatus.RUNNING ||
           ExecutionStatus.SUSPENDED
       }:
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, [])
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [:])
         break
       default:
         return new DefaultTaskResult(ExecutionStatus.FAILED, [status: childPipeline.status])

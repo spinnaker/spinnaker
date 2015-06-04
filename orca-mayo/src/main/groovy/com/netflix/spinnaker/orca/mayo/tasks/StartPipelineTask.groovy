@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.igor.tasks
+package com.netflix.spinnaker.orca.mayo.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -74,9 +74,27 @@ class StartPipelineTask implements Task {
 
     json = objectMapper.writeValueAsString(processedPipeline)
 
-    def pipeline = pipelineStarter.start(json)
+    log.info('running pipeline {}:{}', pipelineConfig.id, json)
 
-    log.info('running pipeline {}:{}', pipeline.id, json)
+
+    def pipeline
+
+    def t1 = new Thread( new Runnable() {
+      @Override
+      public void run() {
+        pipeline = pipelineStarter.start(json)
+      }
+    })
+
+    t1.start()
+
+    try {
+      t1.join()
+    } catch (InterruptedException e) {
+      e.printStackTrace()
+    }
+
+    log.info('executing dependent pipeline {}', pipeline.id)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id])
 

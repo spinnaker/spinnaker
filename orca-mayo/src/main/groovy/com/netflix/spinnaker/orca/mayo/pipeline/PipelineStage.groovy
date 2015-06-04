@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.mayo.pipeline
 
-import com.netflix.spinnaker.orca.igor.tasks.MonitorPipelineTask
-import com.netflix.spinnaker.orca.igor.tasks.StartPipelineTask
+import com.netflix.spinnaker.orca.mayo.tasks.MonitorPipelineTask
+import com.netflix.spinnaker.orca.mayo.tasks.StartPipelineTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
