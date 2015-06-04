@@ -80,7 +80,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
-          useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize,
+          useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize && pipelineCluster.useSourceCapacity !== true,
           usePreferredZones: usePreferredZones,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
@@ -143,6 +143,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
           terminationPolicies: serverGroup.asg.terminationPolicies,
           loadBalancers: serverGroup.asg.loadBalancerNames,
           region: serverGroup.region,
+          useSourceCapacity: false,
           capacity: {
             'min': serverGroup.asg.minSize,
             'max': serverGroup.asg.maxSize,

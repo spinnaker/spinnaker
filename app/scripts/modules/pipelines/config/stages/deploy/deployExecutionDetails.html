@@ -21,8 +21,9 @@
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt>Capacity</dt>
-          <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
-          <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">
+          <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
+          <dd ng-if="stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
             Min: {{stage.context.capacity.min}},
             Max: {{stage.context.capacity.max}},
             Desired: {{stage.context.capacity.desired}}
