@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -77,19 +78,21 @@ class DeployStageSpec extends Specification {
   @Subject DeployStage deployStage
 
   @Shared OortService oortService
+  @Shared SourceResolver sourceResolver
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyAsgStage destroyAsgStage
   @Shared ResizeAsgStage resizeAsgStage
   @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
   def setup() {
+    sourceResolver = Mock(SourceResolver)
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
     destroyAsgStage = Mock(DestroyAsgStage)
     resizeAsgStage = Mock(ResizeAsgStage)
     modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
-    deployStage = new DeployStage(oort: oortService, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
+    deployStage = new DeployStage(sourceResolver: sourceResolver, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
         resizeAsgStage: resizeAsgStage,
         modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
@@ -113,9 +116,8 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[name: "pond-prestaging-v000", region: "us-west-1"]]]
-      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     1 == stage.afterStages.size()
     stage.afterStages[0].stageBuilder == disableAsgStage
@@ -135,10 +137,8 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[name: "pond-prestaging-v000", region: "us-east-1"],
-                                    [name: "pond-prestaging-v000", region: "us-west-1"]]]
-      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", objectMapper.writeValueAsBytes(cluster)))
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      [[name: "pond-prestaging-v000", region: "us-east-1"], [name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     stage.afterStages[0].context.regions == config.availabilityZones.keySet().toList()
   }
@@ -158,18 +158,8 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[
-                                        name  : "pond-prestaging-v000",
-                                        region: "us-west-1"
-                                    ]]]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(cluster)
-          )
-      )
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
     }
     2 == stage.afterStages.size()
     stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
@@ -190,18 +180,8 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[
-                                      name  : "pond-prestaging-v000",
-                                      region: "us-west-1"
-                                    ]]]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(cluster)
-        )
-      )
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
     }
     2 == stage.afterStages.size()
     stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
@@ -224,16 +204,7 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: asgs]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(cluster)
-        )
-      )
-    }
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> asgs
 
     and:
     stage.afterStages[0].stageBuilder == disableAsgStage
@@ -280,18 +251,8 @@ class DeployStageSpec extends Specification {
 
     then:
     "should call to oort to get the last ASG so that we know what to disable"
-    2 * oortService.getCluster(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      def cluster = [serverGroups: [[
-                                        name  : "pond-prestaging-v000",
-                                        region: "us-west-1"
-                                    ]]]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(cluster)
-          )
-      )
+    1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
+      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
     }
     1 == stage.afterStages.size()
     stage.afterStages[0].stageBuilder == destroyAsgStage
@@ -307,8 +268,11 @@ class DeployStageSpec extends Specification {
     def steps = deployStage.buildSteps(stage)
 
     then:
-    steps*.name.collect {
+    steps.size() > 1
+    steps[0].name.tokenize('.')[2] == 'determineSourceServerGroup'
+    steps.subList(1, steps.size())*.name.collect {
       it.tokenize('.')[1]
     } == deployStage.basicSteps(stage)*.name.collect { it.tokenize('.')[1] }
+
   }
 }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -28,8 +28,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -37,7 +35,7 @@ import spock.lang.Unroll
 class CopyLastAsgStageSpec extends Specification {
 
   @Subject copyLastAsgStage = new CopyLastAsgStage()
-  def oort = Mock(OortService)
+  def resolver = Mock(SourceResolver)
   def disableAsgStage = Mock(DisableAsgStage)
   def destroyAsgStage = Mock(DestroyAsgStage)
 
@@ -53,7 +51,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.mapper = objectMapper
     copyLastAsgStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
-    copyLastAsgStage.oort = oort
+    copyLastAsgStage.sourceResolver = resolver
     copyLastAsgStage.disableAsgStage = disableAsgStage
     copyLastAsgStage.destroyAsgStage = destroyAsgStage
   }
@@ -83,19 +81,10 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-${stack}", "aws") >> {
-      def responseBody = [
-          serverGroups: asgNames.collect { name ->
+    1 * resolver.getExistingAsgs("deck", account, "deck-${stack}", "aws") >> {
+      asgNames.collect { name ->
             [name: name, region: region]
-          }
-      ]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(responseBody)
-          )
-      )
+      }
     }
 
     and:
@@ -141,19 +130,10 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-${stack}", "aws") >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: region]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
+    1 * resolver.getExistingAsgs("deck", account, "deck-${stack}", "aws") >> {
+      asgNames.collect { name ->
+        [name: name, region: region]
+      }
     }
 
     and:
@@ -201,19 +181,10 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster("deck", account, "deck-main", "aws") >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: region]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
+    1 * resolver.getExistingAsgs("deck", account, "deck-main", "aws") >> {
+      asgNames.collect { name ->
+        [name: name, region: region]
+      }
     }
 
     and:
@@ -268,7 +239,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.buildSteps(stage)
 
     then:
-    0 * oort._
+    0 * resolver.getExistingAsgs(*_)
 
     and:
     0 == stage.afterStages.size()
@@ -302,19 +273,10 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.composeHighlanderFlow(stage)
 
     then:
-    1 * oort.getCluster(application, targetAccount, "${application}-${stack}", "aws") >> {
-      def responseBody = [
-        serverGroups: ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
+    1 * resolver.getExistingAsgs(application, targetAccount, "${application}-${stack}", "aws") >> {
+       ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
           [region: it, name: asgName]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
+       }
     }
 
     and:
