@@ -235,6 +235,49 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     new BasicAmazonDeployDescription(spotPrice: "SPOT", blockDevices: [])                         | null           || "SPOT"            || []
   }
 
+  void 'should fail if useSourceCapacity requested, and source not available'() {
+    given:
+    def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
+    def sourceRegionScopedProvider = null
+
+    when:
+    handler.copySourceAttributes(
+      sourceRegionScopedProvider, "sourceAsg", useSource, description
+    )
+
+    then:
+    thrown(IllegalStateException)
+
+    where:
+    useSource = true
+    descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
+  }
+
+  void 'should fail if ASG not found and useSourceCapacity requested'() {
+    given:
+    def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
+    def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
+      getAutoScaling() >> Stub(AmazonAutoScaling) {
+        describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult()
+      }
+    }
+
+    when:
+    handler.copySourceAttributes(
+      sourceRegionScopedProvider, "sourceAsg", useSource, description
+    )
+
+    then:
+    thrown(IllegalStateException)
+
+    where:
+    useSource = true
+    descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
+  }
+
+
+
+
   void 'should copy capacity from source if specified'() {
     given:
     def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
