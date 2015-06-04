@@ -77,7 +77,7 @@ class SecurityGroupServiceSpec extends Specification {
 
   void "should fail to get Security Group IDs for Names if it does not exist"() {
     when:
-    securityGroupService.getSecurityGroupIds(["myApp", "yourApp"])
+    securityGroupService.getSecurityGroupIds(["myApp", "yourApp"] as Set<String>)
 
     then:
     SecurityGroupNotFoundException e = thrown()
