@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.notifications
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.util.concurrent.TimeUnit
@@ -52,25 +53,32 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<E
 
   abstract String getNotificationType()
 
-  protected List<Map> filterEvents(List<Map> input) {
-    // default implementation does no filtering
-    input
+  protected Func1<Execution, Boolean> filter() {
+    return new Func1<Execution, Boolean>() {
+      @Override
+      Boolean call(Execution map) {
+        // default implementation does no filtering
+        return true
+      }
+    }
   }
 
-  protected abstract Func1<Long, List<Map>> getEvents()
+  protected abstract Observable<Execution> getEvents()
 
   // TODO: can we just use logical names rather than handler classes?
   abstract Class<? extends NotificationHandler> handlerType()
 
   void startPolling() {
-    subscription = Observable.interval(pollingInterval, TimeUnit.SECONDS, scheduler).map(events)
-    .doOnError { Throwable err ->
-      log.error "Error when fetching events", err
-    } retry() map {
-      filterEvents(it)
-    } flatMap(Observable.&from) subscribe { Map event ->
-      notify(event)
-    }
+    subscription = Observable
+      .timer(pollingInterval, TimeUnit.SECONDS, scheduler)
+      .flatMap({ Long ignored -> return events } as Func1<Long, Observable<Execution>>)
+      .doOnError({ Throwable err -> log.error("Error fetching executions", err) })
+      .retry()
+      .filter(filter())
+      .map({ Execution execution -> return objectMapper.convertValue(execution, Map) })
+      .flatMap(Observable.&from)
+      .repeat()
+      .subscribe({ Map event -> notify(event) })
   }
 
   @PreDestroy
@@ -78,7 +86,7 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<E
     subscription?.unsubscribe()
   }
 
-  protected final void notify(Map<String, ?> input) {
+  protected void notify(Map<String, ?> input) {
     jesqueClient.enqueue(
       notificationType,
       new Job(handlerType().name, input)

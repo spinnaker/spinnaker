@@ -80,8 +80,8 @@ class JesqueControlSpec extends Specification {
         final String notificationType = "dummy"
 
         @Override
-        protected Func1<Long, List<Map>> getEvents() {
-          return null
+        protected rx.Observable<Map> getEvents() {
+          rx.Observable.empty()
         }
 
         @Override

@@ -1,7 +1,7 @@
 /*
  * Copyright 2015 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -21,13 +21,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -35,20 +33,22 @@ import rx.functions.Func1
 
 @Slf4j
 @Component
-@ConditionalOnExpression(value = '${pollers.suspendedPipelines.enabled:true}')
-class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotificationAgent {
-
-  static final String NOTIFICATION_TYPE = "suspendedPipeline"
+@ConditionalOnProperty(value = 'pollers.pipelineCleanup.enabled')
+class PipelineCleanupPollingNotificationAgent extends AbstractPollingNotificationAgent {
+  static final String NOTIFICATION_TYPE = "pipelineCleanup"
   final String notificationType = NOTIFICATION_TYPE
-
-  @Value('${pollers.suspendedPipelines.intervalMs:120000}')
-  long pollingIntervalMs
 
   @Autowired
   ExecutionRepository executionRepository
 
+  @Value('${pollers.pipelineCleanup.intervalMs:3600000}')
+  long pollingIntervalMs
+
+  @Value('${pollers.pipelineCleanup.daysToKeep:28}')
+  int daysToKeep
+
   @Autowired
-  SuspendedPipelinesPollingNotificationAgent(ObjectMapper objectMapper, Client jesqueClient) {
+  PipelineCleanupPollingNotificationAgent(ObjectMapper objectMapper, Client jesqueClient) {
     super(objectMapper, jesqueClient)
   }
 
@@ -62,35 +62,32 @@ class SuspendedPipelinesPollingNotificationAgent extends AbstractPollingNotifica
     return new Func1<Execution, Boolean>() {
       @Override
       Boolean call(Execution execution) {
-        long now = new Date().time
-        return execution.status == ExecutionStatus.SUSPENDED && execution.stages.find {
-          now >= extractScheduledTime(it)
-        }
+        long cutoff = (new Date() - daysToKeep).time
+        return execution.status == ExecutionStatus.SUCCEEDED && execution.startTime < cutoff
       }
     }
   }
 
   @Override
   protected Observable<Execution> getEvents() {
-    log.info("Starting Suspended Pipelines Polling Cycle")
+    log.info("Starting Pipeline Cleanup Polling Cycle")
     return executionRepository.retrievePipelines().doOnCompleted({
-      log.info("Finished Suspended Pipelines Polling Cycle")
+      log.info("Finished Pipeline Cleanup Polling Cycle")
     })
   }
 
   @Override
-  Class<? extends NotificationHandler> handlerType() {
-    return SuspendedPipelinesNotificationHandler
+  protected void notify(Map<String, ?> input) {
+    try {
+      log.info("Deleting pipeline execution ${input.id} (startTime: ${new Date(input.startTime as Long)}, pipeline: ${input.name}, application: ${input.application})")
+      executionRepository.deletePipeline(input.id as String)
+    } catch (e) {
+      log.error("Unable to delete pipeline execution ${input.id}", e)
+    }
   }
 
-  private static long extractScheduledTime(PipelineStage stage) {
-    long scheduledTime = Long.MAX_VALUE
-    try {
-      scheduledTime = stage.scheduledTime != null && stage.scheduledTime as long != 0L ?
-        new Date(stage.scheduledTime as long).time : Long.MAX_VALUE
-    } catch (Exception e) {
-      log.error("Unable to extract scheduled time", e)
-    }
-    return scheduledTime
+  @Override
+  Class<? extends NotificationHandler> handlerType() {
+    throw new UnsupportedOperationException()
   }
 }

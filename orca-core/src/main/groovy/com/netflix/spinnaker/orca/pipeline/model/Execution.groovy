@@ -37,6 +37,7 @@ abstract class Execution<T> implements Serializable {
   List<Stage<T>> stages = []
   boolean canceled
   boolean parallel
+  Long buildTime
 
   /*
    * Used to track Stages/Steps as they're built to prevent unnecessary re-builds in parallel pipelines

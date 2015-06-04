@@ -67,6 +67,7 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
       }
     }
 
+    orchestration.buildTime = System.currentTimeMillis()
     return orchestration
   }
 

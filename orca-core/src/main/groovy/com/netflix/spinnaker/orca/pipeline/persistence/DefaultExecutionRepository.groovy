@@ -66,12 +66,12 @@ class DefaultExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  List<Pipeline> retrievePipelines() {
+  rx.Observable<Pipeline> retrievePipelines() {
     this.pipelineStore.all()
   }
 
   @Override
-  List<Pipeline> retrievePipelinesForApplication(String application) {
+  rx.Observable<Pipeline> retrievePipelinesForApplication(String application) {
     this.pipelineStore.allForApplication(application)
   }
 
@@ -86,12 +86,12 @@ class DefaultExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  List<Orchestration> retrieveOrchestrations() {
+  rx.Observable<Orchestration> retrieveOrchestrations() {
     this.orchestrationStore.all()
   }
 
   @Override
-  List<Orchestration> retrieveOrchestrationsForApplication(String application) {
+  rx.Observable<Orchestration> retrieveOrchestrationsForApplication(String application) {
     this.orchestrationStore.allForApplication(application)
   }
 }

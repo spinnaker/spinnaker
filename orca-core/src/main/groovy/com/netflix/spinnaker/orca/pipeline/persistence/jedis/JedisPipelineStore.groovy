@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
+import groovy.util.logging.Slf4j
 import redis.clients.jedis.JedisCommands
 
+@Slf4j
 class JedisPipelineStore extends AbstractJedisBackedExecutionStore<Pipeline> {
   JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper) {
     super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper)

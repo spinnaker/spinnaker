@@ -21,9 +21,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
+import rx.Subscriber
 
 /**
  * In-memory implementation of {@link ExecutionStore} intended for use in testing
@@ -116,21 +118,45 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   }
 
   @Override
-  List<T> all() {
-    executions.keySet().collect {
-      retrieve(it)
-    }
+  @CompileDynamic
+  rx.Observable<T> all() {
+    return rx.Observable.create(new rx.Observable.OnSubscribe<T>() {
+      @Override
+      public void call(Subscriber<? super T> observer) {
+        try {
+          if (!observer.isUnsubscribed()) {
+            executions.keySet().collect {
+              observer.onNext(retrieve(it))
+            }
+            observer.onCompleted()
+          }
+        } catch (Exception e) {
+          observer.onError(e)
+        }
+      }
+    })
   }
 
   @Override
-  List<T> allForApplication(String app) {
-    if (executionsForApps.containsKey(app)) {
-      executionsForApps[app].collect {
-        def execution = mapper.readValue(it, executionClass) as Execution<T>
-        retrieve(execution.id)
+  @CompileDynamic
+  rx.Observable<T> allForApplication(String app) {
+    return rx.Observable.create(new rx.Observable.OnSubscribe<T>() {
+      @Override
+      public void call(Subscriber<? super T> observer) {
+        try {
+          if (!observer.isUnsubscribed()) {
+            if (executionsForApps.containsKey(app)) {
+              executionsForApps[app].collect {
+                def execution = mapper.readValue(it, executionClass) as Execution<T>
+                observer.onNext(retrieve(execution.id))
+              }
+            }
+            observer.onCompleted()
+          }
+        } catch (Exception e) {
+          observer.onError(e)
+        }
       }
-    } else {
-      []
-    }
+    })
   }
 }

@@ -68,7 +68,7 @@ class JesqueConfiguration {
   }
 
   @Bean
-  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents) {
+  SpringWorkerFactory workerFactory(Config jesqueConfig, List<AbstractPollingNotificationAgent> notificationAgents = []) {
     new SpringWorkerFactory(jesqueConfig, notificationAgents.collect {
       it.notificationType
     })

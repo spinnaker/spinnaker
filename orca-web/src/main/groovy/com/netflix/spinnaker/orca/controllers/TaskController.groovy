@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
+import rx.schedulers.Schedulers
 
 import java.time.Clock
 
@@ -41,14 +42,14 @@ class TaskController {
   List<Orchestration> list(@PathVariable String application) {
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrieveOrchestrationsForApplication(application)
-      .findAll { !it.startTime || (it.startTime > startTimeCutoff) }
-      .collect { convert it }
-      .sort(startTimeOrId)
+      .filter({ Orchestration orchestration -> !orchestration.startTime || (orchestration.startTime > startTimeCutoff) })
+      .map({ Orchestration orchestration -> convert(orchestration) })
+      .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
   }
 
   @RequestMapping(value = "/tasks", method = RequestMethod.GET)
   List<OrchestrationViewModel> list() {
-    executionRepository.retrieveOrchestrations().collect { convert it }
+    executionRepository.retrieveOrchestrations().toBlocking().iterator.collect { convert it }
   }
 
   @RequestMapping(value = "/tasks/{id}", method = RequestMethod.GET)
@@ -102,15 +103,15 @@ class TaskController {
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelines() {
-    executionRepository.retrievePipelines().sort { it.startTime ?: it.id }.reverse()
+    executionRepository.retrievePipelines().toBlocking().iterator.toList().sort { it.startTime ?: it.id }.reverse()
   }
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
     def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
     executionRepository.retrievePipelinesForApplication(application)
-      .findAll { !it.startTime || (it.startTime > startTimeCutoff) }
-      .sort(startTimeOrId)
+      .filter({ Pipeline pipeline -> !pipeline.startTime || (pipeline.startTime > startTimeCutoff) })
+      .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
   }
 
   private static Closure startTimeOrId = { a, b ->
@@ -137,6 +138,7 @@ class TaskController {
         ]
       },
       steps: orchestration.stages.tasks.flatten(),
+      buildTime: orchestration.buildTime,
       startTime: orchestration.startTime,
       endTime: orchestration.endTime
     )
