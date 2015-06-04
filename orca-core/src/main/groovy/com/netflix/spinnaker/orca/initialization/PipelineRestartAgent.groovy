@@ -30,7 +30,6 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
 
-@Component
 @Slf4j
 @CompileStatic
 class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEvent> {
