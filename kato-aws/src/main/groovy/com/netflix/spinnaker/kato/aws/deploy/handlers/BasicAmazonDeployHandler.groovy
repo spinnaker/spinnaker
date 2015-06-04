@@ -72,6 +72,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       String region = entry.key
 
       def sourceRegionScopedProvider = buildSourceRegionScopedProvider(task, description.source)
+
       description = copySourceAttributes(
         sourceRegionScopedProvider, description.source.asgName, description.source.useSourceCapacity, description
       )
@@ -177,6 +178,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                                                     String sourceAsgName, Boolean useSourceCapacity,
                                                     BasicAmazonDeployDescription description) {
     if (!sourceRegionScopedProvider) {
+      if (useSourceCapacity) {
+        throw new IllegalStateException("useSourceCapacity requested, but no source available")
+      }
       return description
     }
 
@@ -189,6 +193,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     def sourceAsg = ancestorAsgs.getAt(0)
 
     if (!sourceAsg?.launchConfigurationName) {
+      if (useSourceCapacity) {
+        throw new IllegalStateException("useSourceCapacity requested, but no source ASG found")
+      }
       return description
     }
 
