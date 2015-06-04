@@ -20,12 +20,12 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 import java.util.concurrent.TimeUnit
 
@@ -33,22 +33,31 @@ import java.util.concurrent.TimeUnit
 @Component
 class MonitorPipelineTask implements RetryableTask {
 
-  long backoffPeriod = 1000
-  long timeout = TimeUnit.HOURS.toMillis(2)
+  @Autowired
+  ExecutionRepository executionRepository
 
-  private static Map<String, ExecutionStatus> statusMap = [
-    'ABORTED' : ExecutionStatus.CANCELED,
-    'FAILURE' : ExecutionStatus.TERMINAL,
-    'SUCCESS' : ExecutionStatus.SUCCEEDED,
-    'UNSTABLE': ExecutionStatus.TERMINAL
-  ]
+  long backoffPeriod = 1000
+  long timeout = TimeUnit.HOURS.toMillis(12)
 
   @Override
   TaskResult execute(Stage stage) {
     String pipelineId = stage.context.executionId
+    Execution childPipeline = executionRepository.retrievePipeline(pipelineId)
 
-    executionRepository.retrievePipeline(pipelineId)
-
-
+    switch (childPipeline.status) {
+      case ExecutionStatus.SUCCEEDED:
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [])
+        break
+      case {
+        ExecutionStatus.NOT_STARTED ||
+          ExecutionStatus.RUNNING ||
+          ExecutionStatus.SUSPENDED
+      }:
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, [])
+        break
+      default:
+        return new DefaultTaskResult(ExecutionStatus.FAILED, [status: childPipeline.status])
+        break
+    }
   }
 }
