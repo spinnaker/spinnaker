@@ -49,7 +49,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg(_, _, _) >> null
+    1 * asgService.getAncestorAsg(_) >> null
     1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
@@ -66,7 +66,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg('myasg', _, _) >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
+    1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
   }
