@@ -1,0 +1,29 @@
+<div ng-controller="pipelineExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details">
+    <div class="row">
+      <div class="col-md-12">
+        <h5>Pipeline Stage Configuration</h5>
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Application</dt>
+          <dd>{{stage.context.application}}</dd>
+          <dt ng-if="stage.context.executionName">Pipeline</dt>
+          <dd ng-if="stage.context.executionName">{{stage.context.executionName}}</dd>
+          <dt ng-if="stage.context.status">Status</dt>
+          <dd ng-if="stage.context.status">{{stage.context.status}}</dd>
+        </dl>
+      </div>
+      <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <a ng-if="stage.context.executionId"
+             href="/#/applications/{{stage.context.application}}/executions/{{stage.context.executionId}}"
+             target="_blank">View Pipeline Execution</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+</div>

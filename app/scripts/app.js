@@ -72,6 +72,7 @@ angular.module('spinnaker', [
     'spinnaker.pipelines.stage.script',
     'spinnaker.pipelines.stage.wait',
     'spinnaker.pipelines.stage.jenkins',
+    'spinnaker.pipelines.stage.pipeline',
     'spinnaker.pipelines.stage.resizeAsg',
     'spinnaker.pipelines.stage.enableAsg',
     'spinnaker.pipelines.stage.modifyScalingProcess',
