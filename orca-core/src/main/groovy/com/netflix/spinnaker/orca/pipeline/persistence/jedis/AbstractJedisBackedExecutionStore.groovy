@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
@@ -29,21 +30,32 @@ import rx.Subscriber
 import rx.schedulers.Schedulers
 
 import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 @Slf4j
 abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements ExecutionStore<T> {
-  private final Executor fetchAllExecutor = Executors.newFixedThreadPool(5)
+  private final Executor fetchAllExecutor = Executors.newFixedThreadPool(10)
+  private final Executor fetchApplicationExecutor
+  private final int chunkSize
+
   private final String prefix
   private final Class<T> executionClass
   protected final JedisCommands jedis
   protected final ObjectMapper mapper
 
-  AbstractJedisBackedExecutionStore(String prefix, Class<T> executionClass, JedisCommands jedis, ObjectMapper mapper) {
+  AbstractJedisBackedExecutionStore(String prefix,
+                                    Class<T> executionClass,
+                                    JedisCommands jedis,
+                                    ObjectMapper mapper,
+                                    int threadPoolSize,
+                                    int threadPoolChunkSize) {
     this.prefix = prefix
     this.executionClass = executionClass
     this.jedis = jedis
     this.mapper = mapper
+    this.fetchApplicationExecutor = Executors.newFixedThreadPool(threadPoolSize)
+    this.chunkSize = threadPoolChunkSize
   }
 
   protected String getAlljobsKey() {
@@ -56,12 +68,12 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
 
   @Override
   rx.Observable<T> all() {
-    retrieveObservable(alljobsKey, Schedulers.from(fetchAllExecutor))
+    retrieveObservable(alljobsKey, Schedulers.from(fetchAllExecutor), chunkSize)
   }
 
   @Override
   rx.Observable<T> allForApplication(String application) {
-    retrieveObservable(getAppKey(application))
+    retrieveObservable(getAppKey(application), Schedulers.from(fetchApplicationExecutor), chunkSize)
   }
 
   @Override
@@ -91,17 +103,19 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     def key = "${prefix}:$id"
     def storePrefix = prefix
     try {
-      jedis.hdel(key, "config")
-      jedis.srem(alljobsKey, id)
-
       T item = retrieve(id)
       def appKey = getAppKey(item.application)
       jedis.srem(appKey, id)
+
       item.stages.each { Stage stage ->
         def stageKey = "${storePrefix}:stage:${stage.id}"
         jedis.hdel(stageKey, "config")
       }
     } catch (ExecutionNotFoundException ignored) {
+      // do nothing
+    } finally {
+      jedis.hdel(key, "config")
+      jedis.srem(alljobsKey, id)
     }
   }
 
@@ -141,36 +155,36 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   }
 
   @CompileDynamic
-  private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler = Schedulers.computation()) {
-    return Observable.create({ Subscriber<? super String> observer ->
+  private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler, chunkSize) {
+    return Observable.create({ Subscriber<? super Collection<String>> observer ->
       if (!observer.isUnsubscribed()) {
         if (jedis.exists(lookupKey)) {
-          int processedKeyCount = 0
           def allKeys = jedis.smembers(lookupKey)
-          (allKeys as List).collate((int)(allKeys.size() / 10)).each {
-            it.each { String id ->
-              observer.onNext(id)
-              processedKeyCount++
-            }
-            log.info("Emitted ${processedKeyCount} keys of ${allKeys.size()}")
+          (allKeys as List).collate(chunkSize).each {
+            observer.onNext(it)
           }
         }
-        log.info("Emitted all keys")
+
         observer.onCompleted()
       }
     }).onBackpressureBuffer()
       .observeOn(Schedulers.io())
-      .flatMap({ String id ->
-      Observable.just(id).observeOn(scheduler).map({ String executionId ->
-        try {
-          return retrieve(executionId)
-        } catch (ExecutionNotFoundException ignored) {
-          // log.info("Execution (${id}) does not exist")
-          // execution was in the set but does not actually exist, might as well delete it
-          // delete(id)
-        }
-        return null
-      }).filter({ obj -> obj != null })
+      .flatMap({ Collection<String> ids ->
+      Observable.just(ids).observeOn(scheduler).map({ Collection<String> executionIds ->
+        executionIds.collect { String executionId ->
+          try {
+            return retrieve(executionId)
+          } catch (ExecutionNotFoundException ignored) {
+            log.info("Execution (${executionId}) does not exist")
+
+            // execution was in the set but does not actually exist, might as well delete it
+            delete(executionId)
+            jedis.srem(lookupKey, executionId)
+          }
+
+          return null
+        }.findAll { it } as Collection<Execution>
+      }).flatMap(Observable.&from)
     })
   }
 }

@@ -39,6 +39,6 @@ class JedisPipelineStoreSpec extends PipelineStoreTck<JedisPipelineStore> {
 
   @Override
   JedisPipelineStore createPipelineStore() {
-    new JedisPipelineStore(jedis, mapper)
+    new JedisPipelineStore(jedis, mapper, 10, 10)
   }
 }

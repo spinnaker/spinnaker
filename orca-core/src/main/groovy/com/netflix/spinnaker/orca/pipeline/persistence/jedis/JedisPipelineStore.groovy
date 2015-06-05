@@ -24,8 +24,8 @@ import redis.clients.jedis.JedisCommands
 
 @Slf4j
 class JedisPipelineStore extends AbstractJedisBackedExecutionStore<Pipeline> {
-  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper) {
-    super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper)
+  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize) {
+    super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper, threadPoolSize, threadPoolChunkSize)
   }
 
 }

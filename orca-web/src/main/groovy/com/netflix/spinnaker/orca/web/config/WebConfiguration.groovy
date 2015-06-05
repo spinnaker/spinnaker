@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationS
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
 import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -57,12 +58,16 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
     new OrcaObjectMapper()
   }
 
-  @Bean JedisOrchestrationStore orchestrationStore(JedisCommands jedisCommands) {
-    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper())
+  @Bean JedisOrchestrationStore orchestrationStore(JedisCommands jedisCommands,
+                                                   @Value('${threadPools.orchestrationStore:150}') int threadPoolSize,
+                                                   @Value('${threadPools.orchestrationStore:75}') int threadPoolChunkSize) {
+    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize)
   }
 
-  @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands) {
-    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper())
+  @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands,
+                                         @Value('${threadPools.pipelineStore:150}') int threadPoolSize,
+                                         @Value('${threadPools.pipelineStore:75}') int threadPoolChunkSize) {
+    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize)
   }
 
   @Bean MultiThreadedJedisBatchConfigurer multiThreadedJedisBatchConfigurer(JedisCommands jedisCommands) {
