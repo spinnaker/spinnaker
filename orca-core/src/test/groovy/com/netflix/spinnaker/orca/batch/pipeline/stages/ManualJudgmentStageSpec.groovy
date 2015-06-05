@@ -19,15 +19,15 @@ package com.netflix.spinnaker.orca.batch.pipeline.stages
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.stages.ManualJudgementStage
+import com.netflix.spinnaker.orca.pipeline.stages.ManualJudgmentStage
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ManualJudgementStageSpec extends Specification {
+class ManualJudgmentStageSpec extends Specification {
   @Unroll
-  void "should return execution status based on judgementStatus"() {
+  void "should return execution status based on judgmentStatus"() {
     given:
-    def task = new ManualJudgementStage.WaitForManualJudgementTask()
+    def task = new ManualJudgmentStage.WaitForManualJudgmentTask()
 
     when:
     def result = task.execute(new PipelineStage(new Pipeline(), "", context))
@@ -36,12 +36,12 @@ class ManualJudgementStageSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    context                       || expectedStatus
-    [:]                           || ExecutionStatus.RUNNING
-    [judgementStatus: "continue"] || ExecutionStatus.SUCCEEDED
-    [judgementStatus: "Continue"] || ExecutionStatus.SUCCEEDED
-    [judgementStatus: "stop"]     || ExecutionStatus.TERMINAL
-    [judgementStatus: "STOP"]     || ExecutionStatus.TERMINAL
-    [judgementStatus: "unknown"]  || ExecutionStatus.RUNNING
+    context                      || expectedStatus
+    [:]                          || ExecutionStatus.RUNNING
+    [judgmentStatus: "continue"] || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "Continue"] || ExecutionStatus.SUCCEEDED
+    [judgmentStatus: "stop"]     || ExecutionStatus.TERMINAL
+    [judgmentStatus: "STOP"]     || ExecutionStatus.TERMINAL
+    [judgmentStatus: "unknown"]  || ExecutionStatus.RUNNING
   }
 }
