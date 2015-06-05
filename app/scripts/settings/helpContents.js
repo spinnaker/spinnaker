@@ -89,6 +89,7 @@ angular.module('spinnaker.help')
     'pipeline.config.bake.amiSuffix': '<p>(Optional) String of date in format YYYYMMDDHHmm, default is calculated from timestamp,</p>',
     'pipeline.config.bake.enhancedNetworking': '<p>(Optional) Enable enhanced networking (sr-iov) support for image (requires hvm and trusty base_os).</p>',
     'pipeline.config.bake.amiName': '<p>(Optional) Default = $package-$arch-$ami_suffix-$store_type</p>',
+    'pipeline.config.manualJudgement.instructions': '<p>(Optional) Instructions are shown to the user when making a manual judgement.</p><p>May contain HTML.</p>',
 
     'pipeline.config.canary.clusterPairs': '' +
       '<p>A <em>cluster pair</em> is used to create a baseline and canary cluster.</p>' +
@@ -122,8 +123,10 @@ angular.module('spinnaker.help')
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
     'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
       'stages have completed.</p><p>By configuring a pipeline this way, you can reduce the time it takes to run.</p>',
-
-
+    'serverGroupCapacity.useSourceCapacityTrue':  '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
+      '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
+      '<p>In the event that there is no existing server group, the deploy will fail.</p>',
+    'serverGroupCapacity.useSourceCapacityFalse': '<p>The specified capacity is used regardless of the presence or size of an existing server group.</p>',
     'strategy.redblack.scaleDown': '<p>Resizes the target server group to zero instances before disabling it.</p>' +
       '<p>Select this if you wish to retain the launch configuration for the old server group without running any instances.</p>',
     'strategy.redblack.maxRemainingAsgs': '<p>Indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +

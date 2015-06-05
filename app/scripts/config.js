@@ -27,6 +27,9 @@ angular.module('spinnaker')
   })
   .config(function($httpProvider){
     $httpProvider.interceptors.push('ajaxErrorInterceptor');
+    $httpProvider.defaults.headers.patch = {
+      'Content-Type': 'application/json;charset=utf-8'
+    };
   })
   .config(function($provide) {
     $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {

@@ -83,6 +83,39 @@
         </div>
       </div>
       <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="repoType">Source Repo Type</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.repoType"
+                 placeholder="Enter your source repo type (stash or github)"
+                 id="repoType">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="repoProjectKey">Source Project</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.repoProjectKey"
+                 placeholder="Enter your source repository project name"
+                 id="repoProjectKey">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left" id="repoSlug">Source Repo</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="editApp.applicationAttributes.repoSlug"
+                 placeholder="Enter your source repository"
+                 id="repoSlug">
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Description</div>
         <div class="col-sm-9">
           <textarea

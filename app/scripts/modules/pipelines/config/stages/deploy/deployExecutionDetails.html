@@ -21,8 +21,9 @@
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt>Capacity</dt>
-          <dd ng-if="stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
-          <dd ng-if="stage.context.capacity.min !== stage.context.capacity.max">
+          <dd ng-if="stage.context.useSourceCapacity">Current Server Group</dd>
+          <dd ng-if="!stage.context.useSourceCapacity && stage.context.capacity.min === stage.context.capacity.max">{{stage.context.capacity.max}}</dd>
+          <dd ng-if="stage.context.useSourceCapacity && stage.context.capacity.min !== stage.context.capacity.max">
             Min: {{stage.context.capacity.min}},
             Max: {{stage.context.capacity.max}},
             Desired: {{stage.context.capacity.desired}}
@@ -50,5 +51,11 @@
     <div class="row">
       <execution-step-details item="stage"></execution-step-details>
     </div>
+  </div>
+  <div class="step-section-details" ng-if="detailsSection === 'codeChanges' && stage.context.commits">
+    <table>
+      <tr><th>#</th><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
+      <tr ng-repeat="commit in stage.context.commits"><td><b>{{$index+1}}</b>&nbsp;&nbsp;</td><td>{{commit.timestamp | date:'MM/dd'}}&nbsp;&nbsp;</td><td><a href="{{commit.commitUrl}}">{{commit.displayId}}</a>&nbsp;&nbsp;</td><td>{{commit.message | limitTo: 50}}&nbsp;&nbsp;</td><td>{{commit.authorDisplayName}}</td></tr>
+    </table>
   </div>
 </div>

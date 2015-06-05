@@ -6,7 +6,7 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd>
-            <account-tag account="stage.context.account"></account-tag>
+            <account-tag account="stage.context.account" provider="'aws'"></account-tag>
           </dd>
           <dt ng-if="stage.context.regions">Region</dt>
           <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
