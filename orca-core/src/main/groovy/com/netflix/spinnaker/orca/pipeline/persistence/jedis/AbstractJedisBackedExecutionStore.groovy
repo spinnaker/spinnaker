@@ -155,36 +155,25 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   }
 
   @CompileDynamic
-  private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler, chunkSize) {
-    return Observable.create({ Subscriber<? super Collection<String>> observer ->
-      if (!observer.isUnsubscribed()) {
-        if (jedis.exists(lookupKey)) {
-          def allKeys = jedis.smembers(lookupKey)
-          (allKeys as List).collate(chunkSize).each {
-            observer.onNext(it)
-          }
+  private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler, int chunkSize) {
+    Observable
+      .just(lookupKey)
+      .flatMapIterable { String key -> jedis.smembers(lookupKey) }
+      .buffer(chunkSize)
+      .flatMap { Collection<String> ids ->
+      Observable
+        .from(ids)
+        .flatMap { String executionId ->
+        try {
+          return Observable.just(retrieve(executionId))
+        } catch (ExecutionNotFoundException ignored) {
+          log.info("Execution (${executionId}) does not exist")
+          delete(executionId)
+          jedis.srem(lookupKey, executionId)
         }
-
-        observer.onCompleted()
+        return Observable.empty()
       }
-    }).onBackpressureBuffer()
-      .observeOn(Schedulers.io())
-      .flatMap({ Collection<String> ids ->
-      Observable.just(ids).observeOn(scheduler).map({ Collection<String> executionIds ->
-        executionIds.collect { String executionId ->
-          try {
-            return retrieve(executionId)
-          } catch (ExecutionNotFoundException ignored) {
-            log.info("Execution (${executionId}) does not exist")
-
-            // execution was in the set but does not actually exist, might as well delete it
-            delete(executionId)
-            jedis.srem(lookupKey, executionId)
-          }
-
-          return null
-        }.findAll { it } as Collection<Execution>
-      }).flatMap(Observable.&from)
-    })
+      .subscribeOn(scheduler)
+    }
   }
 }
