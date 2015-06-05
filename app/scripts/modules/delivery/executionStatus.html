@@ -8,6 +8,9 @@
       <h5 ng-switch-when="manual">
         Manual Start
       </h5>
+      <h5 ng-switch-when="pipeline">
+        Pipeline
+      </h5>
       <h5 ng-switch-default>
         {{ execution.trigger.type }}
       </h5>
@@ -24,6 +27,11 @@
            ng-click="$event.stopPropagation()">
           Build #{{ execution.trigger.buildInfo.lastBuild.number }}
         </a>
+        <a ng-if="execution.trigger.parentPipelineId"
+           href="/#/applications/{{execution.trigger.parentPipelineApplication}}/executions/{{execution.trigger.parentPipelineId}}"
+          >
+          {{execution.trigger.parentPipelineName}}
+        </a>
       </h5>
     </span>
     <ul>
@@ -32,9 +40,12 @@
       </li>
       <span ng-switch="execution.trigger.type">
         <li ng-switch-when="jenkins">
-         {{ execution.trigger.job}}
+          {{ execution.trigger.job}}
         </li>
         <li ng-switch-when="manual">
+          {{ execution.trigger.user || 'unknown user'}}
+        </li>
+        <li ng-switch-when="pipeline">
           {{ execution.trigger.user || 'unknown user'}}
         </li>
         <li>
