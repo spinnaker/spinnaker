@@ -1,12 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.manualJudgement.executionDetails.controller', [
+angular.module('spinnaker.pipelines.stage.manualJudgment.executionDetails.controller', [
   'ui.router',
   'spinnaker.executionDetails.section.service',
   'spinnaker.executionDetails.section.nav.directive',
 ])
-  .controller('ManualJudgementExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService) {
-    $scope.configSections = ['manualJudgement', 'taskStatus'];
+  .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService) {
+    $scope.configSections = ['manualJudgment', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
@@ -16,14 +16,14 @@ angular.module('spinnaker.pipelines.stage.manualJudgement.executionDetails.contr
     initialize();
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-    function provideJudgement(judgementStatus, executionStatus) {
+    function provideJudgment(judgmentStatus, executionStatus) {
       var targetUrl = [settings.gateUrl, 'pipelines', $stateParams.executionId, 'stages', $scope.stage.id].join('/');
       $http({
         method: 'PATCH',
         url: targetUrl,
-        data: angular.toJson({judgementStatus: judgementStatus})
+        data: angular.toJson({judgmentStatus: judgmentStatus})
       }).success(function() {
-        $scope.stage.context.judgementStatus = judgementStatus;
+        $scope.stage.context.judgmentStatus = judgmentStatus;
         $scope.stage.status = executionStatus;
 
         var stageSummary = _.find($scope.execution.stageSummaries, function (stageSummary) {
@@ -36,10 +36,10 @@ angular.module('spinnaker.pipelines.stage.manualJudgement.executionDetails.contr
     }
 
     this.continue = function () {
-      provideJudgement('continue', 'SUCCEEDED');
+      provideJudgment('continue', 'SUCCEEDED');
     };
 
     this.stop = function () {
-      provideJudgement('stop', 'TERMINAL');
+      provideJudgment('stop', 'TERMINAL');
     };
   });
