@@ -27,28 +27,28 @@ import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-class ManualJudgementStage extends LinearStage {
-  private static final String MAYO_CONFIG_NAME = "manualJudgement"
+class ManualJudgmentStage extends LinearStage {
+  private static final String MAYO_CONFIG_NAME = "manualJudgment"
 
-  ManualJudgementStage() {
+  ManualJudgmentStage() {
     super(MAYO_CONFIG_NAME)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    [buildStep(stage, "waitForJudgement", WaitForManualJudgementTask)]
+    [buildStep(stage, "waitForJudgment", WaitForManualJudgmentTask)]
   }
 
   @Component
   @VisibleForTesting
-  public static class WaitForManualJudgementTask implements RetryableTask {
+  public static class WaitForManualJudgmentTask implements RetryableTask {
     long backoffPeriod = 1000
     long timeout = Long.MAX_VALUE
 
     @Override
     TaskResult execute(Stage stage) {
-      def judgementStatus = (stage.context.judgementStatus as String) ?: ""
-      switch (judgementStatus.toLowerCase()) {
+      def judgmentStatus = (stage.context.judgmentStatus as String) ?: ""
+      switch (judgmentStatus.toLowerCase()) {
         case "continue":
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
         case "stop":

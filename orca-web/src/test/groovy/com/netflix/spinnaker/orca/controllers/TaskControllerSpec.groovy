@@ -216,7 +216,7 @@ class TaskControllerSpec extends Specification {
 
     when:
     def response = mockMvc.perform(patch("/pipelines/p1/stages/s1").content(
-      objectMapper.writeValueAsString([judgementStatus: "stop"])
+      objectMapper.writeValueAsString([judgmentStatus: "stop"])
     ).contentType(MediaType.APPLICATION_JSON)).andReturn().response
 
     then:
@@ -226,10 +226,10 @@ class TaskControllerSpec extends Specification {
       ]
     }
     1 * executionRepository.storeStage({ stage -> stage.id == "s1" && stage.context == [
-        judgementStatus: "stop", value: "1"
+        judgmentStatus: "stop", value: "1"
     ]} as PipelineStage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
-        [ value: "1", judgementStatus: "stop"]
+        [ value: "1", judgmentStatus: "stop"]
     ]
     0 * _
   }
