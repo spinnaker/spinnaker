@@ -72,7 +72,7 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
     pipelineStore.store(pipeline)
 
     expect:
-    pipelineStore.allForApplication(application).id == [pipeline.id]
+    pipelineStore.allForApplication(application).toList().toBlocking().first().id == [pipeline.id]
 
     with(((Pipeline)pipelineStore.retrieve(pipeline.id))) {
       id == pipeline.id
@@ -166,8 +166,8 @@ abstract class PipelineStoreTck<T extends ExecutionStore> extends Specification 
     thrown ExecutionNotFoundException
 
     when:
-    def allForApplication = pipelineStore.allForApplication(application)
-    def allJobs = pipelineStore.all()
+    def allForApplication = pipelineStore.allForApplication(application).toList().toBlocking().first()
+    def allJobs = pipelineStore.all().toList().toBlocking().first()
 
     then:
     allForApplication == []

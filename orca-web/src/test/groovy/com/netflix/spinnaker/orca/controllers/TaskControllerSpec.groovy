@@ -67,7 +67,7 @@ class TaskControllerSpec extends Specification {
     mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrations()
+    1 * executionRepository.retrieveOrchestrations() >> { return rx.Observable.empty() }
   }
 
   void '/tasks are sorted by startTime, with non-started tasks first'() {
@@ -84,7 +84,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * executionRepository.retrievePipelines() >> tasks
+    1 * executionRepository.retrievePipelines() >> rx.Observable.from(tasks)
     results.id == [ 'b', 'a', 'd', 'c']
   }
 
@@ -93,7 +93,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    executionRepository.retrieveOrchestrations() >> [new Orchestration(stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])]
+    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
     with(new ObjectMapper().readValue(response.contentAsString, new TypeReference<List<OrchestrationViewModel>>() {}).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
@@ -123,7 +123,7 @@ class TaskControllerSpec extends Specification {
     MockHttpServletResponse response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrations() >> []
+    1 * executionRepository.retrieveOrchestrations() >> rx.Observable.from([])
     response.status == 200
     response.contentAsString == '[]'
   }
@@ -133,7 +133,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get("/applications/$app/tasks")).andReturn().response
 
     then:
-    1 * executionRepository.retrieveOrchestrationsForApplication(app)
+    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.empty()
 
     where:
     app = "test"
@@ -156,7 +156,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * clock.millis() >> now.time
-    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> tasks
+    1 * executionRepository.retrieveOrchestrationsForApplication(app) >> rx.Observable.from(tasks)
     response.id == ['not-started-2', 'not-started-1', 'not-too-old', 'pretty-new']
   }
 
@@ -165,7 +165,7 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get("/pipelines")).andReturn().response
 
     then:
-    1 * executionRepository.retrievePipelines() >> [new Pipeline(), new Pipeline()]
+    1 * executionRepository.retrievePipelines() >> rx.Observable.from([new Pipeline(), new Pipeline()])
     List tasks = new ObjectMapper().readValue(response.contentAsString, List)
     tasks.size() == 2
   }
@@ -184,7 +184,7 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * executionRepository.retrievePipelines() >> pipelines
+    1 * executionRepository.retrievePipelines() >> rx.Observable.from(pipelines)
     results.id == [ 'b', 'a', 'd', 'c']
   }
 
@@ -205,7 +205,11 @@ class TaskControllerSpec extends Specification {
     List results = new ObjectMapper().readValue(response.contentAsString, List)
 
     then:
-    1 * executionRepository.retrievePipelinesForApplication(app) >> pipelines
+    1 * executionRepository.retrievePipelinesForApplication(app) >> rx.Observable.from(pipelines.collect {
+      def pipelineStage = new PipelineStage(new Pipeline(), "")
+      pipelineStage.startTime = it.startTime
+      new Pipeline(id: it.id, stages: it.startTime ? [pipelineStage] : [])
+    })
     results.id == [ 'not-started', 'also-not-started', 'newer']
   }
 

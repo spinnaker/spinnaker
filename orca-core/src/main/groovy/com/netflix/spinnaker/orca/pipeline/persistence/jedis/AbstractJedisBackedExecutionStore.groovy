@@ -20,9 +20,20 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
+import groovy.transform.CompileDynamic
+import groovy.util.logging.Slf4j
 import redis.clients.jedis.JedisCommands
+import rx.Observable
+import rx.Scheduler
+import rx.Subscriber
+import rx.schedulers.Schedulers
 
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+
+@Slf4j
 abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements ExecutionStore<T> {
+  private final Executor fetchAllExecutor = Executors.newFixedThreadPool(5)
   private final String prefix
   private final Class<T> executionClass
   protected final JedisCommands jedis
@@ -44,13 +55,13 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   }
 
   @Override
-  List<T> all() {
-    retrieveList(alljobsKey)
+  rx.Observable<T> all() {
+    retrieveObservable(alljobsKey, Schedulers.from(fetchAllExecutor))
   }
 
   @Override
-  List<T> allForApplication(String application) {
-    retrieveList(getAppKey(application))
+  rx.Observable<T> allForApplication(String application) {
+    retrieveObservable(getAppKey(application))
   }
 
   @Override
@@ -80,16 +91,18 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     def key = "${prefix}:$id"
     def storePrefix = prefix
     try {
-      T item = retrieve(id)
       jedis.hdel(key, "config")
       jedis.srem(alljobsKey, id)
+
+      T item = retrieve(id)
       def appKey = getAppKey(item.application)
       jedis.srem(appKey, id)
       item.stages.each { Stage stage ->
         def stageKey = "${storePrefix}:stage:${stage.id}"
         jedis.hdel(stageKey, "config")
       }
-    } catch (ExecutionNotFoundException ignored) { }
+    } catch (ExecutionNotFoundException ignored) {
+    }
   }
 
   @Override
@@ -112,7 +125,7 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
         def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
         while (!children.isEmpty()) {
           def child = children.remove(0)
-          children.addAll(0, execution.stages.findAll { it.parentStageId == child.id})
+          children.addAll(0, execution.stages.findAll { it.parentStageId == child.id })
           reorderedStages << child
         }
       }
@@ -127,16 +140,37 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     }
   }
 
-  private List<T> retrieveList(String lookupKey) {
-    def results = []
-    if (jedis.exists(lookupKey)) {
-      def keys = jedis.smembers(lookupKey)
-      for (id in keys) {
-        try {
-          results << retrieve(id)
-        } catch (ExecutionNotFoundException ignored) {}
+  @CompileDynamic
+  private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler = Schedulers.computation()) {
+    return Observable.create({ Subscriber<? super String> observer ->
+      if (!observer.isUnsubscribed()) {
+        if (jedis.exists(lookupKey)) {
+          int processedKeyCount = 0
+          def allKeys = jedis.smembers(lookupKey)
+          (allKeys as List).collate((int)(allKeys.size() / 10)).each {
+            it.each { String id ->
+              observer.onNext(id)
+              processedKeyCount++
+            }
+            log.info("Emitted ${processedKeyCount} keys of ${allKeys.size()}")
+          }
+        }
+        log.info("Emitted all keys")
+        observer.onCompleted()
       }
-    }
-    results
+    }).onBackpressureBuffer()
+      .observeOn(Schedulers.io())
+      .flatMap({ String id ->
+      Observable.just(id).observeOn(scheduler).map({ String executionId ->
+        try {
+          return retrieve(executionId)
+        } catch (ExecutionNotFoundException ignored) {
+          // log.info("Execution (${id}) does not exist")
+          // execution was in the set but does not actually exist, might as well delete it
+          // delete(id)
+        }
+        return null
+      }).filter({ obj -> obj != null })
+    })
   }
 }
