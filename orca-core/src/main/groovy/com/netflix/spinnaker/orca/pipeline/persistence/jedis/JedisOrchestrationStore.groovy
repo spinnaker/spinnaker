@@ -24,7 +24,7 @@ import redis.clients.jedis.JedisCommands
 
 @Slf4j
 class JedisOrchestrationStore extends AbstractJedisBackedExecutionStore<Orchestration> {
-  JedisOrchestrationStore(JedisCommands jedis, ObjectMapper mapper) {
-    super(ExecutionStore.ORCHESTRATION, Orchestration, jedis, mapper)
+  JedisOrchestrationStore(JedisCommands jedis, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize) {
+    super(ExecutionStore.ORCHESTRATION, Orchestration, jedis, mapper, threadPoolSize, threadPoolChunkSize)
   }
 }
