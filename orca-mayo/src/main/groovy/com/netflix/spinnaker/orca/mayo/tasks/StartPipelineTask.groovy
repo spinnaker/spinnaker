@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mayo.MayoService
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
@@ -53,9 +54,11 @@ class StartPipelineTask implements Task {
     log.info('triggering dependant pipeline {}:{}', pipelineConfig.id, json)
 
     pipelineConfig.trigger = [
-      type            : "pipeline",
-      user            : stage.context.user ?: '[anonymous]',
-      parentPipelineId: stage.execution.id
+      type                      : "pipeline",
+      user                      : stage.context.user ?: '[anonymous]',
+      parentPipelineId          : stage.execution.id,
+      parentPipelineName        : ((Pipeline) stage.execution).name,
+      parentPipelineApplication : ((Pipeline) stage.execution).application
     ]
 
     if (pipelineConfig.parameterConfig) {
@@ -79,7 +82,7 @@ class StartPipelineTask implements Task {
 
     def pipeline
 
-    def t1 = new Thread( new Runnable() {
+    def t1 = new Thread(new Runnable() {
       @Override
       public void run() {
         pipeline = pipelineStarter.start(json)
@@ -96,7 +99,7 @@ class StartPipelineTask implements Task {
 
     log.info('executing dependent pipeline {}', pipeline.id)
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id])
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 
   }
 
