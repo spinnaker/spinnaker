@@ -25,6 +25,10 @@ abstract class AbstractServerGroupNameResolver {
 
   private final Boolean ignoreSequence
 
+  AbstractServerGroupNameResolver() {
+    this.ignoreSequence = false
+  }
+
   AbstractServerGroupNameResolver(Boolean ignoreSequence) {
     this.ignoreSequence = ignoreSequence
   }

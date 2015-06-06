@@ -64,7 +64,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
 
     when:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", "bar", "east!", 0)
+    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east!", 0)
 
     then:
     IllegalArgumentException e = thrown()
@@ -76,7 +76,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foo-bar-east-v000')
 
     expect:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", "bar", "east", 0) == "foo-bar-east-v000"
+    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0) == "foo-bar-east-v000"
   }
 
   void "push sequence should be ignored when specified so"() {
@@ -84,7 +84,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foobar', true)
 
     expect:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", "bar", "east", 0) == "foo-bar-east"
+    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0) == "foo-bar-east"
   }
 
   void "application, and stack make up the asg name"() {
@@ -92,7 +92,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
 
     expect:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", "bar", null, 1) == "foo-bar-v001"
+    serverGroupNameResolver.generateServerGroupName("foo", "bar", null, 1) == "foo-bar-v001"
   }
 
   void "application and version make up the asg name"() {
@@ -100,7 +100,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
 
     expect:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", null, null, 1) == "foo-v001"
+    serverGroupNameResolver.generateServerGroupName("foo", null, null, 1) == "foo-v001"
   }
 
   void "application, and freeform details make up the asg name"() {
@@ -108,6 +108,6 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
 
     expect:
-    serverGroupNameResolver.generateAutoScalingGroupName("foo", null, "east", 1) == "foo--east-v001"
+    serverGroupNameResolver.generateServerGroupName("foo", null, "east", 1) == "foo--east-v001"
   }
 }
