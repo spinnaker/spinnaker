@@ -28,7 +28,8 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   private final RegionScopedProvider regionScopedProvider
 
-  AWSServerGroupNameResolver(RegionScopedProvider regionScopedProvider) {
+  AWSServerGroupNameResolver(RegionScopedProvider regionScopedProvider, Boolean ignoreSequence) {
+    super(ignoreSequence)
     this.regionScopedProvider = regionScopedProvider
   }
 

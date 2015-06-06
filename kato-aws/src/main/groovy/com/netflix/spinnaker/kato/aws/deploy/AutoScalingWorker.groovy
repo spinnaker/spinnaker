@@ -16,13 +16,11 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy
-
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
@@ -103,7 +101,7 @@ class AutoScalingWorker {
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
 
-    AWSServerGroupNameResolver awsServerGroupNameResolver = new AWSServerGroupNameResolver(regionScopedProvider)
+    AWSServerGroupNameResolver awsServerGroupNameResolver = new AWSServerGroupNameResolver(regionScopedProvider, ignoreSequence)
     String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails)
 
     def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
@@ -155,22 +153,6 @@ class AutoScalingWorker {
       }
     }
     mySubnets
-  }
-
-
-  /**
-   * Asgard's convention for naming AutoScaling Groups.
-   *
-   * @param sequence
-   * @return
-   */
-  String getAutoScalingGroupName(Integer sequence) {
-    def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: freeFormDetails)
-    def groupName = builder.buildGroupName(true)
-    if (ignoreSequence) {
-      return groupName
-    }
-    String.format("%s-v%03d", groupName, sequence)
   }
 
   /**

@@ -23,20 +23,26 @@ import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
  */
 abstract class AbstractServerGroupNameResolver {
 
+  private final Boolean ignoreSequence
+
+  AbstractServerGroupNameResolver(Boolean ignoreSequence) {
+    this.ignoreSequence = ignoreSequence
+  }
+
   abstract String getPreviousServerGroupName(String clusterName)
 
-  String resolveNextServerGroupName(String application, String stack, String freeFormDetails) {
+  String resolveNextServerGroupName(String application, String stack, String details) {
     Integer nextSequence = 0
     String expectedClusterName
 
-    if (!stack && !freeFormDetails) {
+    if (!stack && !details) {
       expectedClusterName = application
-    } else if (!stack && freeFormDetails) {
-      expectedClusterName = "${application}--${freeFormDetails}"
-    } else if (stack && !freeFormDetails) {
+    } else if (!stack && details) {
+      expectedClusterName = "${application}--${details}"
+    } else if (stack && !details) {
       expectedClusterName = "${application}-${stack}"
     } else {
-      expectedClusterName = "${application}-${stack}-${freeFormDetails}"
+      expectedClusterName = "${application}-${stack}-${details}"
     }
 
     String previousServerGroupName = getPreviousServerGroupName(expectedClusterName)
@@ -44,10 +50,18 @@ abstract class AbstractServerGroupNameResolver {
       Names parts = Names.parseName(previousServerGroupName)
       nextSequence = ((parts.sequence ?: 0) + 1) % 1000
     }
+
+    return generateServerGroupName(application, stack, details, nextSequence)
+  }
+
+  String generateServerGroupName(String application, String stack, String details, Integer nextSequence) {
     AutoScalingGroupNameBuilder builder = new AutoScalingGroupNameBuilder(
-      appName: application, stack: stack, detail: freeFormDetails
+      appName: application, stack: stack, detail: details
     )
     String groupName = builder.buildGroupName(true)
+    if (ignoreSequence) {
+      return groupName
+    }
     return String.format("%s-v%03d", groupName, nextSequence)
   }
 }

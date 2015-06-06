@@ -50,7 +50,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
     then:
     1 * asgService.getAncestorAsg(_) >> null
-    1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
   }
@@ -69,58 +68,6 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
-  }
-
-  void "should fail for invalid characters in the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east!")
-
-    when:
-    worker.getAutoScalingGroupName(1)
-
-    then:
-    IllegalArgumentException e = thrown()
-    e.message == "(Use alphanumeric characters only)"
-  }
-
-  void "application, stack, and freeform details make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-bar-east-v001"
-  }
-
-  void "push sequence should be ignored when specified so"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east", ignoreSequence: true)
-
-    expect:
-    worker.getAutoScalingGroupName(0) == "foo-bar-east"
-  }
-
-  void "application, and stack make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-bar-v001"
-  }
-
-  void "application and version make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-v001"
-  }
-
-  void "application, and freeform details make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", freeFormDetails: "east")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo--east-v001"
   }
 
 }
