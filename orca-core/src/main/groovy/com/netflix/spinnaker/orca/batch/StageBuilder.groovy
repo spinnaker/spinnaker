@@ -156,6 +156,7 @@ abstract class StageBuilder implements ApplicationContextAware {
           null as Stage,
           null as Stage.SyntheticStageOwner
         )
+        ((AbstractStage) waitForStage).id = "${childStage.id}-waitForRequisite"
 
         def stageIdx = stage.execution.stages.indexOf(childStage)
         stage.execution.stages.add(stageIdx, waitForStage)
