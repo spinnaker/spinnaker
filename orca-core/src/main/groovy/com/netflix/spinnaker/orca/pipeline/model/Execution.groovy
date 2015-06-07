@@ -21,13 +21,7 @@ import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
 
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import static com.netflix.spinnaker.orca.ExecutionStatus.FAILED
-import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import static com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
 abstract class Execution<T> implements Serializable {
@@ -101,6 +95,10 @@ abstract class Execution<T> implements Serializable {
       return SUCCEEDED
     }
 
+    if (nonEmptyStages.status.any { it == RUNNING }) {
+      return RUNNING
+    }
+
     def lastStartedStatus = nonEmptyStages.status.reverse().find {
       it != NOT_STARTED
     }
@@ -108,7 +106,7 @@ abstract class Execution<T> implements Serializable {
     if (!lastStartedStatus) {
       NOT_STARTED
     } else if (lastStartedStatus == SUCCEEDED && nonEmptyStages.status.reverse().find { it != SUCCEEDED }) {
-      RUNNING
+      return nonEmptyStages.status.any { it == SUSPENDED } ? SUSPENDED : RUNNING
     } else {
       lastStartedStatus
     }
