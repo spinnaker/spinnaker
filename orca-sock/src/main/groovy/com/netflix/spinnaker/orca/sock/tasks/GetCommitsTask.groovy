@@ -70,8 +70,9 @@ class GetCommitsTask implements RetryableTask {
     String repoType = application.repoType
     String projectKey = application.repoProjectKey
     String repositorySlug = application.repoSlug
+    String sourceAsg = stage.context.source?.asgName
 
-    if (projectKey && repositorySlug && repoType) {
+    if (projectKey && repositorySlug && repoType && sourceAsg) {
 
       try {
 
@@ -79,10 +80,10 @@ class GetCommitsTask implements RetryableTask {
         TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
 
         String sourceCluster
-        if (stage.context.source.asgName.lastIndexOf("-") > 0) {
-          sourceCluster = stage.context.source.asgName.substring(0, stage.context.source.asgName.lastIndexOf("-"))
+        if (sourceAsg.lastIndexOf("-") > 0) {
+          sourceCluster = sourceAsg.substring(0, sourceAsg.lastIndexOf("-"))
         } else {
-          sourceCluster = stage.context.source.asgName
+          sourceCluster = sourceAsg
         }
 
         Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroup(stage.context.application,
