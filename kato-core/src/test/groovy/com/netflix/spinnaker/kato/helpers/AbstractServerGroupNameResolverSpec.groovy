@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.aws.deploy
-import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
+package com.netflix.spinnaker.kato.helpers
+
 import spock.lang.Specification
 import spock.lang.Unroll
 /**
