@@ -86,13 +86,24 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
     serverGroup.image = imageConfigs ? imageConfigs.attributes : null
     serverGroup.asg = asg
-    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
+    Set<String> asgInstances = getAsgInstanceKeys(asg, account, region)
+    Closure<Boolean> instanceFilter = { rel ->
+      return (asgInstances == null || asgInstances.contains(rel))
+    }
+    serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns, instanceFilter)).values()
 
     serverGroup
   }
 
   private static Map<String, Set<AmazonCluster>> mapResponse(Collection<AmazonCluster> clusters) {
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
+  }
+
+  private static Set<String> getAsgInstanceKeys(Map asg, String account, String region) {
+    asg?.instances?.inject(new HashSet<String>()) { Set instances, Map instance ->
+      instances.add(Keys.getInstanceKey(instance.instanceId, account, region))
+      return instances
+    }
   }
 
   private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
@@ -159,7 +170,15 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
       def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
       serverGroup.putAll(serverGroupEntry.attributes)
-      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
+      def asg = serverGroupEntry.attributes.asg
+
+      Set<String> asgInstanceSet = getAsgInstanceKeys(asg, serverGroupKey.account, serverGroupKey.region)
+      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults {
+        if (asgInstanceSet != null && !asgInstanceSet.contains(it)) {
+          return null
+        }
+        instances.get(it)
+      }
       [(serverGroupEntry.id) : serverGroup]
     }
 
