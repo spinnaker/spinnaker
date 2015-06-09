@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kato.helpers
 
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
 import groovy.transform.CompileStatic
@@ -54,8 +53,7 @@ abstract class AbstractServerGroupNameResolver {
     return generateServerGroupName(application, stack, details, nextSequence, ignoreSequence)
   }
 
-  @VisibleForTesting
-  private String generateServerGroupName(String application, String stack, String details, Integer sequence, Boolean ignoreSequence) {
+  static String generateServerGroupName(String application, String stack, String details, Integer sequence, Boolean ignoreSequence) {
     def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: details)
     def groupName = builder.buildGroupName(true)
     if (ignoreSequence) {

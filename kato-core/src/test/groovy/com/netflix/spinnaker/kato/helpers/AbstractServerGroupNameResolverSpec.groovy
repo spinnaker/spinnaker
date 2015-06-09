@@ -30,11 +30,6 @@ class AbstractServerGroupNameResolverSpec extends Specification {
       this.serverGroupName = serverGroupName
     }
 
-    TestServerGroupNameResolver(String serverGroupName, Boolean ignoreSequence) {
-      super(ignoreSequence)
-      this.serverGroupName = serverGroupName
-    }
-
     @Override
     String getPreviousServerGroupName(String clusterName) {
       return serverGroupName
@@ -48,7 +43,7 @@ class AbstractServerGroupNameResolverSpec extends Specification {
     def serverGroupNameResolver = new TestServerGroupNameResolver(previousServerGroupName)
 
     then:
-    serverGroupNameResolver.resolveNextServerGroupName('app', stack, details) == expected
+    serverGroupNameResolver.resolveNextServerGroupName('app', stack, details, false) == expected
 
     where:
     stack   | details     | previousServerGroupName   | expected
@@ -60,11 +55,8 @@ class AbstractServerGroupNameResolverSpec extends Specification {
   }
 
   void "should fail for invalid characters in the asg name"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
-
     when:
-    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east!", 0, false)
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", "bar", "east!", 0, false)
 
     then:
     IllegalArgumentException e = thrown()
@@ -72,42 +64,27 @@ class AbstractServerGroupNameResolverSpec extends Specification {
   }
 
   void "application, stack, and freeform details make up the asg name"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foo-bar-east-v000')
-
     expect:
-    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0, false) == "foo-bar-east-v000"
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0, false) == "foo-bar-east-v000"
   }
 
   void "push sequence should be ignored when specified so"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foobar', true)
-
     expect:
-    serverGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0, true) == "foo-bar-east"
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", "bar", "east", 0, true) == "foo-bar-east"
   }
 
   void "application, and stack make up the asg name"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
-
     expect:
-    serverGroupNameResolver.generateServerGroupName("foo", "bar", null, 1, false) == "foo-bar-v001"
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", "bar", null, 1, false) == "foo-bar-v001"
   }
 
   void "application and version make up the asg name"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
-
     expect:
-    serverGroupNameResolver.generateServerGroupName("foo", null, null, 1, false) == "foo-v001"
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", null, null, 1, false) == "foo-v001"
   }
 
   void "application, and freeform details make up the asg name"() {
-    given:
-    def serverGroupNameResolver = new TestServerGroupNameResolver('foobar')
-
     expect:
-    serverGroupNameResolver.generateServerGroupName("foo", null, "east", 1, false) == "foo--east-v001"
+    AbstractServerGroupNameResolver.generateServerGroupName("foo", null, "east", 1, false) == "foo--east-v001"
   }
 }
