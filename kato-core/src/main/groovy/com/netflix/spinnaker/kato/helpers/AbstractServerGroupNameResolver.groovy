@@ -27,16 +27,6 @@ import groovy.transform.CompileStatic
 @CompileStatic
 abstract class AbstractServerGroupNameResolver {
 
-  private final Boolean ignoreSequence
-
-  AbstractServerGroupNameResolver() {
-    this.ignoreSequence = false
-  }
-
-  AbstractServerGroupNameResolver(Boolean ignoreSequence) {
-    this.ignoreSequence = ignoreSequence
-  }
-
   /**
    * Returns the ancestor server group name for the given cluster name
    * @param clusterName
@@ -44,7 +34,7 @@ abstract class AbstractServerGroupNameResolver {
    */
   abstract String getPreviousServerGroupName(String clusterName)
 
-  String resolveNextServerGroupName(String application, String stack, String details) {
+  String resolveNextServerGroupName(String application, String stack, String details, Boolean ignoreSequence) {
     Integer nextSequence = 0
     String clusterName
     if (!stack && !details) {
@@ -61,11 +51,11 @@ abstract class AbstractServerGroupNameResolver {
       Names parts = Names.parseName(previousServerGroupName)
       nextSequence = ((parts.sequence ?: 0) + 1) % 1000
     }
-    return generateServerGroupName(application, stack, details, nextSequence)
+    return generateServerGroupName(application, stack, details, nextSequence, ignoreSequence)
   }
 
   @VisibleForTesting
-  private String generateServerGroupName(String application, String stack, String details, Integer sequence) {
+  private String generateServerGroupName(String application, String stack, String details, Integer sequence, Boolean ignoreSequence) {
     def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: details)
     def groupName = builder.buildGroupName(true)
     if (ignoreSequence) {

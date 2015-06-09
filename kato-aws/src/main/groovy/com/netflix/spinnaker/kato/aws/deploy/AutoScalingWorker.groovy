@@ -102,8 +102,8 @@ class AutoScalingWorker {
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
 
-    AWSServerGroupNameResolver awsServerGroupNameResolver = new AWSServerGroupNameResolver(regionScopedProvider, ignoreSequence)
-    String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails)
+    AWSServerGroupNameResolver awsServerGroupNameResolver = regionScopedProvider.AWSServerGroupNameResolver
+    String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
 
     def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: environment,
