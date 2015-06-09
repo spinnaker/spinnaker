@@ -65,6 +65,7 @@ angular.module('spinnaker', [
     'spinnaker.pipelines',
     'spinnaker.pipelines.trigger',
     'spinnaker.pipelines.trigger.jenkins',
+    'spinnaker.pipelines.trigger.pipeline',
     'spinnaker.pipelines.stage',
     'spinnaker.pipelines.stage.bake',
     'spinnaker.pipelines.stage.canary',
