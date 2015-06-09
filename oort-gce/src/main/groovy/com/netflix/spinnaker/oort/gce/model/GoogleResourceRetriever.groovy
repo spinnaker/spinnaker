@@ -351,6 +351,12 @@ class GoogleResourceRetriever {
             migsCallback.onSuccess(instanceGroupManagerList, null)
 
             executeIfRequestsAreQueued(resourceViewsBatch)
+
+            // TODO(duftler): Would be more efficient to retrieve just the instances for the server group's zone.
+            def instanceAggregatedListCallback =
+              new InstanceAggregatedListCallback(instanceNameToGoogleServerGroupMap, null, null)
+
+            compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
             executeIfRequestsAreQueued(instancesBatch)
           }
 

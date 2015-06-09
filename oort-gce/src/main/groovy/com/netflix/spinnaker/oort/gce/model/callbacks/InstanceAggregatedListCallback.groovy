@@ -80,7 +80,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
             googleInstance.setProperty("serverGroup", googleServerGroup.name)
 
             googleServerGroup.instances << googleInstance
-          } else {
+          } else if (standaloneInstanceList) {
             standaloneInstanceList << googleInstance
           }
         }
@@ -107,17 +107,20 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
     String instanceName,
     List<Map> healthStates,
     Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap) {
-    def individualInstanceLoadBalancerStates =
-      deriveIndividualInstanceLoadBalancerStates(instanceName,
-        instanceNameToLoadBalancerHealthStatusMap[instanceName])
 
-    if (individualInstanceLoadBalancerStates) {
-      healthStates << [
-        type: "LoadBalancer",
-        state: deriveInstanceLoadBalancerHealthState(individualInstanceLoadBalancerStates),
-        loadBalancers: individualInstanceLoadBalancerStates,
-        instanceId: instanceName
-      ];
+    if (instanceNameToLoadBalancerHealthStatusMap) {
+      def individualInstanceLoadBalancerStates =
+        deriveIndividualInstanceLoadBalancerStates(instanceName,
+          instanceNameToLoadBalancerHealthStatusMap[instanceName])
+
+      if (individualInstanceLoadBalancerStates) {
+        healthStates << [
+          type         : "LoadBalancer",
+          state        : deriveInstanceLoadBalancerHealthState(individualInstanceLoadBalancerStates),
+          loadBalancers: individualInstanceLoadBalancerStates,
+          instanceId   : instanceName
+        ];
+      }
     }
   }
 
