@@ -47,10 +47,8 @@
       <dl class="dl-horizontal dl-narrow">
         <dt>Created:</dt>
         <dd>{{loadBalancer.elb.createdTime | timestamp}}</dd>
-        <dt>Region:</dt>
-        <dd>{{loadBalancer.region}}</dd>
-        <dt>Account:</dt>
-        <dd><account-tag account="loadBalancer.account"></account-tag></dd>
+        <dt>In:</dt>
+        <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
       </dl>
       <dl>
         <dt>Zones:</dt>
