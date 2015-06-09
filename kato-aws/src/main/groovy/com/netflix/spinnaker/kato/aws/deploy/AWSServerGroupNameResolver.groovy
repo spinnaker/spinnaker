@@ -49,9 +49,8 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
     String previousServerGroupName = ancestorAsg ? ancestorAsg.autoScalingGroupName : null
     if (previousServerGroupName) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${previousServerGroupName})"
-      Map ancestorServerGroupNames = [ancestorServerGroupNames : "${region}:${previousServerGroupName}"]
       Map ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): previousServerGroupName]]
-      task.addResultObjects([ancestorServerGroupNames, ancestorServerGroupNameByRegion])
+      task.addResultObjects([ancestorServerGroupNameByRegion])
     }
     return previousServerGroupName
   }

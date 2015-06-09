@@ -39,14 +39,11 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
+  def awsServerGroupNameResolver = new AWSServerGroupNameResolver('us-east-1', asgService)
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
-  }
-
-  def setup() {
-    Task task = new DefaultTask("foo")
-    TaskRepository.threadLocalTask.set(task)
+    getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
   }
 
   void "deploy workflow is create launch config, create asg"() {
@@ -61,26 +58,32 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg(_) >> null
+    1 * awsServerGroupNameResolver.resolveNextServerGroupName('myasg', _, _, _) >> asgName
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
   }
 
-  void "deploy derives name from ancestor asg"() {
+  void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {
     setup:
-    def mockAutoScalingWorker = Spy(AutoScalingWorker)
-    mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
-    mockAutoScalingWorker.application = "myasg"
-    mockAutoScalingWorker.region = "us-east-1"
+    def autoScalingWorker = new AutoScalingWorker(
+      regionScopedProvider : regionScopedProvider,
+      application : "myasg",
+      region : "us-east-1"
+    )
 
     when:
-    mockAutoScalingWorker.deploy()
+    String asgName = autoScalingWorker.deploy()
 
     then:
     1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
-    1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
-    mockAutoScalingWorker.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+    asgName == 'myasg-v013'
+    awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+  }
+
+  def setup() {
+    Task task = new DefaultTask("foo")
+    TaskRepository.threadLocalTask.set(task)
   }
 
 }
