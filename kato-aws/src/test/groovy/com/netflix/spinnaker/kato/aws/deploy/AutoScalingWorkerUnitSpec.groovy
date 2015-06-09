@@ -58,7 +58,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * awsServerGroupNameResolver.resolveNextServerGroupName('myasg', _, _, _) >> asgName
+    1 * asgService.getAncestorAsg(_) >> null
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
   }
