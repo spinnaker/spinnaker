@@ -26,6 +26,7 @@ import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.SubnetData
 import com.netflix.spinnaker.kato.aws.model.SubnetTarget
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
@@ -107,6 +108,11 @@ class AutoScalingWorker {
     Integer nextSequence
     if (ancestorAsg) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${ancestorAsg.autoScalingGroupName})"
+
+      def ancestorServerGroupNames = [ancestorServerGroupNames : "${region}:${ancestorAsg.autoScalingGroupName}"]
+      def ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): ancestorAsg.autoScalingGroupName]]
+      task.addResultObjects([ancestorServerGroupNames, ancestorServerGroupNameByRegion])
+
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
       nextSequence = ((ancestorNames.sequence ?: 0) + 1) % 1000
     } else {
