@@ -59,7 +59,7 @@ class GetCommitsTaskSpec extends Specification {
 
   def "global credential is preferred to the stage account for application lookup"() {
     given:
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account])
+    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account])//, "kato.tasks" : katoMap])
     task.sockService = sockService
     task.front50Service = front50Service
 
@@ -84,8 +84,13 @@ class GetCommitsTaskSpec extends Specification {
   @Unroll
   def "get commits from serverGroup source #serverGroup"() {
     given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
 
     and:
     task.sockService = Stub(SockService) {
@@ -146,8 +151,13 @@ class GetCommitsTaskSpec extends Specification {
 
   def "returns running where there is an error talking to sock"() {
     given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
 
     and:
     task.front50Service = front50Service

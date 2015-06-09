@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.sock.SockService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
@@ -62,17 +61,26 @@ class GetCommitsTask implements RetryableTask {
     }
 
     def globalAccount = front50Service.credentials.find { it.global }
-
     def applicationAccount = globalAccount?.name ?: stage.context.account
-
     Application application = front50Service.get(applicationAccount, stage.context.application)
 
     String repoType = application.repoType
     String projectKey = application.repoProjectKey
     String repositorySlug = application.repoSlug
-    String sourceAsg = stage.context.source?.asgName
+    String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
+    String account = stage.context?.source?.account ?: stage.context?.account
 
-    if (projectKey && repositorySlug && repoType && sourceAsg) {
+    String ancestorAsg = stage.context.get("kato.tasks")?.find { item ->
+      item.find { key, value ->
+        key == 'resultObjects'
+      }
+    }?.resultObjects?.ancestorServerGroupNameByRegion?.find {
+      it.find { key, value ->
+        key == region
+      }
+    }?.get(region)
+
+    if (projectKey && repositorySlug && repoType && ancestorAsg && region && account) {
 
       try {
 
@@ -80,19 +88,19 @@ class GetCommitsTask implements RetryableTask {
         TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
 
         String sourceCluster
-        if (sourceAsg.lastIndexOf("-") > 0) {
-          sourceCluster = sourceAsg.substring(0, sourceAsg.lastIndexOf("-"))
+        if (ancestorAsg.lastIndexOf("-") > 0) {
+          sourceCluster = ancestorAsg.substring(0, ancestorAsg.lastIndexOf("-"))
         } else {
-          sourceCluster = sourceAsg
+          sourceCluster = ancestorAsg
         }
 
         Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroup(stage.context.application,
-          stage.context.source.account, sourceCluster,
-          stage.context.source.asgName, stage.context.source.region, "aws").body.in(), jsonMapType)
+          account, sourceCluster,
+          ancestorAsg, region, "aws").body.in(), jsonMapType)
 
         String sourceAmi = sourceServerGroup.launchConfig.imageId
-        def sourceAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", stage.context.source.account,
-          stage.context.source.region, sourceAmi).body.in(), jsonListType)
+        def sourceAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
+          region, sourceAmi).body.in(), jsonListType)
 
         String sourceAppVersion = sourceAmiDetails[0]?.tags?.appversion
         String toCommit = sourceAppVersion.substring(0, sourceAppVersion.indexOf('/')).substring(sourceAppVersion.lastIndexOf('.') + 1)
@@ -114,7 +122,7 @@ class GetCommitsTask implements RetryableTask {
           throw new RuntimeException("could not determine the target ami")
         }
 
-        def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", stage.context.source.account,
+        def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
           targetRegion, targetAmi).body.in(), jsonListType)
 
         String targetAppVersion = targetAmiDetails[0]?.tags?.appversion
