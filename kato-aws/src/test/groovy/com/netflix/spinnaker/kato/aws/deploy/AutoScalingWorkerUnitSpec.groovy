@@ -80,8 +80,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
-    mockAutoScalingWorker.getTask().resultObjects[0].ancestorServerGroupNames == "us-east-1:myasg-v012"
-    mockAutoScalingWorker.getTask().resultObjects[1].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+    mockAutoScalingWorker.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
   }
 
 }
