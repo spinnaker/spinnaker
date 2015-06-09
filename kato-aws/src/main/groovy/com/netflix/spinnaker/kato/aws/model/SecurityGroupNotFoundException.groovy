@@ -22,5 +22,5 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "could not find all supplied security groups!")
 @InheritConstructors
 class SecurityGroupNotFoundException extends RuntimeException {
-  List<String> missingSecurityGroups
+  Collection<String> missingSecurityGroups
 }

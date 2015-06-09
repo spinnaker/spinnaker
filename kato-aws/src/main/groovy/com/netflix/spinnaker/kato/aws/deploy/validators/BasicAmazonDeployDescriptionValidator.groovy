@@ -68,7 +68,9 @@ class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationS
     for (AmazonBlockDevice device : description.blockDevices) {
       BlockDeviceRules.validate device, errors
     }
-    validateCapacity description, errors
+    if (!description.source?.useSourceCapacity) {
+      validateCapacity description, errors
+    }
   }
 
   enum BlockDeviceRules {

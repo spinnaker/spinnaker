@@ -219,7 +219,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     when:
     def targetDescription = handler.copySourceAttributes(
-      sourceRegionScopedProvider, "sourceAsg", description
+      sourceRegionScopedProvider, "sourceAsg", null, description
     )
 
     then:
@@ -233,6 +233,86 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     new BasicAmazonDeployDescription(blockDevices: [])                                            | "launchConfig" || "OLD_SPOT"        || []
     new BasicAmazonDeployDescription(blockDevices: [new AmazonBlockDevice(deviceName: "DEVICE")]) | "launchConfig" || "OLD_SPOT"        || ["DEVICE"]
     new BasicAmazonDeployDescription(spotPrice: "SPOT", blockDevices: [])                         | null           || "SPOT"            || []
+  }
+
+  void 'should fail if useSourceCapacity requested, and source not available'() {
+    given:
+    def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
+    def sourceRegionScopedProvider = null
+
+    when:
+    handler.copySourceAttributes(
+      sourceRegionScopedProvider, "sourceAsg", useSource, description
+    )
+
+    then:
+    thrown(IllegalStateException)
+
+    where:
+    useSource = true
+    descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
+  }
+
+  void 'should fail if ASG not found and useSourceCapacity requested'() {
+    given:
+    def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
+    def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
+      getAutoScaling() >> Stub(AmazonAutoScaling) {
+        describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult()
+      }
+    }
+
+    when:
+    handler.copySourceAttributes(
+      sourceRegionScopedProvider, "sourceAsg", useSource, description
+    )
+
+    then:
+    thrown(IllegalStateException)
+
+    where:
+    useSource = true
+    descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
+  }
+
+
+
+
+  void 'should copy capacity from source if specified'() {
+    given:
+    def description = new BasicAmazonDeployDescription(capacity: descriptionCapacity)
+    def asgService = Stub(AsgService) {
+      getLaunchConfiguration(_) >> new LaunchConfiguration()
+    }
+    def sourceRegionScopedProvider = Stub(RegionScopedProvider) {
+      getAsgService() >> asgService
+      getAutoScaling() >> Stub(AmazonAutoScaling) {
+        describeAutoScalingGroups(_) >> {
+          new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+            new AutoScalingGroup()
+              .withLaunchConfigurationName('lc')
+              .withMinSize(sourceCapacity.min)
+              .withMaxSize(sourceCapacity.max)
+              .withDesiredCapacity(sourceCapacity.desired)
+
+          )
+        }
+      }
+    }
+
+    when:
+    def targetDescription = handler.copySourceAttributes(
+      sourceRegionScopedProvider, "sourceAsg", useSource, description
+    )
+
+    then:
+    targetDescription.capacity == expectedCapacity
+
+    where:
+    useSource << [null, false, true]
+    descriptionCapacity = new BasicAmazonDeployDescription.Capacity(5, 5, 5)
+    sourceCapacity = new BasicAmazonDeployDescription.Capacity(7, 7, 7)
+    expectedCapacity = useSource ? sourceCapacity : descriptionCapacity
   }
 
   @Unroll

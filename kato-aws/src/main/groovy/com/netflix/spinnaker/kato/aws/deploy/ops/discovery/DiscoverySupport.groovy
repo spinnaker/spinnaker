@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops.discovery
 
+import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.google.common.annotations.VisibleForTesting
@@ -142,6 +143,13 @@ class DiscoverySupport {
           retryCount++
         } else {
           throw re
+        }
+      } catch (AmazonServiceException ase) {
+        if (ase.statusCode == 503) {
+          retryCount++
+          sleep(getDiscoveryRetryMs())
+        } else {
+          throw ase
         }
       }
     }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
@@ -87,7 +88,11 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         if (disable) {
           task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
           changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
-            loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
+            try {
+              loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
+            } catch (LoadBalancerNotFoundException e) {
+              task.updateStatus phaseName, "Unable to deregister instances, ${loadBalancerName} does not exist (${e.message})"
+            }
           }
         } else {
           task.updateStatus phaseName, "Registering instances with Load Balancers..."

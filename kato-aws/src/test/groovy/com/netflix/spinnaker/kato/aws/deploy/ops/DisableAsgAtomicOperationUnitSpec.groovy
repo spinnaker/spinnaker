@@ -18,16 +18,12 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
-import com.netflix.spinnaker.kato.data.task.Status
-import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.data.task.TaskState
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -55,6 +51,31 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
       assert req.instances[0].instanceId == "i1"
       assert req.loadBalancerName == "lb1"
     }
+  }
+
+  void 'should not fail if a load balancer does not exist'() {
+    setup:
+    def asg = Mock(AutoScalingGroup)
+    asg.getAutoScalingGroupName() >> "asg1"
+    asg.getLoadBalancerNames() >> ["lb1"]
+    asg.getInstances() >> [new Instance().withInstanceId("i1")]
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(_) >> asg
+    1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
+    1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { throw new LoadBalancerNotFoundException("Does not exist") }
+    1 * eureka.getInstanceInfo('i1') >>
+      [
+        instance: [
+          app: "asg1"
+        ]
+      ]
+    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
+    2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
   }
 
   void 'should disable instances for asg in discovery'() {

@@ -93,7 +93,8 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
           newDescription.source = new BasicAmazonDeployDescription.Source(
             sourceAsgCredentials.name,
             sourceRegionScopedProvider.region,
-            ancestorAsg.autoScalingGroupName
+            ancestorAsg.autoScalingGroupName,
+            null // we will already pull the capacity from this ASG
           )
           task.updateStatus BASE_PHASE, "Using ${sourceRegion}/${ancestorAsg.autoScalingGroupName} as source."
         }

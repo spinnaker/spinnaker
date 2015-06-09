@@ -15,12 +15,16 @@
  */
 
 package com.netflix.spinnaker.kato.helpers
+
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import groovy.transform.CompileStatic
 
 /**
  * @author sthadeshwar
  */
+@CompileStatic
 abstract class AbstractServerGroupNameResolver {
 
   private final Boolean ignoreSequence
@@ -33,39 +37,40 @@ abstract class AbstractServerGroupNameResolver {
     this.ignoreSequence = ignoreSequence
   }
 
+  /**
+   * Returns the ancestor server group name for the given cluster name
+   * @param clusterName
+   * @return
+   */
   abstract String getPreviousServerGroupName(String clusterName)
 
   String resolveNextServerGroupName(String application, String stack, String details) {
     Integer nextSequence = 0
-    String expectedClusterName
-
+    String clusterName
     if (!stack && !details) {
-      expectedClusterName = application
+      clusterName = application
     } else if (!stack && details) {
-      expectedClusterName = "${application}--${details}"
+      clusterName = "${application}--${details}"
     } else if (stack && !details) {
-      expectedClusterName = "${application}-${stack}"
+      clusterName = "${application}-${stack}"
     } else {
-      expectedClusterName = "${application}-${stack}-${details}"
+      clusterName = "${application}-${stack}-${details}"
     }
-
-    String previousServerGroupName = getPreviousServerGroupName(expectedClusterName)
+    String previousServerGroupName = getPreviousServerGroupName(clusterName)
     if (previousServerGroupName) {
       Names parts = Names.parseName(previousServerGroupName)
       nextSequence = ((parts.sequence ?: 0) + 1) % 1000
     }
-
     return generateServerGroupName(application, stack, details, nextSequence)
   }
 
-  String generateServerGroupName(String application, String stack, String details, Integer nextSequence) {
-    AutoScalingGroupNameBuilder builder = new AutoScalingGroupNameBuilder(
-      appName: application, stack: stack, detail: details
-    )
-    String groupName = builder.buildGroupName(true)
+  @VisibleForTesting
+  private String generateServerGroupName(String application, String stack, String details, Integer sequence) {
+    def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: details)
+    def groupName = builder.buildGroupName(true)
     if (ignoreSequence) {
       return groupName
     }
-    return String.format("%s-v%03d", groupName, nextSequence)
+    String.format("%s-v%03d", groupName, sequence)
   }
 }
