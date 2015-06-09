@@ -39,14 +39,11 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
+  def awsServerGroupNameResolver = new AWSServerGroupNameResolver('us-east-1', asgService)
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
-  }
-
-  def setup() {
-    Task task = new DefaultTask("foo")
-    TaskRepository.threadLocalTask.set(task)
+    getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
   }
 
   void "deploy workflow is create launch config, create asg"() {
@@ -61,79 +58,32 @@ class AutoScalingWorkerUnitSpec extends Specification {
     mockAutoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg(_, _, _) >> null
-    1 * mockAutoScalingWorker.getAutoScalingGroupName(0) >> asgName
+    1 * asgService.getAncestorAsg(_) >> null
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> launchConfigName
     1 * mockAutoScalingWorker.createAutoScalingGroup(asgName, launchConfigName) >> {}
   }
 
-  void "deploy derives name from ancestor asg"() {
+  void "deploy derives name from ancestor asg and sets the ancestor asg name in the task result"() {
     setup:
-    def mockAutoScalingWorker = Spy(AutoScalingWorker)
-    mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
-    mockAutoScalingWorker.application = "myasg"
-    mockAutoScalingWorker.region = "us-east-1"
+    def autoScalingWorker = new AutoScalingWorker(
+      regionScopedProvider : regionScopedProvider,
+      application : "myasg",
+      region : "us-east-1"
+    )
 
     when:
-    mockAutoScalingWorker.deploy()
+    String asgName = autoScalingWorker.deploy()
 
     then:
-    1 * asgService.getAncestorAsg('myasg', _, _) >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
+    1 * asgService.getAncestorAsg('myasg') >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
-    1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
-    mockAutoScalingWorker.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
+    asgName == 'myasg-v013'
+    awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
   }
 
-  void "should fail for invalid characters in the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east!")
-
-    when:
-    worker.getAutoScalingGroupName(1)
-
-    then:
-    IllegalArgumentException e = thrown()
-    e.message == "(Use alphanumeric characters only)"
-  }
-
-  void "application, stack, and freeform details make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-bar-east-v001"
-  }
-
-  void "push sequence should be ignored when specified so"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar", freeFormDetails: "east", ignoreSequence: true)
-
-    expect:
-    worker.getAutoScalingGroupName(0) == "foo-bar-east"
-  }
-
-  void "application, and stack make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", stack: "bar")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-bar-v001"
-  }
-
-  void "application and version make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo-v001"
-  }
-
-  void "application, and freeform details make up the asg name"() {
-    given:
-    def worker = new AutoScalingWorker(application: "foo", freeFormDetails: "east")
-
-    expect:
-    worker.getAutoScalingGroupName(1) == "foo--east-v001"
+  def setup() {
+    Task task = new DefaultTask("foo")
+    TaskRepository.threadLocalTask.set(task)
   }
 
 }

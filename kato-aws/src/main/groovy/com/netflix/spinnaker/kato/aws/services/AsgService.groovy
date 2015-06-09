@@ -39,25 +39,6 @@ class AsgService {
   }
 
   AutoScalingGroup getAncestorAsg(String clusterName) {
-    def clusterParts = Names.parseName(clusterName)
-    String application = clusterParts.app
-    String stack = clusterParts.stack
-    String freeFormDetails = clusterParts.detail
-    getAncestorAsg(application, stack, freeFormDetails)
-  }
-
-  AutoScalingGroup getAncestorAsg(String application, String stack, String freeFormDetails) {
-    String expectedClusterName
-    if (!stack && !freeFormDetails) {
-      expectedClusterName = application
-    } else if (!stack && freeFormDetails) {
-      expectedClusterName = "${application}--${freeFormDetails}"
-    } else if (stack && !freeFormDetails) {
-      expectedClusterName = "${application}-${stack}"
-    } else {
-      expectedClusterName = "${application}-${stack}-${freeFormDetails}"
-    }
-
     new AwsResultsRetriever<AutoScalingGroup, DescribeAutoScalingGroupsRequest, DescribeAutoScalingGroupsResult>() {
       @Override
       protected DescribeAutoScalingGroupsResult makeRequest(DescribeAutoScalingGroupsRequest request) {
@@ -68,7 +49,7 @@ class AsgService {
       protected List<AutoScalingGroup> accessResult(DescribeAutoScalingGroupsResult result) {
         result.autoScalingGroups.findAll { AutoScalingGroup asg ->
           def names = Names.parseName(asg.autoScalingGroupName)
-          return names.cluster == expectedClusterName
+          return names.cluster == clusterName
         }
       }
     }.retrieve(new DescribeAutoScalingGroupsRequest()).max { a, b ->

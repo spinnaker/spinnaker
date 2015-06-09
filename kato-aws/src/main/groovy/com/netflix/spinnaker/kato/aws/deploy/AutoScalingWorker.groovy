@@ -16,22 +16,19 @@
 
 
 package com.netflix.spinnaker.kato.aws.deploy
-
-import com.amazonaws.services.autoscaling.model.*
+import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
+import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
-import com.netflix.frigga.Names
-import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
+import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.aws.model.SubnetData
 import com.netflix.spinnaker.kato.aws.model.SubnetTarget
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
-import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
-import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
-
 /**
  * A worker class dedicated to the deployment of "applications", following many of Netflix's common AWS conventions.
  *
@@ -103,22 +100,9 @@ class AutoScalingWorker {
     }
 
     task.updateStatus AWS_PHASE, "Beginning ASG deployment."
-    def asgService = regionScopedProvider.asgService
-    def ancestorAsg = asgService.getAncestorAsg(application, stack, freeFormDetails)
-    Integer nextSequence
-    if (ancestorAsg) {
-      task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${ancestorAsg.autoScalingGroupName})"
 
-      def ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): ancestorAsg.autoScalingGroupName]]
-      task.addResultObjects([ancestorServerGroupNameByRegion])
-
-      Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
-      nextSequence = ((ancestorNames.sequence ?: 0) + 1) % 1000
-    } else {
-      nextSequence = 0
-    }
-
-    String asgName = getAutoScalingGroupName(nextSequence)
+    AWSServerGroupNameResolver awsServerGroupNameResolver = regionScopedProvider.AWSServerGroupNameResolver
+    String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
 
     def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: environment,
@@ -169,22 +153,6 @@ class AutoScalingWorker {
       }
     }
     mySubnets
-  }
-
-
-  /**
-   * Asgard's convention for naming AutoScaling Groups.
-   *
-   * @param sequence
-   * @return
-   */
-  String getAutoScalingGroupName(Integer sequence) {
-    def builder = new AutoScalingGroupNameBuilder(appName: application, stack: stack, detail: freeFormDetails)
-    def groupName = builder.buildGroupName(true)
-    if (ignoreSequence) {
-      return groupName
-    }
-    String.format("%s-v%03d", groupName, sequence)
   }
 
   /**

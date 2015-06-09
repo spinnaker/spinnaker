@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.netflix.spinnaker.kato.aws.services
-
 import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
@@ -25,10 +24,8 @@ import com.amazonaws.services.autoscaling.model.LaunchConfiguration
 import com.amazonaws.services.autoscaling.model.ResumeProcessesRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
-import com.netflix.spinnaker.kato.aws.services.AsgService
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class AsgServiceSpec extends Specification {
 
@@ -132,6 +129,9 @@ class AsgServiceSpec extends Specification {
     0 * _
   }
 
+  /*
+    Removed the getAncestorAsg() method so this test may not be needed - sthadeshwar
+
   @Unroll
   void "should consider app, stack, and details in determining ancestor ASG"() {
 
@@ -166,4 +166,5 @@ class AsgServiceSpec extends Specification {
     'none'  | null             || null
     'dev'   | 'none'           || null
   }
+  */
 }
