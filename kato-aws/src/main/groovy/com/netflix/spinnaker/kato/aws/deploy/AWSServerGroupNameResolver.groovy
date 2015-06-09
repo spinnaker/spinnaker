@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.helpers.AbstractServerGroupNameResolver
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 /**
  * @author sthadeshwar
@@ -42,6 +43,7 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
   }
 
   @Override
+  @CompileDynamic
   String getPreviousServerGroupName(String clusterName) {
     AutoScalingGroup ancestorAsg = asgService.getAncestorAsg(clusterName)
     String previousServerGroupName = ancestorAsg ? ancestorAsg.autoScalingGroupName : null
