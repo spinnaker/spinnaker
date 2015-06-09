@@ -109,9 +109,8 @@ class AutoScalingWorker {
     if (ancestorAsg) {
       task.updateStatus AWS_PHASE, "Found ancestor ASG, parsing details (name: ${ancestorAsg.autoScalingGroupName})"
 
-      def ancestorServerGroupNames = [ancestorServerGroupNames : "${region}:${ancestorAsg.autoScalingGroupName}"]
       def ancestorServerGroupNameByRegion = [ancestorServerGroupNameByRegion: [(region): ancestorAsg.autoScalingGroupName]]
-      task.addResultObjects([ancestorServerGroupNames, ancestorServerGroupNameByRegion])
+      task.addResultObjects([ancestorServerGroupNameByRegion])
 
       Names ancestorNames = Names.parseName(ancestorAsg.autoScalingGroupName as String)
       nextSequence = ((ancestorNames.sequence ?: 0) + 1) % 1000
