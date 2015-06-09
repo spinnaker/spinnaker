@@ -20,21 +20,33 @@ package com.netflix.spinnaker.kato.aws.deploy
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.kato.data.task.DefaultTask
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 
 class AutoScalingWorkerUnitSpec extends Specification {
 
+  /*
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
+  */
+
+  @Autowired
+  TaskRepository taskRepository
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
+  }
+
+  def setup() {
+    Task task = new DefaultTask("foo")
+    TaskRepository.threadLocalTask.set(task)
   }
 
   void "deploy workflow is create launch config, create asg"() {
@@ -69,6 +81,9 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * asgService.getAncestorAsg('myasg', _, _) >> new AutoScalingGroup().withAutoScalingGroupName('myasg-v012')
     1 * lcBuilder.buildLaunchConfiguration('myasg', null, _) >> 'lcName'
     1 * mockAutoScalingWorker.createAutoScalingGroup('myasg-v013', 'lcName') >> {}
+    println  mockAutoScalingWorker.getTask().resultObjects.dump()
+    mockAutoScalingWorker.getTask().resultObjects[0].ancestorServerGroupNames == "us-east-1:myasg-v012"
+    mockAutoScalingWorker.getTask().resultObjects[1].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v012"
   }
 
   void "should fail for invalid characters in the asg name"() {
