@@ -7,9 +7,9 @@
         <div ng-repeat="window in stage.context.restrictedExecutionWindow.whitelist">
           <dt>From</dt>
           <dd>
-            {{window.startHour}}:{{window.startMin}}
+            {{ {hours: window.startHour, minutes: window.startMin} | timePickerTime }}
             <strong>&nbsp;to&nbsp;</strong>
-            {{window.endHour}}:{{window.endMin}}
+            {{ {hours: window.endHour, minutes: window.endMin} | timePickerTime }}
             <strong>&nbsp;PST</strong>
           </dd>
         </div>

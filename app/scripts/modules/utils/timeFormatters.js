@@ -30,12 +30,6 @@ angular.module('spinnaker.utils.timeFormatters', [
       return moment.isValid() ? dayLabel +  moment.format(format): '-';
     };
   })
-  .filter('conformTime', function (momentService) {
-    return function (input) {
-      var moment = momentService(input);
-      return moment.format('YYYY-MM-DD HH:mm:ss');
-    };
-  })
   .filter('fastPropertyTime', function(momentService) {
     return function (input) {
       if(input) {
@@ -45,5 +39,25 @@ angular.module('spinnaker.utils.timeFormatters', [
       } else {
         return '--';
       }
+    };
+  })
+  .filter('timePickerTime', function() {
+    return function (input) {
+      if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {
+        var hours = parseInt(input.hours),
+            minutes = parseInt(input.minutes);
+
+        var result = '';
+        if (hours < 10) {
+          result += '0';
+        }
+        result += hours + ':';
+        if (minutes < 10) {
+          result += '0';
+        }
+        result += minutes;
+        return result;
+      }
+      return '-';
     };
   });

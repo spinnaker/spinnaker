@@ -38,7 +38,7 @@ angular.module('spinnaker.pipelines.stage.bake')
     $scope.viewState = {
       loading: true,
       providerSelected: !!$scope.stage.cloudProviderType,
-      providerSelectionRequired: true,
+      providerSelectionRequired: false,
     };
 
     accountService.listProviders().then(function(providers) {
