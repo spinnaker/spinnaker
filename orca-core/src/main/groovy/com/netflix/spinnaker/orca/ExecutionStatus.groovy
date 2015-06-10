@@ -59,7 +59,12 @@ enum ExecutionStatus {
   /**
    * The task was canceled. The pipeline will not progress any further.
    */
-  CANCELED(true)
+  CANCELED(true),
+
+  /**
+   * The step completed but is indicating that a decision path should be followed, not the default path.
+   */
+  REDIRECT(true)
 
   final boolean complete
 
