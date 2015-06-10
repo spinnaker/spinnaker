@@ -77,7 +77,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
       exec command: command
     }
     def outParts = output.output.split("\n")
-    def jsonText = outParts[1..<outParts.size()].join("\n")
+    def jsonText = outParts[0..<outParts.size()].join("\n")
     def json = slurper.parseText(jsonText) as Map
     expiration = format.parse(json.Expiration as String)
     new BasicSessionCredentials(json.AccessKeyId as String, json.SecretAccessKey as String, json.Token as String)
