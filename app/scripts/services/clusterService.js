@@ -67,7 +67,11 @@ angular.module('spinnaker.cluster.service', [
 
     function instanceIdsTaskMatcher(task, serverGroup) {
       if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
-        return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceIds')).length > 0;
+        if (task.getValueFor('knownInstanceIds')) {
+          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('knownInstanceIds')).length > 0;
+        } else {
+          return _.intersection(_.pluck(serverGroup.instances, 'id'), task.getValueFor('instanceIds')).length > 0;
+        }
       }
       return false;
     }
@@ -102,6 +106,7 @@ angular.module('spinnaker.cluster.service', [
       },
       'enableinstancesindiscovery': instanceIdsTaskMatcher,
       'disableinstancesindiscovery': instanceIdsTaskMatcher,
+      'disableinstances': instanceIdsTaskMatcher,
       'registerinstanceswithloadbalancer': instanceIdsTaskMatcher,
       'deregisterinstancesfromloadbalancer': instanceIdsTaskMatcher,
       'terminateinstances': instanceIdsTaskMatcher,

@@ -4,8 +4,11 @@
 angular.module('spinnaker.deploymentStrategy')
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
 
-    function listAvailableStrategies() {
-      return deploymentStrategyConfig.listStrategies();
+    function listAvailableStrategies(provider) {
+      var allStrategies = deploymentStrategyConfig.listStrategies();
+      return allStrategies.filter(function (strategy) {
+        return !strategy.providers || !strategy.providers.length || strategy.providers.indexOf(provider) !== -1;
+      });
     }
 
     function getStrategy(key) {

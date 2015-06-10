@@ -132,6 +132,12 @@ angular.module('spinnaker.help')
     'strategy.redblack.maxRemainingAsgs': '<p>Indicates the maximum number of server groups that will remain in this cluster - including the newly created one.</p>' +
       '<p>If you wish to destroy all server groups except the newly created one, select "Highlander" as the strategy.</p>' +
       '<p><strong>Minimum value:</strong> 2</p>',
+    'strategy.rollingPush.relaunchAll': '<p>Incrementally terminates each instance in the server group, waiting for a new one to come up before terminating the next one.</p>',
+    'strategy.rollingPush.totalRelaunches': '<p>Total number of instances to terminate and relaunch.</p>',
+    'strategy.rollingPush.concurrentRelaunches': '<p>Number of instances to terminate and relaunch at a time.</p>',
+    'strategy.rollingPush.order': '<p>Determines the order in which instances will be terminated. ' +
+      '<ul><li><b>Oldest</b> will terminate the oldest instances first</li>' +
+      '<li><b>Newest</b> will terminate those most recently launched.</li></ul></p>',
 
     'loadBalancers.filter.serverGroups': '<p>Displays all server groups configured to use the load balancer.</p>' +
       '<p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>',
