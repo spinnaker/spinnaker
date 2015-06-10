@@ -31,9 +31,10 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
  * replica pool then the replica pool will automatically recreate and restart the instance once it sees
  * that it is missing. The net effect is to recreate the instance (if it was in a replica pool).
  *
- * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation},
+ * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation}.
  *
  * @see RecreateGoogleReplicaPoolInstancesAtomicOperation
+ * @see TerminateAndDecrementGoogleReplicaPoolAtomicOperation
  */
 class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_INSTANCES"
