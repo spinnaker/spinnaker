@@ -16,16 +16,13 @@
 
 package com.netflix.spinnaker.orca.mayo.tasks
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.mayo.DependentPipelineStarter
 import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -38,10 +35,7 @@ class StartPipelineTask implements Task {
   MayoService mayoService
 
   @Autowired
-  ObjectMapper objectMapper
-
-  @Autowired
-  PipelineStarter pipelineStarter
+  DependentPipelineStarter dependentPipelineStarter
 
   @Override
   TaskResult execute(Stage stage) {
@@ -50,54 +44,7 @@ class StartPipelineTask implements Task {
     List pipelines = mayoService.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == stage.context.pipeline }
 
-    def json = objectMapper.writeValueAsString(pipelineConfig)
-    log.info('triggering dependant pipeline {}:{}', pipelineConfig.id, json)
-
-    pipelineConfig.trigger = [
-      type                      : "pipeline",
-      user                      : stage.context.user ?: '[anonymous]',
-      parentPipelineId          : stage.execution.id,
-      parentPipelineName        : ((Pipeline) stage.execution).name,
-      parentPipelineApplication : ((Pipeline) stage.execution).application
-    ]
-
-    if (pipelineConfig.parameterConfig) {
-      if (!pipelineConfig.trigger.parameters) {
-        pipelineConfig.trigger.parameters = [:]
-      }
-      def pipelineParameters = stage.context.pipelineParameters ?: [:]
-      pipelineConfig.parameterConfig.each {
-        pipelineConfig.trigger.parameters[it.name] = pipelineParameters.containsKey(it.name) ? pipelineParameters[it.name] : it.default
-      }
-    }
-
-    def augmentedContext = [:]
-    augmentedContext.put('trigger', pipelineConfig.trigger)
-    def processedPipeline = ContextParameterProcessor.process(pipelineConfig, augmentedContext)
-
-    json = objectMapper.writeValueAsString(processedPipeline)
-
-    log.info('running pipeline {}:{}', pipelineConfig.id, json)
-
-
-    def pipeline
-
-    def t1 = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        pipeline = pipelineStarter.start(json)
-      }
-    })
-
-    t1.start()
-
-    try {
-      t1.join()
-    } catch (InterruptedException e) {
-      e.printStackTrace()
-    }
-
-    log.info('executing dependent pipeline {}', pipeline.id)
+    dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 

@@ -24,4 +24,7 @@ interface MayoService {
   @GET("/pipelines/{application}")
   List<Map<String, Object>> getPipelines(@Path("application") String application)
 
+  @GET("/pipelines")
+  List<Map<String, Object>> getAllPipelines()
+
 }
