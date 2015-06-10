@@ -25,7 +25,7 @@ angular.module('spinnaker.pipelines.trigger.pipeline')
     }
 
     $scope.statusOptions = [
-      'completed',
+      'successful',
       'failed',
       'canceled',
     ];
