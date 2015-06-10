@@ -48,7 +48,7 @@ class WaitForMultiAccountPropagationTaskSpec extends Specification {
   void "should be #expectedStatus if application #removed from all accounts"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * getCredentials() >> [new Front50Credential(name: "global", global: true)]
+      1 * getCredentials() >> [new Front50Credential(name: "global", global: true), new Front50Credential(name: "test")]
       1 * get("test", config.application.name) >> testApplication
       1 * get("global", config.application.name) >> globalApplication
       0 * _._
@@ -78,7 +78,7 @@ class WaitForMultiAccountPropagationTaskSpec extends Specification {
   void "should be #expectedStatus if application #exists in all accounts"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * getCredentials() >> [new Front50Credential(name: "global", global: true)]
+      1 * getCredentials() >> [new Front50Credential(name: "global", global: true), new Front50Credential(name: "test")]
       1 * get("test", config.application.name) >> testApplication
       1 * get("global", config.application.name) >> globalApplication
       0 * _._

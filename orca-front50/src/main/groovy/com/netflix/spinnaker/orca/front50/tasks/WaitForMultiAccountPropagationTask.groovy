@@ -50,9 +50,10 @@ class WaitForMultiAccountPropagationTask implements RetryableTask {
     def application = stage.context.application as Map<String, String>
     def applicationName = application.name as String
 
-    def globalAccounts = front50Service.credentials.findAll { it.global }*.name
+    def allCredentials = front50Service.credentials
+    def globalAccounts = allCredentials.findAll { it.global }*.name
     def targetAccount = stage.context.account as String
-    def allAccounts = [targetAccount] + globalAccounts
+    def allAccounts = ([targetAccount] + globalAccounts).findAll { allCredentials*.name.contains(it) }
     def status = ExecutionStatus.SUCCEEDED
 
     def isCreate = stage.execution.stages.find {

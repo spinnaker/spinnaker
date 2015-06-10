@@ -52,7 +52,7 @@ class UpsertApplicationTaskSpec extends Specification {
     given:
     task.front50Service = Mock(Front50Service) {
       3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> []
+      1 * getCredentials() >> [new Front50Credential(name: config.account)]
       1 * create(config.account, config.application.name, {
         it.properties == new Application(config.application).properties
       })
@@ -71,7 +71,7 @@ class UpsertApplicationTaskSpec extends Specification {
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> null
       3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
       1 * create(globalAccount, config.application.name, {
         it.properties == new Application(config.application + [accounts: config.account]).properties
       })
@@ -94,7 +94,7 @@ class UpsertApplicationTaskSpec extends Specification {
       1 * get(globalAccount, config.application.name) >> existingGlobalApplication
       1 * get(existingGlobalApplicationAccount, config.application.name) >> existingGlobalApplication
       3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
       1 * update(globalAccount, {
         // assert that the global application is updated w/ new application attributes and merged accounts
         it.properties == new Application(
@@ -132,7 +132,7 @@ class UpsertApplicationTaskSpec extends Specification {
       1 * get(globalAccount, config.application.name) >> new Application(accounts: "prod")
       1 * get("prod", config.application.name) >> null
       3 * get(config.account, config.application.name) >> new Application()
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
       1 * update(globalAccount, {
         it.properties == new Application(config.application + [accounts: "prod,test"]).properties
       })
@@ -172,7 +172,7 @@ class UpsertApplicationTaskSpec extends Specification {
     Application application = new Application(config.application)
     task.front50Service = Mock(Front50Service) {
       3 * get(config.account, config.application.name) >> initialState >> initialState >> application
-      1 * getCredentials() >> []
+      1 * getCredentials() >> [new Front50Credential(name: config.account)]
       1 * "${operation}"(*_)
       0 * _._
     }
