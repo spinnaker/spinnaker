@@ -164,7 +164,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
   }
 
   // To be considered healthy, there must be at least one Up vote and all other votes must be Up or Unknown.
-  static boolean calculateIsHealthy(GoogleInstance googleInstance) {
+  public static boolean calculateIsHealthy(GoogleInstance googleInstance) {
     googleInstance.health.any {
       it.state == HealthState.Up
     } && googleInstance.health.every {
