@@ -27,9 +27,8 @@ class DeleteApplicationTask extends AbstractFront50Task {
     Map<String, Object> outputs = [:]
     outputs.previousState = fetchApplication(account, application.name) ?: [:]
 
-    front50Service.delete(account, application.name)
-
-    front50Service.credentials.findAll { it.global }.collect {
+    def allCredentials = front50Service.credentials
+    allCredentials.findAll { it.global }.collect {
       it.name
     }.each { String globalAccountName ->
       try {
@@ -51,6 +50,11 @@ class DeleteApplicationTask extends AbstractFront50Task {
         throw e
       }
     }
+
+    if (allCredentials.find { it.name.equalsIgnoreCase(account) && !it.global }) {
+      front50Service.delete(account, application.name)
+    }
+
     outputs
   }
 
