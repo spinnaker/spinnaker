@@ -1,0 +1,6 @@
+dependencies {
+  compile project(":mort-core")
+  compile spinnaker.dependency("frigga")
+  spinnaker.group('amazon')
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+}

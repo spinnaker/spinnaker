@@ -1,0 +1,29 @@
+buildscript {
+  repositories {
+    jcenter()
+    maven { url "http://dl.bintray.com/spinnaker/gradle" }
+    mavenLocal()
+  }
+  dependencies {
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.64'
+  }
+}
+
+ext {
+  springBootVersion = '1.2.1.RELEASE'
+}
+
+allprojects {
+  apply plugin: 'spinnaker-gradle-project'
+  apply plugin: 'groovy'
+
+  group = "com.netflix.spinnaker.mort"
+
+  dependencies {
+    spinnaker.group("test")
+    compile spinnaker.dependency('groovy')
+    compile spinnaker.dependency('bootActuator')
+  }
+}
+
+defaultTasks ':mort-web:bootRun'

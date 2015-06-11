@@ -1,0 +1,4 @@
+dependencies {
+  compile spinnaker.dependency("rxJava")
+  compile spinnaker.dependency("amos")
+}
