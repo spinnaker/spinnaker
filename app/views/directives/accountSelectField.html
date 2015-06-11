@@ -13,8 +13,8 @@
 </div>
 
 <div ng-if="multiselect">
-  <ui-select multiple ng-model="component[field]" class="form-control input-sm" style="width:200px" >
-    <ui-select-match>
+  <ui-select multiple required name="accounts" ng-model="component[field]" class="form-control input-sm" style="width:200px" >
+    <ui-select-match >
       {{$item}}
     </ui-select-match>
     <ui-select-choices group-by="groupBy" repeat="account in mergedAccounts | filter: $select.search">

@@ -150,7 +150,7 @@
       <button type="submit"
               class="btn btn-primary"
               data-purpose="submit"
-              ng-disabled="!newApplicationForm.$valid || newAppModal.submitting"
+              ng-disabled="newApplicationForm.$invalid || !newAppModal.application.hasOwnProperty('account') || (newAppModal.application.hasOwnProperty('account') && newAppModal.application.account.length < 1)|| newAppModal.submitting"
               ng-click="newAppModal.submit()" analytics-on="click" analytics-category="New Application" analytics-label="Create">
         <span class="glyphicon glyphicon-ok-circle"></span> Create
       </button>
