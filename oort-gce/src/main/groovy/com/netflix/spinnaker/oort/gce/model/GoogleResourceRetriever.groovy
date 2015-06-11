@@ -399,41 +399,45 @@ class GoogleResourceRetriever {
     // Walk the path from the application down to the instances.
     GoogleCluster googleCluster = appMap.get(appName)?.clusters?.get(accountName)?.get(clusterName) ?: null
 
-    if (googleCluster) {
-      GoogleServerGroup origGoogleServerGroup = googleCluster.getServerGroups().find { googleServerGroup ->
-        googleServerGroup.name == newGoogleServerGroup.name
+    if (!googleCluster) {
+      return
+    }
+
+    GoogleServerGroup origGoogleServerGroup = googleCluster.getServerGroups().find { googleServerGroup ->
+      googleServerGroup.name == newGoogleServerGroup.name
+    }
+
+    if (!origGoogleServerGroup) {
+      return
+    }
+
+    // Iterate over each of the original server group's instances.
+    origGoogleServerGroup.instances.each { origGoogleInstance ->
+      // See if the instance is still present in the new server group.
+      GoogleInstance newGoogleInstance = newGoogleServerGroup.instances.find { newGoogleInstance ->
+        newGoogleInstance.name == origGoogleInstance.name
       }
 
-      if (origGoogleServerGroup) {
-        // Iterate over each of the original server group's instances.
-        origGoogleServerGroup.instances.each { origGoogleInstance ->
-          // See if the instance is still present in the new server group.
-          GoogleInstance newGoogleInstance = newGoogleServerGroup.instances.find { newGoogleInstance ->
-            newGoogleInstance.name == origGoogleInstance.name
-          }
-
-          if (newGoogleInstance) {
-            // Look for load balancer health states.
-            List<Map> origLoadBalancerHealthStates = origGoogleInstance.getProperty("health")?.findAll { origHealthStateMap ->
-              origHealthStateMap.type == "LoadBalancer"
-            }
-
-            // Migrate any existing load balancer health states.
-            if (origLoadBalancerHealthStates) {
-              // There shouldn't be any way to have an instance with a null "health" property, but playing it safe here anyway.
-              List<Map> newHealthStates = newGoogleInstance.getProperty("health") ?: []
-
-              // Add any found original load balancer health states. It's ok to do a shallow copy here since the original server
-              // group is about to be replaced in the appMap with the new server group.
-              newHealthStates += origLoadBalancerHealthStates
-
-              newGoogleInstance.setProperty("health", newHealthStates)
-            }
-
-            // Calculate the instance's health based on the new GCE health state and any migrated load balancer health states.
-            newGoogleInstance.setProperty("isHealthy", InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance))
-          }
+      if (newGoogleInstance) {
+        // Look for load balancer health states.
+        List<Map> origLoadBalancerHealthStates = origGoogleInstance.getProperty("health")?.findAll { origHealthStateMap ->
+          origHealthStateMap.type == "LoadBalancer"
         }
+
+        // Migrate any existing load balancer health states.
+        if (origLoadBalancerHealthStates) {
+          // There shouldn't be any way to have an instance with a null "health" property, but playing it safe here anyway.
+          List<Map> newHealthStates = newGoogleInstance.getProperty("health") ?: []
+
+          // Add any found original load balancer health states. It's ok to do a shallow copy here since the original server
+          // group is about to be replaced in the appMap with the new server group.
+          newHealthStates += origLoadBalancerHealthStates
+
+          newGoogleInstance.setProperty("health", newHealthStates)
+        }
+
+        // Calculate the instance's health based on the new GCE health state and any migrated load balancer health states.
+        newGoogleInstance.setProperty("isHealthy", InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance))
       }
     }
   }
