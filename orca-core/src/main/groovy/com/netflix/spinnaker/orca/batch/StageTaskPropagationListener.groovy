@@ -29,8 +29,6 @@ import org.springframework.stereotype.Component
 @Component
 class StageTaskPropagationListener extends AbstractStagePropagationListener {
 
-  private final Pattern TASK_NAME_PATTERN = ~/(?<=[\.])(\S+)(?=\.)/
-
   @Autowired
   StageTaskPropagationListener(ExecutionRepository executionRepository) {
     super(executionRepository)
@@ -40,9 +38,10 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
   void beforeTask(Stage stage, StepExecution stepExecution) {
     def taskId = taskId(stepExecution)
     def task = stage.tasks.find { it.id == taskId }
-    if (task.status == ExecutionStatus.NOT_STARTED) {
+    if (task.status != ExecutionStatus.RUNNING) {
       task = (DefaultTask) task
       task.startTime = System.currentTimeMillis()
+      task.endTime = null
       task.status = ExecutionStatus.RUNNING
       saveStage stage
     }
