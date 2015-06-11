@@ -19,8 +19,10 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -45,6 +47,8 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired DestroyAsgStage destroyAsgStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
   @Autowired SourceResolver sourceResolver
+  @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
+  @Autowired RollingPushStage rollingPushStage
 
   DeployStrategyStage(String name) {
     super(name)
@@ -77,10 +81,13 @@ abstract class DeployStrategyStage extends LinearStage {
   @Override
   public List<Step> buildSteps(Stage stage) {
     correctContext(stage)
-    strategy(stage).composeFlow(this, stage)
+    def strategy = strategy(stage)
+    strategy.composeFlow(this, stage)
 
     List<Step> steps = [buildStep(stage, "determineSourceServerGroup", DetermineSourceServerGroupTask)]
-    steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+    if (!strategy.replacesBasicSteps()) {
+      steps.addAll((basicSteps(stage) ?: []) as List<Step>)
+    }
     return steps
   }
 
@@ -142,6 +149,27 @@ abstract class DeployStrategyStage extends LinearStage {
         }
       }
     }
+  }
+
+  protected void composeRollingPushFlow(Stage stage) {
+    def source = sourceResolver.getSource(stage)
+
+    def modifyCtx = stage.context + [
+      region: source.region,
+      regions: [source.region],
+      asgName: source.asgName,
+      'deploy.server.groups': [(source.region): [source.asgName]],
+      useSourceCapacity: true,
+      source: [
+        asgName: source.asgName,
+        account: source.account,
+        region: source.region,
+        useSourceCapacity: true
+      ]
+    ]
+
+    injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
+    injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
   }
 
   @CompileDynamic
