@@ -23,7 +23,9 @@ angular.module('spinnaker.pipelines.stage.pipeline')
 
     $scope.stage = stage;
 
-    $scope.stage.application = $scope.application.name;
+    if (!$scope.stage.application) {
+      $scope.stage.application = $scope.application.name;
+    }
 
     $scope.viewState = {
       mastersLoaded: false,
@@ -44,6 +46,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
 
     applicationReader.listApplications().then(function(applications) {
       $scope.applications = _.pluck(applications, 'name').sort();
+      initializeMasters();
     });
 
     function initializeMasters() {
@@ -56,9 +59,6 @@ angular.module('spinnaker.pipelines.stage.pipeline')
           $scope.viewState.pipelinesLoaded = true;
           updatePipelineConfig();
         });
-      } else {
-        $scope.viewState.pipelinesLoaded = true;
-        updatePipelineConfig();
       }
     }
 
