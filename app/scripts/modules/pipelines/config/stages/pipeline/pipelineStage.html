@@ -2,7 +2,16 @@
   <div class="form-group">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Application</label>
     <div class="col-md-6">
-      <p class="form-control-static">{{application.name}}</p>
+      <ui-select ng-model="stage.application" class="form-control input-sm">
+        <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
+
+        <ui-select-choices
+          repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
+          infinite-scroll="pipelineStageCtrl.addMoreItems()"
+          infinite-scroll-distance="2" >
+          <div ng-bind-html="application | highlight: $select.search"></div>
+        </ui-select-choices>
+      </ui-select>
     </div>
   </div>
   <div class="form-group">
@@ -12,7 +21,7 @@
         <ui-select class="form-control input-sm"
                    ng-model="stage.pipeline">
           <ui-select-match placeholder="Select a pipeline...">{{$select.selected.name}}</ui-select-match>
-          <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search"><span
+          <ui-select-choices repeat="pipeline.id as pipeline in pipelines | filter: $select.search | orderBy: 'index'"><span
             ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
         </ui-select>
       </div>
