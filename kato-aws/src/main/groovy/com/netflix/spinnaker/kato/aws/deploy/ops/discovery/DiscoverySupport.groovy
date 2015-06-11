@@ -134,7 +134,7 @@ class DiscoverySupport {
           throw re
         }
 
-        if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404) {
+        if (re.kind == RetrofitError.Kind.NETWORK || re.response.status == 404 || re.response.status == 406) {
           retryCount++
           sleep(getDiscoveryRetryMs())
         } else if (re.response.status >= 500) {

@@ -160,7 +160,7 @@ class DiscoverySupportUnitSpec extends Specification {
     }
 
     where:
-    failure << [httpError(404), httpError(503), amazonError(503)]
+    failure << [httpError(404), httpError(406), httpError(503), amazonError(503)]
 
     discoveryUrl = "http://us-west-1.discovery.netflix.net"
     region = "us-west-1"
