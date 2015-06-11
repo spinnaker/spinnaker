@@ -48,22 +48,15 @@ class DependentPipelineExecutionListener implements JobExecutionListener {
   void afterJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
     if (execution) {
-      def pipelinesToRun = mayoService.getAllPipelines().findAll {
-        boolean runThisPipeline = false
+      mayoService.getAllPipelines().each {
         it.triggers.each { trigger ->
           if (trigger.enabled &&
             trigger.type == 'pipeline' &&
             trigger.pipeline == execution.pipelineConfigId &&
             trigger.status.contains(convertStatus(execution))
           ) {
-            runThisPipeline = true
+            dependentPipelineStarter.trigger(it, execution.trigger?.user, execution, [:])
           }
-        }
-        runThisPipeline
-      }
-      if (!pipelinesToRun.empty) {
-        pipelinesToRun.each { pipeline ->
-          dependentPipelineStarter.trigger(pipeline, execution.trigger?.user, execution, [:])
         }
       }
     }
