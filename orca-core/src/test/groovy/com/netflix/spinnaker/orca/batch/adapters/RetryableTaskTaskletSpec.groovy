@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 
 import java.time.Clock
@@ -59,7 +61,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   def pipelineStore = new InMemoryPipelineStore(objectMapper)
   def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
-  def taskFactory = new TaskTaskletAdapter(executionRepository, [], sleeper)
+  def taskFactory = new TaskTaskletAdapter(executionRepository, [], new ExtendedRegistry(new NoopRegistry()), sleeper)
   Pipeline pipeline
 
   @Override
@@ -130,7 +132,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
     and:
     def stage = new PipelineStage(new Pipeline(), null, stageContext)
-    def tasklet = new RetryableTaskTasklet(task, null, null, clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new ExtendedRegistry(new NoopRegistry()), clock)
 
     when:
     def exceptionThrown = false

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
@@ -50,7 +52,7 @@ class TaskTaskletSpec extends Specification {
   def task = Mock(Task)
 
   @Subject
-  def tasklet = new TaskTasklet(task, executionRepository, [])
+  def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new NoopRegistry()))
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -221,7 +223,7 @@ class TaskTaskletSpec extends Specification {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
 
-    def tasklet = new TaskTasklet(task, executionRepository, [])
+    def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new NoopRegistry()))
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true

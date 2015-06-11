@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
@@ -116,8 +118,9 @@ class OrcaConfiguration {
 
   @Bean
   TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository,
-                                        List<ExceptionHandler> exceptionHandlers) {
-    new TaskTaskletAdapter(executionRepository, exceptionHandlers)
+                                        List<ExceptionHandler> exceptionHandlers,
+                                        ExtendedRegistry extendedRegistry = new ExtendedRegistry(new NoopRegistry())) {
+    new TaskTaskletAdapter(executionRepository, exceptionHandlers, extendedRegistry)
   }
 
   @Bean
