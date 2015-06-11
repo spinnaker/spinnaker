@@ -19,7 +19,9 @@ package com.netflix.spinnaker.oort.gce.model
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
+import com.netflix.spinnaker.oort.model.HealthState
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -181,6 +183,110 @@ class GoogleResourceRetrieverSpec extends Specification {
       networkLoadBalancerMap == buildNetworkLoadBalancerMapWithServerGroupSummaries()
   }
 
+  void "load balancer health states are migrated to new server group"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+
+      // Build path from cluster through original server group and instance.
+      def origGoogleCluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+      def origGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
+      def origGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      origGoogleInstance.setProperty("health", [
+        buildGCEHealthState(HealthState.Unknown),
+        buildLoadBalancerHealthState(HealthState.Up, "testapp-dev-frontend2", "testapp-dev-v000-abcd", "InService")
+      ])
+      origGoogleServerGroup.instances << origGoogleInstance
+      origGoogleCluster.serverGroups << origGoogleServerGroup
+
+      // Build new server group and instance.
+      def newGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
+      def newGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      newGoogleInstance.setProperty("health", [
+        buildGCEHealthState(HealthState.Unknown)
+      ])
+      newGoogleServerGroup.instances << newGoogleInstance
+
+    when:
+      def isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
+
+    then:
+      // As there are no Up health states, the instance should be considered unhealthy.
+      !isHealthy
+
+    when:
+      googleResourceRetriever.migrateInstanceLoadBalancerHealthStates(newGoogleServerGroup, "account-1", "testapp", "testapp-dev")
+      isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
+
+    then:
+      // As there is now an Up load balancer health states, the instance should be considered healthy.
+      isHealthy
+
+      // Retrieve the instance from the server group to ensure the correct instance was updated.
+      def googleInstance = newGoogleServerGroup.instances.find { googleInstance ->
+        googleInstance.name == "testapp-dev-v000-abcd"
+      }
+
+      // Verify the presence of the load balancer health state.
+      def loadBalancerHealthState = googleInstance.getProperty("health").find { healthState ->
+        healthState.type == "LoadBalancer"
+      }
+
+      loadBalancerHealthState?.state == HealthState.Up
+  }
+
+  void "load balancer health states are not migrated to new server group when no matching instances are found"() {
+    setup:
+      def googleResourceRetriever = new GoogleResourceRetriever()
+
+      // Build path from cluster through original server group and instance.
+      def origGoogleCluster =
+        Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
+      def origGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
+      def origGoogleInstance = new GoogleInstance("testapp-dev-v000-efgh")
+      origGoogleInstance.setProperty("health", [
+        buildGCEHealthState(HealthState.Unknown),
+        buildLoadBalancerHealthState(HealthState.Up, "testapp-dev-frontend2", "testapp-dev-v000-efgh", "InService")
+      ])
+      origGoogleServerGroup.instances << origGoogleInstance
+      origGoogleCluster.serverGroups << origGoogleServerGroup
+
+      // Build new server group and instance.
+      def newGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
+      def newGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      newGoogleInstance.setProperty("health", [
+        buildGCEHealthState(HealthState.Unknown)
+      ])
+      newGoogleServerGroup.instances << newGoogleInstance
+
+    when:
+      def isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
+
+    then:
+      // As there are no Up health states, the instance should be considered unhealthy.
+      !isHealthy
+
+    when:
+      googleResourceRetriever.migrateInstanceLoadBalancerHealthStates(newGoogleServerGroup, "account-1", "testapp", "testapp-dev")
+      isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
+
+    then:
+      // As there are still no Up health states, the instance should still be considered unhealthy.
+      !isHealthy
+
+      // Retrieve the instance from the server group.
+      def googleInstance = newGoogleServerGroup.instances.find { googleInstance ->
+        googleInstance.name == "testapp-dev-v000-abcd"
+      }
+
+      // Verify the absence of any load balancer health state.
+      def loadBalancerHealthState = googleInstance.getProperty("health").find { healthState ->
+        healthState.type == "LoadBalancer"
+      }
+
+      !loadBalancerHealthState
+  }
+
   private HashMap<String, GoogleApplication> buildTestAppMap1() {
     def appMap = new HashMap<String, GoogleApplication>()
     def appName1 = "roscoapp1"
@@ -195,22 +301,8 @@ class GoogleResourceRetrieverSpec extends Specification {
     def instance1 = new GoogleInstance("roscoapp1-dev-v001-abcd")
     instance1.setProperty("placement", [availabilityZone: "us-central1-a"])
     instance1.setProperty("health", [
-      [
-        type: "GCE",
-        state: "Unknown"
-      ],
-      [
-        type: "LoadBalancer",
-        state: "Up",
-        loadBalancers: [
-          [
-            loadBalancerName: "roscoapp-dev-frontend2",
-            instanceId: "roscoapp1-dev-v001-abcd",
-            state: "InService"
-          ]
-        ],
-        instanceId: "roscoapp1-dev-v001-abcd"
-      ]
+      buildGCEHealthState(HealthState.Unknown),
+      buildLoadBalancerHealthState(HealthState.Up, "roscoapp-dev-frontend2", "roscoapp1-dev-v001-abcd", "InService")
     ])
     serverGroup1.instances << instance1
     def instance2 = new GoogleInstance("roscoapp1-dev-v001-efgh")
@@ -219,22 +311,8 @@ class GoogleResourceRetrieverSpec extends Specification {
     def instance3 = new GoogleInstance("roscoapp1-dev-v001-ijkl")
     instance3.setProperty("placement", [availabilityZone: "us-central1-a"])
     instance3.setProperty("health", [
-      [
-        type: "GCE",
-        state: "Unknown"
-      ],
-      [
-        type: "LoadBalancer",
-        state: "Up",
-        loadBalancers: [
-          [
-            loadBalancerName: "roscoapp-dev-frontend2",
-            instanceId: "roscoapp1-dev-v001-ijkl",
-            state: "InService"
-          ]
-        ],
-        instanceId: "roscoapp1-dev-v001-ijkl"
-      ]
+      buildGCEHealthState(HealthState.Unknown),
+      buildLoadBalancerHealthState(HealthState.Up, "roscoapp-dev-frontend2", "roscoapp1-dev-v001-ijkl", "InService")
     ])
     serverGroup1.instances << instance3
     cluster1.serverGroups << serverGroup1
@@ -330,5 +408,27 @@ class GoogleResourceRetrieverSpec extends Specification {
         ]
       ]
     ]
+  }
+
+  private Map buildGCEHealthState(HealthState healthState) {
+    [
+      type: "GCE",
+      state: healthState
+    ]
+  }
+
+  private Map buildLoadBalancerHealthState(HealthState healthState, String loadBalancerName, String instanceId, String instanceState) {
+      [
+        type: "LoadBalancer",
+        state: healthState,
+        loadBalancers: [
+          [
+            loadBalancerName: loadBalancerName,
+            instanceId: instanceId,
+            state: instanceState
+          ]
+        ],
+        instanceId: instanceId
+      ]
   }
 }
