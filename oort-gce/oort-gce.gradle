@@ -1,0 +1,8 @@
+dependencies {
+  compile project(":oort-core")
+
+  spinnaker.group("bootWeb")
+  spinnaker.group("google")
+
+  compile spinnaker.dependency("frigga")
+}

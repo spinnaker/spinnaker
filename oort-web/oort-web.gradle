@@ -1,0 +1,73 @@
+buildscript {
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
+
+configurations.all {
+  exclude group: 'javax.servlet', module: 'servlet-api'
+  exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+ideaConfig {
+  appClassName = 'com.netflix.spinnaker.oort.Main'
+}
+
+dependencies {
+  compile project(":oort-core")
+  compile project(":oort-aws")
+  compile project(":oort-gce")
+
+  runtime spinnaker.dependency("kork")
+  compile spinnaker.dependency("korkWeb")
+  spinnaker.group("bootWeb")
+
+  compile spinnaker.dependency('eurekaClient')
+}
+
+applicationName = 'oort'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+  into "config"
+}
+
+sourceSets {
+  main {
+    resources {
+      srcDir 'src/main/resources'
+      srcDir 'config'
+    }
+  }
+}
+
+jar {
+  doFirst {
+    exclude "${rootProject.name}.yml"
+  }
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
+
+ospackage {
+  packageName = project.applicationName
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("redis-server")
+}

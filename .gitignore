@@ -1,0 +1,13 @@
+*.class
+out/
+.gradle/
+build/
+*.iml
+*.ipr
+*.iws
+TestScript.groovy
+.idea/
+dist/
+vendor/
+.bundle/
+*.rdb

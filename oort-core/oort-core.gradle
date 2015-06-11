@@ -1,0 +1,4 @@
+dependencies {
+  compile spinnaker.dependency("kork")
+  compile spinnaker.dependency('eurekaClient')
+}
