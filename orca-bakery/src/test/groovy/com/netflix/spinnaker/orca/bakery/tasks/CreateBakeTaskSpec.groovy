@@ -52,6 +52,16 @@ class CreateBakeTaskSpec extends Specification {
   ]
 
   @Shared
+  def bakeConfigWithCloudProviderType = [
+    region            : "us-west-1",
+    package           : "hodor",
+    user              : "bran",
+    cloudProviderType : "aws",
+    baseOs            : OperatingSystem.ubuntu.name(),
+    baseLabel         : BakeRequest.Label.release.name()
+  ]
+
+  @Shared
   def buildInfo = [
     artifacts: [
       [fileName: 'hodor_1.1_all.deb'],
@@ -522,6 +532,35 @@ class CreateBakeTaskSpec extends Specification {
     triggerInfo | contextInfo
     buildInfo   | null
     null        | buildInfo
+  }
+
+  @Unroll
+  def "propagation of cloudProviderType is feature-flagged"() {
+    given:
+    Stage stage = new PipelineStage(new Pipeline(), "bake", bakeConfigWithCloudProviderType).asImmutable()
+    def bake
+    task.bakery = Mock(BakeryService) {
+      1 * createBake(*_) >> {
+        bake = it[1]
+        Observable.from(runningStatus)
+      }
+    }
+    task.propagateCloudProviderType = propagateCloudProviderType
+
+    when:
+    task.execute(stage)
+
+    then:
+    bake.cloudProviderType == expectedCloudProviderType
+    bake.user              == bakeConfigWithCloudProviderType.user
+    bake.packageName       == bakeConfigWithCloudProviderType.package
+    bake.baseOs.name()     == bakeConfigWithCloudProviderType.baseOs
+    bake.baseLabel.name()  == bakeConfigWithCloudProviderType.baseLabel
+
+    where:
+    propagateCloudProviderType | expectedCloudProviderType
+    false                      | null
+    true                       | BakeRequest.CloudProviderType.aws
   }
 
 }
