@@ -35,12 +35,12 @@ configurations.all {
 }
 
 dependencies {
-  compile project(":kato-manual")
-  compile project(":kato-core")
-  compile project(":kato-aws")
-  compile project(":kato-cf")
-  compile project(":kato-gce")
-  compile project(":kato-docker")
+  compile project(":kato:kato-manual")
+  compile project(":kato:kato-core")
+  compile project(":kato:kato-aws")
+  compile project(":kato:kato-cf")
+  compile project(":kato:kato-gce")
+  compile project(":kato:kato-docker")
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

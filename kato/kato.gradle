@@ -14,18 +14,5 @@
  * limitations under the License.
  */
 
-rootProject.name="kato"
 
-include "kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-jedis", "kato-docker", "kato-cf"
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
-}
 

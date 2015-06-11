@@ -1,19 +1,8 @@
-buildscript {
-  repositories {
-    jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
-    mavenLocal()
-  }
-  dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.64'
-  }
-}
-
 ext {
   springBootVersion = '1.2.1.RELEASE'
 }
 
-allprojects {
+subprojects {
   apply plugin: 'spinnaker-gradle-project'
   apply plugin: 'groovy'
 
@@ -26,4 +15,3 @@ allprojects {
   }
 }
 
-defaultTasks ':mort-web:bootRun'

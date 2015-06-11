@@ -20,8 +20,8 @@ ideaConfig {
 }
 
 dependencies {
-  compile project(":mort-core")
-  compile project(":mort-aws")
+  compile project(":mort:mort-core")
+  compile project(":mort:mort-aws")
   spinnaker.group('bootWeb')
   runtime spinnaker.dependency("kork")
   compile spinnaker.dependency("korkWeb")
