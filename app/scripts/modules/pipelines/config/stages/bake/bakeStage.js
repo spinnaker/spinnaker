@@ -46,6 +46,11 @@ angular.module('spinnaker.pipelines.stage.bake')
         $scope.viewState.providerSelectionRequired = true;
         $scope.viewState.loading = false;
       } else {
+        // If there is exactly one provider, and there is not already a provider selected, select the only choice.
+        if (providers.length === 1 && !$scope.stage.cloudProviderType) {
+          $scope.stage.cloudProviderType = providers[0];
+        }
+
         $scope.viewState.providerSelectionRequired = false;
       }
       ctrl.providerSelected();
