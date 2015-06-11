@@ -160,6 +160,7 @@ abstract class DeployStrategyStage extends LinearStage {
       asgName: source.asgName,
       'deploy.server.groups': [(source.region): [source.asgName]],
       useSourceCapacity: true,
+      credentials: source.account,
       source: [
         asgName: source.asgName,
         account: source.account,
