@@ -46,6 +46,10 @@ class CreateBakeTask implements RetryableTask {
   @Value('${bakery.extractBuildDetails:false}')
   boolean extractBuildDetails
 
+
+  @Value('${bakery.propagateCloudProviderType:false}')
+  boolean propagateCloudProviderType
+
   @Override
   TaskResult execute(Stage stage) {
     String region = stage.context.region
@@ -87,6 +91,12 @@ class CreateBakeTask implements RetryableTask {
     PackageInfo packageInfo = new PackageInfo(stage, operatingSystem.packageType.packageType,
       operatingSystem.packageType.versionDelimiter, extractBuildDetails, false, mapper)
     Map requestMap = packageInfo.findTargetPackage()
-    return mapper.convertValue(requestMap, BakeRequest)
+    BakeRequest bakeRequest = mapper.convertValue(requestMap, BakeRequest)
+
+    if (!propagateCloudProviderType) {
+      bakeRequest = bakeRequest.copyWith(cloudProviderType: null)
+    }
+
+    return bakeRequest
   }
 }
