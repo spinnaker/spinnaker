@@ -27,7 +27,6 @@ import org.springframework.batch.repeat.RepeatStatus
 @Immutable(knownImmutables = ["exitStatus"])
 @CompileStatic
 class BatchStepStatus {
-
   RepeatStatus repeatStatus
   ExitStatus exitStatus
   BatchStatus batchStatus
@@ -45,6 +44,8 @@ class BatchStepStatus {
         return new BatchStepStatus(RepeatStatus.CONTINUABLE, ExitStatus.EXECUTING, BatchStatus.STARTED)
       case ExecutionStatus.CANCELED:
         return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED, BatchStatus.STOPPED)
+      case ExecutionStatus.REDIRECT:
+        return new BatchStepStatus(RepeatStatus.FINISHED, new ExitStatus(ExecutionStatus.REDIRECT.name()) , BatchStatus.COMPLETED)
     }
   }
 }

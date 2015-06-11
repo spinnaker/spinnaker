@@ -20,24 +20,18 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 
 // Yes, Java, because Spring hates Groovy enums with implementations
 public enum Strategy implements StrategyFlowComposer{
-  RED_BLACK("redblack") {
-    public void composeFlow(DeployStrategyStage builder, Stage stage) {
-      builder.composeRedBlackFlow(stage);
-    }
-  }, HIGHLANDER("highlander") {
-    public void composeFlow(DeployStrategyStage builder, Stage stage) {
-      builder.composeHighlanderFlow(stage);
-    }
-  }, NONE("none") {
-    public void composeFlow(DeployStrategyStage builder, Stage stage) {
-    }
-  };
+  RED_BLACK("redblack"),
+  HIGHLANDER("highlander"),
+  ROLLING_PUSH("rollingpush"),
+  NONE("none");
 
   String key;
 
   Strategy(String key) {
     this.key = key;
   }
+
+
 
   static Strategy fromStrategy(String key) {
     if (key == null) {
@@ -49,5 +43,28 @@ public enum Strategy implements StrategyFlowComposer{
       }
     }
     return NONE;
+  }
+
+
+  @Override
+  public boolean replacesBasicSteps() {
+    return this == ROLLING_PUSH;
+  }
+
+  @Override
+  public void composeFlow(DeployStrategyStage builder, Stage stage) {
+    switch (this) {
+      case RED_BLACK:
+        builder.composeRedBlackFlow(stage);
+        break;
+
+      case HIGHLANDER:
+        builder.composeHighlanderFlow(stage);
+        break;
+
+      case ROLLING_PUSH:
+        builder.composeRollingPushFlow(stage);
+        break;
+    }
   }
 }

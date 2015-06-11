@@ -14,11 +14,26 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.strategy
+package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import org.springframework.stereotype.Component
 
-interface StrategyFlowComposer {
-  boolean replacesBasicSteps();
-  void composeFlow(DeployStrategyStage builder, Stage stage)
+@Component
+class CheckForRemainingTerminationsTask implements Task {
+
+  @Override
+  TaskResult execute(Stage stage) {
+    def remainingTerminations = stage.context.terminationInstanceIds as List<String>
+
+    if (!remainingTerminations) {
+      return DefaultTaskResult.SUCCEEDED
+    }
+
+    return new DefaultTaskResult(ExecutionStatus.REDIRECT)
+  }
 }

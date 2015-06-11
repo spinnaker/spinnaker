@@ -32,10 +32,12 @@ class UpsertApplicationTask extends AbstractFront50Task {
     Map<String, Object> outputs = [:]
     outputs.previousState = fetchApplication(account, application.name) ?: [:]
 
+    def allCredentials = front50Service.credentials
+
     /*
      * Upsert application to all global registries.
      */
-    def existingGlobalApplication = front50Service.credentials.findAll {
+    def existingGlobalApplication = allCredentials.findAll {
       it.global
     }.collect {
       def existingGlobalApplication = fetchApplication(it.name, application.name)
@@ -73,22 +75,24 @@ class UpsertApplicationTask extends AbstractFront50Task {
       existingGlobalApplication.accounts = null
     }
 
-    /*
-     * Upsert application to specific account registry.
-     *
-     * If the application does not exist, create it using details from the global registry where available.
-     */
-    def existingApplication = fetchApplication(account, application.name)
-    if (existingApplication) {
-      log.info("Updating application (name: ${application.name}, account: ${account})")
-      front50Service.update(account, application)
-    } else {
-      if (existingGlobalApplication) {
-        mergeApplicationProperties(existingGlobalApplication, application)
-      }
+    if (allCredentials.find { it.name.equals(account) }) {
+      /*
+       * Upsert application to specific account registry.
+       *
+       * If the application does not exist, create it using details from the global registry where available.
+       */
+      def existingApplication = fetchApplication(account, application.name)
+      if (existingApplication) {
+        log.info("Updating application (name: ${application.name}, account: ${account})")
+        front50Service.update(account, application)
+      } else {
+        if (existingGlobalApplication) {
+          mergeApplicationProperties(existingGlobalApplication, application)
+        }
 
-      log.info("Creating application (name: ${application.name}, account: ${account})")
-      front50Service.create(account, application.name, application)
+        log.info("Creating application (name: ${application.name}, account: ${account})")
+        front50Service.create(account, application.name, application)
+      }
     }
 
     outputs.newState = fetchApplication(account, application.name) ?: [:]
