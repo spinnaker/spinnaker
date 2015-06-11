@@ -1,0 +1,59 @@
+<div class="form-group" style="margin-top: 20px">
+  <div class="well-compact alert alert-warning">
+    <strong>Note:</strong> a rolling push only updates the <em>launch configuration</em> for the auto scaling group.
+    <br/> Changes to the following fields will be ignored:
+    <ul>
+      <li>Account</li>
+      <li>Region</li>
+      <li>Subnet Type</li>
+      <li>Capacity</li>
+      <li>Load Balancers</li>
+      <li>Health Check</li>
+      <li>Termination Policies</li>
+      <li>Enable Traffic</li>
+    </ul>
+  </div>
+  <div class="form-group">
+    <div class="col-md-12 checkbox">
+      <label>
+        <input type="checkbox" ng-model="command.termination.relaunchAllInstances"/>
+        <b>Relaunch all instances</b>
+        <help-field key="strategy.rollingPush.relaunchAll"></help-field>
+      </label>
+    </div>
+  </div>
+
+  <div class="form-group" ng-if="!command.termination.relaunchAllInstances">
+    <div class="col-md-5 sm-label-left">
+      Total relaunches
+      <help-field key="strategy.rollingPush.totalRelaunches"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input class="form-control input-sm" type="number" ng-model="command.termination.totalRelaunches" min="1" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-left">
+      Concurrent relaunches
+      <help-field key="strategy.rollingPush.concurrentRelaunches"></help-field>
+    </div>
+    <div class="col-md-2">
+      <input class="form-control input-sm" type="number" ng-model="command.termination.concurrentRelaunches" min="1" />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-5 sm-label-left">
+      Order
+      <help-field key="strategy.rollingPush.order"></help-field>
+    </div>
+    <div class="col-md-3">
+      <select class="input input-sm" style="width: 100px" ng-model="command.termination.order">
+        <option value="oldest">oldest first</option>
+        <option value="newest">newest first</option>
+      </select>
+    </div>
+  </div>
+
+</div>

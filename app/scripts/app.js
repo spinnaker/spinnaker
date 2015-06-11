@@ -53,6 +53,7 @@ angular.module('spinnaker', [
     'spinnaker.deploymentStrategy.redblack',
     'spinnaker.deploymentStrategy.none',
     'spinnaker.deploymentStrategy.highlander',
+    'spinnaker.deploymentStrategy.rollingPush',
     'spinnaker.securityGroup',
     'spinnaker.serverGroup',
     'spinnaker.instance',
