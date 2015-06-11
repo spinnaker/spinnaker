@@ -19,7 +19,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
         },
       ],
     });
-  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, $filter, infrastructureCaches) {
+  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService) {
 
     $scope.stage = stage;
 
@@ -36,45 +36,10 @@ angular.module('spinnaker.pipelines.stage.pipeline')
 
     function initializeMasters() {
       pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
-        $scope.pipelines = pipelines;
+        $scope.pipelines = _.filter( pipelines, function(pipeline){ return pipeline.id !== $scope.pipeline.id; } );
         $scope.viewState.pipelinesLoaded = true;
         updatePipelineConfig();
       });
-    }
-
-    this.refreshMasters = function() {
-      $scope.viewState.mastersRefreshing = true;
-      $scope.viewState.mastersLastRefreshed = null;
-      infrastructureCaches.clearCache('buildMasters');
-      initializeMasters();
-    };
-
-    this.refreshJobs = function() {
-      $scope.viewState.jobsRefreshing = true;
-      $scope.viewState.jobsLastRefreshed = null;
-      infrastructureCaches.clearCache('buildJobs');
-      updateJobsList();
-    };
-
-    function updateJobsList() {
-     /*
-      if ($scope.stage && $scope.stage.master) {
-        $scope.viewState.jobsLoaded = false;
-        $scope.jobs = [];
-        igorService.listJobsForMaster($scope.stage.master).then(function(jobs) {
-          $scope.viewState.jobsLastRefreshed = $filter('timestamp')(infrastructureCaches.buildJobs.getStats().ageMax);
-          $scope.viewState.jobsLoaded = true;
-          $scope.viewState.jobsRefreshing = false;
-          $scope.jobs = jobs;
-          if ($scope.jobs.indexOf($scope.stage.job) === -1) {
-            $scope.stage.job = '';
-          }
-        });
-        $scope.useDefaultParameters = {};
-        $scope.userSuppliedParameters = {};
-        $scope.jobParams = null;
-      }
-      */
     }
 
     function updatePipelineConfig() {

@@ -16,20 +16,6 @@
             ng-bind-html="pipeline.name | highlight: $select.search"></span></ui-select-choices>
         </ui-select>
       </div>
-      <div class="text-center" ng-if="stage.master && !viewState.jobsLoaded">
-        <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
-      </div>
-    </div>
-    <div class="col-md-1 text-center">
-      <a href
-         ng-click="pipelineStageCtrl.refreshJobs()"
-         tooltip-placement="right"
-         tooltip-html-unsafe="Jobs {{viewState.jobsRefreshing ? 'refreshing.<br>' : 'last refreshed ' }}{{viewState.jobsLastRefreshed}}
-                              <br>(click <span class='small glyphicon glyphicon-refresh'></span> to refresh)</p>"
-        >
-              <span ng-class="{'glyphicon-spinning':viewState.jobsRefreshing}"
-                    class="glyphicon glyphicon-refresh"></span>
-      </a>
     </div>
   </div>
   <div class="well well-sm clearfix ng-scope col-md-offset-1 col-md-10" ng-if="pipelineParameters.length">

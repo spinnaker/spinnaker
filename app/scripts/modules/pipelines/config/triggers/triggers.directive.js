@@ -5,7 +5,8 @@ angular.module('spinnaker.pipelines.trigger')
     return {
       restrict: 'E',
       scope: {
-        pipeline: '='
+        pipeline: '=',
+        application: '='
       },
       controller: 'triggersCtrl',
       controllerAs: 'triggersCtrl',
