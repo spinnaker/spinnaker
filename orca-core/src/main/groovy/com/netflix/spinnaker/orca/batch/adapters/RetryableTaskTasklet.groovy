@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spectator.api.ExtendedRegistry
 import groovy.transform.CompileStatic
 import java.time.Clock
 import com.netflix.spinnaker.orca.RetryableTask
@@ -39,8 +40,9 @@ class RetryableTaskTasklet extends TaskTasklet {
   RetryableTaskTasklet(RetryableTask task,
                        ExecutionRepository executionRepository,
                        List<ExceptionHandler> exceptionHandlers,
+                       ExtendedRegistry extendedRegistry,
                        Clock clock = Clock.systemUTC()) {
-    super(task, executionRepository, exceptionHandlers)
+    super(task, executionRepository, exceptionHandlers, extendedRegistry)
     this.clock = clock
     this.timeoutMs = task.timeout
   }

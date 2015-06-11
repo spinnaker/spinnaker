@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Id
 import com.netflix.spinnaker.orca.CancellableTask
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -40,15 +42,21 @@ import org.springframework.batch.repeat.RepeatStatus
 
 @CompileStatic
 class TaskTasklet implements Tasklet {
+  private static final String METRIC_NAME = "task.invocations"
 
   private final Task task
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers
+  private final ExtendedRegistry extendedRegistry
 
-  TaskTasklet(Task task, ExecutionRepository executionRepository, List<ExceptionHandler> exceptionHandlers) {
+  TaskTasklet(Task task,
+              ExecutionRepository executionRepository,
+              List<ExceptionHandler> exceptionHandlers,
+              ExtendedRegistry extendedRegistry) {
     this.task = task
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
+    this.extendedRegistry = extendedRegistry
   }
 
   Class<? extends Task> getTaskType() {
@@ -180,6 +188,15 @@ class TaskTasklet implements Tasklet {
   }
 
   private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
+    Id id = extendedRegistry.createId(METRIC_NAME)
+      .withTag("status", result.status.toString())
+      .withTag("executionType", stage.execution.class.simpleName)
+      .withTag("stageType", stage.type)
+      .withTag("taskName", taskName(chunkContext))
+      .withTag("isComplete", result.status.complete ? "true" : "false")
+
+    extendedRegistry.counter(id).increment()
+
     def taskLogger = LoggerFactory.getLogger(task.class)
     if (result.status.complete || taskLogger.isDebugEnabled()) {
       def executionId = stage.execution.id + (stage.refId ? ":${stage.refId}" : "")
