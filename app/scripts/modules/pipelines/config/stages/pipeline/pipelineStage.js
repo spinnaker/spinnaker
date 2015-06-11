@@ -19,7 +19,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
         },
       ],
     });
-  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService) {
+  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader) {
 
     $scope.stage = stage;
 
@@ -32,14 +32,34 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       pipelinesLoaded : false,
       jobsRefreshing: false,
       jobsLastRefreshed: null,
+      infiniteScroll: {
+        numToAdd: 20,
+        currentItems: 20,
+      },
     };
 
+    this.addMoreItems = function() {
+      $scope.viewState.infiniteScroll.currentItems += $scope.viewState.infiniteScroll.numToAdd;
+    };
+
+    applicationReader.listApplications().then(function(applications) {
+      $scope.applications = _.pluck(applications, 'name').sort();
+    });
+
     function initializeMasters() {
-      pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
-        $scope.pipelines = _.filter( pipelines, function(pipeline){ return pipeline.id !== $scope.pipeline.id; } );
+      if ($scope.stage.application) {
+        pipelineConfigService.getPipelinesForApplication($scope.stage.application).then(function (pipelines) {
+          $scope.pipelines = _.filter( pipelines, function(pipeline){ return pipeline.id !== $scope.pipeline.id; } );
+          if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.stage.pipeline; })) {
+            $scope.stage.pipeline = null;
+          }
+          $scope.viewState.pipelinesLoaded = true;
+          updatePipelineConfig();
+        });
+      } else {
         $scope.viewState.pipelinesLoaded = true;
         updatePipelineConfig();
-      });
+      }
     }
 
     function updatePipelineConfig() {
@@ -58,11 +78,17 @@ angular.module('spinnaker.pipelines.stage.pipeline')
             }
           });
         } else {
-          $scope.pipelineParameters = {};
-          $scope.useDefaultParameters = {};
-          $scope.userSuppliedParameters = {};
+          clearParams();
         }
+      } else {
+        clearParams();
       }
+    }
+
+    function clearParams() {
+      $scope.pipelineParameters = {};
+      $scope.useDefaultParameters = {};
+      $scope.userSuppliedParameters = {};
     }
 
     $scope.useDefaultParameters = {};
@@ -77,9 +103,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       }
     };
 
-    initializeMasters();
-
-    //$scope.$watch('stage.application', updatePipelineList);
+    $scope.$watch('stage.application', initializeMasters);
     $scope.$watch('stage.pipeline', updatePipelineConfig);
 
   });

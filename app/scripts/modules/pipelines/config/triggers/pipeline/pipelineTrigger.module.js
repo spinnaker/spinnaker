@@ -3,4 +3,5 @@
 angular.module('spinnaker.pipelines.trigger.pipeline', [
   'spinnaker.pipelines.trigger',
   'spinnaker.pipelines.config.service',
+  'spinnaker.applications.read.service',
 ]);

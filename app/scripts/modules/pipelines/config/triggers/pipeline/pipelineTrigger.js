@@ -12,7 +12,7 @@ angular.module('spinnaker.pipelines.trigger.pipeline')
       popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/pipeline/pipelinePopoverLabel.html'
     });
   })
-  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService) {
+  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader) {
 
     $scope.trigger = trigger;
 
@@ -31,19 +31,35 @@ angular.module('spinnaker.pipelines.trigger.pipeline')
     ];
 
     function init() {
-      pipelineConfigService.getPipelinesForApplication($scope.trigger.application).then(function (pipelines) {
-        $scope.pipelines = _.filter( pipelines, function(pipeline){ return pipeline.id !== $scope.pipeline.id; } );
-        $scope.viewState.pipelinesLoaded = true;
-        updatePipelineList();
-      });
+      if ($scope.trigger.application) {
+        pipelineConfigService.getPipelinesForApplication($scope.trigger.application).then(function (pipelines) {
+          $scope.pipelines = _.filter(pipelines, function (pipeline) {
+            return pipeline.id !== $scope.pipeline.id;
+          });
+          if (!_.find( pipelines, function(pipeline) { return pipeline.id === $scope.trigger.pipeline; })) {
+            $scope.trigger.pipeline = null;
+          }
+          $scope.viewState.pipelinesLoaded = true;
+        });
+      }
     }
 
     $scope.viewState = {
       pipelinesLoaded: false,
+      infiniteScroll: {
+        numToAdd: 20,
+        currentItems: 20,
+      },
     };
 
-    function updatePipelineList() {
-    }
+    this.addMoreItems = function() {
+      $scope.viewState.infiniteScroll.currentItems += $scope.viewState.infiniteScroll.numToAdd;
+    };
+
+    applicationReader.listApplications().then(function(applications) {
+      $scope.applications = _.pluck(applications, 'name').sort();
+    });
+
 
     $scope.useDefaultParameters = {};
     $scope.userSuppliedParameters = {};
@@ -59,7 +75,6 @@ angular.module('spinnaker.pipelines.trigger.pipeline')
 
     init();
 
-    $scope.$watch('trigger.pipeline', updatePipelineList);
-    $scope.$watch('trigger.application', updatePipelineList);
+    $scope.$watch('trigger.application', init);
 
   });

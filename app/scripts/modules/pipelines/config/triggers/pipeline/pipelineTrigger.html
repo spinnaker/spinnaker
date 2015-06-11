@@ -2,7 +2,16 @@
     <div class="form-group">
       <label class="col-md-3 sm-label-left">Application</label>
       <div class="col-md-6">
-        <p class="form-control-static">{{trigger.application}}</p>
+        <ui-select ng-model="trigger.application" class="form-control input-sm">
+          <ui-select-match placeholder="None">{{$select.selected}}</ui-select-match>
+
+          <ui-select-choices
+            repeat="application in applications | filter: $select.search | limitTo: viewState.infiniteScroll.currentItems"
+            infinite-scroll="pipelineTriggerCtrl.addMoreItems()"
+            infinite-scroll-distance="2" >
+            <div ng-bind-html="application | highlight: $select.search"></div>
+          </ui-select-choices>
+        </ui-select>
       </div>
     </div>
     <div class="form-group">

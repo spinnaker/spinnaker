@@ -8,4 +8,5 @@ angular.module('spinnaker.pipelines.stage.pipeline', [
   'spinnaker.utils.timeFormatters',
   'spinnaker.pipelines.config.service',
   'spinnaker.pipelines.stage.pipeline.executionDetails.controller',
+  'spinnaker.applications.read.service',
 ]);
