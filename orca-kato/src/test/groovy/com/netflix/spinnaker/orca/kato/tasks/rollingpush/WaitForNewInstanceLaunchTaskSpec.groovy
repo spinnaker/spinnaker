@@ -17,38 +17,35 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class WaitForNewInstanceLaunchTaskSpec extends Specification {
   def oortService = Mock(OortService)
   def task = new WaitForNewInstanceLaunchTask(oortService: oortService, objectMapper: new ObjectMapper())
 
-  @Ignore('just c&pd this here from another test')
-  def 'should order instances correctly'() {
-    def termination = buildTermination(order, relaunchAllInstances, totalRelaunches)
+  def 'waits for new instances to be launched'() {
 
     def context = [
-      account     : account,
-      application : application,
-      stack       : stack,
-      region      : region,
-      providerType: providerType,
-      asgName     : serverGroup,
+      account         : account,
+      application     : application,
+      stack           : stack,
+      region          : region,
+      providerType    : providerType,
+      asgName         : serverGroup,
+      knownInstanceIds: knownInstanceIds,
+      instanceIds     : terminatedInstanceIds
     ]
-    if (termination) {
-      context.termination = termination
-    }
 
     def stage = new OrchestrationStage(new Orchestration(), 'test', context)
 
     def oortResponse = oortResponse([
-      instances: knownInstanceIds.inject([]) { List l, id -> l << [instanceId: id, launchTime: l.size()] }
+      instances: currentInstances.collect { [instanceId: it] }
     ])
 
     when:
@@ -56,19 +53,18 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
 
     then:
     1 * oortService.getServerGroup(application, account, cluster, serverGroup, region, providerType) >> oortResponse
-    response.stageOutputs.terminationInstanceIds == expectedTerminations
-    response.stageOutputs.knownInstanceIds.toSet() == knownInstanceIds.toSet()
+    response.status == expectedStatus
+
 
     where:
-    order    | relaunchAllInstances | totalRelaunches | expectedTerminations
-    null     | null                 | null            | ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | null                 | null            | ['i-1', 'i-2', 'i-3', 'i-4']
-    'newest' | null                 | null            | ['i-4', 'i-3', 'i-2', 'i-1']
-    'oldest' | null                 | 2               | ['i-1', 'i-2']
-    'oldest' | true                 | 2               | ['i-1', 'i-2', 'i-3', 'i-4']
-    'oldest' | false                | 2               | ['i-1', 'i-2']
-    'newest' | false                | 2               | ['i-4', 'i-3']
 
+    terminatedInstanceIds | knownInstanceIds | currentInstances      | expectedStatus
+    []                    | []               | []                    | ExecutionStatus.SUCCEEDED
+    ['i-1']               | ['i-1', 'i-2']   | ['i-2']               | ExecutionStatus.RUNNING
+    ['i-1']               | ['i-1', 'i-2']   | ['i-2', 'i-3']        | ExecutionStatus.SUCCEEDED
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3']               | ExecutionStatus.RUNNING
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3', 'i-4']        | ExecutionStatus.SUCCEEDED
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-1', 'i-2', 'i-3'] | ExecutionStatus.RUNNING
 
     account = 'test'
     application = 'foo'
@@ -77,26 +73,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
     serverGroup = "$cluster-v000".toString()
     region = 'us-east-1'
     providerType = 'aws'
-    knownInstanceIds = ['i-1', 'i-2', 'i-3', 'i-4']
 
-  }
-
-  Map buildTermination(String order = null, Boolean relaunchAllInstances = null, Integer totalRelaunches = null, Integer concurrentRelaunches = null) {
-    def termination = [:]
-    if (order) {
-      termination.order = order
-    }
-    if (relaunchAllInstances != null) {
-      termination.relaunchAllInstances = relaunchAllInstances
-    }
-    if (totalRelaunches != null) {
-      termination.totalRelaunches = totalRelaunches
-    }
-    if (concurrentRelaunches != null) {
-      termination.concurrentRelaunches = concurrentRelaunches
-    }
-
-    return termination
   }
 
   Response oortResponse(Map response) {

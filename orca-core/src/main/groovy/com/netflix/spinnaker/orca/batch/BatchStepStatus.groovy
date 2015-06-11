@@ -27,11 +27,6 @@ import org.springframework.batch.repeat.RepeatStatus
 @Immutable(knownImmutables = ["exitStatus"])
 @CompileStatic
 class BatchStepStatus {
-
-  public static final String CUSTOM_REPEAT_STATUS = BatchStepStatus.simpleName + '.repeatStatus'
-  public static final String CUSTOM_EXIT_STATUS = BatchStepStatus.simpleName + '.exitStatus'
-  public static final String CUSTOM_BATCH_STATUS = BatchStepStatus.simpleName + '.batchStatus'
-
   RepeatStatus repeatStatus
   ExitStatus exitStatus
   BatchStatus batchStatus
