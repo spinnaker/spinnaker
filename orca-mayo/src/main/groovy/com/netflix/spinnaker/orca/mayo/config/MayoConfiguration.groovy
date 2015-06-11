@@ -19,7 +19,10 @@ package com.netflix.spinnaker.orca.mayo.config
 import static retrofit.Endpoints.newFixedEndpoint
 
 import com.google.gson.Gson
+import com.netflix.spinnaker.orca.echo.spring.DependentPipelineExecutionListener
+import com.netflix.spinnaker.orca.mayo.DependentPipelineStarter
 import com.netflix.spinnaker.orca.mayo.MayoService
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
@@ -44,6 +47,7 @@ class MayoConfiguration {
 
   @Autowired
   Client retrofitClient
+
   @Autowired
   RestAdapter.LogLevel retrofitLogLevel
 
@@ -63,6 +67,15 @@ class MayoConfiguration {
       .setConverter(new GsonConverter(gson))
       .build()
       .create(MayoService)
+  }
+
+  @Bean
+  DependentPipelineExecutionListener dependentPipelineExecutionListener(
+    ExecutionRepository executionRepository,
+    MayoService mayoService,
+    DependentPipelineStarter dependentPipelineStarter
+    ) {
+    new DependentPipelineExecutionListener(executionRepository, mayoService, dependentPipelineStarter)
   }
 
 }
