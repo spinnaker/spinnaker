@@ -26,6 +26,9 @@ import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import sun.net.InetAddressCachePolicy
+
+import java.security.Security
 
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters", "com.netflix.spinnaker.config"])
@@ -43,6 +46,13 @@ class Main extends SpringBootServletInitializer {
 
   static {
     applyDefaults()
+
+    /**
+     * We often operate in an environment where we expect resolution of DNS names for remote dependencies to change
+     * frequently, so it's best to tell the JVM to avoid caching DNS results internally.
+     */
+    InetAddressCachePolicy.cachePolicy = InetAddressCachePolicy.NEVER
+    Security.setProperty('networkaddress.cache.ttl', '0')
   }
 
   static void applyDefaults() {
