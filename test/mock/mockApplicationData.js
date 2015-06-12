@@ -6,7 +6,7 @@ angular
         { name: 'in-eu-east-2-only', account: 'prod', region: 'eu-east-2'},
       ],
       serverGroups: [
-        {cluster: 'in-us-west-1-only', 'account': 'test', region: 'us-west-1', instances: [],
+        {cluster: 'in-us-west-1-only', 'account': 'test', region: 'us-west-1', instances: [ {} ],
           totalCount: 1, upCount: 0, downCount: 1, unknownCount: 0, startingCount: 0, outOfServiceCount: 0,
           isDisabled: false, type: 'aws', instanceType: 'm3.large'},
         {cluster: 'in-eu-east-2-only', 'account': 'prod', region: 'eu-east-2', instances: [],
@@ -26,7 +26,7 @@ angular
             cluster: 'in-us-west-1-only',
             account : 'test',
             region : 'us-west-1',
-            instances : [  ],
+            instances : [ {} ],
             totalCount: 1,
             upCount: 0,
             downCount: 1,

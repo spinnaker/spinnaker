@@ -177,6 +177,39 @@ describe('Service: clusterFilterService', function () {
       });
     });
 
+    describe('Instance Count Params', function () {
+      beforeEach(function () {
+        ClusterFilterModel.sortFilter.minInstances = undefined;
+        ClusterFilterModel.sortFilter.maxInstances = undefined;
+      });
+
+      describe('check instance count', function () {
+        it('should add instance count whenever it is numeric', function () {
+          ClusterFilterModel.sortFilter.minInstances = 3;
+          ClusterFilterModel.sortFilter.maxInstances = 4;
+          service.updateQueryParams();
+          expect($location.search().minInstances).toEqual('3');
+          expect($location.search().maxInstances).toEqual('4');
+        });
+
+        it('should include zero, even though it is falsy', function () {
+          ClusterFilterModel.sortFilter.minInstances = 0;
+          ClusterFilterModel.sortFilter.maxInstances = 0;
+          service.updateQueryParams();
+          expect($location.search().minInstances).toEqual('0');
+          expect($location.search().maxInstances).toEqual('0');
+        });
+
+        it('should not add non-numeric values', function () {
+          ClusterFilterModel.sortFilter.minInstances = 'nan';
+          ClusterFilterModel.sortFilter.maxInstances = 'also nan';
+          service.updateQueryParams();
+          expect($location.search().minInstances).toBeUndefined();
+          expect($location.search().maxInstances).toBeUndefined();
+        });
+      });
+    });
+
   });
 
 
@@ -465,6 +498,51 @@ describe('Service: clusterFilterService', function () {
 
     it('should not filter if the instance type is unchecked', function () {
       ClusterFilterModel.sortFilter.instanceType = {'m3.large' : false};
+      expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([]);
+    });
+  });
+
+  describe('filter by instance counts', function () {
+
+    it('should filter by min instances', function () {
+      ClusterFilterModel.sortFilter.minInstances = 1;
+      var result = service.updateClusterGroups(applicationJSON);
+      expect(result.length).toEqual(1);
+      expect(result[0]).toEqual(groupedJSON[0]);
+      this.verifyTags([
+        { key: 'minInstances', label: 'instance count (min)', value: 1 }
+      ]);
+
+      ClusterFilterModel.sortFilter.minInstances = 0;
+      expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([
+        { key: 'minInstances', label: 'instance count (min)', value: 0 }
+      ]);
+
+      ClusterFilterModel.sortFilter.minInstances = 2;
+      expect(service.updateClusterGroups(applicationJSON)).toEqual([]);
+      this.verifyTags([
+        { key: 'minInstances', label: 'instance count (min)', value: 2 }
+      ]);
+    });
+
+    it('should filter by max instances', function() {
+      ClusterFilterModel.sortFilter.maxInstances = 0;
+      var result = service.updateClusterGroups(applicationJSON);
+      expect(result.length).toEqual(1);
+      expect(result[0]).toEqual(groupedJSON[1]);
+      this.verifyTags([
+        { key: 'maxInstances', label: 'instance count (max)', value: 0 }
+      ]);
+
+      ClusterFilterModel.sortFilter.maxInstances = 1;
+      expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
+      this.verifyTags([
+        { key: 'maxInstances', label: 'instance count (max)', value: 1 }
+      ]);
+
+      ClusterFilterModel.sortFilter.maxInstances = null;
       expect(service.updateClusterGroups(applicationJSON)).toEqual(groupedJSON);
       this.verifyTags([]);
     });

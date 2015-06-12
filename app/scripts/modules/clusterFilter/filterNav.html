@@ -113,4 +113,19 @@
     </div>
   </filter-section>
 
+  <filter-section heading="Instance Count" expanded="true">
+    <div class="form-inline">
+      <div class="form-group">
+        Min:
+        <input type="number" class="form-control input-sm" ng-model="sortFilter.minInstances"
+               ng-change="clustersFilters.updateClusterGroups()">
+      </div>
+      <div class="form-group">
+        Max:
+        <input type="number" class="form-control input-sm" ng-model="sortFilter.maxInstances"
+               ng-change="clustersFilters.updateClusterGroups()">
+      </div>
+    </div>
+  </filter-section>
+
 </div>
