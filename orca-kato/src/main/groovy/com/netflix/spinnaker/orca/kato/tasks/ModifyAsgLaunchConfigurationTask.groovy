@@ -32,13 +32,20 @@ class ModifyAsgLaunchConfigurationTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[modifyAsgLaunchConfigurationDescription: stage.context]])
+    def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
+    def operationConfig = new HashMap(stage.context)
+    if (!stage.context.amiName && deploymentDetails) {
+      operationConfig.amiName = deploymentDetails.find { it.region == stage.context.region }?.ami
+    }
+    def operation = [modifyAsgLaunchConfigurationDescription: operationConfig]
+    def ops = [operation]
+    def taskId = kato.requestOperations(ops)
       .toBlocking()
       .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : "modifyasglaunchconfiguration",
-      "terminate.account.name": stage.context.credentials,
-      "terminate.region"      : stage.context.region,
+      "modifyasglaunchconfiguration.account.name": stage.context.credentials,
+      "modifyasglaunchconfiguration.region"      : stage.context.region,
       "kato.last.task.id"     : taskId,
       "kato.task.id"          : taskId, // TODO retire this.
       "deploy.server.groups"  : [(stage.context.region): [stage.context.asgName]]

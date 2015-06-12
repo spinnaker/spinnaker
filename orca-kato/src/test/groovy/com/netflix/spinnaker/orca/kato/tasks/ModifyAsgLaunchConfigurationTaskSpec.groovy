@@ -27,13 +27,15 @@ import spock.lang.Subject
 class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
 
   KatoService katoService = Mock(KatoService)
-  @Subject ModifyAsgLaunchConfigurationTask task = new ModifyAsgLaunchConfigurationTask(kato: katoService)
+  @Subject
+  ModifyAsgLaunchConfigurationTask task = new ModifyAsgLaunchConfigurationTask(kato: katoService)
+
   void 'should populate deploy.server.groups to enable force cache refresh'() {
     setup:
     def taskConfig = [
       credentials: 'test',
-      region: region,
-      asgName: asgName
+      region     : region,
+      asgName    : asgName
     ]
     def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.MAYO_CONFIG_TYPE, taskConfig)
 
@@ -48,4 +50,38 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
     region = 'us-east-1'
     asgName = 'myasg-v001'
   }
+
+  void 'should add amiName from deploymentDetails if not specified'() {
+    setup:
+    def taskConfig = [
+      credentials      : 'test',
+      region           : region,
+      asgName          : asgName,
+      deploymentDetails: [
+        [ami: deploymentDetailsAmi, region: region]
+      ],
+      amiName          : contextAmi
+    ]
+    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.MAYO_CONFIG_TYPE, taskConfig)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    1 * katoService.requestOperations(_) >> { ops ->
+      //seems something wrong with the double deindex [0][0] here but I'm blaming spock..:
+      def opConfig = ops[0][0].modifyAsgLaunchConfigurationDescription
+
+      assert opConfig.amiName == expectedAmi
+      rx.Observable.just(new TaskId('blerg'))
+    }
+
+    where:
+    deploymentDetailsAmi | contextAmi | expectedAmi
+    'ami-dd'             | 'ami-cc'   | 'ami-cc'
+    'ami-dd'             | null       | 'ami-dd'
+    region = 'us-east-1'
+    asgName = 'myasg-v001'
+  }
+
 }
