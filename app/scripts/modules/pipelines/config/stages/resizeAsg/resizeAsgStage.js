@@ -11,6 +11,12 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
       templateUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
+      validators: [
+        {
+          type: 'targetImpedance',
+          message: 'This pipeline will attempt to resize a server group without deploying a new version into the same cluster.'
+        },
+      ],
     });
   }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService) {
 
