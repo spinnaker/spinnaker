@@ -145,6 +145,9 @@ abstract class StageBuilder implements ApplicationContextAware {
       }
 
       def childStageBuilder = stageBuilders.find { it.type == childStage.type }
+      if (!childStageBuilder) {
+        throw new IllegalStateException("Unable to find stage builder for type ${childStage.type}")
+      }
       if (childStage.requisiteStageRefIds.size() > 1) {
         // multi parent child, insert an artificial join stage that will wait for all parents to complete
         def waitForStageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE }
