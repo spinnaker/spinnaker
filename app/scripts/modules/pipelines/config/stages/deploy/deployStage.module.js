@@ -8,4 +8,8 @@ angular.module('spinnaker.pipelines.stage.deploy', [
   'spinnaker.utils.lodash',
   'spinnaker.serverGroup.read.service',
   'spinnaker.aws.serverGroupCommandBuilder.service',
-]);
+  'spinnaker.pipelines.stage.deploy.transformer',
+])
+  .run(function(pipelineConfig, deployStageTransformer) {
+    pipelineConfig.registerTransformer(deployStageTransformer);
+  });
