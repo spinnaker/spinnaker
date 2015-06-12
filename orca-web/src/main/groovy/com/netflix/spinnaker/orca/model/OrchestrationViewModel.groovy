@@ -17,10 +17,11 @@
 package com.netflix.spinnaker.orca.model
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import groovy.transform.Immutable
 
-@Immutable(knownImmutables = ['status', 'variables', 'steps'])
+@Immutable(knownImmutables = ['status', 'variables', 'steps', 'execution'])
 class OrchestrationViewModel {
   String id
   String name
@@ -30,4 +31,5 @@ class OrchestrationViewModel {
   Long buildTime
   Long startTime
   Long endTime
+  def execution
 }
