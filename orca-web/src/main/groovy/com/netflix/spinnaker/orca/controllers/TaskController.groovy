@@ -140,7 +140,8 @@ class TaskController {
       steps: orchestration.stages.tasks.flatten(),
       buildTime: orchestration.buildTime,
       startTime: orchestration.startTime,
-      endTime: orchestration.endTime
+      endTime: orchestration.endTime,
+      execution: orchestration
     )
   }
 }
