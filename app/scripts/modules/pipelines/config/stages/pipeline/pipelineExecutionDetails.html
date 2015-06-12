@@ -1,6 +1,6 @@
 <div ng-controller="pipelineExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
-  <div class="step-section-details">
+  <div class="step-section-details" ng-if="detailsSection === 'pipelineConfig'">
     <div class="row">
       <div class="col-md-12">
         <h5>Pipeline Stage Configuration</h5>
@@ -17,12 +17,16 @@
       <div class="col-md-12">
         <div class="well alert alert-info">
           <a ng-if="stage.context.executionId"
-             href="/#/applications/{{stage.context.application}}/executions/{{stage.context.executionId}}"
+             ui-sref="home.applications.application.executions.execution({ application: stage.context.application, executionId: stage.context.executionId })"
              target="_blank">View Pipeline Execution</a>
         </div>
       </div>
     </div>
-
+  </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
   </div>
 
 
