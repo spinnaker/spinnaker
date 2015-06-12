@@ -44,7 +44,7 @@ class StartPipelineTask implements Task {
     List pipelines = mayoService.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == stage.context.pipeline }
 
-    dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
+    def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [executionId: pipeline.id, executionName: pipelineConfig.name])
 
