@@ -1,21 +1,21 @@
 'use strict';
 
-describe('pipelineConfigValidator', function() {
+describe('pipelineConfigValidator', function () {
 
   beforeEach(module(
     'spinnaker.pipelines.config.validator.service',
     'spinnaker.pipelines.config'
   ));
 
-  beforeEach(inject(function(pipelineConfigValidator, pipelineConfig) {
+  beforeEach(inject(function (pipelineConfigValidator, pipelineConfig) {
     this.validator = pipelineConfigValidator;
     this.pipelineConfig = pipelineConfig;
   }));
 
-  describe('validation', function() {
+  describe('validation', function () {
 
-    it('performs validation against stages where declared, ignores others', function() {
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+    it('performs validation against stages where declared, ignores others', function () {
+      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
         if (type === 'withValidation') {
           return {
             validators: [
@@ -43,8 +43,8 @@ describe('pipelineConfigValidator', function() {
       expect(validationMessages[0]).toBe('bar is required');
     });
 
-    it('executes all validators', function() {
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+    it('executes all validators', function () {
+      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
         if (type === 'withValidation') {
           return {
             validators: [
@@ -83,11 +83,11 @@ describe('pipelineConfigValidator', function() {
 
   });
 
-  describe('validators', function() {
+  describe('validators', function () {
 
-    describe('stageBeforeType', function() {
-      it('fails if no stage is first or not preceded by declared stage type', function() {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+    describe('stageBeforeType', function () {
+      it('fails if no stage is first or not preceded by declared stage type', function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
           if (type === 'withValidation') {
             return {
               validators: [
@@ -137,8 +137,8 @@ describe('pipelineConfigValidator', function() {
         expect(messages.length).toBe(0);
       });
 
-      it('validates against multiple types if present', function() {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+      it('validates against multiple types if present', function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
           if (type === 'withValidation') {
             return {
               validators: [
@@ -180,9 +180,9 @@ describe('pipelineConfigValidator', function() {
       });
     });
 
-    describe('checkRequiredField', function() {
-      beforeEach(function() {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function(type) {
+    describe('checkRequiredField', function () {
+      beforeEach(function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
           if (type === 'simpleField') {
             return {
               validators: [
@@ -209,8 +209,10 @@ describe('pipelineConfigValidator', function() {
         });
       });
 
-      it('non-nested field', function() {
-        var pipeline = { stages: [ { type: 'simpleField' }]};
+      it('non-nested field', function () {
+        var pipeline = { stages: [
+          { type: 'simpleField' }
+        ]};
         var messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo');
@@ -232,8 +234,10 @@ describe('pipelineConfigValidator', function() {
         expect(messages.length).toBe(1);
       });
 
-      it('nested field', function() {
-        var pipeline = { stages: [ { type: 'nestedField' }]};
+      it('nested field', function () {
+        var pipeline = { stages: [
+          { type: 'nestedField' }
+        ]};
         var messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo.bar.baz');
@@ -263,8 +267,10 @@ describe('pipelineConfigValidator', function() {
         expect(messages.length).toBe(0);
       });
 
-      it('empty array', function() {
-        var pipeline = { stages: [ { type: 'simpleField', foo: [] }]};
+      it('empty array', function () {
+        var pipeline = { stages: [
+          { type: 'simpleField', foo: [] }
+        ]};
         var messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(1);
         expect(messages[0]).toBe('need a foo');
@@ -272,6 +278,174 @@ describe('pipelineConfigValidator', function() {
         pipeline.stages[0].foo.push(1);
         messages = this.validator.validatePipeline(pipeline);
         expect(messages.length).toBe(0);
+      });
+    });
+
+    describe('targetImpedance', function () {
+      beforeEach(function () {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
+          if (type === 'targetCheck') {
+            return {
+              validators: [
+                {
+                  type: 'targetImpedance',
+                  message: 'mismatch detected',
+                },
+              ]
+            };
+          }
+          return {};
+        });
+      });
+
+      it('flags when no deploy step present', function () {
+        var pipeline = { stages: [
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
+      });
+
+      it('passes without stack or details', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes with stack', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes with freeFormDetails', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', freeFormDetails: 'main', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck--main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes with stack and freeFormDetails', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main-foo' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes single region', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes multiple regions in same deploy stage', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }},
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1', 'us-west-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('passes multiple regions scattered across deploy stages', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1', 'us-west-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(0);
+      });
+
+      it('flags credentials mismatch', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'prod', stack: 'main', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
+      });
+
+      it('flags region mismatch', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'main', availabilityZones: { 'us-west-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
+      });
+
+      it('flags cluster mismatch - no stack or freeFormDetails', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck2' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
+      });
+
+      it('flags cluster mismatch on stack', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', stack: 'staging', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck-main' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
+      });
+
+      it('flags cluster mismatch on freeFormDetails', function () {
+        var pipeline = { stages: [
+          { type: 'deploy', clusters: [
+            { application: 'deck', account: 'test', freeFormDetails: 'foo', availabilityZones: { 'us-east-1': [] }}
+          ]},
+          { type: 'targetCheck', regions: ['us-east-1'], credentials: 'test', cluster: 'deck--bar' }
+        ]};
+        var messages = this.validator.validatePipeline(pipeline);
+        expect(messages.length).toBe(1);
+        expect(messages[0]).toBe('mismatch detected');
       });
     });
   });

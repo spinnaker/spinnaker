@@ -31,12 +31,12 @@ angular.module('spinnaker.naming', [])
       return result;
     }
 
-    function getClusterName(app, cluster, detail) {
+    function getClusterName(app, stack, detail) {
       var clusterName = app;
-      if (cluster) {
-        clusterName += '-' + cluster;
+      if (stack) {
+        clusterName += '-' + stack;
       }
-      if (!cluster && detail) {
+      if (!stack && detail) {
         clusterName += '-';
       }
       if (detail) {
