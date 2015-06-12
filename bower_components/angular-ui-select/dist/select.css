@@ -1,7 +1,7 @@
 /*!
  * ui-select
  * http://github.com/angular-ui/ui-select
- * Version: 0.11.2 - 2015-03-17T04:08:46.478Z
+ * Version: 0.12.0 - 2015-05-28T07:44:11.364Z
  * License: MIT
  */
 
@@ -48,6 +48,31 @@ body > .select2-container.open {
   z-index: 9999; /* The z-index Select2 applies to the select2-drop */
 }
 
+/* Handle up direction Select2 */
+.ui-select-container[theme="select2"].direction-up .ui-select-match {
+    border-radius: 4px; /* FIXME hardcoded value :-/ */
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.ui-select-container[theme="select2"].direction-up .ui-select-dropdown {
+    border-radius: 4px; /* FIXME hardcoded value :-/ */
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    border-top-width: 1px;  /* FIXME hardcoded value :-/ */
+    border-top-style: solid;
+
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.25);
+
+    margin-top: -4px; /* FIXME hardcoded value :-/ */
+}
+.ui-select-container[theme="select2"].direction-up .ui-select-dropdown .select2-search {
+    margin-top: 4px; /* FIXME hardcoded value :-/ */
+}
+.ui-select-container[theme="select2"].direction-up.select2-dropdown-open .ui-select-match {
+    border-bottom-color: #5897fb;
+}
+
 /* Selectize theme */
 
 /* Helper class to show styles when focus */
@@ -70,6 +95,12 @@ body > .select2-container.open {
     border-color: #D44950;
 }
 
+/* Handle up direction Selectize */
+.ui-select-container[theme="selectize"].direction-up .ui-select-dropdown {
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.25);
+
+    margin-top: -2px; /* FIXME hardcoded value :-/ */
+}
 
 /* Bootstrap theme */
 
@@ -106,6 +137,11 @@ body > .select2-container.open {
   border-radius: 4px; /* FIXME hardcoded value :-/ */
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
+}
+.input-group > .ui-select-bootstrap > input.ui-select-search.form-control.direction-up {
+  border-radius: 4px !important; /* FIXME hardcoded value :-/ */
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
 }
 
 .ui-select-bootstrap > .ui-select-match > .btn{
@@ -218,4 +254,9 @@ body > .ui-select-bootstrap.open {
 /* Mark invalid Bootstrap */
 .ui-select-bootstrap.ng-dirty.ng-invalid > button.btn.ui-select-match {
     border-color: #D44950;
+}
+
+/* Handle up direction Bootstrap */
+.ui-select-container[theme="bootstrap"].direction-up .ui-select-dropdown {
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.25);
 }
