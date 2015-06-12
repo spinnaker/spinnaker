@@ -67,6 +67,8 @@ angular
       sortFilter.instanceType = undefined;
       sortFilter.filter = '';
       sortFilter.availabilityZone = undefined;
+      sortFilter.minInstances = undefined;
+      sortFilter.maxInstances = undefined;
     }
 
     function clearFilterParams(params) {
@@ -77,6 +79,8 @@ angular
         status: undefined,
         instanceType: undefined,
         zone: undefined,
+        minInstances: undefined,
+        maxInstances: undefined,
       });
     }
 
@@ -90,6 +94,8 @@ angular
         instanceType: convertObjectToParam(sortFilter.instanceType),
         zone: convertObjectToParam(sortFilter.availabilityZone),
         instanceSort: sortFilter.instanceSort.key,
+        minInstances: sortFilter.minInstances,
+        maxInstances: sortFilter.maxInstances,
       });
 
       return params;
@@ -110,6 +116,8 @@ angular
       sortFilter.providerType = setProviderType();
       sortFilter.instanceType = setInstanceType();
       sortFilter.availabilityZone = setZone();
+      sortFilter.minInstances = isNaN(params.minInstances) ? undefined : parseInt(params.minInstances);
+      sortFilter.maxInstances = isNaN(params.maxInstances) ? undefined : parseInt(params.maxInstances);
       sortFilter.instanceSort.key = params.instanceSort || 'launchTime';
 
     }

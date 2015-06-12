@@ -23,6 +23,8 @@ angular
       $location.search('providerType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.providerType).join() || null);
       $location.search('instanceType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.instanceType).join() || null);
       $location.search('zone', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.availabilityZone).join() || null);
+      $location.search('minInstances', coerceIntToString(ClusterFilterModel.sortFilter.minInstances));
+      $location.search('maxInstances', coerceIntToString(ClusterFilterModel.sortFilter.maxInstances));
 
     }
 
@@ -34,6 +36,13 @@ angular
         }
       });
       return result;
+    }
+
+    function coerceIntToString(val) {
+      if (val !== null && val !== undefined && !isNaN(val)) {
+        return val + '';
+      }
+      return null;
     }
 
     function isFilterable(sortFilterModel) {
@@ -98,6 +107,17 @@ angular
       }
     }
 
+    function instanceCountFilter(serverGroup) {
+      var shouldInclude = true;
+      if (ClusterFilterModel.sortFilter.minInstances && !isNaN(ClusterFilterModel.sortFilter.minInstances)) {
+        shouldInclude = serverGroup.instances.length >= ClusterFilterModel.sortFilter.minInstances;
+      }
+      if (shouldInclude && ClusterFilterModel.sortFilter.maxInstances !== null && !isNaN(ClusterFilterModel.sortFilter.maxInstances)) {
+        shouldInclude = serverGroup.instances.length <= ClusterFilterModel.sortFilter.maxInstances;
+      }
+      return shouldInclude;
+    }
+
     function filterServerGroupsForDisplay(serverGroups, filter) {
       return  _.chain(serverGroups)
         .filter(function(serverGroup) {
@@ -106,7 +126,6 @@ angular
           }
           if (filter.indexOf('clusters:') !== -1) {
             var clusterNames = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
-            console.warn('cluster names:', clusterNames);
             return clusterNames.indexOf(serverGroup.cluster) !== -1;
           }
 
@@ -119,6 +138,7 @@ angular
             });
           }
         })
+        .filter(instanceCountFilter)
         .filter(checkAccountFilters)
         .filter(checkRegionFilters)
         .filter(checkStatusFilters)
@@ -327,10 +347,38 @@ angular
       }
     }
 
+    function addInstanceCountTags() {
+      if (ClusterFilterModel.sortFilter.minInstances !== null && !isNaN(ClusterFilterModel.sortFilter.minInstances)) {
+        ClusterFilterModel.sortFilter.tags.push({
+          key: 'minInstances',
+          label: 'instance count (min)',
+          value: ClusterFilterModel.sortFilter.minInstances,
+          clear: function() {
+            ClusterFilterModel.sortFilter.minInstances = undefined;
+            updateQueryParams();
+            updateClusterGroups();
+          }
+        });
+      }
+      if (ClusterFilterModel.sortFilter.maxInstances !== null && !isNaN(ClusterFilterModel.sortFilter.maxInstances)) {
+        ClusterFilterModel.sortFilter.tags.push({
+          key: 'maxInstances',
+          label: 'instance count (max)',
+          value: ClusterFilterModel.sortFilter.maxInstances,
+          clear: function() {
+            ClusterFilterModel.sortFilter.maxInstances = undefined;
+            updateQueryParams();
+            updateClusterGroups();
+          }
+        });
+      }
+    }
+
     function addTags() {
       var tags = ClusterFilterModel.sortFilter.tags;
       tags.length = 0;
       addFilterTag();
+      addInstanceCountTags();
       addTagsForSection('account', 'account');
       addTagsForSection('region', 'region');
       addTagsForSection('status', 'status', {Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service'});
