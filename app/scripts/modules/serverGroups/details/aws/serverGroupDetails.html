@@ -220,6 +220,13 @@
       <a href ng-click="associateElasticIp()">Associate Elastic IP</a>
       </div>
     </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!serverGroup.asg.tags.length">No tags associated with this server group</div>
+      <dl ng-if="serverGroup.asg.tags.length">
+        <dt ng-repeat-start="tag in serverGroup.asg.tags | orderBy: 'key.toLowerCase()'">{{tag.key}}</dt>
+        <dd ng-repeat-end>{{tag.value}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Package">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo && serverGroup.buildInfo.jenkins">
         <dt>Job</dt>
