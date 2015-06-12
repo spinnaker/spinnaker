@@ -3,9 +3,10 @@
 angular.module('spinnaker.pipelines.config.validator.service', [
   'spinnaker.pipelines.config',
   'spinnaker.pipelines.config.service',
+  'spinnaker.naming',
   'spinnaker.utils.lodash',
 ])
-  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService) {
+  .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, namingService) {
 
     var validators = {
       stageBeforeType: function(pipeline, index, validationConfig, messages) {
@@ -42,6 +43,35 @@ angular.module('spinnaker.pipelines.config.validator.service', [
           messages.push(validationConfig.message);
         }
       },
+      targetImpedance: function(pipeline, index, validationConfig, messages) {
+        var stage = pipeline.stages[index],
+            stagesToTest = pipeline.stages.slice(0, index+1),
+            allRegionsFound = true;
+
+        if (pipeline.parallel) {
+          stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
+        }
+
+        stage.regions.forEach(function(region) {
+          var regionFound = false;
+          stagesToTest.forEach(function(toTest) {
+            if (toTest.type === 'deploy') {
+              toTest.clusters.forEach(function(cluster) {
+                var clusterName = namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
+                if (clusterName === stage.cluster && cluster.account === stage.credentials && cluster.availabilityZones.hasOwnProperty(region)) {
+                  regionFound = true;
+                }
+              });
+            }
+          });
+          if (!regionFound) {
+            allRegionsFound = false;
+          }
+        });
+        if (!allRegionsFound) {
+          messages.push(validationConfig.message);
+        }
+      }
     };
 
     function validatePipeline(pipeline) {
@@ -55,8 +85,8 @@ angular.module('spinnaker.pipelines.config.validator.service', [
               case 'stageBeforeType':
                 validators.stageBeforeType(pipeline, index, validator, messages);
                 break;
-              case 'stageBeforeMethod':
-                validators.stageBeforeMethod(pipeline, index, validator, messages);
+              case 'targetImpedance':
+                validators.targetImpedance(pipeline, index, validator, messages);
                 break;
               case 'requiredField':
                 validators.checkRequiredField(stage, validator, messages);

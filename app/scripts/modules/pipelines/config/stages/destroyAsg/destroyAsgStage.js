@@ -11,6 +11,12 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
       templateUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
+      validators: [
+        {
+          type: 'targetImpedance',
+          message: 'This pipeline will attempt to destroy a server group without deploying a new version into the same cluster.'
+        },
+      ],
     });
   }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService) {
     var ctrl = this;
