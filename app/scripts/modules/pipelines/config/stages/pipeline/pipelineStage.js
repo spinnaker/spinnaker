@@ -10,7 +10,6 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       controllerAs: 'pipelineStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
-      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionLabel.html',
       validators: [
         {
           type: 'requiredField',
