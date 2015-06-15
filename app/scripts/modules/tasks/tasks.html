@@ -117,7 +117,7 @@
                 class="task-step">
               <td colspan="2">
                 <status-glyph item="step"></status-glyph>
-                {{step.name | robotToHuman }}
+                {{step.name | robotToHuman }} <small><b>{{tasks.getDeployedServerGroup(task, step)}}</b></small>
               </td>
               <td>
                 {{ step.startTime | timestamp }}

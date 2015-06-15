@@ -152,6 +152,30 @@ angular.module('spinnaker.tasks.main', [
     };
 
 
+    controller.getDeployedServerGroup = function(task, step) {
+      if(task.execution) {
+        var stage = findStageWithTaskInExecution(task.execution, step.name);
+        console.warn(step.name, stage, task);
+        if(stage && stage.context && stage.context['deploy.server.groups']){
+          return _(stage.context['deploy.server.groups'])
+            .chain()
+            .values()
+            .first()
+            .first()
+            .value();
+        }
+      } else {
+        return;
+      }
+    };
+
+    function findStageWithTaskInExecution(execution, stageName) {
+      return _(execution.stages).find(function(stage) {
+        return _.any(stage.tasks, {'name': stageName});
+      });
+    }
+
+
     function filterRunningTasks() {
       var running = _.chain(application.tasks)
         .filter(function(task) {
