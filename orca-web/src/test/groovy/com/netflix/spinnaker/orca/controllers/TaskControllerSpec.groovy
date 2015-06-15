@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.json.JsonSlurper
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobInstance
 import org.springframework.batch.core.JobParameters
@@ -94,7 +95,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
-    with(new ObjectMapper().readValue(response.contentAsString, new TypeReference<List<OrchestrationViewModel>>() {}).first()) {
+    with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
 
@@ -113,7 +114,7 @@ class TaskControllerSpec extends Specification {
     then:
     executionRepository.retrieveOrchestration(orchestration.id) >> orchestration
 
-    new ObjectMapper().readValue(response.contentAsString, OrchestrationViewModel).variables == [
+    new JsonSlurper().parseText(response.contentAsString).variables == [
       [key: "customOutput", value: "variable"]
     ]
   }
