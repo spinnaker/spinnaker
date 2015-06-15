@@ -28,8 +28,17 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class GoogleOperationPoller {
 
+  // This only exists to facilitate testing.
+  static class ThreadSleeper {
+    void sleep(long milliseconds) {
+      Thread.currentThread().sleep(milliseconds)
+    }
+  }
+
   @Autowired
   GoogleConfig.GoogleConfigurationProperties googleConfigurationProperties
+
+  private ThreadSleeper threadSleeper = new ThreadSleeper()
 
   // The methods below are used to wait on the operation specified in |operationName|. This is used in practice to
   // turn the asynchronous GCE client operations into synchronous calls. Will poll the state of the operation until
@@ -84,8 +93,6 @@ class GoogleOperationPoller {
     This method does not correct for potential drift at each interval (we trade some precision for readability).
     The timeoutSeconds parameter is really treated as a lower-bound. We will poll until the operation reaches a DONE
     state or until <em>at least</em> that many seconds have passed.
-
-    TODO(duftler): Add test explicitly verifying backoff behavior.
    */
   private Operation waitForOperation(Closure getOperation, long timeoutSeconds) {
     int totalTimePollingSeconds = 0
@@ -96,7 +103,7 @@ class GoogleOperationPoller {
     int pollIncrement = 0
 
     while (!timeoutExceeded) {
-      Thread.currentThread().sleep(pollInterval * 1000)
+      threadSleeper.sleep(pollInterval * 1000)
 
       totalTimePollingSeconds += pollInterval
 

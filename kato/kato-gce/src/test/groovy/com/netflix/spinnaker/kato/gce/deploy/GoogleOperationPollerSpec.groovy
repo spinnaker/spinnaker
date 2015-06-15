@@ -40,17 +40,63 @@ class GoogleOperationPollerSpec extends Specification {
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 0) == null
   }
 
-  void "waitForOperation should retry until timeout"() {
+  void "waitForOperation should increment poll interval properly and retry until timeout"() {
     setup:
+      def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
-      def getOperationMock = Mock(Closure)
+        new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties(),
+            threadSleeper: threadSleeperMock)
 
     when:
-      Operation operation = googleOperationPoller.waitForOperation(getOperationMock, 10)
+      // Even though the timeout is set to 10 seconds, it will poll for 12 seconds.
+      googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
 
     then:
-      (2.._) * getOperationMock.call() >> new Operation(status: "PENDING")
-      operation == null
+      1 * threadSleeperMock.sleep(1000)
+
+    then:
+      1 * threadSleeperMock.sleep(1000)
+
+    then:
+      1 * threadSleeperMock.sleep(2000)
+
+    then:
+      1 * threadSleeperMock.sleep(3000)
+
+    then:
+      1 * threadSleeperMock.sleep(5000)
+  }
+
+  void "waitForOperation should respect asyncOperationMaxPollingIntervalSeconds"() {
+    setup:
+      def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
+      def googleOperationPoller =
+        new GoogleOperationPoller(
+            googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties(
+                asyncOperationMaxPollingIntervalSeconds: 3),
+            threadSleeper: threadSleeperMock)
+
+    when:
+      // Even though the timeout is set to 10 seconds, it will poll for 13 seconds.
+      googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
+
+    then:
+      1 * threadSleeperMock.sleep(1000)
+
+    then:
+      1 * threadSleeperMock.sleep(1000)
+
+    then:
+      1 * threadSleeperMock.sleep(2000)
+
+    then:
+      1 * threadSleeperMock.sleep(3000)
+
+    then:
+      1 * threadSleeperMock.sleep(3000)
+
+    then:
+      1 * threadSleeperMock.sleep(3000)
   }
 }
