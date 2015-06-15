@@ -36,7 +36,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManagersDeleteInst
  * This is an alternative to {@link TerminateGoogleInstancesAtomicOperation} using
  * the API described in {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/deleteInstances}.
  *
- * This is also an alternative to {@link AbandonAndDecrementGoogleServerGroup}
+ * This is also an alternative to {@link AbandonAndDecrementGoogleServerGroupAtomicOperation}
  * where the instances are also deleted once removed from the replica pool.
  *
  * @see TerminateGoogleInstancesAtomicOperation

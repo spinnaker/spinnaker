@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.google.api.services.replicapool.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -53,7 +54,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def instanceGroupManager = new InstanceGroupManager()
       instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
-      def instanceGroupManagersDeleteOp = new com.google.api.services.replicapool.model.Operation(
+      def instanceGroupManagersDeleteOp = new Operation(
           name: INSTANCE_GROUP_OP_NAME,
           status: DONE)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)

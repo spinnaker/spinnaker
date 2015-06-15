@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
+import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -61,14 +63,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def forwardingRulesDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: "DONE")
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
       def targetPoolsDeleteOp = new Operation(
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
-      def targetPool = new com.google.api.services.compute.model.TargetPool(healthChecks: [HEALTH_CHECK_URL])
+      def targetPool = new TargetPool(healthChecks: [HEALTH_CHECK_URL])
       def healthChecks = Mock(Compute.HttpHealthChecks)
       def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
       def healthChecksDeleteOp = new Operation(
@@ -123,14 +125,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def forwardingRulesDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: "DONE")
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
       def targetPoolsDeleteOp = new Operation(
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
-      def targetPool = new com.google.api.services.compute.model.TargetPool()
+      def targetPool = new TargetPool()
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
@@ -201,12 +203,10 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: "DONE",
           error: new Operation.Error(errors: [new Operation.Error.Errors(message: "error")]))
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
-      def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
-      def targetPoolsDeleteOp = new Operation(name: TARGET_POOL_DELETE_OP_NAME)
-      def targetPool = new com.google.api.services.compute.model.TargetPool()
+      def targetPool = new TargetPool()
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
@@ -246,12 +246,10 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def forwardingRulesPendingDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: "PENDING")
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
-      def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
-      def targetPoolsDeleteOp = new Operation(name: TARGET_POOL_DELETE_OP_NAME, status: "PENDING")
-      def targetPool = new com.google.api.services.compute.model.TargetPool()
+      def targetPool = new TargetPool()
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           deleteOperationTimeoutSeconds: 0,
@@ -296,14 +294,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def forwardingRulesDeleteOpDone = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: "DONE")
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_POOL_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_POOL_URL)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPoolsDelete = Mock(Compute.TargetPools.Delete)
       def targetPoolsDeleteOp = new Operation(
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
-      def targetPool = new com.google.api.services.compute.model.TargetPool()
+      def targetPool = new TargetPool()
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,

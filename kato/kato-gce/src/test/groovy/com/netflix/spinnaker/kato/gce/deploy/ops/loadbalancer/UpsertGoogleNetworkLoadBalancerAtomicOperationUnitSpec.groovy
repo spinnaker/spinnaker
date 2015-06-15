@@ -1090,8 +1090,6 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           requestPath: Constants.DEFAULT_REQUEST_PATH
         )
       ])
-      def targetPoolsAddInstance = Mock(Compute.TargetPools.AddInstance)
-      def targetPoolsRemoveInstance = Mock(Compute.TargetPools.RemoveInstance)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(

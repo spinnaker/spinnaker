@@ -266,7 +266,7 @@ class GCEUtil {
     }
 
     if (useDiskTypeUrl) {
-      diskType = GCEUtil.buildDiskTypeUrl(projectName, zone, diskType)
+      diskType = buildDiskTypeUrl(projectName, zone, diskType)
     }
 
     def attachedDiskInitializeParams = new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
@@ -324,11 +324,11 @@ class GCEUtil {
                              GoogleCredentials credentials,
                              ReplicaPoolBuilder replicaPoolBuilder) {
     def maxSeqNumber = -1
-    def managedInstanceGroups = GCEUtil.queryManagedInstanceGroups(project,
-                                                                   region,
-                                                                   credentials,
-                                                                   replicaPoolBuilder,
-                                                                   APPLICATION_NAME)
+    def managedInstanceGroups = queryManagedInstanceGroups(project,
+                                                           region,
+                                                           credentials,
+                                                           replicaPoolBuilder,
+                                                           APPLICATION_NAME)
 
     for (def managedInstanceGroup : managedInstanceGroups) {
       def names = Names.parseName(managedInstanceGroup.getName())

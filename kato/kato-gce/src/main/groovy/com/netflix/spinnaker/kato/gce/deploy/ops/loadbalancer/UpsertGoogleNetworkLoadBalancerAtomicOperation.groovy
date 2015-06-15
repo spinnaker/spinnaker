@@ -361,9 +361,9 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     }
   }
 
-  private boolean updateForwardingRuleIfNecessary(boolean needToUpdateForwardingRule, String targetPoolName,
-                                                  String targetPoolResourceLink, String region, Compute compute,
-                                                  String project) {
+  private void updateForwardingRuleIfNecessary(boolean needToUpdateForwardingRule, String targetPoolName,
+                                               String targetPoolResourceLink, String region, Compute compute,
+                                               String project) {
     if (needToUpdateForwardingRule) {
       // These properties of the forwarding rule can't be updated, so we must do a delete and create.
       task.updateStatus BASE_PHASE, "Deleting forwarding rule $description.networkLoadBalancerName..."
