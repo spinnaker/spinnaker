@@ -20,6 +20,8 @@ import com.google.api.services.compute.Compute
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -87,6 +89,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
      operation.operate([])
@@ -173,6 +177,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials,
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

@@ -32,7 +32,7 @@ import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleInstanceDescription
 import groovy.mock.interceptor.MockFor
@@ -147,7 +147,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
     1 * computeMock.machineTypes() >> machineTypesMock
     1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
     1 * machineTypesListMock.execute() >> new MachineTypeList(items: [])
-    thrown GCEResourceNotFoundException
+    thrown GoogleResourceNotFoundException
   }
 
   void "should fail to create instance because image is invalid"() {
@@ -209,6 +209,6 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification {
       1 * machineTypesMock.list(PROJECT_NAME, ZONE) >> machineTypesListMock
       1 * machineTypesListMock.execute() >> new MachineTypeList(items: [new MachineType(name: INSTANCE_TYPE,
                                                                                         selfLink: MACHINE_TYPE_LINK)])
-      thrown GCEResourceNotFoundException
+      thrown GoogleResourceNotFoundException
   }
 }

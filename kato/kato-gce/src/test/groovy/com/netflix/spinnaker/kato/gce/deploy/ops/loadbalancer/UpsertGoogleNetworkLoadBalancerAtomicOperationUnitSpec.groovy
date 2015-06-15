@@ -30,6 +30,8 @@ import com.google.api.services.compute.model.TargetPoolList
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -107,6 +109,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -181,6 +185,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -236,6 +242,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -281,6 +289,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -549,6 +559,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -630,6 +642,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -718,6 +732,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

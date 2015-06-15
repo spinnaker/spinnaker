@@ -29,10 +29,11 @@ import com.google.api.services.compute.model.TargetPoolsRemoveHealthCheckRequest
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "UPSERT_NETWORK_LOAD_BALANCER"
@@ -40,6 +41,9 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private final UpsertGoogleNetworkLoadBalancerDescription description
 
@@ -218,7 +222,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
     // If the target pool was created from scratch or updated we need to wait until that operation completes.
     if (targetPoolResourceOperation) {
-      GCEOperationUtil.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, targetPoolResourceOperation.getName(),
         null, task, "target pool " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
 
       deleteHttpHealthCheckIfNecessary(existingHttpHealthCheck, needToDeleteHttpHealthCheck, compute, project)
@@ -256,7 +260,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     httpHealthChecksResourceLinks << httpHealthCheckResourceLink
 
     // If the http health check was created from scratch we need to wait until that operation completes.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, httpHealthCheckResourceOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, httpHealthCheckResourceOperation.getName(),
       null, task, "health check " + GCEUtil.getLocalName(httpHealthCheckResourceLink), BASE_PHASE)
   }
 
@@ -368,7 +372,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
         compute.forwardingRules().delete(project, region, description.networkLoadBalancerName).execute()
       def forwardingRuleResourceLink = forwardingRuleResourceOperation.targetLink
 
-      GCEOperationUtil.waitForRegionalOperation(compute, project, region, forwardingRuleResourceOperation.getName(),
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleResourceOperation.getName(),
         null, task, "forwarding rule " + GCEUtil.getLocalName(forwardingRuleResourceLink), BASE_PHASE)
 
       createNewForwardingRuleIfNecessary(true, targetPoolName, targetPoolResourceLink, region, compute, project)

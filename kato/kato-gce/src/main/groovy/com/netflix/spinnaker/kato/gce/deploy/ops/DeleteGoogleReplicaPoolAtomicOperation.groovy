@@ -19,10 +19,11 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   // TODO(duftler): This should move to a common location.
@@ -31,6 +32,9 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private final DeleteGoogleReplicaPoolDescription description
   private final ReplicaPoolBuilder replicaPoolBuilder
@@ -70,7 +74,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
-    GCEOperationUtil.waitForZoneOperation(replicapool, project, zone, instanceGroupOperationName, null, task,
+    googleOperationPoller.waitForZoneOperation(replicapool, project, zone, instanceGroupOperationName, null, task,
         "instance group $replicaPoolName", BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleted instance group."

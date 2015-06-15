@@ -30,7 +30,7 @@ import com.google.api.services.resourceviews.model.ZoneViewsListResourcesRespons
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 import spock.lang.Specification
@@ -221,7 +221,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> forwardingRulesListMock
       1 * forwardingRulesListMock.execute() >> forwardingRulesList2
 
-      def exc = thrown GCEResourceNotFoundException
+      def exc = thrown GoogleResourceNotFoundException
       exc.message == "Network load balancers [$FORWARDING_RULE_1, $FORWARDING_RULE_2] not found."
   }
 }

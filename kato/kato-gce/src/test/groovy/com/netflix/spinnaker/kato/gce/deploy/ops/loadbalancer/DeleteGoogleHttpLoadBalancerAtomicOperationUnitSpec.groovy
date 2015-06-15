@@ -21,8 +21,11 @@ import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -47,19 +50,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final PENDING = "PENDING"
   private static final DONE = "DONE"
 
-  // Used to restore the polling interval fraction in cleanupSpec()
-  private static int restoreIntervalFraction = GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION
-
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-
-    // Change the default polling so that the interval will be 1 ms
-    // Ideally we'd just change the default timeout value, but it is declared final so we cannot.
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = 1000 * GCEOperationUtil.DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-  }
-
-  def cleanupSpec() {
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = restoreIntervalFraction
   }
 
   void "should delete Http Load Balancer with one backend service"() {
@@ -113,6 +105,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -233,6 +227,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -314,7 +310,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
       1 * globalForwardingRulesGet.execute() >> null
-      thrown GCEResourceNotFoundException
+      thrown GoogleResourceNotFoundException
   }
 
   void "should fail to delete Http Load Balancer if failed to delete a resource"() {
@@ -372,6 +368,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -413,7 +411,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * backendServicesOperationGet.execute() >> backendServicesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksFailingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationException
   }
 
   void "should fail to delete Http Load Balancer if timed out while deleting a resource"() {
@@ -464,6 +462,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -487,7 +487,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> globalForwardingRulesOperationGet
       1 * globalForwardingRulesOperationGet.execute() >> globalForwardingRulesPendingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationTimedOutException
   }
 
   void "should wait on slow deletion of target HTTP proxy and successfully delete simple HTTP Load Balancer"() {
@@ -544,6 +544,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 
 class GCEUtil {
@@ -55,7 +56,7 @@ class GCEUtil {
     if (machineType) {
       return machineType
     } else {
-      updateStatusAndThrowException("Machine type $machineTypeName not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Machine type $machineTypeName not found.", task, phase)
     }
   }
 
@@ -69,7 +70,7 @@ class GCEUtil {
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-        updateStatusAndThrowException("Error locating $sourceImageName in these projects: $imageProjects: $e.message", task, phase)
+        updateStatusAndThrowNotFoundException("Error locating $sourceImageName in these projects: $imageProjects: $e.message", task, phase)
       }
 
       @Override
@@ -91,7 +92,7 @@ class GCEUtil {
     if (sourceImage) {
       return sourceImage
     } else {
-      updateStatusAndThrowException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
+      updateStatusAndThrowNotFoundException("Source image $sourceImageName not found in any of these projects: $imageProjects.", task, phase)
     }
   }
 
@@ -115,7 +116,7 @@ class GCEUtil {
     if (network) {
       return network
     } else {
-      updateStatusAndThrowException("Network $networkName not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Network $networkName not found.", task, phase)
     }
   }
 
@@ -159,7 +160,7 @@ class GCEUtil {
     } else {
       def foundNames = foundForwardingRules.collect { it.name }
 
-      updateStatusAndThrowException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Network load balancers ${forwardingRuleNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -191,7 +192,7 @@ class GCEUtil {
     } else {
       def foundNames = foundInstances.collect { it.name }
 
-      updateStatusAndThrowException("Instances ${instanceLocalNames - foundNames} not found.", task, phase)
+      updateStatusAndThrowNotFoundException("Instances ${instanceLocalNames - foundNames} not found.", task, phase)
     }
   }
 
@@ -357,9 +358,9 @@ class GCEUtil {
     return appName;
   }
 
-  private static void updateStatusAndThrowException(String errorMsg, Task task, String phase) {
+  private static void updateStatusAndThrowNotFoundException(String errorMsg, Task task, String phase) {
     task.updateStatus phase, errorMsg
-    throw new GCEResourceNotFoundException(errorMsg)
+    throw new GoogleResourceNotFoundException(errorMsg)
   }
 
   public static String getLocalName(String fullUrl) {

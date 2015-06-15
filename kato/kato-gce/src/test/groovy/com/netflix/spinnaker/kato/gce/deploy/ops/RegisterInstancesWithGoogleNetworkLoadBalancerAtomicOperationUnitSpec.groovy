@@ -25,7 +25,7 @@ import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleNetworkLoadBalancerDescription
@@ -145,6 +145,6 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
       1 * computeMock.forwardingRules() >> forwardingRulesMock
       1 * forwardingRulesMock.list(PROJECT_NAME, REGION) >> listForwardingRulesMock
       1 * listForwardingRulesMock.execute() >> forwardingRulesListReal
-      thrown GCEResourceNotFoundException
+      thrown GoogleResourceNotFoundException
   }
 }

@@ -21,8 +21,11 @@ import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleNetworkLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,19 +43,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   private static final HEALTH_CHECK_NAME = "health-check"
   private static final HEALTH_CHECK_DELETE_OP_NAME = "delete-health-check"
 
-  // Used to restore the polling interval fraction in cleanupSpec()
-  private static int restoreIntervalFraction = GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION
-
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-
-    // Change the default polling so that the interval will be 1 ms
-    // Ideally we'd just change the default timeout value, but it is declared final so we cannot.
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = 1000 * GCEOperationUtil.DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-  }
-
-  def cleanupSpec() {
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = restoreIntervalFraction
   }
 
   void "should delete a Network Load Balancer with health checks"() {
@@ -89,6 +81,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -144,6 +138,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -187,7 +183,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
-      thrown GCEResourceNotFoundException
+      thrown GoogleResourceNotFoundException
   }
 
   void "should fail if failed to delete a resource"() {
@@ -218,6 +214,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -234,7 +232,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRulesFailingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationException
   }
 
   void "should fail if timed out while deleting a resource"() {
@@ -262,6 +260,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -278,7 +278,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION, FORWARDING_RULE_DELETE_OP_NAME) >> forwardingRuleOperationGet
       1 * forwardingRuleOperationGet.execute() >> forwardingRulesPendingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationTimedOutException
   }
 
   void "should wait on slow deletion of forwarding rule and successfully delete Network Load Balancer"() {
@@ -311,6 +311,8 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

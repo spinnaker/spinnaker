@@ -20,7 +20,6 @@ import com.google.api.services.compute.model.Backend
 import com.google.api.services.compute.model.BackendService
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.HostRule
-import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.PathMatcher
 import com.google.api.services.compute.model.PathRule
 import com.google.api.services.compute.model.TargetHttpProxy
@@ -28,10 +27,11 @@ import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<DeploymentResult> {
   private static final String BASE_PHASE = "CREATE_HTTP_LB"
@@ -46,6 +46,9 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private final CreateGoogleHttpLoadBalancerDescription description
 
@@ -108,7 +111,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
     )
 
     // Before building the backend service we must check and wait until the health check is built.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, createHttpHealthCheckOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, createHttpHealthCheckOperation.getName(),
         null, task, "http health check " + GCEUtil.getLocalName(httpHealthCheckUrl), BASE_PHASE)
 
     def backendServiceOperation = compute.backendServices().insert(project, backendService).execute()
@@ -151,7 +154,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
     )
 
     // Before building the url map we must check and wait until the backend service is built.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, backendServiceOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, backendServiceOperation.getName(),
         null, task, "backend service " + GCEUtil.getLocalName(backendServiceUrl), BASE_PHASE)
 
     def urlMapOperation = compute.urlMaps().insert(project, urlMap).execute()
@@ -168,7 +171,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
     )
 
     // Before building the target http proxy we must check and wait until the url map is built.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, urlMapOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, urlMapOperation.getName(),
         null, task, "url map " + GCEUtil.getLocalName(urlMapUrl), BASE_PHASE)
 
     def targetHttpProxyOperation = compute.targetHttpProxies().insert(project, targetHttpProxy).execute()
@@ -192,7 +195,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
     )
 
     // Before building the forwarding rule we must check and wait until the target http proxy is built.
-    GCEOperationUtil.waitForGlobalOperation(compute, project, targetHttpProxyOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, targetHttpProxyOperation.getName(),
         null, task, "target http proxy " + GCEUtil.getLocalName(targetHttpProxyUrl), BASE_PHASE)
 
     compute.globalForwardingRules().insert(project, forwardingRule).execute()

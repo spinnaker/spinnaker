@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.kato.gce.deploy
+package com.netflix.spinnaker.kato.gce.deploy.exception
 
 import groovy.transform.InheritConstructors
 
 @InheritConstructors
-class GCEResourceNotFoundException extends RuntimeException {}
+class GoogleResourceNotFoundException extends GoogleOperationException {}
