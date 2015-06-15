@@ -225,4 +225,55 @@ class GetCommitsTaskSpec extends Specification {
     targetServerGroup = "myapp-stack-v000"
     targetImage = "ami-target"
   }
+
+  def "returns success if commit info is missing"() {
+    given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
+    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
+
+    and:
+    task.sockService = Stub(SockService) {
+      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+                                                                                                                   [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
+    }
+
+    and:
+    task.front50Service = front50Service
+    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+
+    and:
+    task.objectMapper = new ObjectMapper()
+    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
+    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString(sourceTags))
+    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString(targetTags))
+    task.oortService = oortService
+    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == taskStatus
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    jobState = 'SUCCESS'
+    taskStatus = ExecutionStatus.SUCCEEDED
+
+    cluster | serverGroup | targetServerGroup | sourceTags | targetTags
+    "myapp" | "myapp-v001" | "myapp-v002" | '[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]' | '[{ "tags" : { }}]'
+    "myapp" | "myapp-v001" | "myapp-v002" | '[{ "tags" : { }}]' | '[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'
+  }
 }

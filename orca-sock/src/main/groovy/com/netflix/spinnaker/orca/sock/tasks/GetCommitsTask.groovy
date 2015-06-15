@@ -69,6 +69,8 @@ class GetCommitsTask implements RetryableTask {
     String repositorySlug = application.repoSlug
     String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
     String account = stage.context?.source?.account ?: stage.context?.account
+    String toCommit
+    String fromCommit
 
     String ancestorAsg = stage.context.get("kato.tasks")?.find { item ->
       item.find { key, value ->
@@ -103,7 +105,11 @@ class GetCommitsTask implements RetryableTask {
           region, sourceAmi).body.in(), jsonListType)
 
         String sourceAppVersion = sourceAmiDetails[0]?.tags?.appversion
-        String toCommit = sourceAppVersion.substring(0, sourceAppVersion.indexOf('/')).substring(sourceAppVersion.lastIndexOf('.') + 1)
+        if(sourceAppVersion) {
+          toCommit = sourceAppVersion.substring(0, sourceAppVersion.indexOf('/')).substring(sourceAppVersion.lastIndexOf('.') + 1)
+        } else {
+          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        }
 
         def targetRegion
         stage.context."deploy.server.groups".each {
@@ -126,7 +132,11 @@ class GetCommitsTask implements RetryableTask {
           targetRegion, targetAmi).body.in(), jsonListType)
 
         String targetAppVersion = targetAmiDetails[0]?.tags?.appversion
-        String fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
+        if(targetAppVersion) {
+          fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
+        } else {
+          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        }
 
         List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: toCommit, from: fromCommit, limit: 100])
         def commitsList = []
@@ -138,7 +148,7 @@ class GetCommitsTask implements RetryableTask {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
       } catch (RetrofitError e) {
         if ([503, 500, 404].contains(e.response?.status)) {
-          log.warn("Http ${e.response.status} received from `sock`, retrying...")
+          log.warn("Http ${e.response.status} received from `sock` (${repoType}, ${projectKey}, ${repositorySlug}, ${toCommit}, ${fromCommit}) , retrying...")
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
         }
         throw e
