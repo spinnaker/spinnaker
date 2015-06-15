@@ -1,8 +1,8 @@
 {
   "name": "angular-animate",
-  "version": "",
+  "version": "1.4.0",
   "description": "AngularJS module for animations",
-  "main": "angular-animate.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

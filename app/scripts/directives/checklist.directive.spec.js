@@ -41,7 +41,9 @@ describe('Directives: checklist', function () {
     scope.$digest();
 
     expect(checklist.find('input').size()).toBe(4);
+    console.log(checklist.find('input'));
     expect(checklist.find('input:checked').size()).toBe(3);
+
   });
 
   it('updates selections, model when model or items change externally', function() {
@@ -54,9 +56,9 @@ describe('Directives: checklist', function () {
 
     scope.items = ['a','b','c','d'];
 
-    var checklist = compile('<checklist model="model.selections" items="items"></checklist>')(scope);
+    var checklist = compile('<checklist model="model.selections" items="items" inline="true"></checklist>')(scope);
 
-    scope.$digest();
+    scope.$apply();
 
     expect(checklist.find('input').size()).toBe(4);
     expect(checklist.find('input:checked').size()).toBe(3);
