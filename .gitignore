@@ -7,6 +7,5 @@ build/
 *.iws
 TestScript.groovy
 .idea/
-dist/
-vendor/
-.bundle/
+application.yml
+*.hprof

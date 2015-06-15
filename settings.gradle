@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-rootProject.name="spinnaker-cloud"
+rootProject.name="clouddriver"
 
 def subs = [
   kato: ["kato-core", "kato-web", "kato-aws", "kato-gce", "kato-manual", "kato-jedis", "kato-docker", "kato-cf"],
