@@ -30,8 +30,8 @@ class GoogleOperationPoller {
 
   // This only exists to facilitate testing.
   static class ThreadSleeper {
-    void sleep(long milliseconds) {
-      Thread.currentThread().sleep(milliseconds)
+    void sleep(long seconds) {
+      Thread.currentThread().sleep(seconds * 1000)
     }
   }
 
@@ -42,7 +42,7 @@ class GoogleOperationPoller {
 
   // The methods below are used to wait on the operation specified in |operationName|. This is used in practice to
   // turn the asynchronous GCE client operations into synchronous calls. Will poll the state of the operation until
-  // either state is DONE or |timeoutMillis| is reached.
+  // either state is DONE or |timeoutSeconds| is reached.
   Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
                                      Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     return handleFinishedAsyncOperation(
@@ -103,7 +103,7 @@ class GoogleOperationPoller {
     int pollIncrement = 0
 
     while (!timeoutExceeded) {
-      threadSleeper.sleep(pollInterval * 1000)
+      threadSleeper.sleep(pollInterval)
 
       totalTimePollingSeconds += pollInterval
 

@@ -53,19 +53,19 @@ class GoogleOperationPollerSpec extends Specification {
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
 
     then:
-      1 * threadSleeperMock.sleep(1000)
+      1 * threadSleeperMock.sleep(1)
 
     then:
-      1 * threadSleeperMock.sleep(1000)
+      1 * threadSleeperMock.sleep(1)
 
     then:
-      1 * threadSleeperMock.sleep(2000)
+      1 * threadSleeperMock.sleep(2)
 
     then:
-      1 * threadSleeperMock.sleep(3000)
+      1 * threadSleeperMock.sleep(3)
 
     then:
-      1 * threadSleeperMock.sleep(5000)
+      1 * threadSleeperMock.sleep(5)
   }
 
   void "waitForOperation should respect asyncOperationMaxPollingIntervalSeconds"() {
@@ -82,21 +82,21 @@ class GoogleOperationPollerSpec extends Specification {
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 10)
 
     then:
-      1 * threadSleeperMock.sleep(1000)
+      1 * threadSleeperMock.sleep(1)
 
     then:
-      1 * threadSleeperMock.sleep(1000)
+      1 * threadSleeperMock.sleep(1)
 
     then:
-      1 * threadSleeperMock.sleep(2000)
+      1 * threadSleeperMock.sleep(2)
 
     then:
-      1 * threadSleeperMock.sleep(3000)
+      1 * threadSleeperMock.sleep(3)
 
     then:
-      1 * threadSleeperMock.sleep(3000)
+      1 * threadSleeperMock.sleep(3)
 
     then:
-      1 * threadSleeperMock.sleep(3000)
+      1 * threadSleeperMock.sleep(3)
   }
 }
