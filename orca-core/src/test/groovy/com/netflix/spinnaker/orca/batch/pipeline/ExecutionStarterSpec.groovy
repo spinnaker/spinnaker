@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionStarter
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.launch.JobLauncher
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -67,4 +68,46 @@ class ExecutionStarterSpec extends Specification {
     ExecutionStatus.TERMINAL    || 0
     ExecutionStatus.NOT_STARTED || 1
   }
+
+  @Unroll
+  def "should send failure event when exception occurs in new stage"() {
+    given:
+    def executionJobBuilder = Mock(ExecutionJobBuilder)
+    def executionStatus = status
+    JobExecutionListener listener = Mock(JobExecutionListener)
+    def executionStarter = new ExecutionStarter<Pipeline>("bake") {
+      @Override
+      protected ExecutionJobBuilder getExecutionJobBuilder() { executionJobBuilder }
+
+      @Override
+      protected void persistExecution(Pipeline subject) {}
+
+      @Override
+      protected Pipeline create(Map config) {
+        def pipeline = new Pipeline()
+        pipeline.stages << new PipelineStage(pipeline, "bake")
+        pipeline.stages.each {
+          it.tasks << new DefaultTask()
+          it.status = executionStatus
+        }
+        pipeline.id = "ID"
+        return pipeline
+      }
+    }
+    executionStarter.mapper = new ObjectMapper()
+    executionStarter.launcher = Mock(JobLauncher)
+    executionStarter.pipelineListeners = [listener]
+
+    when:
+    executionStarter.start("{}")
+
+    then:
+    launchInvocations * listener.afterJob(_)
+
+    where:
+    status                      || launchInvocations
+    ExecutionStatus.TERMINAL    || 1
+    ExecutionStatus.NOT_STARTED || 0
+  }
+
 }

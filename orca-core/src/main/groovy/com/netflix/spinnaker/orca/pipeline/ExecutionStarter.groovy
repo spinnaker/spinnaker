@@ -16,10 +16,14 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.util.logging.Slf4j
+import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobExecutionListener
+import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.launch.JobLauncher
@@ -42,6 +46,9 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected JobRepository jobRepository
   @Autowired protected ObjectMapper mapper
 
+  @Autowired(required=false)
+  List<JobExecutionListener> pipelineListeners
+
   T start(String configJson) {
     Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
@@ -51,6 +58,11 @@ abstract class ExecutionStarter<T extends Execution> {
 
     if (subject.status.isComplete()) {
       log.warn("Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
+      if (subject instanceof Pipeline) {
+        pipelineListeners?.each {
+          it.afterJob(new JobExecution(0L, new JobParameters([pipeline: new JobParameter(subject.id)])))
+        }
+      }
       return subject
     }
 
