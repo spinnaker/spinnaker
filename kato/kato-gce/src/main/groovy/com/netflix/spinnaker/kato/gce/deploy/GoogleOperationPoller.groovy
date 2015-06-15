@@ -80,6 +80,13 @@ class GoogleOperationPoller {
     task.updateStatus basePhase, "Done operating on $resourceString."
   }
 
+  /*
+    This method does not correct for potential drift at each interval (we trade some precision for readability).
+    The timeoutSeconds parameter is really treated as a lower-bound. We will poll until the operation reaches a DONE
+    state or until <em>at least</em> that many seconds have passed.
+
+    TODO(duftler): Add test explicitly verifying backoff behavior.
+   */
   private Operation waitForOperation(Closure getOperation, long timeoutSeconds) {
     int totalTimePollingSeconds = 0
     boolean timeoutExceeded = false
