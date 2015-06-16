@@ -8,9 +8,8 @@ angular.module('spinnaker.securityGroup.read.service', [
   'spinnaker.utils.lodash',
   'spinnaker.caches.scheduled',
   'spinnaker.caches.infrastructure',
-  'spinnaker.notifications.service'
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches, notificationsService) {
+  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches) {
 
     function loadSecurityGroups(application) {
 
@@ -37,12 +36,6 @@ angular.module('spinnaker.securityGroup.read.service', [
     function loadSecurityGroupsByApplicationName(applicationName) {
       return searchService.search({q: applicationName, type: 'securityGroups', pageSize: 1000}).then(function(searchResults) {
         if (!searchResults || !searchResults.results) {
-          notificationsService.create({
-            message: 'Warning: Security Group endpoint appears to be down. Security group info will not be displayed.',
-            autoDismiss: false,
-            hideTimestamp: true,
-            strong: true
-          });
           $exceptionHandler('WARNING: Gate security group endpoint appears to be down.');
           return [];
         }

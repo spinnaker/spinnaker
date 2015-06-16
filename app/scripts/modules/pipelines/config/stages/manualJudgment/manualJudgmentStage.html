@@ -12,4 +12,43 @@
       </textarea>
     </div>
   </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      Notifications
+    </div>
+    <div class="col-md-6">
+      <table class="table table-condensed">
+        <thead>
+        <tr>
+          <th>Type</th>
+          <th>Details</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="notification in stage.notifications">
+          <td>
+            {{notification.type}}
+          </td>
+          <td>
+            {{notification.address}}
+          </td>
+          <td>
+            <a class="btn btn-xs btn-link pad-left" href
+               ng-click="manualJudgmentStageCtrl.removeNotification($index)">Remove</a>
+          </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block btn-sm add-new" ng-click="manualJudgmentStageCtrl.addNotification()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add notification
+            </button>
+          </td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
 </div>

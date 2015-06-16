@@ -4,12 +4,11 @@
 angular.module('spinnaker.securityGroup.aws.details.controller', [
   'ui.router',
   'ui.bootstrap',
-  'spinnaker.notifications.service',
   'spinnaker.securityGroup.read.service',
   'spinnaker.securityGroup.write.service',
   'spinnaker.confirmationModal.service'
 ])
-  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, notificationsService, securityGroup, application,
+  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, securityGroup, application,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $modal) {
 
@@ -33,12 +32,6 @@ angular.module('spinnaker.securityGroup.aws.details.controller', [
     }
 
     function fourOhFour() {
-      notificationsService.create({
-        message: 'No security group named "' + securityGroup.name + '" was found in ' + securityGroup.accountId + ':' + securityGroup.region,
-        autoDismiss: true,
-        hideTimestamp: true,
-        strong: true
-      });
       $state.go('^');
     }
 

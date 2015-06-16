@@ -2,7 +2,6 @@
 
 angular.module('spinnaker.networking.controller', [
   'ui.bootstrap',
-  'spinnaker.notifications',
   'spinnaker.confirmationModal.service',
   'spinnaker.utils.lodash',
   'spinnaker.elasticIp.read.service',

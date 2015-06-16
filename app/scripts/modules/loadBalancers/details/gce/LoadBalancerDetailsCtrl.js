@@ -4,14 +4,13 @@
 angular.module('spinnaker.loadBalancer.gce.details.controller',[
   'ui.router',
   'ui.bootstrap',
-  'spinnaker.notifications.service',
   'spinnaker.confirmationModal.service',
   'spinnaker.loadBalancer.write.service',
   'spinnaker.loadBalancer.read.service',
   'spinnaker.utils.lodash',
   'spinnaker.confirmationModal.service'
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
@@ -42,12 +41,6 @@ angular.module('spinnaker.loadBalancer.gce.details.controller',[
         });
       }
       if (!$scope.loadBalancer) {
-        notificationsService.create({
-          message: 'No load balancer named "' + loadBalancer.name + '" was found in ' + loadBalancer.accountId + ':' + loadBalancer.region,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
         $state.go('^');
       }
     }

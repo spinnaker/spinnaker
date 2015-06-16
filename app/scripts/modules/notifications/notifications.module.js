@@ -1,5 +1,7 @@
 'use strict';
 
 angular.module('spinnaker.notifications', [
-  'spinnaker.utils.rx',
+  'spinnaker.notifications.config',
+  'spinnaker.notifications.selector',
+  'spinnaker.notifications.service',
 ]);

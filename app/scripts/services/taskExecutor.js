@@ -8,14 +8,12 @@ angular.module('spinnaker.taskExecutor.service', [
   'spinnaker.urlBuilder',
   'spinnaker.authentication',
   'spinnaker.authentication.service',
-  'spinnaker.notifications',
   'spinnaker.caches.scheduled',
   'spinnaker.caches.infrastructure',
   'spinnaker.tasks.read.service',
   'spinnaker.tasks.write.service',
-  'spinnaker.notifications.service',
 ])
-  .factory('taskExecutor', function(settings, Restangular, scheduler, notificationsService, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
+  .factory('taskExecutor', function(settings, Restangular, scheduler, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 
 
     function executeTask(taskCommand) {
@@ -34,17 +32,6 @@ angular.module('spinnaker.taskExecutor.service', [
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
-          if(!taskCommand.suppressNotification) {
-            notificationsService.create({
-              title: application.name,
-              message: taskCommand.description,
-              href: urlBuilder.buildFromMetadata({
-                type: 'task',
-                application: application.name,
-                taskId: taskId
-              })
-            });
-          }
           if (application.reloadTasks) {
             application.reloadTasks();
           }

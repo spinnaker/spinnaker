@@ -7,10 +7,6 @@ angular
     var vm = this;
     vm.notification = angular.copy(notification);
 
-    vm.types = [
-      'email', 'hipchat', 'sms'
-    ];
-
     vm.hasSelectedWhen = false;
     $scope.selectedWhenOptions = {};
 
@@ -39,18 +35,8 @@ angular
       });
       vm.updateSelectedWhen();
 
-      if(vm.notification.type ==='email'){
-        vm.email = vm.notification.address;
-      } else if(vm.notification.type === 'hipchat') {
-        vm.hipchat = vm.notification.address;
-      } else {
-        vm.sms = vm.notification.address;
-      }
-
     } else {
       vm.notification = {};
-      vm.notification.address = '';
-      vm.notification.type = 'email';
       vm.notification.level = 'application';
       vm.notification.when = [];
     }
@@ -62,17 +48,8 @@ angular
           vm.notification.when.push(option);
         }
       });
-      if(vm.notification.type ==='email'){
-        vm.notification.address = vm.email;
-      } else if(vm.notification.type === 'hipchat' ){
-        vm.notification.address = vm.hipchat;
-      } else {
-        vm.notification.address = vm.sms;
-      }
-      $modalInstance.close([notification, vm.notification]);
+      $modalInstance.close(vm.notification);
     };
-
-    $scope.onlyNumbers = /^\d+$/;
 
     $scope.$watch('selectedWhenOptions', function (a,b) {
       if(a!==b) {

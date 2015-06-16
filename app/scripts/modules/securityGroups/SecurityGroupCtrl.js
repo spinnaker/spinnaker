@@ -4,10 +4,9 @@
 angular.module('spinnaker.securityGroup.single.controller', [
   'ui.router',
   'ui.bootstrap',
-  'spinnaker.notifications.service',
   'spinnaker.securityGroup.read.service',
 ])
-  .controller('SecurityGroupCtrl', function($scope, $state, notificationsService, securityGroup, application, securityGroupReader, $modal) {
+  .controller('SecurityGroupCtrl', function($scope, $state, securityGroup, application, securityGroupReader, $modal) {
 
     $scope.displayOptions = {
       showServerGroups: true,
@@ -25,12 +24,6 @@ angular.module('spinnaker.securityGroup.single.controller', [
       $scope.securityGroup = securityGroupReader.getApplicationSecurityGroup(application, securityGroup.account, securityGroup.region, securityGroup.name);
       if (!$scope.securityGroup) {
         $state.go('^');
-        notificationsService.create({
-          message: 'No security group named "' + securityGroup.name + '" was found in ' + securityGroup.account + ':' + securityGroup.region,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
       }
     }
 

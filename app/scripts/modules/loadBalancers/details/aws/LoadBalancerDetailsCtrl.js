@@ -4,14 +4,13 @@
 angular.module('spinnaker.loadBalancer.aws.details.controller',[
   'ui.router',
   'ui.bootstrap',
-  'spinnaker.notifications.service',
   'spinnaker.securityGroup.read.service',
   'spinnaker.loadBalancer.write.service',
   'spinnaker.loadBalancer.read.service',
   'spinnaker.utils.lodash',
   'spinnaker.confirmationModal.service'
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, notificationsService, loadBalancer, application,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
@@ -54,12 +53,6 @@ angular.module('spinnaker.loadBalancer.aws.details.controller',[
         });
       }
       if (!$scope.loadBalancer) {
-        notificationsService.create({
-          message: 'No load balancer named "' + loadBalancer.name + '" was found in ' + loadBalancer.accountId + ':' + loadBalancer.region,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
         $state.go('^');
       }
     }
