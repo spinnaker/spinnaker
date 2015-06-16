@@ -57,14 +57,16 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
 
   @Bean JedisOrchestrationStore orchestrationStore(JedisCommands jedisCommands,
                                                    @Value('${threadPools.orchestrationStore:150}') int threadPoolSize,
-                                                   @Value('${threadPools.orchestrationStore:75}') int threadPoolChunkSize) {
-    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize)
+                                                   @Value('${threadPools.orchestrationStore:75}') int threadPoolChunkSize,
+                                                   ExtendedRegistry extendedRegistry) {
+    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
   @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands,
                                          @Value('${threadPools.pipelineStore:150}') int threadPoolSize,
-                                         @Value('${threadPools.pipelineStore:75}') int threadPoolChunkSize) {
-    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize)
+                                         @Value('${threadPools.pipelineStore:75}') int threadPoolChunkSize,
+                                         ExtendedRegistry extendedRegistry) {
+    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
   @Bean

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
@@ -39,6 +41,6 @@ class JedisPipelineStoreSpec extends PipelineStoreTck<JedisPipelineStore> {
 
   @Override
   JedisPipelineStore createPipelineStore() {
-    new JedisPipelineStore(jedis, mapper, 10, 10)
+    new JedisPipelineStore(jedis, mapper, 10, 10, new ExtendedRegistry(new NoopRegistry()))
   }
 }

@@ -17,12 +17,15 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.ValueFunction
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import redis.clients.jedis.JedisCommands
 import rx.Observable
 import rx.Scheduler
@@ -32,6 +35,7 @@ import rx.schedulers.Schedulers
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 
 @Slf4j
 abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements ExecutionStore<T> {
@@ -49,13 +53,37 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
                                     JedisCommands jedis,
                                     ObjectMapper mapper,
                                     int threadPoolSize,
-                                    int threadPoolChunkSize) {
+                                    int threadPoolChunkSize,
+                                    ExtendedRegistry extendedRegistry) {
     this.prefix = prefix
     this.executionClass = executionClass
     this.jedis = jedis
     this.mapper = mapper
     this.fetchApplicationExecutor = Executors.newFixedThreadPool(threadPoolSize)
     this.chunkSize = threadPoolChunkSize
+
+    def createGuage = { Executor executor, String threadPoolName, String valueName ->
+      def id = extendedRegistry
+        .createId("threadpool.${valueName}" as String)
+        .withTag("id", threadPoolName)
+
+      extendedRegistry.gauge(id, executor, new ValueFunction() {
+        @Override
+        double apply(Object ref) {
+          ((ThreadPoolExecutor)ref)."${valueName}"
+        }
+      })
+    }
+
+    createGuage.call(fetchAllExecutor, "${getClass().simpleName}-fetchAll", "activeCount")
+    createGuage.call(fetchAllExecutor, "${getClass().simpleName}-fetchAll", "maximumPoolSize")
+    createGuage.call(fetchAllExecutor, "${getClass().simpleName}-fetchAll", "corePoolSize")
+    createGuage.call(fetchAllExecutor, "${getClass().simpleName}-fetchAll", "poolSize")
+
+    createGuage.call(fetchApplicationExecutor, "${getClass().simpleName}-fetchApplication", "activeCount")
+    createGuage.call(fetchApplicationExecutor, "${getClass().simpleName}-fetchApplication", "maximumPoolSize")
+    createGuage.call(fetchApplicationExecutor, "${getClass().simpleName}-fetchApplication", "corePoolSize")
+    createGuage.call(fetchApplicationExecutor, "${getClass().simpleName}-fetchApplication", "poolSize")
   }
 
   protected String getAlljobsKey() {
