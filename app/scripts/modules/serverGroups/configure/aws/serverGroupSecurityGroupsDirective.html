@@ -4,10 +4,10 @@
       The following security groups could not be found in the selected account/region/VPC and were removed:
     </p>
     <ul>
-      <li ng-repeat="securityGroup in command.dirty.securityGroups">{{securityGroup}}</li>
+      <li ng-repeat="securityGroup in command.viewState.dirty.securityGroups">{{securityGroup}}</li>
     </ul>
     <p class="text-right">
-      <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.dirty.securityGroups = null">Okay</a>
+      <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.securityGroups = null">Okay</a>
     </p>
   </div>
 </div>
