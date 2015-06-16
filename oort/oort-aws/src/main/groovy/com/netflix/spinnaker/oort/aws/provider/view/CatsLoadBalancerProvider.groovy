@@ -132,7 +132,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
       keys.addAll(serverGroup.relationships[LOAD_BALANCERS.ns])
     }
 
-    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*' + applicationName + '-*')
+    def nameMatches = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, '*:' + applicationName + '-*')
 
     keys.addAll(nameMatches)
 
