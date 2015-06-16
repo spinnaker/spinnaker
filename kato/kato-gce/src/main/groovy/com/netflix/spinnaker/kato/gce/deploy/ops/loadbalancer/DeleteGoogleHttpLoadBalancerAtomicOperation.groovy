@@ -25,10 +25,11 @@ import com.google.api.services.compute.model.TargetHttpProxy
 import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_HTTP_LOAD_BALANCER"
@@ -56,6 +57,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
       }
     }
   }
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private final DeleteGoogleHttpLoadBalancerDescription description
 
@@ -85,7 +89,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
     ForwardingRule forwardingRule = compute.globalForwardingRules().get(project, forwardingRuleName).execute()
     if (!forwardingRule) {
-      GCEUtil.updateStatusAndThrowException("Global forwarding rule $forwardingRuleName not found for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Global forwarding rule $forwardingRuleName not found for $project",
           task, BASE_PHASE)
     }
     def targetHttpProxyName = GCEUtil.getLocalName(forwardingRule.getTarget())
@@ -95,7 +99,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
     TargetHttpProxy targetHttpProxy = compute.targetHttpProxies().get(project, targetHttpProxyName).execute()
     if (!targetHttpProxy) {
-      GCEUtil.updateStatusAndThrowException("Target http proxy $targetHttpProxyName not found for $project", task,
+      GCEUtil.updateStatusAndThrowNotFoundException("Target http proxy $targetHttpProxyName not found for $project", task,
           BASE_PHASE)
     }
     def urlMapName = GCEUtil.getLocalName(targetHttpProxy.getUrlMap())
@@ -127,19 +131,19 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
     Operation deleteForwardingRuleOperation =
         compute.globalForwardingRules().delete(project, forwardingRuleName).execute()
 
-    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target HTTP proxy $targetHttpProxyName..."
     Operation deleteTargetHttpProxyOperation = compute.targetHttpProxies().delete(project, targetHttpProxyName).execute()
 
-    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, deleteTargetHttpProxyOperation.getName(),
         timeoutSeconds, task, "target http proxy " + targetHttpProxyName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting URL map $urlMapName..."
     Operation deleteUrlMapOperation = compute.urlMaps().delete(project, urlMapName).execute()
 
-    GCEOperationUtil.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
+    googleOperationPoller.waitForGlobalOperation(compute, project, deleteUrlMapOperation.getName(),
         timeoutSeconds, task, "url map " + urlMapName, BASE_PHASE)
 
     // We make a list of the delete operations for backend services.
@@ -156,7 +160,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
     // Wait on all of these deletes to complete.
     for (BackendServiceAsyncDeleteOperation asyncOperation : deleteBackendServiceAsyncOperations) {
-      GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+      googleOperationPoller.waitForGlobalOperation(compute, project, asyncOperation.operationName,
           timeoutSeconds, task, "backend service " + asyncOperation.backendServiceName, BASE_PHASE)
     }
 
@@ -174,7 +178,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
 
     // Finally, wait on all of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
-      GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+      googleOperationPoller.waitForGlobalOperation(compute, project, asyncOperation.operationName,
           timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }

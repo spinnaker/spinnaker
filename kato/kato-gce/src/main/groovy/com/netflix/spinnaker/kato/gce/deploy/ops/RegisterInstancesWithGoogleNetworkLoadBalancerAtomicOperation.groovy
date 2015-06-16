@@ -20,7 +20,6 @@ import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.RegisterInstancesWithGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 

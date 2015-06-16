@@ -54,11 +54,11 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     }
   }
 
-  void 'should fail task if no load balancers found'() {
+  void 'should noop task if no load balancers found'() {
     setup:
     TaskRepository.threadLocalTask.set(Mock(Task) {
       _ * updateStatus(_,_)
-      1 * fail()
+      0 * fail()
     })
 
     def asg = Mock(AutoScalingGroup) {

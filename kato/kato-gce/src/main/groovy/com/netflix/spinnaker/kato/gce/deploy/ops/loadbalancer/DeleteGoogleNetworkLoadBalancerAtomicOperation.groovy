@@ -21,10 +21,11 @@ import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import org.springframework.beans.factory.annotation.Autowired
 
 class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_NETWORK_LOAD_BALANCER"
@@ -37,6 +38,9 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
+
+  @Autowired
+  private GoogleOperationPoller googleOperationPoller
 
   private final DeleteGoogleNetworkLoadBalancerDescription description
 
@@ -66,7 +70,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     ForwardingRule forwardingRule =
         compute.forwardingRules().get(project, region, forwardingRuleName).execute()
     if (forwardingRule == null) {
-      GCEUtil.updateStatusAndThrowException("Forwarding rule $forwardingRuleName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
           task, BASE_PHASE)
     }
     def targetPoolName = GCEUtil.getLocalName(forwardingRule.getTarget())
@@ -75,7 +79,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
     TargetPool targetPool = compute.targetPools().get(project, region, targetPoolName).execute()
     if (targetPool == null) {
-      GCEUtil.updateStatusAndThrowException("Target pool $targetPoolName not found in $region for $project",
+      GCEUtil.updateStatusAndThrowNotFoundException("Target pool $targetPoolName not found in $region for $project",
           task, BASE_PHASE)
     }
     def healthCheckUrls = targetPool.getHealthChecks()
@@ -88,14 +92,14 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
     Operation deleteForwardingRuleOperation =
         compute.forwardingRules().delete(project, region, forwardingRuleName).execute()
 
-    GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
+    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOperation.getName(),
         timeoutSeconds, task, "forwarding rule " + forwardingRuleName, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleting target pool $targetPoolName in $region..."
     Operation deleteTargetPoolOperation =
         compute.targetPools().delete(project, region, targetPoolName).execute()
 
-    GCEOperationUtil.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
+    googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteTargetPoolOperation.getName(),
         timeoutSeconds, task, "target pool " + targetPoolName, BASE_PHASE)
 
     // Now make a list of the delete operations for health checks.
@@ -112,7 +116,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
     // Finally, wait on this list of these deletes to complete.
     for (HealthCheckAsyncDeleteOperation asyncOperation : deleteHealthCheckAsyncOperations) {
-      GCEOperationUtil.waitForGlobalOperation(compute, project, asyncOperation.operationName,
+      googleOperationPoller.waitForGlobalOperation(compute, project, asyncOperation.operationName,
           timeoutSeconds, task, "health check " + asyncOperation.healthCheckName,
           BASE_PHASE)
     }

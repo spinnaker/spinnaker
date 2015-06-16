@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -49,31 +52,31 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def httpHealthChecksInsertOp = new com.google.api.services.compute.model.Operation(
+      def httpHealthChecksInsertOp = new Operation(
           targetLink: "health-check",
           name: HEALTH_CHECK_OP_NAME,
           status: DONE)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesInsert = Mock(Compute.BackendServices.Insert)
-      def backendServicesInsertOp = new com.google.api.services.compute.model.Operation(
+      def backendServicesInsertOp = new Operation(
           targetLink: "backend-service",
           name: BACKEND_SERVICE_OP_NAME,
           status: DONE)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsInsert = Mock(Compute.UrlMaps.Insert)
-      def urlMapsInsertOp = new com.google.api.services.compute.model.Operation(
+      def urlMapsInsertOp = new Operation(
           targetLink: "url-map",
           name: URL_MAP_OP_NAME,
           status: DONE)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesInsert = Mock(Compute.TargetHttpProxies.Insert)
-      def targetHttpProxiesInsertOp = new com.google.api.services.compute.model.Operation(
+      def targetHttpProxiesInsertOp = new Operation(
           targetLink: "target-proxy",
           name: TARGET_HTTP_PROXY_OP_NAME,
           status: DONE)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
-      def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
+      def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -87,6 +90,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           pathMatchers: [[name: MATCHER, defaultService: SERVICE, pathRules: [[paths: [PATH], service: SERVICE]]]]
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
      operation.operate([])
@@ -141,31 +146,31 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
-      def httpHealthChecksInsertOp = new com.google.api.services.compute.model.Operation(
+      def httpHealthChecksInsertOp = new Operation(
           targetLink: "health-check",
           name: HEALTH_CHECK_OP_NAME,
           status: DONE)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesInsert = Mock(Compute.BackendServices.Insert)
-      def backendServicesInsertOp = new com.google.api.services.compute.model.Operation(
+      def backendServicesInsertOp = new Operation(
           targetLink: "backend-service",
           name: BACKEND_SERVICE_OP_NAME,
           status: DONE)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsInsert = Mock(Compute.UrlMaps.Insert)
-      def urlMapsInsertOp = new com.google.api.services.compute.model.Operation(
+      def urlMapsInsertOp = new Operation(
           targetLink: "url-map",
           name: URL_MAP_OP_NAME,
           status: DONE)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesInsert = Mock(Compute.TargetHttpProxies.Insert)
-      def targetHttpProxiesInsertOp = new com.google.api.services.compute.model.Operation(
+      def targetHttpProxiesInsertOp = new Operation(
           targetLink: "target-proxy",
           name: TARGET_HTTP_PROXY_OP_NAME,
           status: DONE)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
-      def insertOp = new com.google.api.services.compute.model.Operation(targetLink: "link")
+      def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -173,6 +178,8 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           credentials: credentials,
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

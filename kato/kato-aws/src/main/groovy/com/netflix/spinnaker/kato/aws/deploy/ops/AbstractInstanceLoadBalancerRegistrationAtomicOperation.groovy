@@ -67,8 +67,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
       def loadBalancerNames = asg.loadBalancerNames
       if (!loadBalancerNames) {
         // instances exist in this ASG but there is no load balancer to act against
-        task.updateStatus phaseName, "No load balancers associated with ASG (${asg.autoScalingGroupName})"
-        task.fail()
+        task.updateStatus phaseName, "${performingAction} instances not required for ASG ${asg.autoScalingGroupName}, no load balancers are associated with this ASG"
         return
       }
 

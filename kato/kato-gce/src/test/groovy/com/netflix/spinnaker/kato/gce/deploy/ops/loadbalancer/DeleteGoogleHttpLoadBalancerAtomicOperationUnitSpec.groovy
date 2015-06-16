@@ -17,12 +17,19 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.BackendService
+import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
+import com.google.api.services.compute.model.TargetHttpProxy
+import com.google.api.services.compute.model.UrlMap
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEOperationUtil
-import com.netflix.spinnaker.kato.gce.deploy.GCEResourceNotFoundException
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -47,19 +54,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
   private static final PENDING = "PENDING"
   private static final DONE = "DONE"
 
-  // Used to restore the polling interval fraction in cleanupSpec()
-  private static int restoreIntervalFraction = GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION
-
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
-
-    // Change the default polling so that the interval will be 1 ms
-    // Ideally we'd just change the default timeout value, but it is declared final so we cannot.
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = 1000 * GCEOperationUtil.DEFAULT_ASYNC_OPERATION_TIMEOUT_SEC
-  }
-
-  def cleanupSpec() {
-    GCEOperationUtil.OPERATIONS_POLLING_INTERVAL_FRACTION = restoreIntervalFraction
   }
 
   void "should delete Http Load Balancer with one backend service"() {
@@ -67,16 +63,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
-      def targetHttpProxy = new com.google.api.services.compute.model.TargetHttpProxy(urlMap: URL_MAP_URL)
+      def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new com.google.api.services.compute.model.UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
-      def backendService = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
       def healthChecks = Mock(Compute.HttpHealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
@@ -113,6 +109,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -161,13 +159,13 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
-      def targetHttpProxy = new com.google.api.services.compute.model.TargetHttpProxy(urlMap: URL_MAP_URL)
+      def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new com.google.api.services.compute.model.UrlMap(
+      def urlMap = new UrlMap(
           defaultService: BACKEND_SERVICE_URL,
           pathMatchers: [
               [defaultService: BACKEND_SERVICE_URL+"2",
@@ -179,9 +177,9 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def backendServicesGet = Mock(Compute.BackendServices.Get)
       def backendServicesGet2 = Mock(Compute.BackendServices.Get)
       def backendServicesGet3 = Mock(Compute.BackendServices.Get)
-      def backendService = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def backendService2 = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL+"2"])
-      def backendService3 = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def backendService2 = new BackendService(healthChecks: [HEALTH_CHECK_URL+"2"])
+      def backendService3 = new BackendService(healthChecks: [HEALTH_CHECK_URL])
       def healthChecks = Mock(Compute.HttpHealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
@@ -233,6 +231,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -314,7 +314,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.get(PROJECT_NAME, HTTP_LOAD_BALANCER_NAME) >> globalForwardingRulesGet
       1 * globalForwardingRulesGet.execute() >> null
-      thrown GCEResourceNotFoundException
+      thrown GoogleResourceNotFoundException
   }
 
   void "should fail to delete Http Load Balancer if failed to delete a resource"() {
@@ -322,16 +322,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
-      def targetHttpProxy = new com.google.api.services.compute.model.TargetHttpProxy(urlMap: URL_MAP_URL)
+      def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new com.google.api.services.compute.model.UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
-      def backendService = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
       def healthChecks = Mock(Compute.HttpHealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
@@ -372,6 +372,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -413,7 +415,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * backendServicesOperationGet.execute() >> backendServicesDeleteOp
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_DELETE_OP_NAME) >> healthChecksOperationGet
       1 * healthChecksOperationGet.execute() >> healthChecksFailingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationException
   }
 
   void "should fail to delete Http Load Balancer if timed out while deleting a resource"() {
@@ -421,38 +423,21 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
-      def targetHttpProxy = new com.google.api.services.compute.model.TargetHttpProxy(urlMap: URL_MAP_URL)
+      def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new com.google.api.services.compute.model.UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
-      def backendService = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
-      def healthChecks = Mock(Compute.HttpHealthChecks)
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
       def globalForwardingRulesPendingDeleteOp = new Operation(
           name: FORWARDING_RULE_DELETE_OP_NAME,
           status: PENDING)
-      def targetHttpProxiesDelete = Mock(Compute.TargetHttpProxies.Delete)
-      def targetHttpProxiesDeleteOp = new Operation(
-          name: TARGET_HTTP_PROXY_DELETE_OP_NAME,
-          status: DONE)
-      def urlMapsDelete = Mock(Compute.UrlMaps.Delete)
-      def urlMapsDeleteOp = new Operation(
-          name: URL_MAP_DELETE_OP_NAME,
-          status: DONE)
-      def backendServicesDelete = Mock(Compute.BackendServices.Delete)
-      def backendServicesDeleteOp = new Operation(
-          name: BACKEND_SERVICE_DELETE_OP_NAME,
-          status: DONE)
-      def healthChecksDelete = Mock(Compute.HttpHealthChecks.Delete)
-      def healthChecksDeleteOp = new Operation(
-          name: HEALTH_CHECK_DELETE_OP_NAME,
-          status: DONE)
 
       def globalOperations = Mock(Compute.GlobalOperations)
       def globalForwardingRulesOperationGet = Mock(Compute.GlobalOperations.Get)
@@ -464,6 +449,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -487,7 +474,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, FORWARDING_RULE_DELETE_OP_NAME) >> globalForwardingRulesOperationGet
       1 * globalForwardingRulesOperationGet.execute() >> globalForwardingRulesPendingDeleteOp
-      thrown GCEResourceNotFoundException
+      thrown GoogleOperationTimedOutException
   }
 
   void "should wait on slow deletion of target HTTP proxy and successfully delete simple HTTP Load Balancer"() {
@@ -495,16 +482,16 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def computeMock = Mock(Compute)
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def forwardingRule = new com.google.api.services.compute.model.ForwardingRule(target: TARGET_HTTP_PROXY_URL)
+      def forwardingRule = new ForwardingRule(target: TARGET_HTTP_PROXY_URL)
       def targetHttpProxies = Mock(Compute.TargetHttpProxies)
       def targetHttpProxiesGet = Mock(Compute.TargetHttpProxies.Get)
-      def targetHttpProxy = new com.google.api.services.compute.model.TargetHttpProxy(urlMap: URL_MAP_URL)
+      def targetHttpProxy = new TargetHttpProxy(urlMap: URL_MAP_URL)
       def urlMaps = Mock(Compute.UrlMaps)
       def urlMapsGet = Mock(Compute.UrlMaps.Get)
-      def urlMap = new com.google.api.services.compute.model.UrlMap(defaultService: BACKEND_SERVICE_URL)
+      def urlMap = new UrlMap(defaultService: BACKEND_SERVICE_URL)
       def backendServices = Mock(Compute.BackendServices)
       def backendServicesGet = Mock(Compute.BackendServices.Get)
-      def backendService = new com.google.api.services.compute.model.BackendService(healthChecks: [HEALTH_CHECK_URL])
+      def backendService = new BackendService(healthChecks: [HEALTH_CHECK_URL])
       def healthChecks = Mock(Compute.HttpHealthChecks)
 
       def globalForwardingRulesDelete = Mock(Compute.GlobalForwardingRules.Delete)
@@ -544,6 +531,8 @@ class DeleteGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeleteGoogleHttpLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller =
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
 
     when:
       operation.operate([])

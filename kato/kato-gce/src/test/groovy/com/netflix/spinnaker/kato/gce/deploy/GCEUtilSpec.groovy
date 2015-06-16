@@ -27,9 +27,9 @@ import com.google.api.services.compute.model.ImageList
 import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstancesScopedList
-import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import groovy.mock.interceptor.MockFor
 import spock.lang.Shared
 import spock.lang.Specification
@@ -149,40 +149,7 @@ class GCEUtilSpec extends Specification {
       }
 
     then:
-      thrown GCEResourceNotFoundException
-  }
-
-  void "waitForOperation should query the operation at least once"() {
-    expect:
-      GCEOperationUtil.waitForOperation({return new Operation(status: "DONE")}, 0,
-          new GCEOperationUtil.Clock()) == new Operation(status: "DONE")
-  }
-
-  void "waitForOperation should return null on timeout"() {
-    expect:
-      GCEOperationUtil.waitForOperation({return new Operation(status: "PENDING")}, 0,
-          new GCEOperationUtil.Clock()) == null
-  }
-
-  void "waitForOperation should retry until timeout"() {
-    setup:
-      def getOperationMock = Mock(Closure)
-      def clockMock = Mock(GCEOperationUtil.Clock)
-
-    when:
-      GCEOperationUtil.waitForOperation(getOperationMock, 5, clockMock)
-
-    then:
-      1 * clockMock.currentTimeMillis() >> 0
-      1 * getOperationMock.call() >> new Operation(status: "PENDING")
-
-    then:
-      1 * clockMock.currentTimeMillis() >> 2500
-      1 * getOperationMock.call() >> new Operation(status: "PENDING")
-
-    then:
-      1 * clockMock.currentTimeMillis() >> 5000
-      0 * getOperationMock.call()
+      thrown GoogleResourceNotFoundException
   }
 
   void "instance metadata with zero key-value pairs roundtrips properly"() {
@@ -343,7 +310,7 @@ class GCEUtilSpec extends Specification {
       1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
-      def exc = thrown GCEResourceNotFoundException
+      def exc = thrown GoogleResourceNotFoundException
       exc.message == "Instances [$INSTANCE_LOCAL_NAME_2] not found."
   }
 
@@ -374,7 +341,7 @@ class GCEUtilSpec extends Specification {
       1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
-      def exc = thrown GCEResourceNotFoundException
+      def exc = thrown GoogleResourceNotFoundException
       exc.message == "Instances [$INSTANCE_LOCAL_NAME_1, $INSTANCE_LOCAL_NAME_2] not found."
   }
 }

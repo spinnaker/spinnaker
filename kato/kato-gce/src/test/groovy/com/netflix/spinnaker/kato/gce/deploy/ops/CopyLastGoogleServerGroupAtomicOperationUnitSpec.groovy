@@ -138,7 +138,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
     when:
-      def result = operation.operate([])
+      operation.operate([])
 
     then:
       1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
@@ -175,7 +175,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
     when:
-      def result = operation.operate([])
+      operation.operate([])
 
     then:
       1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock

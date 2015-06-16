@@ -34,7 +34,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
  * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation}.
  *
  * @see RecreateGoogleReplicaPoolInstancesAtomicOperation
- * @see TerminateAndDecrementGoogleReplicaPoolAtomicOperation
+ * @see TerminateAndDecrementGoogleServerGroupAtomicOperation
  */
 class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_INSTANCES"
