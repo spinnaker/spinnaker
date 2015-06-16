@@ -4,7 +4,6 @@
 
 angular.module('spinnaker.serverGroup.details.aws.controller', [
   'ui.bootstrap',
-  'spinnaker.notifications',
   'spinnaker.confirmationModal.service',
   'spinnaker.serverGroup.write.service',
   'spinnaker.utils.lodash',
@@ -13,7 +12,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
   'spinnaker.aws.serverGroupCommandBuilder.service',
   'spinnaker.executionFilter.service',
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup, notificationsService,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, executionFilterService) {
 
@@ -94,12 +93,6 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
           applyAutoScalingProcesses();
 
         } else {
-          notificationsService.create({
-            message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
-            autoDismiss: true,
-            hideTimestamp: true,
-            strong: true
-          });
           $state.go('^');
         }
       });

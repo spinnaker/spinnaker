@@ -4,7 +4,6 @@ angular
   .module('spinnaker.applications.read.service', [
     'restangular',
     'spinnaker.cluster.service',
-    'spinnaker.tasks.tracker',
     'spinnaker.tasks.read.service',
     'spinnaker.loadBalancer.read.service',
     'spinnaker.loadBalancer.transformer.service',

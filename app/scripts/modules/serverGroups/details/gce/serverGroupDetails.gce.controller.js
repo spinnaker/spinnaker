@@ -5,13 +5,12 @@
 angular.module('spinnaker.serverGroup.details.gce.controller', [
   'ui.router',
   'ui.bootstrap',
-  'spinnaker.notifications.service',
   'spinnaker.gce.serverGroupCommandBuilder.service',
   'spinnaker.serverGroup.read.service',
   'spinnaker.confirmationModal.service',
   'spinnaker.serverGroup.write.service',
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup, notificationsService,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup,
                                                   gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter) {
 
     $scope.state = {
@@ -54,12 +53,6 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
         }
 
         if (_.isEmpty($scope.serverGroup)) {
-          notificationsService.create({
-            message: 'No server group named "' + serverGroup.name + '" was found in ' + serverGroup.accountId + ':' + serverGroup.region,
-            autoDismiss: true,
-            hideTimestamp: true,
-            strong: true
-          });
           $state.go('^');
         }
       });

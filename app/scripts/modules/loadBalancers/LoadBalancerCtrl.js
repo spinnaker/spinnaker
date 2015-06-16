@@ -2,7 +2,7 @@
 
 
 angular.module('spinnaker.loadBalancer.controller')
-  .controller('LoadBalancerCtrl', function ($scope, $state, notificationsService, application, loadBalancer) {
+  .controller('LoadBalancerCtrl', function ($scope, $state, application, loadBalancer) {
     $scope.application = application;
 
     function extractLoadBalancer() {
@@ -11,12 +11,6 @@ angular.module('spinnaker.loadBalancer.controller')
       })[0];
 
       if (!$scope.loadBalancer) {
-        notificationsService.create({
-          message: 'No load balancer named "' + loadBalancer.name + '" was found in ' + loadBalancer.account + ':' + loadBalancer.region,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
         $state.go('^');
       }
     }

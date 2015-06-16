@@ -3,13 +3,12 @@
 
 angular.module('spinnaker.instance.detail.gce.controller', [
   'ui.router',
-  'spinnaker.notifications.service',
   'spinnaker.instance.write.service',
   'spinnaker.instance.read.service',
   'spinnaker.confirmationModal.service',
   'spinnaker.utils.lodash',
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state, notificationsService,
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, application) {
 
@@ -132,12 +131,6 @@ angular.module('spinnaker.instance.detail.gce.controller', [
       }
 
       if (!instanceSummary) {
-        notificationsService.create({
-          message: 'Could not find instance "' + instance.instanceId,
-          autoDismiss: true,
-          hideTimestamp: true,
-          strong: true
-        });
         $state.go('^');
       }
     }

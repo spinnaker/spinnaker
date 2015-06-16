@@ -104,17 +104,14 @@ angular
         }
       });
 
-      modalInstance.result.then(function (notifications) {
-          var oldNotification = notifications[0];
-          var newNotification = notifications[1];
-          if (oldNotification === undefined) {
-            vm.notifications.push(newNotification);
-          } else {
-            vm.notifications[vm.notifications.indexOf(oldNotification)] = newNotification;
-          }
-          vm.isNotificationsDirty = true;
+      modalInstance.result.then(function (newNotification) {
+        if (!notification) {
+          vm.notifications.push(newNotification);
+        } else {
+          vm.notifications[vm.notifications.indexOf(notification)] = newNotification;
         }
-      );
+        vm.isNotificationsDirty = true;
+      });
 
     };
 

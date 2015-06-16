@@ -1,0 +1,11 @@
+<div class="form-group row">
+  <div class="col-sm-3 sm-label-left" id="type">Notify via</div>
+  <div class="col-sm-9">
+    <select class="input-sm"
+            ng-options="t.key as t.label for t in notificationTypes"
+            ng-model="notification.type"
+            ng-change="notificationCtrl.clearAddress()">
+    </select>
+  </div>
+</div>
+<div ng-include="notificationCtrl.getNotificationAddressTemplateUrl()"></div>
