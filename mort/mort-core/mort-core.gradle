@@ -1,4 +1,5 @@
 dependencies {
+  compile project(':clouddriver-core')
   compile spinnaker.dependency("rxJava")
   compile spinnaker.dependency("amos")
 }

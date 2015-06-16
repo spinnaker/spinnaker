@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort
-import com.netflix.spinnaker.oort.controllers.SearchController
-import com.netflix.spinnaker.oort.search.SearchProvider
-import com.netflix.spinnaker.oort.search.SearchResultSet
+package com.netflix.spinnaker.clouddriver.controllers
+
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import spock.lang.Specification
 
 class SearchControllerSpec extends Specification {
@@ -32,7 +32,7 @@ class SearchControllerSpec extends Specification {
     searchController = new SearchController(searchProviders: [searchProviderA, searchProviderB])
   }
 
-   def 'query all search providers'() {
+  def 'query all search providers'() {
     given:
     SearchResultSet rsA = new SearchResultSet(platform: 'a', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item1: 'foo']])
     SearchResultSet rsB = new SearchResultSet(platform: 'b', totalMatches: 1, pageSize: 10, pageNumber: 1, query: 'aBC', results: [[item2: 'bar']])
@@ -97,7 +97,6 @@ class SearchControllerSpec extends Specification {
 
     searchResultSets == [rsA]
   }
-
 
 }
 

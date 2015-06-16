@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.oort.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory
@@ -27,8 +23,6 @@ import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.oort.model.*
-import com.netflix.spinnaker.oort.search.NoopSearchProvider
-import com.netflix.spinnaker.oort.search.SearchProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -82,12 +76,6 @@ class DefaultConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(SearchProvider)
-  SearchProvider noopSearchProvider() {
-    new NoopSearchProvider()
-  }
-
-  @Bean
   @ConditionalOnMissingBean(ApplicationProvider)
   ApplicationProvider noopApplicationProvider() {
     new NoopApplicationProvider()
@@ -109,12 +97,6 @@ class DefaultConfig {
   @ConditionalOnMissingBean(ReservationReportProvider)
   ReservationReportProvider noopReservationReportProvider() {
     new NoopReservationReportProvider()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(OnDemandCacheUpdater)
-  OnDemandCacheUpdater noopOnDemandCacheUpdater() {
-    new NoopOnDemandCacheUpdater()
   }
 
   @Bean

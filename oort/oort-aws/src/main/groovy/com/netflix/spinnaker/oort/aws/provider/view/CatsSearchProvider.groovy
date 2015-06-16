@@ -20,9 +20,9 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.oort.aws.data.Keys
-import com.netflix.spinnaker.oort.search.SearchProvider
-import com.netflix.spinnaker.oort.search.SearchResultSet
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.slf4j.Logger

@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.clouddriver
 
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.controllers.CacheController
+import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
+import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
+import com.netflix.spinnaker.clouddriver.core.RedisConfig
+import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -34,11 +40,13 @@ import java.security.Security
 @Configuration
 @Import([
   WebConfig,
+  CloudDriverConfig,
+  RedisConfig,
+  AwsConfiguration,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
-  com.netflix.spinnaker.oort.Main
+  com.netflix.spinnaker.oort.Main,
 ])
-@ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers", "com.netflix.spinnaker.kato.filters", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
 class Main extends SpringBootServletInitializer {
 

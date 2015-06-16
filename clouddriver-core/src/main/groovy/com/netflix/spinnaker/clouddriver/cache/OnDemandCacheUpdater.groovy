@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.cache
 
-
-package com.netflix.spinnaker.mort.model
 
 /**
  * An on-demand cache updater. Allows some non-scheduled trigger to initiate a cache refresh for a given type. An on-demand cache request will fan-out to all available updaters.
@@ -38,5 +37,5 @@ interface OnDemandCacheUpdater {
    *
    * @param data
    */
-  void handle(Map<String, ? extends Object> data)
+  void handle(String type, Map<String, ? extends Object> data)
 }

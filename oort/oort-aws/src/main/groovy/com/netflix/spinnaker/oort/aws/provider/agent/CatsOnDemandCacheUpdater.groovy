@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.oort.model.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.controllers
-import com.netflix.spinnaker.oort.search.SearchProvider
-import com.netflix.spinnaker.oort.search.SearchResultSet
+package com.netflix.spinnaker.clouddriver.controllers
+
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping

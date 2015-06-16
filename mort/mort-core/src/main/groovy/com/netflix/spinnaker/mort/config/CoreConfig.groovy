@@ -16,13 +16,7 @@
 
 package com.netflix.spinnaker.mort.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.mort.model.*
-import com.netflix.spinnaker.mort.search.NoopSearchProvider
-import com.netflix.spinnaker.mort.search.SearchProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -67,12 +61,6 @@ class CoreConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(SearchProvider)
-  SearchProvider noopSearchProvider() {
-    new NoopSearchProvider()
-  }
-
-  @Bean
   @ConditionalOnMissingBean(ElasticIpProvider)
   ElasticIpProvider noopElasticIpProvider() {
     new NoopElasticIpProvider()
@@ -82,11 +70,5 @@ class CoreConfig {
   @ConditionalOnMissingBean(CachingAgent)
   CachingAgent noopCachingAgent() {
     new NoopCachingAgent()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(OnDemandCacheUpdater)
-  OnDemandCacheUpdater noopOnDemandCacheUpdater() {
-    new NoopOnDemandCacheUpdater()
   }
 }

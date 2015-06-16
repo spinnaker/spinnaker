@@ -18,10 +18,10 @@
 
 package com.netflix.spinnaker.mort.aws.search.aws
 
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.model.CacheService
-import com.netflix.spinnaker.mort.search.SearchProvider
-import com.netflix.spinnaker.mort.search.SearchResultSet
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.transform.CompileStatic
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 /**
  * TODO: Copied from oort; should refactor to common library
  */
-@Component
+@Component('mortSearchProvider')
 @CompileStatic
 class AmazonSearchProvider implements SearchProvider {
 
@@ -44,7 +44,7 @@ class AmazonSearchProvider implements SearchProvider {
   static List<String> defaultCaches = [
     Keys.Namespace.SECURITY_GROUPS.ns
   ]
-  
+
   static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
 
   static Map<String, Template> urlMappings = [
@@ -56,17 +56,28 @@ class AmazonSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
-    List<String> matches = findMatches(query, defaultCaches)
-    generateResultSet(query, matches, pageNumber, pageSize)
+    search(query, pageNumber, pageSize, null)
   }
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize) {
-    List<String> matches = findMatches(query, types)
-    generateResultSet(query, matches, pageNumber, pageSize)
+    search(query, types, pageNumber, pageSize, null)
   }
 
-  private static SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize) {
+  @Override
+  SearchResultSet search(String query, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    List<String> matches = findMatches(query, defaultCaches)
+    generateResultSet(query, matches, pageNumber, pageSize, filters)
+  }
+
+  @Override
+  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    List<String> matches = findMatches(query, types)
+    generateResultSet(query, matches, pageNumber, pageSize, filters)
+  }
+
+  //TODO(cfieber)-filters are currently ignored
+  private static SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
     List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
       Keys.parse(it)
     }

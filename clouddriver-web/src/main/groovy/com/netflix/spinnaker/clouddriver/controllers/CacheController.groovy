@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.controllers
 
-
-package com.netflix.spinnaker.mort.web
-
-import com.netflix.spinnaker.mort.model.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -35,7 +33,7 @@ class CacheController {
   ResponseEntity handleOnDemand(@PathVariable String type, @RequestBody Map<String, ? extends Object> data) {
     for (updater in onDemandCacheUpdaters) {
       if (updater.handles(type)) {
-        updater.handle(data)
+        updater.handle(type, data)
       }
     }
     new ResponseEntity(HttpStatus.ACCEPTED)

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.oort.aws.discovery
 import retrofit.RestAdapter
 import retrofit.converter.Converter
 
+import java.util.regex.Pattern
+
 class DiscoveryApiFactory {
 
   private Converter discoveryConverter
@@ -30,7 +32,7 @@ class DiscoveryApiFactory {
   public DiscoveryApi createApi(String endpointTemplate, String region) {
     new RestAdapter.Builder()
       .setConverter(discoveryConverter)
-      .setEndpoint(String.format(endpointTemplate, region))
+      .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
       .build()
       .create(DiscoveryApi)
   }

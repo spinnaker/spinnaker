@@ -17,11 +17,15 @@
 package com.netflix.spinnaker.clouddriver
 
 import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.clouddriver.controllers.CacheController
+import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
+import com.netflix.spinnaker.clouddriver.controllers.SearchController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.web.filter.ShallowEtagHeaderFilter
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
@@ -29,6 +33,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import javax.servlet.Filter
 
 @Configuration
+@Import([
+  SimpleCORSFilter,
+  CredentialsController,
+  CacheController,
+  SearchController
+])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired
   ExtendedRegistry extendedRegistry

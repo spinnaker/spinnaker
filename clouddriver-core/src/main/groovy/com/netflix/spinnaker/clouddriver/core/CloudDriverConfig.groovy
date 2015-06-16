@@ -20,6 +20,10 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
+import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -42,5 +46,17 @@ class CloudDriverConfig {
   @Bean
   RestTemplate restTemplate() {
     new RestTemplate()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(OnDemandCacheUpdater)
+  NoopOnDemandCacheUpdater noopOnDemandCacheUpdater() {
+    new NoopOnDemandCacheUpdater()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(SearchProvider)
+  NoopSearchProvider noopSearchProvider() {
+    new NoopSearchProvider()
   }
 }

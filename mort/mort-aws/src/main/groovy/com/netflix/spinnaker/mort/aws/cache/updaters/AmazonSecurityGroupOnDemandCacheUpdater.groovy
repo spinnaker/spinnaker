@@ -20,9 +20,9 @@ package com.netflix.spinnaker.mort.aws.cache.updaters
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.mort.aws.cache.AmazonSecurityGroupCachingAgent
 import com.netflix.spinnaker.mort.model.CacheService
-import com.netflix.spinnaker.mort.model.OnDemandCacheUpdater
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -44,7 +44,7 @@ class AmazonSecurityGroupOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
-  void handle(Map<String, ? extends Object> data) {
+  void handle(String type, Map<String, ? extends Object> data) {
     if (!data.containsKey("account")) {
       return
     }

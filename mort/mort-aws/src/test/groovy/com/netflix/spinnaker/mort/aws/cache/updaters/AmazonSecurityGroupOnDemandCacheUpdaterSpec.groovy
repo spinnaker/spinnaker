@@ -54,7 +54,7 @@ class AmazonSecurityGroupOnDemandCacheUpdaterSpec extends Specification {
       def ec2 = Mock(AmazonEC2)
 
     when:
-      updater.handle([securityGroupName: securityGroupName, account: "test", region: region])
+      updater.handle('AmazonSecurityGroup', [securityGroupName: securityGroupName, account: "test", region: region])
 
     then:
       1 * accountCredentialsProvider.getCredentials(_) >> credentials
