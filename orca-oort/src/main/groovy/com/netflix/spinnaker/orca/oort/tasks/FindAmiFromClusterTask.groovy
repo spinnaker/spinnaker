@@ -86,7 +86,7 @@ class FindAmiFromClusterTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    String app = stage.context.application ?: stage.execution.application
+    String app = stage.context.cluster.split('-')[0]
     String account = stage.context.account
     String cluster = stage.context.cluster
     Set<String> requiredRegions = new HashSet<>(stage.context.regions?.asType(List) ?: [])

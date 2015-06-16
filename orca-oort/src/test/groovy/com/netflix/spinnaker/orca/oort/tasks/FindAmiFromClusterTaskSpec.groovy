@@ -92,6 +92,49 @@ class FindAmiFromClusterTaskSpec extends Specification {
   }
 
   @Unroll
+  def "selects app name from cluster #cluster, ignoring application in context"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication(app)
+      .build()
+    def stage = new PipelineStage(pipe, 'findAmi', [
+      cluster: cluster,
+      account: account,
+      selectionStrategy: 'NEWEST'
+    ])
+
+    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * oortService.getCluster('otherapp', account, cluster, 'aws') >> response
+
+    where:
+    cluster                | _
+    'otherapp-test'        | _
+    'otherapp-test-detail' | _
+    'otherapp'             | _
+
+    app = 'contextapp'
+    account = 'test'
+
+    oortResponse = '''\
+    {
+      "serverGroups":[{
+        "name": "otherapp-test-v000",
+        "region":"us-east-1",
+        "asg": { "createdTime": 12344, "suspendedProcesses": [{"processName": "AddToLoadBalancer"}] },
+        "image": { "imageId": "ami-012", "name": "ami-012" },
+        "buildInfo": { "job": "foo-build", "buildNumber": 1 },
+        "instances": [ { "id": 1 }, { "id": 2 } ]
+      }]
+    }
+    '''.stripIndent()
+  }
+
+  @Unroll
   def "selects correct SG by strategy #strategy"() {
     given:
     def pipe = new Pipeline.Builder()
