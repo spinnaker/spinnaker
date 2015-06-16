@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.orca.web.config
 
 import com.netflix.redbatch.config.JedisBatchConfigurer
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.ValueFunction
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.beans.factory.annotation.Autowired

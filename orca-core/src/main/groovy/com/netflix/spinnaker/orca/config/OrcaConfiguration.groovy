@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spectator.api.ValueFunction
+import groovy.transform.CompileDynamic
+
 import java.time.Clock
 import java.time.Duration
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -80,9 +83,30 @@ class OrcaConfiguration {
   }
 
   @Bean
+  @CompileDynamic
   @ConditionalOnMissingBean(TaskExecutor)
-  TaskExecutor getTaskExecutor() {
-    new ThreadPoolTaskExecutor(maxPoolSize: 250, corePoolSize: 50)
+  TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {
+    def executor = new ThreadPoolTaskExecutor(maxPoolSize: 250, corePoolSize: 50)
+
+    def createGuage = { String name ->
+      def id = extendedRegistry
+        .createId("threadpool.${name}" as String)
+        .withTag("id", "TaskExecutor")
+
+      extendedRegistry.gauge(id, executor, new ValueFunction() {
+        @Override
+        double apply(Object ref) {
+          ((ThreadPoolTaskExecutor) ref).threadPoolExecutor."${name}"
+        }
+      })
+    }
+
+    createGuage.call("activeCount")
+    createGuage.call("maximumPoolSize")
+    createGuage.call("corePoolSize")
+    createGuage.call("poolSize")
+
+    return executor
   }
 
   @Bean @ConditionalOnMissingBean(BatchConfigurer)
