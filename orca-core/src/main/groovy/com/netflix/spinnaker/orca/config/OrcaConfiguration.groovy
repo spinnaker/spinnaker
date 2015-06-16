@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.config
 
+import java.time.Clock
+import java.time.Duration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
@@ -50,18 +52,42 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.*
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
-
+import org.springframework.core.task.TaskExecutor
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import rx.Scheduler
+import rx.schedulers.Schedulers
+import static java.time.temporal.ChronoUnit.MINUTES
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
-@Import(EurekaConfiguration)
+@Import([EurekaConfiguration])
 @ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.initialization"])
 @CompileStatic
 class OrcaConfiguration {
 
+  @Bean
+  Clock clock() {
+    Clock.systemDefaultZone()
+  }
+
+  @Bean
+  Duration minInactivity() {
+    Duration.of(3, MINUTES)
+  }
+
+  @Bean Scheduler scheduler() {
+    Schedulers.io()
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(TaskExecutor)
+  TaskExecutor getTaskExecutor() {
+    new ThreadPoolTaskExecutor(maxPoolSize: 250, corePoolSize: 50)
+  }
+
   @Bean @ConditionalOnMissingBean(BatchConfigurer)
-  BatchConfigurer batchConfigurer() {
-    new MultiThreadedBatchConfigurer()
+  BatchConfigurer batchConfigurer(TaskExecutor taskExecutor) {
+    new MultiThreadedBatchConfigurer(taskExecutor)
   }
 
   @Bean

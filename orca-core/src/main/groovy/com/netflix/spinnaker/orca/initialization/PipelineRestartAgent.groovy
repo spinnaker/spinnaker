@@ -16,59 +16,106 @@
 
 package com.netflix.spinnaker.orca.initialization
 
-import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
-import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import java.time.Clock
+import java.time.Duration
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.NotificationHandler
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import net.greghaines.jesque.client.Client
+import org.springframework.batch.core.BatchStatus
+import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
+import rx.Observable
+import static java.util.concurrent.TimeUnit.MINUTES
 
-import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP
-
+@Component
 @Slf4j
 @CompileStatic
-class PipelineRestartAgent implements ApplicationListener<EurekaStatusChangedEvent> {
+class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
+  public static final String NOTIFICATION_TYPE = "stalePipeline"
+
+  private final Clock clock
+  private final Duration minInactivity
+  private final JobRepository jobRepository
   private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
-  private final PipelineStarter pipelineStarter
 
   @Autowired
-  PipelineRestartAgent(JobExplorer jobExplorer, ExecutionRepository executionRepository, PipelineStarter pipelineStarter) {
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, Clock clock, Duration minInactivity, JobRepository jobRepository, JobExplorer jobExplorer, ExecutionRepository executionRepository) {
+    super(mapper, jesqueClient)
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
-    this.pipelineStarter = pipelineStarter
+    this.jobRepository = jobRepository
+    this.minInactivity = minInactivity
+    this.clock = clock
   }
 
   @Override
-  void onApplicationEvent(EurekaStatusChangedEvent event) {
-    if (event.statusChangeEvent.status == UP) {
-      log.info "Application is UP... checking for incomplete pipelines"
-      jobExplorer.getJobNames().each { jobName ->
-        def executions = jobExplorer.findRunningJobExecutions(jobName)
-        executionsToPipelines(executions).each { pipeline ->
-          log.warn "Resuming execution of pipeline $pipeline.application:$pipeline.name"
-          pipelineStarter.resume pipeline
-        }
-      }
-    }
+  long getPollingInterval() {
+    return MINUTES.toSeconds(2)
   }
 
-  private Collection<Pipeline> executionsToPipelines(Collection<JobExecution> executions) {
-    def ids = executions*.getJobParameters()*.getString("pipeline")
-    def pipelines = []
-    ids.each { id ->
-      try {
-        pipelines << executionRepository.retrievePipeline(id)
-      } catch (Exception e) {
-        log.error("Failed to retrieve pipeline $id", e)
-      }
+  @Override
+  String getNotificationType() {
+    NOTIFICATION_TYPE
+  }
+
+  @Override
+  @CompileDynamic
+  protected Observable<Execution> getEvents() {
+    log.info("Starting stale pipelines polling")
+    Observable.from(jobExplorer.getJobNames())
+              .flatMapIterable(jobExplorer.&findRunningJobExecutions)
+              .filter(this.&isInactive)
+              .doOnNext({ log.info "found stale job $it.id" })
+              .doOnNext(this.&resetExecution)
+              .map(this.&executionToPipeline)
+              .filter({ it != null })
+              .doOnCompleted({
+      log.info("Finished stale pipelines polling")
+    })
+  }
+
+  @Override
+  Class<? extends NotificationHandler> handlerType() {
+    PipelineRestartHandler
+  }
+
+  private boolean isInactive(JobExecution execution) {
+    def cutoff = clock.instant().minus(minInactivity)
+    def mostRecentUpdate = execution.stepExecutions*.lastUpdated?.max()?.toInstant()
+    return mostRecentUpdate?.isBefore(cutoff.plusMillis(1))
+  }
+
+  /**
+   * Because "restartability" of a Spring Batch job relies on it having been cleanly stopped and we can't guarantee
+   * that we need to update the job to a STOPPED state.
+   */
+  private void resetExecution(JobExecution execution) {
+    execution.setExitStatus(ExitStatus.STOPPED.addExitDescription("restarted after instance shutdown"))
+    execution.setStatus(BatchStatus.STOPPED)
+    execution.setEndTime(new Date())
+    jobRepository.update(execution)
+  }
+
+  private Pipeline executionToPipeline(JobExecution execution) {
+    def id = execution.getJobParameters().getString("pipeline")
+    try {
+      return executionRepository.retrievePipeline(id)
+    } catch (Exception e) {
+      log.error("Failed to retrieve pipeline $id", e)
+      return null
     }
-    return pipelines
   }
 }

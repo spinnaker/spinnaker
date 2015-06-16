@@ -19,9 +19,6 @@ package com.netflix.spinnaker.orca.notifications.scheduling
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import groovy.util.logging.Slf4j
 
-/**
- *
- */
 @Slf4j
 class SuspendedPipelinesNotificationHandler extends AbstractNotificationHandler {
 

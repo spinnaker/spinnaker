@@ -21,30 +21,24 @@ import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.task.TaskExecutor
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import redis.clients.jedis.JedisCommands
 
 class MultiThreadedJedisBatchConfigurer extends JedisBatchConfigurer {
 
+  private final TaskExecutor taskExecutor
+
   @Autowired
-  MultiThreadedJedisBatchConfigurer(JedisCommands jedis) {
+  MultiThreadedJedisBatchConfigurer(JedisCommands jedis, TaskExecutor taskExecutor) {
     super(jedis)
+    this.taskExecutor = taskExecutor
   }
 
   @Override
-  public JobLauncher getJobLauncher() {
+  protected JobLauncher createJobLauncher() {
     def launcher = new SimpleJobLauncher()
     launcher.jobRepository = jobRepository
     launcher.taskExecutor = taskExecutor
     launcher.afterPropertiesSet()
     launcher
-  }
-
-  private static TaskExecutor getTaskExecutor() {
-    def executor = new ThreadPoolTaskExecutor()
-    executor.maxPoolSize = 250
-    executor.corePoolSize = 50
-    executor.afterPropertiesSet()
-    executor
   }
 }

@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
@@ -71,6 +72,7 @@ abstract class ExecutionStarter<T extends Execution> {
   }
 
   void resume(T subject) {
+    log.warn "Resuming $subject.id"
     def jobName = executionJobBuilder.jobNameFor(subject)
     def execution = jobRepository.getLastJobExecution(jobName, createJobParameters(subject))
     jobOperator.restart(execution.id)

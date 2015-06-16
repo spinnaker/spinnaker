@@ -21,22 +21,19 @@ import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
+import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.task.TaskExecutor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import redis.clients.jedis.JedisCommands
 
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
+import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 
 @Configuration
@@ -70,8 +67,9 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
     new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize)
   }
 
-  @Bean MultiThreadedJedisBatchConfigurer multiThreadedJedisBatchConfigurer(JedisCommands jedisCommands) {
-    new MultiThreadedJedisBatchConfigurer(jedisCommands)
+  @Bean
+  BatchConfigurer multiThreadedJedisBatchConfigurer(JedisCommands jedisCommands, TaskExecutor taskExecutor) {
+    new MultiThreadedJedisBatchConfigurer(jedisCommands, taskExecutor)
   }
 
   @Bean

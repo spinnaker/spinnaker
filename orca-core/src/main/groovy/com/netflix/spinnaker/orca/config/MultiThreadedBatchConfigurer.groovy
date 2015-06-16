@@ -20,23 +20,21 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.core.task.TaskExecutor
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 class MultiThreadedBatchConfigurer extends DefaultBatchConfigurer {
+
+  private final TaskExecutor taskExecutor
+
+  MultiThreadedBatchConfigurer(TaskExecutor taskExecutor) {
+    this.taskExecutor = taskExecutor
+  }
+
   @Override
-  public JobLauncher getJobLauncher() {
+  protected JobLauncher createJobLauncher() {
     def launcher = new SimpleJobLauncher()
     launcher.jobRepository = jobRepository
     launcher.taskExecutor = taskExecutor
     launcher.afterPropertiesSet()
     launcher
-  }
-
-  private static TaskExecutor getTaskExecutor() {
-    def executor = new ThreadPoolTaskExecutor()
-    executor.maxPoolSize = 250
-    executor.corePoolSize = 50
-    executor.afterPropertiesSet()
-    executor
   }
 }
