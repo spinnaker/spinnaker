@@ -36,6 +36,7 @@ import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Observable
+import static java.util.Collections.emptySet
 import static java.util.concurrent.TimeUnit.MINUTES
 
 @Component
@@ -76,7 +77,18 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   protected Observable<Execution> getEvents() {
     log.info("Starting stale pipelines polling")
     Observable.from(jobExplorer.getJobNames())
-              .flatMapIterable(jobExplorer.&findRunningJobExecutions)
+              .flatMapIterable({ name ->
+      try {
+        return jobExplorer.findRunningJobExecutions(name)
+      }catch(IllegalArgumentException e) {
+        if (e.cause instanceof InvalidClassException) {
+          log.warn "Failed to deserialize running job for $name"
+          return emptySet()
+        } else {
+          throw e
+        }
+      }
+    })
               .filter(this.&isInactive)
               .doOnNext({ log.info "found stale job $it.id" })
 //              .doOnNext(this.&resetExecution)
