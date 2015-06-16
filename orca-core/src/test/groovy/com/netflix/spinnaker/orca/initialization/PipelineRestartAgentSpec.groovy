@@ -31,6 +31,7 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.repository.JobRepository
 import rx.schedulers.Schedulers
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -83,6 +84,7 @@ class PipelineRestartAgentSpec extends Specification {
     executions = jobNames.collect { staleJobExecution(it) }
   }
 
+  @Ignore
   def "the job execution related to the pipeline should get updated so it can restart cleanly"() {
     given:
     jobExplorer.getJobNames() >> [jobName]

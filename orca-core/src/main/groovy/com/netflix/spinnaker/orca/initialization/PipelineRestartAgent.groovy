@@ -79,8 +79,9 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
               .flatMapIterable(jobExplorer.&findRunningJobExecutions)
               .filter(this.&isInactive)
               .doOnNext({ log.info "found stale job $it.id" })
-              .doOnNext(this.&resetExecution)
+//              .doOnNext(this.&resetExecution)
               .map(this.&executionToPipeline)
+    .doOnNext({log.info "would restart pipeline ${it?.id}" })
               .filter({ it != null })
               .doOnCompleted({
       log.info("Finished stale pipelines polling")
