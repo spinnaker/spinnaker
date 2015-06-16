@@ -29,7 +29,7 @@ class InstanceServiceSpec extends Specification {
           1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
         },
         insightConfiguration: new InsightConfiguration(
-            instance: [new InsightConfiguration.Link(url: "{account}-{region}-{instanceId}-{DNE}-{privateIpAddress}")]
+            instance: [new InsightConfiguration.Link(url: '${account}-${region}-${instanceId}-{DNE}-${privateIpAddress}')]
         )
     )
 

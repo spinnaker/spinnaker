@@ -29,7 +29,7 @@ class ServerGroupServiceSpec extends Specification {
           1 * getServerGroupDetails(_, _, _, _) >> { return [:] }
         },
         insightConfiguration: new InsightConfiguration(
-            serverGroup: [new InsightConfiguration.Link(url: "{application}-{account}-{region}-{serverGroup}-{DNE}")]
+            serverGroup: [new InsightConfiguration.Link(url: '${application}-${account}-${region}-${serverGroup}-{DNE}')]
         )
     )
 
