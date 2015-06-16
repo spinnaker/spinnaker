@@ -1,13 +1,4 @@
-ext {
-  springBootVersion = '1.2.1.RELEASE'
-}
-
 subprojects {
-  apply plugin: 'spinnaker-gradle-project'
-  apply plugin: 'groovy'
-
-  group = "com.netflix.spinnaker.mort"
-
   dependencies {
     spinnaker.group("test")
     compile spinnaker.dependency('groovy')

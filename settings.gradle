@@ -21,8 +21,8 @@ def subs = [
   oort: ['oort-core', 'oort-web', 'oort-aws', 'oort-gce', 'oort-bench'],
   mort: ["mort-web", "mort-core", "mort-aws"]
 ]
-
-String[] allmodules = subs.collect { String sub, List<String> children -> [sub] + children.collect { sub + ':' + it } }.flatten().toArray()
+def topLevels = [ 'clouddriver-core', 'clouddriver-aws', 'clouddriver-web' ]
+String[] allmodules = (topLevels +  subs.collect { String sub, List<String> children -> [sub] + children.collect { sub + ':' + it } }.flatten()).toArray()
 
 include allmodules
 

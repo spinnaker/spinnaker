@@ -18,9 +18,12 @@
 package com.netflix.spinnaker.kato.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsRepository
+import com.netflix.spinnaker.kato.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.kato.aws.deploy.userdata.LocalFileUserDataProvider
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonInstanceClassBlockDevice
+import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -28,6 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 
 @ConditionalOnProperty('aws.enabled')
 @ComponentScan('com.netflix.spinnaker.kato.aws')
@@ -42,11 +46,6 @@ class KatoAWSConfig {
   }
 
   @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider()
-  }
-
-  @Bean
   @ConfigurationProperties('aws.defaults')
   DeployDefaults deployDefaults() {
     new DeployDefaults()
@@ -55,5 +54,13 @@ class KatoAWSConfig {
   static class DeployDefaults {
     String iamRole
     List<AmazonInstanceClassBlockDevice> instanceClassBlockDevices = []
+  }
+
+  @Bean
+  @DependsOn('netflixAmazonCredentials')
+  BasicAmazonDeployHandler basicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
+                                                    AccountCredentialsRepository accountCredentialsRepository,
+                                                    DeployDefaults deployDefaults) {
+    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults)
   }
 }

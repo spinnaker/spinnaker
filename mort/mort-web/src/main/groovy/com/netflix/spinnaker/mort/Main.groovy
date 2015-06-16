@@ -31,45 +31,10 @@ import javax.servlet.Filter
 
 @Configuration
 @ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters', 'com.netflix.spinnaker.config'])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
-class Main extends SpringBootServletInitializer {
-
-  static final Map<String, String> DEFAULT_PROPS = [
-      'netflix.environment': 'test',
-      'netflix.account': System.getProperty('netflix.environment', 'test'),
-      'netflix.stack': 'test',
-      'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-      'spring.config.name': 'mort',
-      'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
-  ]
-
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-  static void main(String... args) {
-    SpringApplication.run this, args
-  }
-
-  @Override
-  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
-  }
-
+class Main {
   @Bean
   @ConditionalOnMissingBean(CachingAgentScheduler)
   CachingAgentScheduler cachingAgentScheduler() {
     new RxCachingAgentScheduler()
   }
-
-  @Bean
-  Filter eTagFilter() {
-    new ShallowEtagHeaderFilter()
-  }
-
 }

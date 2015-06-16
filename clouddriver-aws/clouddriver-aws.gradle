@@ -1,0 +1,6 @@
+dependencies {
+  spinnaker.group('amazon')
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+}

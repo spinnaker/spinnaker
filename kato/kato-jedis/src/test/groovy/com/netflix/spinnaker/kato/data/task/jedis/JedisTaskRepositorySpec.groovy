@@ -19,10 +19,9 @@ package com.netflix.spinnaker.kato.data.task.jedis
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.TaskState
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 import spock.lang.Specification
-import com.netflix.spinnaker.kork.jedis.JedisConfig
 
 class JedisTaskRepositorySpec extends Specification {
 
@@ -32,20 +31,18 @@ class JedisTaskRepositorySpec extends Specification {
   JedisTaskRepository taskRepository
 
   @Shared
-  JedisCommands jedis
-
-  @Shared
-  JedisConfig config
+  JedisPool jedisPool
 
   def setupSpec() {
     taskRepository = new JedisTaskRepository()
-    config = new JedisConfig()
-    jedis = config.jedis(JEDIS_URI)
-    taskRepository.jedis = jedis
+    jedisPool = new JedisPool(URI.create(JEDIS_URI))
+    taskRepository.jedisPool = jedisPool
   }
 
   def setup() {
-    new Jedis(URI.create(JEDIS_URI)).flushDB()
+    jedisPool.resource.withCloseable {
+      ((Jedis) it).flushDB()
+    }
   }
 
   void "creating a new task returns task with unique id"() {

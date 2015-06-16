@@ -14,21 +14,6 @@
  * limitations under the License.
  */
 
-buildscript {
-  ext {
-    springBootVersion = "1.2.1.RELEASE"
-  }
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-  }
-}
-
-apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
-
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
   exclude group: "org.slf4j", module: "slf4j-log4j12"
@@ -49,13 +34,13 @@ dependencies {
   testCompile ("org.springframework.boot:spring-boot-starter-test")
 }
 
-tasks.bootRepackage.enabled = false
-
+/*
 applicationName = 'kato'
 applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
   into 'config'
 }
+*/
 
 sourceSets {
   main {
@@ -71,7 +56,7 @@ jar {
     exclude "${rootProject.name}.yml"
   }
 }
-
+/*
 startScripts {
   doLast {
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
@@ -90,3 +75,4 @@ ospackage {
 buildDeb {
   dependsOn installApp
 }
+*/

@@ -15,12 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -31,40 +25,6 @@ import javax.servlet.Filter
 
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters", "com.netflix.spinnaker.config"])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
 @EnableScheduling
-class Main extends SpringBootServletInitializer {
-
-  static final Map<String, String> DEFAULT_PROPS = [
-    'netflix.environment': 'test',
-    'netflix.account': System.getProperty('netflix.environment', 'test'),
-    'netflix.stack': 'test',
-    'spring.config.location': "${System.properties['user.home']}/.spinnaker/",
-    'spring.config.name': 'oort',
-    'spring.profiles.active': "${System.getProperty('netflix.environment', 'test')},local"
-  ]
-
-  static {
-    applyDefaults()
-  }
-
-  static void applyDefaults() {
-    DEFAULT_PROPS.each { k, v ->
-      System.setProperty(k, System.getProperty(k, v))
-    }
-  }
-
-  static void main(String... args) {
-    SpringApplication.run this, args
-  }
-
-  @Override
-  SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-    application.sources Main
-  }
-
-  @Bean
-  Filter eTagFilter() {
-    new ShallowEtagHeaderFilter()
-  }
+class Main {
 }

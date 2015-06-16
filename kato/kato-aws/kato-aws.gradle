@@ -15,11 +15,12 @@
  */
 
 dependencies {
+  compile project(":clouddriver-aws")
   compile project(":kato:kato-core")
   compile spinnaker.dependency('frigga')
-  spinnaker.group('amazon')
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('bootActuator')
+  spinnaker.group('amazon')
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
   compile spinnaker.dependency('httpclient')
   compile spinnaker.dependency('guava')

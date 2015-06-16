@@ -1,22 +1,6 @@
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-  }
-}
-
-apply plugin: 'spring-boot'
-apply plugin: 'spinnaker-debpublish'
-
 configurations.all {
   exclude group: 'javax.servlet', module: 'servlet-api'
   exclude group: "org.slf4j", module: "slf4j-log4j12"
-}
-
-ideaConfig {
-  appClassName = 'com.netflix.spinnaker.mort.Main'
 }
 
 dependencies {
@@ -27,13 +11,13 @@ dependencies {
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkSwagger")
 }
-
+/*
 applicationName = 'mort'
 applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
 applicationDistribution.from(project.file('config')) {
   into 'config'
 }
-
+*/
 sourceSets {
   main {
     resources {
@@ -48,7 +32,7 @@ jar {
     exclude "${rootProject.name}.yml"
   }
 }
-
+/*
 startScripts {
   doLast {
     unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
@@ -68,4 +52,4 @@ buildDeb {
   dependsOn installApp
   requires("openjdk-7-jre")
 }
-
+*/

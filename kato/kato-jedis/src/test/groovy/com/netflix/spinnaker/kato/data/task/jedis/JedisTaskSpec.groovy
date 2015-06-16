@@ -19,7 +19,9 @@ package com.netflix.spinnaker.kato.data.task.jedis
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Status
 import com.netflix.spinnaker.kato.data.task.TaskState
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.JedisPool
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -28,8 +30,6 @@ class JedisTaskSpec extends Specification {
 
   @Shared
   JedisTaskRepository repository
-  @Shared
-  JedisCommands jedis
 
   @Subject
   JedisTask task
@@ -39,7 +39,10 @@ class JedisTaskSpec extends Specification {
 
   void setup() {
     repository = Mock(JedisTaskRepository)
-    repository.jedis = Mock(JedisCommands)
+
+    repository.jedisPool = Stub(JedisPool) {
+      getResource() >> Stub(Jedis)
+    }
     task = new JedisTask('666', System.currentTimeMillis(), repository)
   }
 

@@ -42,18 +42,6 @@ class CoreConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(AccountCredentialsRepository)
-  AccountCredentialsRepository accountCredentialsRepository() {
-    new MapBackedAccountCredentialsRepository()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(AccountCredentialsProvider)
-  AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository accountCredentialsRepository) {
-    new DefaultAccountCredentialsProvider(accountCredentialsRepository)
-  }
-
-  @Bean
   @ConditionalOnMissingBean(DeployHandlerRegistry)
   DeployHandlerRegistry deployHandlerRegistry() {
     new DefaultDeployHandlerRegistry()

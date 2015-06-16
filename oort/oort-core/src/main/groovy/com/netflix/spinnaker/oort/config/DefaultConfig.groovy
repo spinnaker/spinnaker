@@ -41,18 +41,6 @@ import java.util.concurrent.TimeUnit
 class DefaultConfig {
 
   @Bean
-  @ConditionalOnMissingBean(AccountCredentialsRepository)
-  AccountCredentialsRepository accountCredentialsRepository() {
-    new MapBackedAccountCredentialsRepository()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(AccountCredentialsProvider)
-  AccountCredentialsProvider accountCredentialsProvider(AccountCredentialsRepository accountCredentialsRepository) {
-    new DefaultAccountCredentialsProvider(accountCredentialsRepository)
-  }
-
-  @Bean
   @ConditionalOnMissingBean(NamedCacheFactory)
   NamedCacheFactory namedCacheFactory() {
     new InMemoryNamedCacheFactory()

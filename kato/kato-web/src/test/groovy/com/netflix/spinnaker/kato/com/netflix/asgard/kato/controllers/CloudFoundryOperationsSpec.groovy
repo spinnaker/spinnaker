@@ -19,6 +19,7 @@ import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
@@ -41,6 +42,7 @@ import org.springframework.boot.test.IntegrationTest
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.web.WebAppConfiguration
@@ -255,6 +257,7 @@ class CloudFoundryOperationsSpec extends Specification {
 
   @Configuration
   @ComponentScan(["com.netflix.spinnaker.kato.config", "com.netflix.spinnaker.kato.controllers"])
+  @Import([CloudDriverConfig])
   @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration])
   static class TestConfiguration {
 

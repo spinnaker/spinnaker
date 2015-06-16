@@ -29,20 +29,4 @@ import org.springframework.web.client.RestTemplate
 @ConditionalOnProperty('aws.enabled')
 @ComponentScan('com.netflix.spinnaker.oort.aws')
 class OortAwsConfig {
-
-  @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider(amazonObjectMapper())
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(RestTemplate)
-  RestTemplate restTemplate() {
-    new RestTemplate()
-  }
-
-  @Bean
-  ObjectMapper amazonObjectMapper() {
-    new AmazonObjectMapper()
-  }
 }
