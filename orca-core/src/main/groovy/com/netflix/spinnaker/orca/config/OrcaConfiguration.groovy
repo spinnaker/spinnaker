@@ -83,12 +83,6 @@ class OrcaConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(ExtendedRegistry)
-  ExtendedRegistry getExtendedRegistry() {
-    new ExtendedRegistry(new NoopRegistry())
-  }
-
-  @Bean
   @CompileDynamic
   @ConditionalOnMissingBean(TaskExecutor)
   TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {

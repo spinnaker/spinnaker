@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.test.batch
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.kork.jedis.JedisConfig
@@ -73,6 +75,12 @@ class BatchTestConfiguration {
     jobOperator.jobExplorer = jobExplorer
     jobOperator.jobRegistry = jobRegistry
     return jobOperator
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(ExtendedRegistry)
+  ExtendedRegistry getExtendedRegistry() {
+    new ExtendedRegistry(new NoopRegistry())
   }
 
   @Configuration

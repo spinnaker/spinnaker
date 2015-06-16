@@ -23,6 +23,7 @@ dependencies {
   compile spinnaker.dependency('korkJedisTest')
   compile spinnaker.dependency('batchTest')
   compile spinnaker.dependency('redbatch')
+  compile spinnaker.dependency('spectatorApi')
   runtime spinnaker.dependency('objenesis')
   runtime spinnaker.dependency('cglib')
   compile ("net.lariverosc:jesque-spring:1.0.1")
