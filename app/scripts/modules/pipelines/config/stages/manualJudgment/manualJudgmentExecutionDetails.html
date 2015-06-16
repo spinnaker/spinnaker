@@ -10,7 +10,7 @@
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
       </div>
-      <div class="col-md-9" ng-if="!stage.context.judgmentStatus">
+      <div class="col-md-9" ng-if="!stage.context.judgmentStatus && stage.status === 'RUNNING'">
         <button class="btn btn-primary" ng-click="manualCtrl.continue()">Continue</button>
         <button class="btn btn-danger" ng-click="manualCtrl.stop()">Stop</button>
       </div>
