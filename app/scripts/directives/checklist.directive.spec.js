@@ -41,7 +41,6 @@ describe('Directives: checklist', function () {
     scope.$digest();
 
     expect(checklist.find('input').size()).toBe(4);
-    console.log(checklist.find('input'));
     expect(checklist.find('input:checked').size()).toBe(3);
 
   });
