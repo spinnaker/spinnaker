@@ -31,21 +31,21 @@
                                          ng-model="command.min"
                                          min="0"
                                          required
-                                         validate-max="command.max"/></div>
+                                         max="{{command.max}}"/></div>
             <div class="col-md-2"><input type="number"
                                          class="form-control input-sm"
                                          ng-model="command.max"
                                          min="0"
                                          required
-                                         validate-min="command.min"/></div>
+                                         min="{{command.min}}"/></div>
             <div class="col-md-2"><input type="number"
                                          class="form-control input-sm"
                                          ng-model="command.desired"
-                                         min="0"
                                          required
-                                         validate-min="command.min"
-                                         validate-max="command.max"/></div>
+                                         min="{{command.min}}"
+                                         max="{{command.max}}"/></div>
           </div>
+
         </div>
         <div ng-if="!command.advancedMode">
           <div class="form-group">

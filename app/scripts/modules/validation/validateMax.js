@@ -1,6 +1,7 @@
 'use strict';
 
 
+// TODO: delete this and the validateMax.js and validateMin.js
 angular.module('spinnaker.validation')
   .directive('validateMax', function (isEmpty) {
     return {

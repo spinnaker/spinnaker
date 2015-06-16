@@ -8,6 +8,7 @@
  Changed to leave the model pristine on $watch updates
  */
 
+// TODO: delete this and the validateMax.js and validateMin.js
 angular.module('spinnaker.validation')
   .directive('validateMin', function (isEmpty) {
     return {
