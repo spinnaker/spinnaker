@@ -45,7 +45,7 @@ class DeleteAmazonLoadBalancerAtomicOperationSpec extends Specification {
     setup:
     def loadBalancing = Mock(AmazonElasticLoadBalancing)
     def amazonClientProvider = Stub(AmazonClientProvider)
-    amazonClientProvider.getAmazonElasticLoadBalancing(credz, _) >> loadBalancing
+    amazonClientProvider.getAmazonElasticLoadBalancing(credz, _, true) >> loadBalancing
     op.amazonClientProvider = amazonClientProvider
 
     when:

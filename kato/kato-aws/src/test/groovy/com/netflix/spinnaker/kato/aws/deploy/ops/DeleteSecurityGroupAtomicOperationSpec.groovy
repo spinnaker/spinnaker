@@ -54,7 +54,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123")
@@ -81,7 +81,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
@@ -109,7 +109,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null),
@@ -137,7 +137,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: []
     )
@@ -160,7 +160,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       op.operate([])
 
       then:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
       1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
               securityGroups: [
                       new SecurityGroup(groupName: "bar", groupId: "123", vpcId: null)
@@ -185,7 +185,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
     op.operate([])
 
     then:
-    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+    1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
     1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
             securityGroups: [
                     new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
@@ -210,7 +210,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       op.operate([])
 
       then:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
       1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
               securityGroups: [
                       new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)
@@ -244,7 +244,7 @@ class DeleteSecurityGroupAtomicOperationSpec extends Specification {
       thrown(AmazonServiceException)
 
       and:
-      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1') >> ec2
+      1 * amazonClientProvider.getAmazonEC2(credz, 'us-east-1', true) >> ec2
       1 * ec2.describeSecurityGroups() >> new DescribeSecurityGroupsResult(
               securityGroups: [
                       new SecurityGroup(groupName: "foo", groupId: "123", vpcId: null)

@@ -20,7 +20,6 @@ package com.netflix.spinnaker.kato.aws.deploy.handlers
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.AmiIdResolver
@@ -28,7 +27,6 @@ import com.netflix.spinnaker.kato.aws.deploy.AutoScalingWorker
 import com.netflix.spinnaker.kato.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
-import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.config.KatoAWSConfig

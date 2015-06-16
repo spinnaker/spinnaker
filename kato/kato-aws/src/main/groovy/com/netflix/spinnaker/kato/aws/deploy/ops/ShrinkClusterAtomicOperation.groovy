@@ -53,7 +53,7 @@ class ShrinkClusterAtomicOperation implements AtomicOperation<Void> {
   Void operate(List _) {
     task.updateStatus BASE_PHASE, "Initializing Cluster Shrinking Operation..."
     for (String region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
 
       task.updateStatus BASE_PHASE, "Looking up inactive ASGs in ${region}..."
       List<String> inactiveAsgs = getInactiveAsgs(autoScaling)

@@ -31,7 +31,7 @@ class TerminateInstancesAtomicOperationUnitSpec extends Specification {
 
   def mockAmazonEC2 = Mock(AmazonEC2)
   def mockAmazonClientProvider = Mock(AmazonClientProvider) {
-    getAmazonEC2(_, _) >> mockAmazonEC2
+    getAmazonEC2(_, _, true) >> mockAmazonEC2
   }
 
   void "should terminate instances"() {

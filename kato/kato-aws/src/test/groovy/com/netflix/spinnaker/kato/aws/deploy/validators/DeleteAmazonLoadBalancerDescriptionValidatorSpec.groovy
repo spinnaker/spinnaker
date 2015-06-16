@@ -29,19 +29,10 @@ class DeleteAmazonLoadBalancerDescriptionValidatorSpec extends Specification {
   @Subject
     validator = new DeleteAmazonLoadBalancerDescriptionValidator()
 
-  @Shared
-  AmazonClientProvider amazonClientProvider = Mock(AmazonClientProvider)
-
-  void setup() {
-    amazonClientProvider = Mock(AmazonClientProvider)
-    validator.amazonClientProvider = amazonClientProvider
-  }
-
   void "should fail validation with invalid load balancer name"() {
     setup:
     def errors = Mock(Errors)
     def description = new DeleteAmazonLoadBalancerDescription(regions: ["us-east-1"], credentials: Stub(NetflixAmazonCredentials))
-    validator.amazonClientProvider = amazonClientProvider
 
     when:
     validator.validate([], description, errors)

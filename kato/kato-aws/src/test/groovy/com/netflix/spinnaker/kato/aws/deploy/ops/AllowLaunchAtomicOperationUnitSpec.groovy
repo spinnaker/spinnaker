@@ -37,7 +37,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
     setup:
     def ec2 = Mock(AmazonEC2)
     def provider = Stub(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> ec2
+      getAmazonEC2(_, _, true) >> ec2
     }
 
     def target = Stub(NetflixAmazonCredentials) {
@@ -83,7 +83,7 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId('ami-123456'))
     }
     def provider = Stub(AmazonClientProvider) {
-      getAmazonEC2(_, _) >> ec2
+      getAmazonEC2(_, _, true) >> ec2
     }
     def description = new AllowLaunchDescription(account: "prod", amiName: "ami-123456", region: "us-west-1", credentials: Stub(NetflixAmazonCredentials))
     def op = new AllowLaunchAtomicOperation(description)
@@ -126,8 +126,8 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * getCredentials("prod") >> prodCredentials
     }
     with(provider) {
-      1 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2
-      1 * getAmazonEC2(prodCredentials, _) >> targetAmazonEc2
+      1 * getAmazonEC2(testCredentials, _, true) >> sourceAmazonEc2
+      1 * getAmazonEC2(prodCredentials, _, true) >> targetAmazonEc2
     }
     with(sourceAmazonEc2) {
       1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))
@@ -161,8 +161,8 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
       1 * getCredentials("test") >> testCredentials
     }
     with(provider) {
-      1 * getAmazonEC2(testCredentials, _) >> sourceAmazonEc2
-      1 * getAmazonEC2(testCredentials, _) >> targetAmazonEc2
+      1 * getAmazonEC2(testCredentials, _, true) >> sourceAmazonEc2
+      1 * getAmazonEC2(testCredentials, _, true) >> targetAmazonEc2
     }
     with(sourceAmazonEc2) {
       1 * describeImages(_) >> new DescribeImagesResult().withImages(new Image().withImageId("ami-123456"))

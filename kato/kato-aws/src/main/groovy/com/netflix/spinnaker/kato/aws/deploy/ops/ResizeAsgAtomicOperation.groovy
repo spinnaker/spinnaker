@@ -48,7 +48,7 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
     for (String region : description.regions) {
       task.updateStatus PHASE, "Beginning resize of ${description.asgName} in ${region}."
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
       resize autoScaling
       task.updateStatus PHASE, "Completed resize of ${description.asgName} in ${region}."
     }

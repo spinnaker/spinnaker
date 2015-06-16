@@ -58,8 +58,8 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     task.updateStatus BASE_PHASE, "Initializing Allow Launch Operation..."
 
     def targetCredentials = accountCredentialsProvider.getCredentials(description.account) as NetflixAmazonCredentials
-    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
-    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region)
+    def sourceAmazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
+    def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
     ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiId(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
     if (!resolvedAmi) {

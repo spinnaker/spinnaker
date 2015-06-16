@@ -35,7 +35,7 @@ class ResizeAsgAtomicOperationUnitSpec extends Specification {
     setup:
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     def description = new ResizeAsgDescription(asgName: "myasg-stack-v000", regions: ["us-west-1"])
     description.credentials = TestCredential.named('baz')
     description.capacity.min = 1

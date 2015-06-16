@@ -52,7 +52,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
     def task = getTask()
 
     task.updateStatus phaseName, "Initializing ${performingAction} of Instances (${description.instanceIds.join(", ")}) in Load Balancer Operation..."
-    def amazonELB = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region)
+    def amazonELB = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
     def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
     asgService.getAutoScalingGroups(description.asgName ? [description.asgName] : null).each { AutoScalingGroup asg ->
       def asgInstanceIds = asg.instances*.instanceId as Set<String>

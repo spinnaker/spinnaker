@@ -45,7 +45,7 @@ class DeleteAmazonLoadBalancerAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Delete Amazon Load Balancer Operation..."
     for (region in description.regions) {
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
       DeleteLoadBalancerRequest request = new DeleteLoadBalancerRequest(loadBalancerName: description.loadBalancerName)
       task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}."
       loadBalancing.deleteLoadBalancer(request)

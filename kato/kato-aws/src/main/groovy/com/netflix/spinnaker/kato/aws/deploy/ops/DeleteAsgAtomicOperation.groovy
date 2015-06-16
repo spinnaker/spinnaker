@@ -45,7 +45,7 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Delete ASG Operation..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
 
       task.updateStatus BASE_PHASE, "Removing ASG -> ${description.asgName} in $region"
       def request = new DeleteAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName)

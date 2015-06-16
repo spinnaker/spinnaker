@@ -55,8 +55,8 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def mockAutoScaling = Mock(AmazonAutoScaling)
     def mockProvider = Mock(AmazonClientProvider)
     def asgService = new AsgService(mockAutoScaling)
-    mockProvider.getAmazonEC2(_, _) >> mockEC2
-    mockProvider.getAutoScaling(_, _) >> mockAutoScaling
+    mockProvider.getAmazonEC2(_, _, true) >> mockEC2
+    mockProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     def op = new CopyLastAsgAtomicOperation(description)
     op.amazonClientProvider = mockProvider
     op.basicAmazonDeployHandler = deployHandler

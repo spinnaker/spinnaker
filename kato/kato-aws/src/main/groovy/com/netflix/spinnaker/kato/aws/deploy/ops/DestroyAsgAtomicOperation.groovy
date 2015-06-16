@@ -51,7 +51,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing ASG Destroy Operation..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region)
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
       task.updateStatus BASE_PHASE, "Looking up instance ids for $description.asgName in $region..."
 
       def result = autoScaling.describeAutoScalingGroups(
@@ -75,7 +75,7 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
         autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
             launchConfigurationName: autoScalingGroup.launchConfigurationName))
       }
-      def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+      def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
 
       for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
         int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)

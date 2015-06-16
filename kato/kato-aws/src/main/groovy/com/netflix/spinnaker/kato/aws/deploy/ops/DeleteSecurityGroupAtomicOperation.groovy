@@ -46,7 +46,7 @@ class DeleteSecurityGroupAtomicOperation implements AtomicOperation<Void> {
     Void operate(List priorOutputs) {
         task.updateStatus BASE_PHASE, "Initializing Delete Security Group Operation..."
         for (region in description.regions) {
-            def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region)
+            def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
             def result = ec2.describeSecurityGroups()
             List<SecurityGroup> securityGroups = result.securityGroups
             SecurityGroup securityGroup = securityGroups.find { it.vpcId == description.vpcId && it.groupName == description.securityGroupName }

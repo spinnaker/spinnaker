@@ -53,7 +53,7 @@ class UpsertAmazonDNSAtomicOperation implements AtomicOperation<UpsertAmazonDNSR
       description.target = priorElb.loadBalancers?.values()?.getAt(0)?.dnsName
     }
 
-    def route53 = amazonClientProvider.getAmazonRoute53(description.credentials, null)
+    def route53 = amazonClientProvider.getAmazonRoute53(description.credentials, null, true)
     def hostedZone = route53.listHostedZones().hostedZones.find { it.name == description.hostedZoneName }
 
     def recordSet = new ResourceRecordSet(description.name, description.type)

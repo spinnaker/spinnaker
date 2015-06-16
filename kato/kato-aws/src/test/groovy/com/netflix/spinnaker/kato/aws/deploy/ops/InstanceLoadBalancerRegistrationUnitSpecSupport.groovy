@@ -58,7 +58,7 @@ class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
     op.regionScopedProviderFactory = rspf
 
     def provider = Mock(AmazonClientProvider) {
-      1 * getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+      1 * getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
     }
     op.amazonClientProvider = provider
   }

@@ -52,7 +52,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
+    def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     SecurityGroup securityGroup
 
     final List<SecurityGroup> securityGroups = ec2.describeSecurityGroups().securityGroups.

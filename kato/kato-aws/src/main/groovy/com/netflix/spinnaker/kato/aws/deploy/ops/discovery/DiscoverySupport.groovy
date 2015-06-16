@@ -57,9 +57,8 @@ class DiscoverySupport {
       throw new DiscoveryNotConfiguredException()
     }
 
-    def region = description.region
     def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, description.region)
-    def amazonEC2 = regionScopedProviderFactory.amazonClientProvider.getAmazonEC2(description.credentials, region)
+    def amazonEC2 = regionScopedProvider.getAmazonEC2()
     def asgService = regionScopedProvider.asgService
 
     def eureka = regionScopedProvider.eureka

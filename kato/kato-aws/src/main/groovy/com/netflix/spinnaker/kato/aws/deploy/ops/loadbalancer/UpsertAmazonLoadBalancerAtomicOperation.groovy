@@ -79,7 +79,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
-      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
 
       LoadBalancerDescription loadBalancer
 

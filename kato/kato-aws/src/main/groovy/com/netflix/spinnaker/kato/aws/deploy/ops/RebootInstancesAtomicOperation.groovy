@@ -44,7 +44,7 @@ class RebootInstancesAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing Reboot Instances Operation for ${description.instanceIds.join(", ")}..."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     amazonEC2.rebootInstances(new RebootInstancesRequest(instanceIds: description.instanceIds))
     task.updateStatus BASE_PHASE, "Done rebooting instances (${description.instanceIds.join(", ")})."
     null

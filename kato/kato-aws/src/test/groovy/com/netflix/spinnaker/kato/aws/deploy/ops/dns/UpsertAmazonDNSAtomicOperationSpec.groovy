@@ -38,7 +38,7 @@ class UpsertAmazonDNSAtomicOperationSpec extends Specification {
     setup:
     def mockClient = Mock(AmazonRoute53)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAmazonRoute53(_, _) >> mockClient
+    mockAmazonClientProvider.getAmazonRoute53(_, _, true) >> mockClient
     def op = new UpsertAmazonDNSAtomicOperation(new UpsertAmazonDNSDescription())
     op.amazonClientProvider = mockAmazonClientProvider
     def elbDeploy = Mock(UpsertAmazonLoadBalancerResult)
@@ -65,7 +65,7 @@ class UpsertAmazonDNSAtomicOperationSpec extends Specification {
     setup:
     def mockClient = Mock(AmazonRoute53)
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAmazonRoute53(_, _) >> mockClient
+    mockAmazonClientProvider.getAmazonRoute53(_, _, true) >> mockClient
     def op = new UpsertAmazonDNSAtomicOperation(new UpsertAmazonDNSDescription())
     op.amazonClientProvider = mockAmazonClientProvider
 

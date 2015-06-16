@@ -40,8 +40,8 @@ class DestroyAsgAtomicOperationUnitSpec extends Specification {
   def mockAutoScaling = Mock(AmazonAutoScaling)
   def mockEC2 = Mock(AmazonEC2)
   def provider = Mock(AmazonClientProvider) {
-    getAutoScaling(_, _) >> mockAutoScaling
-    getAmazonEC2(_, _) >> mockEC2
+    getAutoScaling(_, _, true) >> mockAutoScaling
+    getAmazonEC2(_, _, true) >> mockEC2
   }
 
   void "should not fail delete when ASG does not exist"() {

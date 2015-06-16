@@ -65,9 +65,9 @@ class UpsertScalingPolicyAtomicOperationUnitSpec extends Specification {
     autoScaling = Mock(AmazonAutoScaling)
     sns = Mock(AmazonSNS)
     def amazonClientProvider = Mock(AmazonClientProvider)
-    amazonClientProvider.getCloudWatch(_, _) >> cloudWatch
-    amazonClientProvider.getAutoScaling(_, _) >> autoScaling
-    amazonClientProvider.getAmazonSNS(_, _) >> sns
+    amazonClientProvider.getCloudWatch(_, _, true) >> cloudWatch
+    amazonClientProvider.getAutoScaling(_, _, true) >> autoScaling
+    amazonClientProvider.getAmazonSNS(_, _, true) >> sns
     op.amazonClientProvider = amazonClientProvider
   }
 

@@ -25,9 +25,6 @@ import org.springframework.validation.Errors
 @Component("deleteAmazonLoadBalancerDescriptionValidator")
 class DeleteAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteAmazonLoadBalancerDescription> {
 
-  @Autowired
-  AmazonClientProvider amazonClientProvider
-
   @Override
   void validate(List priorDescriptions, DeleteAmazonLoadBalancerDescription description, Errors errors) {
     validateRegions(description, description.regions, "deleteAmazonLoadBalancerDescription", errors)

@@ -45,7 +45,7 @@ class ShrinkClusterAtomicOperationUnitSpec extends Specification {
     mockResult.getAutoScalingGroups() >> [mockAsg]
     mockAutoScaling.describeAutoScalingGroups() >> mockResult
     def mockAmazonClientProvider = Mock(AmazonClientProvider)
-    mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
+    mockAmazonClientProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     def description = new ShrinkClusterDescription()
     description.application = "asgard"
     description.clusterName = "asgard-test"

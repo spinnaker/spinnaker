@@ -54,14 +54,14 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, 
       .withCooldown(DEFAULT_COOLDOWN_SECONDS)
       .withAutoScalingGroupName(description.asgName)
 
-    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region)
+    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, description.region, true)
     PutScalingPolicyResult scalingPolicyResult = autoScaling.putScalingPolicy(scalingPolicyRequest)
 
     // up & down alarms
     def scaleUpAlarmReq = createAlarmRequest(scalingPolicyResult.policyARN)
     def scaleDownAlarmReq = createAlarmRequest(scalingPolicyResult.policyARN, true)
 
-    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region)
+    def cloudWatch = amazonClientProvider.getCloudWatch(description.credentials, description.region, true)
     cloudWatch.putMetricAlarm(scaleUpAlarmReq)
     cloudWatch.putMetricAlarm(scaleDownAlarmReq)
 
@@ -103,7 +103,7 @@ class UpsertScalingPolicyAtomicOperation implements AtomicOperation<Map<String, 
     if (!name.startsWith('arn:aws:sns:')) {
       name = "arn:aws:sns:${name}"
     }
-    def sns = amazonClientProvider.getAmazonSNS(description.credentials, description.region)
+    def sns = amazonClientProvider.getAmazonSNS(description.credentials, description.region, true)
     def request = new ListTopicsRequest()
     def result = sns.listTopics(request)
     while (true) {

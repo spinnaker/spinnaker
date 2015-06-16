@@ -65,7 +65,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
   def setup() {
     ec2 = Mock(AmazonEC2)
     def clientProvider = Mock(AmazonClientProvider)
-    clientProvider.getAmazonEC2(_, _) >> ec2
+    clientProvider.getAmazonEC2(_, _, true) >> ec2
     op.amazonClientProvider = clientProvider
   }
 

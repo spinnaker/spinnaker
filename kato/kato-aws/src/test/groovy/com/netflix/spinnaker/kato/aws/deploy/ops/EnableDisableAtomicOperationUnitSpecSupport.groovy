@@ -88,7 +88,7 @@ abstract class EnableDisableAtomicOperationUnitSpecSupport extends Specification
     op.regionScopedProviderFactory = regionScopedProviderFactory
 
     def provider = Stub(AmazonClientProvider) {
-      getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+      getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
     }
     op.amazonClientProvider = provider
   }

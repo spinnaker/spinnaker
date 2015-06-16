@@ -42,7 +42,7 @@ class TerminateInstancesAtomicOperation implements AtomicOperation<Void> {
   @Override
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")})."
-    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region)
+    def amazonEC2 = amazonClientProvider.getAmazonEC2(description.credentials, description.region, true)
     amazonEC2.terminateInstances(new TerminateInstancesRequest(instanceIds: description.instanceIds))
     task.updateStatus BASE_PHASE, "Done executing termination of instances (${description.instanceIds.join(", ")})."
     null

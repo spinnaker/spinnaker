@@ -69,7 +69,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
   )
   AmazonElasticLoadBalancing loadBalancing = Mock(AmazonElasticLoadBalancing)
   def mockAmazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonElasticLoadBalancing(_, _) >> loadBalancing
+    getAmazonElasticLoadBalancing(_, _, true) >> loadBalancing
   }
   def mockSecurityGroupService = Stub(SecurityGroupService) {
     getSecurityGroupIds(["foo"], null) >> ["foo": "sg-1234"]

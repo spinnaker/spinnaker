@@ -42,7 +42,7 @@ class DeleteAsgTagsAtomicOperationUnitSpec extends Specification {
     operation.operate([])
 
     then:
-    1 * mockAmazonClientProvider.getAutoScaling(_, _) >> mockAutoScaling
+    1 * mockAmazonClientProvider.getAutoScaling(_, _, true) >> mockAutoScaling
     1 * mockAutoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: ["myasg-stack-v000"])) >> new DescribeAutoScalingGroupsResult(
       autoScalingGroups: [new AutoScalingGroup(autoScalingGroupName: "myasg-stack-v000")])
     1 * mockAutoScaling.deleteTags(new DeleteTagsRequest(tags: [new Tag(resourceId: "myasg-stack-v000", resourceType: "auto-scaling-group", key: "key")]))

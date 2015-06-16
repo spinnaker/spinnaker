@@ -88,7 +88,7 @@ class UpsertAmazonDNSDescriptionValidatorSpec extends Specification {
     def errors = Mock(Errors)
     def route53 = Mock(AmazonRoute53)
     validator.amazonClientProvider = Mock(AmazonClientProvider)
-    validator.amazonClientProvider.getAmazonRoute53(_, _) >> route53
+    validator.amazonClientProvider.getAmazonRoute53(_, _, true) >> route53
 
     when:
     validator.validate([], description, errors)
