@@ -187,7 +187,11 @@ angular.module('spinnaker.securityGroup.aws.create.controller', [
     })();
 
     this.addRule = function(ruleset) {
-      ruleset.push({});
+      ruleset.push({
+        type: 'tcp',
+        startPort: 7001,
+        endPort: 7001,
+      });
     };
 
     this.removeRule = function(ruleset, index) {
