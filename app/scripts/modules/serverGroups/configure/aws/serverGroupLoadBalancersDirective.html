@@ -4,10 +4,10 @@
       The following load balancers could not be found in the selected account/region/VPC and were removed:
     </p>
     <ul>
-      <li ng-repeat="loadBalancer in command.dirty.loadBalancers">{{loadBalancer}}</li>
+      <li ng-repeat="loadBalancer in command.viewState.dirty.loadBalancers">{{loadBalancer}}</li>
     </ul>
     <p class="text-right">
-      <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.dirty.loadBalancers= null">Okay</a>
+      <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.loadBalancers = null">Okay</a>
     </p>
   </div>
 </div>
