@@ -15,6 +15,7 @@
  */
 
 dependencies {
+  compile spinnaker.dependency('frigga')
   compile project(":orca-retrofit")
   testCompile project(":orca-test")
 }
