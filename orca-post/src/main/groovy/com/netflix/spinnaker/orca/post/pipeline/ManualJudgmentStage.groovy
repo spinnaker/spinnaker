@@ -49,7 +49,7 @@ class ManualJudgmentStage extends LinearStage {
   @VisibleForTesting
   public static class WaitForManualJudgmentTask implements RetryableTask {
     long backoffPeriod = 1000
-    long timeout = TimeUnit.HOURS.toMillis(40)
+    long timeout = TimeUnit.HOURS.toMillis(120)
 
     @Autowired(required = false)
     PostService postService
