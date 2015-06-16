@@ -32,6 +32,8 @@ import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryInstance
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
+import java.util.regex.Pattern
+
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
@@ -48,7 +50,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
     this.region = region
     this.discoveryApi = discoveryApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    this.discoveryHost = String.format(accounts[0].discovery, region)
+    this.discoveryHost = accounts[0].discovery.replaceAll(Pattern.quote('{{region}}'), region)
   }
 
   @Override
