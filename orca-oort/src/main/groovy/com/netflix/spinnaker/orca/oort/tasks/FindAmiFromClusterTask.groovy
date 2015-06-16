@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.oort.tasks
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -86,7 +87,7 @@ class FindAmiFromClusterTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    String app = stage.context.cluster.split('-')[0]
+    String app = Names.parseName(stage.context.cluster).app
     String account = stage.context.account
     String cluster = stage.context.cluster
     Set<String> requiredRegions = new HashSet<>(stage.context.regions?.asType(List) ?: [])

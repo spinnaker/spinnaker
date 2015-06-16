@@ -112,10 +112,7 @@ class FindAmiFromClusterTaskSpec extends Specification {
     1 * oortService.getCluster('otherapp', account, cluster, 'aws') >> response
 
     where:
-    cluster                | _
-    'otherapp-test'        | _
-    'otherapp-test-detail' | _
-    'otherapp'             | _
+    cluster << [ 'otherapp-test', 'otherapp-test-detail', 'otherapp' ]
 
     app = 'contextapp'
     account = 'test'
