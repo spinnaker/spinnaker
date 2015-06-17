@@ -116,6 +116,10 @@ angular.module('spinnaker.serverGroup.configure.gce')
     };
 
     this.clone = function () {
+      // We want min/max set to the same value as desired.
+      $scope.command.capacity.min = $scope.command.capacity.desired;
+      $scope.command.capacity.max = $scope.command.capacity.desired;
+
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $modalInstance.close($scope.command);
       }
