@@ -35,18 +35,7 @@
       <p class="form-control-static">(Select an Account)</p>
     </div>
     <div class="col-md-6" ng-if="stage.credentials">
-      <div class="col-md-4" style="padding-left:0">
-        <label ng-repeat="r in regions">
-          <input
-            type="checkbox"
-            name="regions[]"
-            value="{{r}}"
-            ng-disabled="!state.regionsLoaded"
-            ng-checked="stage.regions.indexOf(r) > -1"
-            ng-click="disableAsgStageCtrl.toggleRegion(r)"
-          > {{r}}
-        </label>
-      </div>
+      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </div>
   </div>
 </div>

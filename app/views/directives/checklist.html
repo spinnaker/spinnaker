@@ -19,6 +19,9 @@
       <input ng-model="modelHolder[item]" type="checkbox" ng-change="updateModel()" value="{{item}}" ng-checked="modelHolder[item]"/> {{item}}
     </label>
   </li>
+  <li ng-if="includeSelectAllButton && items.length > 1">
+    <a href class="btn btn-default btn-xs push-left" type="button" ng-click="selectAll()">Select All</a>
+  </li>
 </ul>
 <label ng-if="inline" class="checkbox-inline" ng-repeat="item in items">
   <input
@@ -29,3 +32,8 @@
     ng-change="updateModel()">
   {{item}}
 </label>
+<a href
+   class="btn btn-default btn-xs"
+   style="margin: 8px 0 0 10px"
+   ng-if="inline && includeSelectAllButton && items.length > 1"
+   ng-click="selectAll()">Select All</a>

@@ -27,13 +27,14 @@ angular.module('spinnaker')
         model: '=',
         onChange: '&',
         inline: '=',
+        includeSelectAllButton: '=',
       },
       link: function(scope) {
 
         function initializeModelHolder() {
-          var initialValues = scope.model || [];
+          scope.model = scope.model || [];
           scope.modelHolder = {};
-          initialValues.forEach(function (val) {
+          scope.model.forEach(function (val) {
             scope.modelHolder[val] = val;
           });
         }
@@ -52,6 +53,13 @@ angular.module('spinnaker')
             scope.$evalAsync(scope.onChange);
           }
         }
+
+        scope.selectAll = function () {
+          scope.items.forEach(function (key) {
+            scope.modelHolder[key] = true;
+          });
+          updateModel();
+        };
 
         scope.updateModel = updateModel;
 

@@ -43,17 +43,8 @@
   </div>
   <div class="form-group" ng-if="stage.credentials">
     <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
-    <div class="col-md-8" style="border-top: 1px solid #ccc">
-      <label class="checkbox-inline" ng-repeat="r in regions">
-        <input
-          type="checkbox"
-          name="regions[]"
-          value="{{r}}"
-          ng-disabled="!regionsLoaded"
-          ng-checked="stage.regions.indexOf(r) > -1"
-          ng-click="toggleRegion(r)">
-        {{r}}
-      </label>
+    <div class="col-md-8">
+      <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
     </div>
   </div>
   <div class="form-group">
@@ -61,17 +52,9 @@
     <div class="col-md-8" ng-if="!stage.credentials" ng-if="!stage.credentials">
       Please select an account to pick processes.
     </div>
-    <div class="col-md-8" style="border-top: 1px solid #ccc" ng-if="stage.credentials">
+    <div class="col-md-8" ng-if="stage.credentials">
       <div class="col-md-8 checkbox" style="padding-left:0;">
-        <label ng-repeat="p in processes" style="display: block">
-          <input
-            type="checkbox"
-            name="processes[]"
-            value="{{p}}"
-            ng-checked="stage.processes.indexOf(p) > -1"
-            ng-click="toggleProcess(p)"
-            > {{p}}
-        </label>
+        <checklist model="stage.processes" items="processes"></checklist>
       </div>
     </div>
   </div>
