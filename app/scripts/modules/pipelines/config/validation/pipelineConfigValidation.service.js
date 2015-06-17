@@ -46,16 +46,17 @@ angular.module('spinnaker.pipelines.config.validator.service', [
       targetImpedance: function(pipeline, index, validationConfig, messages) {
         var stage = pipeline.stages[index],
             stagesToTest = pipeline.stages.slice(0, index+1),
+            regions = stage.regions || [],
             allRegionsFound = true;
 
         if (pipeline.parallel) {
           stagesToTest = pipelineConfigService.getAllUpstreamDependencies(pipeline, pipeline.stages[index]);
         }
 
-        stage.regions.forEach(function(region) {
+        regions.forEach(function(region) {
           var regionFound = false;
           stagesToTest.forEach(function(toTest) {
-            if (toTest.type === 'deploy') {
+            if (toTest.type === 'deploy' && toTest.clusters && toTest.clusters.length) {
               toTest.clusters.forEach(function(cluster) {
                 var clusterName = namingService.getClusterName(cluster.application, cluster.stack, cluster.freeFormDetails);
                 if (clusterName === stage.cluster && cluster.account === stage.credentials && cluster.availabilityZones.hasOwnProperty(region)) {

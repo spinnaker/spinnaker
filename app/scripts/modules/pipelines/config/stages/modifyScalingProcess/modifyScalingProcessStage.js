@@ -33,18 +33,6 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       });
     };
 
-    $scope.toggleRegion = function(region) {
-      if (!$scope.stage.regions) {
-        $scope.stage.regions = [];
-      }
-      var idx = $scope.stage.regions.indexOf(region);
-      if (idx > -1) {
-        $scope.stage.regions.splice(idx,1);
-      } else {
-        $scope.stage.regions.push(region);
-      }
-    };
-
     $scope.targets = [
       {
         label: 'Current ASG',

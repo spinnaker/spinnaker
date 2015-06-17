@@ -43,15 +43,6 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
       });
     };
 
-    ctrl.toggleRegion = function(region) {
-      var idx = $scope.stage.regions.indexOf(region);
-      if (idx > -1) {
-        $scope.stage.regions.splice(idx,1);
-      } else {
-        $scope.stage.regions.push(region);
-      }
-    };
-
     $scope.resizeTargets = [
       {
         label: 'Current Server Group',
