@@ -12,7 +12,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     function processRelativeTime(number, withoutSuffix, key, isFuture) {
@@ -91,6 +91,7 @@
         weekdaysMin: 'So_Mé_Dë_Më_Do_Fr_Sa'.split('_'),
         longDateFormat: {
             LT: 'H:mm [Auer]',
+            LTS: 'H:mm:ss [Auer]',
             L: 'DD.MM.YYYY',
             LL: 'D. MMMM YYYY',
             LLL: 'D. MMMM YYYY LT',
@@ -128,6 +129,7 @@
             y : processRelativeTime,
             yy : '%d Joer'
         },
+        ordinalParse: /\d{1,2}\./,
         ordinal: '%d.',
         week: {
             dow: 1, // Monday is the first day of the week.

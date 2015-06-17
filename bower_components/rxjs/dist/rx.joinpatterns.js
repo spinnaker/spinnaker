@@ -197,7 +197,6 @@
   };
 
   var JoinObserver = (function (__super__) {
-
     inherits(JoinObserver, __super__);
 
     function JoinObserver(source, onError) {
@@ -215,8 +214,7 @@
     JoinObserverPrototype.next = function (notification) {
       if (!this.isDisposed) {
         if (notification.kind === 'E') {
-          this.onError(notification.exception);
-          return;
+          return this.onError(notification.exception);
         }
         this.queue.push(notification);
         var activePlans = this.activePlans.slice(0);
@@ -266,7 +264,7 @@
   /**
    *  Matches when the observable sequence has an available value and projects the value.
    *
-   *  @param selector Selector that will be invoked for values in the source sequence.
+   *  @param {Function} selector Selector that will be invoked for values in the source sequence.
    *  @returns {Plan} Plan that produces the projected values, to be fed (with other plans) to the when operator.
    */
   observableProto.thenDo = function (selector) {
@@ -280,7 +278,12 @@
    *  @returns {Observable} Observable sequence with the results form matching several patterns.
    */
   Observable.when = function () {
-    var plans = argsOrArray(arguments, 0);
+    var plans = [];
+    if (Array.isArray(arguments[0])) {
+      plans = arguments[0];
+    } else {
+      for(var i = 0, len = arguments.length; i < len; i++) { plans.push(arguments[i]); }
+    }
     return new AnonymousObservable(function (observer) {
       var activePlans = [],
           externalSubscriptions = new Map();

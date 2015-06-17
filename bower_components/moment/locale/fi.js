@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     var numbersPast = 'nolla yksi kaksi kolme neljä viisi kuusi seitsemän kahdeksan yhdeksän'.split(' '),
@@ -64,6 +64,7 @@
         weekdaysMin : 'su_ma_ti_ke_to_pe_la'.split('_'),
         longDateFormat : {
             LT : 'HH.mm',
+            LTS : 'HH.mm.ss',
             L : 'DD.MM.YYYY',
             LL : 'Do MMMM[ta] YYYY',
             LLL : 'Do MMMM[ta] YYYY, [klo] LT',
@@ -96,6 +97,7 @@
             y : translate,
             yy : translate
         },
+        ordinalParse: /\d{1,2}\./,
         ordinal : '%d.',
         week : {
             dow : 1, // Monday is the first day of the week.

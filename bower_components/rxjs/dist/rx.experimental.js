@@ -52,6 +52,7 @@
     AsyncSubject = Rx.AsyncSubject,
     Observer = Rx.Observer,
     inherits = Rx.internals.inherits,
+    bindCallback = Rx.internals.bindCallback,
     addProperties = Rx.internals.addProperties,
     helpers = Rx.helpers,
     noop = helpers.noop,
@@ -76,7 +77,15 @@
 
   var doneEnumerator = Rx.doneEnumerator = { done: true, value: undefined };
 
-  Rx.iterator = $iterator$;
+  var isIterable = Rx.helpers.isIterable = function (o) {
+    return o[$iterator$] !== undefined;
+  }
+
+  var isArrayLike = Rx.helpers.isArrayLike = function (o) {
+    return o && o.length !== undefined;
+  }
+
+  Rx.helpers.iterator = $iterator$;
 
   function enumerableWhile(condition, source) {
     return new Enumerable(function () {
@@ -88,16 +97,16 @@
     });
   }
 
-     /**
-     *  Returns an observable sequence that is the result of invoking the selector on the source sequence, without sharing subscriptions.
-     *  This operator allows for a fluent style of writing queries that use the same sequence multiple times.
-     *
-     * @param {Function} selector Selector function which can use the source sequence as many times as needed, without sharing subscriptions to the source sequence.
-     * @returns {Observable} An observable sequence that contains the elements of a sequence produced by multicasting the source sequence within a selector function.
-     */
-    observableProto.letBind = observableProto['let'] = function (func) {
-        return func(this);
-    };
+   /**
+   *  Returns an observable sequence that is the result of invoking the selector on the source sequence, without sharing subscriptions.
+   *  This operator allows for a fluent style of writing queries that use the same sequence multiple times.
+   *
+   * @param {Function} selector Selector function which can use the source sequence as many times as needed, without sharing subscriptions to the source sequence.
+   * @returns {Observable} An observable sequence that contains the elements of a sequence produced by multicasting the source sequence within a selector function.
+   */
+  observableProto.letBind = observableProto['let'] = function (func) {
+    return func(this);
+  };
 
    /**
    *  Determines whether an observable collection contains values. There is an alias for this method called 'ifThen' for browsers <IE9
@@ -148,16 +157,16 @@
     return enumerableWhile(condition, source).concat();
   };
 
-     /**
-     *  Repeats source as long as condition holds emulating a do while loop.
-     *
-     * @param {Function} condition The condition which determines if the source will be repeated.
-     * @param {Observable} source The observable sequence that will be run if the condition function returns true.
-     * @returns {Observable} An observable sequence which is repeated as long as the condition holds.
-     */
-    observableProto.doWhile = function (condition) {
-        return observableConcat([this, observableWhileDo(condition, this)]);
-    };
+   /**
+   *  Repeats source as long as condition holds emulating a do while loop.
+   *
+   * @param {Function} condition The condition which determines if the source will be repeated.
+   * @param {Observable} source The observable sequence that will be run if the condition function returns true.
+   * @returns {Observable} An observable sequence which is repeated as long as the condition holds.
+   */
+  observableProto.doWhile = function (condition) {
+    return observableConcat([this, observableWhileDo(condition, this)]);
+  };
 
    /**
    *  Uses selector to determine which source in sources to use.
@@ -208,8 +217,8 @@
       var ensureActive = function () {
         var isOwner = false;
         if (q.length > 0) {
-            isOwner = !isAcquired;
-            isAcquired = true;
+          isOwner = !isAcquired;
+          isAcquired = true;
         }
         if (isOwner) {
           m.setDisposable(scheduler.scheduleRecursive(function (self) {
@@ -249,7 +258,7 @@
       activeCount++;
       ensureActive();
       return d;
-    });
+    }, this);
   };
 
    /**
@@ -261,7 +270,12 @@
    * @returns {Observable} An observable sequence with an array collecting the last elements of all the input sequences.
    */
   Observable.forkJoin = function () {
-    var allSources = argsOrArray(arguments, 0);
+    var allSources = [];
+    if (Array.isArray(arguments[0])) {
+      allSources = arguments[0];
+    } else {
+      for(var i = 0, len = arguments.length; i < len; i++) { allSources.push(arguments[i]); }
+    }
     return new AnonymousObservable(function (subscriber) {
       var count = allSources.length;
       if (count === 0) {
@@ -322,7 +336,6 @@
    */
   observableProto.forkJoin = function (second, resultSelector) {
     var first = this;
-
     return new AnonymousObservable(function (observer) {
       var leftStopped = false, rightStopped = false,
         hasLeft = false, hasRight = false,
@@ -390,7 +403,7 @@
       );
 
       return new CompositeDisposable(leftSubscription, rightSubscription);
-    });
+    }, first);
   };
 
   /**
@@ -421,7 +434,7 @@
         )
         .observeOn(scheduler)
         .map(selector);
-    });
+    }, source);
   };
 
   var ChainObservable = (function (__super__) {
@@ -430,7 +443,7 @@
       var self = this, g = new CompositeDisposable();
       g.add(currentThreadScheduler.schedule(function () {
         observer.onNext(self.head);
-        g.add(self.tail.mergeObservable().subscribe(observer));
+        g.add(self.tail.mergeAll().subscribe(observer));
       }));
 
       return g;
@@ -460,6 +473,119 @@
     return ChainObservable;
 
   }(Observable));
+
+  /*
+   * Performs a exclusive waiting for the first to finish before subscribing to another observable.
+   * Observables that come in between subscriptions will be dropped on the floor.
+   * @returns {Observable} A exclusive observable with only the results that happen when subscribed.
+   */
+  observableProto.exclusive = function () {
+    var sources = this;
+    return new AnonymousObservable(function (observer) {
+      var hasCurrent = false,
+        isStopped = false,
+        m = new SingleAssignmentDisposable(),
+        g = new CompositeDisposable();
+
+      g.add(m);
+
+      m.setDisposable(sources.subscribe(
+        function (innerSource) {
+          if (!hasCurrent) {
+            hasCurrent = true;
+
+            isPromise(innerSource) && (innerSource = observableFromPromise(innerSource));
+
+            var innerSubscription = new SingleAssignmentDisposable();
+            g.add(innerSubscription);
+
+            innerSubscription.setDisposable(innerSource.subscribe(
+              observer.onNext.bind(observer),
+              observer.onError.bind(observer),
+              function () {
+                g.remove(innerSubscription);
+                hasCurrent = false;
+                if (isStopped && g.length === 1) {
+                  observer.onCompleted();
+                }
+            }));
+          }
+        },
+        observer.onError.bind(observer),
+        function () {
+          isStopped = true;
+          if (!hasCurrent && g.length === 1) {
+            observer.onCompleted();
+          }
+        }));
+
+      return g;
+    }, this);
+  };
+
+  /*
+   * Performs a exclusive map waiting for the first to finish before subscribing to another observable.
+   * Observables that come in between subscriptions will be dropped on the floor.
+   * @param {Function} selector Selector to invoke for every item in the current subscription.
+   * @param {Any} [thisArg] An optional context to invoke with the selector parameter.
+   * @returns {Observable} An exclusive observable with only the results that happen when subscribed.
+   */
+  observableProto.exclusiveMap = function (selector, thisArg) {
+    var sources = this,
+        selectorFunc = bindCallback(selector, thisArg, 3);
+    return new AnonymousObservable(function (observer) {
+      var index = 0,
+        hasCurrent = false,
+        isStopped = true,
+        m = new SingleAssignmentDisposable(),
+        g = new CompositeDisposable();
+
+      g.add(m);
+
+      m.setDisposable(sources.subscribe(
+        function (innerSource) {
+
+          if (!hasCurrent) {
+            hasCurrent = true;
+
+            innerSubscription = new SingleAssignmentDisposable();
+            g.add(innerSubscription);
+
+            isPromise(innerSource) && (innerSource = observableFromPromise(innerSource));
+
+            innerSubscription.setDisposable(innerSource.subscribe(
+              function (x) {
+                var result;
+                try {
+                  result = selectorFunc(x, index++, innerSource);
+                } catch (e) {
+                  observer.onError(e);
+                  return;
+                }
+
+                observer.onNext(result);
+              },
+              function (e) { observer.onError(e); },
+              function () {
+                g.remove(innerSubscription);
+                hasCurrent = false;
+
+                if (isStopped && g.length === 1) {
+                  observer.onCompleted();
+                }
+              }));
+          }
+        },
+        function (e) { observer.onError(e); },
+        function () {
+          isStopped = true;
+          if (g.length === 1 && !hasCurrent) {
+            observer.onCompleted();
+          }
+        }));
+      return g;
+    }, this);
+  };
 
     return Rx;
 }));

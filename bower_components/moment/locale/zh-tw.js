@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('zh-tw', {
@@ -19,6 +19,7 @@
         weekdaysMin : '日_一_二_三_四_五_六'.split('_'),
         longDateFormat : {
             LT : 'Ah點mm',
+            LTS : 'Ah點m分s秒',
             L : 'YYYY年MMMD日',
             LL : 'YYYY年MMMD日',
             LLL : 'YYYY年MMMD日LT',
@@ -50,6 +51,7 @@
             lastWeek : '[上]ddddLT',
             sameElse : 'L'
         },
+        ordinalParse: /\d{1,2}(日|月|週)/,
         ordinal : function (number, period) {
             switch (period) {
             case 'd' :

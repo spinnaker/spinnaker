@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('sv', {
@@ -19,6 +19,7 @@
         weekdaysMin : 'sö_må_ti_on_to_fr_lö'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
+            LTS : 'LT:ss',
             L : 'YYYY-MM-DD',
             LL : 'D MMMM YYYY',
             LLL : 'D MMMM YYYY LT',
@@ -47,6 +48,7 @@
             y : 'ett år',
             yy : '%d år'
         },
+        ordinalParse: /\d{1,2}(e|a)/,
         ordinal : function (number) {
             var b = number % 10,
                 output = (~~(number % 100 / 10) === 1) ? 'e' :

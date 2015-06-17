@@ -1,6 +1,6 @@
 {
   "name": "angular-marked",
-  "version": "0.0.12",
+  "version": "0.0.15",
   "description": "AngularJS Markdown using marked.",
   "main": "angular-marked.js",
   "directories": {
@@ -17,7 +17,11 @@
     "grunt-contrib-uglify": "^0.4.0",
     "grunt-karma": "^0.8.2",
     "karma-phantomjs-launcher": "^0.1.4",
-    "grunt-bump": "0.0.13"
+    "grunt-bump": "0.0.13",
+    "grunt-gh-pages": "^0.9.1",
+    "grunt-ngdocs": "^0.2.5",
+    "grunt-contrib-connect": "^0.8.0",
+    "grunt-contrib-watch": "^0.6.1"
   },
   "scripts": {
     "test": "grunt test"

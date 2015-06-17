@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('gl', {
@@ -19,6 +19,7 @@
         weekdaysMin : 'Do_Lu_Ma_Mé_Xo_Ve_Sá'.split('_'),
         longDateFormat : {
             LT : 'H:mm',
+            LTS : 'LT:ss',
             L : 'DD/MM/YYYY',
             LL : 'D MMMM YYYY',
             LLL : 'D MMMM YYYY LT',
@@ -62,6 +63,7 @@
             y : 'un ano',
             yy : '%d anos'
         },
+        ordinalParse : /\d{1,2}º/,
         ordinal : '%dº',
         week : {
             dow : 1, // Monday is the first day of the week.

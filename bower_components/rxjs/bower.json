@@ -1,6 +1,6 @@
 {
   "name": "rxjs",
-  "version": "2.3.12",
+  "version": "2.3.25",
   "main": [
     "dist/rx.all.js",
     "dist/rx.all.map",
@@ -21,7 +21,7 @@
     "dist/rx.async.map",
     "dist/rx.async.min.js",
     "dist/rx.async.compat.js",
-    "dist/rx.async.map.js",
+    "dist/rx.async.compat.map",
     "dist/rx.async.compat.min.js",
     "dist/rx.backpressure.js",
     "dist/rx.backpressure.map",

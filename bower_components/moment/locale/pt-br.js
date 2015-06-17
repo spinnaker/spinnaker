@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('pt-br', {
@@ -19,6 +19,7 @@
         weekdaysMin : 'dom_2ª_3ª_4ª_5ª_6ª_sáb'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
+            LTS : 'LT:ss',
             L : 'DD/MM/YYYY',
             LL : 'D [de] MMMM [de] YYYY',
             LLL : 'D [de] MMMM [de] YYYY [às] LT',
@@ -51,6 +52,7 @@
             y : 'um ano',
             yy : '%d anos'
         },
+        ordinalParse: /\d{1,2}º/,
         ordinal : '%dº'
     });
 }));

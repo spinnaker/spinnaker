@@ -1,6 +1,6 @@
 {
   "name": "spin.js",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "spin.js",
   "dependencies": {},
   "readme": "README.md",
@@ -16,11 +16,11 @@
     "package.json"
   ],
   "homepage": "https://github.com/fgnass/spin.js",
-  "_release": "2.0.1",
+  "_release": "2.0.2",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.1",
-    "commit": "166cd72b2d284c101e1407b52ceb424106d90bf6"
+    "tag": "v2.0.2",
+    "commit": "ad9aa9f0a2dc6773978baa8c3aac2b551e1da000"
   },
   "_source": "git://github.com/fgnass/spin.js.git",
   "_target": "~2.0.0",

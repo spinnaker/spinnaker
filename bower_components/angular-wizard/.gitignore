@@ -16,3 +16,4 @@ components
 bower_components
 npm-debug.log
 src/*.tpls.js
+.idea/

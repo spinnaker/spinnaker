@@ -49,9 +49,8 @@
 
   // Utilities
   var objectDisposed = 'Object has been disposed';
-  function checkDisposed() {
-    if (this.isDisposed) { throw new Error(objectDisposed); }
-  }
+  function checkDisposed(self) { if (self.isDisposed) { throw new Error(objectDisposed); } }
+  function cloneArray(arr) { for(var a = [], i = 0, len = arr.length; i < len; i++) { a.push(arr[i]); } return a;}
 
   /**
    * Multicasts the source sequence notifications through an instantiated subject into all uses of the sequence within a selector function. Each
@@ -76,7 +75,7 @@
       new AnonymousObservable(function (observer) {
         var connectable = source.multicast(subjectOrSubjectSelector());
         return new CompositeDisposable(selector(connectable).subscribe(observer), connectable.connect());
-      }) :
+      }, source) :
       new ConnectableObservable(source, subjectOrSubjectSelector);
   };
 
@@ -100,10 +99,6 @@
   /**
    * Returns an observable sequence that shares a single subscription to the underlying sequence.
    * This operator is a specialization of publish which creates a subscription when the number of observers goes from zero to one, then shares that subscription with all subsequent observers until the number of observers returns to zero, at which point the subscription is disposed.
-   *
-   * @example
-   * var res = source.share();
-   *
    * @returns {Observable} An observable sequence that contains the elements of a sequence produced by multicasting the source sequence.
    */
   observableProto.share = function () {
@@ -150,10 +145,6 @@
   /**
    * Returns an observable sequence that shares a single subscription to the underlying sequence and starts with an initialValue.
    * This operator is a specialization of publishValue which creates a subscription when the number of observers goes from zero to one, then shares that subscription with all subsequent observers until the number of observers returns to zero, at which point the subscription is disposed.
-   *
-   * @example
-   * var res = source.shareValue(42);
-   *
    * @param {Mixed} initialValue Initial value received by observers upon subscription.
    * @returns {Observable} An observable sequence that contains the elements of a sequence produced by multicasting the source sequence.
    */
@@ -202,23 +193,18 @@
     return this.replay(null, bufferSize, window, scheduler).refCount();
   };
 
-    /** @private */
-    var InnerSubscription = function (subject, observer) {
-        this.subject = subject;
-        this.observer = observer;
-    };
+  var InnerSubscription = function (subject, observer) {
+    this.subject = subject;
+    this.observer = observer;
+  };
 
-    /**
-     * @private
-     * @memberOf InnerSubscription
-     */
-    InnerSubscription.prototype.dispose = function () {
-        if (!this.subject.isDisposed && this.observer !== null) {
-            var idx = this.subject.observers.indexOf(this.observer);
-            this.subject.observers.splice(idx, 1);
-            this.observer = null;
-        }
-    };
+  InnerSubscription.prototype.dispose = function () {
+    if (!this.subject.isDisposed && this.observer !== null) {
+      var idx = this.subject.observers.indexOf(this.observer);
+      this.subject.observers.splice(idx, 1);
+      this.observer = null;
+    }
+  };
 
   /**
    *  Represents a value that changes over time.
@@ -226,15 +212,14 @@
    */
   var BehaviorSubject = Rx.BehaviorSubject = (function (__super__) {
     function subscribe(observer) {
-      checkDisposed.call(this);
+      checkDisposed(this);
       if (!this.isStopped) {
         this.observers.push(observer);
         observer.onNext(this.value);
         return new InnerSubscription(this, observer);
       }
-      var ex = this.exception;
-      if (ex) {
-        observer.onError(ex);
+      if (this.hasError) {
+        observer.onError(this.error);
       } else {
         observer.onCompleted();
       }
@@ -244,7 +229,6 @@
     inherits(BehaviorSubject, __super__);
 
     /**
-     * @constructor
      *  Initializes a new instance of the BehaviorSubject class which creates a subject that caches its last value and starts with the specified value.
      *  @param {Mixed} value Initial value sent to observers when no other value has been received by the subject yet.
      */
@@ -254,7 +238,7 @@
       this.observers = [],
       this.isDisposed = false,
       this.isStopped = false,
-      this.exception = null;
+      this.hasError = false;
     }
 
     addProperties(BehaviorSubject.prototype, Observer, {
@@ -262,47 +246,46 @@
        * Indicates whether the subject has observers subscribed to it.
        * @returns {Boolean} Indicates whether the subject has observers subscribed to it.
        */
-      hasObservers: function () {
-        return this.observers.length > 0;
-      },
+      hasObservers: function () { return this.observers.length > 0; },
       /**
        * Notifies all subscribed observers about the end of the sequence.
        */
       onCompleted: function () {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         this.isStopped = true;
-        for (var i = 0, os = this.observers.slice(0), len = os.length; i < len; i++) {
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
           os[i].onCompleted();
         }
 
-        this.observers = [];
+        this.observers.length = 0;
       },
       /**
        * Notifies all subscribed observers about the exception.
        * @param {Mixed} error The exception to send to all observers.
        */
       onError: function (error) {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         this.isStopped = true;
-        this.exception = error;
+        this.hasError = true;
+        this.error = error;
 
-        for (var i = 0, os = this.observers.slice(0), len = os.length; i < len; i++) {
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
           os[i].onError(error);
         }
 
-        this.observers = [];
+        this.observers.length = 0;
       },
       /**
        * Notifies all subscribed observers about the arrival of the specified element in the sequence.
        * @param {Mixed} value The value to send to all observers.
        */
       onNext: function (value) {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         this.value = value;
-        for (var i = 0, os = this.observers.slice(0), len = os.length; i < len; i++) {
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
           os[i].onNext(value);
         }
       },
@@ -336,25 +319,21 @@
     function subscribe(observer) {
       var so = new ScheduledObserver(this.scheduler, observer),
         subscription = createRemovableDisposable(this, so);
-      checkDisposed.call(this);
+      checkDisposed(this);
       this._trim(this.scheduler.now());
       this.observers.push(so);
-
-      var n = this.q.length;
 
       for (var i = 0, len = this.q.length; i < len; i++) {
         so.onNext(this.q[i].value);
       }
 
       if (this.hasError) {
-        n++;
         so.onError(this.error);
       } else if (this.isStopped) {
-        n++;
         so.onCompleted();
       }
 
-      so.ensureActive(n);
+      so.ensureActive();
       return subscription;
     }
 
@@ -379,7 +358,7 @@
       __super__.call(this, subscribe);
     }
 
-    addProperties(ReplaySubject.prototype, Observer, {
+    addProperties(ReplaySubject.prototype, Observer.prototype, {
       /**
        * Indicates whether the subject has observers subscribed to it.
        * @returns {Boolean} Indicates whether the subject has observers subscribed to it.
@@ -400,15 +379,14 @@
        * @param {Mixed} value The value to send to all observers.
        */
       onNext: function (value) {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         var now = this.scheduler.now();
         this.q.push({ interval: now, value: value });
         this._trim(now);
 
-        var o = this.observers.slice(0);
-        for (var i = 0, len = o.length; i < len; i++) {
-          var observer = o[i];
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
+          var observer = os[i];
           observer.onNext(value);
           observer.ensureActive();
         }
@@ -418,37 +396,35 @@
        * @param {Mixed} error The exception to send to all observers.
        */
       onError: function (error) {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         this.isStopped = true;
         this.error = error;
         this.hasError = true;
         var now = this.scheduler.now();
         this._trim(now);
-        var o = this.observers.slice(0);
-        for (var i = 0, len = o.length; i < len; i++) {
-          var observer = o[i];
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
+          var observer = os[i];
           observer.onError(error);
           observer.ensureActive();
         }
-        this.observers = [];
+        this.observers.length = 0;
       },
       /**
        * Notifies all subscribed observers about the end of the sequence.
        */
       onCompleted: function () {
-        checkDisposed.call(this);
+        checkDisposed(this);
         if (this.isStopped) { return; }
         this.isStopped = true;
         var now = this.scheduler.now();
         this._trim(now);
-        var o = this.observers.slice(0);
-        for (var i = 0, len = o.length; i < len; i++) {
-          var observer = o[i];
+        for (var i = 0, os = cloneArray(this.observers), len = os.length; i < len; i++) {
+          var observer = os[i];
           observer.onCompleted();
           observer.ensureActive();
         }
-        this.observers = [];
+        this.observers.length = 0;
       },
       /**
        * Unsubscribe all observers and release resources.
@@ -480,7 +456,7 @@
         return subscription;
       };
 
-      __super__.call(this, subject.subscribe.bind(subject));
+      __super__.call(this, function (o) { return subject.subscribe(o); });
     }
 
     ConnectableObservable.prototype.refCount = function () {

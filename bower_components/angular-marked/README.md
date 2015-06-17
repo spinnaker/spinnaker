@@ -1,5 +1,11 @@
-# angular-marked
+# angular-marked [![Bower version](https://badge.fury.io/bo/angular-marked.svg)](http://badge.fury.io/bo/angular-marked)
+===
+
 AngularJS Markdown using [marked](https://github.com/chjj/marked).
+
+**Please note:** neither this directive nor marked (by default) implementation sanitization. As always, sanitizing is necessary for user-generated content.
+
+[![get this with bower](http://benschwarz.github.io/bower-badges/badge@2x.png)](http://bower.io/ "get this with bower")
 
 ## Usage
 1. `bower install angular-marked` or `bower install Hypercubed/angular-marked`
@@ -10,7 +16,6 @@ AngularJS Markdown using [marked](https://github.com/chjj/marked).
 ### Set default options (optional)
 
 ```js
-
 	app.config(['markedProvider', function(markedProvider) {
 	  markedProvider.setOptions({gfm: true});
 	}]);
@@ -31,9 +36,8 @@ Example using [highlight.js Javascript syntax highlighter](http://highlightjs.or
 ### As a directive
 
 ```html
-
-	<marked>   
-	     #Markdown directive   
+	<marked>
+	     #Markdown directive
 	     *It works!*  
 	</marked>
 ```
@@ -41,8 +45,7 @@ Example using [highlight.js Javascript syntax highlighter](http://highlightjs.or
 Bind the markdown input to a scope variable:
 
 ```html
-
-	<div marked="my_markdown"> 
+	<div marked="my_markdown">
 	</div>
 	<!-- Uses $scope.my_markdown -->
 ```
@@ -50,8 +53,7 @@ Bind the markdown input to a scope variable:
 Include a markdown file:
 
 ```html
-
-	<div marked ng-include="'README.md'"> 
+	<div marked ng-include="'README.md'">
 	</div>
 	<!-- Uses markdown content from README.md -->
 ```
@@ -59,7 +61,6 @@ Include a markdown file:
 ### As a service
 
 ```js
-
 	app.controller('myCtrl', ['marked', function(marked) {
 	  $scope.html = marked('#TEST');
 	}]);
@@ -67,9 +68,9 @@ Include a markdown file:
 
 ## Testing
 
-Install npm and bower dependencies: 
+Install npm and bower dependencies:
 
-```
+```bash
 	npm install
 	bower install
 	npm test
@@ -83,4 +84,7 @@ I wanted to use `marked` instead of `showdown` as used in `angular-markdown-dire
 Based on [angular-markdown-directive](https://github.com/btford/angular-markdown-directive) by [briantford](http://briantford.com/) which, in turn, is based on [this excellent tutorial](http://blog.angularjs.org/2012/05/custom-components-part-1.html) by [@johnlinquist](https://twitter.com/johnlindquist).
 
 ## License
-MIT
+Copyright (c) 2013 Jayson Harshbarger [![Gittip donate button](http://img.shields.io/gratipay/Hypercubed.svg)](https://www.gittip.com/hypercubed/ "Donate weekly to this project using Gittip")
+[![Paypal donate button](http://img.shields.io/badge/paypal-donate-brightgreen.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=X7KYR6T9U2NHC "One time donation to this project using Paypal")
+
+[MIT License](http://en.wikipedia.org/wiki/MIT_License)

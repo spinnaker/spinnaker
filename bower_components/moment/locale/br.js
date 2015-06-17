@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     function relativeTimeWithMutation(number, withoutSuffix, key) {
@@ -67,6 +67,7 @@
         weekdaysMin : 'Su_Lu_Me_Mer_Ya_Gw_Sa'.split('_'),
         longDateFormat : {
             LT : 'h[e]mm A',
+            LTS : 'h[e]mm:ss A',
             L : 'DD/MM/YYYY',
             LL : 'D [a viz] MMMM YYYY',
             LLL : 'D [a viz] MMMM YYYY LT',
@@ -95,6 +96,7 @@
             y : 'ur bloaz',
             yy : specialMutationForYears
         },
+        ordinalParse: /\d{1,2}(añ|vet)/,
         ordinal : function (number) {
             var output = (number === 1) ? 'añ' : 'vet';
             return number + output;

@@ -11,7 +11,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('ko', {
@@ -22,6 +22,7 @@
         weekdaysMin : '일_월_화_수_목_금_토'.split('_'),
         longDateFormat : {
             LT : 'A h시 m분',
+            LTS : 'A h시 m분 s초',
             L : 'YYYY.MM.DD',
             LL : 'YYYY년 MMMM D일',
             LLL : 'YYYY년 MMMM D일 LT',
@@ -54,6 +55,7 @@
             y : '일년',
             yy : '%d년'
         },
+        ordinalParse : /\d{1,2}일/,
         ordinal : '%d일',
         meridiemParse : /(오전|오후)/,
         isPM : function (token) {

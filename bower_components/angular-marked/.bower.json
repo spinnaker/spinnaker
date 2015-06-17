@@ -1,6 +1,6 @@
 {
   "name": "angular-marked",
-  "version": "0.0.12",
+  "version": "0.0.15",
   "authors": [
     "J. Harshbarger"
   ],
@@ -29,14 +29,13 @@
     "angular-mocks": ">= 1.2.5"
   },
   "homepage": "https://github.com/Hypercubed/angular-marked",
-  "_release": "0.0.12",
+  "_release": "0.0.15",
   "_resolution": {
     "type": "version",
-    "tag": "v0.0.12",
-    "commit": "acb0738d108ee5cd35f3812492d7590495cf9ecd"
+    "tag": "v0.0.15",
+    "commit": "0eeed01d44381e55314002c2de50a06d3e7a80d5"
   },
   "_source": "git://github.com/Hypercubed/angular-marked.git",
   "_target": "~0.0.12",
-  "_originalSource": "angular-marked",
-  "_direct": true
+  "_originalSource": "angular-marked"
 }

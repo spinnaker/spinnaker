@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('tl-ph', {
@@ -19,6 +19,7 @@
         weekdaysMin : 'Li_Lu_Ma_Mi_Hu_Bi_Sab'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
+            LTS : 'LT:ss',
             L : 'MM/D/YYYY',
             LL : 'MMMM D, YYYY',
             LLL : 'MMMM D, YYYY LT',
@@ -47,6 +48,7 @@
             y : 'isang taon',
             yy : '%d taon'
         },
+        ordinalParse: /\d{1,2}/,
         ordinal : function (number) {
             return number;
         },
