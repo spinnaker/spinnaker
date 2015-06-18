@@ -16,8 +16,10 @@
 
 package com.netflix.spinnaker.config
 
-
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -39,6 +41,8 @@ class OkHttpClientConfiguration {
   long connectTimoutMs = 15000
   long readTimeoutMs = 20000
 
+  boolean propagateSpinnakerHeaders = true
+
   File keyStore
   String keyStoreType = 'PKCS12'
   String keyStorePassword = 'changeit'
@@ -56,6 +60,24 @@ class OkHttpClientConfiguration {
     def okHttpClient = new OkHttpClient()
     okHttpClient.setConnectTimeout(connectTimoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS)
+
+    if (propagateSpinnakerHeaders) {
+      okHttpClient.interceptors().add(
+        new Interceptor() {
+          @Override
+          Response intercept(Interceptor.Chain chain) throws IOException {
+            def builder = chain.request().newBuilder()
+            AuthenticatedRequest.authenticationHeaders.each { String key, Optional<String> value ->
+              if (value.present) {
+                builder.addHeader(key, value.get())
+              }
+            }
+
+            return chain.proceed(builder.build())
+          }
+        }
+      )
+    }
 
     if (!keyStore && !trustStore) {
       return okHttpClient
