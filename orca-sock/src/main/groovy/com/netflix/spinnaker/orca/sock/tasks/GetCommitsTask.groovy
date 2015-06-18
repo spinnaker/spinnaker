@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit
 class GetCommitsTask implements RetryableTask {
 
   long backoffPeriod = 1000
-  long timeout = TimeUnit.MINUTES.toMillis(2)
+  long timeout = TimeUnit.SECONDS.toMillis(30)
 
   @Autowired
   OortService oortService
@@ -116,40 +116,44 @@ class GetCommitsTask implements RetryableTask {
           targetRegion = it.key
         }
 
+        String targetAppVersion
+
         // deploy task sets this one
         String targetAmi = stage.context.deploymentDetails.find { it.region == targetRegion }?.ami
+        if(targetAmi) {
+          def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
+            targetRegion, targetAmi).body.in(), jsonListType)
+            targetAppVersion = targetAmiDetails[0]?.tags?.appversion
 
-        // copyLastAsg sets this one
-        if (!targetAmi) {
-          targetAmi = stage.context.amiName
+        } else {  // copyLastAsg sets this one
+          targetAppVersion = stage.context.amiName // this contains the version info, just parse it, don't call oort
         }
 
-        if (!targetAmi) {
-          throw new RuntimeException("could not determine the target ami")
-        }
-
-        def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
-          targetRegion, targetAmi).body.in(), jsonListType)
-
-        String targetAppVersion = targetAmiDetails[0]?.tags?.appversion
         if(targetAppVersion) {
           fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
         } else {
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
         }
 
-        List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: toCommit, from: fromCommit, limit: 100])
         def commitsList = []
-        commits.each {
-          // add commits to the task output
-          commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,
-                          timestamp: it.timestamp, commitUrl: it.commitUrl, message: it.message]
+        if(toCommit && fromCommit) {
+          List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: toCommit, from: fromCommit, limit: 100])
+          commits.each {
+            // add commits to the task output
+            commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,
+                            timestamp: it.timestamp, commitUrl: it.commitUrl, message: it.message]
+          }
+        } else { // log and return an empty list
+          log.warn("unable to determine either toCommit(${toCommit}) or fromCommit${fromCommit}, returning an empty commit list")
         }
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
+
       } catch (RetrofitError e) {
-        if ([503, 500, 404].contains(e.response?.status)) {
+        if ([503, 500].contains(e.response?.status)) {
           log.warn("Http ${e.response.status} received from `sock` (${repoType}, ${projectKey}, ${repositorySlug}, ${toCommit}, ${fromCommit}) , retrying...")
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        } else if(e.response?.status == 404) { // just give up on 404
+          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         }
         throw e
       }
