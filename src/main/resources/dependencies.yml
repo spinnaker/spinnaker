@@ -162,6 +162,7 @@ dependencies:
   bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
+  bootSecurity: "org.springframework.boot:spring-boot-starter-security:${versions.springBoot}"
   cglib: "cglib:cglib-nodep:${versions.cglib}"
   eddaClient: "com.netflix.edda-client:edda-client:${versions.eddaClient}"
   eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
