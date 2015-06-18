@@ -31,11 +31,7 @@ import org.springframework.batch.core.*
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.repository.JobRepository
 import rx.schedulers.Schedulers
-import spock.lang.Ignore
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import spock.lang.*
 import static com.google.common.collect.Sets.newHashSet
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static java.time.temporal.ChronoUnit.MINUTES
@@ -110,6 +106,7 @@ class PipelineRestartAgentSpec extends Specification {
     execution = staleJobExecution(jobName)
   }
 
+  @Unroll
   def "if any step in the job has been updated within #stepsUpdatedAt it is assumed to be running on another instance"() {
     given:
     jobExplorer.getJobNames() >> [jobName]

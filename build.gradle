@@ -42,6 +42,9 @@ allprojects {
         if (it.requested.group == "com.netflix.rxjava" && it.requested.name == "rxjava-core") {
           it.useTarget group: "io.reactivex", name: "rxjava", version: "1.0.5"
         }
+        if (it.requested.group == "org.springframework.batch") {
+          it.useVersion "3.0.3.RELEASE"
+        }
       }
     }
   }

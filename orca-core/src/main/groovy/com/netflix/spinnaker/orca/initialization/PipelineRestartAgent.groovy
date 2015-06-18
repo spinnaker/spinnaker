@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -34,14 +35,14 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import rx.Observable
 import static java.util.Collections.emptySet
 import static java.util.concurrent.TimeUnit.MINUTES
 
-@Component
+//@Component
 @Slf4j
 @CompileStatic
+//@ConditionalOnExpression(value = '${pollers.stalePipelines.enabled:true}')
 class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "stalePipeline"
@@ -77,24 +78,17 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   protected Observable<Execution> getEvents() {
     log.info("Starting stale pipelines polling")
     Observable.from(jobExplorer.getJobNames())
-              .flatMapIterable({ name ->
-      try {
-        return jobExplorer.findRunningJobExecutions(name)
-      }catch(IllegalArgumentException e) {
-        if (e.cause instanceof InvalidClassException) {
-          log.warn "Failed to deserialize running job for $name"
-          return emptySet()
-        } else {
-          throw e
-        }
-      }
-    })
-              .filter(this.&isInactive)
-              .doOnNext({ log.info "found stale job $it.id" })
+              .buffer(100)
+              .flatMap({ names ->
+      Observable.from(names)
+                .flatMapIterable(this.&runningJobExecutions)
+                .filter(this.&isInactive)
+                .doOnNext({ log.info "found stale job $it.id started=$it.startTime" })
 //              .doOnNext(this.&resetExecution)
-              .map(this.&executionToPipeline)
-    .doOnNext({log.info "would restart pipeline ${it?.id}" })
-              .filter({ it != null })
+                .map(this.&executionToPipeline)
+                .filter({ it != null })
+                .doOnNext({ log.info "would restart pipeline ${it.id} with status ${it.status}" })
+    })
               .doOnCompleted({
       log.info("Finished stale pipelines polling")
     })
@@ -103,6 +97,19 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   @Override
   Class<? extends NotificationHandler> handlerType() {
     PipelineRestartHandler
+  }
+
+  private Iterable<JobExecution> runningJobExecutions(String name) {
+    try {
+      return jobExplorer.findRunningJobExecutions(name)
+    } catch (IllegalArgumentException e) {
+      if (e.cause instanceof InvalidClassException) {
+        log.warn "Failed to deserialize running job for $name"
+        return emptySet()
+      } else {
+        throw e
+      }
+    }
   }
 
   private boolean isInactive(JobExecution execution) {
@@ -123,12 +130,20 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   }
 
   private Pipeline executionToPipeline(JobExecution execution) {
-    def id = execution.getJobParameters().getString("pipeline")
-    try {
-      return executionRepository.retrievePipeline(id)
-    } catch (Exception e) {
-      log.error("Failed to retrieve pipeline $id", e)
-      return null
+    def parameters = execution.getJobParameters()
+    def id = parameters.getString("pipeline")
+    if (id != null) {
+      try {
+        return executionRepository.retrievePipeline(id)
+      } catch (ExecutionNotFoundException e) {
+        log.error("No pipeline found for id $id")
+        return null
+      } catch (Exception e) {
+        log.error("Failed to retrieve pipeline $id", e)
+        return null
+      }
+    } else {
+      log.warn "Job $execution.id has no 'pipeline' parameter in ${parameters.parameters.keySet()}"
     }
   }
 }
