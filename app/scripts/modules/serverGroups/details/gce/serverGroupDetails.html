@@ -140,6 +140,12 @@
         </li>
       </ul>
     </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">No tags associated with this server group</div>
+      <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.tags.items.length">
+        <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">{{tag}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Package">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo">
         <dt ng-if="serverGroup.buildInfo.jenkins">Job</dt>
