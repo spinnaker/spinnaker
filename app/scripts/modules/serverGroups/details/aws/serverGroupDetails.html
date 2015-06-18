@@ -29,8 +29,8 @@
     </div>
     <div>
       <div class="actions" ng-class="{ insights: serverGroup.insightActions.length > 0 }">
-        <div class="dropdown">
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle">
+        <div class="dropdown" dropdown>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" dropdown-toggle>
             Server Group Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
@@ -41,8 +41,8 @@
             <li><a href ng-click="ctrl.cloneServerGroup(serverGroup)">Clone</a></li>
           </ul>
         </div>
-        <div class="dropdown" ng-if="serverGroup.insightActions.length > 0">
-          <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+        <div class="dropdown" ng-if="serverGroup.insightActions.length > 0" dropdown>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" dropdown-toggle>
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">

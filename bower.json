@@ -17,7 +17,7 @@
     "restangular": "~1.4.0",
     "angular-wizard": "~0.4.0",
     "angular-animate": "=1.4.1",
-    "angular-ui-bootstrap-bower": "~0.11.2",
+    "angular-ui-bootstrap-bower": "~0.13.0",
     "rxjs": "~2.3.12",
     "angular-filter": "~0.4.9",
     "d3": "~3.4.13",
@@ -42,5 +42,9 @@
   "resolutions": {
     "angular": "1.4.1",
     "lodash": "~3.7.0"
-  }
+  },
+  "monkey-patches (TODOs)": [
+    "angular-ui-bootstrap-bower (0.13.0) to work around https://github.com/angular-ui/bootstrap/issues/3787",
+    "ngInfiniteScroll because its main file is in a 'build' directory, and we've .gitignored all 'build' directories because we're dumb"
+  ]
 }

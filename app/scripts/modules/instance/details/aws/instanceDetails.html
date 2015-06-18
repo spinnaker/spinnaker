@@ -26,8 +26,8 @@
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
-        <div class="dropdown">
-          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled">
+        <div class="dropdown" dropdown>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" dropdown-toggle>
             Instance Actions <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
@@ -40,8 +40,8 @@
             <li><a href ng-click="ctrl.terminateInstance()">Terminate Instance</a></li>
           </ul>
         </div>
-        <div class="dropdown" ng-if="instance.insightActions.length > 0">
-          <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+        <div class="dropdown" ng-if="instance.insightActions.length > 0" dropdown>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" dropdown-toggle>
             Insight <span class="caret"></span>
           </button>
           <ul class="dropdown-menu" role="menu">
