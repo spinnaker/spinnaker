@@ -71,6 +71,7 @@ class GetCommitsTask implements RetryableTask {
     String account = stage.context?.source?.account ?: stage.context?.account
     String toCommit
     String fromCommit
+    String targetAmi
 
     String ancestorAsg = stage.context.get("kato.tasks")?.find { item ->
       item.find { key, value ->
@@ -117,22 +118,34 @@ class GetCommitsTask implements RetryableTask {
         }
 
         String targetAppVersion
-
         // deploy task sets this one
-        String targetAmi = stage.context.deploymentDetails.find { it.region == targetRegion }?.ami
+        targetAmi = stage.context?.deploymentDetails?.find { it.region == targetRegion }?.ami
+
+        if(!targetAmi) {
+          // copyLastAsg sets this one
+          targetAmi = stage.context.get("kato.tasks")?.find { item ->
+            item.find { key, value ->
+              key == 'resultObjects'
+            }
+          }?.resultObjects?.find { another ->
+              if(another.containsKey("region")) {
+                another.region == region
+              }
+          }?.amiId
+        }
+
         if(targetAmi) {
           def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
-            targetRegion, targetAmi).body.in(), jsonListType)
-            targetAppVersion = targetAmiDetails[0]?.tags?.appversion
-
+          targetRegion, targetAmi).body.in(), jsonListType)
+          targetAppVersion = targetAmiDetails[0]?.tags?.appversion
         } else {  // copyLastAsg sets this one
-          targetAppVersion = stage.context.amiName // this contains the version info, just parse it, don't call oort
+          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         }
 
         if(targetAppVersion) {
           fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
         } else {
-          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         }
 
         def commitsList = []

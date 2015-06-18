@@ -281,11 +281,14 @@ class GetCommitsTaskSpec extends Specification {
       given:
       String katoTasks = "[{\"resultObjects\": [" +
         "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}," +
+        "{\"amiId\": \"${targetImage}\", \"region\": \"${region}\"}" +
+        "]" +
+        ",\"status\": {\"completed\": true,\"failed\": false}}]"
       ObjectMapper mapper = new ObjectMapper()
       def katoMap = mapper.readValue(katoTasks, List)
       def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                        source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], amiName: "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217", "kato.tasks" : katoMap]).asImmutable()
+                                                        source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap]).asImmutable()
 
       and:
       task.sockService = Stub(SockService) {
@@ -301,10 +304,11 @@ class GetCommitsTaskSpec extends Specification {
       def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
       Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
       Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
+      Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
       task.oortService = oortService
       1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
       1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-      0 * oortService.getByAmiId("aws", account, region, targetImage)
+      1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
       when:
       def result = task.execute(stage)
