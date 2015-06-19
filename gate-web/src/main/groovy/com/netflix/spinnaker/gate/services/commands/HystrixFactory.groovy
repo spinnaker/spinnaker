@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.services.commands
 
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandProperties
-import static com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter.applyMDC
+import static com.netflix.spinnaker.security.AuthenticatedRequest.propagate
 
 class HystrixFactory {
   static HystrixCommandProperties.Setter createHystrixCommandPropertiesSetter() {
@@ -31,7 +31,7 @@ class HystrixFactory {
 
   public static ListCommand newListCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback,
                                            Closure<? extends List> work) {
-    new ListCommand(groupKey, commandKey, withLastKnownGoodFallback, applyMDC(work))
+    new ListCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work))
   }
 
   public static ListCommand newListCommand(String groupKey, String commandKey, Closure<? extends List> work) {
@@ -40,11 +40,11 @@ class HystrixFactory {
 
   public static MapCommand newMapCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback,
                                          Closure<? extends Map> work) {
-    new MapCommand(groupKey, commandKey, withLastKnownGoodFallback, applyMDC(work))
+    new MapCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work))
   }
 
   public static MapCommand newMapCommand(String groupKey, String commandKey, Closure<? extends Map> work) {
-    new MapCommand(groupKey, commandKey, false, applyMDC(work))
+    new MapCommand(groupKey, commandKey, false, propagate(work))
   }
 
   private static class ListCommand extends AbstractHystrixCommand<List> {

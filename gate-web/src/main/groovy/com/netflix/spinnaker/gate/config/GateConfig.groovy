@@ -19,11 +19,14 @@ package com.netflix.spinnaker.gate.config
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequest
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.squareup.okhttp.Interceptor
+import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -38,6 +41,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.GateRed
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 import retrofit.http.Body
@@ -61,7 +65,8 @@ class GateConfig {
 
   @Bean
   JedisConnectionFactory jedisConnectionFactory(
-      @Value('${redis.connection:redis://localhost:6379}') String connection) {
+    @Value('${redis.connection:redis://localhost:6379}') String connection
+  ) {
     URI redis = URI.create(connection)
     def factory = new JedisConnectionFactory()
     factory.hostName = redis.host
@@ -277,26 +282,26 @@ class GateConfig {
       return null
     }
     Endpoint endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
-        newFixedEndpoint("niws://${service.vipAddress}")
-        : newFixedEndpoint(service.baseUrl)
+      newFixedEndpoint("niws://${service.vipAddress}")
+      : newFixedEndpoint(service.baseUrl)
 
     def client = new EurekaOkClient(okHttpClientConfig.create(), extendedRegistry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
-        .setEndpoint(endpoint)
-        .setClient(client)
-        .setConverter(new JacksonConverter())
-        .setLogLevel(RestAdapter.LogLevel.BASIC)
-        .setLog(new Slf4jRetrofitLogger(type))
-        .build()
-        .create(type)
+      .setEndpoint(endpoint)
+      .setClient(client)
+      .setConverter(new JacksonConverter())
+      .setLogLevel(RestAdapter.LogLevel.BASIC)
+      .setLog(new Slf4jRetrofitLogger(type))
+      .build()
+      .create(type)
   }
 
   @Bean
   Filter simpleCORSFilter() {
     new Filter() {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-          throws IOException, ServletException {
+        throws IOException, ServletException {
         HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
         String origin = request.getHeader("Origin") ?: "*"
@@ -317,14 +322,14 @@ class GateConfig {
 
   @Bean
   Filter authenticatedRequestFilter() {
-    new AuthenticatedRequestLoggingFilter()
+    new AuthenticatedRequest.Filter()
   }
 
   @Component
   static class HystrixFilter implements Filter {
     @Override
     void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+      throws IOException, ServletException {
       HystrixRequestContext.initializeContext()
       chain.doFilter(request, response)
     }
