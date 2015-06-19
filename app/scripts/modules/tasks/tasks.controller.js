@@ -152,21 +152,46 @@ angular.module('spinnaker.tasks.main', [
     };
 
 
-    controller.getDeployedServerGroup = function(task, step) {
-      if(task.execution) {
-        var stage = findStageWithTaskInExecution(task.execution, step.name);
-        console.warn(step.name, stage, task);
-        if(stage && stage.context && stage.context['deploy.server.groups']){
-          return _(stage.context['deploy.server.groups'])
-            .chain()
-            .values()
-            .first()
-            .first()
-            .value();
-        }
-      } else {
-        return;
+    controller.getFirstDeployServerGroupName = function(task) {
+      if(task.execution && task.execution.stages) {
+        var stage = findStageWithTaskInExecution(task.execution, 'createCopyLastAsg');
+        return _(stage)
+          .chain()
+          .get('context')
+          .get('deploy.server.groups')
+          .values()
+          .first()
+          .first()
+          .value();
       }
+    };
+
+    controller.getAccountId = function(task) {
+      return _(task.variables)
+        .chain()
+        .find({'key': 'account'})
+        .result('value')
+        .value();
+    };
+
+    controller.getRegion = function (task) {
+      return _(task.variables)
+        .chain()
+        .find({'key': 'source'})
+        .result('value')
+        .get('region')
+        .value();
+    };
+
+    controller.getProviderForServerGroupByTask = function(task) {
+      var serverGroupName = controller.getFirstDeployServerGroupName(task);
+      return _(application.serverGroups)
+        .chain()
+        .find(function(serverGroup) {
+          return serverGroup.name === serverGroupName;
+        })
+        .result('type')
+        .value();
     };
 
     function findStageWithTaskInExecution(execution, stageName) {

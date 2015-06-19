@@ -106,54 +106,33 @@ describe('Controller: tasks', function () {
     });
   });
 
-  describe('get deployed server group:', function () {
+  describe('get first deployed server group:', function() {
 
-    it('should return undefined if the task does not have the "execution" property', function () {
+    it('should return undefined if the task does not have any execution property', function () {
       var task = {};
-      var step = {};
-      var results = controller.getDeployedServerGroup(task, step);
 
-      expect(results).toBeUndefined();
+      var result = controller.getFirstDeployServerGroupName(task);
+      expect(result).toBeUndefined();
     });
 
-    it('should return undefined if no stage is found for a step', function () {
-      var stepName = 'createCopyLastAsg';
-      var task = {
-        execution: {
-          stages: []
-        }
-      };
-
-      var step = {name: stepName};
-
-      var results = controller.getDeployedServerGroup(task, step);
-
-      expect(results).toBeUndefined();
-    });
-
-    it('should return undefined if no stage context is found for a step', function () {
-      var stepName = 'createCopyLastAsg';
+    it('should return undefined if there is a stage with ZERO deploy.server.groups in the context', function () {
       var task = {
         execution: {
           stages: [
             {
               tasks:[
-                {name: stepName}
+                {name: 'createCopyLastAsg'}
               ]
             }
           ]
         }
       };
 
-      var step = {name: stepName};
-
-      var results = controller.getDeployedServerGroup(task, step);
-
-      expect(results).toBeUndefined();
+      var result = controller.getFirstDeployServerGroupName(task);
+      expect(result).toBeUndefined();
     });
 
-    it('should return the deployed.server.group for the stage that the step is in: one stage', function () {
-      var stepName = 'createCopyLastAsg';
+    it('should return the first deploy.server.group value from context if there are only one', function () {
       var task = {
         execution: {
           stages: [
@@ -163,24 +142,20 @@ describe('Controller: tasks', function () {
                   'us-west-1': ['mahe-prod-v028']
                 }
               },
-              tasks: [
-                {name: stepName}
+              tasks:[
+                {name: 'createCopyLastAsg'}
               ]
             }
           ]
         }
       };
 
-      var step = {name: stepName};
+      var result = controller.getFirstDeployServerGroupName(task);
 
-      var results = controller.getDeployedServerGroup(task, step);
-
-      expect(results).toEqual('mahe-prod-v028');
+      expect(result).toBe('mahe-prod-v028');
     });
 
-
-    it('should return the deployed.server.group for the stage that the step is in: multiple stage', function () {
-      var stepName = 'destroyAsg';
+    it('should return the first deploy.server.group value from context if there are multiple', function () {
       var task = {
         execution: {
           stages: [
@@ -190,7 +165,8 @@ describe('Controller: tasks', function () {
                   'us-west-1': ['mahe-prod-v028']
                 }
               },
-              tasks: [
+
+              tasks:[
                 {name: 'createCopyLastAsg'}
               ]
             },
@@ -200,24 +176,18 @@ describe('Controller: tasks', function () {
                   'us-west-1': ['mahe-prod-v027']
                 }
               },
-              tasks: [
-                {name: 'destroyAsg'}
+              tasks:[
+                {name: 'createCopyLastAsg'}
               ]
             }
           ]
         }
       };
 
-      var step = {name: stepName};
+      var result = controller.getFirstDeployServerGroupName(task);
 
-      var results = controller.getDeployedServerGroup(task, step);
-
-      expect(results).toEqual('mahe-prod-v027');
-
+      expect(result).toBe('mahe-prod-v028');
     });
-
-
-
   });
 
 });
