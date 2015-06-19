@@ -153,7 +153,11 @@
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Config Name</div>
-          <div class="col-md-6">{{canaryConfig.canaryAnalysisConfig.name}}</div>
+          <div class="col-md-6">
+            <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{baseline.account}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
+              {{canaryConfig.canaryAnalysisConfig.name}}
+            </a>
+          </div>
         </div>
         <div class="row">
           <div class="col-md-4 sm-label-left compact">Warmup Period</div>
