@@ -1,6 +1,6 @@
 {
   "name": "rxjs",
-  "version": "2.3.12",
+  "version": "2.3.25",
   "main": [
     "dist/rx.all.js",
     "dist/rx.all.map",
@@ -21,7 +21,7 @@
     "dist/rx.async.map",
     "dist/rx.async.min.js",
     "dist/rx.async.compat.js",
-    "dist/rx.async.map.js",
+    "dist/rx.async.compat.map",
     "dist/rx.async.compat.min.js",
     "dist/rx.backpressure.js",
     "dist/rx.backpressure.map",
@@ -68,14 +68,13 @@
     "tests"
   ],
   "homepage": "https://github.com/Reactive-Extensions/RxJS",
-  "_release": "2.3.12",
+  "_release": "2.3.25",
   "_resolution": {
     "type": "version",
-    "tag": "v2.3.12",
-    "commit": "c3716503b256de650902118548e51321addde3e9"
+    "tag": "v2.3.25",
+    "commit": "5974b573495dc031caa8215b75a35d65a9bfc476"
   },
   "_source": "git://github.com/Reactive-Extensions/RxJS.git",
   "_target": "~2.3.12",
-  "_originalSource": "rxjs",
-  "_direct": true
+  "_originalSource": "rxjs"
 }

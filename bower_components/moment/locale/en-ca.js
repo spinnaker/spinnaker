@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     return moment.defineLocale('en-ca', {
@@ -19,6 +19,7 @@
         weekdaysMin : 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_'),
         longDateFormat : {
             LT : 'h:mm A',
+            LTS : 'h:mm:ss A',
             L : 'YYYY-MM-DD',
             LL : 'D MMMM, YYYY',
             LLL : 'D MMMM, YYYY LT',
@@ -47,6 +48,7 @@
             y : 'a year',
             yy : '%d years'
         },
+        ordinalParse: /\d{1,2}(st|nd|rd|th)/,
         ordinal : function (number) {
             var b = number % 10,
                 output = (~~(number % 100 / 10) === 1) ? 'th' :

@@ -8,7 +8,7 @@
     } else if (typeof exports === 'object') {
         module.exports = factory(require('../moment')); // Node
     } else {
-        factory(window.moment); // Browser global
+        factory((typeof global !== 'undefined' ? global : this).moment); // node or other global
     }
 }(function (moment) {
     var units = {
@@ -75,6 +75,7 @@
         weekdaysMin : 'S_P_A_T_K_Pn_Š'.split('_'),
         longDateFormat : {
             LT : 'HH:mm',
+            LTS : 'LT:ss',
             L : 'YYYY-MM-DD',
             LL : 'YYYY [m.] MMMM D [d.]',
             LLL : 'YYYY [m.] MMMM D [d.], LT [val.]',
@@ -107,6 +108,7 @@
             y : translateSingular,
             yy : translate
         },
+        ordinalParse: /\d{1,2}-oji/,
         ordinal : function (number) {
             return number + '-oji';
         },

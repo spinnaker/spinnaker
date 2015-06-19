@@ -40,22 +40,20 @@
                                      class="form-control input-sm"
                                      ng-model="command.capacity.min"
                                      min="0"
-                                     validate-max="command.capacity.max"
+                                     max="{{command.capacity.max}}"
                                      required/></div>
         <div class="col-md-2"><input type="number"
                                      ng-disabled="command.useSourceCapacity"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.max"
-                                     min="0"
-                                     validate-min="command.capacity.min"
+                                     min="{{command.capacity.min}}"
                                      required/></div>
         <div class="col-md-2"><input type="number"
                                      ng-disabled="command.useSourceCapacity"
                                      class="form-control input-sm"
                                      ng-model="command.capacity.desired"
-                                     min="0"
-                                     validate-min="command.capacity.min"
-                                     validate-max="command.capacity.max"
+                                     min="{{command.capacity.min}}"
+                                     max="{{command.capacity.max}}"
                                      required/></div>
       </div>
     </div>

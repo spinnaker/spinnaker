@@ -23,9 +23,9 @@ Adding a custom preset:
 =======================
 
 $.fn.spin.presets.flower = {
-  lines: 9
-  length: 10
-  width: 20
+  lines: 9,
+  length: 10,
+  width: 20,
   radius: 0
 }
 
@@ -37,7 +37,7 @@ $('#el').spin('flower', 'red');
 
   if (typeof exports == 'object') {
     // CommonJS
-    factory(require('jquery'), require('spin'))
+    factory(require('jquery'), require('spin.js'))
   }
   else if (typeof define == 'function' && define.amd) {
     // AMD, register as anonymous module

@@ -1,5 +1,16 @@
-var Rx = require('./dist/rx.all');
+var Rx = require('./dist/rx');
+require('./dist/rx.aggregates');
+require('./dist/rx.async');
+require('./dist/rx.backpressure');
+require('./dist/rx.binding');
+require('./dist/rx.coincidence');
+require('./dist/rx.experimental');
+require('./dist/rx.joinpatterns');
+require('./dist/rx.sorting');
+require('./dist/rx.virtualtime');
 require('./dist/rx.testing');
+require('./dist/rx.time');
+
 
 // Add specific Node functions
 var EventEmitter = require('events').EventEmitter,
@@ -93,6 +104,10 @@ Rx.Node = {
    * @returns {Observable} An observable sequence which fires on each 'data' event as well as handling 'error' and finish events like `end` or `finish`.
    */
   fromStream: function (stream, finishEventName) {
+    stream.pause();
+
+    finishEventName || (finishEventName = 'end');
+
     return Observable.create(function (observer) {
       function dataHandler (data) {
         observer.onNext(data);
@@ -106,13 +121,11 @@ Rx.Node = {
         observer.onCompleted();
       }
 
-      if (!finishEventName) {
-        finishEventName = 'end';
-      }
-
       stream.addListener('data', dataHandler);
       stream.addListener('error', errorHandler);
       stream.addListener(finishEventName, endHandler);
+
+      stream.resume();
 
       return function () {
         stream.removeListener('data', dataHandler);
@@ -157,17 +170,61 @@ Rx.Node = {
    * @returns {Disposable} The subscription handle.
    */
   writeToStream: function (observable, stream, encoding) {
-    return observable.subscribe(
+    var source = observable.pausableBuffered();
+
+    function onDrain() {
+      source.resume();
+    }
+
+    stream.addListener('drain', onDrain);
+
+    return source.subscribe(
       function (x) {
-        stream.write(x, encoding);
+        !stream.write(String(x), encoding) && source.pause();
       },
       function (err) {
         stream.emit('error', err);
-      }, function () {
+      },
+      function () {
         // Hack check because STDIO is not closable
         !stream._isStdio && stream.end();
+        stream.removeListener('drain', onDrain);
       });
+
+    source.resume();
   }
+};
+
+/**
+ * Pipes the existing Observable sequence into a Node.js Stream.
+ * @param {Stream} dest The destination Node.js stream.
+ * @returns {Stream} The destination stream.
+ */
+Rx.Observable.prototype.pipe = function (dest) {
+  var source = this.pausableBuffered();
+
+  function onDrain() {
+    source.resume();
+  }
+
+  dest.addListener('drain', onDrain);
+
+  source.subscribe(
+    function (x) {
+      !dest.write(String(x)) && source.pause();
+    },
+    function (err) {
+      dest.emit('error', err);
+    },
+    function () {
+      // Hack check because STDIO is not closable
+      !dest._isStdio && dest.end();
+      dest.removeListener('drain', onDrain);
+    });
+
+  source.resume();
+
+  return dest;
 };
 
 module.exports = Rx;

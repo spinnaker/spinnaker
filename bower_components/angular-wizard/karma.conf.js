@@ -2,7 +2,7 @@
 // Generated on Fri Aug 09 2013 14:14:35 GMT-0500 (CDT)
 
 module.exports = function(config) {
-  config.set({
+  var configuration = {
 
     // base path, that will be used to resolve files and exclude
     basePath: '',
@@ -11,8 +11,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.6/angular.js',
-      'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.0-beta.6/angular-mocks.js',
+      'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular.js',
+      'https://ajax.googleapis.com/ajax/libs/angularjs/1.3.3/angular-mocks.js',
       'http://cdnjs.cloudflare.com/ajax/libs/lodash.js/2.4.1/lodash.js',
       'dist/*.js',
       'test/*.js'
@@ -59,7 +59,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['PhantomJS'],
+    browsers: ['Chrome', 'Firefox', 'PhantomJS'],
 
 
     // If browser does not capture in given timeout [ms], kill it
@@ -70,5 +70,11 @@ module.exports = function(config) {
     // if true, it capture browsers, run tests and exit
     singleRun: false
 
-  });
+  };
+
+  if (process.env.TRAVIS) {
+    configuration.browsers = ['Firefox', 'PhantomJS'];
+  }
+
+  config.set(configuration);
 };

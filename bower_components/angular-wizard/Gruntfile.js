@@ -55,6 +55,26 @@ module.exports = function(grunt) {
         }
       }
     },
+    less: {
+      build: {
+         options: {
+             paths: ["<%= dirs.dest %>"],
+             cleancss: true,
+         },
+         files: {"<%= dirs.dest %>/<%= pkg.name %>.css": "src/angular-wizard.less"}
+      }
+    },
+    cssmin: {
+      options: {
+        shorthandCompacting: false,
+        roundingPrecision: -1
+      },
+      target: {
+        files: {
+          '<%= dirs.dest %>/<%= pkg.name %>.min.css': ['<%= dirs.dest %>/<%= pkg.name %>.css']
+        }
+      }
+    },
     copy: {
       less_files: {
         files: [
@@ -79,7 +99,7 @@ module.exports = function(grunt) {
         },
         src: [ 'src/*.html' ],
         dest: 'src/<%= pkg.name %>.tpls.js'
-      },
+      }
     },
     uglify: {
       options: {
@@ -129,10 +149,11 @@ module.exports = function(grunt) {
 
   grunt.loadNpmTasks('grunt-conventional-changelog');
 
-  grunt.loadNpmTasks('grunt-recess');
+  grunt.loadNpmTasks('grunt-contrib-less');
+  grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-ngmin');
+  grunt.loadNpmTasks('grunt-ng-annotate');
   grunt.loadNpmTasks('grunt-html2js');
 
 
@@ -144,7 +165,8 @@ module.exports = function(grunt) {
     'clean',
     'bowerInstall', 
     'copy',
-    'recess',
+    'less',
+    'cssmin',
     'html2js',
     'concat', 
     'uglify', 

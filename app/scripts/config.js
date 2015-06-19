@@ -3,10 +3,13 @@
 
 
 angular.module('spinnaker')
-  .config(function ($logProvider, statesProvider) {
+  .config(function ($logProvider, statesProvider ) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);
   })
+  //.config(function ($compileProvider) {
+  //  $compileProvider.debugInfoEnabled(false);
+  //})
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
   })
