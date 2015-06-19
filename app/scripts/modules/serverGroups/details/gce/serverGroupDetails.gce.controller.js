@@ -9,6 +9,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
   'spinnaker.serverGroup.read.service',
   'spinnaker.confirmationModal.service',
   'spinnaker.serverGroup.write.service',
+  'spinnaker.executionFilter.service',
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
