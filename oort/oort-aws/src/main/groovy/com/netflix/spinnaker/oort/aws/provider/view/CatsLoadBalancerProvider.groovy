@@ -138,7 +138,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
     def allLoadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, keys)
 
-    def allInstances = resolveRelationshipDataForCollection(allLoadBalancers, INSTANCES.ns)
+    def allInstances = resolveRelationshipDataForCollection(allLoadBalancers, INSTANCES.ns, RelationshipCacheFilter.none())
     def allServerGroups = resolveRelationshipDataForCollection(allLoadBalancers, SERVER_GROUPS.ns)
 
     Map<String, AmazonInstance> instances = translateInstances(allInstances)
@@ -162,7 +162,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
           name: serverGroup.name,
           isDisabled: serverGroup.isDisabled(),
           instances: serverGroup.instances ? serverGroup.instances.collect { instance ->
-            def health = instance.health.find { it.loadBalancerName == loadBalancer.name }
+            def health = instance.health.find { it.loadBalancerName == loadBalancer.name } ?: [:]
             [
               id: instance.name,
               zone: instance.zone,
