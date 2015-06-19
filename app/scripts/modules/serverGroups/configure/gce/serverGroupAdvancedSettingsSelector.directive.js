@@ -20,4 +20,12 @@ angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.instanceMetadata.splice(index, 1);
     };
 
+    this.addTag = function() {
+      $scope.command.tags.push({});
+    };
+
+    this.removeTag = function(index) {
+      $scope.command.tags.splice(index, 1);
+    };
+
   });
