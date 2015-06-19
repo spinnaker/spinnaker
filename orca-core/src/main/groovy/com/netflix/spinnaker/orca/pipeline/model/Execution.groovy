@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
 import groovy.transform.CompileStatic
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
 @CompileStatic
@@ -60,7 +59,7 @@ abstract class Execution<T> implements Serializable {
         return lastStage.endTime
       } else {
         def lastFailed = reverseStages.find {
-          it.status == FAILED
+          it.status.halt
         }
         if (lastFailed) {
           return lastFailed.endTime

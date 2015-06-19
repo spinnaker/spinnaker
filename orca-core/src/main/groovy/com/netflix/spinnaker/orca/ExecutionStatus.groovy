@@ -24,51 +24,60 @@ enum ExecutionStatus {
   /**
    * The task has yet to start.
    */
-  NOT_STARTED(false),
+  NOT_STARTED(false, false),
 
   /**
    * The task is still running and the {@code Task} may be re-executed in order
    * to continue.
    */
-    RUNNING(false),
+    RUNNING(false, false),
 
   /**
    * The task is complete but the pipeline should now be stopped pending a
    * trigger of some kind.
    */
-    SUSPENDED(false),
+    SUSPENDED(false, false),
 
   /**
    * The task executed successfully and the pipeline may now proceed to the next
    * task.
    */
-    SUCCEEDED(true),
+    SUCCEEDED(true, false),
 
   /**
    * The task failed and the pipeline should be able to recover through
    * subsequent steps.
    */
-    FAILED(true),
+    FAILED(true, true),
 
   /**
    * The task failed and the failure was terminal. The pipeline will not
    * progress any further.
    */
-    TERMINAL(true),
+    TERMINAL(true, true),
 
   /**
    * The task was canceled. The pipeline will not progress any further.
    */
-  CANCELED(true),
+    CANCELED(true, true),
 
   /**
    * The step completed but is indicating that a decision path should be followed, not the default path.
    */
-  REDIRECT(true)
+    REDIRECT(true, false)
 
+  /**
+   * Indicates that the task/stage/pipeline has finished its work (successfully or not).
+   */
   final boolean complete
 
-  ExecutionStatus(boolean complete) {
+  /**
+   * Indicates an abnormal completion so nothing downstream should run afterward.
+   */
+  final boolean halt
+
+  ExecutionStatus(boolean complete, boolean halt) {
     this.complete = complete
+    this.halt = halt
   }
 }

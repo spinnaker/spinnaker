@@ -16,14 +16,16 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
 
 @CompileStatic
+@Slf4j
 class StageStatusPropagationListener extends AbstractStagePropagationListener {
 
   @Autowired
