@@ -31,7 +31,7 @@ class CopyLastGoogleServerGroupDescriptionValidator extends DescriptionValidator
   @Override
   void validate(List priorDescriptions, BasicGoogleDeployDescription description, Errors errors) {
     // Passing 'copyLastGoogleServerGroupDescription' rather than 'basicGoogleDeployDescription'
-    // here is a judgement call. The intent is to provide the a context in which the validation
+    // here is a judgement call. The intent is to provide the context in which the validation
     // is performed rather than the actual type name being validated. The string is lower-cased
     // so isnt the literal typename anyway.
     def helper = new StandardGceAttributeValidator("copyLastGoogleServerGroupDescription", errors)

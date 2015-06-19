@@ -35,6 +35,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final INSTANCE_METADATA =
           ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
            "testKey": "testValue"]
+  private static final TAGS = ["some-tag-1", "some-tag-2", "some-tag-3"]
   private static final NETWORK_LOAD_BALANCERS = ["testlb1", "testlb2"]
   private static final ACCOUNT_NAME = "auto"
 
@@ -122,6 +123,32 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
 
     then:
       operation instanceof DeployAtomicOperation
+  }
+
+  void "basicGoogleDeployDescription type with tags returns BasicGoogleDeployDescription and DeployAtomicOperation"() {
+    setup:
+    def input = [application: APPLICATION,
+                 stack: STACK,
+                 initialNumReplicas: INITIAL_NUM_REPLICAS,
+                 image: IMAGE,
+                 instanceType: INSTANCE_TYPE,
+                 zone: ZONE,
+                 instanceMetadata: INSTANCE_METADATA,
+                 tags: TAGS,
+                 credentials: ACCOUNT_NAME]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description instanceof BasicGoogleDeployDescription
+    description.tags == TAGS
+
+    when:
+    def operation = converter.convertOperation(input)
+
+    then:
+    operation instanceof DeployAtomicOperation
   }
 
   void "basicGoogleDeployDescription type with network load balancers returns BasicGoogleDeployDescription and DeployAtomicOperation"() {

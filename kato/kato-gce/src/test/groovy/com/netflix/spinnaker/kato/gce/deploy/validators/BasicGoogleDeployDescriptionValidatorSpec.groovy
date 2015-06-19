@@ -36,6 +36,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final DISK_TYPE = "pd-standard"
   private static final DISK_SIZE_GB = 10
   private static final ZONE = "us-central1-b"
+  private static final TAGS = ["some-tag-1", "some-tag-2", "some-tag-3"]
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -82,6 +83,26 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
                                                        instanceType: INSTANCE_TYPE,
                                                        zone: ZONE,
                                                        accountName: ACCOUNT_NAME)
+    def errors = Mock(Errors)
+
+    when:
+    validator.validate([], description, errors)
+
+    then:
+    0 * errors._
+  }
+
+  void "pass validation with proper description inputs and tags"() {
+    setup:
+    def description = new BasicGoogleDeployDescription(application: APPLICATION,
+      stack: STACK,
+      freeFormDetails: FREE_FORM_DETAILS,
+      initialNumReplicas: INITIAL_NUM_REPLICAS,
+      image: IMAGE,
+      instanceType: INSTANCE_TYPE,
+      zone: ZONE,
+      tags: TAGS,
+      accountName: ACCOUNT_NAME)
     def errors = Mock(Errors)
 
     when:

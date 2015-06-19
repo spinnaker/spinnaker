@@ -305,6 +305,10 @@ class GCEUtil {
     return map ?: [:]
   }
 
+  static Tags buildTagsFromList(List<String> tagsList) {
+    return new Tags(items: tagsList)
+  }
+
   // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.
   static List<String> deriveNetworkLoadBalancerNamesFromTargetPoolUrls(List<String> targetPoolUrls) {
     if (targetPoolUrls) {

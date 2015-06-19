@@ -108,6 +108,12 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
                     ? description.instanceMetadata
                     : GCEUtil.buildMapFromMetadata(instanceMetadata)
           }
+
+          def tags = ancestorInstanceProperties.tags
+
+          if (tags != null) {
+            newDescription.tags = description.tags != null ? description.tags : tags.items
+          }
         }
       }
     }

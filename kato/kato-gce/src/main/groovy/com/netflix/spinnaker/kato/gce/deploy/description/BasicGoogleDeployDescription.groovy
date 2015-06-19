@@ -35,6 +35,7 @@ class BasicGoogleDeployDescription implements DeployDescription {
   Long diskSizeGb
   String zone
   Map<String, String> instanceMetadata
+  List<String> tags
   List<String> networkLoadBalancers
   Source source = new Source()
   String accountName

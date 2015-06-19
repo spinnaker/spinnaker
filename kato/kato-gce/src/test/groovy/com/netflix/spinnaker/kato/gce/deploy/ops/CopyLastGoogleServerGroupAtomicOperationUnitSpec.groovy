@@ -48,6 +48,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final Map<String, String> INSTANCE_METADATA =
           ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
            "testKey": "testValue"]
+  private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2"]
   private static final List<String> NETWORK_LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String ZONE = "us-central1-b"
 
@@ -72,6 +73,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private def attachedDisk
   private def networkInterface
   private def instanceMetadata
+  private def tags
   private def instanceProperties
   private def instanceTemplate
   private def instanceGroupManager
@@ -103,10 +105,12 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                              new GceConfig.DeployDefaults())
     networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
     instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
+    tags = GCEUtil.buildTagsFromList(TAGS)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
                                                 disks: [attachedDisk],
                                                 networkInterfaces: [networkInterface],
-                                                metadata: instanceMetadata)
+                                                metadata: instanceMetadata,
+                                                tags: tags)
     instanceTemplate = new InstanceTemplate(name: INSTANCE_TEMPLATE_NAME,
                                             properties: instanceProperties)
     instanceGroupManager = new InstanceGroupManager(name: ANCESTOR_SERVER_GROUP_NAME,
@@ -126,6 +130,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          diskSizeGb: 250,
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
+                                                         tags: ["new-tag-1", "new-tag-2"],
                                                          networkLoadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          source: [zone: ZONE,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
@@ -169,6 +174,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.diskSizeGb = DISK_SIZE_GB
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
+      newDescription.tags = TAGS
       newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
