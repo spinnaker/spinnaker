@@ -82,6 +82,18 @@
                   <a href id="task-{{task.id}}"><span class="glyphicon glyphicon-chevron-{{tasks.isExpanded(task.id) ? 'down' : 'up'}}"></span></a>
                   {{task.name}}
                 </div>
+
+                <div ng-if="tasks.getFirstDeployServerGroupName(task)" class="task-name">
+                  <a href><span class="glyphicon glyphicon-none"></span></a>
+                  <span ng-if="tasks.getProviderForServerGroupByTask(task)">
+                    Deployed <a ui-sref="home.applications.application.insight.clusters.serverGroup({application: application.name, serverGroup: tasks.getFirstDeployServerGroupName(task), accountId: tasks.getAccountId(task), region: tasks.getRegion(task), provider: tasks.getProviderForServerGroupByTask(task)})" ng-click="$event.stopPropagation()"> {{tasks.getFirstDeployServerGroupName(task)}}</a>
+                  </span>
+
+                  <span ng-if="!tasks.getProviderForServerGroupByTask(task)">
+                    Deployed {{tasks.getFirstDeployServerGroupName(task)}}
+                  </span>
+
+                </div>
               </td>
               <td>
                 <task-progress-bar task="task"></task-progress-bar>

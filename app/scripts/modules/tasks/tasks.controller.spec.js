@@ -106,5 +106,88 @@ describe('Controller: tasks', function () {
     });
   });
 
+  describe('get first deployed server group:', function() {
+
+    it('should return undefined if the task does not have any execution property', function () {
+      var task = {};
+
+      var result = controller.getFirstDeployServerGroupName(task);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined if there is a stage with ZERO deploy.server.groups in the context', function () {
+      var task = {
+        execution: {
+          stages: [
+            {
+              tasks:[
+                {name: 'createCopyLastAsg'}
+              ]
+            }
+          ]
+        }
+      };
+
+      var result = controller.getFirstDeployServerGroupName(task);
+      expect(result).toBeUndefined();
+    });
+
+    it('should return the first deploy.server.group value from context if there are only one', function () {
+      var task = {
+        execution: {
+          stages: [
+            {
+              context: {
+                'deploy.server.groups': {
+                  'us-west-1': ['mahe-prod-v028']
+                }
+              },
+              tasks:[
+                {name: 'createCopyLastAsg'}
+              ]
+            }
+          ]
+        }
+      };
+
+      var result = controller.getFirstDeployServerGroupName(task);
+
+      expect(result).toBe('mahe-prod-v028');
+    });
+
+    it('should return the first deploy.server.group value from context if there are multiple', function () {
+      var task = {
+        execution: {
+          stages: [
+            {
+              context: {
+                'deploy.server.groups': {
+                  'us-west-1': ['mahe-prod-v028']
+                }
+              },
+
+              tasks:[
+                {name: 'createCopyLastAsg'}
+              ]
+            },
+            {
+              context: {
+                'deploy.server.groups': {
+                  'us-west-1': ['mahe-prod-v027']
+                }
+              },
+              tasks:[
+                {name: 'createCopyLastAsg'}
+              ]
+            }
+          ]
+        }
+      };
+
+      var result = controller.getFirstDeployServerGroupName(task);
+
+      expect(result).toBe('mahe-prod-v028');
+    });
+  });
 
 });

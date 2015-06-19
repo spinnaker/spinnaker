@@ -152,6 +152,55 @@ angular.module('spinnaker.tasks.main', [
     };
 
 
+    controller.getFirstDeployServerGroupName = function(task) {
+      if(task.execution && task.execution.stages) {
+        var stage = findStageWithTaskInExecution(task.execution, 'createCopyLastAsg');
+        return _(stage)
+          .chain()
+          .get('context')
+          .get('deploy.server.groups')
+          .values()
+          .first()
+          .first()
+          .value();
+      }
+    };
+
+    controller.getAccountId = function(task) {
+      return _(task.variables)
+        .chain()
+        .find({'key': 'account'})
+        .result('value')
+        .value();
+    };
+
+    controller.getRegion = function (task) {
+      return _(task.variables)
+        .chain()
+        .find({'key': 'source'})
+        .result('value')
+        .get('region')
+        .value();
+    };
+
+    controller.getProviderForServerGroupByTask = function(task) {
+      var serverGroupName = controller.getFirstDeployServerGroupName(task);
+      return _(application.serverGroups)
+        .chain()
+        .find(function(serverGroup) {
+          return serverGroup.name === serverGroupName;
+        })
+        .result('type')
+        .value();
+    };
+
+    function findStageWithTaskInExecution(execution, stageName) {
+      return _(execution.stages).find(function(stage) {
+        return _.any(stage.tasks, {'name': stageName});
+      });
+    }
+
+
     function filterRunningTasks() {
       var running = _.chain(application.tasks)
         .filter(function(task) {
