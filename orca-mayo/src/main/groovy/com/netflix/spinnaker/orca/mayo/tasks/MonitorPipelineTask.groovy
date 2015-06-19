@@ -48,15 +48,11 @@ class MonitorPipelineTask implements RetryableTask {
       case ExecutionStatus.SUCCEEDED:
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status])
         break
-      case {
-        ExecutionStatus.NOT_STARTED ||
-          ExecutionStatus.RUNNING ||
-          ExecutionStatus.SUSPENDED
-      }:
+      case [ExecutionStatus.NOT_STARTED, ExecutionStatus.RUNNING, ExecutionStatus.SUSPENDED]:
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
         break
       default:
-        return new DefaultTaskResult(ExecutionStatus.FAILED, [status: childPipeline.status])
+        return new DefaultTaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
         break
     }
   }
