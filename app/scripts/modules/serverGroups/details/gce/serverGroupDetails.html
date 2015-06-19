@@ -55,7 +55,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <h4 class="text-center" ng-if="serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="serverGroup.runningTasks">
+    <collapsible-section heading="Running Tasks" expanded="true" body-class="details-running-tasks" ng-if="serverGroup.runningTasks.length > 0 || runningExecutions().length > 0">
       <div class="container-fluid no-padding" ng-repeat="task in serverGroup.runningTasks | orderBy:'-startTime'">
         <div class="row">
           <div class="col-md-12">
@@ -73,6 +73,25 @@
           </div>
         </div>
       </div>
+
+      <div class="container-fluid no-padding" ng-repeat="execution in runningExecutions()">
+        <div class="row">
+          <div class="col-md-12">
+            <strong>
+              Pipeline: {{execution.name}}
+            </strong>
+          </div>
+        </div>
+        <div class="row" ng-repeat="stage in execution.stages">
+          <div class="col-md-7 col-md-offset-0">
+            <span class="small"><status-glyph item="stage"></status-glyph></span> {{stage.name | robotToHuman }}
+          </div>
+          <div class="col-md-4 text-right">
+            {{stage.runningTimeInMs | duration }}
+          </div>
+        </div>
+      </div>
+
     </collapsible-section>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-narrow">
