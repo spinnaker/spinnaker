@@ -24,9 +24,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
-import redis.clients.util.Pool
+import redis.clients.jedis.JedisPool
 import rx.Observable
 import rx.Scheduler
 import rx.schedulers.Schedulers
@@ -44,13 +43,13 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   private final String prefix
   private final Class<T> executionClass
   protected final JedisCommands jedisCommands
-  protected final Pool<Jedis> jedisPool
+  protected final JedisPool jedisPool
   protected final ObjectMapper mapper
 
   AbstractJedisBackedExecutionStore(String prefix,
                                     Class<T> executionClass,
                                     JedisCommands jedisCommands,
-                                    Pool<Jedis> jedisPool,
+                                    JedisPool jedisPool,
                                     ObjectMapper mapper,
                                     int threadPoolSize,
                                     int threadPoolChunkSize,
@@ -156,17 +155,14 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
 
   @Override
   List<Stage<T>> retrieveStages(List<String> ids) {
-    def jedis = jedisPool.resource
-    try {
-      def keyPrefix = prefix
+    def keyPrefix = prefix
+    jedisPool.resource.withCloseable { jedis ->
       def pipeline = jedis.pipelined()
       ids.each { id ->
         pipeline.hget("${keyPrefix}:stage:${id}", "config")
       }
       def results = pipeline.syncAndReturnAll()
       return results.collect { it ? mapper.readValue(it, Stage) : null }
-    } finally {
-      jedisPool.returnResource(jedis)
     }
   }
 

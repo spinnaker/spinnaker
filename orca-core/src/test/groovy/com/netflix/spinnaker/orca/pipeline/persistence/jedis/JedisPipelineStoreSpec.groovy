@@ -22,8 +22,8 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Pipeline
-import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
@@ -42,7 +42,7 @@ class JedisPipelineStoreSpec extends PipelineStoreTck<JedisPipelineStore> {
 
   def jedisCommands = embeddedRedis.jedisCommands
 
-  def jedisPool = Stub(Pool) {
+  def jedisPool = Stub(JedisPool) {
     def jedis = Stub(Jedis) {
       def pipeline = Stub(Pipeline) {
         hget("*", "config") >> null
