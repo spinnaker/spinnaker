@@ -3,7 +3,7 @@ versions:
   amazoncomponents: "0.11.4"
   amos: "0.26"
   cats: "0.14"
-  kork: "1.32"
+  kork: "1.33"
   redbatch: "0.4"
 # third party
   akka: "2.3.9"
