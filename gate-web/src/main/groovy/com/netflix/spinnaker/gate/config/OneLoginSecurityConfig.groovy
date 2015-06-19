@@ -21,7 +21,7 @@ import com.netflix.spinnaker.gate.security.onelogin.AccountSettings
 import com.netflix.spinnaker.gate.security.onelogin.AppSettings
 import com.netflix.spinnaker.gate.security.onelogin.saml.AuthRequest
 import com.netflix.spinnaker.gate.security.onelogin.saml.Response
-import groovy.transform.Immutable
+import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -59,7 +59,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
     String url
     String certificate
     String redirectBase
-    String requiredRole
+    Map<String, String> requiredRoleByAccount
   }
 
   @Autowired
@@ -146,8 +146,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       def resp = new Response(accountSettings)
       resp.loadXmlFromBase64(samlResponse)
 
-      def user = new User(resp.nameId, resp.getAttribute("User.FirstName"), resp.getAttribute("User.LastName"),
-        resp.getAttribute("memberOf"))
+      def user = buildUser(oneLoginProperties, resp)
       if (!hasRequiredRole(user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
@@ -165,9 +164,11 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
     }
 
     boolean hasRequiredRole(User user) {
-      if (oneLoginProperties.requiredRole) {
-        return user.memberOf.contains(oneLoginProperties.requiredRole)
+      if (oneLoginProperties.requiredRoleByAccount) {
+        def allAllowedAccountRoles = oneLoginProperties.requiredRoleByAccount.values()*.toLowerCase()
+        return user.roles?.find { allAllowedAccountRoles.contains(it.toLowerCase()) }
       }
+
       return true
     }
 
@@ -183,12 +184,28 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       }
     }
 
-    @Immutable
-    static class User implements Serializable {
-      String email
-      String firstName
-      String lastName
-      String memberOf
+    static User buildUser(OneLoginSecurityConfigProperties oneLoginSecurityConfig, Response response) {
+      def roles = response.attributes["memberOf"].collect { String roles ->
+        def commonNames = roles.split(";")
+        commonNames.collect {
+          it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
+        }
+      }.flatten()*.toLowerCase()
+
+      def allowedAccounts = []
+      (oneLoginSecurityConfig.requiredRoleByAccount ?: [:]).each { key, value ->
+        if (roles.contains(value.toLowerCase())) {
+          allowedAccounts << key
+        }
+      }
+
+      return new User(
+        response.nameId,
+        response.getAttribute("User.FirstName"),
+        response.getAttribute("User.LastName"),
+        roles,
+        allowedAccounts
+      )
     }
   }
 }

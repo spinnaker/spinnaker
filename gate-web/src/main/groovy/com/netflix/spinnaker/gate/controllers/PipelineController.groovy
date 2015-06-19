@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequestLoggingFilter
 import com.netflix.spinnaker.gate.services.PipelineService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -77,7 +76,7 @@ class PipelineController {
 
   @RequestMapping(value = '/start', method = RequestMethod.POST)
   Map start(@RequestBody Map map) {
-    String authenticatedUser = MDC.get(AuthenticatedRequestLoggingFilter.AUTHENTICATED_USER) ?: 'anonymous'
+    String authenticatedUser = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
     pipelineService.startPipeline(map, authenticatedUser)
   }
 

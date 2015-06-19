@@ -18,15 +18,18 @@ package com.netflix.spinnaker.gate.services
 import com.google.common.base.Preconditions
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
+import com.netflix.spinnaker.gate.filters.AuthenticatedRequest
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 import retrofit.converter.ConversionException
@@ -231,29 +234,33 @@ class ApplicationService {
   static class ApplicationListRetriever implements Callable<List<Map>> {
     private final String account
     private final Front50Service front50
+    private final Object principal
 
     ApplicationListRetriever(String account, Front50Service front50) {
       this.account = account
       this.front50 = front50
+      this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     List<Map> call() throws Exception {
-      try {
-        def apps = front50.getAll(account)
-        return apps.collect {
-          if (!it.accounts) {
-            it.accounts = account
+      AuthenticatedRequest.propagate({
+        try {
+          def apps = front50.getAll(account)
+          return apps.collect {
+            if (!it.accounts) {
+              it.accounts = account
+            }
+            it
           }
-          it
+        } catch (RetrofitError e) {
+          if (e.response.status == 404) {
+            return []
+          } else {
+            throw e
+          }
         }
-      } catch (RetrofitError e) {
-        if (e.response.status == 404) {
-          return []
-        } else {
-          throw e
-        }
-      }
+      }, principal).call() as List<Map>
     }
   }
 
@@ -261,74 +268,87 @@ class ApplicationService {
     private final String account
     private final String name
     private final Front50Service front50
+    private final Object principal
 
     Front50ApplicationRetriever(String account, String name, Front50Service front50) {
       this.account = account
       this.name = name
       this.front50 = front50
+      this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     Map call() throws Exception {
-      try {
-        def metadata = front50.getMetaData(account, name)
-        if (metadata && !metadata.accounts) {
-          metadata.accounts = account
-        }
-        metadata ?: [:]
-      } catch (ConversionException e) {
-        return [:]
-      } catch (RetrofitError e) {
-        if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+      AuthenticatedRequest.propagate({
+        try {
+          def metadata = front50.getMetaData(account, name)
+          if (metadata && !metadata.accounts) {
+            metadata.accounts = account
+          }
+          metadata ?: [:]
+        } catch (ConversionException e) {
           return [:]
-        } else {
-          throw e
+        } catch (RetrofitError e) {
+          if ((e.cause instanceof ConversionException) || e.response.status == 404) {
+            return [:]
+          } else {
+            throw e
+          }
         }
-      }
+      }, principal).call() as Map
     }
   }
 
   static class OortApplicationsRetriever implements Callable<List<Map>> {
     private final OortService oort
+    private final Object principal
 
     OortApplicationsRetriever(OortService oort) {
       this.oort = oort
+      this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     List<Map> call() throws Exception {
-      try {
-        oort.applications
-      } catch (RetrofitError e) {
-        if (e.response.status == 404) {
-          return []
-        } else {
-          throw e
+      AuthenticatedRequest.propagate({
+        try {
+          oort.applications
+        } catch (RetrofitError e) {
+          if (e.response.status == 404) {
+            return []
+          } else {
+            throw e
+          }
         }
-      }
+      }, principal).call() as List<Map>
     }
   }
 
   static class OortApplicationRetriever implements Callable<Map> {
     private final String name
     private final OortService oort
+    private final Object principal
+
 
     OortApplicationRetriever(String name, OortService oort) {
       this.name = name
       this.oort = oort
+      this.principal = SecurityContextHolder.context?.authentication?.principal
     }
 
     @Override
     Map call() throws Exception {
-      try {
-        return oort.getApplication(name)
-      } catch (RetrofitError e) {
-        if (e.response.status == 404) {
-          return [:]
-        } else {
-          throw e
+      AuthenticatedRequest.propagate({
+        try {
+          return oort.getApplication(name)
+        } catch (RetrofitError e) {
+          if (e.response.status == 404) {
+            return [:]
+          } else {
+            throw e
+          }
         }
-      }
+      }, principal).call() as Map
     }
   }
 }
