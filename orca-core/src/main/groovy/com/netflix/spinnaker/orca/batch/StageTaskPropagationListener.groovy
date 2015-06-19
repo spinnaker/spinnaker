@@ -20,8 +20,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import java.util.regex.Pattern
-import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -51,26 +49,8 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
   void afterTask(Stage stage, StepExecution stepExecution) {
     def taskId = taskId(stepExecution)
     def task = stage.tasks.find { it.id == taskId }
-    ExecutionStatus executionStatus = mapBatchStatus(stepExecution.status)
-    task.status = executionStatus
+    task.status = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     task.endTime = System.currentTimeMillis()
     saveStage stage
-  }
-
-  static ExecutionStatus mapBatchStatus(BatchStatus status) {
-    switch (status) {
-      case BatchStatus.FAILED:
-      case BatchStatus.ABANDONED:
-        return ExecutionStatus.FAILED
-      case BatchStatus.STARTING:
-      case BatchStatus.STARTED:
-        return ExecutionStatus.RUNNING
-      case BatchStatus.STOPPED:
-        return ExecutionStatus.SUSPENDED
-      case BatchStatus.COMPLETED:
-        return ExecutionStatus.SUCCEEDED
-      default:
-        return ExecutionStatus.RUNNING
-    }
   }
 }
