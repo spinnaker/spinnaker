@@ -21,12 +21,14 @@ import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import groovy.util.logging.Slf4j
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
+import redis.clients.util.Pool
 
 @Slf4j
 class JedisPipelineStore extends AbstractJedisBackedExecutionStore<Pipeline> {
-  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
-    super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper, threadPoolSize, threadPoolChunkSize, extendedRegistry)
+  JedisPipelineStore(JedisCommands jedis, Pool<Jedis> jedisPool, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
+    super(ExecutionStore.PIPELINE, Pipeline, jedis, jedisPool, mapper, threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
 }
