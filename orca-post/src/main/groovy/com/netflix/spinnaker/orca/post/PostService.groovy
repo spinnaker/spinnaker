@@ -33,6 +33,8 @@ interface PostService {
     Severity severity
 
     Source source
+    Map<String, Object> additionalContext = [:]
+
     static class Source {
       String executionType
       String executionId

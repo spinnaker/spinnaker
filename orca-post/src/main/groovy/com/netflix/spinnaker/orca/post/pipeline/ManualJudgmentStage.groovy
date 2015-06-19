@@ -114,7 +114,10 @@ class ManualJudgmentStage extends LinearStage {
           executionType: stage.execution.class.simpleName.toLowerCase(),
           executionId: stage.execution.id,
           application: stage.execution.application
-        )
+        ),
+        additionalContext: [
+            instructions: stage.context.instructions ?: ""
+        ]
       ))
       lastNotified = new Date()
     }
