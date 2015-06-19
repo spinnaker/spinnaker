@@ -33,8 +33,8 @@ import javax.servlet.ServletResponse
 @Slf4j
 class AuthenticatedRequest {
   private static final String X509_CERTIFICATE = "javax.servlet.request.X509Certificate"
-  static final String SPINNAKER_USER = "X-SPINNAKER-USER"
-  static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS"
+  private static final String SPINNAKER_USER = "X-SPINNAKER-USER"
+  private static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS"
 
   static class Filter implements javax.servlet.Filter {
     /*
@@ -50,12 +50,18 @@ class AuthenticatedRequest {
     */
     private static final String RFC822_NAME_ID = "1"
 
+    private final boolean extractSpinnakerHeaders
+
+    public Filter(boolean extractSpinnakerHeaders = false) {
+      this.extractSpinnakerHeaders = extractSpinnakerHeaders
+    }
+
     @Override
     void init(FilterConfig filterConfig) throws ServletException {}
 
     @Override
     void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-      def authenticatedUser = null
+      def spinnakerUser = null
 
       if (request.isSecure()) {
         ((X509Certificate[]) request.getAttribute(X509_CERTIFICATE))?.each {
@@ -63,27 +69,38 @@ class AuthenticatedRequest {
             it.find { it.toString() == RFC822_NAME_ID }
           }?.get(1)
 
-          authenticatedUser = authenticatedUser ?: emailSubjectName
+          spinnakerUser = spinnakerUser ?: emailSubjectName
         }
       }
 
-      if (!authenticatedUser) {
+      if (!spinnakerUser) {
         def session = ((HttpServletRequest) request).getSession(false)
         def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
         def principal = securityContext?.authentication?.principal
         if (principal && principal instanceof User) {
-          authenticatedUser = principal.email
+          spinnakerUser = principal.email
         }
       }
 
+      def spinnakerAccounts = null
+      if (extractSpinnakerHeaders) {
+        def httpServletRequest = (HttpServletRequest) request
+        spinnakerUser = spinnakerUser ?: httpServletRequest.getHeader(SPINNAKER_USER)
+        spinnakerAccounts = httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
+      }
+
       try {
-        if (authenticatedUser) {
-          MDC.put(SPINNAKER_USER, authenticatedUser)
+        if (spinnakerUser) {
+          MDC.put(SPINNAKER_USER, spinnakerUser)
+        }
+        if (spinnakerAccounts) {
+          MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
         }
 
         chain.doFilter(request, response)
       } finally {
         MDC.remove(SPINNAKER_USER)
+        MDC.remove(SPINNAKER_ACCOUNTS)
       }
     }
 
@@ -95,7 +112,7 @@ class AuthenticatedRequest {
    * Ensure an appropriate MDC context is available when {@code closure} is executed.
    */
   public static final Closure propagate(Closure closure,
-                                       Object principal = SecurityContextHolder.context?.authentication?.principal) {
+                                        Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerUser = getSpinnakerUser(principal).orElse(null)
     if (!spinnakerUser) {
       return closure
