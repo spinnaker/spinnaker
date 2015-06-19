@@ -45,6 +45,7 @@
   },
   "monkey-patches (TODOs)": [
     "angular-ui-bootstrap-bower (0.13.0) to work around https://github.com/angular-ui/bootstrap/issues/3787",
-    "ngInfiniteScroll because its main file is in a 'build' directory, and we've .gitignored all 'build' directories because we're dumb"
+    "ngInfiniteScroll because its main file is in a 'build' directory, and we've .gitignored all 'build' directories because we're dumb",
+    "angular-ui-select (dist/select.js) is monkey patched on line 332 to deal with https://github.com/angular-ui/ui-select/issues/1032"
   ]
 }
