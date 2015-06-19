@@ -118,6 +118,11 @@ abstract class AbstractInMemoryStore<T extends Execution> implements ExecutionSt
   }
 
   @Override
+  List<Stage<T>> retrieveStages(List<String> ids) {
+    ids.collect { retrieveStage(it) }
+  }
+
+  @Override
   @CompileDynamic
   rx.Observable<T> all() {
     return rx.Observable.create(new rx.Observable.OnSubscribe<T>() {

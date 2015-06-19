@@ -21,6 +21,9 @@ import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStoreTck
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.jedis.Pipeline
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
@@ -37,10 +40,21 @@ class JedisPipelineStoreSpec extends PipelineStoreTck<JedisPipelineStore> {
     embeddedRedis.jedis.flushDB()
   }
 
-  def jedis = embeddedRedis.jedisCommands
+  def jedisCommands = embeddedRedis.jedisCommands
+
+  def jedisPool = Stub(JedisPool) {
+    def jedis = Stub(Jedis) {
+      def pipeline = Stub(Pipeline) {
+        hget("*", "config") >> null
+        syncAndReturnAll() >> []
+      }
+      pipelined() >> pipeline
+    }
+    getResource() >> jedis
+  }
 
   @Override
   JedisPipelineStore createPipelineStore() {
-    new JedisPipelineStore(jedis, mapper, 10, 10, new ExtendedRegistry(new NoopRegistry()))
+    new JedisPipelineStore(jedisCommands, jedisPool, mapper, 10, 10, new ExtendedRegistry(new NoopRegistry()))
   }
 }

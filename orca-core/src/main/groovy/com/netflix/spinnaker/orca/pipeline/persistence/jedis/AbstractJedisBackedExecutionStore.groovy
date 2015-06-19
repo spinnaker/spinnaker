@@ -19,21 +19,18 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.ValueFunction
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.*
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.JedisPool
 import rx.Observable
 import rx.Scheduler
-import rx.Subscriber
 import rx.schedulers.Schedulers
 
 import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadPoolExecutor
 
@@ -45,19 +42,22 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
 
   private final String prefix
   private final Class<T> executionClass
-  protected final JedisCommands jedis
+  protected final JedisCommands jedisCommands
+  protected final JedisPool jedisPool
   protected final ObjectMapper mapper
 
   AbstractJedisBackedExecutionStore(String prefix,
                                     Class<T> executionClass,
-                                    JedisCommands jedis,
+                                    JedisCommands jedisCommands,
+                                    JedisPool jedisPool,
                                     ObjectMapper mapper,
                                     int threadPoolSize,
                                     int threadPoolChunkSize,
                                     ExtendedRegistry extendedRegistry) {
     this.prefix = prefix
     this.executionClass = executionClass
-    this.jedis = jedis
+    this.jedisCommands = jedisCommands
+    this.jedisPool = jedisPool
     this.mapper = mapper
     this.fetchApplicationExecutor = Executors.newFixedThreadPool(threadPoolSize)
     this.chunkSize = threadPoolChunkSize
@@ -108,14 +108,14 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   void store(T execution) {
     if (!execution.id) {
       execution.id = UUID.randomUUID().toString()
-      jedis.sadd(alljobsKey, execution.id)
+      jedisCommands.sadd(alljobsKey, execution.id)
       def appKey = getAppKey(execution.application)
-      jedis.sadd(appKey, execution.id)
+      jedisCommands.sadd(appKey, execution.id)
     }
     def json = mapper.writeValueAsString(execution)
 
     def key = "${prefix}:$execution.id"
-    jedis.hset(key, "config", json)
+    jedisCommands.hset(key, "config", json)
   }
 
   @Override
@@ -123,7 +123,7 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     def json = mapper.writeValueAsString(stage)
 
     def key = "${prefix}:stage:${stage.id}"
-    jedis.hset(key, "config", json)
+    jedisCommands.hset(key, "config", json)
   }
 
   @Override
@@ -133,31 +133,44 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
     try {
       T item = retrieve(id)
       def appKey = getAppKey(item.application)
-      jedis.srem(appKey, id)
+      jedisCommands.srem(appKey, id)
 
       item.stages.each { Stage stage ->
         def stageKey = "${storePrefix}:stage:${stage.id}"
-        jedis.hdel(stageKey, "config")
+        jedisCommands.hdel(stageKey, "config")
       }
     } catch (ExecutionNotFoundException ignored) {
       // do nothing
     } finally {
-      jedis.hdel(key, "config")
-      jedis.srem(alljobsKey, id)
+      jedisCommands.hdel(key, "config")
+      jedisCommands.srem(alljobsKey, id)
     }
   }
 
   @Override
   Stage<T> retrieveStage(String id) {
     def key = "${prefix}:stage:${id}"
-    return jedis.exists(key) ? mapper.readValue(jedis.hget(key, "config"), Stage) : null
+    return jedisCommands.exists(key) ? mapper.readValue(jedisCommands.hget(key, "config"), Stage) : null
+  }
+
+  @Override
+  List<Stage<T>> retrieveStages(List<String> ids) {
+    def keyPrefix = prefix
+    jedisPool.resource.withCloseable { jedis ->
+      def pipeline = jedis.pipelined()
+      ids.each { id ->
+        pipeline.hget("${keyPrefix}:stage:${id}", "config")
+      }
+      def results = pipeline.syncAndReturnAll()
+      return results.collect { it ? mapper.readValue(it, Stage) : null }
+    }
   }
 
   @Override
   T retrieve(String id) throws ExecutionNotFoundException {
     def key = "${prefix}:$id"
-    if (jedis.exists(key)) {
-      def json = jedis.hget(key, "config")
+    if (jedisCommands.exists(key)) {
+      def json = jedisCommands.hget(key, "config")
       Execution execution = mapper.readValue(json, executionClass)
 
       List<Stage> reorderedStages = []
@@ -171,8 +184,9 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
           reorderedStages << child
         }
       }
+      List<Stage> retrievedStages = retrieveStages(reorderedStages.collect { it.id })
       execution.stages = reorderedStages.collect {
-        def explicitStage = retrieveStage(it.id) ?: it
+        def explicitStage = retrievedStages.find { stage -> stage?.id == it.id } ?: it
         explicitStage.execution = execution
         return explicitStage
       }
@@ -186,7 +200,7 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   private Observable<Execution> retrieveObservable(String lookupKey, Scheduler scheduler, int chunkSize) {
     Observable
       .just(lookupKey)
-      .flatMapIterable { String key -> jedis.smembers(lookupKey) }
+      .flatMapIterable { String key -> jedisCommands.smembers(lookupKey) }
       .buffer(chunkSize)
       .flatMap { Collection<String> ids ->
       Observable
@@ -197,7 +211,7 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
         } catch (ExecutionNotFoundException ignored) {
           log.info("Execution (${executionId}) does not exist")
           delete(executionId)
-          jedis.srem(lookupKey, executionId)
+          jedisCommands.srem(lookupKey, executionId)
         }
         return Observable.empty()
       }
