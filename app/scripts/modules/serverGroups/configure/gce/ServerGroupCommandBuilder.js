@@ -44,6 +44,14 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
       }
     }
 
+    function populateTags(instanceTemplateTags, command) {
+      if (instanceTemplateTags && instanceTemplateTags.items) {
+        _.map(instanceTemplateTags.items, function(tag) {
+          command.tags.push({value: tag});
+        });
+      }
+    }
+
     function attemptToSetValidCredentials(application, defaultCredentials, command) {
       return accountService.listAccounts('gce').then(function(gceAccounts) {
         var gceAccountNames = _.pluck(gceAccounts, 'name');
@@ -79,6 +87,7 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
           desired: 1
         },
         instanceMetadata: [],
+        tags: [],
         cooldown: 10,
         healthCheckType: 'EC2',
         healthCheckGracePeriod: 600,
@@ -140,6 +149,7 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
         },
         zone: serverGroup.zones[0],
         instanceMetadata: [],
+        tags: [],
         availabilityZones: [],
         providerType: 'gce',
         selectedProvider: 'gce',
@@ -172,6 +182,7 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
           populateCustomMetadata(serverGroup.launchConfig.userData, command);
+          populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
           return command;
         });
       }
@@ -223,6 +234,14 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
         transformedInstanceMetadata['load-balancer-names'] = command.loadBalancers.toString();
       }
       command.instanceMetadata = transformedInstanceMetadata;
+
+      var transformedTags = [];
+      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
+      command.tags.forEach(function(tag) {
+        transformedTags.push(tag.value);
+      });
+      command.tags = transformedTags;
+
       return command;
     }
 
