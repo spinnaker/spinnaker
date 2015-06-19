@@ -11,7 +11,8 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
   'spinnaker.serverGroup.write.service',
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup,
-                                                  gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter) {
+                                                     gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
+                                                     executionFilterService) {
 
     $scope.state = {
       loading: true
@@ -45,14 +46,18 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
         angular.extend(restangularlessDetails, summary);
 
         $scope.serverGroup = restangularlessDetails;
-        if (details.launchConfig && details.launchConfig.securityGroups) {
-          $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
-            return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-              _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
-          }).compact().value();
-        }
+        $scope.runningExecutions = function() {
+          return executionFilterService.filterRunningExecutions($scope.serverGroup.executions);
+        };
 
-        if (_.isEmpty($scope.serverGroup)) {
+        if (!_.isEmpty($scope.serverGroup)) {
+          if (details.launchConfig && details.launchConfig.securityGroups) {
+            $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
+              return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+            }).compact().value();
+          }
+        } else {
           $state.go('^');
         }
       });
