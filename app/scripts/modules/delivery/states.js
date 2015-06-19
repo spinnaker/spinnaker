@@ -17,10 +17,10 @@ angular.module('spinnaker.delivery.states', [])
           url: '/:executionId?stage&step&details',
           params: {
             stage: {
-              value: 0,
+              value: '0',
             },
             step: {
-              value: 0,
+              value: '0',
             }
           },
           views: {},
