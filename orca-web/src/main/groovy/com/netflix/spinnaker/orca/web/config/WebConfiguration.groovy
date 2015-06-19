@@ -20,6 +20,7 @@ import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineQueue
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisPipelineStore
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.beans.factory.annotation.Autowire
@@ -67,6 +68,10 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
                                          @Value('${threadPools.pipelineStore:75}') int threadPoolChunkSize,
                                          ExtendedRegistry extendedRegistry) {
     new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
+  }
+
+  @Bean JedisPipelineQueue pipelineQueue(JedisCommands jedisCommands){
+    new JedisPipelineQueue("PIPELINE_QUEUE", jedisCommands)
   }
 
   @Bean

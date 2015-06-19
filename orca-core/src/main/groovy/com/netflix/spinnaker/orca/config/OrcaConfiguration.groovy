@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.config
 
 import com.netflix.spectator.api.ValueFunction
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineQueue
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineQueue
 import groovy.transform.CompileDynamic
 
 import java.time.Clock
@@ -144,6 +146,11 @@ class OrcaConfiguration {
   @Bean @ConditionalOnMissingBean(name = "pipelineStore")
   ExecutionStore<Pipeline> pipelineStore(ObjectMapper mapper) {
     new InMemoryPipelineStore(mapper)
+  }
+
+  @Bean @ConditionalOnMissingBean(name = "pipelineQueue")
+  PipelineQueue pipelineQueue() {
+    new InMemoryPipelineQueue()
   }
 
   @Bean
