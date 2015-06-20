@@ -54,9 +54,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    def BasicGoogleDeployDescription newDescription = description.clone()
-
-    overrideValues(newDescription)
+    BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
 
     def result = basicGoogleDeployHandler.handle(newDescription, priorOutputs)
     def newServerGroupName = getServerGroupName(result?.serverGroupNames?.getAt(0))
@@ -68,9 +66,11 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     result
   }
 
-  private void overrideValues(BasicGoogleDeployDescription newDescription) {
+  private BasicGoogleDeployDescription cloneAndOverrideDescription() {
+    BasicGoogleDeployDescription newDescription = description.clone()
+
     if (!description?.source?.zone || !description?.source?.serverGroupName) {
-      return
+      return newDescription
     }
 
     task.updateStatus BASE_PHASE, "Initializing copy of server group $description.source.serverGroupName..."
@@ -84,12 +84,12 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
                                                                                  GCEUtil.APPLICATION_NAME)
 
     if (!ancestorServerGroup) {
-      return
+      return newDescription
     }
 
     def ancestorNames = Names.parseName(ancestorServerGroup.name)
 
-    // Override any ancestor values that were specified directly on the call.
+    // Override any ancestor values that were specified directly on the copyLastGoogleServerGroupDescription call.
     newDescription.zone = description.zone ?: description.source.zone
     newDescription.networkLoadBalancers =
         description.networkLoadBalancers != null
@@ -134,6 +134,8 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         newDescription.tags = description.tags != null ? description.tags : tags.items
       }
     }
+
+    return newDescription
   }
 
   private static String getServerGroupName(String regionPlusServerGroupName) {
