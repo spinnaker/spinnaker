@@ -119,7 +119,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     Map<String, AmazonServerGroup> serverGroups
 
     if (includeDetails) {
-      Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, LOAD_BALANCERS.ns)
+      Collection<CacheData> allLoadBalancers = resolveRelationshipDataForCollection(clusterData, LOAD_BALANCERS.ns, RelationshipCacheFilter.none())
       Collection<CacheData> allServerGroups = resolveRelationshipDataForCollection(clusterData, SERVER_GROUPS.ns, RelationshipCacheFilter.include(INSTANCES.ns, LAUNCH_CONFIGS.ns))
 
       loadBalancers = translateLoadBalancers(allLoadBalancers)
