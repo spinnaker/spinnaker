@@ -8,8 +8,8 @@ versions:
 # third party
   akka: "2.3.9"
   astyanax: "2.0.2"
-  aws: "1.9.16"
-  awsObjectMapper: "1.9.16.2"
+  aws: "1.9.33"
+  awsObjectMapper: "1.9.33.1"
   batch: "3.0.4.RELEASE"
   cglib: "3.1"
   eddaClient: "1.9.16.2"
