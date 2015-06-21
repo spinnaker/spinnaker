@@ -1,6 +1,6 @@
 dependencies {
   compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('bootSecurity')
+  compile spinnaker.dependency('springSecurityCore')
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('groovy')
   compile spinnaker.dependency('okHttp')
