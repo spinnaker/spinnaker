@@ -1,7 +1,7 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.11.4"
-  amos: "0.26"
+  amazoncomponents: "0.11.5"
+  amos: "0.27"
   cats: "0.14"
   kork: "1.34"
   redbatch: "0.4"
