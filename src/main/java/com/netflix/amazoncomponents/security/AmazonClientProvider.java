@@ -43,7 +43,6 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.amazoncomponents.data.AmazonObjectMapper;
-import com.netflix.amazoncomponents.model.RetryCallback;
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -57,6 +56,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.*;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Provider of Amazon Clients.
@@ -67,27 +67,40 @@ public class AmazonClientProvider {
 
   private HttpClient httpClient;
   private ObjectMapper objectMapper;
-  private RetryCallback retryCallback = new RetryCallback() {
-    @Override
-    public boolean doCall(Throwable t, int attempts) {
-      if (attempts < 5) {
-        try {
-          Thread.sleep(150);
-        } catch (InterruptedException IGNORE) {
-          //
-        }
-        return true;
-      } else {
-        return false;
-      }
-    }
-  };
 
   private static final ThreadLocal<Map<String, List<String>>> lastResponseHeaders = new ThreadLocal<>();
 
   public AmazonClientProvider() {
     this((HttpClient) null);
   }
+
+  public interface EddaTemplater {
+    String getUrl(String template, String region);
+  }
+
+  public static class StringFormatTemplater implements EddaTemplater {
+    public String getUrl(String template, String region) {
+      return String.format(template, region);
+    }
+  }
+
+  public static class PatternReplacementTemplater implements EddaTemplater {
+    private final String replacementPattern;
+
+    public PatternReplacementTemplater() {
+      this("{{region}}");
+    }
+
+    public PatternReplacementTemplater(String replacementPattern) {
+      this.replacementPattern = Pattern.quote(replacementPattern);
+    }
+
+    public String getUrl(String template, String region) {
+      return template.replaceAll(replacementPattern, region);
+    }
+  }
+
+  private EddaTemplater eddaTemplater = new PatternReplacementTemplater();
 
   public AmazonClientProvider(HttpClient httpClient) {
     this(httpClient, new AmazonObjectMapper());
@@ -102,10 +115,6 @@ public class AmazonClientProvider {
     this.objectMapper = objectMapper;
   }
 
-  public void setRetryCallback(RetryCallback retryCallback) {
-    this.retryCallback = retryCallback;
-  }
-
   /**
    * When edda serves the request, http headers are captured and available to the calling thread.
    * Header names are lower-case.
@@ -117,99 +126,98 @@ public class AmazonClientProvider {
 
   public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region);
+    return getProxyHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region);
 
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region);
   }
 
   public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region);
+    return getProxyHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region);
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region);
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region);
   }
 
   public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
   public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region);
   }
 
   public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
+    return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region);
   }
 
   public AmazonEC2 getAmazonEC2(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonEC2.class, AmazonEC2Client.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonAutoScaling getAutoScaling(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonAutoScaling.class, AmazonAutoScalingClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonRoute53 getAmazonRoute53(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonRoute53.class, AmazonRoute53Client.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonElasticLoadBalancing getAmazonElasticLoadBalancing(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonElasticLoadBalancing.class, AmazonElasticLoadBalancingClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonSimpleWorkflow getAmazonSimpleWorkflow(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonSimpleWorkflow.class, AmazonSimpleWorkflowClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonCloudWatch getAmazonCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonSNS getAmazonSNS(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonSNS.class, AmazonSNSClient.class, amazonCredentials, region, skipEdda);
   }
 
   public AmazonCloudWatch getCloudWatch(NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     checkCredentials(amazonCredentials);
-    return getThrottlingHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
+    return getProxyHandler(AmazonCloudWatch.class, AmazonCloudWatchClient.class, amazonCredentials, region, skipEdda);
   }
 
 
-  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
-    return getThrottlingHandler(interfaceKlazz, impl, amazonCredentials, region, false);
+  protected <T extends AmazonWebServiceClient, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region) {
+    return getProxyHandler(interfaceKlazz, impl, amazonCredentials, region, false);
   }
 
-  protected <T extends AmazonWebServiceClient, U> U getThrottlingHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
+  protected <T extends AmazonWebServiceClient, U> U getProxyHandler(Class<U> interfaceKlazz, Class<T> impl, NetflixAmazonCredentials amazonCredentials, String region, boolean skipEdda) {
     try {
       T delegate = getClient(impl, amazonCredentials, region);
-      U client = (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz}, new ThrottledAmazonClientInvocationHandler(delegate, retryCallback));
       if (amazonCredentials.getEddaEnabled() && !skipEdda) {
-        return (U) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
-          getInvocationHandler(client, delegate.getServiceName(), region, amazonCredentials));
+        return interfaceKlazz.cast(Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{interfaceKlazz},
+                getInvocationHandler(delegate, delegate.getServiceName(), region, amazonCredentials)));
       } else {
-        return client;
+        return interfaceKlazz.cast(delegate);
       }
     } catch (Exception e) {
       throw new RuntimeException("Instantiation of client implementation failed!", e);
@@ -227,51 +235,13 @@ public class AmazonClientProvider {
   }
 
   protected GeneralAmazonClientInvocationHandler getInvocationHandler(Object client, String serviceName, String region, NetflixAmazonCredentials amazonCredentials) {
-    return new GeneralAmazonClientInvocationHandler(client, serviceName, String.format(amazonCredentials.getEdda(), region),
+    return new GeneralAmazonClientInvocationHandler(client, serviceName, eddaTemplater.getUrl(amazonCredentials.getEdda(), region),
       this.httpClient == null ? HttpClients.createDefault() : this.httpClient, objectMapper);
   }
 
   private static void checkCredentials(NetflixAmazonCredentials amazonCredentials) {
     if (amazonCredentials == null) {
       throw new IllegalArgumentException("Credentials cannot be null");
-    }
-  }
-
-  public static class ThrottledAmazonClientInvocationHandler implements InvocationHandler {
-
-    private AmazonWebServiceClient delegate;
-    private RetryCallback retryCallback;
-
-    ThrottledAmazonClientInvocationHandler(AmazonWebServiceClient delegate, RetryCallback retryCallback) {
-      this.delegate = delegate;
-      this.retryCallback = retryCallback;
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      try {
-        return invoke(proxy, method, args, 1);
-      } finally {
-        lastResponseHeaders.remove();
-      }
-    }
-
-    private Object invoke(Object proxy, Method method, Object[] args, int attempts) throws Throwable {
-      try {
-        return method.invoke(delegate, args);
-      } catch (InvocationTargetException ex) {
-        Throwable t = ex.getTargetException();
-        if (t instanceof AmazonServiceException) {
-          AmazonServiceException e = (AmazonServiceException) t;
-          if ("RequestLimitExceeded".equals(e.getErrorCode())) {
-            boolean tryAgain = retryCallback.doCall(e, attempts);
-            if (tryAgain) {
-              return invoke(proxy, method, args, ++attempts);
-            }
-          }
-        }
-        throw t;
-      }
     }
   }
 
@@ -341,6 +311,16 @@ public class AmazonClientProvider {
       }));
     }
 
+    public DescribeVpcsResult describeVpcs() {
+      return describeVpcs(null);
+    }
+
+    public DescribeVpcsResult describeVpcs(DescribeVpcsRequest request) {
+      List<Vpc> vpcs = describe(request, "vpcIds", "vpcs", Vpc.class, new TypeReference<List<Vpc>>() {
+      });
+      return new DescribeVpcsResult().withVpcs(vpcs);
+    }
+
     public DescribeAutoScalingGroupsResult describeAutoScalingGroups() {
       return describeAutoScalingGroups(null);
     }
@@ -373,6 +353,15 @@ public class AmazonClientProvider {
       List<LoadBalancerDescription> loadBalancerDescriptions = describe(request, "loadBalancerNames", "loadBalancers", LoadBalancerDescription.class, new TypeReference<List<LoadBalancerDescription>>() {
       });
       return new DescribeLoadBalancersResult().withLoadBalancerDescriptions(loadBalancerDescriptions);
+    }
+
+    public DescribeReservedInstancesOfferingsResult describeReservedInstancesOfferings() {
+      return describeReservedInstancesOfferings(null);
+    }
+
+    public DescribeReservedInstancesOfferingsResult describeReservedInstancesOfferings(DescribeReservedInstancesOfferingsRequest request) {
+      List<ReservedInstancesOffering> reservedInstancesOfferings = describe(request, "reservedInstancesOfferingIds", "reservedInstancesOfferings", ReservedInstancesOffering.class, new TypeReference<List<ReservedInstancesOffering>>() {});
+      return new DescribeReservedInstancesOfferingsResult().withReservedInstancesOfferings(reservedInstancesOfferings);
     }
 
     public <T> T describe(AmazonWebServiceRequest request, String idKey, final String object, final Class singleType, TypeReference<T> collectionType) {
