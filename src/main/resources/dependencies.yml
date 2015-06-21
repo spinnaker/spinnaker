@@ -39,6 +39,7 @@ versions:
   spock: "1.0-groovy-2.3"
   spring: "4.1.4.RELEASE"
   springBoot: "1.2.1.RELEASE"
+  springSecurity: "3.2.5.RELEASE"
   swagger: "1.3.11"
   swaggerSpring: "0.9.5"
 
@@ -162,7 +163,7 @@ dependencies:
   bootDataRest: "org.springframework.boot:spring-boot-starter-data-rest:${versions.springBoot}"
   bootTest: "org.springframework.boot:spring-boot-starter-test:${versions.springBoot}"
   bootWeb: "org.springframework.boot:spring-boot-starter-web:${versions.springBoot}"
-  bootSecurity: "org.springframework.boot:spring-boot-starter-security:${versions.springBoot}"
+  springSecurityCore: "org.springframework.security:spring-security-core:${versions.springSecurity}"
   cglib: "cglib:cglib-nodep:${versions.cglib}"
   eddaClient: "com.netflix.edda-client:edda-client:${versions.eddaClient}"
   eurekaClient: "com.netflix.eureka:eureka-client:${versions.eureka}"
