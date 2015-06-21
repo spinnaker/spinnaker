@@ -25,12 +25,6 @@ import org.springframework.context.annotation.Configuration
 class CoreConfig {
 
   @Bean
-  @ConditionalOnMissingBean(CacheService)
-  CacheService cacheService() {
-    new InMemoryCacheService()
-  }
-
-  @Bean
   @ConditionalOnMissingBean(InstanceTypeProvider)
   InstanceTypeProvider noopInstanceTypeProvider() {
     new NoopInstanceTypeProvider()

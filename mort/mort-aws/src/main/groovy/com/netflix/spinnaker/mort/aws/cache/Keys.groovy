@@ -40,7 +40,7 @@ class Keys {
     }
   }
 
-  static Map parse(String key) {
+  static Map<String, String> parse(String key) {
     def parts = key.split(':')
     def result = [:]
     switch (parts[0]) {
@@ -84,8 +84,8 @@ class Keys {
       "${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 
-  static String getInstanceTypeKey(String keyName, String region, String account) {
-      "${Namespace.INSTANCE_TYPES}:${keyName}:${account}:${region}"
+  static String getInstanceTypeKey(String instanceOfferingId, String region, String account) {
+      "${Namespace.INSTANCE_TYPES}:${instanceOfferingId}:${account}:${region}"
   }
 
   static String getElasticIpKey(String ipAddress, String region, String account) {

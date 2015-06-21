@@ -35,47 +35,6 @@ import java.util.concurrent.TimeUnit
 class DefaultConfig {
 
   @Bean
-  @ConditionalOnMissingBean(NamedCacheFactory)
-  NamedCacheFactory namedCacheFactory() {
-    new InMemoryNamedCacheFactory()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(AgentScheduler)
-  @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
-  AgentScheduler agentScheduler() {
-    new DefaultAgentScheduler(60, TimeUnit.SECONDS)
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = 'caching.writeEnabled', havingValue = 'false')
-  @ConditionalOnMissingBean(AgentScheduler)
-  AgentScheduler noopAgentScheduler() {
-    new AgentScheduler() {
-      @Override
-      void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
-        //do nothing
-      }
-    }
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(Provider)
-  Provider noopProvider() {
-    new Provider() {
-      @Override
-      String getProviderName() {
-        "noop"
-      }
-
-      @Override
-      Collection<CachingAgent> getCachingAgents() {
-        Collections.emptySet()
-      }
-    }
-  }
-
-  @Bean
   @ConditionalOnMissingBean(ApplicationProvider)
   ApplicationProvider noopApplicationProvider() {
     new NoopApplicationProvider()
@@ -109,22 +68,5 @@ class DefaultConfig {
   @ConditionalOnMissingBean(InstanceProvider)
   InstanceProvider noopInstanceProvider() {
     new NoopInstanceProvider()
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(AgentScheduler)
-  AgentScheduler defaultAgentScheduler(@Value('${pollIntervalSeconds:60') long pollIntervalSeconds) {
-    new DefaultAgentScheduler(pollIntervalSeconds, TimeUnit.SECONDS)
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(CatsModule)
-  CatsModule catsModule(List<Provider> providers, List<ExecutionInstrumentation> executionInstrumentation, NamedCacheFactory cacheFactory, AgentScheduler agentScheduler) {
-    new CatsModule.Builder().cacheFactory(cacheFactory).scheduler(agentScheduler).instrumentation(executionInstrumentation).build(providers)
-  }
-
-  @Bean
-  Cache cacheView(CatsModule catsModule) {
-    catsModule.view
   }
 }

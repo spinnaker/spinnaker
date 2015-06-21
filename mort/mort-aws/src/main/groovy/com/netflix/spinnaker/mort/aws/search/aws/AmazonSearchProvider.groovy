@@ -18,30 +18,27 @@
 
 package com.netflix.spinnaker.mort.aws.search.aws
 
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
 import com.netflix.spinnaker.mort.aws.cache.Keys
-import com.netflix.spinnaker.mort.model.CacheService
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-import groovy.transform.CompileStatic
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+
 /**
- * TODO: Copied from oort; should refactor to common library
+ * TODO(cfieber): Copied from oort - need to make CatsSearchProvider support multiple Providers as suppliers
  */
 @Component('mortSearchProvider')
-@CompileStatic
 class AmazonSearchProvider implements SearchProvider {
 
   protected static final Logger log = Logger.getLogger(this)
 
-  @Autowired
-  CacheService cacheService
-
-  static List<String> defaultCaches = [
+  static final List<String> defaultCaches = [
     Keys.Namespace.SECURITY_GROUPS.ns
   ]
 
@@ -52,34 +49,47 @@ class AmazonSearchProvider implements SearchProvider {
       urlMappingTemplateEngine.createTemplate('/securityGroups/$account/aws/$name?region=$region'),
   ]
 
-  String platform = 'aws'
+  static Map<String, Closure> searchResultHydrators = [:]
 
-  @Override
-  SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
-    search(query, pageNumber, pageSize, null)
+  private final Cache cacheView
+  private final AccountCredentialsProvider accountCredentialsProvider
+
+  @Autowired
+  public AmazonSearchProvider(Cache cacheView, AccountCredentialsProvider accountCredentialsProvider) {
+    this.cacheView = cacheView
+    this.accountCredentialsProvider = accountCredentialsProvider
   }
 
   @Override
-  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize) {
-    search(query, types, pageNumber, pageSize, null)
+  String getPlatform() {
+    return "aws"
+  }
+
+  @Override
+  SearchResultSet search(String query, Integer pageNumber, Integer pageSize) {
+    search(query, defaultCaches, pageNumber, pageSize)
   }
 
   @Override
   SearchResultSet search(String query, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
-    List<String> matches = findMatches(query, defaultCaches)
-    generateResultSet(query, matches, pageNumber, pageSize, filters)
+    search(query, defaultCaches, pageNumber, pageSize, filters)
+  }
+
+  @Override
+  SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize) {
+    search(query, types, pageNumber, pageSize, Collections.emptyMap())
   }
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
-    List<String> matches = findMatches(query, types)
-    generateResultSet(query, matches, pageNumber, pageSize, filters)
+    List<String> matches = findMatches(query, types, filters)
+    generateResultSet(cacheView, query, matches, pageNumber, pageSize)
   }
 
-  //TODO(cfieber)-filters are currently ignored
-  private static SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+  private static SearchResultSet generateResultSet(Cache cacheView, String query, List<String> matches, Integer pageNumber, Integer pageSize) {
     List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
-      Keys.parse(it)
+      Map<String, String> result = Keys.parse(it)
+      return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type](cacheView, result, it) : result
     }
     SearchResultSet resultSet = new SearchResultSet(
       totalMatches: matches.size(),
@@ -90,6 +100,8 @@ class AmazonSearchProvider implements SearchProvider {
       results: results
     )
     resultSet.results.each { Map<String, String> result ->
+      result.provider = "aws"
+
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]
         binding.putAll(result)
@@ -99,13 +111,27 @@ class AmazonSearchProvider implements SearchProvider {
     resultSet
   }
 
-  private List<String> findMatches(String q, List<String> toQuery) {
+  private List<String> findMatches(String q, List<String> toQuery, Map<String, String> filters) {
     log.info("Querying ${toQuery} for term: ${q}")
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(cacheService.keysByType(cache).findAll { String key ->
-        key.substring(key.indexOf(':')).toLowerCase().indexOf(normalizedWord) >= 0
+      matches.addAll(buildFilterIdentifiers(accountCredentialsProvider, cache, normalizedWord).findAll { String key ->
+        try {
+          if (!filters) {
+            return true
+          }
+          def item = cacheView.get(cache, key)
+          filters.entrySet().every { filter ->
+            if (item.relationships[filter.key]) {
+              item.relationships[filter.key].find { it.indexOf(filter.value) != -1 }
+            } else {
+              item.attributes[filter.key] == filter.value
+            }
+          }
+        } catch (Exception e) {
+          log.warn("Failed on $cache:$key", e)
+        }
       })
     }
     matches.sort { String a, String b ->
@@ -117,6 +143,13 @@ class AmazonSearchProvider implements SearchProvider {
     }
   }
 
+  private Collection<String> buildFilterIdentifiers(AccountCredentialsProvider accountCredentialsProvider, String cache, String query) {
+    switch (cache) {
+      default:
+        return cacheView.filterIdentifiers(cache, "${cache}:*${query}*")
+    }
+  }
+
   private static List<String> paginateResults(List<String> matches, Integer pageSize, Integer pageNumber) {
     log.info("Paginating ${matches.size()} results; page number: ${pageNumber}, items per page: ${pageSize}")
     Integer startingIndex = pageSize * (pageNumber - 1)
@@ -125,5 +158,4 @@ class AmazonSearchProvider implements SearchProvider {
     List<String> toReturn = hasResults ? matches[startingIndex..endIndex - 1] : new ArrayList<String>()
     toReturn
   }
-
 }

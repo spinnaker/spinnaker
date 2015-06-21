@@ -25,6 +25,5 @@ import javax.servlet.Filter
 
 @Configuration
 @ComponentScan(["com.netflix.spinnaker.oort.config", "com.netflix.spinnaker.oort.controllers", "com.netflix.spinnaker.oort.filters", "com.netflix.spinnaker.config"])
-@EnableScheduling
 class Main {
 }
