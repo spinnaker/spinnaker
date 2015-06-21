@@ -3,4 +3,5 @@ dependencies {
   compile spinnaker.dependency("frigga")
   spinnaker.group('amazon')
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+  spinnaker.group('cats')
 }

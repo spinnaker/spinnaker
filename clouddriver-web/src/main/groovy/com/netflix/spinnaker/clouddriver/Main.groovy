@@ -33,6 +33,7 @@ import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.scheduling.annotation.EnableScheduling
 import sun.net.InetAddressCachePolicy
 
 import java.security.Security
@@ -41,13 +42,13 @@ import java.security.Security
 @Import([
   WebConfig,
   CloudDriverConfig,
-  RedisConfig,
   AwsConfiguration,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
   com.netflix.spinnaker.oort.Main,
 ])
 @EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
+@EnableScheduling
 class Main extends SpringBootServletInitializer {
 
   static final Map<String, String> DEFAULT_PROPS = [

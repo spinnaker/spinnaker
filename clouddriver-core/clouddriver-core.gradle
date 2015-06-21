@@ -4,5 +4,5 @@ dependencies {
   compile spinnaker.dependency('amos')
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency("jedis")
-
+  spinnaker.group('cats')
 }

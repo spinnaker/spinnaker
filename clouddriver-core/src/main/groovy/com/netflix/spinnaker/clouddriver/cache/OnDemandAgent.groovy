@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.aws.edda
+package com.netflix.spinnaker.clouddriver.cache
 
-import retrofit.RestAdapter
-import retrofit.converter.Converter
 
-import java.util.regex.Pattern
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.provider.ProviderCache
 
-class EddaApiFactory {
-  private Converter eddaConverter
+interface OnDemandAgent {
+  String getOnDemandAgentType();
 
-  EddaApiFactory(Converter eddaConverter) {
-    this.eddaConverter = eddaConverter
+  static class OnDemandResult {
+    String sourceAgentType
+    Collection<String> authoritativeTypes = []
+    CacheResult cacheResult
+    Map<String, Collection<String>> evictions = [:]
   }
 
-  public EddaApi createApi(String endpointTemplate, String region) {
-    new RestAdapter.Builder()
-      .setConverter(eddaConverter)
-      .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
-      .build()
-      .create(EddaApi)
-  }
+  boolean handles(String type)
+
+  OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 }

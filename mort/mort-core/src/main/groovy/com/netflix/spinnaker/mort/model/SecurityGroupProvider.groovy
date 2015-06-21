@@ -16,20 +16,20 @@
 
 package com.netflix.spinnaker.mort.model
 
-interface SecurityGroupProvider {
+interface SecurityGroupProvider<T extends SecurityGroup> {
 
   String getType()
 
-  Set<SecurityGroup> getAll()
+  Set<T> getAll()
 
-  Set<SecurityGroup> getAllByRegion(String region)
+  Set<T> getAllByRegion(String region)
 
-  Set<SecurityGroup> getAllByAccount(String account)
+  Set<T> getAllByAccount(String account)
 
-  Set<SecurityGroup> getAllByAccountAndName(String account, String name)
+  Set<T> getAllByAccountAndName(String account, String name)
 
-  Set<SecurityGroup> getAllByAccountAndRegion(String account, String region)
+  Set<T> getAllByAccountAndRegion(String account, String region)
 
-  SecurityGroup get(String account, String region, String name, String vpcId)
+  T get(String account, String region, String name, String vpcId)
 
 }

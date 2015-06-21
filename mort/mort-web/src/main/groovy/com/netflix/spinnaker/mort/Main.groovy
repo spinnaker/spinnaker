@@ -16,25 +16,10 @@
 
 package com.netflix.spinnaker.mort
 
-import com.netflix.spinnaker.mort.model.CachingAgentScheduler
-import com.netflix.spinnaker.mort.rx.RxCachingAgentScheduler
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
-import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
-import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.builder.SpringApplicationBuilder
-import org.springframework.boot.context.web.SpringBootServletInitializer
-import org.springframework.context.annotation.*
-import org.springframework.web.filter.ShallowEtagHeaderFilter
-import javax.servlet.Filter
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(['com.netflix.spinnaker.mort.config', 'com.netflix.spinnaker.mort.web', 'com.netflix.spinnaker.mort.filters', 'com.netflix.spinnaker.config'])
 class Main {
-  @Bean
-  @ConditionalOnMissingBean(CachingAgentScheduler)
-  CachingAgentScheduler cachingAgentScheduler() {
-    new RxCachingAgentScheduler()
-  }
 }

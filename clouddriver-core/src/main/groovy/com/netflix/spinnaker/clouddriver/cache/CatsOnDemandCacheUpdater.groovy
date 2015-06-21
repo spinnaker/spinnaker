@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,30 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.aws.provider.agent
+package com.netflix.spinnaker.clouddriver.cache
+
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
-import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
-import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import com.netflix.spinnaker.cats.provider.Provider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
-  private final AwsProvider awsProvider
+  private final List<Provider> providers
   private final CatsModule catsModule
 
   @Autowired
-  public CatsOnDemandCacheUpdater(AwsProvider awsProvider, CatsModule catsModule) {
-    this.awsProvider = awsProvider
+  public CatsOnDemandCacheUpdater(List<Provider> providers, CatsModule catsModule) {
+    this.providers = providers
     this.catsModule = catsModule
   }
 
   private Collection<OnDemandAgent> getOnDemandAgents() {
-    awsProvider.cachingAgents.findAll { it instanceof OnDemandAgent }
+    providers.collect {
+      it.cachingAgents.findAll { it instanceof OnDemandAgent } as Collection<OnDemandAgent>
+    }.flatten()
   }
 
   @Override
