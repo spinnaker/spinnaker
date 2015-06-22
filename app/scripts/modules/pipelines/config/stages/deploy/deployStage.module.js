@@ -1,14 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.deploy', [
-  'spinnaker.pipelines.stage.deploy.details.controller',
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.deploymentStrategy',
-  'spinnaker.utils.lodash',
-  'spinnaker.serverGroup.read.service',
-  'spinnaker.aws.serverGroupCommandBuilder.service',
-  'spinnaker.pipelines.stage.deploy.transformer',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.deploy', [
+  require('./deployExecutionDetails.controller.js'),
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('../../../../deploymentStrategy/deploymentStrategy.module.js'),
+  require('../../../../utils/lodash.js'),
+  require('../../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../../serverGroups/configure/aws/serverGroupCommandBuilder.service.js'),
+  require('./deployStage.transformer.js'),
 ])
   .run(function(pipelineConfig, deployStageTransformer) {
     pipelineConfig.registerTransformer(deployStageTransformer);

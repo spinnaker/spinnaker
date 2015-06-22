@@ -1,8 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.nav.controller', [
- 'spinnaker.utils.lodash'
+module.exports = angular.module('spinnaker.loadBalancer.nav.controller', [
+ require('../utils/lodash.js')
 ])
   .controller('LoadBalancersNavCtrl', function ($scope, application, _) {
 

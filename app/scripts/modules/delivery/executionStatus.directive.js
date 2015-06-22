@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionStatus.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionStatus.directive', [
+])
   .directive('executionStatus', function() {
     return {
       restrict: 'E',
@@ -8,7 +11,7 @@ angular.module('spinnaker.delivery.executionStatus.directive', [])
         execution: '=',
         filter: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionStatus.html',
+      template: require('./executionStatus.html'),
       controller: 'executionStatus as ctrl',
     };
   });

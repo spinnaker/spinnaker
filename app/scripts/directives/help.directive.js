@@ -1,9 +1,11 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.help.directive', [
-    'ui.bootstrap',
-    'hc.marked'
+    require('angular-bootstrap'),
+    require('angular-marked'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
@@ -13,12 +15,12 @@ angular
   .directive('help', function () {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/directives/help.directive.html',
+      template: require('./help.directive.html'),
       controller: function($scope, $modal, $log) {
 
         $scope.showWhatsNew = function() {
           $modal.open({
-            templateUrl: 'scripts/directives/help.directive.modal.html'
+            template: require('./help.directive.modal.html'),
           });
         };
 

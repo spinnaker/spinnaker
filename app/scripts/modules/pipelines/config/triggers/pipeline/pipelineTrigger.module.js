@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.pipeline', [
-  'spinnaker.pipelines.trigger',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.applications.read.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.pipeline', [
+  require('../trigger.module.js'),
+  require('../../services/pipelineConfigService.js'),
+  require('../../../../applications/applications.read.service.js'),
 ]);

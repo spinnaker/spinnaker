@@ -1,13 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.notifications.selector', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.notifications.selector', [
+])
   .directive('notificationSelector', function() {
     return {
       restrict: 'E',
       scope: {
         notification: '=',
       },
-      templateUrl: 'scripts/modules/notifications/selector/notificationSelector.html',
+      template: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
       controllerAs: 'notificationCtrl'
     };

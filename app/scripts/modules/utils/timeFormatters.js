@@ -1,8 +1,10 @@
 'use strict';
 
 
-angular.module('spinnaker.utils.timeFormatters', [
-  'spinnaker.utils.moment',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.timeFormatters', [
+  require('./moment.js'),
 ])
   .filter('timestamp', function(momentService) {
     return function(input) {

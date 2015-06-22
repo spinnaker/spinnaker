@@ -1,8 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-
-angular.module('spinnaker')
+module.exports = angular.module('spinnaker')
   .config(function ($logProvider, statesProvider ) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);

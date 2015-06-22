@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.script')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.script')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Script',
@@ -8,7 +10,7 @@ angular.module('spinnaker.pipelines.stage.script')
       key: 'script',
       controller: 'ScriptStageCtrl',
       controllerAs: 'scriptStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/script/scriptStage.html',
+      template: require('./scriptStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
     });
   })

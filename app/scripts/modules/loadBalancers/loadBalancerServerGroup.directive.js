@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.serverGroup', [])
+module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [])
   .directive('loadBalancerServerGroup', function ($rootScope) {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancerServerGroup.html',
+      template: require('./loadBalancer/loadBalancerServerGroup.html'),
       scope: {
         loadBalancer: '=',
         serverGroup: '=',

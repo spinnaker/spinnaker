@@ -1,8 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.utils.scrollTrigger', ['spinnaker.utils.jQuery'])
-  .factory('scrollTriggerService', function($window, $) {
+module.exports = angular.module('spinnaker.utils.scrollTrigger', [
+  require('./jQuery.js'),
+  require('./lodash.js'),
+])
+  .factory('scrollTriggerService', function($window, $, _) {
     var eventRegistry = Object.create(null),// creates {} with no prototype; ES6 Maps would be preferable (available in Chrome 38?),
         registryCounter = 0,
         scrollEventActive = Object.create(null),

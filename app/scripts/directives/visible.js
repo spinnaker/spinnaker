@@ -16,13 +16,10 @@
 
 'use strict';
 
-
-// Source: https://gist.github.com/c0bra/5859295
-angular.module('spinnaker')
-  .directive('isVisible', function () {
-    return function (scope, element, attr) {
-      scope.$watch(attr.isVisible, function (visible) {
-        element.css('visibility', visible ? 'visible' : 'hidden');
-      });
-    };
-  });
+module.exports = function () {
+  return function (scope, element, attr) {
+    scope.$watch(attr.isVisible, function (visible) {
+      element.css('visibility', visible ? 'visible' : 'hidden');
+    });
+  };
+};

@@ -1,9 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 
-
-angular.module('spinnaker.search.infrastructure')
-  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService) {
+module.exports = angular.module('spinnaker.search.infrastructure')
+  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService, _) {
 
     var search = infrastructureSearchService();
 

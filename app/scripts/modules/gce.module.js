@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.gce', []);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.gce', []);

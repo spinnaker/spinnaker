@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.findAmi')
+let angular = require('angular');
+
+
+//BEN_TODO
+module.exports = angular.module('spinnaker.pipelines.stage.findAmi')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Find Image',
@@ -8,10 +12,10 @@ angular.module('spinnaker.pipelines.stage.findAmi')
       key: 'findAmi',
       controller: 'findAmiStageCtrl',
       controllerAs: 'findAmiStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/findAmi/findAmiStage.html',
+      template: require('./findAmiStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/findAmi/findAmiExecutionDetails.html',
     });
-  }).controller('findAmiStageCtrl', function($scope, stage, accountService) {
+  }).controller('findAmiStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -39,7 +43,7 @@ angular.module('spinnaker.pipelines.stage.findAmi')
       }
       var idx = $scope.stage.regions.indexOf(region);
       if (idx > -1) {
-        $scope.stage.regions.splice(idx,1);
+        $scope.stage.regions.splice(idx, 1);
       } else {
         $scope.stage.regions.push(region);
       }
@@ -49,15 +53,15 @@ angular.module('spinnaker.pipelines.stage.findAmi')
       label: 'Largest',
       val: 'LARGEST',
       description: 'When multiple server groups exist, prefer the server group with the most instances'
-    },{
+    }, {
       label: 'Newest',
       val: 'NEWEST',
       description: 'When multiple server groups exist, prefer the newest'
-    },{
+    }, {
       label: 'Oldest',
       val: 'OLDEST',
       description: 'When multiple server groups exist, prefer the oldest'
-    },{
+    }, {
       label: 'Fail',
       val: 'FAIL',
       description: 'When multiple server groups exist, fail'

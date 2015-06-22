@@ -1,8 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.notifications.service', [
-  'spinnaker.notifications.config',
+module.exports = angular.module('spinnaker.notifications.service', [
+  require('./notificationTypeConfig.provider.js'),
 ])
   .factory('notificationTypeService', function (notificationTypeConfig, _) {
 

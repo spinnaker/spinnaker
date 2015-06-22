@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.validation')
+module.exports = angular.module('spinnaker.validation')
   .directive('triggerValidation', function () {
     return {
       restrict: 'A',

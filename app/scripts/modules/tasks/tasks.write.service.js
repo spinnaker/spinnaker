@@ -1,7 +1,11 @@
 'use strict';
 
-angular
-  .module('spinnaker.tasks.write.service', ['restangular'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.tasks.write.service', [
+    require('restangular'),
+  ])
   .factory('tasksWriter', function(Restangular) {
 
     var endpoint = Restangular.all('applications');

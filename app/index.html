@@ -5,10 +5,6 @@
     <title ng-bind="pageTitle">Spinnaker</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
-    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,600,700' rel='stylesheet'
-          type='text/css'>
-    <!-- inject:css -->
-    <!-- endinject -->
 </head>
 <body>
 <div class="transition-overlay" ng-if="!authenticating && routing">
@@ -54,10 +50,6 @@
         <div class="container" ui-view="main" ng-if="!authenticating"></div>
     </div>
 </div>
-
-<!-- inject:js -->
-<!-- endinject -->
-<script src="/scripts/settings.js"></script>
 
 <script>
     if (window.tracking && window.tracking.enabled && window.tracking.key) {

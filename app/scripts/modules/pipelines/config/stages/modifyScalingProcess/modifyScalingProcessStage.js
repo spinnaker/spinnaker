@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Modify Scaling Process',
@@ -8,10 +10,10 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       key: 'modifyScalingProcess',
       controller: 'ModifyScalingProcessStageCtrl',
       controlelrAs: 'modifyScalingProcessStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessStage.html',
+      template: require('./modifyScalingProcessStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessExecutionDetails.html',
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService) {
+  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -79,7 +81,7 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       }
       var idx = $scope.stage.processes.indexOf(process);
       if (idx > -1) {
-        $scope.stage.processes.splice(idx,1);
+        $scope.stage.processes.splice(idx, 1);
       } else {
         $scope.stage.processes.push(process);
       }

@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.serverGroup.read.service', [
-    'restangular',
+    require('restangular'),
   ])
   .factory('serverGroupReader', function (Restangular, $exceptionHandler) {
 

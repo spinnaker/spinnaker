@@ -1,9 +1,10 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.gce.loadBalancer.transformer.service', [
-  'spinnaker.settings',
-  'spinnaker.utils.lodash'
+module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service', [
+  require('../../../caches/deckCacheFactory.js'),
+  require('../../../utils/lodash.js')
 ])
   .factory('gceLoadBalancerTransformer', function ( settings, _) {
 

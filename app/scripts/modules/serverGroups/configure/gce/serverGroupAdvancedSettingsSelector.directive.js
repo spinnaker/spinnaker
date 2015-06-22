@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupAdvancedSettingsDirective.html',
+      template: require('./serverGroupAdvancedSettingsDirective.html'),
       controller: 'gceServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })

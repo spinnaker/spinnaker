@@ -1,19 +1,17 @@
 'use strict';
 
-angular.module('spinnaker')
-  .directive('availabilityZoneSelector', function() {
-    return {
-      restrict: 'E',
-      scope: {
-        command: '=',
-      },
-      templateUrl: 'views/application/modal/serverGroup/aws/availabilityZoneDirective.html',
-      controller: 'AvailabilityZoneSelectorCtrl as availabilityZoneCtrl',
-    };
-  })
-  .controller('AvailabilityZoneSelectorCtrl', function($scope) {
-    $scope.autoBalancingOptions = [
-      { label: 'Enabled', value: true},
-      { label: 'Manual', value: false}
-    ];
-  });
+module.exports = function() {
+  return {
+    restrict: 'E',
+    scope: {
+      command: '=',
+    },
+    template: require('views/application/modal/serverGroup/aws/availabilityZoneDirective.html'),
+    controller: function($scope) {
+      $scope.autoBalancingOptions = [
+        { label: 'Enabled', value: true},
+        { label: 'Manual', value: false}
+      ];
+    },
+  };
+};

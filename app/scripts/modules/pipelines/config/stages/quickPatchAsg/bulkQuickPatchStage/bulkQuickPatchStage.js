@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,

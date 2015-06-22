@@ -1,6 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stageConfig', [
+//BEN_TODO
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stageConfig', [
+  require('../../../utils/lodash.js'),
 
 ])
   .directive('pipelineConfigStage', function() {
@@ -13,14 +18,14 @@ angular.module('spinnaker.pipelines.stageConfig', [
         pipeline: '=',
       },
       controller: 'StageConfigCtrl as stageConfigCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/stage.html',
+      template: require('./stage.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }
     };
   })
   .controller('StageConfigCtrl', function($scope, $element, $compile, $controller, $templateCache,
-                                          pipelineConfigService, pipelineConfig) {
+                                          pipelineConfigService, pipelineConfig, _) {
 
     var stageTypes = pipelineConfig.getConfigurableStageTypes(),
         lastStageScope;

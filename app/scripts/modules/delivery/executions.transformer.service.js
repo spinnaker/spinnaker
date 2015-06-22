@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionTransformer.service', [
-  'spinnaker.orchestratedItem.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.pipelines.config',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionTransformer.service', [
+  require('../../services/orchestratedItem.js'),
+  require('../utils/lodash.js'),
+  require('../pipelines/config/pipelineConfigProvider.js'),
 ])
   .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
 

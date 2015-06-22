@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.utils.timePicker.service', [
-  'spinnaker.utils.lodash',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.timePicker.service', [
+  require('../utils/lodash.js'),
 ])
   .factory('timePickerService', function(_) {
 

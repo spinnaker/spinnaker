@@ -1,16 +1,19 @@
 'use strict';
 
 
-angular.module('spinnaker.securityGroup.aws.details.controller', [
-  'ui.router',
-  'ui.bootstrap',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.securityGroup.write.service',
-  'spinnaker.confirmationModal.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
+  require('angular-ui-router'),
+  require('angular-bootstrap'),
+  require('../../securityGroup.read.service.js'),
+  require('../../securityGroup.write.service.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../utils/lodash.js'),
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, securityGroup, application,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
-                                                    $modal) {
+                                                    $modal, _) {
 
     $scope.state = {
       loading: true
@@ -41,7 +44,7 @@ angular.module('spinnaker.securityGroup.aws.details.controller', [
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        templateUrl: 'scripts/modules/securityGroups/configure/aws/editSecurityGroup.html',
+        template: require('../../configure/aws/editSecurityGroup.html'),
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {

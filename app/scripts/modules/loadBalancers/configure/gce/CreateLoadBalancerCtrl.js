@@ -1,13 +1,14 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.gce.create.controller', [
-  'spinnaker.loadBalancer.write.service',
-  'spinnaker.account.service',
-  'spinnaker.gce.loadBalancer.transformer.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.modalWizard',
-  'spinnaker.tasks.monitor.service'
+module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
+  require('../../loadBalancer.write.service.js'),
+  require('../../../account/accountService.js'),
+  require('./loadBalancer.transformer.service.js'),
+  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../../directives/modalWizard.js'),
+  require('../../../tasks/monitor/taskMonitorService.js')
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,

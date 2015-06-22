@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.enableParallel', [
-  'spinnaker.pipelines.config.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.enableParallel', [
+  require('../../services/pipelineConfigService.js'),
 ])
   .controller('EnableParallelModalCtrl', function($scope, pipeline, _, $modalInstance, pipelineConfigService) {
 

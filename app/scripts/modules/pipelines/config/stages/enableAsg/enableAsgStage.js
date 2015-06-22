@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.enableAsg')
+//BEN_TODO: where is this defined?
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.enableAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Enable Server Group',
@@ -8,10 +12,10 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
       key: 'enableAsg',
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStage.html',
+      template: require('./enableAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
     });
-  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService) {
+  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;
 
     $scope.state = {

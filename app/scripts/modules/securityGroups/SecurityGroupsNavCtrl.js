@@ -1,7 +1,10 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.navigation.controller', [])
+module.exports = angular.module('spinnaker.securityGroup.navigation.controller', [
+  require('../utils/lodash.js'),
+])
   .controller('SecurityGroupsNavCtrl', function ($scope, application, _) {
 
     $scope.application = application;

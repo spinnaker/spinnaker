@@ -1,7 +1,9 @@
 'use strict';
 
+let angular = require('angular');
+let $ = require('jquery');
 
-angular.module('spinnaker.utils.jQuery', [])
+module.exports = angular.module('spinnaker.utils.jQuery', [])
   .factory('$', function() {
     return $;
   });

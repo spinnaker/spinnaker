@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.insight', [
-    'spinnaker.insight.controller'
+    require('./insight.controller.js')
   ]);

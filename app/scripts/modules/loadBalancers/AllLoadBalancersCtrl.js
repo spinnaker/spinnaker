@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.controller', [
-  'ui.bootstrap',
-  'spinnaker.account.service',
-  'spinnaker.providerSelection.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.loadBalancer.controller', [
+  require('angular-bootstrap'),
+  require('../account/accountService.js'),
+  require('../providerSelection/providerSelection.service.js'),
+  require('../utils/lodash.js'),
+  require('../caches/deckCacheFactory.js'),
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, application ) {
     $scope.application = application;
@@ -94,9 +95,10 @@ angular.module('spinnaker.loadBalancer.controller', [
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
+      //BEN_TODO
       providerSelectionService.selectProvider().then(function(provider) {
         $modal.open({
-          templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
+          templateUrl: './configure/' + provider + '/createLoadBalancer.html',
           controller: provider + 'CreateLoadBalancerCtrl as ctrl',
           resolve: {
             application: function() { return application; },

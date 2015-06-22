@@ -1,8 +1,12 @@
 'use strict';
 
-angular
-  .module('spinnaker.executionFilter.service', [])
-  .factory('executionFilterService', function () {
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.executionFilter.service', [
+    require('../../../utils/lodash.js'),
+  ])
+  .factory('executionFilterService', function(_) {
 
     function filterRunningExecutions(executions) {
       if(executions) {

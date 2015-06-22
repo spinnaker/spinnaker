@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.application.controller', [])
+module.exports = angular.module('spinnaker.application.controller', [])
   .controller('ApplicationCtrl', function($scope, application) {
     $scope.application = application;
     $scope.insightTarget = application;

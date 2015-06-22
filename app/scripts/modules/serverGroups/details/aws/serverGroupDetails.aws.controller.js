@@ -1,16 +1,17 @@
 'use strict';
 /* jshint camelcase:false */
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.details.aws.controller', [
-  'ui.bootstrap',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.serverGroup.write.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.serverGroup.details.aws.autoscaling.process',
-  'spinnaker.serverGroup.read.service',
-  'spinnaker.aws.serverGroupCommandBuilder.service',
-  'spinnaker.executionFilter.service',
+module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
+  require('angular-bootstrap'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../serverGroup.write.service.js'),
+  require('../../../utils/lodash.js'),
+  require('./autoScalingProcess.service.js'),
+  require('../../serverGroup.read.service.js'),
+  require('../../configure/aws/serverGroupCommandBuilder.service.js'),
+  require('../../configure/common/runningExecutions.service.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
@@ -216,7 +217,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/aws/modifyScalingProcesses.html',
+        template: require('./modifyScalingProcesses.html'),
         controller: 'ModifyScalingProcessesCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -228,7 +229,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/resizeServerGroup.html',
+        template: require('../resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -239,7 +240,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
@@ -252,7 +253,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/scalingActivities.html',
+        template: require('../scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },
@@ -266,7 +267,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/userData.html',
+        template: require('../../../../../views/application/modal/serverGroup/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

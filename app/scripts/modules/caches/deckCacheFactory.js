@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.caches.core', [
-  'angular-data.DSCacheFactory',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.core', [
+  require('angular-cache'),
 ])
-.factory('deckCacheFactory', function(DSCacheFactory) {
+.factory('deckCacheFactory', function(CacheFactory) {
 
     var caches = Object.create(null);
 
@@ -54,13 +56,13 @@ angular.module('spinnaker.caches.core', [
 
     function addLocalStorageCache(namespace, cacheId, cacheConfig) {
       var key = buildCacheKey(namespace, cacheId);
-      var cacheFactory = cacheConfig.cacheFactory || DSCacheFactory;
+      var cacheFactory = cacheConfig.cacheFactory || CacheFactory;
       var maxAge = cacheConfig.maxAge || 2 * 24 * 60 * 60 * 1000,
         currentVersion = cacheConfig.version || 1;
 
       clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
 
-      cacheFactory(key, {
+      cacheFactory.create(key, {
         maxAge: maxAge,
         deleteOnExpire: 'aggressive',
         storageMode: 'localStorage',
@@ -76,14 +78,14 @@ angular.module('spinnaker.caches.core', [
       if (currentVersion) {
 
         // clear non-versioned cache (TODO: remove after 5/15/15)
-        cacheFactory(cacheId, { storageMode: 'localStorage', });
+        cacheFactory.create(cacheId, { storageMode: 'localStorage', });
         cacheFactory.get(cacheId).removeAll();
         cacheFactory.get(cacheId).destroy();
 
         // clear previous versions
         for (var i = 0; i < currentVersion; i++) {
           // non-namespaced (TODO: remove after 5/15/15)
-          cacheFactory(cacheId, {
+          cacheFactory.create(cacheId, {
             storageMode: 'localStorage',
             storagePrefix: getStoragePrefix(cacheId, i+1),
           });
@@ -95,7 +97,7 @@ angular.module('spinnaker.caches.core', [
           if (cacheFactory.get(key)) {
             cacheFactory.get(key).destroy();
           }
-          cacheFactory(key, {
+          cacheFactory.create(key, {
             storageMode: 'localStorage',
             storagePrefix: getStoragePrefix(key, i),
           });

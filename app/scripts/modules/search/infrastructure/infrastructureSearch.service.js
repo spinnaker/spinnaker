@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.search')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.search')
   .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;

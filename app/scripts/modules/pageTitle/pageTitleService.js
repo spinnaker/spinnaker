@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pageTitle', ['ui.router'])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pageTitle', [require('angular-ui-router')])
   .factory('pageTitleService', function($rootScope, $stateParams) {
 
     function handleRoutingStart() {

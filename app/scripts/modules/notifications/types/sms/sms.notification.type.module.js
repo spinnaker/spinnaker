@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.notification.types.sms', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.notification.types.sms', [])
   .config(function(notificationTypeConfigProvider) {
     notificationTypeConfigProvider.registerNotificationType({
       label: 'SMS',

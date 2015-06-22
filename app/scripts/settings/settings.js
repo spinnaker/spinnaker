@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.settings', [])
+module.exports = angular.module('spinnaker.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
     gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',
@@ -13,7 +14,7 @@ angular.module('spinnaker.settings', [])
           region: 'us-east-1'
         },
         primaryAccounts: ['prod', 'test'],
-        primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2'],
+        primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
         challengeDestructiveActions: ['prod', 'mceprod', 'cpl'],
         preferredZonesByAccount: {
           prod: {

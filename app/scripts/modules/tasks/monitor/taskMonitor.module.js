@@ -1,5 +1,8 @@
+'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.tasks.monitor', [
-    'spinnaker.tasks.monitor.directive'
+    require('./taskMonitor.directive.js')
   ]);

@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.single.controller', [
-  'ui.router',
-  'ui.bootstrap',
-  'spinnaker.securityGroup.read.service',
+module.exports = angular.module('spinnaker.securityGroup.single.controller', [
+  require('angular-ui-router'),
+  require('angular-bootstrap'),
+  require('./securityGroup.read.service.js'),
 ])
   .controller('SecurityGroupCtrl', function($scope, $state, securityGroup, application, securityGroupReader, $modal) {
 
@@ -33,7 +34,7 @@ angular.module('spinnaker.securityGroup.single.controller', [
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        templateUrl: 'scripts/modules/securityGroups/configure/aws/editSecurityGroup.html',
+        template: require('./configure/aws/editSecurityGroup.html'),
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {

@@ -1,12 +1,13 @@
 'use strict';
+let angular = require('angular');
 
-angular.module('spinnaker.delivery.executions.service', [
-  'ui.router',
-  'spinnaker.scheduler',
-  'spinnaker.orchestratedItem.service',
-  'spinnaker.settings',
-  'spinnaker.utils.appendTransform',
-  'spinnaker.delivery.executionTransformer.service'
+module.exports = angular.module('spinnaker.delivery.executions.service', [
+  require('angular-ui-router'),
+  require('../scheduler/scheduler.service.js'),
+  require('../../services/orchestratedItem.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../utils/appendTransform.js'),
+  require('./executions.transformer.service.js')
 ])
   .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, orchestratedItem, settings, appendTransform, executionsTransformer) {
 

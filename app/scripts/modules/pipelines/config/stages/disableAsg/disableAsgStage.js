@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.disableAsg')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Disable Server Group',
@@ -8,7 +10,7 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
       key: 'disableAsg',
       controller: 'DisableAsgStageCtrl',
       controllerAs: 'disableAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStage.html',
+      template: require('./disableAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
       validators: [

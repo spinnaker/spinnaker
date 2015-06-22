@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
-  'spinnaker.utils.timePicker.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
+  require('../../../../utils/timePicker.service.js')
 ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
 

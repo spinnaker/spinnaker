@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.validation')
+module.exports = angular.module('spinnaker.validation')
   .directive('validationError', function () {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/validation/validationError.html',
+      template: require('./validationError.html'),
       scope: {
         message: '@'
       }

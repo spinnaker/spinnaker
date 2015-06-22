@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.jenkins')
+let angular = require('angular');
+
+//BEN_TODO
+
+module.exports = angular.module('spinnaker.pipelines.stage.jenkins')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Jenkins',
@@ -8,7 +12,7 @@ angular.module('spinnaker.pipelines.stage.jenkins')
       key: 'jenkins',
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsStage.html',
+      template: require('./jenkinsStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
       executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
       validators: [
@@ -19,7 +23,7 @@ angular.module('spinnaker.pipelines.stage.jenkins')
         },
       ],
     });
-  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches) {
+  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches, _) {
 
     $scope.stage = stage;
 

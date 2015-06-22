@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .controller('gceServerGroupCapacityCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('capacity');

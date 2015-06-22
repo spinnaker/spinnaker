@@ -1,17 +1,18 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.taskExecutor.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.scheduler',
-  'spinnaker.urlBuilder',
-  'spinnaker.authentication',
-  'spinnaker.authentication.service',
-  'spinnaker.caches.scheduled',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.tasks.read.service',
-  'spinnaker.tasks.write.service',
+module.exports = angular.module('spinnaker.taskExecutor.service', [
+  require('restangular'),
+  require('../modules/caches/deckCacheFactory.js'),
+  require('../modules/scheduler/scheduler.service.js'),
+  require('./urlbuilder.js'),
+  require('../modules/authentication/authentication.module.js'),
+  require('../modules/authentication/authenticationService.js'),
+  require('../modules/caches/scheduledCache.js'),
+  require('../modules/caches/infrastructureCaches.js'),
+  require('../modules/tasks/tasks.read.service.js'),
+  require('../modules/tasks/tasks.write.service.js'),
 ])
   .factory('taskExecutor', function(settings, Restangular, scheduler, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
 

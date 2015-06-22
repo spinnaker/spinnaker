@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.config.notification.details.filter', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.config.notification.details.filter', [])
   .filter('notificationWhen', function() {
     return function(input) {
       input = input.replace('.', ' ').replace('pipeline', 'A pipeline is');

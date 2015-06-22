@@ -1,8 +1,10 @@
 'use strict';
 
+let angular = require('angular');
+
 /* jshint newcap: false */
-angular.module('spinnaker.caches.viewStateCache', [
-  'spinnaker.caches.core',
+module.exports = angular.module('spinnaker.caches.viewStateCache', [
+  require('./deckCacheFactory.js'),
 
 ]).factory('viewStateCache', function(deckCacheFactory) {
 

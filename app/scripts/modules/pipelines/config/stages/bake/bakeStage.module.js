@@ -1,10 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.bake', [
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.pipelines.stage.bake.executionDetails.controller',
-  'spinnaker.providerSelection.directive',
-  'spinnaker.account.service',
-  'spinnaker.utils.lodash',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.bake', [
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('./bakeExecutionDetails.controller.js'),
+  require('../../../../providerSelection/providerSelector.directive.js'),
+  require('../../../../account/accountService.js'),
+  require('../../../../utils/lodash.js'),
 ]);

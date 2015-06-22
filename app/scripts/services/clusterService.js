@@ -1,10 +1,14 @@
 'use strict';
 
+/* eslint consistent-return:0 */
 
-angular.module('spinnaker.cluster.service', [
-  'restangular'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.cluster.service', [
+  require('restangular'),
+  require('../modules/utils/lodash.js'),
 ])
-  .factory('clusterService', function ($q, Restangular) {
+  .factory('clusterService', function ($q, Restangular, _) {
 
     function loadServerGroups(applicationName) {
       return Restangular.one('applications', applicationName).one('serverGroups').getList()

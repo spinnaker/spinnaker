@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.gce.image.service', [])
+module.exports = angular.module('spinnaker.gce.image.service', [])
   .factory('gceImageService', function (settings, $q, Restangular, scheduledCache) {
 
     function findImages(params) {

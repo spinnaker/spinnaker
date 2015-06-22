@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.delivery.buildDisplayName.filter', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.buildDisplayName.filter', [])
   .filter('buildDisplayName', function() {
     return function(input) {
       var formattedInput = '';

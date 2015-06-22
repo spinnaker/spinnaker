@@ -4,9 +4,11 @@
  * Based on https://github.com/polarblau/stickySectionHeaders
  */
 
-angular.module('spinnaker.utils.stickyHeader', [
-  'spinnaker.utils.jQuery',
-  'spinnaker.utils.lodash',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.stickyHeader', [
+  require('../jQuery.js'),
+  require('../lodash.js'),
 ])
   .directive('stickyHeader', function ($log, $window, _, $) {
     return {

@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.rename')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.rename')
   .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $modalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService) {
 

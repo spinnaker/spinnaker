@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.delivery.stages.filter', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.stages.filter', [])
   .filter('stages', function() {
     return function(stages, filter) {
       return stages.filter(function(stage) {

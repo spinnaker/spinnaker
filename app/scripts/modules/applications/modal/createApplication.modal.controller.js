@@ -1,12 +1,15 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
-    'ui.router',
-    'ui.bootstrap',
-    'spinnaker.applications.write.service',
+    require('angular-ui-router'),
+    require('angular-bootstrap'),
+    require('../applications.write.service.js'),
+    require('../../utils/lodash.js'),
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter) {
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter, _) {
     var vm = this;
 
     vm.appNameList = _.pluck($scope.applications, 'name');
@@ -74,7 +77,7 @@ angular
               application: vm.application.name,
             }
           );
-      } , 1000 );
+      }, 1000 );
     }
 
     function submitting() {

@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.delegation', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delegation', [])
   .factory('serviceDelegate', function($injector) {
 
     function getDelegate(provider, serviceBaseName) {

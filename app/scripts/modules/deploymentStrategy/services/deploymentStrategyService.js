@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.deploymentStrategy')
+module.exports = angular.module('spinnaker.deploymentStrategy')
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
 
     function listAvailableStrategies(provider) {

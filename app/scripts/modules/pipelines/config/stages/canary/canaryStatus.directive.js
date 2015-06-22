@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stages.canary.status.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stages.canary.status.directive', [])
   .directive('canaryStatus', function() {
     return {
       restrict: 'E',

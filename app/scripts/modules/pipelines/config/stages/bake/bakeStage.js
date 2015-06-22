@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.bake')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.bake')
+  //BEN_TODO: executionDetailsUrl?
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Bake',
@@ -8,7 +11,7 @@ angular.module('spinnaker.pipelines.stage.bake')
       key: 'bake',
       controller: 'BakeStageCtrl',
       controllerAs: 'bakeStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html',
+      template: require('./bakeStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
       validators: [
         {

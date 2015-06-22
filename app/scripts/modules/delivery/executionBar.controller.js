@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionBar.controller', [
-  'spinnaker.pipelines.config',
-  'ui.router',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
+  require('../pipelines/config/pipelineConfigProvider.js'),
+  require('angular-ui-router'),
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
     var controller = this;

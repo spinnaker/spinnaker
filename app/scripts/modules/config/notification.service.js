@@ -1,9 +1,10 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.config.notification.service', [
-  'restangular',
-  'spinnaker.settings'
+module.exports = angular.module('spinnaker.config.notification.service', [
+  require('restangular'),
+  require('../caches/deckCacheFactory.js')
 ])
   .factory('notificationService', function (settings, Restangular) {
 

@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.utils.waypoints.container.directive', [
-  'spinnaker.utils.waypoints.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.waypoints.container.directive', [
+  require('./waypoint.service.js'),
 
 ])
   .directive('waypoint', function () {

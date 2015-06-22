@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.search.global')
+module.exports = angular.module('spinnaker.search.global')
   .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();

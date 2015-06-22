@@ -1,7 +1,8 @@
 'use strict';
+let angular = require('angular');
 
-angular.module('spinnaker.delivery.executionGroupHeading.directive', [
-  'spinnaker.delivery.execution.triggers',
+module.exports = angular.module('spinnaker.delivery.executionGroupHeading.directive', [
+  require('./triggers/triggersTag.directive.js'),
 ])
   .directive('executionGroupHeading', function() {
     return {
@@ -15,7 +16,7 @@ angular.module('spinnaker.delivery.executionGroupHeading.directive', [
         configurations: '=',
         application: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionGroupHeading.html',
+      template: require('./executionGroupHeading.html'),
       controller: 'executionGroupHeading as ctrl',
     };
   });

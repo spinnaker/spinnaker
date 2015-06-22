@@ -1,14 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.gce.details.controller',[
-  'ui.router',
-  'ui.bootstrap',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.loadBalancer.write.service',
-  'spinnaker.loadBalancer.read.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.confirmationModal.service'
+module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
+  require('angular-ui-router'),
+  require('angular-bootstrap'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../loadBalancer.write.service.js'),
+  require('../../loadBalancer.read.service.js'),
+  require('../../../utils/lodash.js'),
+  require('../../../confirmationModal/confirmationModal.service.js')
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
@@ -49,10 +50,12 @@ angular.module('spinnaker.loadBalancer.gce.details.controller',[
 
     application.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
+    //BEN_TODO
+
     this.editLoadBalancer = function editLoadBalancer() {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
+        template: '../../configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },

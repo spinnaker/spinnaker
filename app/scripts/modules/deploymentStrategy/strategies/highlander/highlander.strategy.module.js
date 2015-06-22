@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy.highlander', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.highlander', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Highlander',

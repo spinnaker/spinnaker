@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.stateHelper', [
-  'ui.router'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.stateHelper', [
+  require('angular-ui-router')
 ])
   .provider('stateHelper', function($stateProvider) {
 

@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws')
   .controller('awsInstanceTypeCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('instance-type');

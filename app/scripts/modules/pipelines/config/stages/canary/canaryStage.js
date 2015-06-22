@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.canary')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.canary')
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
         pipelineConfigProvider.registerStage({
@@ -93,7 +95,7 @@ angular.module('spinnaker.pipelines.stage.canary')
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
-          templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          template: '../../../../serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function () {
@@ -132,7 +134,7 @@ angular.module('spinnaker.pipelines.stage.canary')
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || 'aws';
       return $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
+        templateUrl: '../../../../serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
         controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function () {

@@ -1,9 +1,10 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.pipelines.trigger.jenkins.service', [
-  'restangular',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.pipelines.trigger.jenkins.service', [
+  require('restangular'),
+  require('../../../../caches/deckCacheFactory.js'),
 ])
   .factory('igorService', function (settings, Restangular) {
 

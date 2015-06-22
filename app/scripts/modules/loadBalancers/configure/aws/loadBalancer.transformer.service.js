@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.loadBalancer.transformer.service', [
-  'spinnaker.settings',
-  'spinnaker.utils.lodash'
+module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service', [
+  require('../../../caches/deckCacheFactory.js'),
+  require('../../../utils/lodash.js')
 ])
-  .factory('awsLoadBalancerTransformer', function ( settings, _) {
+  .factory('awsLoadBalancerTransformer', function (settings, _) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;

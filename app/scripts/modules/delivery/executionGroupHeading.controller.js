@@ -1,12 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionGroupHeading.controller', [
-  'spinnaker.utils.lodash',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.delivery.executions.service',
-  'spinnaker.caches.collapsibleSectionState',
-  'spinnaker.delivery.manualPipelineExecution.controller',
-  'spinnaker.confirmationModal.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionGroupHeading.controller', [
+  require('../utils/lodash.js'),
+  require('../pipelines/config/services/pipelineConfigService.js'),
+  require('./executionsService.js'),
+  require('../caches/collapsibleSectionStateCache.js'),
+  require('./manualPipelineExecution.controller.js'),
+  require('../confirmationModal/confirmationModal.service.js'),
 ])
   .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;
@@ -70,7 +72,7 @@ angular.module('spinnaker.delivery.executionGroupHeading.controller', [
       var currentlyRunningExecutions = getCurrentlyRunningExecutions();
 
       $modal.open({
-        templateUrl: 'scripts/modules/delivery/manualPipelineExecution.html',
+        template: require('./manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as ctrl',
         resolve: {
           pipeline: function () { return pipeline; },

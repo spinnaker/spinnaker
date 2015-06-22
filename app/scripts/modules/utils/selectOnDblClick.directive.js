@@ -1,7 +1,9 @@
 'use strict';
 
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/  **/
-angular.module('spinnaker.utils.selectOnDblClick', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.selectOnDblClick', [])
   .directive('selectOnDblClick', function($window, $document) {
     return {
       restrict: 'A',

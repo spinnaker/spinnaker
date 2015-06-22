@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy.rollingPush', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Rolling Push (deprecated)',

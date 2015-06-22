@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.manualJudgment', [
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.pipelines.stage.manualJudgment.executionDetails.controller',
-  'spinnaker.pipelines.stage.manualJudgment.modal.editNotification',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment', [
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('./manualJudgmentExecutionDetails.controller.js'),
+  require('./modal/editNotification.controller.modal.js'),
 ]);

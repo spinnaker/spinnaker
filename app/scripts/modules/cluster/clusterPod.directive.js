@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.cluster.pod', [
-  'spinnaker.serverGroup.sequence.filter',
-  'spinnaker.urlBuilder',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.cluster.pod', [
+  require('./serverGroup.sequence.filter.js'),
+  require('../../services/urlbuilder.js'),
 ])
   .directive('clusterPod', function(urlBuilder) {
     return {
@@ -14,7 +16,7 @@ angular.module('spinnaker.cluster.pod', [
         application: '=',
         parentHeading: '=',
       },
-      templateUrl: 'scripts/modules/cluster/clusterPod.html',
+      template: require('./clusterPod.html'),
       link: function(scope) {
         scope.permalink = urlBuilder.buildFromMetadata(
           {

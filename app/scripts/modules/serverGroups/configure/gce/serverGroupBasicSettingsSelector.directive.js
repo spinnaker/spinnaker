@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .directive('gceServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -9,18 +11,18 @@ angular.module('spinnaker.serverGroup.configure.gce')
         application: '=',
         hideClusterNamePreview: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupBasicSettingsDirective.html',
+      template: require('./serverGroupBasicSettingsDirective.html'),
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService) {
+  .controller('gceServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService, _) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return new RxService.Observable.fromPromise(
+      return RxService.Observable.fromPromise(
         imageService.findImages({
           provider: 'gce',
           q: q,

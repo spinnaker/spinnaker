@@ -1,7 +1,11 @@
 'use strict';
 
 
-angular.module('spinnaker.urlBuilder', ['ui.router'])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.urlBuilder', [
+  require('angular-ui-router'),
+])
   .factory('urlBuilder', function($state) {
     var lookup = {
       // url for a single serverGroup

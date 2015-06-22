@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.image.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.caches.scheduled',
+module.exports = angular.module('spinnaker.aws.image.service', [
+  require('restangular'),
+  require('../modules/caches/deckCacheFactory.js'),
+  require('../modules/caches/scheduledCache.js'),
 ])
-  .factory('awsImageService', function ($q, Restangular,  settings, scheduledCache) {
+  .factory('awsImageService', function ($q, Restangular, settings, scheduledCache) {
 
     function findImages(params) {
       if (!params.q || params.q.length < 3) {

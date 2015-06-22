@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stages.core.executionStepDetails', [
-  'spinnaker.pipelines.config',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stages.core.executionStepDetails', [
+  require('../../pipelineConfigProvider.js'),
 ])
   .directive('executionStepDetails', function() {
     return {
@@ -9,7 +11,7 @@ angular.module('spinnaker.pipelines.stages.core.executionStepDetails', [
       scope: {
         item: '='
       },
-      templateUrl: 'scripts/modules/pipelines/config/stages/core/executionStepDetails.html',
+      template: require('./executionStepDetails.html'),
       controller: 'ExecutionStepDetailsCtrl',
       controllerAs: 'executionStepDetailsCtrl'
     };

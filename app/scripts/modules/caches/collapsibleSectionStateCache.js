@@ -1,19 +1,21 @@
 'use strict';
 
+let angular = require('angular');
+
 /* jshint newcap: false */
-angular.module('spinnaker.caches.collapsibleSectionState', [
-  'angular-data.DSCacheFactory',
+module.exports = angular.module('spinnaker.caches.collapsibleSectionState', [
+  require('angular-cache'),
 ])
-  .factory('collapsibleSectionStateCache', function(DSCacheFactory) {
+  .factory('collapsibleSectionStateCache', function(CacheFactory) {
 
     var cacheId = 'collapsibleSectionStateCache';
-    DSCacheFactory(cacheId, {
+    CacheFactory.createCache(cacheId, {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       deleteOnExpire: 'aggressive',
       storageMode: 'localStorage',
     });
 
-    var stateCache = DSCacheFactory.get(cacheId);
+    var stateCache = CacheFactory.get(cacheId);
 
     return {
       isSet: function(heading) {

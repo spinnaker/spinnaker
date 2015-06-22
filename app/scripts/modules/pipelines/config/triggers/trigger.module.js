@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger', ['spinnaker.pipelines']);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger', ['spinnaker.pipelines']);
