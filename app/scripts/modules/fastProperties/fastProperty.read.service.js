@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.fastProperty.read.service', [
-    'restangular',
-    'spinnaker.settings'
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../caches/deckCacheFactory.js')
   ])
   .factory('fastPropertyReader', function (Restangular) {
 
@@ -30,4 +31,4 @@ angular
       loadPromotions: loadPromotions,
       loadPromotionsByApp: loadPromotionsByApp
     };
-  });
+  }).name;

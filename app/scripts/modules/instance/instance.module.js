@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.instance', [
-    'spinnaker.instance.detail.aws.controller',
-    'spinnaker.instance.detail.gce.controller',
-    'spinnaker.instance.loadBalancer.health.directive',
-  ]);
+    require('./details/aws/instance.details.controller.js'),
+    require('./details/gce/instance.details.controller.js'),
+    require('./loadBalancer/instanceLoadBalancerHealth.js'),
+  ]).name;

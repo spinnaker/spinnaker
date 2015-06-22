@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [])
   .directive('instanceArchetypeSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/common/instanceArchetypeDirective.html',
+      templateUrl: require('./instanceArchetypeDirective.html'),
       controller: 'InstanceArchetypeSelectorCtrl',
       controllerAs: 'instanceArchetypeCtrl'
     };
@@ -53,4 +55,4 @@ angular.module('spinnaker.serverGroup.configure.common')
       }
     });
 
-  });
+  }).name;

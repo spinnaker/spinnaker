@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+var angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.securityGroup.baseConfig.controller', [
     'ui.router',
     'spinnaker.tasks.monitor.service',
@@ -8,6 +10,7 @@ angular
     'spinnaker.account.service',
     'spinnaker.vpc.read.service',
     'spinnaker.modalWizard',
+    require('utils/lodash.js'),
   ])
   .controller('ConfigSecurityGroupMixin', function ($scope,
                                                              $state,
@@ -20,7 +23,8 @@ angular
                                                              accountService,
                                                              modalWizardService,
                                                              cacheInitializer,
-                                                             vpcReader ) {
+                                                             vpcReader,
+                                                             _ ) {
 
 
 
@@ -255,5 +259,6 @@ angular
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
 
 
-  });
+  })
+  .name;
 

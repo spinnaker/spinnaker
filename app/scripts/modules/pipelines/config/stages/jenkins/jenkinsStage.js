@@ -1,6 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.jenkins')
+let angular = require('angular');
+
+
+require('./jenkinsStage.html');
+require('./jenkinsExecutionDetails.html');
+require('./jenkinsExecutionLabel.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Jenkins',
@@ -8,9 +15,9 @@ angular.module('spinnaker.pipelines.stage.jenkins')
       key: 'jenkins',
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
-      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
+      templateUrl: require('./jenkinsStage.html'),
+      executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
+      executionLabelTemplateUrl: require('./jenkinsExecutionLabel.html'),
       defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         {
@@ -20,7 +27,7 @@ angular.module('spinnaker.pipelines.stage.jenkins')
         },
       ],
     });
-  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches) {
+  }).controller('JenkinsStageCtrl', function($scope, stage, igorService, $filter, infrastructureCaches, _) {
 
     $scope.stage = stage;
 
@@ -110,5 +117,6 @@ angular.module('spinnaker.pipelines.stage.jenkins')
     $scope.$watch('stage.master', updateJobsList);
     $scope.$watch('stage.job', updateJobConfig);
 
-  });
+  })
+  .name;
 

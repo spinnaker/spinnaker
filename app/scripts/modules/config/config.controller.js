@@ -1,16 +1,20 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.config.controller', [
-    'spinnaker.applications.write.service',
-    'spinnaker.confirmationModal.service',
-    'spinnaker.caches.initializer',
-    'spinnaker.caches.infrastructure',
+    require('../applications/applications.write.service.js'),
+    require('../confirmationModal/confirmationModal.service.js'),
+    require('../caches/cacheInitializer.js'),
+    require('../caches/infrastructureCaches.js'),
+    require('utils/lodash.js'),
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
-                                            cacheInitializer, infrastructureCaches, application, notificationService) {
+                                            cacheInitializer, infrastructureCaches, app, notificationService, _) {
+    const application = app;
     var vm = this;
+
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
     vm.error = '';
@@ -18,7 +22,7 @@ angular
 
     vm.editApplication = function () {
       $modal.open({
-        templateUrl: 'scripts/modules/config/modal/editApplication.html',
+        templateUrl: require('./modal/editApplication.html'),
         controller: 'EditApplicationController',
         controllerAs: 'editApp',
         resolve: {
@@ -94,7 +98,7 @@ angular
 
     vm.editNotification = function (notification) {
       var modalInstance = $modal.open({
-        templateUrl: 'scripts/modules/config/modal/editNotification.html',
+        templateUrl: require('./modal/editNotification.html'),
         controller: 'EditNotificationController',
         controllerAs: 'editNotification',
         resolve: {
@@ -159,4 +163,4 @@ angular
 
     return vm;
 
-  });
+  }).name;

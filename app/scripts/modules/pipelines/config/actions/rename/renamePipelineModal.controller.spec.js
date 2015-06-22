@@ -1,10 +1,15 @@
 'use strict';
 
 describe('Controller: renamePipelineModal', function() {
+  const angular = require('angular');
 
-  beforeEach(module('spinnaker.pipelines.rename'));
+  beforeEach(
+    window.module(
+      require('./rename.module.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
+  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
     this.$q = $q;
     this.initializeController = function(application, pipeline) {
       this.$scope = $rootScope.$new();

@@ -2,10 +2,17 @@
 
 describe('Controller: deploymentStrategySelector', function() {
 
-  beforeEach(module('spinnaker.deploymentStrategy'));
+
+  beforeEach(
+    window.module(
+      require('./deploymentStrategySelector.controller.js'),
+      require('utils/lodash.js')
+    )
+  );
 
 
-  beforeEach(inject(function($controller, $rootScope, deploymentStrategyService) {
+  beforeEach(window.inject(function($controller, $rootScope, deploymentStrategyService, ___) {
+    this._ = ___;
 
     var strategies = [
       {

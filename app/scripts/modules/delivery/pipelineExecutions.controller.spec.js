@@ -2,6 +2,8 @@
 
 describe('Controller: pipelineExecutions', function () {
 
+  const angular = require('angular');
+
   var controller;
   var scope;
   var rootScope;
@@ -10,11 +12,13 @@ describe('Controller: pipelineExecutions', function () {
   var $q;
 
   beforeEach(
-    module('spinnaker.delivery.pipelineExecutions.controller')
+    window.module(
+      require('./pipelineExecutions.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_) {
+    window.inject(function ($rootScope, $controller, _$state_, _pipelineConfigService_, _$q_) {
       rootScope = $rootScope;
       scope = $rootScope.$new();
       $state = { go: angular.noop };
@@ -42,7 +46,9 @@ describe('Controller: pipelineExecutions', function () {
     spyOn(pipelineConfigService, 'getPipelinesForApplication').and.returnValue($q.when({ plain: function () {
       return [];
     } }));
+
     this.initializeController(application);
+
     scope.$digest();
 
     expect($state.go).toHaveBeenCalledWith('^.pipelineConfig');

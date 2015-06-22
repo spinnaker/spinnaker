@@ -10,11 +10,13 @@ describe('Service: securityGroupReader', function () {
     $scope;
 
   beforeEach(
-    module('spinnaker.securityGroup.read.service')
+    window.module(
+      require('./securityGroup.read.service.js')
+    )
   );
 
   beforeEach(
-    inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend, _settings_, _$exceptionHandler_, $rootScope) {
+    window.inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend, _settings_, _$exceptionHandler_, $rootScope) {
       securityGroupReader = _securityGroupReader_;
       infrastructureCaches = _infrastructureCaches_;
       $http = $httpBackend;

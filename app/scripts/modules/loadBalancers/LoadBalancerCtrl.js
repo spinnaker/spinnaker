@@ -1,7 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.controller')
+module.exports = angular.module('spinnaker.loadBalancer.controller.loadBalancerCtrl', [
+])
   .controller('LoadBalancerCtrl', function ($scope, $state, application, loadBalancer) {
     $scope.application = application;
 
@@ -26,4 +28,4 @@ angular.module('spinnaker.loadBalancer.controller')
     };
 
   }
-);
+).name;

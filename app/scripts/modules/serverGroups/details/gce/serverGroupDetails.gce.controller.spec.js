@@ -1,6 +1,7 @@
 'use strict';
 
 describe('Controller: gceServerGroupDetailsCtrl', function () {
+  const angular = require('angular');
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
@@ -8,15 +9,17 @@ describe('Controller: gceServerGroupDetailsCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.serverGroup.details.gce.controller')
+    window.module(
+      require('./serverGroupDetails.gce.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('gceServerGroupDetailsCtrl', {
         $scope: scope,
-        application: {
+        app: {
           serverGroups: [],
           loadBalancers: [],
           registerAutoRefreshHandler: angular.noop

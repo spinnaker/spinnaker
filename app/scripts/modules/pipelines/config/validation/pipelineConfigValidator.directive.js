@@ -1,10 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.config.validator.directive', ['spinnaker.pipelines.config.validator.service'])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.validator.directive', [
+  require('./pipelineConfigValidation.service.js'),
+])
   .directive('pipelineConfigErrors', function() {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/pipelines/config/validation/pipelineConfigErrors.html',
+      templateUrl: require('./pipelineConfigErrors.html'),
       scope: {
         pipeline: '='
       },
@@ -22,4 +26,4 @@ angular.module('spinnaker.pipelines.config.validator.directive', ['spinnaker.pip
 
     $scope.popover = { show: false };
 
-  });
+  }).name;

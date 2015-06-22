@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.advancedSetting.controller', [])
   .controller('gceServerGroupAdvancedSettingsCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('advanced');
@@ -14,4 +15,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       }
     });
 
-  });
+  }).name;

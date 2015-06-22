@@ -1,15 +1,17 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
-  'restangular',
-  'spinnaker.account.service',
-  'spinnaker.subnet.read.service',
-  'spinnaker.instanceType.service',
-  'spinnaker.naming',
+module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../account/accountService.js'),
+  require('../../../subnet/subnet.read.service.js'),
+  require('../../../../services/instanceTypeService.js'),
+  require('../../../naming/naming.service.js'),
+  require('utils/lodash.js'),
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, subnetReader, namingService, instanceTypeService) {
+                                                     accountService, subnetReader, namingService, instanceTypeService, _) {
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
@@ -213,5 +215,6 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
+})
+.name;
 

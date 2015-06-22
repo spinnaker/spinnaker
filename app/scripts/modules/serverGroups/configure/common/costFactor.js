@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common.costFactor', [])
   .directive('costFactor', function() {
     return {
       restrict: 'E',
@@ -8,7 +10,7 @@ angular.module('spinnaker.serverGroup.configure.common')
         factor: '=',
         range: '='
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/common/costFactor.html',
+      templateUrl: require('./costFactor.html'),
       link: function(scope) {
         function getUsage(factor) {
           return {
@@ -31,4 +33,4 @@ angular.module('spinnaker.serverGroup.configure.common')
 
       }
     };
-  });
+  }).name;

@@ -2,9 +2,13 @@
 
 describe('DeployInitializerCtrl', function() {
 
-  beforeEach(module('spinnaker.serverGroup.configure.aws.deployInitialization.controller'));
+  beforeEach(
+    window.module(
+      require('./deployInitializer.controller')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope, _, $q) {
+  beforeEach(window.inject(function ($controller, $rootScope, _, $q) {
     this.$controller = $controller;
     this.serverGroupCommandBuilder = {};
     this.securityGroupReader = {};

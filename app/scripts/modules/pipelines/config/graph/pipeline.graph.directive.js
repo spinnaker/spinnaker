@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.graph.directive', [
-  'spinnaker.utils.d3',
-  'spinnaker.utils.lodash',
-  'spinnaker.utils.jQuery',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
+  require('utils/d3.js'),
+  require('utils/lodash.js'),
+  require('utils/jQuery.js'),
 ])
   .directive('pipelineGraph', function ($window, d3Service, _, $) {
     return {
@@ -13,7 +15,7 @@ angular.module('spinnaker.pipelines.graph.directive', [
         viewState: '=',
         onNodeClick: '=',
       },
-      templateUrl: 'scripts/modules/pipelines/config/graph/pipelineGraph.directive.html',
+      templateUrl: require('./pipelineGraph.directive.html'),
       link: function (scope, elem) {
 
         var minLabelWidth = 100;
@@ -325,4 +327,4 @@ angular.module('spinnaker.pipelines.graph.directive', [
 
       },
     };
-  });
+  }).name;

@@ -1,6 +1,5 @@
 'use strict';
 
-'use strict';
 
 describe('Controller: LoadBalancersNavCtrl', function () {
 
@@ -10,15 +9,17 @@ describe('Controller: LoadBalancersNavCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.loadBalancer.nav.controller')
+    window.module(
+      require('./LoadBalancersNavCtrl.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('LoadBalancersNavCtrl', {
         $scope: scope,
-        application: {}
+        app: {}
       });
     })
   );

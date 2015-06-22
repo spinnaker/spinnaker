@@ -1,11 +1,16 @@
 'use strict';
 
 describe('Jenkins Execution Details Controller:', function () {
+  const angular = require('angular');
   var controller, $scope;
 
-  beforeEach(module('spinnaker.pipelines.stage.jenkins.executionDetails.controller'));
+  beforeEach(
+    window.module(
+      require('./jenkinsExecutionDetails.controller.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, $timeout) {
+  beforeEach(window.inject(function($controller, $rootScope, $timeout) {
     this.initializeController = function(stage) {
       var scope = $rootScope.$new();
       scope.stage = stage;

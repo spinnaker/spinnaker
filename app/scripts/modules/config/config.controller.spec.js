@@ -9,12 +9,12 @@ xdescribe('Controller: Config', function () {
   var $rootScope;
   var $q;
 
-  beforeEach(module(
+  beforeEach(window.module(
     'spinnaker.config.controller'
   ));
 
   beforeEach(
-    inject(function (_$rootScope_, _$controller_, _$q_, _applicationWriter_, _$state_) {
+    window.inject(function (_$rootScope_, _$controller_, _$q_, _applicationWriter_, _$state_) {
       $rootScope = _$rootScope_;
       $controller = _$controller_;
       applicationWriter = _applicationWriter_;

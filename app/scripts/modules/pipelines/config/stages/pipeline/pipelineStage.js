@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.pipeline')
+let angular = require('angular');
+require('./pipelineStage.html');
+require('./pipelineExecutionDetails.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.pipelineStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Pipeline',
@@ -8,8 +12,8 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       key: 'pipeline',
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
+      templateUrl: require('./pipelineStage.html'),
+      executionDetailsUrl: require('./pipelineExecutionDetails.html'),
       validators: [
         {
           type: 'requiredField',
@@ -18,7 +22,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
         },
       ],
     });
-  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader) {
+  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader, _) {
 
     $scope.stage = stage;
 
@@ -105,5 +109,6 @@ angular.module('spinnaker.pipelines.stage.pipeline')
     $scope.$watch('stage.application', initializeMasters);
     $scope.$watch('stage.pipeline', updatePipelineConfig);
 
-  });
+  })
+  .name;
 

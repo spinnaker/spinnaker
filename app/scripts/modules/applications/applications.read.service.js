@@ -1,18 +1,20 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.applications.read.service', [
-    'restangular',
-    'spinnaker.cluster.service',
-    'spinnaker.tasks.read.service',
-    'spinnaker.loadBalancer.read.service',
-    'spinnaker.loadBalancer.transformer.service',
-    'spinnaker.securityGroup.read.service',
-    'spinnaker.caches.infrastructure',
-    'spinnaker.scheduler',
-    'spinnaker.delivery.executions.service',
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../services/clusterService.js'),
+    require('../tasks/tasks.read.service.js'),
+    require('../loadBalancers/loadBalancer.read.service.js'),
+    require('../loadBalancers/loadBalancer.transformer.js'),
+    require('../securityGroups/securityGroup.read.service.js'),
+    require('../caches/infrastructureCaches.js'),
+    require('../scheduler/scheduler.service.js'),
+    require('../delivery/executionsService.js'),
   ])
-  .factory('applicationReader', function ($q,$log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
+  .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
                                           infrastructureCaches, settings, executionsService) {
 
@@ -304,4 +306,4 @@ angular
       getApplication: getApplication,
       getApplicationWithoutAppendages: getApplicationEndpoint,
     };
-  });
+  }).name;

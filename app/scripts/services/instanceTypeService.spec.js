@@ -41,11 +41,11 @@ describe('Service: instanceTypeService', function () {
   var categories = [generalFamily, memoryFamily, microFamily];
 
   beforeEach(
-    module('spinnaker.instanceType.service')
+    window.module(require('./instanceTypeService.js'))
   );
 
   beforeEach(
-    inject(function (_instanceTypeService_, _$q_, $rootScope) {
+    window.inject(function (_instanceTypeService_, _$q_, $rootScope) {
       instanceTypeService = _instanceTypeService_;
       $q = _$q_;
       $scope = $rootScope.$new();

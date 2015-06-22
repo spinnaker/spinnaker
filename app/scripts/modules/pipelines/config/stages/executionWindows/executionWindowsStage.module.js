@@ -1,8 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows', [
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.pipelines.stage.executionWindows.directive',
-  'spinnaker.pipelines.stage.executionWindows.transformer',
-]);
+let angular = require('angular');
+
+require('./executionWindows.less');
+
+module.exports = angular.module('spinnaker.pipelines.stage.executionWindows', [
+  require('./executionWindowsStage.js'),
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('./executionWindows.directive.js'),
+  require('./executionWindows.transformer.js')
+])
+.name;

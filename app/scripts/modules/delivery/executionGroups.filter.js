@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionGroups.filter', [
-  'spinnaker.utils.lodash',
-  'spinnaker.timeBoundaries.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionGroups.filter', [
+  require('utils/lodash.js'),
+  require('./timeBoundaries.service.js')
 ])
   .filter('executionGroups', function(timeBoundaries, _) {
     return function(executions, filter, configurations) {
@@ -17,4 +19,4 @@ angular.module('spinnaker.delivery.executionGroups.filter', [
           return _.unique(_.pluck(executions.concat(configurations), filter.execution.groupBy)).sort();
       }
     };
-  });
+  }).name;

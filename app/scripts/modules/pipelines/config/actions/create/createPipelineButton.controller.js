@@ -1,10 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.create')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.actions.create.CreatePipelineButtonCtrl', [
+])
   .controller('CreatePipelineButtonCtrl', function($scope, $modal) {
     this.createPipeline = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/create/createPipelineModal.html',
+        templateUrl: require('./createPipelineModal.html'),
         controller: 'CreatePipelineModalCtrl',
         controllerAs: 'createPipelineModalCtrl',
         resolve: {
@@ -14,4 +17,4 @@ angular.module('spinnaker.pipelines.create')
         }
       });
     };
-  });
+  }).name;

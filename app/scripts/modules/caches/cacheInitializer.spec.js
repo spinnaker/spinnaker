@@ -7,11 +7,13 @@ describe('Service: cacheInitializer', function () {
   var cacheInitializer;
 
   beforeEach(
-    module('spinnaker.caches.initializer')
+    window.module(
+      require('./cacheInitializer')
+    )
   );
 
   beforeEach(
-    inject(function (_cacheInitializer_) {
+    window.inject(function (_cacheInitializer_) {
       cacheInitializer = _cacheInitializer_;
     })
   );

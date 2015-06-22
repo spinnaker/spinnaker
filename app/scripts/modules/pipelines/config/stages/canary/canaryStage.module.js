@@ -1,22 +1,25 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.canary', [
-  'spinnaker.pipelines.stage.canary.details.controller',
-  'spinnaker.pipelines.stage.canary.summary.controller',
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.deploymentStrategy',
-  'spinnaker.authentication.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.serverGroup.read.service',
-  'spinnaker.aws.serverGroupCommandBuilder.service',
-  'spinnaker.pipelines.stage.canary.canaryDeployment',
-  'spinnaker.pipelines.stage.canary.transformer',
-  'spinnaker.pipelines.stages.canary.score.directive',
-  'spinnaker.pipelines.stages.canary.status.directive',
-  'spinnaker.account.service',
-  'spinnaker.naming'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.canary', [
+  require('./canaryStage.js'),
+  require('./canaryExecutionDetails.controller.js'),
+  require('./canaryExecutionSummary.controller.js'),
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('../../../../deploymentStrategy/deploymentStrategy.module.js'),
+  require('../../../../authentication/authenticationService.js'),
+  require('utils/lodash.js'),
+  require('../../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../../serverGroups/configure/aws/serverGroupCommandBuilder.service.js'),
+  require('./canaryDeployment/canaryDeployment.module.js'),
+  require('./canaryStage.transformer.js'),
+  require('./canaryScore.directive.js'),
+  require('./canaryStatus.directive.js'),
+  require('../../../../account/accountService.js'),
+  require('../../../../naming/naming.service.js')
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);
-  });
+  }).name;

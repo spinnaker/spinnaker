@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.executionDetails.section.service', [
-  'ui.router',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.executionDetails.section.service', [
+  require('angular-ui-router'),
 ])
   .factory('executionDetailsSectionService', function($stateParams, $state) {
 
@@ -28,4 +30,4 @@ angular.module('spinnaker.executionDetails.section.service', [
       synchronizeSection: synchronizeSection
     };
 
-  });
+  }).name;

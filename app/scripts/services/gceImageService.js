@@ -1,8 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.gce.image.service', [
-  'restangular',
+module.exports = angular.module('spinnaker.gce.image.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular')
 ])
   .factory('gceImageService', function ($q, Restangular) {
 
@@ -25,4 +26,4 @@ angular.module('spinnaker.gce.image.service', [
       findImages: findImages,
       getAmi: getAmi,
     };
-  });
+  }).name;

@@ -1,9 +1,12 @@
 'use strict';
 
-angular
-  .module('spinnaker.editNotification.modal.controller',[
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.editNotification.modal.controller', [
+    require('utils/lodash.js'),
   ])
-  .controller('EditNotificationController', function ($scope, $modalInstance, notification) {
+  .controller('EditNotificationController', function ($scope, $modalInstance, notification, _) {
     var vm = this;
     vm.notification = angular.copy(notification);
 
@@ -51,11 +54,11 @@ angular
       $modalInstance.close(vm.notification);
     };
 
-    $scope.$watch('selectedWhenOptions', function (a,b) {
+    $scope.$watch('selectedWhenOptions', function (a, b) {
       if(a!==b) {
         vm.updateSelectedWhen();
       }
     }, true);
 
     return vm;
-  });
+  }).name;

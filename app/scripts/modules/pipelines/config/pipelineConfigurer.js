@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer', [
+])
   .directive('pipelineConfigurer', function() {
     return {
       restrict: 'E',
@@ -9,7 +12,7 @@ angular.module('spinnaker.pipelines')
         application: '='
       },
       controller: 'PipelineConfigurerCtrl as pipelineConfigurerCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/pipelineConfigurer.html'
+      templateUrl: require('./pipelineConfigurer.html'),
     };
   })
   .controller('PipelineConfigurerCtrl', function($scope, $modal, $timeout, _,
@@ -31,7 +34,7 @@ angular.module('spinnaker.pipelines')
 
     this.enableParallel = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/enableParallel/enableParallel.html',
+        templateUrl: require('./actions/enableParallel/enableParallel.html'),
         controller: 'EnableParallelModalCtrl',
         controllerAs: 'enableParallelModalCtrl',
         resolve: {
@@ -44,7 +47,7 @@ angular.module('spinnaker.pipelines')
 
     this.disableParallel = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/disableParallel/disableParallel.html',
+        templateUrl: require('./actions/disableParallel/disableParallel.html'),
         controller: 'DisableParallelModalCtrl',
         controllerAs: 'disableParallelModalCtrl',
         resolve: {
@@ -57,7 +60,7 @@ angular.module('spinnaker.pipelines')
 
     this.deletePipeline = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/delete/deletePipelineModal.html',
+        templateUrl: require('./actions/delete/deletePipelineModal.html'),
         controller: 'DeletePipelineModalCtrl',
         controllerAs: 'deletePipelineModalCtrl',
         resolve: {
@@ -118,7 +121,7 @@ angular.module('spinnaker.pipelines')
       var original = angular.fromJson($scope.viewState.original);
       original.name = $scope.pipeline.name;
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/rename/renamePipelineModal.html',
+        templateUrl: require('./actions/rename/renamePipelineModal.html'),
         controller: 'RenamePipelineModalCtrl',
         controllerAs: 'renamePipelineModalCtrl',
         resolve: {
@@ -133,7 +136,7 @@ angular.module('spinnaker.pipelines')
 
     this.editPipelineJson = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/actions/json/editPipelineJsonModal.html',
+        templateUrl: require('./actions/json/editPipelineJsonModal.html'),
         controller: 'EditPipelineJsonModalCtrl',
         controllerAs: 'editPipelineJsonModalCtrl',
         resolve: {
@@ -275,4 +278,4 @@ angular.module('spinnaker.pipelines')
     $scope.$watch('viewState', cacheViewState, true);
     $scope.$watch('pipeline.name', cacheViewState);
 
-  });
+  }).name;

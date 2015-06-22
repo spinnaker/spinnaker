@@ -1,9 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 /**
  * Simple registry to track pipelines that have been changed without being saved
  */
-angular.module('spinnaker.pipelines.dirtyTracker.service', [])
+module.exports = angular.module('spinnaker.pipelines.config.services.dirtyTracker', [
+])
   .factory('dirtyPipelineTracker', function() {
 
     var dirtyPipelines = [];
@@ -36,4 +39,4 @@ angular.module('spinnaker.pipelines.dirtyTracker.service', [])
       hasDirtyPipelines: hasDirtyPipelines,
     };
   }
-);
+).name;

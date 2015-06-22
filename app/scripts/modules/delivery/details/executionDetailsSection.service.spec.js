@@ -1,9 +1,9 @@
 'use strict';
 
 describe('executionDetailsSectionService', function() {
-  beforeEach(module('spinnaker.executionDetails.section.service'));
+  beforeEach(window.module('spinnaker.executionDetails.section.service'));
 
-  beforeEach(inject(function(executionDetailsSectionService, $state, $stateParams) {
+  beforeEach(window.inject(function(executionDetailsSectionService, $state, $stateParams) {
     this.service = executionDetailsSectionService;
     this.$state = $state;
     this.$stateParams = $stateParams;
@@ -14,7 +14,7 @@ describe('executionDetailsSectionService', function() {
       spyOn(this.$state, 'includes').and.returnValue(false);
       spyOn(this.$state, 'go');
 
-      var result = this.service.synchronizeSection(['a','b']);
+      var result = this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).not.toHaveBeenCalled();
@@ -27,7 +27,7 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = 'b';
 
-      var result = this.service.synchronizeSection(['a','b']);
+      var result = this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).not.toHaveBeenCalled();
@@ -40,7 +40,7 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = 'c';
 
-      var result = this.service.synchronizeSection(['a','b']);
+      var result = this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});
@@ -54,7 +54,7 @@ describe('executionDetailsSectionService', function() {
 
       this.$stateParams.details = undefined;
 
-      var result = this.service.synchronizeSection(['a','b']);
+      var result = this.service.synchronizeSection(['a', 'b']);
 
       expect(this.$state.includes).toHaveBeenCalledWith('**.execution');
       expect(this.$state.go).toHaveBeenCalledWith('.', { details: 'a'}, {location: 'replace'});

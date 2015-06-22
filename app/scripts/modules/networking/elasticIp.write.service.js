@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.elasticIp.write.service', [
-    'spinnaker.taskExecutor.service'
+    require('../../services/taskExecutor.js')
   ])
   .factory('elasticIpWriter', function (taskExecutor) {
     function associateElasticIpWithCluster(application, account, cluster, region, elasticIp) {
@@ -46,4 +48,4 @@ angular
       associateElasticIpWithCluster: associateElasticIpWithCluster,
       disassociateElasticIpWithCluster: disassociateElasticIpWithCluster
     };
-  });
+  }).name;

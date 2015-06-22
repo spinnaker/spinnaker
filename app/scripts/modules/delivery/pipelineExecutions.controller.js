@@ -1,12 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.delivery.pipelineExecutions.controller', [
-  'spinnaker.delivery.executions.service',
-  'spinnaker.utils.d3',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.utils.scrollTo',
-  'spinnaker.caches.collapsibleSectionState',
-  'spinnaker.caches.viewStateCache',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controller', [
+  require('./executionsService.js'),
+  require('utils/d3.js'),
+  require('../pipelines/config/services/pipelineConfigService.js'),
+  require('utils/scrollTo/scrollTo.service.js'),
+  require('../caches/collapsibleSectionStateCache.js'),
+  require('../caches/viewStateCache.js'),
 ])
   .controller('pipelineExecutions', function($scope, $state, d3Service,
                                              pipelineConfigService, scrollToService, executionsService,
@@ -24,7 +26,7 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
       loading: true
     };
 
-    $scope.filterCountOptions = [1,2,5,10,25,50,100];
+    $scope.filterCountOptions = [1, 2, 5, 10, 25, 50, 100];
 
     $scope.filter = executionsViewStateCache.get($scope.application.name) || {
       count: 5,
@@ -79,7 +81,7 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
         .scale
         .ordinal()
         .domain(['completed', 'failed', 'running', 'not_started', 'canceled', 'suspended', 'unknown'])
-        .range(['#769D3E', '#b82525','#2275b8', '#cccccc', '#cccccc', '#cccccc', '#cccccc']),
+        .range(['#769D3E', '#b82525', '#2275b8', '#cccccc', '#cccccc', '#cccccc', '#cccccc']),
     };
 
     controller.solo = function(facet, value) {
@@ -181,4 +183,4 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
     $scope.$on('executions-reloaded', updateExecutions);
     $scope.$watch('filter', cacheViewState, true);
 
-  });
+  }).name;

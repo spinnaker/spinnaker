@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.counts', [])
+module.exports = angular.module('spinnaker.securityGroup.counts', [])
   .directive('securityGroupCounts', function () {
     return {
-      templateUrl: 'scripts/modules/securityGroups/securityGroupCounts.html',
+      templateUrl: require('./securityGroupCounts.html'),
       restrict: 'E',
       scope: {
         container: '='
@@ -17,4 +18,4 @@ angular.module('spinnaker.securityGroup.counts', [])
       }
     };
   }
-);
+).name;

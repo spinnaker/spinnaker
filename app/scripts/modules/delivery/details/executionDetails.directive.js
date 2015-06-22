@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionDetails.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionDetails.directive', [
+])
   .directive('executionDetails', function() {
     return {
       restrict: 'E',
@@ -8,7 +11,7 @@ angular.module('spinnaker.delivery.executionDetails.directive', [])
       scope: {
         execution: '=',
       },
-      templateUrl: 'scripts/modules/delivery/details/executionDetails.html',
+      templateUrl: require('./executionDetails.html'),
       controller: 'executionDetails as ctrl',
     };
-  });
+  }).name;

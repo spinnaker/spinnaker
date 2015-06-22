@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common.configure.service', [
-  'spinnaker.aws.serverGroup.configure.service',
-  'spinnaker.gce.serverGroup.configure.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common.configure.service', [
+  require('../aws/serverGroupConfiguration.service.js'),
+  require('../gce/serverGroupConfiguration.service.js')
 ])
 .factory('serverGroupConfigurationService', function(awsServerGroupConfigurationService, gceServerGroupConfigurationService) {
 
@@ -17,4 +19,5 @@ angular.module('spinnaker.serverGroup.configure.common.configure.service', [
   return {
     refreshInstanceTypes: refreshInstanceTypes,
   };
-});
+})
+.name;

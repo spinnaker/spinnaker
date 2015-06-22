@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.keyPairs', [
-    'spinnaker.keyPairs.read.service'
-  ]);
+    require('./keyParis.read.service.js')
+  ]).name;

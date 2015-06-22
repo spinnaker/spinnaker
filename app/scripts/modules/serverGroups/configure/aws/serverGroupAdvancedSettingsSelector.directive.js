@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.advancedSettings', [])
   .directive('awsServerGroupAdvancedSettingsSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupAdvancedSettingsDirective.html',
+      templateUrl: require('./serverGroupAdvancedSettingsDirective.html'),
       controller: 'awsServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })
@@ -29,4 +31,4 @@ angular.module('spinnaker.serverGroup.configure.aws')
       return $scope.command.suspendedProcesses.indexOf(process) !== -1;
     };
 
-  });
+  }).name;

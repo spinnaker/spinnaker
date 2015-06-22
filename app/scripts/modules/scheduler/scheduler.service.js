@@ -1,6 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.scheduler', ['spinnaker.utils.rx', 'spinnaker.settings'])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.scheduler', [
+  require('utils/rx.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../../settings/settings.js')
+])
   .factory('scheduler', function(RxService, settings, $q) {
     var scheduler = new RxService.Subject();
 
@@ -34,4 +40,5 @@ angular.module('spinnaker.scheduler', ['spinnaker.utils.rx', 'spinnaker.settings
         return deferred.promise;
       },
     };
-  });
+  })
+  .name;

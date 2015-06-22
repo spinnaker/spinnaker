@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.caches.infrastructure.config', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
     credentials: {
       version: 2,
@@ -28,4 +30,5 @@ angular.module('spinnaker.caches.infrastructure.config', [])
     buildJobs: {
       maxAge: 7 * 24 * 60 * 60 * 1000
     }
-  });
+  })
+  .name;

@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.securityGroupSelector.directive', [])
   .directive('awsServerGroupSecurityGroupsSelector', function(awsServerGroupConfigurationService, infrastructureCaches) {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupSecurityGroupsDirective.html',
+      templateUrl: require('./serverGroupSecurityGroupsDirective.html'),
       link: function(scope) {
 
         scope.getSecurityGroupRefreshTime = function() {
@@ -22,4 +24,4 @@ angular.module('spinnaker.serverGroup.configure.aws')
         };
       }
     };
-  });
+  }).name;

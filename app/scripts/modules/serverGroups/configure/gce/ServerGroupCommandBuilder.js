@@ -1,16 +1,18 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.account.service',
-  'spinnaker.naming',
-  'spinnaker.instanceType.service',
-  'spinnaker.gce.instanceType.service',
+module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../../../caches/deckCacheFactory.js'),
+  require('../../../account/accountService.js'),
+  require('../../../naming/naming.service.js'),
+  require('../../../../services/instanceTypeService.js'),
+  require('../../../../services/gceInstanceTypeService.js'),
+  require('utils/lodash.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, instanceTypeService, gceInstanceTypeService, namingService) {
+                                                     accountService, instanceTypeService, gceInstanceTypeService, namingService, _) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -252,5 +254,6 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
       buildSubmittableCommand: buildSubmittableCommand,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
+})
+.name;
 

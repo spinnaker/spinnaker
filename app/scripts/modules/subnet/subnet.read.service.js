@@ -1,7 +1,12 @@
 'use strict';
 
-angular
-  .module('spinnaker.subnet.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.subnet.read.service', [
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../modules/caches/infrastructureCaches.js')
+  ])
   .factory('subnetReader', function (Restangular, infrastructureCaches) {
 
     function listSubnets() {
@@ -14,4 +19,5 @@ angular
       listSubnets: listSubnets
     };
 
-  });
+  })
+  .name;

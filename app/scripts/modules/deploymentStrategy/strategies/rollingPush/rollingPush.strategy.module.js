@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy.rollingPush', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Rolling Push (deprecated)',
@@ -8,7 +10,7 @@ angular.module('spinnaker.deploymentStrategy.rollingPush', [])
       key: 'rollingpush',
       providers: ['aws'],
       additionalFields: ['termination.totalRelaunches', 'termination.concurrentRelaunches', 'termination.order', 'termination.relaunchAllInstances'],
-      additionalFieldsTemplateUrl: 'scripts/modules/deploymentStrategy/strategies/rollingPush/additionalFields.html',
+      additionalFieldsTemplateUrl: 'app/scripts/modules/deploymentStrategy/strategies/rollingPush/additionalFields.html',
       initializationMethod: function(command) {
         command.termination = {
           order: 'oldest',
@@ -18,4 +20,4 @@ angular.module('spinnaker.deploymentStrategy.rollingPush', [])
         };
       }
     });
-  });
+  }).name;

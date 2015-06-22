@@ -1,6 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.enableAsg')
+//BEN_TODO: where is this defined?
+
+let angular = require('angular');
+
+require('./enableAsgStage.html');
+require('./enableAsgExecutionDetails.html');
+require('./enableAsgStepLabel.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Enable Server Group',
@@ -8,11 +17,11 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
       key: 'enableAsg',
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStepLabel.html',
+      templateUrl: require('./enableAsgStage.html'),
+      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./enableAsgStepLabel.html'),
     });
-  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -53,5 +62,6 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
     }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  })
+  .name;
 

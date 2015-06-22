@@ -1,13 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.notifications.selector', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.notifications.selector', [
+])
   .directive('notificationSelector', function() {
     return {
       restrict: 'E',
       scope: {
         notification: '=',
       },
-      templateUrl: 'scripts/modules/notifications/selector/notificationSelector.html',
+      templateUrl: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
       controllerAs: 'notificationCtrl'
     };
@@ -29,4 +32,4 @@ angular.module('spinnaker.notifications.selector', [])
       return notificationConfig ? notificationConfig.addressTemplateUrl : '';
     };
 
-  });
+  }).name;

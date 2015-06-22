@@ -21,11 +21,14 @@ describe('Service: ImageService', function() {
   var service, $http, scope, timeout;
 
   beforeEach(
-    module('spinnaker.image.service')
+    window.module(
+      require('./imageService.js'),
+      require('../settings/settings.js')
+    )
   );
 
 
-  beforeEach(inject(function (imageService, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function (settings, imageService, $httpBackend, $rootScope, $timeout) {
 
     service = imageService;
     $http = $httpBackend;

@@ -2,9 +2,13 @@
 
 describe('Controller: ExecutionDetails', function () {
 
-  beforeEach(module('spinnaker.executionDetails.controller'));
+  beforeEach(
+    window.module(
+      require('./executionDetails.controller')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
   }));

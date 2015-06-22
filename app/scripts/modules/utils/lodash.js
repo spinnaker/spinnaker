@@ -1,7 +1,8 @@
 'use strict';
+const _ = require('lodash');
 
+let angular = require('angular');
 
-angular.module('spinnaker.utils.lodash', [])
-  .factory('_', function() {
-    return _;
-  });
+module.exports = angular.module('spinnaker.utils.lodash', [])
+  .constant('_', _ )
+  .name;

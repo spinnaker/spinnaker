@@ -1,13 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.fastProperties.rollouts.controller', [
-    'spinnaker.fastProperty.read.service',
-    'spinnaker.fastProperty.write.service',
-    'spinnaker.fastProperty.transformer.service',
+    require('./fastProperty.read.service.js'),
+    require('./fastProperty.write.service.js'),
+    require('./fastPropetyTrasnformer.service.js'),
+    require('utils/lodash.js'),
   ])
-  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer) {
+  .controller('FastPropertyRolloutController', function ($scope, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
 
     vm.applicationFilter = '';
@@ -66,4 +68,4 @@ angular
 
     loadPromotions();
     return vm;
-  });
+  }).name;

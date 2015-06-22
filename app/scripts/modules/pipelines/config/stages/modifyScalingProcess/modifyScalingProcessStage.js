@@ -1,6 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
+let angular = require('angular');
+
+require('./modifyScalingProcessExecutionDetails.html');
+require('./modifyScalingProcessStage.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Modify Scaling Process',
@@ -8,10 +13,10 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       key: 'modifyScalingProcess',
       controller: 'ModifyScalingProcessStageCtrl',
       controlelrAs: 'modifyScalingProcessStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessExecutionDetails.html',
+      templateUrl: require('./modifyScalingProcessStage.html'),
+      executionDetailsUrl: require('./modifyScalingProcessExecutionDetails.html'),
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -60,7 +65,7 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
     if (!stage.regions.length && $scope.application.defaultRegion) {
       stage.regions.push($scope.application.defaultRegion);
     }
-    
+
     if (stage.credentials) {
       $scope.accountUpdated();
     }
@@ -71,12 +76,13 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       }
       var idx = stage.processes.indexOf(process);
       if (idx > -1) {
-        stage.processes.splice(idx,1);
+        stage.processes.splice(idx, 1);
       } else {
         stage.processes.push(process);
       }
     };
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  })
+  .name;
 

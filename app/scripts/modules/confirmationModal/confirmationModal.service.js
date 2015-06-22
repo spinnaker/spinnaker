@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.confirmationModal.service', [
-  'ui.bootstrap',
-  'spinnaker.tasks.monitor',
-  'spinnaker.account',
-  'ui.router'
+module.exports = angular.module('spinnaker.confirmationModal.service', [
+  require('../tasks/monitor/taskMonitor.module.js'),
+  require('../account/account.module.js'),
+  require('angular-ui-router'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
 ])
   .factory('confirmationModalService', function($modal) {
     var defaults = {
@@ -16,7 +17,7 @@ angular.module('spinnaker.confirmationModal.service', [
       params = angular.extend(angular.copy(defaults), params);
 
       var modalArgs = {
-        templateUrl: 'scripts/modules/confirmationModal/confirm.html',
+        templateUrl: require('./confirm.html'),
         controller: 'ConfirmationModalCtrl as ctrl',
         resolve: {
           params: function() {
@@ -81,4 +82,4 @@ angular.module('spinnaker.confirmationModal.service', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

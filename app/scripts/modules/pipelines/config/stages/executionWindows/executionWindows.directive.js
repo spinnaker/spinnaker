@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows.directive', [
-  'spinnaker.pipelines.stage.executionWindows.controller',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.directive', [
+  require('./executionWindows.controller.js'),
 ])
   .directive('executionWindows', function() {
     return {
@@ -9,8 +11,8 @@ angular.module('spinnaker.pipelines.stage.executionWindows.directive', [
       scope: {
         stage: '='
       },
-      templateUrl: 'scripts/modules/pipelines/config/stages/executionWindows/executionWindows.html',
+      templateUrl: require('./executionWindows.html'),
       controller: 'ExecutionWindowsCtrl',
       controllerAs: 'executionWindowsCtrl',
     };
-  });
+  }).name;

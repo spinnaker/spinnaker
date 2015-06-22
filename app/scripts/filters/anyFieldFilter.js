@@ -11,34 +11,35 @@
 
 'use strict';
 
-angular.module('spinnaker')
-  .filter('anyFieldFilter', function () {
-    return function (items, props) {
-      var out = [];
+const angular = require('angular');
 
-      if (angular.isArray(items)) {
-        items.forEach(function (item) {
-          var itemMatches = false;
+module.exports = function () {
+  return function (items, props) {
+    var out = [];
 
-          var keys = Object.keys(props);
-          for (var i = 0; i < keys.length; i++) {
-            var prop = keys[i];
-            var text = props[prop].toLowerCase();
-            if (item[prop] && item[prop].toString().toLowerCase().indexOf(text) !== -1) {
-              itemMatches = true;
-              break;
-            }
+    if (angular.isArray(items)) {
+      items.forEach(function (item) {
+        var itemMatches = false;
+
+        var keys = Object.keys(props);
+        for (var i = 0; i < keys.length; i++) {
+          var prop = keys[i];
+          var text = props[prop].toLowerCase();
+          if (item[prop] && item[prop].toString().toLowerCase().indexOf(text) !== -1) {
+            itemMatches = true;
+            break;
           }
+        }
 
-          if (itemMatches) {
-            out.push(item);
-          }
-        });
-      } else {
-        // Let the output be the input untouched
-        out = items;
-      }
+        if (itemMatches) {
+          out.push(item);
+        }
+      });
+    } else {
+      // Let the output be the input untouched
+      out = items;
+    }
 
-      return out;
-    };
-  });
+    return out;
+  };
+};

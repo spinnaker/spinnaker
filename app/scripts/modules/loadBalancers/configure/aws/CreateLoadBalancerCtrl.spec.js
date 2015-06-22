@@ -3,10 +3,14 @@
 describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
   // load the controller's module
-  beforeEach(module('spinnaker.loadBalancer.aws.create.controller'));
+  beforeEach(
+    window.module(
+      require('./CreateLoadBalancerCtrl')
+    )
+  );
 
   // Initialize the controller and a mock scope
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
       $scope: this.$scope,

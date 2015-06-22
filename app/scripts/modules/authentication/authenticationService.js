@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.authentication.service', [
-  'ui.bootstrap',
-  'spinnaker.settings',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.authentication.service', [
+  require('../../settings/settings.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap')
 ])
   .factory('authenticationService', function ( $rootScope, $http, $location, $window, $modal, settings, redirectService ) {
     var user = {
@@ -43,7 +45,7 @@ angular.module('spinnaker.authentication.service', [
           var redirect = headers('X-AUTH-REDIRECT-URL');
           if (status === 401 && redirect) {
             $modal.open({
-              templateUrl: 'scripts/modules/authentication/authenticating.html',
+              templateUrl: require('./authenticating.html'),
               windowClass: 'modal no-animate',
               backdropClass: 'modal-backdrop-no-animate',
               backdrop: 'static',
@@ -71,4 +73,5 @@ angular.module('spinnaker.authentication.service', [
         $window.location.href = url;
       }
     };
-  });
+  })
+  .name;
