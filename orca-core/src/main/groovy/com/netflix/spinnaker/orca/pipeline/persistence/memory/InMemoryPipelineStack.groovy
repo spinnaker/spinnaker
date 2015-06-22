@@ -13,16 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineQueueTck
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 
-class InMemoryPipelineQueueSpec extends PipelineQueueTck<InMemoryPipelineQueue> {
+class InMemoryPipelineStack implements PipelineStack {
 
-  @Override
-  InMemoryPipelineQueue createPipelineQueue() {
-    new InMemoryPipelineQueue()
+  Map<String, List<String>> keys = [:]
+
+  void add(String id, String content) {
+    if (!keys[id]) {
+      keys[id] = []
+    }
+    (keys[id]).add(content)
+  }
+
+  void remove(String id, String content) {
+    (keys[id]).remove(content)
+    if (keys[id].empty) {
+      keys.remove(id)
+    }
+  }
+
+  boolean contains(String id) {
+    keys.keySet().contains(id)
+  }
+
+  List<String> elements(String id) {
+    keys[id] ? keys[id].reverse() : []
   }
 
 }

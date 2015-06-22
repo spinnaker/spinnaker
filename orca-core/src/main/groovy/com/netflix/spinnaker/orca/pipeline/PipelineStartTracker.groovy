@@ -16,50 +16,50 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineQueue
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class PipelineStarterQueue {
+class PipelineStartTracker {
 
   @Autowired
-  PipelineQueue pipelineQueue
+  PipelineStack pipelineStack
 
   static final String PIPELINE_STARTED = "PIPELINE:STARTED"
   static final String PIPELINE_QUEUED = "PIPELINE:QUEDED"
   static final String PIPELINE_STARTED_ALL = "PIPELINE:STARTED_ALL"
 
   boolean hasStartedExecutions(String pipelineConfigId) {
-    pipelineQueue.contains("${PIPELINE_STARTED}:${pipelineConfigId}")
+    pipelineStack.contains("${PIPELINE_STARTED}:${pipelineConfigId}")
   }
 
   void addToStarted(String pipelineConfigId, String executionId) {
-    pipelineQueue.add("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
-    pipelineQueue.add(PIPELINE_STARTED_ALL, executionId)
+    pipelineStack.add("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    pipelineStack.add(PIPELINE_STARTED_ALL, executionId)
   }
 
   void addToQueue(String pipelineConfigId, String executionId) {
-    pipelineQueue.add("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+    pipelineStack.add("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
   }
 
   void markAsFinished(String pipelineConfigId, String executionId) {
-    pipelineQueue.remove("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
-    pipelineQueue.remove(PIPELINE_STARTED_ALL, executionId)
+    pipelineStack.remove("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    pipelineStack.remove(PIPELINE_STARTED_ALL, executionId)
   }
 
   List<String> getAllStartedExecutions() {
-    pipelineQueue.elements(PIPELINE_STARTED_ALL)
+    pipelineStack.elements(PIPELINE_STARTED_ALL)
   }
 
   List<String> getQueuedPipelines(String pipelineConfigId) {
-    pipelineQueue.elements("${PIPELINE_QUEUED}:${pipelineConfigId}")
+    pipelineStack.elements("${PIPELINE_QUEUED}:${pipelineConfigId}")
   }
 
   void removeFromQueue(String pipelineConfigId, String executionId) {
-    pipelineQueue.remove("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+    pipelineStack.remove("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
   }
 
 }

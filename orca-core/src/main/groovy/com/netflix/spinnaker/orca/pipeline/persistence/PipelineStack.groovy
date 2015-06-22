@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
-interface PipelineQueue {
+interface PipelineStack {
 
   void add(String id, String content)
 

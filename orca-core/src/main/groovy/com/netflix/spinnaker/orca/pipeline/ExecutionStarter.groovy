@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.transform.CompileStatic
@@ -46,6 +45,7 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected JobOperator jobOperator
   @Autowired protected JobRepository jobRepository
   @Autowired protected ObjectMapper mapper
+  @Autowired(required=false) protected PipelineStartTracker startTracker
 
   @Autowired(required=false)
   List<JobExecutionListener> pipelineListeners
@@ -67,7 +67,23 @@ abstract class ExecutionStarter<T extends Execution> {
       return subject
     }
 
-    launcher.run job, createJobParameters(subject)
+    boolean startImmediately = true
+
+    if( startTracker && subject instanceof Pipeline ) {
+      def pipeline = (Pipeline) subject
+      if( subject.concurrent == false && pipeline.pipelineConfigId && startTracker.hasStartedExecutions(pipeline.pipelineConfigId) ){
+        startTracker.addToQueue(pipeline.pipelineConfigId, subject.id)
+        startImmediately = false
+      }
+    }
+
+    if(startImmediately) {
+      launcher.run job, createJobParameters(subject)
+      if( startTracker && subject instanceof Pipeline ){
+        startTracker.addToStarted(((Pipeline)subject).pipelineConfigId, subject.id)
+      }
+    }
+
     subject
   }
 

@@ -19,62 +19,62 @@ package com.netflix.spinnaker.orca.pipeline.persistence
 import spock.lang.Specification
 import spock.lang.Subject
 
-abstract class PipelineQueueTck<T extends PipelineQueue> extends Specification {
+abstract class PipelineStackTck<T extends PipelineStack> extends Specification {
 
   @Subject
-  T pipelineQueue
+  T pipelineStack
 
   void setup() {
-    pipelineQueue = createPipelineQueue()
+    pipelineStack = createPipelineStack()
   }
 
-  abstract T createPipelineQueue()
+  abstract T createPipelineStack()
 
   String id = '1234'
 
   void "offer returns correct value if item is in a list"() {
     expect:
-    !pipelineQueue.contains(id)
+    !pipelineStack.contains(id)
 
     when:
-    pipelineQueue.add(id, 'abc')
+    pipelineStack.add(id, 'abc')
 
     then:
-    pipelineQueue.contains(id)
+    pipelineStack.contains(id)
 
     when:
-    pipelineQueue.remove(id, 'abc')
+    pipelineStack.remove(id, 'abc')
 
     then:
-    !pipelineQueue.contains(id)
+    !pipelineStack.contains(id)
   }
 
   void "offer returns correct value if items are removed"() {
     given:
-    pipelineQueue.add(id, 'abc')
-    pipelineQueue.add(id, 'abc2')
+    pipelineStack.add(id, 'abc')
+    pipelineStack.add(id, 'abc2')
 
     when:
-    pipelineQueue.remove(id, 'abc')
+    pipelineStack.remove(id, 'abc')
 
     then:
-    pipelineQueue.contains(id)
+    pipelineStack.contains(id)
 
     when:
-    pipelineQueue.remove(id, 'abc2')
+    pipelineStack.remove(id, 'abc2')
 
     then:
-    !pipelineQueue.contains(id)
+    !pipelineStack.contains(id)
   }
 
   void "can retrieve all items in a list"() {
     given:
-    pipelineQueue.add(id, 'abc')
-    pipelineQueue.add(id, 'abc2')
-    pipelineQueue.add(id, 'abc3')
+    pipelineStack.add(id, 'abc')
+    pipelineStack.add(id, 'abc2')
+    pipelineStack.add(id, 'abc3')
 
     expect:
-    pipelineQueue.elements(id) == ['abc3', 'abc2', 'abc']
+    pipelineStack.elements(id) == ['abc3', 'abc2', 'abc']
   }
 
 }

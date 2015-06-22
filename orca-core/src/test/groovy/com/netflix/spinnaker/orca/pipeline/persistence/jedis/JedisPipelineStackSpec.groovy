@@ -18,12 +18,12 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineQueueTck
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStackTck
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Subject
 
-class JedisPipelineQueueSpec extends PipelineQueueTck<JedisPipelineQueue> {
+class JedisPipelineStackSpec extends PipelineStackTck<JedisPipelineStack> {
 
   @Shared
   @AutoCleanup("destroy")
@@ -42,10 +42,10 @@ class JedisPipelineQueueSpec extends PipelineQueueTck<JedisPipelineQueue> {
   def jedis = embeddedRedis.jedisCommands
 
   @Subject
-  JedisPipelineQueue pipelineQueue
+  JedisPipelineStack pipelineStack
 
   @Override
-  JedisPipelineQueue createPipelineQueue() {
-    new JedisPipelineQueue('test', jedis)
+  JedisPipelineStack createPipelineStack() {
+    new JedisPipelineStack('test', jedis)
   }
 }

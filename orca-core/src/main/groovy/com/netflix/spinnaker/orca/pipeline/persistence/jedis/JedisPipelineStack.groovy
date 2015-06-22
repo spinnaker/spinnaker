@@ -15,15 +15,15 @@
  */
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import com.netflix.spinnaker.orca.pipeline.persistence.PipelineQueue
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import redis.clients.jedis.JedisCommands
 
-class JedisPipelineQueue implements PipelineQueue{
+class JedisPipelineStack implements PipelineStack{
 
   private JedisCommands jedis
   private String prefix
 
-  JedisPipelineQueue(String prefix, JedisCommands jedis) {
+  JedisPipelineStack(String prefix, JedisCommands jedis) {
     this.jedis = jedis
     this.prefix = prefix
   }

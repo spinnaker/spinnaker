@@ -16,15 +16,15 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.PipelineStarterQueue
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineQueue
+import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
 import spock.lang.Specification
 import spock.lang.Subject
 
 class PipelineStarterQueueSpec extends Specification {
 
   @Subject
-  PipelineStarterQueue queue = new PipelineStarterQueue(pipelineQueue: new InMemoryPipelineQueue())
+  PipelineStartTracker queue = new PipelineStartTracker(pipelineStack: new InMemoryPipelineStack())
 
   void "should return a list of started jobs"() {
     given:
