@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.details.aws', [
-  'spinnaker.serverGroup.details.aws.controller',
-  'spinnaker.serverGroup.details.aws.autoscaling.process',
-  'spinnaker.serverGroup.details.aws.autoscaling.process.controller',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.details.aws', [
+  require('./serverGroupDetails.aws.controller.js'),
+  require('./autoScalingProcess.service.js'),
+  require('./modifyScalingProcesses.controller.js'),
 ]);

@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.instance.detail.aws.controller', [
-  'ui.router',
-  'spinnaker.instance.write.service',
-  'spinnaker.instance.read.service',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.utils.lodash',
+module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
+  require('angular-ui-router'),
+  require('../../instance.write.service.js'),
+  require('../../instance.read.service.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../utils/lodash.js'),
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,

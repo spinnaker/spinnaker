@@ -1,28 +1,30 @@
 'use strict';
 
-angular.module('spinnaker.pipelines', [
-  'spinnaker.pipelines.config',
-  'spinnaker.pipelines.config.controller',
-  'spinnaker.pipelines.create.controller',
-  'spinnaker.pipelines.config.validator.directive',
-  'spinnaker.pipelines.dirtyTracker.service',
-  'spinnaker.caches.viewStateCache',
+let angular = require('angular');
 
-  'restangular',
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.trigger',
-  'spinnaker.pipelines.parameters',
-  'spinnaker.pipelines.create',
-  'spinnaker.pipelines.delete',
-  'spinnaker.pipelines.enableParallel',
-  'spinnaker.pipelines.disableParallel',
-  'spinnaker.pipelines.rename',
-  'spinnaker.pipelines.editJson',
-  'spinnaker.authentication',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.pipelines', [
+  require('./config/pipelineConfigProvider.js'),
+  require('./config/pipelineConfig.controller.js'),
+  require('./config/actions/create/createPipelineModal.controller.js'),
+  require('./config/validation/pipelineConfigValidator.directive.js'),
+  require('./config/services/dirtyPipelineTracker.service.js'),
+  require('../caches/viewStateCache.js'),
+
+  require('restangular'),
+  require('./config/stages/stage.module.js'),
+  require('./config/triggers/trigger.module.js'),
+  require('./config/parameters/pipeline.module.js'),
+  require('./config/actions/create/createPipeline.module.js'),
+  require('./config/actions/delete/deletePipeline.module.js'),
+  require('./config/actions/enableParallel/enableParallel.controller.js'),
+  require('./config/actions/disableParallel/disableParallel.controller.js'),
+  require('./config/actions/rename/renamePipeline.module.js'),
+  require('./config/actions/json/editPipelineJson.module.js'),
+  require('../authentication/authentication.module.js'),
+  require('../utils/lodash.js'),
+  require('../caches/deckCacheFactory.js'),
   'ui.sortable',
 
-  'spinnaker.pipelines.graph.directive',
-  'spinnaker.pipeline.targetSelect.directive',
+  require('./config/graph/pipeline.graph.directive.js'),
+  require('./config/targetSelect.directive.js'),
 ]);

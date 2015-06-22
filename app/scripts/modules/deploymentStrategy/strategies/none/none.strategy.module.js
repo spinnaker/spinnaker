@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy.none', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.none', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'None',

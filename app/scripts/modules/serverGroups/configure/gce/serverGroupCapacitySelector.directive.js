@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .directive('gceServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupCapacityDirective.html',
+      template: require('./serverGroupCapacityDirective.html'),
       controller: 'gceServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })

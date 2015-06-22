@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.delete')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.delete')
   .controller('DeletePipelineModalCtrl', function($scope, $modalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService,
                                                   application, pipeline) {

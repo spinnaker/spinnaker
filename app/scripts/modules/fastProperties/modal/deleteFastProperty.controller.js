@@ -1,12 +1,15 @@
 'use strict';
 
+let angular = require('angular');
+
 // delete
-angular
+module.exports = angular
   .module('spinnaker.deleteFastProperty.controller', [
-    'spinnaker.account.service',
-    'spinnaker.fastProperty.write.service',
+    require('../../account/accountService.js'),
+    require('../fastProperty.write.service.js'),
+    require('../../utils/lodash.js'),
   ])
-  .controller('DeleteFastPropertyModalController', function ($modalInstance, accountService, fastProperty, fastPropertyWriter) {
+  .controller('DeleteFastPropertyModalController', function ($modalInstance, accountService, fastProperty, fastPropertyWriter, _) {
     var vm = this;
 
     vm.fastProperty = fastProperty;

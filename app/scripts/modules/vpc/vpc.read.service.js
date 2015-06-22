@@ -1,8 +1,13 @@
 'use strict';
 
 
-angular
-  .module('spinnaker.vpc.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.vpc.read.service', [
+    require('restangular'),
+    require('../utils/lodash.js'),
+  ])
   .factory('vpcReader', function ($q, Restangular, infrastructureCaches ) {
 
     function listVpcs() {

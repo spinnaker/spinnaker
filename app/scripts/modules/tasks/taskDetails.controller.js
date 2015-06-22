@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.tasks.detail.controller', [])
+module.exports = angular.module('spinnaker.tasks.detail.controller', [])
   .controller('TaskDetailsCtrl', function($scope, $log, $state,
                                           tasksReader, tasksWriter,
                                           taskId, application) {

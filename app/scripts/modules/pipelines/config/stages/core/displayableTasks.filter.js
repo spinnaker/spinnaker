@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stages.core.displayableTasks.filter', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stages.core.displayableTasks.filter', [])
   .filter('displayableTasks', function() {
     var blacklist = [
       'forceCacheRefresh',

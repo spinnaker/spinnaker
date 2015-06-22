@@ -1,13 +1,17 @@
 'use strict';
 
-angular.module('spinnaker.fastProperty.progressBar.directive', [])
-  .directive('fastPropertyProgressBar', function() {
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', [
+  require('../utils/lodash.js'),
+])
+  .directive('fastPropertyProgressBar', function(_) {
     return {
       restrict: 'E',
       scope: {
         task: '='
       },
-      templateUrl: 'scripts/modules/fastProperties/fastPropertyProgressBar.directive.html',
+      template: require('./fastPropertyProgressBar.directive.html'),
       link: function(scope) {
         var task = scope.task;
 
@@ -37,7 +41,7 @@ angular.module('spinnaker.fastProperty.progressBar.directive', [])
           var lastHistory = _(task.history).last();
           scope.progressStyle = { width: '100%' };
           scope.tooltip = 'Failed on Step ' + currentStep + ' of ' + totalSteps +
-            '<br><br><strong>Exception:</strong><p>' + lastHistory.message  +'</p>';
+            '<br><br><strong>Exception:</strong><p>' + lastHistory.message +'</p>';
         }
       }
     };

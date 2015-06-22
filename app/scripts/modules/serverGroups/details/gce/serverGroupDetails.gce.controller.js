@@ -2,14 +2,17 @@
 /* jshint camelcase:false */
 
 
-angular.module('spinnaker.serverGroup.details.gce.controller', [
-  'ui.router',
-  'ui.bootstrap',
-  'spinnaker.gce.serverGroupCommandBuilder.service',
-  'spinnaker.serverGroup.read.service',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.serverGroup.write.service',
-  'spinnaker.executionFilter.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
+  require('angular-ui-router'),
+  require('angular-bootstrap'),
+  require('../../configure/gce/ServerGroupCommandBuilder.js'),
+  require('../../serverGroup.read.service.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../serverGroup.write.service.js'),
+  require('../../configure/common/runningExecutions.service.js'),
+  require('../../../utils/lodash.js'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
@@ -164,7 +167,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/resizeServerGroup.html',
+        template: require('../resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -175,7 +178,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
@@ -189,7 +192,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/scalingActivities.html',
+        template: require('../scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },
@@ -203,7 +206,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/userData.html',
+        template: require('../../../../../views/application/modal/serverGroup/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

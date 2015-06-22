@@ -1,14 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.aws.details.controller',[
-  'ui.router',
-  'ui.bootstrap',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.loadBalancer.write.service',
-  'spinnaker.loadBalancer.read.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.confirmationModal.service'
+module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
+  require('angular-ui-router'),
+  require('angular-bootstrap'),
+  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../loadBalancer.write.service.js'),
+  require('../../loadBalancer.read.service.js'),
+  require('../../../utils/lodash.js'),
+  require('../../../confirmationModal/confirmationModal.service.js')
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
@@ -61,10 +62,12 @@ angular.module('spinnaker.loadBalancer.aws.details.controller',[
 
     application.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
+    //BEN_TODO
+
     this.editLoadBalancer = function editLoadBalancer() {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
+        template: '../../configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
@@ -77,7 +80,7 @@ angular.module('spinnaker.loadBalancer.aws.details.controller',[
     this.cloneLoadBalancer = function () {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
+        template: '../../configure/' + provider + '/createLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },

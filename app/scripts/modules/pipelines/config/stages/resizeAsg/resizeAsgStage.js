@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.resizeAsg')
+//BEN_TODO
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Resize Server Group',
@@ -8,7 +12,7 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
       key: 'resizeAsg',
       controller: 'ResizeAsgStageCtrl',
       controllerAs: 'resizeAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStage.html',
+      template: require('./resizeAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
       validators: [
@@ -18,7 +22,7 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
         },
       ],
     });
-  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService, _) {
 
     var ctrl = this;
 

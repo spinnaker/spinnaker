@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common', []);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common', []);

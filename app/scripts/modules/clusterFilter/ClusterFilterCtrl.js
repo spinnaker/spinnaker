@@ -1,8 +1,14 @@
 'use strict';
 
+let angular = require('angular');
+
 // controllerAs: clustersFilters
 
-angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'spinnaker.utils.lodash'])
+module.exports = angular.module('cluster', [
+  'cluster.filter.service',
+  'cluster.filter.model',
+  require('../utils/lodash.js'),
+])
   .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
     $scope.application = application;

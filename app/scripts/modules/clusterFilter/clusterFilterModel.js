@@ -1,7 +1,12 @@
 'use strict';
 
-angular
-  .module('cluster.filter.model', ['ui.router', 'spinnaker.utils.lodash'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('cluster.filter.model', [
+    require('angular-ui-router'),
+    require('../utils/lodash.js'),
+  ])
   .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, $location, _) {
 
     var sortFilter = {
@@ -26,7 +31,7 @@ angular
     function convertObjectToParam(obj) {
       if(obj) {
         return _.chain(obj)
-          .collect(function(val,key) {
+          .collect(function(val, key) {
              if (val){ return key; }
           })
           .remove(undefined)

@@ -1,10 +1,12 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('cluster.filter.service', [
     'cluster.filter.model',
-    'spinnaker.utils.lodash',
-    'spinnaker.utils.waypoints.service',
+    require('../utils/lodash.js'),
+    require('../utils/waypoints/waypoint.service.js'),
   ])
   .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log) {
 

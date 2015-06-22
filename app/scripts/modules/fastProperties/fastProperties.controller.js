@@ -1,9 +1,11 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.fastProperties.controller', [
-    'spinnaker.applications.read.service',
-    'spinnaker.settings',
+    require('../applications/applications.read.service.js'),
+    require('../caches/deckCacheFactory.js'),
   ])
   .controller('FastPropertiesController', function ($filter, applicationReader, settings) {
     var vm = this;

@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.parameters')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.parameters')
   .directive('parameter', function() {
     return {
       restrict: 'E',
@@ -9,7 +11,7 @@ angular.module('spinnaker.pipelines.parameters')
         pipeline: '='
       },
       controller: 'ParameterCtrl as parameterCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/parameters/parameter.html'
+      template: require('./parameter.html'),
     };
   })
   .controller('ParameterCtrl', function($scope) {

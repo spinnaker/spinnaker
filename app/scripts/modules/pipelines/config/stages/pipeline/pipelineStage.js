@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.pipeline')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.pipeline')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Pipeline',
@@ -8,7 +10,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
       key: 'pipeline',
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineStage.html',
+      template: require('./pipelineStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
       validators: [
         {
@@ -18,7 +20,7 @@ angular.module('spinnaker.pipelines.stage.pipeline')
         },
       ],
     });
-  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader) {
+  }).controller('pipelineStageCtrl', function($scope, stage, pipelineConfigService, applicationReader, _) {
 
     $scope.stage = stage;
 

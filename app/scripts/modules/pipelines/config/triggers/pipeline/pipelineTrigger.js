@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.pipeline')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.pipeline')
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
       label: 'Pipeline',
@@ -8,11 +10,11 @@ angular.module('spinnaker.pipelines.trigger.pipeline')
       key: 'pipeline',
       controller: 'pipelineTriggerCtrl',
       controllerAs: 'pipelineTriggerCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/triggers/pipeline/pipelineTrigger.html',
+      template: require('./pipelineTrigger.html'),
       popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/pipeline/pipelinePopoverLabel.html'
     });
   })
-  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader) {
+  .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader, _) {
 
     $scope.trigger = trigger;
 

@@ -1,5 +1,7 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.transformer.service', [
-  'spinnaker.delegation',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.transformer.service', [
+  require('../../../../delegation/serviceDelegate.service.js'),
 ]);

@@ -1,3 +1,7 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.parameters', ['spinnaker.pipelines']);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.parameters', [
+  require('../../pipelines.module.js'),
+]);

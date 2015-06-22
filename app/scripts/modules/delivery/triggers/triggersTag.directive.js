@@ -1,9 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.delivery.execution.triggers', [
-  'spinnaker.delivery.executions.service',
-  'spinnaker.pipelines.config',
-  'spinnaker.delivery.execution.triggers.toggle.modal.controller',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.execution.triggers', [
+  require('../executionsService.js'),
+  require('../../pipelines/config/pipelineConfigProvider.js'),
+  require('./ToggleTrigger.modal.controller.js'),
+  require('../../utils/lodash.js'),
 ])
   .directive('triggersTag', function() {
     return {
@@ -11,12 +14,12 @@ angular.module('spinnaker.delivery.execution.triggers', [
       scope: {
         pipeline: '=',
       },
-      templateUrl: 'scripts/modules/delivery/triggers/triggersTag.html',
+      template: require('./triggersTag.html'),
       controller: 'TriggersTagCtrl',
       controllerAs: 'triggersTagCtrl',
     };
   })
-  .controller('TriggersTagCtrl', function($scope, pipelineConfigService, pipelineConfig) {
+  .controller('TriggersTagCtrl', function($scope, pipelineConfigService, pipelineConfig, _) {
     $scope.popover = {
       show: false,
     };

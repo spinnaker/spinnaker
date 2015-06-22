@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.instanceType.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.utils.lodash',
-  'spinnaker.caches.infrastructure',
+module.exports = angular.module('spinnaker.aws.instanceType.service', [
+  require('restangular'),
+  require('../modules/caches/deckCacheFactory.js'),
+  require('../modules/utils/lodash.js'),
+  require('../modules/caches/infrastructureCaches.js'),
 ])
   .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
 

@@ -1,10 +1,13 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.applications.write.service', [
-    'spinnaker.taskExecutor.service'
+    require('../../services/taskExecutor.js'),
+    require('../utils/lodash.js'),
   ])
-  .factory('applicationWriter', function($q, taskExecutor) {
+  .factory('applicationWriter', function($q, taskExecutor, _) {
 
     function createApplication(app, account) {
       return taskExecutor.executeTask({

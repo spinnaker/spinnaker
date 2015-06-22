@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.jenkins')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.jenkins')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({
       label: 'Jenkins',
@@ -8,7 +10,7 @@ angular.module('spinnaker.pipelines.trigger.jenkins')
       key: 'jenkins',
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsTrigger.html',
+      template: require('./jenkinsTrigger.html'),
       popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsPopoverLabel.html'
     });
   })

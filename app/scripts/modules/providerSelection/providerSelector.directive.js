@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.providerSelection.directive', [
-  'spinnaker.account.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.providerSelection.directive', [
+  require('../account/accountService.js'),
 ])
   .directive('providerSelector', function(accountService) {
     return {
@@ -11,7 +13,7 @@ angular.module('spinnaker.providerSelection.directive', [
         field: '@',
         readOnly: '=',
       },
-      templateUrl: 'scripts/modules/providerSelection/providerSelector.html',
+      template: require('./providerSelector.html'),
       link: function(scope) {
         scope.initialized = false;
         accountService.listProviders().then(function(providers) {

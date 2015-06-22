@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines')
   .directive('pipelineConfigView', function() {
     return {
       restrict: 'E',
@@ -10,7 +12,7 @@ angular.module('spinnaker.pipelines')
         application: '=',
         viewState: '='
       },
-      templateUrl: 'scripts/modules/pipelines/config/pipelineConfigView.html',
+      template: require('./pipelineConfigView.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }

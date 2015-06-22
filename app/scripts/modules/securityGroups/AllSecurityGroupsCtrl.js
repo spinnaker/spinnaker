@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.all.controller', [
-  'ui.bootstrap',
-  'spinnaker.utils.lodash',
-  'spinnaker.providerSelection.service',
+module.exports = angular.module('spinnaker.securityGroup.all.controller', [
+  require('angular-bootstrap'),
+  require('../utils/lodash.js'),
+  require('../providerSelection/providerSelection.service.js'),
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {
     $scope.application = application;
@@ -54,7 +55,7 @@ angular.module('spinnaker.securityGroup.all.controller', [
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider().then(function(provider) {
         $modal.open({
-          templateUrl: 'scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
+          templateUrl: './configure/' + provider + '/createSecurityGroup.html',
           controller: 'CreateSecurityGroupCtrl as ctrl',
           resolve: {
             securityGroup: function () {

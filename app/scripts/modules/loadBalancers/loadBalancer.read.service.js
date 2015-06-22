@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.loadBalancer.read.service', [
-    'spinnaker.caches.infrastructure',
-    'spinnaker.loadBalancer.transformer.service',
+    require('../caches/infrastructureCaches.js'),
+    require('./loadBalancer.transformer.js'),
   ])
   .factory('loadBalancerReader', function ($q, Restangular, searchService, loadBalancerTransformer, infrastructureCaches) {
 

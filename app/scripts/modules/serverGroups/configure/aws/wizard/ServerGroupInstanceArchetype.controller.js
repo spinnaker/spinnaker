@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws')
   .controller('awsInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     var wizard = modalWizardService.getWizard();

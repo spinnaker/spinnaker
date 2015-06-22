@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 describe('Controller: executionGroup', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.

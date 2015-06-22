@@ -1,9 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.scalingActivities.controller', [
-  'spinnaker.serverGroup.read.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.scalingActivities.controller', [
+  require('../serverGroup.read.service.js'),
+  require('../../utils/lodash.js'),
 ])
-  .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup) {
+  .controller('ScalingActivitiesCtrl', function($scope, $modalInstance, serverGroupReader, applicationName, account, clusterName, serverGroup, _) {
     var ctrl = this;
     serverGroupReader.getScalingActivities(applicationName, account, clusterName, serverGroup.name, serverGroup.region, serverGroup.provider).then(function(response) {
       $scope.activities = ctrl.groupScalingActivities(response);

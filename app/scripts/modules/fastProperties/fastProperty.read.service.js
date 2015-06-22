@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.fastProperty.read.service', [
-    'restangular',
-    'spinnaker.settings'
+    require('restangular'),
+    require('../caches/deckCacheFactory.js')
   ])
   .factory('fastPropertyReader', function (Restangular) {
 

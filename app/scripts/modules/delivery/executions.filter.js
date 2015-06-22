@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executions.filter', [
-  'spinnaker.timeBoundaries.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executions.filter', [
+  require('./timeBoundaries.service.js')
 ])
   .filter('executions', function(timeBoundaries) {
     return function(executions, filter, grouping) {

@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.tasks.api', [
-  'restangular',
-  'spinnaker.kato.service',
-  'spinnaker.settings',
-  'spinnaker.urlBuilder',
-  'spinnaker.orchestratedItem.service'
+module.exports = angular.module('spinnaker.tasks.api', [
+  require('restangular'),
+  require('../../services/kato.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../../services/urlbuilder.js'),
+  require('../../services/orchestratedItem.js')
 ])
   .factory('tasksApi', function(settings, Restangular, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
 

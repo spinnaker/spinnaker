@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.executionWindows')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Restrict Execution During',

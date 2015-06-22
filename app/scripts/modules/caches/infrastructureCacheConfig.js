@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.caches.infrastructure.config', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
     credentials: {},
     vpcs: {},

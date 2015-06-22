@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.orchestratedItem.service', [
-  'spinnaker.utils.moment'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.orchestratedItem.service', [
+  require('../modules/utils/moment.js')
 ])
   .factory('orchestratedItem', function(momentService, $log) {
     function defineProperties(item) {

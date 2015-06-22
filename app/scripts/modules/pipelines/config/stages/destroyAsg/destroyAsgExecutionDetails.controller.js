@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.destroyAsg.executionDetails.controller', [
-  'ui.router',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg.executionDetails.controller', [
+  require('angular-ui-router'),
+  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('DestroyAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

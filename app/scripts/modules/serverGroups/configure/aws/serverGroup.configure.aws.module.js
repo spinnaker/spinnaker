@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws', [
-  'spinnaker.account',
-  'spinnaker.serverGroup.configure.aws.deployInitialization.controller',
-  'spinnaker.caches.infrastructure',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
+  require('../../../account/account.module.js'),
+  require('./wizard/deployInitializer.controller.js'),
+  require('../../../caches/infrastructureCaches.js'),
 ]);

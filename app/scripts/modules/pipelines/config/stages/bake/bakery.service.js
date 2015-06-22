@@ -1,7 +1,9 @@
 'use strict';
 
+let angular = require('angular');
+
 // TODO: Move everything in here to config
-angular.module('spinnaker.pipelines.stage.bake')
+module.exports = angular.module('spinnaker.pipelines.stage.bake')
   .factory('bakeryService', function($q) {
 
     function getRegions(provider) {

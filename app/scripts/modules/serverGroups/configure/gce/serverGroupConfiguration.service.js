@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,
-                                                          $q, loadBalancerReader) {
+                                                          $q, loadBalancerReader, _) {
 
 
     function configureCommand(command) {

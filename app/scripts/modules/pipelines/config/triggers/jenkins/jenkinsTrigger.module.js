@@ -1,10 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.jenkins', [
-  'spinnaker.pipelines.trigger',
-  'restangular',
-  'spinnaker.pipelines.trigger.jenkins.service',
-  'spinnaker.caches.initializer',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.utils.timeFormatters',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.jenkins', [
+  require('../trigger.module.js'),
+  require('restangular'),
+  require('./igor.service.js'),
+  require('../../../../caches/cacheInitializer.js'),
+  require('../../../../caches/infrastructureCaches.js'),
+  require('../../../../utils/timeFormatters.js'),
 ]);

@@ -1,8 +1,12 @@
-angular
+'use strict';
+
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.cluster', [
-    'spinnaker.instanceList.filter',
+    require('./instanceList.filter.js'),
     'cluster',
     'clusters.all',
     'cluster.filter.collapse',
-    'spinnaker.utils.lodash',
+    require('../utils/lodash.js'),
   ]);

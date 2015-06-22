@@ -1,12 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.pipeline', [
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.stage.core',
-  'spinnaker.caches.initializer',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.utils.timeFormatters',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.pipelines.stage.pipeline.executionDetails.controller',
-  'spinnaker.applications.read.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.pipeline', [
+  require('../stage.module.js'),
+  require('../core/stage.core.module.js'),
+  require('../../../../caches/cacheInitializer.js'),
+  require('../../../../caches/infrastructureCaches.js'),
+  require('../../../../utils/timeFormatters.js'),
+  require('../../services/pipelineConfigService.js'),
+  require('./pipelineExecutionDetails.controller.js'),
+  require('../../../../applications/applications.read.service.js'),
 ]);

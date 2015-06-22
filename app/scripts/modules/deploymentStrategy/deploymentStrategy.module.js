@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy', ['spinnaker.utils']);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy', ['spinnaker.utils']);

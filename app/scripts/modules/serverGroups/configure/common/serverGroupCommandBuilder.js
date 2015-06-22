@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.common.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.delegation'
+module.exports = angular.module('spinnaker.serverGroup.configure.common.service', [
+  require('restangular'),
+  require('../caches/deckCacheFactory.js'),
+  require('../../../delegation/serviceDelegate.service.js')
 ])
   .factory('serverGroupCommandBuilder', function (settings, Restangular, serviceDelegate) {
 

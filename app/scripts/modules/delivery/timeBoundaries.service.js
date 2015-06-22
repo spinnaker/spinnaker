@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.timeBoundaries.service', [
-  'spinnaker.utils.moment'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.timeBoundaries.service', [
+  require('../utils/moment.js')
 ])
   .factory('timeBoundaries', function(momentService) {
     var boundaries = [

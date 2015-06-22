@@ -1,11 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.config.controller', [
-  'ui.router',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.pageTitle',
-  'spinnaker.pipelines.dirtyTracker.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.controller', [
+  require('angular-ui-router'),
+  require('./services/pipelineConfigService.js'),
+  require('../../utils/lodash.js'),
+  require('../../pageTitle/pageTitleService.js'),
+  require('./services/dirtyPipelineTracker.service.js'),
 ])
   .controller('PipelineConfigCtrl', function($scope, $rootScope, $timeout, $stateParams, _, $q, $window,
                                              pageTitleService, dirtyPipelineTracker, pipelineConfigService) {

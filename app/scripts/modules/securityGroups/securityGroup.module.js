@@ -1,17 +1,17 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.securityGroup', [
-    'spinnaker.securityGroup.all.controller',
-    'spinnaker.securityGroup.single.controller',
-    'spinnaker.securityGroup.rollup',
-    'spinnaker.securityGroup.read.service',
-    'spinnaker.securityGroup.write.service',
-    'spinnaker.securityGroup.counts',
-    'spinnaker.securityGroup.aws.details.controller',
-    'spinnaker.securityGroup.aws.edit.controller',
-    'spinnaker.securityGroup.aws.create.controller',
-    'spinnaker.securityGroup.navigation.controller',
-    'spinnaker.securityGroup.clone.controller',
-    'spinnaker.securityGroup.baseConfig.controller'
+    require('./AllSecurityGroupsCtrl.js'),
+    require('./SecurityGroupCtrl.js'),
+    require('./securityGroup.directive.js'),
+    require('./securityGroup.read.service.js'),
+    require('./securityGroup.write.service.js'),
+    require('./securityGroupCounts.directive.js'),
+    require('./details/aws/SecurityGroupDetailsCtrl.js'),
+    require('./configure/aws/EditSecurityGroupCtrl.js'),
+    require('./configure/aws/CreateSecurityGroupCtrl.js'),
+    require('./SecurityGroupsNavCtrl.js')
   ]);

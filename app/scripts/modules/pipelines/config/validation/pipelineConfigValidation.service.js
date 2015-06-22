@@ -1,10 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.config.validator.service', [
-  'spinnaker.pipelines.config',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.naming',
-  'spinnaker.utils.lodash',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.validator.service', [
+  require('../pipelineConfigProvider.js'),
+  require('../services/pipelineConfigService.js'),
+  require('../../../naming/naming.service.js'),
+  require('../../../utils/lodash.js'),
 ])
   .factory('pipelineConfigValidator', function($log, _, pipelineConfig, pipelineConfigService, namingService) {
 

@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce')
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {

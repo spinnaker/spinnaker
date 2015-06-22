@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.notifications.config', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.notifications.config', [])
   .provider('notificationTypeConfig', function() {
 
     var notificationTypes = [];

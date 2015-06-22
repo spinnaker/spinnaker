@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionBar.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionBar.directive', [
+])
   .directive('executionBar', function() {
     return {
       restrict: 'E',
@@ -11,7 +14,7 @@ angular.module('spinnaker.delivery.executionBar.directive', [])
         scale: '=',
         executions: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionBar.html',
+      template: require('./executionBar.html'),
       controller: 'executionBar as ctrl',
     };
   });

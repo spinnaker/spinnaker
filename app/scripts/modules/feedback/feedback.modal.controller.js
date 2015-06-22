@@ -1,9 +1,9 @@
 'use strict';
+let angular = require('angular');
 
-
-angular.module('spinnaker.feedback.modal.controller', [
-  'spinnaker.settings',
-  'spinnaker.authentication.service'
+module.exports = angular.module('spinnaker.feedback.modal.controller', [
+  require('../caches/deckCacheFactory.js'),
+  require('../authentication/authenticationService.js')
 ])
   .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
 

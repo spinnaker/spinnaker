@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stages.canary.score.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stages.canary.score.directive', [])
   .directive('canaryScore', function() {
     return {
       restrict: 'E',

@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.utils.appendTransform', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.appendTransform', [])
   .factory('appendTransform', function($http) {
     function append(defaults, transform) {
       defaults = angular.isArray(defaults) ? defaults : [defaults];

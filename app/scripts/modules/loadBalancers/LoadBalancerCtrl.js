@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.controller')
+module.exports = angular.module('spinnaker.loadBalancer.controller')
   .controller('LoadBalancerCtrl', function ($scope, $state, application, loadBalancer) {
     $scope.application = application;
 

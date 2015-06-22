@@ -1,3 +1,4 @@
 'use strict';
+let angular = require('angular');
 
-angular.module('spinnaker.help', ['spinnaker.templates']);
+module.exports = angular.module('spinnaker.help', ['spinnaker.templates']);

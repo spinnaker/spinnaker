@@ -1,13 +1,14 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.read.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.search.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.caches.scheduled',
-  'spinnaker.caches.infrastructure',
+module.exports = angular.module('spinnaker.securityGroup.read.service', [
+  require('restangular'),
+  require('../caches/deckCacheFactory.js'),
+  require('../search/search.service.js'),
+  require('../utils/lodash.js'),
+  require('../caches/scheduledCache.js'),
+  require('../caches/infrastructureCaches.js'),
 ])
   .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches) {
 

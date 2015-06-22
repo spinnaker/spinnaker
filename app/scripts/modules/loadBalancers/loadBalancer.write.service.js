@@ -1,10 +1,12 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.loadBalancer.write.service', [
-    'spinnaker.taskExecutor.service',
-    'spinnaker.caches.infrastructure',
-    'spinnaker.caches.scheduled'
+    require('../../services/taskExecutor.js'),
+    require('../caches/infrastructureCaches.js'),
+    require('../caches/scheduledCache.js')
   ])
   .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
 

@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.providerSelection.service', [
-  'spinnaker.account.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.providerSelection.service', [
+  require('../account/accountService.js'),
 ])
   .factory('providerSelectionService', function($modal, $q, accountService) {
     function selectProvider() {
@@ -10,7 +12,7 @@ angular.module('spinnaker.providerSelection.service', [
 
         if (providers.length > 1) {
           provider = $modal.open({
-            templateUrl: 'scripts/modules/providerSelection/providerSelection.html',
+            template: require('./providerSelection.html'),
             controller: 'ProviderSelectCtrl as ctrl',
             resolve: {
               providerOptions: function() { return providers; }

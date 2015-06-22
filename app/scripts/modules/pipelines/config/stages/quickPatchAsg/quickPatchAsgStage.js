@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.quickPatchAsg')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Quick Patch Server Group',
@@ -8,7 +10,7 @@ angular.module('spinnaker.pipelines.stage.quickPatchAsg')
       key: 'quickPatch',
       controller: 'QuickPatchAsgStageCtrl',
       controllerAs: 'QuickPatchAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgStage.html',
+      template: require('./quickPatchAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgExecutionDetails.html'
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {

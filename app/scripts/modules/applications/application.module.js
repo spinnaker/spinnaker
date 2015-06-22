@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.application', [
-    'spinnaker.application.controller',
-    'spinnaker.applications.controller',
-    'spinnaker.application.create.modal.controller'
+    require('./application.controller.js'),
+    require('./applications.controller.js'),
+    require('./modal/createApplication.modal.controller.js'),
   ]);

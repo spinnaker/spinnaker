@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.aws', []);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.aws', []);

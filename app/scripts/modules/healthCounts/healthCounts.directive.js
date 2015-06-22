@@ -1,17 +1,21 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.healthCounts.directive', [])
+module.exports = angular.module('spinnaker.healthCounts.directive', [
+])
   .directive('healthCounts', function ($templateCache) {
     return {
-      templateUrl: 'scripts/modules/healthCounts/healthCounts.html',
+      template: require('./healthCounts.html'),
       restrict: 'E',
       scope: {
         container: '='
       },
       link: function(scope) {
 
-        var template = $templateCache.get('scripts/modules/healthCounts/healthLegend.html');
+
+        //BEN_TODO: intersection of this and webpack
+        var template = require('./healthLegend.html');
         scope.legend = template;
 
         function calculateHealthPercent() {

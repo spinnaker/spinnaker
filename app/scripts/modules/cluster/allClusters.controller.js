@@ -1,16 +1,17 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('clusters.all', [
+module.exports = angular.module('clusters.all', [
   'cluster.filter.service',
   'cluster.filter.model',
-  'spinnaker.cluster.pod',
-  'spinnaker.account',
-  'spinnaker.providerSelection',
-  'spinnaker.providerSelection.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.serverGroup.configure.common.service',
-  'spinnaker.utils.waypoints.container.directive',
+  require('./clusterPod.directive.js'),
+  require('../account/account.module.js'),
+  require('../providerSelection/providerSelection.module.js'),
+  require('../providerSelection/providerSelection.service.js'),
+  require('../securityGroups/securityGroup.read.service.js'),
+  require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('../utils/waypoints/waypointContainer.directive.js'),
 ])
   .controller('AllClustersCtrl', function($scope, application, $modal, $location,
                                           securityGroupReader, accountService, providerSelectionService,
@@ -69,6 +70,7 @@ angular.module('clusters.all', [
     };
 
     this.createServerGroup = function createServerGroup() {
+      // BEN_TODO: figure out interpolated values with webpack
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
           templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',

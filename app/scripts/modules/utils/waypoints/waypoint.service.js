@@ -1,9 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.utils.waypoints.service', [
-  'spinnaker.utils.jQuery',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils.waypoints.service', [
+  require('../jQuery.js'),
+  require('../lodash.js'),
 ])
-  .factory('waypointService', function($timeout, $) {
+  .factory('waypointService', function($timeout, $, _) {
 
     var waypointRegistry = Object.create(null);
 

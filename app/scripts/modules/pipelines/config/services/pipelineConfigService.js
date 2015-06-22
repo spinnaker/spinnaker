@@ -1,14 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.pipelines.config.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.utils.lodash',
-  'spinnaker.pipelines.config',
-  'spinnaker.authentication.service',
-  'spinnaker.caches.viewStateCache',
-  'spinnaker.confirmationModal.service',
+module.exports = angular.module('spinnaker.pipelines.config.service', [
+  require('restangular'),
+  require('../../../caches/deckCacheFactory.js'),
+  require('../../../utils/lodash.js'),
+  require('../pipelineConfigProvider.js'),
+  require('../../../authentication/authenticationService.js'),
+  require('../../../caches/viewStateCache.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
 ])
   .factory('pipelineConfigService', function (_, $q, settings, Restangular,
                                               authenticationService, viewStateCache,
@@ -138,7 +139,7 @@ angular.module('spinnaker.pipelines.config.service', [
     function toggleTrigger(pipeline, index) {
       var trigger = pipeline.triggers[index];
       return $modal.open({
-        templateUrl: 'scripts/modules/delivery/triggers/toggleTrigger.modal.html',
+        template: require('../../../delivery/triggers/toggleTrigger.modal.html'),
         controller: 'ToggleTriggerModalCtrl',
         controllerAs: 'toggleTriggerCtrl',
         resolve: {

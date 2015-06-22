@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger')
   .directive('trigger', function() {
     return {
       restrict: 'E',
@@ -11,7 +13,7 @@ angular.module('spinnaker.pipelines.trigger')
         application: '='
       },
       controller: 'TriggerCtrl as triggerCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/triggers/trigger.html',
+      template: require('./trigger.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }

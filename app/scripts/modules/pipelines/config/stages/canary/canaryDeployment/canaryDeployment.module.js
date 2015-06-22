@@ -1,5 +1,7 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.canary.canaryDeployment', [
-  'spinnaker.pipelines.stage.canary.canaryDeployment.details.controller',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployment', [
+  require('./canaryDeploymentExecutionDetails.controller.js'),
 ]);

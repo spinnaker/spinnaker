@@ -1,8 +1,9 @@
 'use strict';
 
+let angular = require('angular');
 var calculatedTargetDescription = '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>';
 
-angular.module('spinnaker.help')
+module.exports = angular.module('spinnaker.help')
   .constant('helpContents', {
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
       '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +

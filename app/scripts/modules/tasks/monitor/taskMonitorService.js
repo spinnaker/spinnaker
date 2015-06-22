@@ -1,8 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.tasks.monitor.service', [])
-  .factory('taskMonitorService', function($exceptionHandler) {
+module.exports = angular.module('spinnaker.tasks.monitor.service', [
+  require('../../utils/lodash.js'),
+])
+  .factory('taskMonitorService', function($exceptionHandler, _) {
 
     /**
      * Either provide an onApplicationRefresh method OR an onTaskComplete method in the params!

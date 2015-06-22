@@ -1,15 +1,17 @@
 'use strict';
 
-angular.module('spinnaker.utils', [
-  'spinnaker.utils.appendTransform',
-  'spinnaker.utils.d3',
-  'spinnaker.utils.isEmpty',
-  'spinnaker.utils.jQuery',
-  'spinnaker.utils.lodash',
-  'spinnaker.utils.moment',
-  'spinnaker.utils.scrollTrigger',
-  'spinnaker.utils.selectOnDblClick',
-  'spinnaker.utils.rx',
-  'spinnaker.utils.stickyHeader',
-  'spinnaker.utils.timeFormatters',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.utils', [
+  require('./appendTransform.js'),
+  require('./d3.js'),
+  require('./isEmpty.js'),
+  require('./jQuery.js'),
+  require('../utils/lodash.js'),
+  require('./moment.js'),
+  require('./scrollTriggerService.js'),
+  require('./selectOnDblClick.directive.js'),
+  require('./rx.js'),
+  require('./stickyHeader/stickyHeader.directive.js'),
+  require('./timeFormatters.js'),
 ]);

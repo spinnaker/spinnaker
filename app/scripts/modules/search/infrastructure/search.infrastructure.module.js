@@ -1,3 +1,5 @@
 'use strict';
 
-angular.module('spinnaker.search.infrastructure', []);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.search.infrastructure', []);

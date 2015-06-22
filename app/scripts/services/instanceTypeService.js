@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.instanceType.service', [
-  'spinnaker.settings',
-  'spinnaker.utils.lodash',
-  'spinnaker.aws.instanceType.service',
-  'spinnaker.gce.instanceType.service'
+module.exports = angular.module('spinnaker.instanceType.service', [
+  require('../modules/caches/deckCacheFactory.js'),
+  require('../modules/utils/lodash.js'),
+  require('./awsInstanceTypeService.js'),
+  require('./gceInstanceTypeService.js')
 ])
   .factory('instanceTypeService', function ($http, $q, settings, _, $window, awsInstanceTypeService, gceInstanceTypeService) {
 
@@ -29,7 +30,7 @@ angular.module('spinnaker.instanceType.service', [
 
     function getCategoryForInstanceType(selectedProvider, instanceType) {
       return getCategories(selectedProvider).then(function(categories) {
-        var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] } ;
+        var query = {families: [ {instanceTypes: [ {name:instanceType } ] } ] };
         var result = _.result(_.findWhere(categories, query), 'type');
         return result || 'custom';
       });

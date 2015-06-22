@@ -1,14 +1,18 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.destroyAsg')
-  .config(function(pipelineConfigProvider) {
+let angular = require('angular');
+
+//BEN_TODO: where is this defined?
+
+module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg')
+  .config(function(pipelineConfigProvider, _) {
     pipelineConfigProvider.registerStage({
       label: 'Destroy Server Group',
       description: 'Destroys a server group',
       key: 'destroyAsg',
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStage.html',
+      template: require('./destroyAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
       validators: [
@@ -18,7 +22,7 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
         },
       ],
     });
-  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, _) {
     var ctrl = this;
 
     $scope.stage = stage;

@@ -1,12 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.canary.actions.override.result.controller', [
-  'ui.router',
-  'spinnaker.utils.lodash',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.canary.actions.override.result.controller', [
+  require('angular-ui-router'),
+  require('../../../../../utils/lodash.js'),
+  require('../../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId) {
+  .controller('EndCanaryCtrl', function ($scope, $http, $modalInstance, settings, canaryId, _) {
 
     $scope.command = {
       reason: null,

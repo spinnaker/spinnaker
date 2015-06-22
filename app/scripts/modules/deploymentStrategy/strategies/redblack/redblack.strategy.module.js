@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy.redblack', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.redblack', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Red/Black',

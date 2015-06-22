@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.caches.applicationLevelScheduled', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.applicationLevelScheduled', [])
   .factory('applicationLevelScheduledCache', function(scheduledCache, $rootScope, $stateParams) {
     var currentApplication = '';
     var toRemove = [];
@@ -17,7 +19,7 @@ angular.module('spinnaker.caches.applicationLevelScheduled', [])
       info: scheduledCache.info,
       put: function(k, v) {
         toRemove.push(k);
-        return scheduledCache.put(k,v);
+        return scheduledCache.put(k, v);
       },
       get: scheduledCache.get,
       removeAll: scheduledCache.removeAll,

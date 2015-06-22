@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws')
   .directive('awsServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -9,18 +11,18 @@ angular.module('spinnaker.serverGroup.configure.aws')
         application: '=',
         hideClusterNamePreview: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupBasicSettingsDirective.html',
+      template: require('./serverGroupBasicSettingsDirective.html'),
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService) {
+  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService, _) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return new RxService.Observable.fromPromise(
+      return RxService.Observable.fromPromise(
         imageService.findImages({
           provider: $scope.command.selectedProvider,
           q: q,

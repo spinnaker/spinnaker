@@ -1,9 +1,10 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.image.service', [
-  'spinnaker.aws.image.service',
-  'spinnaker.gce.image.service'
+module.exports = angular.module('spinnaker.image.service', [
+  require('./awsImageService.js'),
+  require('./gceImageService.js')
 ])
   .factory('imageService', function (awsImageService, gceImageService) {
 

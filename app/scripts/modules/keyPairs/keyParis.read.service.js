@@ -1,7 +1,9 @@
 'use strict';
 
-angular
-  .module('spinnaker.keyPairs.read.service', ['restangular', 'spinnaker.caches.infrastructure'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.keyPairs.read.service', [require('restangular'), 'spinnaker.caches.infrastructure'])
   .factory('keyPairsReader', function ($q, Restangular, infrastructureCaches) {
 
     function listKeyPairs() {
