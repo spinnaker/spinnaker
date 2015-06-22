@@ -37,12 +37,12 @@ angular.module('spinnaker.tasks.api', [
         var katoTasks = task.getValueFor('kato.tasks');
         if (katoTasks && katoTasks.length && katoTasks[katoTasks.length - 1].id === katoTask.id) {
           var lastTask = katoTasks[katoTasks.length - 1];
-          angular.copy(katoTask.asPondKatoTask(), lastTask);
+          angular.copy(katoTask.asOrcaKatoTask(), lastTask);
         } else {
           if (katoTasks) {
-            katoTasks.push(katoTask.asPondKatoTask());
+            katoTasks.push(katoTask.asOrcaKatoTask());
           }
-          task.variables.push({key: 'kato.tasks', value: [katoTask.asPondKatoTask()]});
+          task.variables.push({key: 'kato.tasks', value: [katoTask.asOrcaKatoTask()]});
         }
       };
 
@@ -67,7 +67,7 @@ angular.module('spinnaker.tasks.api', [
         return katoTasks;
       }
 
-      function refreshPondTaskForKato(task, phase, deferred) {
+      function refreshOrcaTaskForKato(task, phase, deferred) {
         return function() {
           if (!deferred.promise.cancelled) {
             task.get().then(function (updatedTask) {
@@ -111,7 +111,7 @@ angular.module('spinnaker.tasks.api', [
                     if (filterToPhase([updatedKatoTask], phaseFilter).length && updatedKatoTask.isCompleted) {
                       deferred.resolve(updatedKatoTask);
                     } else {
-                      $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 500);
+                      $timeout(refreshOrcaTaskForKato(task, phaseFilter, deferred), 500);
                     }
                   },
                   deferred.reject,
@@ -121,7 +121,7 @@ angular.module('spinnaker.tasks.api', [
               task.updateKatoTask
             );
           } else {
-            $timeout(refreshPondTaskForKato(task, phaseFilter, deferred), 1000);
+            $timeout(refreshOrcaTaskForKato(task, phaseFilter, deferred), 1000);
           }
         }
         task.pendingPolls.push(deferred.promise);

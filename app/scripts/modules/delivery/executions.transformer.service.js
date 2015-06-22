@@ -125,7 +125,13 @@ angular.module('spinnaker.delivery.executionTransformer.service', [
           }
         );
 
-        var currentStage = lastFailedStage || lastNotStartedStage || lastStage;
+        var lastRunningStage = _(stages).findLast(
+          function (childStage) {
+            return childStage.isRunning;
+          }
+        );
+
+        var currentStage = lastRunningStage || lastFailedStage || lastNotStartedStage || lastStage;
         stage.status = currentStage.status;
         stage.endTime = currentStage.endTime;
       }

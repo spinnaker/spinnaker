@@ -37,7 +37,7 @@ angular.module('spinnaker.kato.service', [
         return deferred.promise;
       };
 
-      task.asPondKatoTask = function asPondKatoTask() {
+      task.asOrcaKatoTask = function asOrcaKatoTask() {
         var pondTask = {
           history: task.history,
           status: task.status,
