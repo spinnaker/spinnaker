@@ -3,7 +3,7 @@
 module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService) {
   return {
     restrict: 'E',
-    templateUrl: require('../modules/cluster/serverGroup.html'),
+    template: require('../modules/cluster/serverGroup.html'),
     scope: {
       cluster: '=',
       serverGroup: '=',
@@ -22,7 +22,7 @@ module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, 
       var serverGroup = scope.serverGroup;
 
       scope.viewModel = {
-        waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
+        waypoint: [serverGroup.account,serverGroup.region,serverGroup.name].join(':'),
         serverGroup: serverGroup,
         serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
         jenkins: null,

@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.modalWizard', [])
     return {
       restrict: 'E',
       transclude: true,
-      templateUrl: require('../../views/modal/modalWizard.html'),
+      template: require('../../views/modal/modalWizard.html'),
       controller: 'ModalWizardCtrl as wizardCtrl',
       link: function(scope, elem, attrs) {
         scope.wizard.setHeading(attrs.heading);

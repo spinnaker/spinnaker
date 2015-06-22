@@ -3,7 +3,7 @@
 module.exports = function () {
   return {
     restrict: 'E',
-    templateUrl: require('../../views/directives/katoProgress.html'),
+    template: require('views/directives/katoProgress.html'),
     scope: {
       taskStatus: '=',
       title: '@'

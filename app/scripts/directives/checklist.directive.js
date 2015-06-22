@@ -16,14 +16,10 @@
 
 'use strict';
 
-let angular = require('angular');
-
-//BEN_TODO
-
 module.exports = function() {
   return {
     restrict: 'E',
-    templateUrl: require('../../views/directives/checklist.html'),
+    template: require('views/directives/checklist.html'),
     scope: {
       items: '=',
       model: '=',

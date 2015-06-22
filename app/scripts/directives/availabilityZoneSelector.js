@@ -1,7 +1,5 @@
 'use strict';
 
-//BEN_TODO
-
 module.exports = function() {
   return {
     restrict: 'E',
