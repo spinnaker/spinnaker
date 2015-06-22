@@ -16,14 +16,25 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
  */
-class PipelineStarterListener extends JobExecutionListener{
+class PipelineStarterListener implements JobExecutionListener {
 
+  @Autowired
+  ExecutionRepository executionRepository
+
+  @Autowired
+  PipelineStartTracker startTracker
+
+  @Autowired
+  PipelineStarter pipelineStarter
 
   @Override
   void beforeJob(JobExecution jobExecution) {
@@ -32,6 +43,33 @@ class PipelineStarterListener extends JobExecutionListener{
 
   @Override
   void afterJob(JobExecution jobExecution) {
-
+    def execution = currentExecution(jobExecution)
+    if (execution) {
+      startTracker.markAsFinished(execution.pipelineConfigId, execution.id)
+      List<String> queuedPipelines = startTracker.getQueuedPipelines(execution.pipelineConfigId)
+      if (!queuedPipelines.empty) {
+        String toStartPipeline = queuedPipelines.first()
+        queuedPipelines.each { id ->
+          def queuedExecution = executionRepository.retrievePipeline(id)
+          if (id == toStartPipeline) {
+            pipelineStarter.startExecution(queuedExecution)
+          } else {
+            queuedExecution.canceled = true
+            executionRepository.store(queuedExecution)
+          }
+          startTracker.removeFromQueue(execution.pipelineConfigId, id)
+        }
+      }
+    }
   }
+
+  protected final Execution currentExecution(JobExecution jobExecution) {
+    if (jobExecution.jobParameters.parameters.containsKey("pipeline")) {
+      String id = jobExecution.jobParameters.getString("pipeline")
+      executionRepository.retrievePipeline(id)
+    } else {
+      null
+    }
+  }
+
 }

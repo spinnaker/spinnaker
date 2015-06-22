@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
@@ -41,22 +41,45 @@ abstract class ExecutionStarter<T extends Execution> {
     this.type = type
   }
 
-  @Autowired protected JobLauncher launcher
-  @Autowired protected JobOperator jobOperator
-  @Autowired protected JobRepository jobRepository
-  @Autowired protected ObjectMapper mapper
-  @Autowired(required=false) protected PipelineStartTracker startTracker
+  @Autowired
+  protected JobLauncher launcher
+  @Autowired
+  protected JobOperator jobOperator
+  @Autowired
+  protected JobRepository jobRepository
+  @Autowired
+  protected ObjectMapper mapper
+  @Autowired(required = false)
+  protected PipelineStartTracker startTracker
 
-  @Autowired(required=false)
+  @Autowired(required = false)
   List<JobExecutionListener> pipelineListeners
 
   T start(String configJson) {
+    boolean startImmediately = true
     Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
+
+    if (startTracker && subject instanceof Pipeline) {
+      def pipeline = (Pipeline) subject
+      if (subject.concurrent == false && pipeline.pipelineConfigId && startTracker.hasStartedExecutions(pipeline.pipelineConfigId)) {
+        log.warn "Queueing $subject.id"
+        startTracker.addToQueue(pipeline.pipelineConfigId, subject.id)
+        startImmediately = false
+      }
+    }
+
+    if (startImmediately) {
+      subject = startExecution(subject)
+    }
+
+    subject
+  }
+
+  T startExecution(T subject) {
     def job = executionJobBuilder.build(subject)
     persistExecution(subject)
-
     if (subject.status.isComplete()) {
       log.warn("Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
       if (subject instanceof Pipeline) {
@@ -66,24 +89,11 @@ abstract class ExecutionStarter<T extends Execution> {
       }
       return subject
     }
-
-    boolean startImmediately = true
-
-    if( startTracker && subject instanceof Pipeline ) {
-      def pipeline = (Pipeline) subject
-      if( subject.concurrent == false && pipeline.pipelineConfigId && startTracker.hasStartedExecutions(pipeline.pipelineConfigId) ){
-        startTracker.addToQueue(pipeline.pipelineConfigId, subject.id)
-        startImmediately = false
-      }
+    log.info "Starting $subject.id"
+    launcher.run job, createJobParameters(subject)
+    if (startTracker && subject instanceof Pipeline) {
+      startTracker.addToStarted(((Pipeline) subject).pipelineConfigId, subject.id)
     }
-
-    if(startImmediately) {
-      launcher.run job, createJobParameters(subject)
-      if( startTracker && subject instanceof Pipeline ){
-        startTracker.addToStarted(((Pipeline)subject).pipelineConfigId, subject.id)
-      }
-    }
-
     subject
   }
 
