@@ -258,7 +258,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
       var katoTask = {
         id: 3,
-        asPondKatoTask: function() {
+        asOrcaKatoTask: function() {
           return { id: 3, updateable: 'a'};
         }
       };
@@ -284,7 +284,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
       var katoTask2 = {
         id: 4,
-        asPondKatoTask: function() {
+        asOrcaKatoTask: function() {
           return {id: 4, history: []}
         }
       };
