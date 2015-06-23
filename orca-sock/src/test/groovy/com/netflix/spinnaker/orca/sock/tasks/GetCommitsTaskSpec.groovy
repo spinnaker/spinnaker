@@ -82,56 +82,22 @@ class GetCommitsTaskSpec extends Specification {
   }
 
   @Unroll
-  def "get commits from serverGroup source #serverGroup"() {
+  def "get commits from a deploy stage"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
       "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
       "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
     ObjectMapper mapper = new ObjectMapper()
     def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
-
-    and:
-    task.sockService = Stub(SockService) {
-      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
-                                      [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
-    }
-
-    and:
-    task.front50Service = front50Service
-    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
-
-    and:
-    task.objectMapper = new ObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
-    task.oortService = oortService
-    1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
-    1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    def contextMap = [application: app, account: account,
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
 
     when:
     def result = task.execute(stage)
 
     then:
-    result.status == taskStatus
-    result.outputs.commits.size == 2
-    result.outputs.commits[0].displayId == "abcdab"
-    result.outputs.commits[0].id == "abcdabcdabcdabcd"
-    result.outputs.commits[0].authorDisplayName == "Joe Coder"
-    result.outputs.commits[0].timestamp == 1432081865000
-    result.outputs.commits[0].commitUrl == "http://stash.com/abcdabcdabcdabcd"
-    result.outputs.commits[0].message == "my commit"
-
-    result.outputs.commits[1].displayId == "efghefgh"
-    result.outputs.commits[1].id == "efghefghefghefghefgh"
-    result.outputs.commits[1].authorDisplayName == "Jane Coder"
-    result.outputs.commits[1].timestamp == 1432081256000
-    result.outputs.commits[1].commitUrl == "http://stash.com/efghefghefghefghefgh"
-    result.outputs.commits[1].message == "bug fix"
+    assertResults(result, ExecutionStatus.SUCCEEDED)
 
     where:
     app = "myapp"
@@ -140,13 +106,141 @@ class GetCommitsTaskSpec extends Specification {
     sourceImage = "ami-source"
     targetImage = "ami-target"
     jobState = 'SUCCESS'
-    taskStatus = ExecutionStatus.SUCCEEDED
 
     cluster | serverGroup | targetServerGroup
     "myapp" | "myapp" | "myapp-v000"
     "myapp" | "myapp-v001" | "myapp-v002"
     "myapp-stack" | "myapp-stack-v002" | "myapp-stack-v003"
     "myapp-stack-detail" | "myapp-stack-detail-v002" | "myapp-stack-detail-v003"
+  }
+
+  def "get commits from a copy last asg stage"() {
+    given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
+    def contextMap = [application: app, account: account,
+                      source     : [asgName: serverGroup, region: region, account: account], amiName : targetImage, "kato.tasks" : katoMap]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    assertResults(result, ExecutionStatus.SUCCEEDED)
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    cluster = "app-cluster"
+    serverGroup = "app-cluster-v001"
+    targetServerGroup = "app-cluster-v002"
+    jobState = 'SUCCESS'
+  }
+
+  def "get commits from a single region canary stage"() {
+    given:
+    def contextMap = [application: app, account: account,
+                      source     : [asgName: serverGroup, region: region, account: account], canary : [
+                         canaryDeployments : [
+                          [ baselineCluster : [imageId: sourceImage, region: region], canaryCluster : [imageId: targetImage, region: region]]]
+                        ]
+                      ]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    assertResults(result, ExecutionStatus.SUCCEEDED)
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    cluster = "app-cluster"
+    serverGroup = "app-cluster-v001"
+    targetServerGroup = "app-cluster-v002"
+    jobState = 'SUCCESS'
+  }
+
+  def "get commits from a multi-region canary stage"() {
+    given:
+    def contextMap = [application: app, account: account,
+                      source     : [asgName: serverGroup, region: region, account: account], canary : [
+      canaryDeployments : [
+         [baselineCluster : [imageId: "ami-fake", region: "us-east-1"], canaryCluster : [imageId: "ami-fake2", region: "us-east-1"]],
+         [baselineCluster : [imageId: sourceImage, region: region], canaryCluster : [imageId: targetImage, region: region]],
+         [baselineCluster : [imageId: "ami-fake3", region: "eu-west-1"], canaryCluster : [imageId: "ami-fake4", region: "eu-west-1"]]
+      ]
+    ]]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    assertResults(result, ExecutionStatus.SUCCEEDED)
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    cluster = "app-cluster"
+    serverGroup = "app-cluster-v001"
+    targetServerGroup = "app-cluster-v002"
+    jobState = 'SUCCESS'
+  }
+
+  PipelineStage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1) {
+    def stage = new PipelineStage(pipeline, "stash", contextMap)//.asImmutable()
+
+    task.sockService = Stub(SockService) {
+      compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
+                                                                                                                   [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
+    }
+
+    task.front50Service = front50Service
+    1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+
+    task.objectMapper = new ObjectMapper()
+    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
+    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
+    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+    task.oortService = oortService
+    serverGroupCalls * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    return stage
+  }
+
+  boolean assertResults(def result, def taskStatus) {
+    assert result.status == taskStatus
+    assert result.outputs.commits.size == 2
+    assert result.outputs.commits[0].displayId == "abcdab"
+    assert result.outputs.commits[0].id == "abcdabcdabcdabcd"
+    assert result.outputs.commits[0].authorDisplayName == "Joe Coder"
+    assert result.outputs.commits[0].timestamp == 1432081865000
+    assert result.outputs.commits[0].commitUrl == "http://stash.com/abcdabcdabcdabcd"
+    assert result.outputs.commits[0].message == "my commit"
+
+    assert result.outputs.commits[1].displayId == "efghefgh"
+    assert result.outputs.commits[1].id == "efghefghefghefghefgh"
+    assert result.outputs.commits[1].authorDisplayName == "Jane Coder"
+    assert result.outputs.commits[1].timestamp == 1432081256000
+    assert result.outputs.commits[1].commitUrl == "http://stash.com/efghefghefghefghefgh"
+    assert result.outputs.commits[1].message == "bug fix"
+    return true
   }
 
   def "returns running where there is an error talking to sock"() {
@@ -201,6 +295,7 @@ class GetCommitsTaskSpec extends Specification {
     "myapp" | "myapp" | "myapp-v000"
   }
 
+  @Unroll
   def "returns success if there are no repo details provided"() {
     given:
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
@@ -277,71 +372,6 @@ class GetCommitsTaskSpec extends Specification {
     "myapp" | "myapp-v001" | "myapp-v002" | '[{ "tags" : { }}]' | '[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'
   }
 
-  def "copy asg context works"() {
-      given:
-      String katoTasks = "[{\"resultObjects\": [" +
-        "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-        "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}," +
-        "{\"amiId\": \"${targetImage}\", \"region\": \"${region}\"}" +
-        "]" +
-        ",\"status\": {\"completed\": true,\"failed\": false}}]"
-      ObjectMapper mapper = new ObjectMapper()
-      def katoMap = mapper.readValue(katoTasks, List)
-      def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                        source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], "kato.tasks" : katoMap]).asImmutable()
-
-      and:
-      task.sockService = Stub(SockService) {
-        compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"], [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
-      }
-
-      and:
-      task.front50Service = front50Service
-      1 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
-
-      and:
-      task.objectMapper = new ObjectMapper()
-      def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-      Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-      Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-      Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
-      task.oortService = oortService
-      1 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
-      1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-      1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
-
-      when:
-      def result = task.execute(stage)
-
-      then:
-      result.status == taskStatus
-      result.outputs.commits.size == 2
-      result.outputs.commits[0].displayId == "abcdab"
-      result.outputs.commits[0].id == "abcdabcdabcdabcd"
-      result.outputs.commits[0].authorDisplayName == "Joe Coder"
-      result.outputs.commits[0].timestamp == 1432081865000
-      result.outputs.commits[0].commitUrl == "http://stash.com/abcdabcdabcdabcd"
-      result.outputs.commits[0].message == "my commit"
-
-      result.outputs.commits[1].displayId == "efghefgh"
-      result.outputs.commits[1].id == "efghefghefghefghefgh"
-      result.outputs.commits[1].authorDisplayName == "Jane Coder"
-      result.outputs.commits[1].timestamp == 1432081256000
-      result.outputs.commits[1].commitUrl == "http://stash.com/efghefghefghefghefgh"
-      result.outputs.commits[1].message == "bug fix"
-
-      where:
-      app = "myapp"
-      account = "test"
-      region = "us-west-1"
-      sourceImage = "ami-source"
-      targetImage = "ami-target"
-      jobState = 'SUCCESS'
-      taskStatus = ExecutionStatus.SUCCEEDED
-
-      cluster | serverGroup | targetServerGroup
-      "myapp" | "myapp" | "myapp-v000"
-  }
 
   def "oort service 404 results in success"() {
     given:
@@ -462,4 +492,61 @@ class GetCommitsTaskSpec extends Specification {
     cluster | serverGroup | targetServerGroup
     "myapp" | "myapp" | "myapp-v000"
   }
+
+  def "return success if retries limit hit"() {
+    given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
+    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
+                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
+
+    and:
+    task.front50Service = front50Service
+    10 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
+
+    and:
+    task.objectMapper = new ObjectMapper()
+    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
+    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
+    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
+
+    task.oortService = oortService
+    10 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
+    10 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    10 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+
+    and:
+    task.sockService = sockService
+
+    when:
+    def result
+    11.times{
+      result = task.execute(stage)
+    }
+
+    then:
+    10 * sockService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
+      throw new RetrofitError(null, null,
+        new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
+    }
+    result.status == taskStatus
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    jobState = 'SUCCESS'
+    taskStatus = ExecutionStatus.SUCCEEDED
+
+    cluster | serverGroup | targetServerGroup
+    "myapp" | "myapp" | "myapp-v000"
+
+  }
+
 }
