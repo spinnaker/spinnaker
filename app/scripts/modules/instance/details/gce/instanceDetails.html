@@ -118,6 +118,12 @@
           </li>
         </ul>
     </collapsible-section>
+    <collapsible-section heading="Tags">
+      <div ng-if="!instance.tags.items.length">No tags associated with this instance</div>
+      <dl ng-if="instance.tags.items.length">
+        <dd ng-repeat="tag in instance.tags.items">{{tag}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="SSH" ng-if="!instance.notFound">
       <dl>
         <dt ng-if="instance.sshLink">SSH into this instance:</dt>
