@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import groovy.transform.CompileStatic
-import groovy.transform.Immutable
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import groovy.transform.CompileStatic
+import groovy.transform.Immutable
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.repeat.RepeatStatus
@@ -43,7 +43,7 @@ class BatchStepStatus {
       case ExecutionStatus.RUNNING:
         return new BatchStepStatus(RepeatStatus.CONTINUABLE, ExitStatus.EXECUTING, BatchStatus.STARTED)
       case ExecutionStatus.CANCELED:
-        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED, BatchStatus.STOPPED)
+        return new BatchStepStatus(RepeatStatus.FINISHED, ExitStatus.STOPPED, BatchStatus.COMPLETED)
       case ExecutionStatus.REDIRECT:
         return new BatchStepStatus(RepeatStatus.FINISHED, new ExitStatus(ExecutionStatus.REDIRECT.name()) , BatchStatus.COMPLETED)
     }

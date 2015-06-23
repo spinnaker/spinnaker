@@ -121,9 +121,9 @@ class TaskTaskletSpec extends Specification {
     FAILED           | RepeatStatus.FINISHED    | ExitStatus.FAILED
     RUNNING          | RepeatStatus.CONTINUABLE | ExitStatus.EXECUTING
     SUSPENDED        | RepeatStatus.FINISHED    | ExitStatus.STOPPED
-    TERMINAL | RepeatStatus.FINISHED | ExitStatus.FAILED
-    CANCELED | RepeatStatus.FINISHED | ExitStatus.STOPPED
-    REDIRECT | RepeatStatus.FINISHED | new ExitStatus(REDIRECT.name())
+    TERMINAL         | RepeatStatus.FINISHED    | ExitStatus.FAILED
+    CANCELED         | RepeatStatus.FINISHED    | ExitStatus.STOPPED
+    REDIRECT         | RepeatStatus.FINISHED    | new ExitStatus(REDIRECT.name())
   }
 
   @Unroll

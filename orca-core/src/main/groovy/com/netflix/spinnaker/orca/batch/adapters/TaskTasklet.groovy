@@ -18,12 +18,7 @@ package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
-import com.netflix.spinnaker.orca.CancellableTask
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.batch.BatchStepStatus
 import com.netflix.spinnaker.orca.batch.ExecutionContextManager
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -94,10 +89,10 @@ class TaskTasklet implements Tasklet {
         storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
-        chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", result.status)
-        if (result.status == ExecutionStatus.SUSPENDED) {
-          chunkContext.stepContext.stepExecution.status = batchStepStatus.batchStatus
-          chunkContext.stepContext.stepExecution.jobExecution.status = batchStepStatus.batchStatus
+        chunkContext.stepContext.stepExecution.with {
+          executionContext.put("orcaTaskStatus", result.status)
+          status = batchStepStatus.batchStatus
+          jobExecution.status = batchStepStatus.batchStatus
         }
         contribution.exitStatus = batchStepStatus.exitStatus
         stage.endTime = !batchStepStatus.repeatStatus.continuable ? System.currentTimeMillis() : null

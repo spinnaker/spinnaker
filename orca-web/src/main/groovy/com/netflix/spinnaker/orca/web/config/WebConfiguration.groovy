@@ -32,8 +32,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.TaskExecutor
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
-
+import redis.clients.util.Pool
 import javax.servlet.*
 import javax.servlet.http.HttpServletResponse
 
@@ -57,17 +58,19 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
   }
 
   @Bean JedisOrchestrationStore orchestrationStore(JedisCommands jedisCommands,
+                                                   Pool<Jedis> jedisPool,
                                                    @Value('${threadPools.orchestrationStore:150}') int threadPoolSize,
                                                    @Value('${threadPools.orchestrationStore:75}') int threadPoolChunkSize,
                                                    ExtendedRegistry extendedRegistry) {
-    new JedisOrchestrationStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
+    new JedisOrchestrationStore(jedisCommands, jedisPool, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
   @Bean JedisPipelineStore pipelineStore(JedisCommands jedisCommands,
+                                         Pool<Jedis> jedisPool,
                                          @Value('${threadPools.pipelineStore:150}') int threadPoolSize,
                                          @Value('${threadPools.pipelineStore:75}') int threadPoolChunkSize,
                                          ExtendedRegistry extendedRegistry) {
-    new JedisPipelineStore(jedisCommands, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
+    new JedisPipelineStore(jedisCommands, jedisPool, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
   @Bean JedisPipelineStack pipelineStack(JedisCommands jedisCommands){

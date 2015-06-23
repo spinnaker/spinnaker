@@ -22,11 +22,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import groovy.util.logging.Slf4j
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.JedisPool
 
 @Slf4j
 class JedisPipelineStore extends AbstractJedisBackedExecutionStore<Pipeline> {
-  JedisPipelineStore(JedisCommands jedis, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
-    super(ExecutionStore.PIPELINE, Pipeline, jedis, mapper, threadPoolSize, threadPoolChunkSize, extendedRegistry)
+  JedisPipelineStore(JedisCommands jedis, JedisPool jedisPool, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
+    super(ExecutionStore.PIPELINE, Pipeline, jedis, jedisPool, mapper, threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
 }
