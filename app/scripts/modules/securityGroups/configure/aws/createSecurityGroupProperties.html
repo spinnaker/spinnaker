@@ -40,7 +40,8 @@
         <div class="col-md-4 sm-label-left">Regions</div>
         <div class="col-md-8">
           <input type="hidden" ng-model="securityGroup.regions[0]" required/>
-          <checklist items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
+          <checklist ng-if="securityGroup.credentials" items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
+          <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
         </div>
       </div>
       <div class="form-group">
@@ -48,9 +49,12 @@
         <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
-                  ng-options="vpc.ids[0] as vpc.label for vpc in vpcs">
+                  ng-options="vpc.ids[0] as vpc.label for vpc in vpcs"
+                  ng-if="securityGroup.regions.length">
             <option value="">None (Classic)</option>
           </select>
+          <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
+          <p class="form-control-static" ng-if="securityGroup.credentials && !securityGroup.regions.length">(Select at least one region)</p>
         </div>
       </div>
     </div>

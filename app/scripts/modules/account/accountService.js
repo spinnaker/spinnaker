@@ -17,7 +17,10 @@ angular.module('spinnaker.account.service', [
     function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {
 
       return getPreferredZonesByAccount(providerName).then( function(defaults) {
-        return {preferredZones: defaults[accountName][regionName]};
+        if (defaults[accountName] && defaults[accountName][regionName]) {
+          return {preferredZones: defaults[accountName][regionName]};
+        }
+        return {preferredZones: []};
       })
       .then(function(zonesCollection) {
         return getRegionsForAccount(accountName).then(function(regions){

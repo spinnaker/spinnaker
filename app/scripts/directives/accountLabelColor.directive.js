@@ -13,7 +13,10 @@ angular
         provider: '@'
       },
       controller: function ($scope, settings) {
-        var prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions || [];
+        var prodAccounts = [];
+        if (settings.providers[$scope.provider] && settings.providers[$scope.provider].challengeDestructiveActions) {
+          prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions;
+        }
         $scope.getAccountType = function() {
           return prodAccounts.indexOf($scope.account) > -1 ? 'prod' : $scope.account;
         };
