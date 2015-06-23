@@ -35,7 +35,7 @@ angular.module('spinnaker')
           scope.model = scope.model || [];
           scope.modelHolder = {};
           scope.model.forEach(function (val) {
-            scope.modelHolder[val] = val;
+            scope.modelHolder[val] = true;
           });
         }
 
