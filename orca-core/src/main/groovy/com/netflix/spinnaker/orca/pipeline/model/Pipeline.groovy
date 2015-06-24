@@ -101,8 +101,8 @@ class Pipeline extends Execution<Pipeline> {
       return this
     }
 
-    Builder withConcurrent(boolean concurrent) {
-      pipeline.concurrent = concurrent
+    Builder withLimitConcurrent(boolean concurrent) {
+      pipeline.limitConcurrent = concurrent
       return this
     }
   }

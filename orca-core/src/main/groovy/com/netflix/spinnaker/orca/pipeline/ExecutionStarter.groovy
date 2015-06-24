@@ -63,7 +63,11 @@ abstract class ExecutionStarter<T extends Execution> {
 
     if (startTracker && subject instanceof Pipeline) {
       def pipeline = (Pipeline) subject
-      if (subject.concurrent == false && pipeline.pipelineConfigId && startTracker.hasStartedExecutions(pipeline.pipelineConfigId)) {
+
+      if (startTracker &&
+          pipeline.pipelineConfigId &&
+          (pipeline.limitConcurrent == true) &&
+          startTracker.hasStartedExecutions(pipeline.pipelineConfigId)) {
         log.warn "Queueing $subject.id"
         startTracker.addToQueue(pipeline.pipelineConfigId, subject.id)
         startImmediately = false
