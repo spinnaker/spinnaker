@@ -192,6 +192,14 @@ class StandardGceAttributeValidator {
   }
 
   def validateNameList(List<String> names, String componentDescription) {
+    validateNameList(names, componentDescription, false)
+  }
+
+  def validateNameList(List<String> names, String componentDescription, boolean emptyListIsOk) {
+    if (emptyListIsOk && !names) {
+      return true
+    }
+
     def result = validateNotEmpty(names, "${componentDescription}s")
     names.eachWithIndex { value, index ->
       result &= validateNameAsPart(value, "${componentDescription}s", "$componentDescription$index")
@@ -210,5 +218,9 @@ class StandardGceAttributeValidator {
   // TODO(duftler): Also validate against set of supported GCE types.
   def validateInstanceType(String instanceType) {
     validateNotEmpty(instanceType, "instanceType")
+  }
+
+  def validateTags(List<String> tags) {
+    return validateNameList(tags, "tag", true)
   }
 }
