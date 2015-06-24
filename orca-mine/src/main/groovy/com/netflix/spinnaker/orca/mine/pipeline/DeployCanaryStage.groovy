@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
+import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,6 +40,8 @@ class DeployCanaryStage extends ParallelDeployStage {
   public static final String MAYO_CONFIG_TYPE = "deployCanary"
 
   @Autowired FindAmiFromClusterTask findAmi
+
+  @Autowired(required = false) GetCommitsTask getCommits
 
   DeployCanaryStage() {
     super(MAYO_CONFIG_TYPE)
@@ -122,6 +125,9 @@ class DeployCanaryStage extends ParallelDeployStage {
               imageId: cluster.amiName,
               buildId: cluster.buildUrl
             ]
+          }
+          if (getCommits) {
+            getCommits.execute(stage)
           }
           deployedClusterPairs << resultPair
         }
