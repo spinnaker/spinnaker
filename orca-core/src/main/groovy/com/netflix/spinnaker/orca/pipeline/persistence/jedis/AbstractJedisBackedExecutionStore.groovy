@@ -70,7 +70,7 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
       extendedRegistry.gauge(id, executor, new ValueFunction() {
         @Override
         double apply(Object ref) {
-          ((ThreadPoolExecutor)ref)."${valueName}"
+          ((ThreadPoolExecutor) ref)."${valueName}"
         }
       })
     }
@@ -212,6 +212,8 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
           log.info("Execution (${executionId}) does not exist")
           delete(executionId)
           jedisCommands.srem(lookupKey, executionId)
+        } catch (Exception e) {
+          log.error("Failed to retrieve execution '${executionId}', message: ${e.message}")
         }
         return Observable.empty()
       }
