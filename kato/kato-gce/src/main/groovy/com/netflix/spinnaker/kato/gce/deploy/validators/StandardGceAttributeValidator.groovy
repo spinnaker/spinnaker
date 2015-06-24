@@ -192,10 +192,14 @@ class StandardGceAttributeValidator {
   }
 
   def validateNameList(List<String> names, String componentDescription) {
-    validateNameList(names, componentDescription, false)
+    validateNameListHelper(names, componentDescription, false)
   }
 
-  def validateNameList(List<String> names, String componentDescription, boolean emptyListIsOk) {
+  def validateOptionalNameList(List<String> names, String componentDescription) {
+    validateNameListHelper(names, componentDescription, true)
+  }
+
+  def validateNameListHelper(List<String> names, String componentDescription, boolean emptyListIsOk) {
     if (emptyListIsOk && !names) {
       return true
     }
@@ -221,6 +225,6 @@ class StandardGceAttributeValidator {
   }
 
   def validateTags(List<String> tags) {
-    return validateNameList(tags, "tag", true)
+    return validateOptionalNameList(tags, "tag")
   }
 }
