@@ -14,7 +14,6 @@ angular.module('spinnaker.feedback.directive', [])
 
         $scope.toggleMenu = function() {
           $scope.state.showMenu = !$scope.state.showMenu;
-          console.warn('gottle eh', $scope.state.showMenu);
         };
 
         $scope.openFeedback = function() {
