@@ -122,7 +122,7 @@ class DiscoverySupportUnitSpec extends Specification {
 
     0 * task.fail()
     instanceIds.each {
-      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value)
+      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> response(200)
     }
 
     where:
@@ -156,7 +156,7 @@ class DiscoverySupportUnitSpec extends Specification {
         ]
       ]
     instanceIds.each {
-      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value)
+      1 * eureka.updateInstanceStatus(appName, it, discoveryStatus.value) >> response(200)
     }
 
     where:
@@ -197,6 +197,37 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123"]
   }
 
+  void "should retry on non 200 response from discovery"() {
+    given:
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-west-1',
+      credentials: TestCredential.named('test', [discovery: discoveryUrl])
+    )
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", discoveryStatus, instanceIds)
+
+    then: "should only retry a maximum of DISCOVERY_RETRY_MAX times on NOT_FOUND"
+    1 * eureka.getInstanceInfo('i-123') >>
+      [
+        instance: [
+          app: appName
+        ]
+      ]
+    3 * eureka.updateInstanceStatus(appName, 'i-123', discoveryStatus.value) >>> [response(302), response(201), response(200)]
+    4 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+
+    where:
+    discoveryUrl = "http://us-west-1.discovery.netflix.net"
+    region = "us-west-1"
+    discoveryStatus = DiscoverySupport.DiscoveryStatus.Enable
+    appName = "kato"
+    instanceIds = ["i-123"]
+  }
+
+
   void "should attempt to mark each instance in discovery even if some fail"() {
     given:
     def task = Mock(Task)
@@ -222,7 +253,7 @@ class DiscoverySupportUnitSpec extends Specification {
         if (!result[idx]) {
           throw new RuntimeException("blammo")
         }
-        return null
+        return response(200)
       }
     }
 
@@ -268,7 +299,11 @@ class DiscoverySupportUnitSpec extends Specification {
   }
 
   private static RetrofitError httpError(int code) {
-    RetrofitError.httpError('http://foo', new Response('http://foo', code, 'testing', [], null), null, Map)
+    RetrofitError.httpError('http://foo', response(code), null, Map)
+  }
+
+  private static Response response(int code) {
+    new Response('http://foo', code, 'WAT', [], null)
   }
 
   private static AmazonServiceException amazonError(int code) {
