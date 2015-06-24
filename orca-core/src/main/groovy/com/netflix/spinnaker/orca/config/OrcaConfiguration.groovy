@@ -59,6 +59,9 @@ import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import rx.Scheduler
 import rx.schedulers.Schedulers
+
+import java.util.concurrent.ThreadPoolExecutor
+
 import static java.time.temporal.ChronoUnit.MINUTES
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
@@ -86,9 +89,9 @@ class OrcaConfiguration {
   @CompileDynamic
   @ConditionalOnMissingBean(TaskExecutor)
   TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {
-    def executor = new ThreadPoolTaskExecutor(maxPoolSize: 250, corePoolSize: 50)
+    def executor = new ThreadPoolTaskExecutor(maxPoolSize: 150, corePoolSize: 150)
 
-    def createGuage = { String name ->
+    def createGuage = { String name, Closure valueCallback ->
       def id = extendedRegistry
         .createId("threadpool.${name}" as String)
         .withTag("id", "TaskExecutor")
@@ -96,16 +99,16 @@ class OrcaConfiguration {
       extendedRegistry.gauge(id, executor, new ValueFunction() {
         @Override
         double apply(Object ref) {
-          ((ThreadPoolTaskExecutor) ref).threadPoolExecutor."${name}"
+          valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)
         }
       })
     }
 
-    createGuage.call("activeCount")
-    createGuage.call("maximumPoolSize")
-    createGuage.call("corePoolSize")
-    createGuage.call("poolSize")
-
+    createGuage.call("activeCount", { ThreadPoolExecutor e -> e.activeCount })
+    createGuage.call("maximumPoolSize", { ThreadPoolExecutor e -> e.maximumPoolSize })
+    createGuage.call("corePoolSize", { ThreadPoolExecutor e -> e.corePoolSize })
+    createGuage.call("poolSize", { ThreadPoolExecutor e -> e.poolSize })
+    createGuage.call("blockingQueueSize", { ThreadPoolExecutor e -> e.queue.size() })
     return executor
   }
 
