@@ -40,16 +40,11 @@ public class JedisConfig {
   Environment environment;
 
   @Bean
-  public JedisCommands jedis(@Value("${redis.connection:redis://localhost:6379}") String connection) {
+  public JedisCommands jedis(@Value("${redis.connection:redis://localhost:6379}") String connection, @Value("${redis.timeout:2000}") int timeout) {
       URI jedisConnection = URI.create(connection);
+      int port = jedisConnection.getPort() == -1 ? 6379 : jedisConnection.getPort();
 
-      final JedisPool pool;
-      if (jedisConnection.getUserInfo() != null) {
-          pool = new JedisPool(jedisConnection);
-      } else {
-          pool = new JedisPool(jedisConnection.getHost(), jedisConnection.getPort() == -1 ? 6379 : jedisConnection.getPort());
-      }
-
+      final JedisPool pool = new JedisPool(URI.create("redis://" + jedisConnection.getHost() + ":" + port), timeout);
       return (JedisCommands) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class[] { JedisCommands.class }, new JedisDelegatingMethodInvocationHandler(pool));
   }
 

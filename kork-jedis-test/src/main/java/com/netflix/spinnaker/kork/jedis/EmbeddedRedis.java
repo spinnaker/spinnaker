@@ -43,7 +43,7 @@ public class EmbeddedRedis {
 
   public JedisCommands getJedisCommands() {
     if (jedisCommands == null) {
-      jedisCommands = new JedisConfig().jedis(connection);
+      jedisCommands = new JedisConfig().jedis(connection, 2000);
     }
     return jedisCommands;
   }
