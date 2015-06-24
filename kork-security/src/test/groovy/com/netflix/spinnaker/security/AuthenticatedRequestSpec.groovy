@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.security
 
-import org.jboss.logging.MDC
+import org.slf4j.MDC
 import spock.lang.Specification
 
 class AuthenticatedRequestSpec extends Specification {
   void "should extract user details by priority (Principal > MDC)"() {
     when:
-    MDC.map?.keySet()?.each { MDC.remove(it) }
+    MDC.clear()
     MDC.put(AuthenticatedRequest.SPINNAKER_USER, "spinnaker-user")
 
     then:
@@ -32,7 +32,7 @@ class AuthenticatedRequestSpec extends Specification {
 
   void "should extract allowed account details by priority (Principal > MDC"() {
     when:
-    MDC.map?.keySet()?.each { MDC.remove(it) }
+    MDC.clear()
     MDC.put(AuthenticatedRequest.SPINNAKER_ACCOUNTS, "account1,account2")
 
     then:
@@ -42,7 +42,7 @@ class AuthenticatedRequestSpec extends Specification {
 
   void "should have no user/allowed account details if no MDC or Principal available"() {
     when:
-    MDC.map?.keySet()?.each { MDC.remove(it) }
+    MDC.clear()
 
     then:
     !AuthenticatedRequest.getSpinnakerUser().present
@@ -71,10 +71,10 @@ class AuthenticatedRequestSpec extends Specification {
     MDC.get(AuthenticatedRequest.SPINNAKER_ACCOUNTS) == "account1,account3"
 
     when:
-    MDC.map?.keySet()?.each { MDC.remove(it) }
+    MDC.clear()
 
     then:
     closure.call()
-    MDC.map.isEmpty()
+    MDC.clear()
   }
 }
