@@ -57,14 +57,21 @@ class GetCommitsTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     // is sock not configured or have we exceeded configured retries
     if (!sockService || retries-- == 0) {
+      log.info("sock is not configured or retries exceeded : sockService : ${sockService}, retries : ${retries}")
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
     }
 
+    Map repoInfo = [:]
+    String sourceCommit
+    String targetCommit
+    List commitsList
+
     try {
       // get app config to see if it has repo info
-      Map repoInfo = getRepoInfo(stage.context.account, stage.context.application)
+      repoInfo = getRepoInfo(stage.context.account, stage.context.application)
 
       if(!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
+        log.info("not enough info to query sock for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
         return DefaultTaskResult.SUCCEEDED
       }
 
@@ -78,10 +85,10 @@ class GetCommitsTask implements RetryableTask {
       String targetAmi = getTargetAmi(stage.context, region)
 
       //get commits from sock
-      String sourceCommit = resolveCommitFromAmi(ancestorAmi, account, region)
-      String targetCommit = resolveCommitFromAmi(targetAmi, account, region)
+      sourceCommit = resolveCommitFromAmi(ancestorAmi, account, region)
+      targetCommit = resolveCommitFromAmi(targetAmi, account, region)
 
-      List commitsList = []
+      commitsList = []
 
       //return results
       if (repoInfo?.repoType && repoInfo?.projectKey && repoInfo?.repositorySlug && sourceCommit && targetCommit) {
@@ -92,11 +99,14 @@ class GetCommitsTask implements RetryableTask {
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
     } catch (RetrofitError e) {
         if(e.response?.status == 404) { // just give up on 404
+          log.error("got a 404 from sock for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         } else { // retry on other status codes
+          log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
         }
     } catch(Exception f) { // retry on everything else
+      log.error("unexpeced error for : for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
       return new DefaultTaskResult(ExecutionStatus.RUNNING)
     }
   }
