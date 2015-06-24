@@ -140,6 +140,7 @@ dependencies:
   korkCassandra: "com.netflix.spinnaker.kork:kork-cassandra:${versions.kork}"
   korkJedis: "com.netflix.spinnaker.kork:kork-jedis:${versions.kork}"
   korkJedisTest: "com.netflix.spinnaker.kork:kork-jedis-test:${versions.kork}"
+  korkSecurity: "com.netflix.spinnaker.kork:kork-security:${versions.kork}"
   korkSwagger: "com.netflix.spinnaker.kork:kork-swagger:${versions.kork}"
   korkWeb: "com.netflix.spinnaker.kork:kork-web:${versions.kork}"
   redbatch: "com.netflix:redbatch:${versions.redbatch}"
