@@ -1,0 +1,69 @@
+<form role="form" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="col-md-12 well" ng-class="{'alert-danger': form.securityGroupName.$error.validateUnique, 'alert-info': !form.securityGroupName.$error.validateUnique}">
+        <strong>Your security group will be named:</strong>
+        <span ng-bind="namePreview"></span>
+        <input type="hidden" class="form-control input-sm"
+               ng-model="securityGroup.name"
+               validate-unique="existingSecurityGroupNames"
+               validate-ignore-case="true"
+               name="securityGroupName"
+               ng-pattern="ctrl.namePattern"
+               trigger-validation="securityGroup.subnet"
+               required/>
+        <validation-error ng-if="form.securityGroupName.$error.validateUnique" message="There is already a security group in {{securityGroup.credentials}}:{{securityGroup.region}} with that name."></validation-error>
+        <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name must match {{ctrl.getCurrentNamePattern().toString()}}"></validation-error>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">Detail (optional)</div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm"
+               ng-model="securityGroup.detail"
+               ng-change="ctrl.updateName()"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">Description</div>
+      <div class="col-md-8">
+        <input type="text" required class="form-control input-sm" ng-model="securityGroup.description" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">Account</div>
+      <div class="col-md-8">
+        <account-select-field component="securityGroup" field="accountName" accounts="accounts" provider="'aws'" on-change="ctrl.accountUpdated()"></account-select-field>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">Regions</div>
+      <div class="col-md-8">
+        <input type="hidden" ng-model="securityGroup.regions[0]" required/>
+        <checklist items="regions" model="securityGroup.regions" inline="true" on-change="ctrl.regionUpdated()"></checklist>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left">VPC <help-field key="aws.securityGroup.vpc"></help-field></div>
+      <div class="col-md-8">
+        <select class="form-control input-sm" ng-model="securityGroup.vpcId"
+                ng-change="ctrl.vpcUpdated()"
+                ng-options="vpc.ids[0] as vpc.label for vpc in vpcs">
+          <option value="">None (Classic)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default pull-left"
+            ng-click="ctrl.cancel()">Cancel
+    </button>
+    <submit-button is-disabled="form.$invalid || !wizard.isComplete() || state.submitting"
+                   submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew"></submit-button>
+    <button type="submit" class="btn btn-primary"
+            ng-disabled="form.$invalid"
+            ng-click="wizard.markComplete('Location'); wizard.nextPage()">
+      <span class="glyphicon glyphicon-chevron-right"></span> Next
+    </button>
+  </div>
+</form>

@@ -52,6 +52,24 @@ angular.module('spinnaker.securityGroup.aws.details.controller', [
       });
     };
 
+
+    this.cloneSecurityGroup = function cloneSecurityGroup() {
+      $modal.open({
+        templateUrl: 'scripts/modules/securityGroups/clone/aws/cloneSecurityGroup.html',
+        controller: 'CloneSecurityGroupController as ctrl',
+        resolve: {
+          securityGroup: function() {
+            var securityGroup = angular.copy($scope.securityGroup.plain());
+            if(securityGroup.region) {
+              securityGroup.regions = [securityGroup.region];
+            }
+            return securityGroup;
+          },
+          application: function() { return application; }
+        }
+      });
+    };
+
     this.deleteSecurityGroup = function deleteSecurityGroup() {
       var taskMonitor = {
         application: application,
