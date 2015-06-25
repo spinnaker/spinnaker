@@ -18,12 +18,15 @@ package com.netflix.spinnaker.orca.pipeline.stages
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.TimeUnit
 
 /**
  * A stage that suspends execution of pipeline if the current stage is restricted to run during a time window and
@@ -46,7 +49,9 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
 
   @Component
   @VisibleForTesting
-  private static class SuspendExecutionDuringTimeWindowTask implements com.netflix.spinnaker.orca.Task {
+  private static class SuspendExecutionDuringTimeWindowTask implements RetryableTask {
+    long backoffPeriod = 60000
+    long timeout = TimeUnit.DAYS.toMillis(2)
 
     private static final int HOUR_OF_DAY = Calendar.HOUR_OF_DAY
     private static final int MINUTE = Calendar.MINUTE
@@ -73,7 +78,7 @@ class RestrictExecutionDuringTimeWindow extends LinearStage {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       } else {
         stage.scheduledTime = scheduledTime.time
-        return new DefaultTaskResult(ExecutionStatus.SUSPENDED)
+        return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
     }
 
