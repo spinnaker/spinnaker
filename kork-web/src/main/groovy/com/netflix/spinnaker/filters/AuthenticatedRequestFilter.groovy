@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.filters
 
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.slf4j.MDC
 import org.springframework.security.core.context.SecurityContextImpl
 
@@ -31,6 +32,7 @@ import java.security.cert.X509Certificate
 
 import static com.netflix.spinnaker.security.AuthenticatedRequest.*
 
+@Slf4j
 class AuthenticatedRequestFilter implements Filter {
   private static final String X509_CERTIFICATE = "javax.servlet.request.X509Certificate"
 
@@ -60,23 +62,27 @@ class AuthenticatedRequestFilter implements Filter {
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def spinnakerUser = null
 
-    if (request.isSecure()) {
-      ((X509Certificate[]) request.getAttribute(X509_CERTIFICATE))?.each {
-        def emailSubjectName = it.getSubjectAlternativeNames().find {
-          it.find { it.toString() == RFC822_NAME_ID }
-        }?.get(1)
+    try {
+      if (request.isSecure()) {
+        ((X509Certificate[]) request.getAttribute(X509_CERTIFICATE))?.each {
+          def emailSubjectName = it.getSubjectAlternativeNames().find {
+            it.find { it.toString() == RFC822_NAME_ID }
+          }?.get(1)
 
-        spinnakerUser = spinnakerUser ?: emailSubjectName
+          spinnakerUser = spinnakerUser ?: emailSubjectName
+        }
       }
-    }
 
-    if (!spinnakerUser) {
-      def session = ((HttpServletRequest) request).getSession(false)
-      def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
-      def principal = securityContext?.authentication?.principal
-      if (principal && principal instanceof User) {
-        spinnakerUser = principal.email
+      if (!spinnakerUser) {
+        def session = ((HttpServletRequest) request).getSession(false)
+        def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
+        def principal = securityContext?.authentication?.principal
+        if (principal && principal instanceof User) {
+          spinnakerUser = principal.email
+        }
       }
+    } catch (Exception e) {
+      log.error("Unable to extract spinnaker user and account information", e)
     }
 
     def spinnakerAccounts = null
