@@ -11,5 +11,7 @@ angular
     'spinnaker.securityGroup.aws.details.controller',
     'spinnaker.securityGroup.aws.edit.controller',
     'spinnaker.securityGroup.aws.create.controller',
-    'spinnaker.securityGroup.navigation.controller'
+    'spinnaker.securityGroup.navigation.controller',
+    'spinnaker.securityGroup.clone.controller',
+    'spinnaker.securityGroup.baseConfig.controller'
   ]);
