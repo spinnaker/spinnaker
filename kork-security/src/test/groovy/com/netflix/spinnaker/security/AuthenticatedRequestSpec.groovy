@@ -65,9 +65,9 @@ class AuthenticatedRequestSpec extends Specification {
     closure.call()
 
     then:
-    // ensure MDC context is cleared
-    MDC.get(AuthenticatedRequest.SPINNAKER_USER) == null
-    MDC.get(AuthenticatedRequest.SPINNAKER_ACCOUNTS) == null
+    // ensure MDC context is restored
+    MDC.get(AuthenticatedRequest.SPINNAKER_USER) == "spinnaker-another-user"
+    MDC.get(AuthenticatedRequest.SPINNAKER_ACCOUNTS) == "account1,account3"
 
     when:
     MDC.clear()

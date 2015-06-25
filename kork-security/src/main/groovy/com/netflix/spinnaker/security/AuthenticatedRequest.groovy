@@ -33,19 +33,34 @@ class AuthenticatedRequest {
                                         Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerUser = getSpinnakerUser(principal).orElse(null)
     if (!spinnakerUser) {
-      return closure
+      return {
+        MDC.remove(SPINNAKER_USER)
+        MDC.remove(SPINNAKER_ACCOUNTS)
+        closure()
+      }
     }
 
     def spinnakerAccounts = getSpinnakerAccounts(principal).orElse(null)
 
     return {
+      def originalSpinnakerUser = MDC.get(SPINNAKER_USER)
+      def originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS)
       try {
         MDC.put(SPINNAKER_USER, spinnakerUser)
         MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
         closure()
       } finally {
-        MDC.remove(SPINNAKER_USER)
-        MDC.remove(SPINNAKER_ACCOUNTS)
+        if (originalSpinnakerUser) {
+          MDC.put(SPINNAKER_USER, originalSpinnakerUser)
+        } else {
+          MDC.remove(SPINNAKER_USER)
+        }
+
+        if (originalSpinnakerAccounts) {
+          MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts)
+        } else {
+          MDC.remove(SPINNAKER_ACCOUNTS)
+        }
       }
     }
   }
