@@ -79,7 +79,8 @@ class OrchestrationCleanupPollingNotificationAgent extends AbstractPollingNotifi
   @Override
   protected void notify(Map<String, ?> input) {
     try {
-      log.info("Deleting orchestration execution ${input.id} (startTime: ${new Date(input.startTime as Long)}, application: ${input.application})")
+      def startTime = input.startTime ?: input.buildTime
+      log.info("Deleting orchestration execution ${input.id} (startTime: ${startTime ? new Date(startTime as Long) : ""}, application: ${input.application})")
       executionRepository.deleteOrchestration(input.id as String)
     } catch (e) {
       log.error("Unable to delete orchestration execution ${input.id}", e)
