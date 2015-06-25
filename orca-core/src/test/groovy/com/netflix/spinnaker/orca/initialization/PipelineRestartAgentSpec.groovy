@@ -26,12 +26,9 @@ import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.client.Client
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.repository.JobRepository
 import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
@@ -47,14 +44,13 @@ class PipelineRestartAgentSpec extends Specification {
 
   def jobExplorer = Mock(JobExplorer)
   def executionRepository = Mock(ExecutionRepository)
-  def jobRepository = Mock(JobRepository)
   def jesqueClient = Mock(Client)
   def orcaApplication = new Application("orca")
   def discoveryClient = [getApplication: { it == "orca" ? orcaApplication : null }] as LookupService
 
   @Shared scheduler = Schedulers.test()
 
-  @Subject pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, jobRepository, jobExplorer,
+  @Subject pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, jobExplorer,
                                                         executionRepository, discoveryClient)
 
   def setup() {
@@ -112,33 +108,6 @@ class PipelineRestartAgentSpec extends Specification {
     jobName = "job1"
     execution = jobExecution(jobName)
     pipeline = new Pipeline(id: "pipeline-$jobName", executingInstance: instanceId, canceled: true)
-  }
-
-  def "the job execution related to the pipeline should get updated so it can restart cleanly"() {
-    given:
-    jobExplorer.getJobNames() >> [jobName]
-    jobExplorer.findRunningJobExecutions(jobName) >> newHashSet(execution)
-    executionRepository.retrievePipeline("pipeline-$jobName") >> new Pipeline(id: "pipeline-$jobName",
-                                                                              executingInstance: instanceId)
-
-    and:
-    applicationIsUp()
-
-    when:
-    advanceTime()
-
-    then:
-    1 * jobRepository.update({
-      it.status == BatchStatus.STOPPED && it.exitStatus.exitCode == ExitStatus.STOPPED.exitCode && it.endTime != null
-    })
-
-    then:
-    1 * jesqueClient.enqueue("stalePipeline", { it.args[0].id == "pipeline-$jobName" })
-
-    where:
-    instanceId = "i-06ce57cd"
-    jobName = "job1"
-    execution = jobExecution(jobName)
   }
 
   def "if the executing instance is in discovery it is assumed to still be running the pipeline"() {

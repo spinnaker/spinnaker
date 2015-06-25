@@ -28,11 +28,8 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -53,17 +50,15 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "stalePipeline"
 
-  private final JobRepository jobRepository
   private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
   private final LookupService discoveryClient
 
   @Autowired
-  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, JobRepository jobRepository, JobExplorer jobExplorer, ExecutionRepository executionRepository, LookupService discoveryClient) {
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, JobExplorer jobExplorer, ExecutionRepository executionRepository, LookupService discoveryClient) {
     super(mapper, jesqueClient)
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
-    this.jobRepository = jobRepository
     this.discoveryClient = discoveryClient
   }
 
@@ -87,7 +82,6 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
       Observable.from(names)
                 .flatMapIterable(this.&runningJobExecutions)
                 .doOnNext({ log.info "found stale job $it.id started=$it.startTime" })
-                .doOnNext(this.&resetExecution)
                 .map(this.&executionToPipeline)
     })
   }
@@ -120,17 +114,6 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
         throw e
       }
     }
-  }
-
-  /**
-   * Because "restartability" of a Spring Batch job relies on it having been cleanly stopped and we can't guarantee
-   * that we need to update the job to a STOPPED state.
-   */
-  private void resetExecution(JobExecution execution) {
-    execution.setExitStatus(ExitStatus.STOPPED.addExitDescription("restarted after instance shutdown"))
-    execution.setStatus(BatchStatus.STOPPED)
-    execution.setEndTime(new Date())
-    jobRepository.update(execution)
   }
 
   private Pipeline executionToPipeline(JobExecution execution) {
