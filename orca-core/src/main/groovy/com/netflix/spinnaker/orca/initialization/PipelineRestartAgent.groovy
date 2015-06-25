@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.initialization
 
-import java.time.Clock
-import java.time.Duration
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.discovery.shared.LookupService
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -35,32 +34,37 @@ import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.stereotype.Component
 import rx.Observable
+import rx.functions.Func1
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static java.util.Collections.emptySet
 import static java.util.concurrent.TimeUnit.MINUTES
 
-//@Component
+@Component
+@ConditionalOnExpression(value = '${pollers.stalePipelines.enabled:true}')
+@ConditionalOnBean(LookupService)
 @Slf4j
 @CompileStatic
-//@ConditionalOnExpression(value = '${pollers.stalePipelines.enabled:true}')
 class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "stalePipeline"
 
-  private final Clock clock
-  private final Duration minInactivity
   private final JobRepository jobRepository
   private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
+  private final LookupService discoveryClient
 
   @Autowired
-  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, Clock clock, Duration minInactivity, JobRepository jobRepository, JobExplorer jobExplorer, ExecutionRepository executionRepository) {
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, JobRepository jobRepository, JobExplorer jobExplorer, ExecutionRepository executionRepository, LookupService discoveryClient) {
     super(mapper, jesqueClient)
     this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
     this.jobRepository = jobRepository
-    this.minInactivity = minInactivity
-    this.clock = clock
+    this.discoveryClient = discoveryClient
   }
 
   @Override
@@ -82,21 +86,27 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
               .flatMap({ names ->
       Observable.from(names)
                 .flatMapIterable(this.&runningJobExecutions)
-                .filter(this.&isInactive)
                 .doOnNext({ log.info "found stale job $it.id started=$it.startTime" })
-//              .doOnNext(this.&resetExecution)
+                .doOnNext(this.&resetExecution)
                 .map(this.&executionToPipeline)
-                .filter({ it != null })
-                .doOnNext({ log.info "would restart pipeline ${it.id} with status ${it.status}" })
     })
-              .doOnCompleted({
-      log.info("Finished stale pipelines polling")
-    })
+  }
+
+  @Override
+  protected Func1<Execution, Boolean> filter() {
+    return { Execution execution ->
+      execution?.status in [NOT_STARTED, RUNNING] && executingInstanceIsDown(execution)
+    } as Func1<Execution, Boolean>
   }
 
   @Override
   Class<? extends NotificationHandler> handlerType() {
     PipelineRestartHandler
+  }
+
+  private boolean executingInstanceIsDown(Execution execution) {
+    def instanceId = execution.executingInstance
+    instanceId && !discoveryClient.getApplication("orca").getByInstanceId(instanceId)
   }
 
   private Iterable<JobExecution> runningJobExecutions(String name) {
@@ -110,12 +120,6 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
         throw e
       }
     }
-  }
-
-  private boolean isInactive(JobExecution execution) {
-    def cutoff = clock.instant().minus(minInactivity)
-    def mostRecentUpdate = execution.stepExecutions*.lastUpdated?.max()?.toInstant()
-    return mostRecentUpdate?.isBefore(cutoff.plusMillis(1))
   }
 
   /**
