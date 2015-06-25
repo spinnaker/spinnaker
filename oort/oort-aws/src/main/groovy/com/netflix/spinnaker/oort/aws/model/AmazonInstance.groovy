@@ -16,35 +16,38 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 
-class AmazonInstance extends HashMap implements Instance, Serializable {
+class AmazonInstance implements Instance, Serializable {
 
   static final long START_TIME_DRIFT = 180000
 
-  AmazonInstance(String name) {
-    setProperty "name", name
-    setProperty "health", []
+  String name
+  boolean healthy
+  Long launchTime
+  List<Map<String, String>> health = []
+
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
+
+  @JsonAnyGetter
+  public Map<String,Object> any() {
+    return dynamicProperties;
   }
 
-  @Override
-  String getName() {
-    getProperty "name"
-  }
-
-  boolean isHealthy() {
-    getProperty "isHealthy"
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   HealthState getHealthState() {
-    List<Map<String, String>> healthList = getHealth()
-
-    someUpRemainingUnknown(healthList) ? HealthState.Up :
-      anyStarting(healthList) ? HealthState.Starting :
-        anyDown(healthList) ? HealthState.Down :
-          anyOutOfService(healthList) ? HealthState.OutOfService :
+    someUpRemainingUnknown(health) ? HealthState.Up :
+      anyStarting(health) ? HealthState.Starting :
+        anyDown(health) ? HealthState.Down :
+          anyOutOfService(health) ? HealthState.OutOfService :
             getLaunchTime() > System.currentTimeMillis() - START_TIME_DRIFT ? HealthState.Starting :
               HealthState.Unknown
 
@@ -68,18 +71,8 @@ class AmazonInstance extends HashMap implements Instance, Serializable {
   }
 
   @Override
-  Long getLaunchTime() {
-    getProperty "launchTime"
-  }
-
-  @Override
   String getZone() {
-    getProperty("placement")?.availabilityZone
-  }
-
-  @Override
-  List<Map<String, String>> getHealth() {
-    getProperty "health"
+    any().get("placement")?.availabilityZone
   }
 
   @Override

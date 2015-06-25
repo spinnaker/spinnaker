@@ -16,66 +16,68 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
+import groovy.transform.CompileStatic
 
-class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
+@CompileStatic
+class AmazonServerGroup implements ServerGroup, Serializable {
 
-  AmazonServerGroup() {
-    this(null, null, null)
+  String name
+  String region
+  Set<String> zones
+  Set<Instance> instances
+  Set health
+  Map<String, Object> image
+  Map<String, Object> launchConfig
+  Map<String, Object> asg
+  Map buildInfo
+  String vpcId
+
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
+
+  @JsonAnyGetter
+  public Map<String,Object> any() {
+    return dynamicProperties;
   }
 
-  AmazonServerGroup(String name, String type, String region) {
-    setProperty "name", name
-    setProperty "type", type
-    setProperty "region", region
-    setProperty "zones", new HashSet<>()
-    setProperty "instances", new HashSet<>()
-    setProperty "health", new HashSet<>()
-    setProperty "image", new HashSet<>()
-  }
-
-  @Override
-  String getName() {
-    getProperty "name"
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   String getType() {
-    getProperty "type"
-  }
-
-  @Override
-  String getRegion() {
-    getProperty "region"
+    return "aws"
   }
 
   @Override
   Boolean isDisabled() {
-    def asg = getAsg()
     if (asg) {
-      List<Map> suspendedProcesses = asg.suspendedProcesses
-      return suspendedProcesses.processName.contains('AddToLoadBalancer')
+      List<Map> suspendedProcesses = (List<Map>) asg.suspendedProcesses
+      List<String> processNames = (List<String>) suspendedProcesses.collect { it.processName }
+      return processNames.contains('AddToLoadBalancer')
     }
     return false
   }
 
   @Override
   Long getCreatedTime() {
-    def asg = getAsg()
-    if (asg) {
-      return asg.createdTime
+    if (!asg) {
+      return null
     }
-    return null
+    (Long) asg.createdTime
   }
 
   @Override
   Set<String> getLoadBalancers() {
-    def loadBalancerNames = []
+    Set<String> loadBalancerNames = []
     def asg = getAsg()
     if (asg && asg.containsKey("loadBalancerNames")) {
-      loadBalancerNames = asg.loadBalancerNames
+      loadBalancerNames = (Set<String>) asg.loadBalancerNames
     }
     return loadBalancerNames
   }
@@ -83,36 +85,16 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
 
   @Override
   Set<String> getSecurityGroups() {
-    def securityGroups = []
-    def launchConfig = getLaunchConfig()
+    Set<String> securityGroups = []
     if (launchConfig && launchConfig.containsKey("securityGroups")) {
-      securityGroups = launchConfig.securityGroups
+      securityGroups = (Set<String>) launchConfig.securityGroups
     }
     securityGroups
   }
 
   @Override
-  Set<String> getZones() {
-    (Set<String>) getProperty("zones")
-  }
-
-  @Override
-  Set<Instance> getInstances() {
-    (Set<Instance>) getProperty("instances")
-  }
-
-  @Override
-  Map<String, Object> getLaunchConfig() {
-    (Map<String, Object>) getProperty("launchConfig")
-  }
-
-  Map<String, Object> getImage() {
-    (Map<String, Object>) getProperty("image")
-  }
-
-  @Override
   ServerGroup.InstanceCounts getInstanceCounts() {
-    Set<Instance> instances = getInstances()
+    Collection<Instance> instances = getInstances()
     new ServerGroup.InstanceCounts(
       total: instances.size(),
       up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
@@ -122,20 +104,8 @@ class AmazonServerGroup extends HashMap implements ServerGroup, Serializable {
       outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
   }
 
-  static Set filterInstancesByHealthState(Set instances, HealthState healthState) {
+  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
-  }
-
-  Map getBuildInfo() {
-    (Map) getProperty("buildInfo")
-  }
-
-  String getVpcId() {
-    (String) getProperty("vpcId")
-  }
-
-  private Map<String, Object> getAsg() {
-    (Map<String, Object>) getProperty("asg")
   }
 
 }

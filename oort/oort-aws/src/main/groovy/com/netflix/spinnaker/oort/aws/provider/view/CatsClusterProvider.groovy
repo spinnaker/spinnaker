@@ -80,7 +80,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     String imageKey = Keys.getImageKey(launchConfigs?.attributes['imageId'] as String, account, region)
     CacheData imageConfigs = cacheView.get(IMAGES.ns, imageKey)
 
-    def serverGroup = new AmazonServerGroup(name, "aws", region)
+    def serverGroup = new AmazonServerGroup(name: name, region: region)
     serverGroup.accountName = account
     serverGroup.zones = serverGroupData.attributes["zones"]
     serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
@@ -109,7 +109,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
     loadBalancerData.collectEntries { loadBalancerEntry ->
       Map<String, String> lbKey = Keys.parse(loadBalancerEntry.id)
-      [(loadBalancerEntry.id) : new AmazonLoadBalancer(lbKey.loadBalancer, lbKey.account, lbKey.region)]
+      [(loadBalancerEntry.id) : new AmazonLoadBalancer(name: lbKey.loadBalancer, account: lbKey.account, region: lbKey.region)]
     }
   }
 
@@ -133,16 +133,16 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
       cluster.accountName = clusterKey.account
       cluster.name = clusterKey.cluster
       if (includeDetails) {
-        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.findResults { loadBalancers.get(it) }
-        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
+        cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancers.get(it) }
+        cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroups.get(it) }
       } else {
         cluster.loadBalancers = clusterDataEntry.relationships[LOAD_BALANCERS.ns]?.collect { loadBalancerKey ->
           Map parts = Keys.parse(loadBalancerKey)
-          new AmazonLoadBalancer(parts.loadBalancer, parts.account, parts.region)
+          new AmazonLoadBalancer(name: parts.loadBalancer, account: parts.account, region: parts.region)
         }
         cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroupKey ->
           Map parts = Keys.parse(serverGroupKey)
-          new AmazonServerGroup(parts.serverGroup, "aws", parts.region)
+          new AmazonServerGroup(name: parts.serverGroup, region: parts.region)
         }
       }
       cluster
@@ -168,8 +168,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     Map<String, AmazonServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
       Map<String, String> serverGroupKey = Keys.parse(serverGroupEntry.id)
 
-      def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
-      serverGroup.putAll(serverGroupEntry.attributes)
+      def serverGroup = new AmazonServerGroup(serverGroupEntry.attributes)
       def asg = serverGroupEntry.attributes.asg
 
       Set<String> asgInstanceSet = getAsgInstanceKeys(asg, serverGroupKey.account, serverGroupKey.region)
@@ -230,8 +229,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
 
   private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
-      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
-      instance.putAll(instanceEntry.attributes)
+      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
+      instance.name = instanceEntry.attributes.instanceId.toString()
       [(instanceEntry.id): instance]
     }
     addHealthToInstances(instanceData, instances)

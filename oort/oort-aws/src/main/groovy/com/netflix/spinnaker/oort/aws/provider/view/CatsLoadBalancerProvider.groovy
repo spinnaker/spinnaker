@@ -60,7 +60,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   AmazonLoadBalancer translate(CacheData cacheData) {
     Map<String, String> keyParts = Keys.parse(cacheData.id)
-    def lb = new AmazonLoadBalancer(keyParts.loadBalancer, keyParts.account, keyParts.region)
+    def lb = new AmazonLoadBalancer(name: keyParts.loadBalancer, account: keyParts.account, region: keyParts.region)
     lb.account = keyParts.account
     lb.elb = cacheData.attributes
     lb.serverGroups = cacheData.relationships[SERVER_GROUPS.ns]?.collect {
@@ -151,9 +151,10 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
   private static Set<AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData, Map<String, AmazonServerGroup> serverGroups) {
     Set<AmazonLoadBalancer> loadBalancers = loadBalancerData.collect { loadBalancerEntry ->
       Map<String, String> loadBalancerKey = Keys.parse(loadBalancerEntry.id)
-      AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerKey.loadBalancer, loadBalancerKey.account, loadBalancerKey.region)
-      loadBalancer.putAll(loadBalancerEntry.attributes)
-      loadBalancer.instances = loadBalancer.instances.findResults { it.instanceId }
+      AmazonLoadBalancer loadBalancer = new AmazonLoadBalancer(loadBalancerEntry.attributes)
+      loadBalancer.name = loadBalancerKey.loadBalancer
+      loadBalancer.region = loadBalancerKey.region
+      loadBalancer.set("instances", loadBalancerEntry.attributes.instances.findResults { it.instanceId })
       loadBalancer.vpcId = loadBalancerKey.vpcId
       loadBalancer.account = loadBalancerKey.account
       def lbServerGroups = loadBalancerEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) } ?: []
@@ -174,7 +175,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
                 ]
             ]
           } : [],
-          detachedInstances: serverGroup.detachedInstances
+          detachedInstances: serverGroup.any().detachedInstances
 
         ]
       }
@@ -188,7 +189,7 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
     Map<String, AmazonServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
       Map<String, String> serverGroupKey = Keys.parse(serverGroupEntry.id)
 
-      def serverGroup = new AmazonServerGroup(serverGroupKey.serverGroup, 'aws', serverGroupKey.region)
+      def serverGroup = new AmazonServerGroup(name: serverGroupKey.serverGroup, region: serverGroupKey.region)
       serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
       serverGroup.asg = serverGroupEntry.attributes.asg
       serverGroup.detachedInstances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) ? null : Keys.parse(it).instanceId }
@@ -200,8 +201,8 @@ class CatsLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalance
 
   private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
     Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
-      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes.instanceId.toString())
-      instance.zone = instanceEntry.attributes.placement?.availabilityZone
+      AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
+      instance.name = instanceEntry.attributes.instanceId.toString()
       [(instanceEntry.id): instance]
     }
     addHealthToInstances(instanceData, instances)
