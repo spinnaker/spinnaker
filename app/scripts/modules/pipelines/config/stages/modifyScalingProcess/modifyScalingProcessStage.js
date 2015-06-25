@@ -11,7 +11,7 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       templateUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessExecutionDetails.html',
     });
-  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService) {
+  }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -33,16 +33,7 @@ angular.module('spinnaker.pipelines.stage.modifyScalingProcess')
       });
     };
 
-    $scope.targets = [
-      {
-        label: 'Current ASG',
-        val: 'current_asg'
-      },
-      {
-        label: 'Last ASG',
-        val: 'ancestor_asg'
-      }
-    ];
+    $scope.targets = stageConstants.targetList;
 
     $scope.actions = [
       {

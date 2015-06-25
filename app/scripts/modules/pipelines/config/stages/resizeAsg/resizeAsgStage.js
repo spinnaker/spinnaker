@@ -18,7 +18,7 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
         },
       ],
     });
-  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService) {
+  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
 
     var ctrl = this;
 
@@ -43,16 +43,7 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
       });
     };
 
-    $scope.resizeTargets = [
-      {
-        label: 'Current Server Group',
-        val: 'current_asg'
-      },
-      {
-        label: 'Last Server Group',
-        val: 'ancestor_asg'
-      }
-    ];
+    $scope.resizeTargets =  stageConstants.targetList;
 
     $scope.scaleActions = [
       {

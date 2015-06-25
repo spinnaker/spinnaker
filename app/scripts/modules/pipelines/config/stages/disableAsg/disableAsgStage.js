@@ -18,7 +18,7 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
         },
       ],
     });
-  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService) {
+  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
     var ctrl = this;
 
     $scope.stage = stage;
@@ -42,15 +42,7 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
       });
     };
 
-    $scope.targets = [
-      {
-        label: 'Current Server Group',
-        val: 'current_asg'
-      }, {
-        label: 'Last Server Group',
-        val: 'ancestor_asg'
-      }
-    ];
+    $scope.targets = stageConstants.targetList;
 
     (function() {
       if ($scope.stage.credentials) {

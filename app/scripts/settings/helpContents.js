@@ -1,5 +1,7 @@
 'use strict';
 
+var calculatedTargetDescription = '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>';
+
 angular.module('spinnaker.help')
   .constant('helpContents', {
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
@@ -77,11 +79,11 @@ angular.module('spinnaker.help')
     'pipeline.config.quickPatchAsg.baseOs': '<p>The operating system running on the target instances.</p>',
     'pipeline.config.quickPatchAsg.rollingPatch': '<p>Patch one instance at a time vs. all at once.</p>',
     'pipeline.config.quickPatchAsg.skipUpToDate': '<p>Skip instances which already have the requested version.</p>',
-    'pipeline.config.resizeAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
-    'pipeline.config.modifyScalingProcess.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
-    'pipeline.config.enableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
-    'pipeline.config.disableAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
-    'pipeline.config.destroyAsg.target':  '<p>Targets are calculated at the beginning of pipeline execution.</p><p> "Current Server Group" refers to the one currently active.</p><p> "Last Server Group" is the one prior to the currently active one.</p>',
+    'pipeline.config.resizeAsg.target':  calculatedTargetDescription,
+    'pipeline.config.modifyScalingProcess.target':  calculatedTargetDescription,
+    'pipeline.config.enableAsg.target':  calculatedTargetDescription,
+    'pipeline.config.disableAsg.target': calculatedTargetDescription,
+    'pipeline.config.destroyAsg.target':  calculatedTargetDescription,
     'pipeline.config.jenkins.propertyFile': '<p>(Optional) Configures the name to the Jenkins artifact file used to pass in properties to later stages in the Spinnaker pipeline.</p>',
     'pipeline.config.bake.package': '<p>The name of the package you want installed (without any version identifiers).</p>' +
       '<p>If your build produces a deb file named "myapp_1.27-h343", you would want to enter "myapp" here.</p>',
