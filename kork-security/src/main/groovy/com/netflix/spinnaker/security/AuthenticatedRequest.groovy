@@ -46,9 +46,16 @@ class AuthenticatedRequest {
       def originalSpinnakerUser = MDC.get(SPINNAKER_USER)
       def originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS)
       try {
-        MDC.put(SPINNAKER_USER, spinnakerUser)
-        MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
+        if (spinnakerUser) {
+          MDC.put(SPINNAKER_USER, spinnakerUser)
+        }
+        if (spinnakerAccounts) {
+          MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
+        }
         closure()
+      } catch (Exception e) {
+        log.error("Error occurred propagating authentication context", e)
+        throw e
       } finally {
         if (originalSpinnakerUser) {
           MDC.put(SPINNAKER_USER, originalSpinnakerUser)
