@@ -39,24 +39,13 @@ class AuthenticatedRequest {
     def spinnakerAccounts = getSpinnakerAccounts(principal).orElse(null)
 
     return {
-      def originalSpinnakerUser = MDC.get(SPINNAKER_USER)
-      def originalSpinnakerAccounts = MDC.get(SPINNAKER_ACCOUNTS)
       try {
         MDC.put(SPINNAKER_USER, spinnakerUser)
         MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
         closure()
       } finally {
-        if (originalSpinnakerUser) {
-          MDC.put(SPINNAKER_USER, originalSpinnakerUser)
-        } else {
-          MDC.remove(SPINNAKER_USER)
-        }
-
-        if (originalSpinnakerAccounts) {
-          MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts)
-        } else {
-          MDC.remove(SPINNAKER_ACCOUNTS)
-        }
+        MDC.remove(SPINNAKER_USER)
+        MDC.remove(SPINNAKER_ACCOUNTS)
       }
     }
   }
