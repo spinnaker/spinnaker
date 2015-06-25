@@ -15,12 +15,7 @@
       <help-field key="pipeline.config.disableAsg.target"></help-field>
     </div>
     <div class="col-md-6">
-      <select class="form-control input-sm"
-              required
-              ng-model="stage.target"
-              ng-options="t.val as t.label for t in targets">
-        <option>Select an action...</option>
-      </select>
+      <target-select model="stage" options="targets"></target-select>
     </div>
   </div>
   <div class="form-group">

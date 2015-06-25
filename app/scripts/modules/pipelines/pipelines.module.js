@@ -24,4 +24,5 @@ angular.module('spinnaker.pipelines', [
   'ui.sortable',
 
   'spinnaker.pipelines.graph.directive',
+  'spinnaker.pipeline.targetSelect.directive',
 ]);

@@ -11,7 +11,7 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
       templateUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
     });
-  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService) {
+  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -33,16 +33,7 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
       });
     };
 
-    $scope.targets = [
-      {
-        label: 'Current Server Group',
-        val: 'current_asg'
-      },
-      {
-        label: 'Last Server Group',
-        val: 'ancestor_asg'
-      }
-    ];
+    $scope.targets = stageConstants.targetList;
 
     (function() {
       if ($scope.stage.credentials) {

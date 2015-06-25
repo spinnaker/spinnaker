@@ -29,13 +29,9 @@
     <div class="col-md-2 col-md-offset-1 sm-label-left">
       <b>Target</b>
       <help-field key="pipeline.config.resizeAsg.target"></help-field>
-    </div>    <div class="col-md-6">
-      <select class="form-control input-sm"
-              required
-              ng-model="stage.target"
-              ng-options="r.val as r.label for r in resizeTargets">
-        <option>Select a target...</option>
-      </select>
+    </div>
+    <div class="col-md-6">
+      <target-select model="stage" options="resizeTargets"></target-select>
     </div>
   </div>
   <div class="form-group">
