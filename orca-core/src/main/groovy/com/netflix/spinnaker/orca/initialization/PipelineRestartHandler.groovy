@@ -40,6 +40,7 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
   void handle(Map input) {
     try {
       def pipeline = executionRepository.retrievePipeline(input.id as String)
+      log.warn "Restarting pipeline $pipeline.application $pipeline.name $pipeline.id with status $pipeline.status"
       resetJobExecutionFor(pipeline)
       pipelineStarter.resume(pipeline)
     } catch (e) {
