@@ -19,14 +19,11 @@ package com.netflix.spinnaker.gate.config
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.config.OkHttpClientConfiguration
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequest
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
-import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.squareup.okhttp.Interceptor
-import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -41,7 +38,6 @@ import org.springframework.session.data.redis.config.annotation.web.http.GateRed
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
-import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 import retrofit.http.Body
@@ -322,7 +318,7 @@ class GateConfig {
 
   @Bean
   Filter authenticatedRequestFilter() {
-    new AuthenticatedRequest.Filter()
+    new AuthenticatedRequestFilter(false)
   }
 
   @Component
