@@ -28,7 +28,7 @@ class AmazonInstance implements Instance, Serializable {
   String name
   boolean healthy
   Long launchTime
-  List<Map<String, String>> health = []
+  List<Map<String, Object>> health = []
 
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
