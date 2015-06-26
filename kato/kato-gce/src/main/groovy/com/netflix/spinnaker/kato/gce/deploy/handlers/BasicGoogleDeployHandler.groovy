@@ -94,6 +94,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def serverGroupName = "${clusterName}-v${nextSequence}".toString()
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
+    def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
+
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
     def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
@@ -125,7 +127,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def tags = GCEUtil.buildTagsFromList(description.tags)
 
-    def instanceProperties = new InstanceProperties(machineType: description.instanceType,
+    def instanceProperties = new InstanceProperties(machineType: machineType.name,
                                                     disks: [attachedDisk],
                                                     networkInterfaces: [networkInterface],
                                                     metadata: metadata,
