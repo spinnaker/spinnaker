@@ -34,3 +34,5 @@ allprojects {
 
     group = "com.netflix.spinnaker.igor"
 }
+
+defaultTasks 'bootRun'
