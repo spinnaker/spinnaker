@@ -25,12 +25,12 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
-  @Override
-  protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+  static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     // favor using configured target capacity whenever available (rather than in-progress asg's minSize)
     CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
     Map source = stage.context.source as Map
     Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
+    Map asg = (Map) serverGroup.asg ?: [:]
     Integer targetMinSize = (capacityConfig?.min != null && !useSourceCapacity) ? capacityConfig.min : asg.minSize as Integer
     if (targetMinSize > instances.size()) {
       return false
@@ -54,6 +54,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
 
     return healthyCount >= targetMinSize
+  }
+
+  @Override
+  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
   @Immutable

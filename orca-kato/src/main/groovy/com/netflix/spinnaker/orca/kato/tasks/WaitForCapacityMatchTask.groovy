@@ -27,7 +27,12 @@ class WaitForCapacityMatchTask extends AbstractInstancesCheckTask {
   }
 
   @Override
-  protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    asg.desiredCapacity == instances.size()
+  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    if (!serverGroup.asg || serverGroup.asg.desiredCapacity != instances.size()) {
+      return false
+    }
+    return !serverGroup.disabled ?
+      WaitForUpInstancesTask.allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames) :
+      true
   }
 }
