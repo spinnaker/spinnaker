@@ -89,7 +89,17 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         }
         def isComplete = hasSucceeded(stage, serverGroup, instances, interestingHealthProviderNames)
         if (!isComplete) {
-          return new DefaultTaskResult(ExecutionStatus.RUNNING)
+          Map targetCapacities = [:]
+          if (seenServerGroup && !stage.context.capacitySnapshot) {
+            targetCapacities = [
+              capacitySnapshot: [
+                minSize: serverGroup.asg.minSize,
+                desiredCapacity: serverGroup.asg.desiredCapacity,
+                maxSize: serverGroup.asg.maxSize
+              ]
+            ]
+          }
+          return new DefaultTaskResult(ExecutionStatus.RUNNING, targetCapacities)
         }
       }
       if (seenServerGroup.values().contains(false)) {

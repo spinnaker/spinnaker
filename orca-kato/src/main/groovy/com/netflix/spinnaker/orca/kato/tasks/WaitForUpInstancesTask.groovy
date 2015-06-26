@@ -31,7 +31,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     Map source = stage.context.source as Map
     Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
     Map asg = (Map) serverGroup.asg ?: [:]
-    Integer targetMinSize = (capacityConfig?.min != null && !useSourceCapacity) ? capacityConfig.min : asg.minSize as Integer
+    Integer targetMinSize = (capacityConfig?.min != null && !useSourceCapacity) ?
+      capacityConfig.min :
+      stage.context.capacitySnapshot ?
+        ((Map) stage.context.capacitySnapshot).minSize as Integer :
+        asg.minSize as Integer
     if (targetMinSize > instances.size()) {
       return false
     }
