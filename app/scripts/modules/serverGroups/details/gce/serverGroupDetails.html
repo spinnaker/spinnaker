@@ -148,6 +148,8 @@
         <dt>User Data</dt>
         <dd ng-if="serverGroup.launchConfig.userData"><a href ng-click="ctrl.showUserData()">Show User Data</a></dd>
         <dd ng-if="!serverGroup.launchConfig.userData">[none]</dd>
+        <dt>Network</dt>
+        <dd>{{ctrl.getNetwork()}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Security Groups">
