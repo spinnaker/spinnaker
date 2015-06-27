@@ -145,7 +145,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
         instanceTemplateProperties.setMachineType(machineType.name)
       }
 
-      // Override the instance template's machine type if instanceMetadata was specified.
+      // Override the instance template's metadata if instanceMetadata was specified.
       if (overriddenProperties.instanceMetadata) {
         def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
