@@ -228,7 +228,7 @@ angular.module('spinnaker.serverGroup.details.gce.controller', [
       if ($scope.serverGroup && $scope.serverGroup.launchConfig.instanceTemplate.properties) {
         var networkInterfaces = $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
 
-        if (networkInterfaces.length == 1) {
+        if (networkInterfaces.length === 1) {
           var networkUrl = networkInterfaces[0].network;
 
           return _.last(networkUrl.split('/'));
