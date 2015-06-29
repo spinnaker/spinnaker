@@ -9,18 +9,14 @@
 
     <div class="form-group">
       <div class="col-md-4 sm-label-left"><b>Capacity</b></div>
-    </div>
-    <div class="form-group">
-      <div class="col-md-offset-4 col-md-8 radio">
+      <div class="col-md-8 radio">
         <label>
           <input type="radio" ng-model="command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
           Copy the capacity from the current server group
         <help-field key="serverGroupCapacity.useSourceCapacityTrue"></help-field>
         </label>
       </div>
-    </div>
-    <div class="form-group">
-      <div class="col-md-offset-4 col-md-8 radio">
+      <div class="col-md-8 radio">
         <label>
           <input type="radio" ng-model="command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
           Let me specify the capacity
@@ -28,33 +24,43 @@
         </label>
       </div>
     </div>
-    <div>
-      <div class="form-group">
-        <div class="col-md-2 col-md-offset-5"><b>Min</b></div>
-        <div class="col-md-2"><b>Max</b></div>
-        <div class="col-md-2"><b>Desired</b></div>
-      </div>
-      <div class="form-group">
-        <div class="col-md-2 col-md-offset-5"><input type="number"
-                                     ng-disabled="command.useSourceCapacity"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.min"
-                                     min="0"
-                                     max="{{command.capacity.max}}"
-                                     required/></div>
-        <div class="col-md-2"><input type="number"
-                                     ng-disabled="command.useSourceCapacity"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.max"
-                                     min="{{command.capacity.min}}"
-                                     required/></div>
-        <div class="col-md-2"><input type="number"
-                                     ng-disabled="command.useSourceCapacity"
-                                     class="form-control input-sm"
-                                     ng-model="command.capacity.desired"
-                                     min="{{command.capacity.min}}"
-                                     max="{{command.capacity.max}}"
-                                     required/></div>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-5"><b>Min</b></div>
+      <div class="col-md-2"><b>Max</b></div>
+      <div class="col-md-2"><b>Desired</b></div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-5"><input type="number"
+                                   ng-disabled="command.useSourceCapacity"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.min"
+                                   min="0"
+                                   max="{{command.capacity.max}}"
+                                   required/></div>
+      <div class="col-md-2"><input type="number"
+                                   ng-disabled="command.useSourceCapacity"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.max"
+                                   min="{{command.capacity.min}}"
+                                   required/></div>
+      <div class="col-md-2"><input type="number"
+                                   ng-disabled="command.useSourceCapacity"
+                                   class="form-control input-sm"
+                                   ng-model="command.capacity.desired"
+                                   min="{{command.capacity.min}}"
+                                   max="{{command.capacity.max}}"
+                                   required/></div>
+    </div>
+    <div class="form-group form-inline" style="margin-top: 20px">
+      <div class="col-md-12">
+        Consider deployment successful when
+        <input type="number"
+               min="0"
+               max="100"
+               ng-model="command.targetHealthyDeployPercentage"
+               class="form-control input-sm inline-number"
+               />
+        percent of instances are healthy.
       </div>
     </div>
   </div>
