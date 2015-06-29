@@ -26,6 +26,7 @@ import retrofit.mime.TypedString
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class WaitForCapacityMatchTaskSpec extends Specification {
 
@@ -48,7 +49,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       result.status == ExecutionStatus.RUNNING
 
     when:
-      cluster.serverGroups[0].instances.addAll([[instanceId: "i-5678"], [instanceId: "i-0000"]])
+      cluster.serverGroups[0].instances.addAll([makeInstance("i-5678"), makeInstance("i-0000")])
 
     and:
       result = task.execute(stage)
@@ -65,7 +66,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             name: "kato-main-v000",
             region: "us-east-1",
             instances: [
-              [instanceId: "i-1234"]
+              makeInstance("i-1234")
             ],
             asg: [
               desiredCapacity: 3
@@ -73,6 +74,58 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           ]
         ]
       ]
+  }
+
+  @Unroll
+  void "should return status #status for a scale up operation when server group is not disabled and instance health is #healthState"() {
+    setup:
+    oort = Stub(OortService)
+    def cluster = [
+      name: "kato-main",
+      account: "test",
+      serverGroups: [
+        [
+          name: "kato-main-v000",
+          region: "us-east-1",
+          instances: [
+            makeInstance("i-1234")
+          ],
+          asg: [
+            minSize: 3,
+            desiredCapacity: 3
+          ]
+        ]
+      ],
+      disabled: false
+    ]
+    oort.getCluster("kato", "test", "kato-main", "aws") >> { new Response('kato', 200, 'ok', [], new TypedString(mapper.writeValueAsString(cluster))) }
+    task.oortService = oort
+    def context = [account: "test", "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]]
+    def stage = new OrchestrationStage(new Orchestration(), "resizeAsg", context)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+
+    when:
+    cluster.serverGroups[0].instances.addAll([
+      makeInstance("i-5678", healthState),
+      makeInstance("i-0000", healthState)
+      ])
+
+    and:
+    result = task.execute(stage)
+
+    then:
+    result.status == status
+
+    where:
+    healthState | status
+    'Down'      | ExecutionStatus.RUNNING
+    'Starting'  | ExecutionStatus.RUNNING
+    'Up'        | ExecutionStatus.SUCCEEDED
   }
 
   void "should properly wait for a scale down operation"() {
@@ -90,7 +143,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
 
     when:
-    cluster.serverGroups[0].instances = [[instanceId:"i-0000"]]
+    cluster.serverGroups[0].instances = [makeInstance("i-0000")]
 
     and:
     result = task.execute(stage)
@@ -107,9 +160,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           name: "kato-main-v000",
           region: "us-east-1",
           instances: [
-            [instanceId: "i-1234"],
-            [instanceId: "i-5678"],
-            [instanceId: "i-0000"]
+            makeInstance("i-1234"),
+            makeInstance("i-5678"),
+            makeInstance("i-0000")
           ],
           asg: [
             desiredCapacity: 1
@@ -117,5 +170,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         ]
       ]
     ]
+  }
+
+  private static Map makeInstance(id, healthState = 'Up') {
+    [instanceId: id, health: [ [ state: healthState ] ]]
   }
 }
