@@ -75,7 +75,7 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
          */
         function createNodes() {
           var triggersNode = {
-              name: 'Triggers (' + scope.pipeline.triggers.length + ')',
+              name: 'Configuration',
               phase: 0,
               id: -1,
               section: 'triggers',
