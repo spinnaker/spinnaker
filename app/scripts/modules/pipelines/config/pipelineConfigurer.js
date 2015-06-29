@@ -236,6 +236,7 @@ angular.module('spinnaker.pipelines')
         stages: base.stages,
         triggers: base.triggers,
         parallel: base.parallel,
+        limitConcurrent: base.limitConcurrent,
         stageCounter: base.stageCounter,
         parameterConfig: base.parameterConfig
       };

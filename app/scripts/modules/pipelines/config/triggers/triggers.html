@@ -1,4 +1,15 @@
 <div class="form-horizontal">
+  <h4>Concurrent Executions</h4>
+  <div class="form-group">
+    <div class="col-md-11 col-md-offset-1">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" ng-model="pipeline.limitConcurrent">
+         <strong>Disable concurrent pipeline executions (only run one at a time). </strong>
+        </label>
+      </div>
+    </div>
+  </div>
   <h4>Automated Triggers</h4>
   <trigger ng-repeat="trigger in pipeline.triggers" trigger="trigger" pipeline="pipeline" application="application"></trigger>
   <div class="row" ng-if="!pipeline.triggers.length">
