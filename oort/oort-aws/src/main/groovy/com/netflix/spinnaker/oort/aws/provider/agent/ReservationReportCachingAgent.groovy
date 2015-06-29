@@ -18,8 +18,6 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.DescribeReservedInstancesRequest
-import com.amazonaws.services.ec2.model.Filter
-import com.amazonaws.services.ec2.model.OfferingTypeValues
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -124,12 +122,9 @@ class ReservationReportCachingAgent implements CachingAgent {
         log.info("Fetching reservation report for ${credentials.name}:${region.name}")
 
         def amazonEC2 = amazonClientProvider.getAmazonEC2(credentials, region.name)
-        def reservedInstancesResult = amazonEC2.describeReservedInstances(
-          new DescribeReservedInstancesRequest()
-            .withFilters(new Filter().withName("state").withValues("active"))
-        )
-
+        def reservedInstancesResult = amazonEC2.describeReservedInstances(new DescribeReservedInstancesRequest())
         reservedInstancesResult.reservedInstances.findAll {
+          it.state.equalsIgnoreCase("active") &&
           ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
         }.each {
           def productDescription = operatingSystemType(it.productDescription)
@@ -138,16 +133,16 @@ class ReservationReportCachingAgent implements CachingAgent {
           reservation.accounts[credentials.name].reserved.addAndGet(it.instanceCount)
         }
 
-        def describeInstancesRequest = new DescribeInstancesRequest().withFilters(
-          new Filter()
-            .withName("instance-state-name")
-            .withValues("pending", "running", "shutting-down", "stopping", "stopped")
-        )
-
+        def describeInstancesRequest = new DescribeInstancesRequest()
+        def allowedStates = ["pending", "running", "shutting-down", "stopping", "stopped"] as Set<String>
         while (true) {
           def result = amazonEC2.describeInstances(describeInstancesRequest)
           result.reservations.each {
             it.getInstances().each {
+              if (!allowedStates.contains(it.state.name.toLowerCase())) {
+                return
+              }
+
               def productDescription = operatingSystemType(it.platform ? "Windows" : "Linux/UNIX")
               def reservation = reservations["${it.placement.availabilityZone}:${productDescription}:${it.instanceType}"]
               reservation.totalUsed.incrementAndGet()

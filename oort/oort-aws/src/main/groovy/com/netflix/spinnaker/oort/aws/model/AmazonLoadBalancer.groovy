@@ -16,45 +16,35 @@
 
 package com.netflix.spinnaker.oort.aws.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.model.LoadBalancer
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class AmazonLoadBalancer extends HashMap implements LoadBalancer {
+class AmazonLoadBalancer implements LoadBalancer {
 
-  AmazonLoadBalancer() {
-    this(null, null, null)
+  String account
+  String name
+  String region
+  String vpcId
+  Set<Map<String, Object>> serverGroups = []
+
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
+
+  @JsonAnyGetter
+  public Map<String,Object> any() {
+    return dynamicProperties;
   }
 
-  AmazonLoadBalancer(String name, String account, String region) {
-    setProperty "account", account
-    setProperty "name", name
-    setProperty "type", "aws"
-    setProperty "region", region
-    setProperty "serverGroups", new HashSet<>()
-  }
-
-  String getAccount() {
-    getProperty "account"
-  }
-
-  @Override
-  String getName() {
-    getProperty "name"
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   String getType() {
-    getProperty "type"
-  }
-
-  @Override
-  Set<String> getServerGroups() {
-    (Set<String>) getProperty("serverGroups")
-  }
-
-  String getRegion() {
-    (String) getProperty("region")
+    return "aws"
   }
 
   @Override

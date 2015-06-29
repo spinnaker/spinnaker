@@ -80,7 +80,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
             googleInstance.setProperty("serverGroup", googleServerGroup.name)
 
             googleServerGroup.instances << googleInstance
-          } else if (standaloneInstanceList) {
+          } else if (standaloneInstanceList != null) {
             standaloneInstanceList << googleInstance
           }
         }

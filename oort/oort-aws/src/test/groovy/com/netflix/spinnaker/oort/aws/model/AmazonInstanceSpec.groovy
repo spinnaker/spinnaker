@@ -29,7 +29,7 @@ class AmazonInstanceSpec extends Specification {
   Instance instance
 
   def setup() {
-    instance = new AmazonInstance('foo')
+    instance = new AmazonInstance(name: 'foo')
   }
 
   def "getHealthState for ALL UP health states"() {

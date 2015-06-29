@@ -94,6 +94,9 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
         }
       }
     }
+
+    // Set all google-provided attributes for use by non-deck callers.
+    googleServerGroup.launchConfig.instanceTemplate = instanceTemplate
   }
 
   static void extractBuildInfo(String imageDescription, GoogleServerGroup googleServerGroup, String defaultBuildHost) {
