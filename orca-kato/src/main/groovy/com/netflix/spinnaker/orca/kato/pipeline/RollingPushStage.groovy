@@ -34,7 +34,6 @@ import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPha
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.sock.SockService
-import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
@@ -53,9 +52,6 @@ class RollingPushStage extends StageBuilder {
 
   @Override
   protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-    if (sockService) {
-      jobBuilder.next(buildStep(stage, "getCommits", GetCommitsTask))
-    }
     jobBuilder.next(buildStep(stage, "determineTerminationCandidates", DetermineTerminationCandidatesTask))
     def startOfCycle = buildStep(stage, "determineCurrentPhaseTerminations", DetermineTerminationPhaseInstancesTask)
     jobBuilder.next(startOfCycle)
