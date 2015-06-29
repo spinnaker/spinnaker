@@ -43,7 +43,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
   abstract
   protected Map<String, List<String>> getServerGroups(Stage stage)
 
-  abstract protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames)
+  abstract protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames)
 
   @Override
   TaskResult execute(Stage stage) {
@@ -76,7 +76,6 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         String name = serverGroup.name
 
         List instances = serverGroup.instances ?: []
-        Map asg = serverGroup.asg
 
         // Look across ASGs in Cluster for specified ones to exist.
         if (!serverGroups.containsKey(region) || !serverGroups[region].contains(name)) {
@@ -88,9 +87,19 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         if (interestingHealthProviderNames == null) {
           interestingHealthProviderNames = stage.context?.appConfig?.interestingHealthProviderNames as Collection
         }
-        def isComplete = hasSucceeded(stage, asg, instances, interestingHealthProviderNames)
+        def isComplete = hasSucceeded(stage, serverGroup, instances, interestingHealthProviderNames)
         if (!isComplete) {
-          return new DefaultTaskResult(ExecutionStatus.RUNNING)
+          Map targetCapacities = [:]
+          if (seenServerGroup && !stage.context.capacitySnapshot) {
+            targetCapacities = [
+              capacitySnapshot: [
+                minSize: serverGroup.asg.minSize,
+                desiredCapacity: serverGroup.asg.desiredCapacity,
+                maxSize: serverGroup.asg.maxSize
+              ]
+            ]
+          }
+          return new DefaultTaskResult(ExecutionStatus.RUNNING, targetCapacities)
         }
       }
       if (seenServerGroup.values().contains(false)) {
