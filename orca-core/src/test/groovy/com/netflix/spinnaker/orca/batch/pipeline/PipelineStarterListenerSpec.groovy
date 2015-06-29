@@ -52,4 +52,33 @@ class PipelineStarterListenerSpec extends Specification {
     0 * _._
   }
 
+  def "should mark waiting pipelines that are not started as canceled"(){
+    def canceledPipelines = []
+
+    when:
+    listener.afterJob(jobExecution)
+
+    then:
+    1 * listener.startTracker.getQueuedPipelines(_) >> ['123', '124', '125']
+    listener.executionRepository.store(_) >> { Pipeline pipeline ->
+      if(pipeline.canceled == true){
+        canceledPipelines.add(pipeline)
+      }
+    }
+
+    and:
+    1 * listener.startTracker.getAllStartedExecutions() >> []
+    1 * listener.executionRepository.retrievePipeline('something') >> new Pipeline(id: '122', pipelineConfigId: 'abc')
+    1 * listener.executionRepository.retrievePipeline('123') >> new Pipeline(id: '123', pipelineConfigId: 'abc')
+    1 * listener.executionRepository.retrievePipeline('124')  >> new Pipeline(id: '124', pipelineConfigId: 'abc')
+    1 * listener.executionRepository.retrievePipeline('125')  >> new Pipeline(id: '125', pipelineConfigId: 'abc')
+    1 * listener.pipelineStarter.startExecution({it.id == '123'})
+    1 * listener.startTracker.removeFromQueue('abc', '123')
+    1 * listener.startTracker.removeFromQueue('abc', '124')
+    1 * listener.startTracker.removeFromQueue('abc', '125')
+
+    and:
+    canceledPipelines.size() == 2
+  }
+
 }
