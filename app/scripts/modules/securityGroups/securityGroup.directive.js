@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.securityGroup.rollup', [])
     return {
       restrict: 'E',
       replace: true,
-      template: require('./securityGroup.html'),
+      templateUrl: require('./securityGroup.html'),
       scope: {
         securityGroup: '=',
         displayOptions: '='

@@ -2,8 +2,8 @@
 
 module.exports = function () {
   return {
-    scope:true,
+    scope: true,
     restrict: 'E',
-    template: require('views/directives/modalClose.html'),
+    templateUrl: require('../../views/directives/modalClose.html'),
   };
 };

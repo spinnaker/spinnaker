@@ -1,9 +1,11 @@
 'use strict';
 
+//BEN_TODO
+
 module.exports = function(settings) {
   return {
     restrict: 'E',
-    template: require('views/directives/accountSelectField.html'),
+    templateUrl: require('views/directives/accountSelectField.html'),
     scope: {
       accounts: '=',
       component: '=',
@@ -16,7 +18,7 @@ module.exports = function(settings) {
       readOnly: '=',
       multiselect: '='
     },
-    link: function(scope) {
+    link: function(scope, _) {
       function groupAccounts(accounts) {
         if (accounts && accounts[0] && accounts[0].name) {
           accounts = _.pluck(accounts, 'name');
@@ -47,4 +49,4 @@ module.exports = function(settings) {
       scope.$watch('accounts', groupAccounts);
     }
   };
-}
+};

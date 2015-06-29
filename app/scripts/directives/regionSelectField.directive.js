@@ -1,9 +1,11 @@
 'use strict';
 
-module.exports = function (settings) {
+//BEN_TODO
+
+module.exports = function (settings, _) {
   return {
     restrict: 'E',
-    template: require('views/directives/regionSelectField.html'),
+    templateUrl: require('../../views/directives/regionSelectField.html'),
     scope: {
       regions: '=',
       component: '=',

@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.direct
         configurations: '=',
         application: '=',
       },
-      template: require('./executionGroupHeading.html'),
+      templateUrl: require('./executionGroupHeading.html'),
       controller: 'executionGroupHeading as ctrl',
     };
   });

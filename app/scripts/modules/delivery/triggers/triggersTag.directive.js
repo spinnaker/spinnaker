@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.delivery.execution.triggers', [
       scope: {
         pipeline: '=',
       },
-      template: require('./triggersTag.html'),
+      templateUrl: require('./triggersTag.html'),
       controller: 'TriggersTagCtrl',
       controllerAs: 'triggersTagCtrl',
     };

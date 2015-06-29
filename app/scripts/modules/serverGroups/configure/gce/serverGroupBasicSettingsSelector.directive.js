@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
         application: '=',
         hideClusterNamePreview: '=',
       },
-      template: require('./serverGroupBasicSettingsDirective.html'),
+      templateUrl: require('./serverGroupBasicSettingsDirective.html'),
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common')
         factor: '=',
         range: '='
       },
-      template: require('./costFactor.html'),
+      templateUrl: require('./costFactor.html'),
       link: function(scope) {
         function getUsage(factor) {
           return {

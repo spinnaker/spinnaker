@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.healthCounts.directive', [
 ])
   .directive('healthCounts', function ($templateCache) {
     return {
-      template: require('./healthCounts.html'),
+      templateUrl: require('./healthCounts.html'),
       restrict: 'E',
       scope: {
         container: '='
@@ -14,9 +14,7 @@ module.exports = angular.module('spinnaker.healthCounts.directive', [
       link: function(scope) {
 
 
-        //BEN_TODO: intersection of this and webpack
-        var template = require('./healthLegend.html');
-        scope.legend = template;
+        scope.legend = $templateCache.get(require('./healthLegend.html'));
 
         function calculateHealthPercent() {
           var container = scope.container,

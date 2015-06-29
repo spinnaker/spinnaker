@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.providerSelection.directive', [
         field: '@',
         readOnly: '=',
       },
-      template: require('./providerSelector.html'),
+      templateUrl: require('./providerSelector.html'),
       link: function(scope) {
         scope.initialized = false;
         accountService.listProviders().then(function(providers) {

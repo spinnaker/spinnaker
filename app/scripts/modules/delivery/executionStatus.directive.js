@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.delivery.executionStatus.directive', 
         execution: '=',
         filter: '=',
       },
-      template: require('./executionStatus.html'),
+      templateUrl: require('./executionStatus.html'),
       controller: 'executionStatus as ctrl',
       link: function(scope) {
 

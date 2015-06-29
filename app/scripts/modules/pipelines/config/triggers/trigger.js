@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.pipelines.trigger')
         application: '='
       },
       controller: 'TriggerCtrl as triggerCtrl',
-      template: require('./trigger.html'),
+      templateUrl: require('./trigger.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }

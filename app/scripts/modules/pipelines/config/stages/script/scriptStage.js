@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.script')
       key: 'script',
       controller: 'ScriptStageCtrl',
       controllerAs: 'scriptStageCtrl',
-      template: require('./scriptStage.html'),
+      templateUrl: require('./scriptStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
     });
   })

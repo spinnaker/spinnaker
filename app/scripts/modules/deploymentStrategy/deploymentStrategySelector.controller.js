@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy')
+module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategySelectorController', [])
   .controller('DeploymentStrategySelectorCtrl', function($scope, deploymentStrategyService) {
 
     function selectStrategy(newStrategyKey, oldStrategyKey) {

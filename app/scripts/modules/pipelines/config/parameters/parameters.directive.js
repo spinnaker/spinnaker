@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.parameters')
       },
       controller: 'parametersCtrl',
       controllerAs: 'parametersCtrl',
-      template: require('./parameters.html'),
+      templateUrl: require('./parameters.html'),
     };
   })
   .controller('parametersCtrl', function ($scope) {

@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stages.core.executionStepDe
       scope: {
         item: '='
       },
-      template: require('./executionStepDetails.html'),
+      templateUrl: require('./executionStepDetails.html'),
       controller: 'ExecutionStepDetailsCtrl',
       controllerAs: 'executionStepDetailsCtrl'
     };

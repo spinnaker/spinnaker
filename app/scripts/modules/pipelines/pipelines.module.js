@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines', [
+  require('./config/pipelineConfigurer.js'),
   require('./config/pipelineConfigProvider.js'),
   require('./config/pipelineConfig.controller.js'),
   require('./config/actions/create/createPipelineModal.controller.js'),

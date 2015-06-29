@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcess'
       key: 'modifyScalingProcess',
       controller: 'ModifyScalingProcessStageCtrl',
       controlelrAs: 'modifyScalingProcessStageCtrl',
-      template: require('./modifyScalingProcessStage.html'),
+      templateUrl: require('./modifyScalingProcessStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessExecutionDetails.html',
     });
   }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, _) {

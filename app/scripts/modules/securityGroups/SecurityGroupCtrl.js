@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.securityGroup.single.controller', [
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
-        template: require('./configure/aws/editSecurityGroup.html'),
+        templateUrl: require('./configure/aws/editSecurityGroup.html'),
         controller: 'EditSecurityGroupCtrl as ctrl',
         resolve: {
           securityGroup: function() {

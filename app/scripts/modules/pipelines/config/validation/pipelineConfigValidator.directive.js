@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.config.validator.directive'
   .directive('pipelineConfigErrors', function() {
     return {
       restrict: 'E',
-      template: require('./pipelineConfigErrors.html'),
+      templateUrl: require('./pipelineConfigErrors.html'),
       scope: {
         pipeline: '='
       },

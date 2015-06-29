@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.instance.loadBalancer.health.directiv
       scope: {
         loadBalancer: '=',
       },
-      template: require('./health.html'),
+      templateUrl: require('./health.html'),
       link: function(scope) {
         scope.name = scope.loadBalancer.name || scope.loadBalancer.loadBalancerName;
       }

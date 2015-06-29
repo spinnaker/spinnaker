@@ -182,7 +182,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/404',
         views: {
           'main@': {
-            template: require('../../views/404.html'),
+            templateUrl: require('../../views/404.html'),
             controller: angular.noop,
           }
         }
@@ -205,7 +205,7 @@ module.exports = angular.module('spinnaker.states', [
         abstract: true,
         views: {
           'insight': {
-            template: require('../modules/insight/insight.html'),
+            templateUrl: require('../modules/insight/insight.html'),
             controller: 'InsightCtrl',
             controllerAs: 'insight'
           }
@@ -216,12 +216,12 @@ module.exports = angular.module('spinnaker.states', [
           url: '/clusters',
           views: {
             'nav': {
-              template: require('../modules/clusterFilter/filterNav.html'),
+              templateUrl: require('../modules/clusterFilter/filterNav.html'),
               controller: 'ClusterFilterCtr',
               controllerAs: 'clustersFilters'
             },
             'master': {
-              template: require('../modules/cluster/all.html'),
+              templateUrl: require('../modules/cluster/all.html'),
               controller: 'AllClustersCtrl',
               controllerAs: 'allClusters'
             }
@@ -243,12 +243,12 @@ module.exports = angular.module('spinnaker.states', [
           name: 'loadBalancers',
           views: {
             'nav': {
-              template: require('../modules/loadBalancers/navigation.html'),
+              templateUrl: require('../modules/loadBalancers/navigation.html'),
               controller: 'LoadBalancersNavCtrl',
               controllerAs: 'ctrl'
             },
             'master': {
-              template: require('../modules/loadBalancers/all.html'),
+              templateUrl: require('../modules/loadBalancers/all.html'),
               controller: 'AllLoadBalancersCtrl',
               controllerAs: 'ctrl'
             }
@@ -268,7 +268,7 @@ module.exports = angular.module('spinnaker.states', [
               name: 'loadBalancer',
               views: {
                 'master@home.applications.application.insight': {
-                  template: require('../modules/loadBalancers/loadBalancer/single.html'),
+                  templateUrl: require('../modules/loadBalancers/loadBalancer/single.html'),
                   controller: 'LoadBalancerCtrl',
                   controllerAs: 'ctrl'
                 }
@@ -298,12 +298,12 @@ module.exports = angular.module('spinnaker.states', [
           name: 'connections',
           views: {
             'nav': {
-              template: require('../modules/securityGroups/navigation.html'),
+              templateUrl: require('../modules/securityGroups/navigation.html'),
               controller: 'SecurityGroupsNavCtrl',
               controllerAs: 'ctrl'
             },
             'master': {
-              template: require('../modules/securityGroups/all.html'),
+              templateUrl: require('../modules/securityGroups/all.html'),
               controller: 'AllSecurityGroupsCtrl',
               controllerAs: 'ctrl'
             }
@@ -322,7 +322,7 @@ module.exports = angular.module('spinnaker.states', [
               name: 'connection',
               views: {
                 'master@home.applications.application.insight': {
-                  template: require('../modules/securityGroups/single.html'),
+                  templateUrl: require('../modules/securityGroups/single.html'),
                   controller: 'SecurityGroupCtrl',
                   controllerAs: 'ctrl'
                 }
@@ -356,7 +356,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/tasks',
         views: {
           'insight': {
-            template: require('../modules/tasks/tasks.html'),
+            templateUrl: require('../modules/tasks/tasks.html'),
             controller: 'TasksCtrl',
             controllerAs: 'tasks'
           },
@@ -374,7 +374,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/config',
         views: {
           'insight': {
-            template: require('../modules/config/config.html'),
+            templateUrl: require('../modules/config/config.html'),
             controller: 'ConfigController',
             controllerAs: 'config'
           },
@@ -391,7 +391,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/rollouts',
         views: {
           'master': {
-            template: require('../modules/fastProperties/fastPropertyRollouts.html'),
+            templateUrl: require('../modules/fastProperties/fastPropertyRollouts.html'),
             controller: 'FastPropertyRolloutController',
             controllerAs: 'rollout'
           }
@@ -408,7 +408,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/properties',
         views: {
           'insight': {
-            template: require('../modules/fastProperties/applicationProperties.html'),
+            templateUrl: require('../modules/fastProperties/applicationProperties.html'),
             controller: 'ApplicationPropertiesController',
             controllerAs: 'fp'
           }
@@ -426,7 +426,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/:application',
         views: {
           'main@': {
-            template: require('../modules/applications/application.html'),
+            templateUrl: require('../modules/applications/application.html'),
             controller: 'ApplicationCtrl',
             controllerAs: 'ctrl'
           },
@@ -460,7 +460,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/applications',
         views: {
           'main@': {
-            template: require('../modules/applications/applications.html'),
+            templateUrl: require('../modules/applications/applications.html'),
             controller: 'ApplicationsCtrl',
             controllerAs: 'ctrl'
           }
@@ -481,7 +481,7 @@ module.exports = angular.module('spinnaker.states', [
         reloadOnSearch: false,
         views: {
           'master': {
-            template: require('../modules/fastProperties/properties.html'),
+            templateUrl: require('../modules/fastProperties/properties.html'),
             controller: 'FastPropertiesController',
             controllerAs: 'fp'
           }
@@ -494,7 +494,7 @@ module.exports = angular.module('spinnaker.states', [
         reloadOnSearch: false,
         views: {
           'main@': {
-            template: require('../modules/fastProperties/main.html'),
+            templateUrl: require('../modules/fastProperties/main.html'),
             controller: 'FastPropertyDataController',
             controllerAs: 'data'
           }
@@ -517,7 +517,7 @@ module.exports = angular.module('spinnaker.states', [
         reloadOnSearch: false,
         views: {
           'main@': {
-            template: require('../../views/infrastructure.html'),
+            templateUrl: require('../../views/infrastructure.html'),
             controller: 'InfrastructureCtrl',
             controllerAs: 'ctrl'
           }
@@ -534,7 +534,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/instance/:provider/:account/:region/:instanceId',
         views: {
           'main@': {
-            template: require('../modules/instance/standalone.html'),
+            templateUrl: require('../modules/instance/standalone.html'),
             controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'InstanceDetailsCtrl';

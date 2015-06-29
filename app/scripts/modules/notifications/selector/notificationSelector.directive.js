@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.notifications.selector', [
       scope: {
         notification: '=',
       },
-      template: require('./notificationSelector.html'),
+      templateUrl: require('./notificationSelector.html'),
       controller: 'NotificationSelectorCtrl',
       controllerAs: 'notificationCtrl'
     };

@@ -2,7 +2,7 @@
 
 module.exports = function () {
   return {
-    template: require('views/sorttoggle.html'),
+    templateUrl: require('../../views/sorttoggle.html'),
     scope: {
       key: '@',
       label: '@',

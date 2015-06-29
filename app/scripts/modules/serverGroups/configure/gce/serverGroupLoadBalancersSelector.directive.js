@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       scope: {
         command: '=',
       },
-      template: require('./serverGroupLoadBalancersDirective.html'),
+      templateUrl: require('./serverGroupLoadBalancersDirective.html'),
       link: function(scope) {
 
         scope.getLoadBalancerRefreshTime = function() {

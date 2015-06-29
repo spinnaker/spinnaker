@@ -139,7 +139,7 @@ module.exports = angular.module('spinnaker.pipelines.config.service', [
     function toggleTrigger(pipeline, index) {
       var trigger = pipeline.triggers[index];
       return $modal.open({
-        template: require('../../../delivery/triggers/toggleTrigger.modal.html'),
+        templateUrl: require('../../../delivery/triggers/toggleTrigger.modal.html'),
         controller: 'ToggleTriggerModalCtrl',
         controllerAs: 'toggleTriggerCtrl',
         resolve: {

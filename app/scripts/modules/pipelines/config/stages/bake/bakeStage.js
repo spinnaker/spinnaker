@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake')
       key: 'bake',
       controller: 'BakeStageCtrl',
       controllerAs: 'bakeStageCtrl',
-      template: require('./bakeStage.html'),
+      templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
       validators: [
         {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake')
         $scope.viewState.providerSelectionRequired = true;
         $scope.viewState.loading = false;
       } else {
-        // If there is exactly one provider, and there is not already a provider selected, select the only choice.
+        // If there is exactly one provider, and there is not already a provider selected, select the only choice.
         if (providers.length === 1 && !$scope.stage.cloudProviderType) {
           $scope.stage.cloudProviderType = providers[0];
         }

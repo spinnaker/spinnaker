@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.delivery.execution.directive', [
         executions: '=',
         application: '=',
       },
-      template: require('./execution.html'),
+      templateUrl: require('./execution.html'),
       controller: 'execution as ctrl',
       link: function(scope) {
         scope.$location = $location;

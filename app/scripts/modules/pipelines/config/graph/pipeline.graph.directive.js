@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.graph.directive', [
         viewState: '=',
         onNodeClick: '=',
       },
-      template: require('./pipelineGraph.directive.html'),
+      templateUrl: require('./pipelineGraph.directive.html'),
       link: function (scope, elem) {
 
         scope.nodeRadius = 8;

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.authentication.directive', [
   .directive('authenticatedUser', function(authenticationService) {
     return {
       restrict: 'E',
-      template: require('./authenticatedUser.html'),
+      templateUrl: require('./authenticatedUser.html'),
       link: function(scope) {
         scope.user = authenticationService.getAuthenticatedUser();
       }

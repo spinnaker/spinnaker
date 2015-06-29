@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsg')
       key: 'enableAsg',
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
-      template: require('./enableAsgStage.html'),
+      templateUrl: require('./enableAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
     });
   }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, _) {

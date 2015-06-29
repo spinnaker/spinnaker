@@ -95,7 +95,7 @@ module.exports = angular
 
     vm.delete = function(property) {
       $modal.open({
-        template: require('./modal/deleteFastProperty.html'),
+        templateUrl: require('./modal/deleteFastProperty.html'),
         controller: 'DeleteFastPropertyModalController',
         controllerAs: 'delete',
         resolve: {
@@ -108,7 +108,7 @@ module.exports = angular
 
     vm.editFastProperty = function(property) {
       $modal.open({
-        template: require('./modal/newFastProperty.html'),
+        templateUrl: require('./modal/newFastProperty.html'),
         controller: 'CreateFastPropertyModalController',
         controllerAs: 'newFP',
         resolve: {
@@ -130,7 +130,7 @@ module.exports = angular
 
     vm.newFastPropertyModal = function() {
       $modal.open({
-        template: require('./modal/newFastProperty.html'),
+        templateUrl: require('./modal/newFastProperty.html'),
         controller: 'CreateFastPropertyModalController',
         controllerAs: 'newFP',
         resolve: {

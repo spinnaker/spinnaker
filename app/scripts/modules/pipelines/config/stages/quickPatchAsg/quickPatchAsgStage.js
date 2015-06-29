@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg')
       key: 'quickPatch',
       controller: 'QuickPatchAsgStageCtrl',
       controllerAs: 'QuickPatchAsgStageCtrl',
-      template: require('./quickPatchAsgStage.html'),
+      templateUrl: require('./quickPatchAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgExecutionDetails.html'
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {

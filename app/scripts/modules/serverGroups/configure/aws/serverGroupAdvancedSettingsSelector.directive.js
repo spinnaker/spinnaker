@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
       scope: {
         command: '=',
       },
-      template: require('./serverGroupAdvancedSettingsDirective.html'),
+      templateUrl: require('./serverGroupAdvancedSettingsDirective.html'),
       controller: 'awsServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })

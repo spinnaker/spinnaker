@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmi')
       key: 'findAmi',
       controller: 'findAmiStageCtrl',
       controllerAs: 'findAmiStageCtrl',
-      template: require('./findAmiStage.html'),
+      templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/findAmi/findAmiExecutionDetails.html',
     });
   }).controller('findAmiStageCtrl', function($scope, stage, accountService, _) {

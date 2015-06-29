@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.feedback.directive', [
   .directive('feedback', function() {
     return {
       restrict: 'E',
-      template: require('./feedback.html'),
+      templateUrl: require('./feedback.html'),
       controller: function($scope, $modal) {
 
         $scope.state = {
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.feedback.directive', [
 
         $scope.openFeedback = function() {
           $modal.open({
-            template: require('./feedback.modal.html'),
+            templateUrl: require('./feedback.modal.html'),
             controller: 'FeedbackModalCtrl as ctrl'
           });
         };

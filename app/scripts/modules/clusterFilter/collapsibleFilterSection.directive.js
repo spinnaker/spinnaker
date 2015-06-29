@@ -13,7 +13,7 @@ module.exports = angular
         expanded: '@?',
         helpKey: '@?'
       },
-      template: require('./collapsibleFilterSection.html'),
+      templateUrl: require('./collapsibleFilterSection.html'),
       link:  function (scope, elem) {
         var expanded = (scope.expanded === 'true');
         scope.state = {expanded: expanded};
