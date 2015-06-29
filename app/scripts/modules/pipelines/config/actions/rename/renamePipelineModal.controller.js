@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.rename')
+module.exports = angular.module('spinnaker.pipelines.config.actions.rename.RenamePipelineModalCtrl', [
+])
   .controller('RenamePipelineModalCtrl', function($scope, application, pipeline, _, $modalInstance, $log,
                                                   dirtyPipelineTracker, pipelineConfigService) {
 

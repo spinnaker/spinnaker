@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancer.controller')
+module.exports = angular.module('spinnaker.loadBalancer.controller.loadBalancerCtrl', [
+])
   .controller('LoadBalancerCtrl', function ($scope, $state, application, loadBalancer) {
     $scope.application = application;
 

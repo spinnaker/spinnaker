@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.config', [])
+module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
+])
   .provider('pipelineConfig', function() {
 
     var triggerTypes = [],

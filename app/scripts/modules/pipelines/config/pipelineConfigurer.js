@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.pipelineConfigurer', [
+module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer', [
 ])
   .directive('pipelineConfigurer', function() {
     return {

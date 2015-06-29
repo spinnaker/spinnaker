@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines')
+module.exports = angular.module('spinnaker.pipelines.config.configView', [
+])
   .directive('pipelineConfigView', function() {
     return {
       restrict: 'E',
