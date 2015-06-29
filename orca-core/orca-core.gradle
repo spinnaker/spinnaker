@@ -27,5 +27,6 @@ dependencies {
   compile spinnaker.dependency('korkJedisTest')
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('spectatorApi')
+  testCompile spinnaker.dependency('kork')
   testCompile project(":orca-test")
 }

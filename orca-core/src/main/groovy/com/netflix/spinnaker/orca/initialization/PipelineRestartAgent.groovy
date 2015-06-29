@@ -31,7 +31,6 @@ import net.greghaines.jesque.client.Client
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import rx.Observable
@@ -42,8 +41,7 @@ import static java.util.Collections.emptySet
 import static java.util.concurrent.TimeUnit.MINUTES
 
 @Component
-@ConditionalOnExpression(value = '${pollers.stalePipelines.enabled:true}')
-@ConditionalOnBean(LookupService)
+@ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
 @Slf4j
 @CompileStatic
 class PipelineRestartAgent extends AbstractPollingNotificationAgent {
@@ -75,7 +73,7 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   @Override
   @CompileDynamic
   protected Observable<Execution> getEvents() {
-    log.info("Starting stale pipelines polling")
+    log.info("Starting stale pipelines polling cycle")
     Observable.from(jobExplorer.getJobNames())
               .buffer(100)
               .flatMap({ names ->
@@ -83,6 +81,8 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
                 .flatMapIterable(this.&runningJobExecutions)
                 .doOnNext({ log.info "found stale job $it.id started=$it.startTime" })
                 .map(this.&executionToPipeline)
+    }).doOnCompleted({
+      log.info("Finished stale pipelines polling cycle")
     })
   }
 

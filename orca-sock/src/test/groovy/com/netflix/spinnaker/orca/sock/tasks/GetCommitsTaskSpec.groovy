@@ -50,7 +50,7 @@ class GetCommitsTaskSpec extends Specification {
     task.sockService = null
 
     when:
-    def result = task.execute(null)
+    def result = task.execute(new PipelineStage(new Pipeline(), ""))
 
     then:
     0 * _
@@ -495,58 +495,13 @@ class GetCommitsTaskSpec extends Specification {
 
   def "return success if retries limit hit"() {
     given:
-    String katoTasks = "[{\"resultObjects\": [" +
-      "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
-      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
-    ObjectMapper mapper = new ObjectMapper()
-    def katoMap = mapper.readValue(katoTasks, List)
-    def stage = new PipelineStage(pipeline, "stash", [application: app, account: account,
-                                                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
-
-    and:
-    task.front50Service = front50Service
-    10 * front50Service.get(account, app) >> new Application(repoSlug: "repositorySlug", repoProjectKey: "projectKey", repoType: "stash")
-
-    and:
-    task.objectMapper = new ObjectMapper()
-    def oortResponse = "{\"launchConfig\" : {\"imageId\" : \"${sourceImage}\"}}".stripIndent()
-    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
-    Response sourceResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.143-h216.186605b/MYAPP-package-myapp/216" }}]'))
-    Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
-
-    task.oortService = oortService
-    10 * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
-    10 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    10 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
-
-    and:
-    task.sockService = sockService
+    def stage = new PipelineStage(pipeline, "stash", [getCommitsRemainingRetries: 0])
 
     when:
-    def result
-    11.times{
-      result = task.execute(stage)
-    }
+    def result = task.execute(stage)
 
     then:
-    10 * sockService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
-      throw new RetrofitError(null, null,
-        new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
-    }
-    result.status == taskStatus
-
-    where:
-    app = "myapp"
-    account = "test"
-    region = "us-west-1"
-    sourceImage = "ami-source"
-    targetImage = "ami-target"
-    jobState = 'SUCCESS'
-    taskStatus = ExecutionStatus.SUCCEEDED
-
-    cluster | serverGroup | targetServerGroup
-    "myapp" | "myapp" | "myapp-v000"
-
+    result.status == ExecutionStatus.SUCCEEDED
   }
 
 }

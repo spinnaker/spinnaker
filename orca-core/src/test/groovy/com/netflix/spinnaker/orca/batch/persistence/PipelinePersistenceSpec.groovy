@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.orca.batch.persistence
 
+import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
@@ -26,9 +28,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import spock.lang.Specification
-
-import java.util.concurrent.CountDownLatch
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
@@ -49,7 +48,8 @@ class PipelinePersistenceSpec extends Specification {
     def testStage = new AutowiredTestStage("test", task1, task2)
 
     applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration, AsyncJobLauncherConfiguration, BatchTestConfiguration, OrcaConfiguration)
+      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, AsyncJobLauncherConfiguration,
+               BatchTestConfiguration, OrcaConfiguration)
       beanFactory.registerSingleton("testStage", testStage)
       refresh()
 
