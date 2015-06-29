@@ -115,6 +115,22 @@ class ExecutionStarterSpec extends Specification {
     5 * executionStarter.startTracker.addToStarted("666", _)
   }
 
+  def "should keep track of started pipelines without pipeline id"() {
+    given:
+    def executionStarter = getExecutionStarter(ExecutionStatus.NOT_STARTED)
+    executionStarter.startTracker = Mock(PipelineStartTracker)
+    executionStarter.startTracker.hasStartedExecutions(_) >> true
+
+    when:
+      executionStarter.start("""{
+        "limitConcurrent" : false
+      }""")
+
+    then:
+    1 * executionStarter.launcher.run(_, _)
+    1 * executionStarter.startTracker.addToStarted(null, _)
+  }
+
   private def getExecutionStarter(ExecutionStatus executionStatus) {
     def executionJobBuilder = Mock(ExecutionJobBuilder)
     def executionStarter = new ExecutionStarter<Pipeline>("bake") {

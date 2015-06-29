@@ -37,7 +37,10 @@ class PipelineStartTracker {
   }
 
   void addToStarted(String pipelineConfigId, String executionId) {
-    pipelineStack.add("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    if (pipelineConfigId) {
+      pipelineStack.add("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    }
+
     pipelineStack.add(PIPELINE_STARTED_ALL, executionId)
   }
 
@@ -46,7 +49,9 @@ class PipelineStartTracker {
   }
 
   void markAsFinished(String pipelineConfigId, String executionId) {
-    pipelineStack.remove("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    if (pipelineConfigId) {
+      pipelineStack.remove("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
+    }
     pipelineStack.remove(PIPELINE_STARTED_ALL, executionId)
   }
 
