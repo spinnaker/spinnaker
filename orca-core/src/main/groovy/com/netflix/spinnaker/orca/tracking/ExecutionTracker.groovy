@@ -9,11 +9,9 @@ import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Component
 
 @Component
-@ConditionalOnBean(ApplicationInfoManager)
 @CompileStatic
 class ExecutionTracker implements JobExecutionListener {
 
