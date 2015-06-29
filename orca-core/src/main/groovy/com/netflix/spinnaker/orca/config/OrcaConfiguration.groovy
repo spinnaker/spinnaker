@@ -64,7 +64,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 
 @Configuration
 @Import([EurekaConfiguration])
-@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.initialization", "com.netflix.spinnaker.orca.tracking"])
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.restart"])
 @CompileStatic
 class OrcaConfiguration {
 

@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.orca.initialization
+package com.netflix.spinnaker.orca.restart
 
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
