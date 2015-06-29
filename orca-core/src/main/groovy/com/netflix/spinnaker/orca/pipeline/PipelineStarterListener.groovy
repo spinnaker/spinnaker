@@ -44,8 +44,10 @@ class PipelineStarterListener implements JobExecutionListener {
   @Override
   void afterJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
-    if (execution) {
-      startTracker.markAsFinished(execution.pipelineConfigId, execution.id)
+    if (execution?.pipelineConfigId) {
+      if (startTracker.getAllStartedExecutions().contains(execution.pipelineConfigId)) {
+        startTracker.markAsFinished(execution.pipelineConfigId, execution.id)
+      }
       List<String> queuedPipelines = startTracker.getQueuedPipelines(execution.pipelineConfigId)
       if (!queuedPipelines.empty) {
         String toStartPipeline = queuedPipelines.first()
