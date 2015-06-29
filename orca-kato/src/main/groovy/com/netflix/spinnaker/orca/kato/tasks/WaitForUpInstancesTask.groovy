@@ -63,7 +63,11 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer :
         asg.desiredCapacity as Integer
     if (stage.context.targetHealthyDeployPercentage != null) {
-      targetDesiredSize = Math.ceil((stage.context.targetHealthyDeployPercentage as Double) * targetDesiredSize / 100) as Integer
+      Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
+      if (percentage < 0 || percentage > 100) {
+        throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
+      }
+      targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
     }
     targetDesiredSize
   }

@@ -144,6 +144,23 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   @Unroll
+  void 'should throw an exception if targetHealthyDeployPercentage is not between 0 and 100'() {
+    when:
+    task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", [
+        targetHealthyDeployPercentage: percent
+      ]
+      ), null, [], null
+    )
+
+    then:
+    thrown(NumberFormatException)
+
+    where:
+    percent << [-1, 101]
+  }
+
+  @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
     hasSucceeded == task.hasSucceeded(
