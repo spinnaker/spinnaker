@@ -23,9 +23,11 @@ import groovy.transform.CompileDynamic
 
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.ThreadPoolExecutor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.ValueFunction
 import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
@@ -44,6 +46,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.ListableJobLocator
@@ -66,7 +69,7 @@ import static org.springframework.beans.factory.config.ConfigurableBeanFactory.S
 
 @Configuration
 @Import([EurekaConfiguration])
-@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.initialization"])
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.initialization", "com.netflix.spinnaker.orca.tracking"])
 @CompileStatic
 class OrcaConfiguration {
 
@@ -88,9 +91,9 @@ class OrcaConfiguration {
   @CompileDynamic
   @ConditionalOnMissingBean(TaskExecutor)
   TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {
-    def executor = new ThreadPoolTaskExecutor(maxPoolSize: 250, corePoolSize: 50)
+    def executor = new ThreadPoolTaskExecutor(maxPoolSize: 150, corePoolSize: 150)
 
-    def createGuage = { String name ->
+    def createGuage = { String name, Closure valueCallback ->
       def id = extendedRegistry
         .createId("threadpool.${name}" as String)
         .withTag("id", "TaskExecutor")
@@ -98,16 +101,16 @@ class OrcaConfiguration {
       extendedRegistry.gauge(id, executor, new ValueFunction() {
         @Override
         double apply(Object ref) {
-          ((ThreadPoolTaskExecutor) ref).threadPoolExecutor."${name}"
+          valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)
         }
       })
     }
 
-    createGuage.call("activeCount")
-    createGuage.call("maximumPoolSize")
-    createGuage.call("corePoolSize")
-    createGuage.call("poolSize")
-
+    createGuage.call("activeCount", { ThreadPoolExecutor e -> e.activeCount })
+    createGuage.call("maximumPoolSize", { ThreadPoolExecutor e -> e.maximumPoolSize })
+    createGuage.call("corePoolSize", { ThreadPoolExecutor e -> e.corePoolSize })
+    createGuage.call("poolSize", { ThreadPoolExecutor e -> e.poolSize })
+    createGuage.call("blockingQueueSize", { ThreadPoolExecutor e -> e.queue.size() })
     return executor
   }
 

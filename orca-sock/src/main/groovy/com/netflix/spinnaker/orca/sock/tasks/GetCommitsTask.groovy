@@ -37,9 +37,9 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @Component
 class GetCommitsTask implements RetryableTask {
-
   long backoffPeriod = 1000
-  long timeout = TimeUnit.SECONDS.toMillis(30)
+  int retries = 10 // only retry this many times so we can return a success even if it doesnt work and avoid the timeout error which will kill pipelines
+  long timeout = TimeUnit.SECONDS.toMillis(30) // always set this higher than retries * backoffPeriod would take
 
   @Autowired
   OortService oortService
@@ -53,125 +53,135 @@ class GetCommitsTask implements RetryableTask {
   @Autowired
   Front50Service front50Service
 
-
   @Override
   TaskResult execute(Stage stage) {
-    if (!sockService) {
-      return DefaultTaskResult.SUCCEEDED
+    // is sock not configured or have we exceeded configured retries
+    if (!sockService || retries-- == 0) {
+      log.info("sock is not configured or retries exceeded : sockService : ${sockService}, retries : ${retries}")
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
     }
 
-    def globalAccount = front50Service.credentials.find { it.global }
-    def applicationAccount = globalAccount?.name ?: stage.context.account
-    Application application = front50Service.get(applicationAccount, stage.context.application)
+    Map repoInfo = [:]
+    String sourceCommit
+    String targetCommit
+    List commitsList
 
-    String repoType = application.repoType
-    String projectKey = application.repoProjectKey
-    String repositorySlug = application.repoSlug
-    String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
-    String account = stage.context?.source?.account ?: stage.context?.account
-    String toCommit
-    String fromCommit
-    String targetAmi
+    try {
+      // get app config to see if it has repo info
+      repoInfo = getRepoInfo(stage.context.account, stage.context.application)
 
-    String ancestorAsg = stage.context.get("kato.tasks")?.find { item ->
-      item.find { key, value ->
-        key == 'resultObjects'
+      if(!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
+        log.info("not enough info to query sock for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
+        return DefaultTaskResult.SUCCEEDED
       }
-    }?.resultObjects?.ancestorServerGroupNameByRegion?.find {
-      it.find { key, value ->
-        key == region
+
+      String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
+      String account = stage.context?.source?.account ?: stage.context?.account
+
+      //figure out the old asg/ami/commit
+      String ancestorAmi = getAncestorAmi(stage.context, region, account) // FIXME: multi-region deployments/canaries
+
+      //figure out the new asg/ami/commit
+      String targetAmi = getTargetAmi(stage.context, region)
+
+      //get commits from sock
+      sourceCommit = resolveCommitFromAmi(ancestorAmi, account, region)
+      targetCommit = resolveCommitFromAmi(targetAmi, account, region)
+
+      commitsList = []
+
+      //return results
+      if (repoInfo?.repoType && repoInfo?.projectKey && repoInfo?.repositorySlug && sourceCommit && targetCommit) {
+        commitsList = getCommitsList(repoInfo.repoType, repoInfo.projectKey, repoInfo.repositorySlug, sourceCommit, targetCommit)
+      } else {
+        log.warn("not enough info to query sock for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
       }
-    }?.get(region)
-
-    if (projectKey && repositorySlug && repoType && ancestorAsg && region && account) {
-
-      try {
-
-        TypeReference<List> jsonListType = new TypeReference<List>() {}
-        TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
-
-        String sourceCluster
-        if (ancestorAsg.lastIndexOf("-") > 0) {
-          sourceCluster = ancestorAsg.substring(0, ancestorAsg.lastIndexOf("-"))
-        } else {
-          sourceCluster = ancestorAsg
-        }
-
-        Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroup(stage.context.application,
-          account, sourceCluster,
-          ancestorAsg, region, "aws").body.in(), jsonMapType)
-
-        String sourceAmi = sourceServerGroup.launchConfig.imageId
-        def sourceAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
-          region, sourceAmi).body.in(), jsonListType)
-
-        String sourceAppVersion = sourceAmiDetails[0]?.tags?.appversion
-        if(sourceAppVersion) {
-          toCommit = sourceAppVersion.substring(0, sourceAppVersion.indexOf('/')).substring(sourceAppVersion.lastIndexOf('.') + 1)
-        } else {
-          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
-        }
-
-        def targetRegion
-        stage.context."deploy.server.groups".each {
-          targetRegion = it.key
-        }
-
-        String targetAppVersion
-        // deploy task sets this one
-        targetAmi = stage.context?.deploymentDetails?.find { it.region == targetRegion }?.ami
-
-        if(!targetAmi) {
-          // copyLastAsg sets this one
-          targetAmi = stage.context.get("kato.tasks")?.find { item ->
-            item.find { key, value ->
-              key == 'resultObjects'
-            }
-          }?.resultObjects?.find { another ->
-              if(another.containsKey("region")) {
-                another.region == region
-              }
-          }?.amiId
-        }
-
-        if(targetAmi) {
-          def targetAmiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
-          targetRegion, targetAmi).body.in(), jsonListType)
-          targetAppVersion = targetAmiDetails[0]?.tags?.appversion
-        } else {  // copyLastAsg sets this one
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
+    } catch (RetrofitError e) {
+        if(e.response?.status == 404) { // just give up on 404
+          log.error("got a 404 from sock for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
-        }
-
-        if(targetAppVersion) {
-          fromCommit = targetAppVersion.substring(0, targetAppVersion.indexOf('/')).substring(targetAppVersion.lastIndexOf('.') + 1)
-        } else {
-          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
-        }
-
-        def commitsList = []
-        if(toCommit && fromCommit) {
-          List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: toCommit, from: fromCommit, limit: 100])
-          commits.each {
-            // add commits to the task output
-            commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,
-                            timestamp: it.timestamp, commitUrl: it.commitUrl, message: it.message]
-          }
-        } else { // log and return an empty list
-          log.warn("unable to determine either toCommit(${toCommit}) or fromCommit${fromCommit}, returning an empty commit list")
-        }
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
-
-      } catch (RetrofitError e) {
-        if ([503, 500].contains(e.response?.status)) {
-          log.warn("Http ${e.response.status} received from `sock` (${repoType}, ${projectKey}, ${repositorySlug}, ${toCommit}, ${fromCommit}) , retrying...")
+        } else { // retry on other status codes
+          log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
-        } else if(e.response?.status == 404) { // just give up on 404
-          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         }
-        throw e
-      }
-    } else { // skip if we don't have the repo information
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    } catch(Exception f) { // retry on everything else
+      log.error("unexpeced error for : for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING)
     }
+  }
+
+  List getCommitsList(String repoType, String projectKey, String repositorySlug, String sourceCommit, String targetCommit) {
+    List commitsList = []
+    List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: sourceCommit, from: targetCommit, limit: 100])
+    commits.each {
+      // add commits to the task output
+      commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,
+                      timestamp: it.timestamp, commitUrl: it.commitUrl, message: it.message]
+    }
+    return commitsList
+  }
+
+  String resolveCommitFromAmi(String ami, String account, String region) {
+    TypeReference<List> jsonListType = new TypeReference<List>() {}
+    def amiDetails = objectMapper.readValue(oortService.getByAmiId("aws", account,
+      region, ami).body.in(), jsonListType)
+    def appVersion = amiDetails[0]?.tags?.appversion
+
+    if (appVersion) {
+      return appVersion.substring(0, appVersion.indexOf('/')).substring(appVersion.lastIndexOf('.') + 1)
+    }
+  }
+
+  String getTargetAmi(Map context, region) {
+    if(context.canary?.canaryDeployments) { // canary cluster stage
+      return context.canary.canaryDeployments?.find{ canaryDeployment ->
+        canaryDeployment?.canaryCluster?.region == region
+      }?.canaryCluster?.imageId
+    } else if (context.deploymentDetails) { // deploy asg stage
+      return context.deploymentDetails.find { it.region == region }?.ami
+    } else if (context.amiName) { // copyLastAsg stage
+      return context.amiName
+    } else {
+      return null
+    }
+  }
+
+  String getAncestorAmi(Map context, String region, String account) {
+    if(context.canary?.canaryDeployments) { // separate cluster diff
+      return context.canary.canaryDeployments?.find{ canaryDeployment ->
+        canaryDeployment?.baselineCluster?.region == region
+      }?.baselineCluster?.imageId
+    } else if(context.get("kato.tasks")) { // same cluster asg diff
+      String ancestorAsg = context.get("kato.tasks")?.find { item ->
+        item.find { key, value ->
+          key == 'resultObjects'
+        }
+      }?.resultObjects?.ancestorServerGroupNameByRegion?.find {
+        it.find { key, value ->
+          key == region
+        }
+      }?.get(region)
+
+      String sourceCluster
+      if (ancestorAsg.lastIndexOf("-") > 0) {
+        sourceCluster = ancestorAsg.substring(0, ancestorAsg.lastIndexOf("-"))
+      } else {
+        sourceCluster = ancestorAsg
+      }
+
+      TypeReference<Map> jsonMapType = new TypeReference<Map>() {}
+      Map sourceServerGroup = objectMapper.readValue(oortService.getServerGroup(context.application,
+        account, sourceCluster,
+        ancestorAsg, region, "aws").body.in(), jsonMapType)
+      return sourceServerGroup.launchConfig.imageId
+    }
+  }
+
+  Map getRepoInfo(String account, String application) {
+    def globalAccount = front50Service.credentials.find { it.global }
+    def applicationAccount = globalAccount?.name ?: account
+    Application app = front50Service.get(applicationAccount, application)
+    return [repoType : app.repoType, projectKey : app.repoProjectKey, repositorySlug : app.repoSlug]
   }
 }

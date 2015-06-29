@@ -16,4 +16,5 @@
 
 dependencies {
   compile project(":orca-core")
+  compile project(":orca-retrofit")
 }
