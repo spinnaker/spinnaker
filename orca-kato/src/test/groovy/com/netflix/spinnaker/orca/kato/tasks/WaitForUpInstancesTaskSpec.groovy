@@ -105,6 +105,45 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   @Unroll
+  void 'should return #hasSucceeded for hasSucceeded when targetHealthyDeployPercentage is #percent and #healthy/#total instances are healthy'() {
+    expect:
+    def instances = []
+    (1..healthy).each {
+      instances << [ health: [ [state: 'Up'] ] ]
+    }
+    hasSucceeded == task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", [
+        capacity: [desired: total],
+        targetHealthyDeployPercentage: percent
+      ]
+      ), null, instances, null
+    )
+
+    where:
+    percent | healthy | total || hasSucceeded
+
+    // 100 percent
+    100     | 1       | 1     || true
+    100     | 0       | 0     || true
+    100     | 1       | 2     || false
+
+    // zero percent (should always return true)
+    0       | 1       | 2     || true
+    0       | 0       | 100   || true
+
+    // >= checks
+    89      | 9       | 10    || true
+    90      | 9       | 10    || true
+    90      | 8       | 10    || false
+    91      | 9       | 10    || false
+
+    // verify ceiling
+    90      | 10      | 11    || true
+    90      | 8       | 9     || false
+
+  }
+
+  @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
     hasSucceeded == task.hasSucceeded(
