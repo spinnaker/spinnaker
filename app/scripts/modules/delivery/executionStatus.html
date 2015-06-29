@@ -15,6 +15,12 @@
         {{ execution.trigger.type }}
       </h5>
       <h5>
+        <a ng-if="execution.buildInfo.number && !execution.trigger.buildInfo.url && !execution.trigger.buildInfo.lastBuild.url"
+           href="{{execution.buildInfo.host}}job/{{execution.buildInfo.name}}/{{execution.buildInfo.number}}"
+           target="_blank"
+           ng-click="$event.stopPropagation()">
+          Build #{{ execution.buildInfo.number}}
+        </a>
         <a ng-if="execution.trigger.buildInfo.url"
            href="{{ execution.trigger.buildInfo.url }}"
            target="_blank"
