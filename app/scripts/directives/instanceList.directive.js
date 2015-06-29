@@ -3,7 +3,7 @@
 module.exports = function(clusterFilterService) {
   return {
     restrict: 'E',
-    template: require('../modules/instance/instanceList.html'),
+    templateUrl: require('../modules/instance/instanceList.html'),
     scope: {
       instances: '=',
       sortFilter: '=',

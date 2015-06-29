@@ -3,7 +3,7 @@
 module.exports = function () {
   return {
     restrict: 'E',
-    template: require('views/directives/subnetSelectField.html'),
+    templateUrl: require('../../views/directives/subnetSelectField.html'),
     scope: {
       subnets: '=',
       component: '=',

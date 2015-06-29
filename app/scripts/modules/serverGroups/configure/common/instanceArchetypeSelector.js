@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common')
       scope: {
         command: '=',
       },
-      template: require('./instanceArchetypeDirective.html'),
+      templateUrl: require('./instanceArchetypeDirective.html'),
       controller: 'InstanceArchetypeSelectorCtrl as instanceArchetypeCtrl',
     };
   })

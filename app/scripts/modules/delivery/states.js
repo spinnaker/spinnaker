@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.delivery.states', [])
       url: '/executions',
       views: {
         'insight': {
-          template: require('./pipelineExecutions.html'),
+          templateUrl: require('./pipelineExecutions.html'),
           controller: 'pipelineExecutions as ctrl',
         },
       },
@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.delivery.states', [])
       url: '/pipelines',
       views: {
         'insight': {
-          template: require('../pipelines/config/pipelineConfig.html'),
+          templateUrl: require('../pipelines/config/pipelineConfig.html'),
           controller: 'PipelineConfigCtrl as pipelineConfigCtrl'
         },
       },

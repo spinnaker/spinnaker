@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy')
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
       key: 'deploy',
-      template: require('./deployStage.html'),
+      templateUrl: require('./deployStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
@@ -55,7 +55,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy')
     this.addCluster = function() {
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
-          templateUrl: '../../../../serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          templateUrl: require('../../../../serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html'),
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function () {
@@ -81,7 +81,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy')
     this.editCluster = function(cluster, index) {
       cluster.provider = cluster.providerType || 'aws';
       return $modal.open({
-        templateUrl: '../../../../serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
+        templateUrl: require('../../../../serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html'),
         controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function () {

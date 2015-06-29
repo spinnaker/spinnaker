@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', 
       scope: {
         task: '='
       },
-      template: require('./fastPropertyProgressBar.directive.html'),
+      templateUrl: require('./fastPropertyProgressBar.directive.html'),
       link: function(scope) {
         var task = scope.task;
 
@@ -40,6 +40,7 @@ module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', 
         if (scope.isFailed) {
           var lastHistory = _(task.history).last();
           scope.progressStyle = { width: '100%' };
+          // XSS_TODO
           scope.tooltip = 'Failed on Step ' + currentStep + ' of ' + totalSteps +
             '<br><br><strong>Exception:</strong><p>' + lastHistory.message +'</p>';
         }

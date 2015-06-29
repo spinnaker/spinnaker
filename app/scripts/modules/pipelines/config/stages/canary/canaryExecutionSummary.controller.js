@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.summary.contro
 
     this.generateCanaryScore = function() {
       $modal.open({
-        template: require('./actions/generateScore.modal.html'),
+        templateUrl: require('./actions/generateScore.modal.html'),
         controller: 'GenerateScoreCtrl as ctrl',
         resolve: {
           canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },
@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.summary.contro
 
     this.endCanary = function() {
       $modal.open({
-        template: require('./actions/endCanary.modal.html'),
+        templateUrl: require('./actions/endCanary.modal.html'),
         controller: 'EndCanaryCtrl as ctrl',
         resolve: {
           canaryId: function() { return $scope.stageSummary.masterStage.context.canary.id; },

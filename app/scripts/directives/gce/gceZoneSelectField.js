@@ -3,7 +3,7 @@
 module.exports = function () {
   return {
     restrict: 'E',
-    template: require('views/directives/gce/zoneSelectField.html'),
+    templateUrl: require('../../../views/directives/gce/zoneSelectField.html'),
     scope: {
       zones: '=',
       component: '=',

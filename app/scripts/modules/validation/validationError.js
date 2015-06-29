@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.validation')
   .directive('validationError', function () {
     return {
       restrict: 'E',
-      template: require('./validationError.html'),
+      templateUrl: require('./validationError.html'),
       scope: {
         message: '@'
       }

@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines')
         application: '=',
         viewState: '='
       },
-      template: require('./pipelineConfigView.html'),
+      templateUrl: require('./pipelineConfigView.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment')
       key: 'manualJudgment',
       controller: 'ManualJudgmentStageCtrl',
       controllerAs: 'manualJudgmentStageCtrl',
-      template: require('./manualJudgmentStage.html'),
+      templateUrl: require('./manualJudgmentStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/manualJudgment/manualJudgmentExecutionDetails.html',
       executionBarColorProvider: function (stageSummary) {
         if (stageSummary.status === 'RUNNING') {
@@ -27,7 +27,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment')
 
     this.addNotification = function() {
       $modal.open({
-        template: require('./modal/editNotification.html'),
+        templateUrl: require('./modal/editNotification.html'),
         controller: 'ManualJudgmentEditNotificationController',
         controllerAs: 'editNotification',
         resolve: {

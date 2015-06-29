@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.pipelines.stageConfig', [
         pipeline: '=',
       },
       controller: 'StageConfigCtrl as stageConfigCtrl',
-      template: require('./stage.html'),
+      templateUrl: require('./stage.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }

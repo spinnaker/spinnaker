@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
 
         if (providers.length > 1) {
           provider = $modal.open({
-            template: require('./providerSelection.html'),
+            templateUrl: require('./providerSelection.html'),
             controller: 'ProviderSelectCtrl as ctrl',
             resolve: {
               providerOptions: function() { return providers; }

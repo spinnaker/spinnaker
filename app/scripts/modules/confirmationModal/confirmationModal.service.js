@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.confirmationModal.service', [
       params = angular.extend(angular.copy(defaults), params);
 
       var modalArgs = {
-        template: require('./confirm.html'),
+        templateUrl: require('./confirm.html'),
         controller: 'ConfirmationModalCtrl as ctrl',
         resolve: {
           params: function() {

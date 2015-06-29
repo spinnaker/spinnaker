@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.executionDetails.section.nav.directiv
   .directive('executionDetailsSectionNav', function() {
     return {
       restrict: 'E',
-      template: require('./executionDetailsSectionNav.html'),
+      templateUrl: require('./executionDetailsSectionNav.html'),
       scope: {
         sections: '=',
       }

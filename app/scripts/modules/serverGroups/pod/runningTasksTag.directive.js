@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.display.tasks.tag', [
         tasks: '=',
         executions: '='
       },
-      template: require('./runningTasksTag.html'),
+      templateUrl: require('./runningTasksTag.html'),
       controller: 'RunningTaskTagController',
     };
   })

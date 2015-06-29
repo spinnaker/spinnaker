@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.networking.controller', [
 
     $scope.associateElasticIp = function associateElasticIp() {
       $modal.open({
-        template: require('./details/aws/associateElasticIp.html'),
+        templateUrl: require('./details/aws/associateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },
@@ -37,7 +37,7 @@ module.exports = angular.module('spinnaker.networking.controller', [
 
     $scope.disassociateElasticIp = function disassociateElasticIp(address) {
       $modal.open({
-        template: require('./details/aws/disassociateElasticIp.html'),
+        templateUrl: require('./details/aws/disassociateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },

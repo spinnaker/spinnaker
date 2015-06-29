@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.statusGlyph.directive', [])
       scope: {
         item: '=',
       },
-      template: require('./statusGlyph.html'),
+      templateUrl: require('./statusGlyph.html'),
     };
 
   });

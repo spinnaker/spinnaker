@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg')
       key: 'destroyAsg',
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
-      template: require('./destroyAsgStage.html'),
+      templateUrl: require('./destroyAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
       validators: [

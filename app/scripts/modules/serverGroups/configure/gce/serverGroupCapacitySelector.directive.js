@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       scope: {
         command: '=',
       },
-      template: require('./serverGroupCapacityDirective.html'),
+      templateUrl: require('./serverGroupCapacityDirective.html'),
       controller: 'gceServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })

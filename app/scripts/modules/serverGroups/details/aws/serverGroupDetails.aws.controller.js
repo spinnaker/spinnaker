@@ -217,7 +217,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {
       $modal.open({
-        template: require('./modifyScalingProcesses.html'),
+        templateUrl: require('./modifyScalingProcesses.html'),
         controller: 'ModifyScalingProcessesCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -229,7 +229,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        template: require('../resizeServerGroup.html'),
+        templateUrl: require('../resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -240,7 +240,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrlUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
@@ -253,7 +253,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        template: require('../scalingActivities.html'),
+        templateUrl: require('../scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },
@@ -267,7 +267,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        template: require('../../../../../views/application/modal/serverGroup/userData.html'),
+        templateUrl: require('../../../../../views/application/modal/serverGroup/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

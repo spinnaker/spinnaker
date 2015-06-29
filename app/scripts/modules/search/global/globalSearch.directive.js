@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.search.global')
       replace: true,
       scope: {
       },
-      template: require('../../../../views/globalsearch.html'),
+      templateUrl: require('../../../../views/globalsearch.html'),
       controller: 'GlobalSearchCtrl as ctrl',
       link: function(scope, element) {
         var window = $($window);

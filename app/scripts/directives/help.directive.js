@@ -15,12 +15,12 @@ module.exports = angular
   .directive('help', function () {
     return {
       restrict: 'E',
-      template: require('./help.directive.html'),
+      templateUrl: require('./help.directive.html'),
       controller: function($scope, $modal, $log) {
 
         $scope.showWhatsNew = function() {
           $modal.open({
-            template: require('./help.directive.modal.html'),
+            templateUrl: require('./help.directive.modal.html'),
           });
         };
 

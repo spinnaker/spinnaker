@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
       key: 'resizeAsg',
       controller: 'ResizeAsgStageCtrl',
       controllerAs: 'resizeAsgStageCtrl',
-      template: require('./resizeAsgStage.html'),
+      templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
       validators: [

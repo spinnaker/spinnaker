@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+
+//BEN_TODO lodash
 module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -10,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
       key: 'disableAsg',
       controller: 'DisableAsgStageCtrl',
       controllerAs: 'disableAsgStageCtrl',
-      template: require('./disableAsgStage.html'),
+      templateUrl: require('./disableAsgStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
       executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
       validators: [

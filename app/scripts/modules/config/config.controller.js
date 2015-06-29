@@ -20,7 +20,7 @@ module.exports = angular
 
     vm.editApplication = function () {
       $modal.open({
-        template: require('./modal/editApplication.html'),
+        templateUrl: require('./modal/editApplication.html'),
         controller: 'EditApplicationController',
         controllerAs: 'editApp',
         resolve: {
@@ -96,7 +96,7 @@ module.exports = angular
 
     vm.editNotification = function (notification) {
       var modalInstance = $modal.open({
-        template: require('./modal/editNotification.html'),
+        templateUrl: require('./modal/editNotification.html'),
         controller: 'EditNotificationController',
         controllerAs: 'editNotification',
         resolve: {

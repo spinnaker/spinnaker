@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipeline')
       key: 'pipeline',
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
-      template: require('./pipelineStage.html'),
+      templateUrl: require('./pipelineStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
       validators: [
         {

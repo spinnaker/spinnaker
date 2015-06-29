@@ -7,7 +7,7 @@ function selectScopeDirective() {
     restrict: 'E',
     controller: 'ScopeSelectController',
     controllerAs: 'ss',
-    template: require('./scopeSelect.directive.html'),
+    templateUrl: require('./scopeSelect.directive.html'),
     scope: {
       clusters: '=',
       modal: '=',

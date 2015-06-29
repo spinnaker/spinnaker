@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroup.directive', [
         filter: '=',
         application: '=',
       },
-      template: require('./executionGroup.html'),
+      templateUrl: require('./executionGroup.html'),
       controller: 'executionGroup as ctrl',
     };
   });

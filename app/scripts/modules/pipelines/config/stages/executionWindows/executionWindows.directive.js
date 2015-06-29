@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.dire
       scope: {
         stage: '='
       },
-      template: require('./executionWindows.html'),
+      templateUrl: require('./executionWindows.html'),
       controller: 'ExecutionWindowsCtrl',
       controllerAs: 'executionWindowsCtrl',
     };

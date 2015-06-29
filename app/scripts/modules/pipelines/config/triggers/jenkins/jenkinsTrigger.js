@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.trigger.jenkins')
       key: 'jenkins',
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
-      template: require('./jenkinsTrigger.html'),
+      templateUrl: require('./jenkinsTrigger.html'),
       popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/jenkins/jenkinsPopoverLabel.html'
     });
   })

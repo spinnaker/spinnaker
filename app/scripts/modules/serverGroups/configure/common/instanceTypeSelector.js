@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common')
       scope: {
         command: '=',
       },
-      template: require('./instanceTypeDirective.html'),
+      templateUrl: require('./instanceTypeDirective.html'),
       controller: 'InstanceTypeSelectorCtrl as instanceTypeCtrl',
     };
   })

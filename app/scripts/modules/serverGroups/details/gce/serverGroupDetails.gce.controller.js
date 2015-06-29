@@ -167,7 +167,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        template: require('../resizeServerGroup.html'),
+        templateUrl: require('../resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -192,7 +192,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        template: require('../scalingActivities.html'),
+        templateUrl: require('../scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
           applicationName: function() { return application.name; },
@@ -206,7 +206,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        template: require('../../../../../views/application/modal/serverGroup/userData.html'),
+        templateUrl: require('../../../../../views/application/modal/serverGroup/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

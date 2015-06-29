@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
       scope: {
         command: '=',
       },
-      template: require('./serverGroupCapacityDirective.html'),
+      templateUrl: require('./serverGroupCapacityDirective.html'),
       controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })

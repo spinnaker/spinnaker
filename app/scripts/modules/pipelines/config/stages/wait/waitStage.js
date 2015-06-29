@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.wait')
       label: 'Wait',
       description: 'Waits a specified period of time',
       key: 'wait',
-      template: require('./waitStage.html'),
+      templateUrl: require('./waitStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/wait/waitExecutionDetails.html',
     });
   });

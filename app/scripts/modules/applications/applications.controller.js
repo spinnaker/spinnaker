@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
         action: function() {
           $modal.open({
             scope: $scope,
-            template: require('./modal/newapplication.html'),
+            templateUrl: require('./modal/newapplication.html'),
             controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal'
           }).result.then(routeToApplication);

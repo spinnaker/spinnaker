@@ -18,7 +18,7 @@ module.exports = angular
   .directive('whatsNew', function (whatsNewReader, viewStateCache) {
     return {
       restrict: 'E',
-      template: require('./whatsNew.directive.html'),
+      templateUrl: require('./whatsNew.directive.html'),
       controller: function($scope, $modal) {
 
         // single cache, so we will use the cache name as the key, also
@@ -42,7 +42,7 @@ module.exports = angular
           $scope.viewState.updateLastViewed = $scope.fileLastUpdated;
           whatsNewViewStateCache.put(cacheId, $scope.viewState);
           $modal.open({
-            template: require('./whatsNew.directive.modal.html'),
+            templateUrl: require('./whatsNew.directive.modal.html'),
             scope: $scope,
           });
         };

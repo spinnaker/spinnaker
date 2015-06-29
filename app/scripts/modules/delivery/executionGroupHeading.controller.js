@@ -72,7 +72,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
       var currentlyRunningExecutions = getCurrentlyRunningExecutions();
 
       $modal.open({
-        template: require('./manualPipelineExecution.html'),
+        templateUrl: require('./manualPipelineExecution.html'),
         controller: 'ManualPipelineExecutionCtrl as ctrl',
         resolve: {
           pipeline: function () { return pipeline; },

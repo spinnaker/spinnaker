@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.tasks.progressBar.directive', [])
       scope: {
         task: '='
       },
-      template: require('./taskProgressBar.directive.html'),
+      templateUrl: require('./taskProgressBar.directive.html'),
       link: function(scope) {
         var task = scope.task;
 

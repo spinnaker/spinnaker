@@ -10,7 +10,7 @@ module.exports = function(collapsibleSectionStateCache) {
       expanded: '@?',
       bodyClass: '@?'
     },
-    template: require('views/collapsibleSection.html'),
+    templateUrl: require('../../views/collapsibleSection.html'),
     link: function(scope) {
       var expanded = collapsibleSectionStateCache.isSet(scope.heading) ?
         collapsibleSectionStateCache.isExpanded(scope.heading) :

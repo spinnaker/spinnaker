@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.cluster.pod', [
         application: '=',
         parentHeading: '=',
       },
-      template: require('./clusterPod.html'),
+      templateUrl: require('./clusterPod.html'),
       link: function(scope) {
         scope.permalink = urlBuilder.buildFromMetadata(
           {

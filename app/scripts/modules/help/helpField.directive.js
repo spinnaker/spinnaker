@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.help')
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',
-      template: require('./helpField.html'),
+      templateUrl: require('./helpField.html'),
       scope: {
         key: '@',
         fallback: '@',

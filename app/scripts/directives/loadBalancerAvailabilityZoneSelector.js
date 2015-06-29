@@ -1,5 +1,7 @@
 'use strict';
 
+let angular = require('angular');
+
 module.exports = function() {
   return {
     restrict: 'E',
@@ -10,7 +12,7 @@ module.exports = function() {
       usePreferredZones: '=',
       provider: '='
     },
-    template: require('views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html'),
+    templateUrl: require('../../views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html'),
     controller: function($scope, $q, accountService) {
       $scope.model.usePreferredZones = angular.isDefined($scope.model.usePreferredZones) ? $scope.model.usePreferredZones : true;
 

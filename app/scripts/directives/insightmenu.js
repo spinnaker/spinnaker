@@ -9,7 +9,7 @@
 
 module.exports = function () {
   return {
-    template: require('../modules/insight/insightmenu.html'),
+    templateUrl: require('../modules/insight/insightmenu.html'),
     restrict: 'E',
     replace: true,
     scope: {

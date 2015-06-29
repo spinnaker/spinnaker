@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.loadBalancer.tag', [])
     return {
       restrict: 'E',
       replace: false,
-      template: require('./loadBalancer/loadBalancersTag.html'),
+      templateUrl: require('./loadBalancer/loadBalancersTag.html'),
       scope: {
         serverGroup: '=',
         maxDisplay: '='

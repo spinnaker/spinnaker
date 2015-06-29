@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.tasks.monitor.directive', [])
     return {
       restrict: 'E',
       replace: true,
-      template: require('./taskMonitor.html'),
+      templateUrl: require('./taskMonitor.html'),
       scope: {
         taskMonitor: '=monitor'
       }

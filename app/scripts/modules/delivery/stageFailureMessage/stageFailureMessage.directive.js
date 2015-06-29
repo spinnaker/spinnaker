@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.delivery.executionDetails.stageFailur
   .directive('stageFailureMessage', function () {
     return {
       restrict: 'E',
-      template: require('./stageFailureMessage.html'),
+      templateUrl: require('./stageFailureMessage.html'),
       scope: {
         isFailed: '=',
         message: '=',

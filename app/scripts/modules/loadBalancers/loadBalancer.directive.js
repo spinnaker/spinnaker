@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.loadBalancer.directive', [
   .directive('loadBalancer', function ($rootScope, $timeout, _) {
     return {
       restrict: 'E',
-      template: require('./loadBalancer/loadBalancer.html'),
+      templateUrl: require('./loadBalancer/loadBalancer.html'),
       scope: {
         loadBalancer: '=',
         displayOptions: '='

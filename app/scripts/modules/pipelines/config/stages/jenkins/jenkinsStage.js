@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins')
       key: 'jenkins',
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
-      template: require('./jenkinsStage.html'),
+      templateUrl: require('./jenkinsStage.html'),
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
       executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
       validators: [
