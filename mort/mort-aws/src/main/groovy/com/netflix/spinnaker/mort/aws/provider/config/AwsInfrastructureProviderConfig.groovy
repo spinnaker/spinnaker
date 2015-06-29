@@ -51,7 +51,7 @@ class AwsInfrastructureProviderConfig {
         agents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
         agents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
-        agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name)
+        agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
       }
     }
 

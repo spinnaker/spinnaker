@@ -45,10 +45,11 @@ class AmazonVpcCachingAgent implements CachingAgent {
     AUTHORITATIVE.forType(VPCS.ns)
   ] as Set)
 
-  AmazonVpcCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region) {
+  AmazonVpcCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
+    this.objectMapper = objectMapper
   }
 
   @Override
