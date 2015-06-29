@@ -49,7 +49,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
       result.status == ExecutionStatus.RUNNING
 
     when:
-      cluster.serverGroups[0].instances.addAll([[instanceId: "i-5678"], [instanceId: "i-0000"]])
+      cluster.serverGroups[0].instances.addAll([makeInstance("i-5678"), makeInstance("i-0000")])
 
     and:
       result = task.execute(stage)
@@ -66,7 +66,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             name: "kato-main-v000",
             region: "us-east-1",
             instances: [
-              [instanceId: "i-1234"]
+              makeInstance("i-1234")
             ],
             asg: [
               desiredCapacity: 3
@@ -88,9 +88,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           name: "kato-main-v000",
           region: "us-east-1",
           instances: [
-            [
-              instanceId: "i-1234", health: [ [ state: 'Up' ] ]
-            ]
+            makeInstance("i-1234")
           ],
           asg: [
             minSize: 3,
@@ -113,8 +111,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
 
     when:
     cluster.serverGroups[0].instances.addAll([
-      [instanceId: "i-5678", health: [ [ state: healthState ] ]],
-      [instanceId: "i-0000", health: [ [ state: healthState ] ]]])
+      makeInstance("i-5678", healthState),
+      makeInstance("i-0000", healthState)
+      ])
 
     and:
     result = task.execute(stage)
@@ -144,7 +143,7 @@ class WaitForCapacityMatchTaskSpec extends Specification {
     result.status == ExecutionStatus.RUNNING
 
     when:
-    cluster.serverGroups[0].instances = [[instanceId:"i-0000"]]
+    cluster.serverGroups[0].instances = [makeInstance("i-0000")]
 
     and:
     result = task.execute(stage)
@@ -161,9 +160,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           name: "kato-main-v000",
           region: "us-east-1",
           instances: [
-            [instanceId: "i-1234"],
-            [instanceId: "i-5678"],
-            [instanceId: "i-0000"]
+            makeInstance("i-1234"),
+            makeInstance("i-5678"),
+            makeInstance("i-0000")
           ],
           asg: [
             desiredCapacity: 1
@@ -171,5 +170,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
         ]
       ]
     ]
+  }
+
+  private static Map makeInstance(id, healthState = 'Up') {
+    [instanceId: id, health: [ [ state: healthState ] ]]
   }
 }
