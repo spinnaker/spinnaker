@@ -16,25 +16,22 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.description
 
-import com.netflix.spinnaker.kato.deploy.DeployDescription
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
 @Canonical
-class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription implements DeployDescription {
-  String application
-  String stack
-  String freeFormDetails
-  int initialNumReplicas
-  String zone
-  List<String> networkLoadBalancers
-  Source source = new Source()
+class BaseGoogleInstanceDescription {
+  String image
+  String instanceType
+  String diskType
+  Long diskSizeGb
+  Map<String, String> instanceMetadata
+  List<String> tags
+  // TODO(duftler): Add support to BasicGoogleDeployHandler for this property.
+  String network
 
-  @Canonical
-  static class Source {
-    // TODO(duftler): Add accountName/credentials to support cloning from one account to another.
-    String zone
-    String serverGroupName
-  }
+  String accountName
+  GoogleCredentials credentials
 }

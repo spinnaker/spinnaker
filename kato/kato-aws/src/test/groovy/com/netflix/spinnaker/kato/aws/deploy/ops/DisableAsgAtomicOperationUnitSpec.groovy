@@ -24,6 +24,7 @@ import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescrip
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.TaskState
+import retrofit.client.Response
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -73,7 +74,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
           app: "asg1"
         ]
       ]
-    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
+    1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE') >> new Response('http://foo', 200, 'OK', [], null)
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     0 * task.fail()
   }

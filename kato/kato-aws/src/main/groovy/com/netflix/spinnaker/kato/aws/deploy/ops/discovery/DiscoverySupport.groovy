@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
+import retrofit.client.Response
 
 @Slf4j
 @Component
@@ -99,7 +100,10 @@ class DiscoverySupport {
             return
           }
 
-          eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
+          Response resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
+          if (resp.status != 200) {
+            throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
+          }
           task.updateStatus phaseName, "Marked ${instanceId} in application $applicationName as '${discoveryStatus.value}' in discovery."
         }
       } catch (ex) {

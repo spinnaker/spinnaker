@@ -43,6 +43,13 @@ class GoogleOperationPoller {
   // The methods below are used to wait on the operation specified in |operationName|. This is used in practice to
   // turn the asynchronous GCE client operations into synchronous calls. Will poll the state of the operation until
   // either state is DONE or |timeoutSeconds| is reached.
+  Operation waitForZonalOperation(Compute compute, String projectName, String zone, String operationName,
+                                  Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+    return handleFinishedAsyncOperation(
+      waitForOperation({compute.zoneOperations().get(projectName, zone, operationName).execute()},
+        getTimeout(timeoutSeconds)), task, resourceString, basePhase)
+  }
+
   Operation waitForRegionalOperation(Compute compute, String projectName, String region, String operationName,
                                      Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     return handleFinishedAsyncOperation(
@@ -59,8 +66,8 @@ class GoogleOperationPoller {
 
   // This method is like the two above except that it operates using a Replicapool object (rather than Compute), which
   // is the base class for operations relating to managed instance groups.
-  void waitForZoneOperation(Replicapool replicapool, String projectName, String zone, String operationName,
-                            Long timeoutSeconds, Task task, String resourceString, String basePhase) {
+  void waitForReplicaPoolZonalOperation(Replicapool replicapool, String projectName, String zone, String operationName,
+                                        Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     handleFinishedAsyncOperation(
         waitForOperation({replicapool.zoneOperations().get(projectName, zone, operationName).execute()},
                          getTimeout(timeoutSeconds)), task, resourceString, basePhase)

@@ -31,8 +31,10 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 
@@ -241,6 +243,40 @@ class GCEUtil {
     return compute.regions().get(projectName, region).execute().getZones()
   }
 
+  static BaseGoogleInstanceDescription buildInstanceDescriptionFromTemplate(InstanceTemplate instanceTemplate) {
+    def instanceTemplateProperties = instanceTemplate?.properties
+
+    if (instanceTemplateProperties == null) {
+      throw new GoogleOperationException("Unable to determine properties of instance template " +
+          "$instanceTemplate.name.")
+    }
+
+    if (instanceTemplateProperties.networkInterfaces?.size != 1) {
+      throw new GoogleOperationException("Instance templates must have exactly one network interface defined. " +
+          "Instance template $instanceTemplate.name has ${instanceTemplateProperties.networkInterfaces?.size}.")
+    }
+
+    if (instanceTemplateProperties.disks?.size != 1) {
+      throw new GoogleOperationException("Instance templates must have exactly one disk defined. Instance template " +
+          "$instanceTemplate.name has ${instanceTemplateProperties.disks?.size}.")
+    }
+
+    def networkInterface = instanceTemplateProperties.networkInterfaces[0]
+    def bootDiskInitializeParams = instanceTemplateProperties.disks[0].initializeParams
+
+    return new BaseGoogleInstanceDescription(
+      image: getLocalName(bootDiskInitializeParams.sourceImage),
+      instanceType: instanceTemplateProperties.machineType,
+      diskType: bootDiskInitializeParams.diskType,
+      diskSizeGb: bootDiskInitializeParams.diskSizeGb,
+      instanceMetadata: instanceTemplateProperties.metadata?.items?.collectEntries {
+        [it.key, it.value]
+      },
+      tags: instanceTemplateProperties.tags?.items,
+      network: getLocalName(networkInterface.network)
+    )
+  }
+
   static String buildDiskTypeUrl(String projectName, String zone, String diskType) {
     return "https://www.googleapis.com/compute/v1/projects/$projectName/zones/$zone/diskTypes/$diskType"
   }
@@ -303,6 +339,10 @@ class GCEUtil {
     }
 
     return map ?: [:]
+  }
+
+  static Tags buildTagsFromList(List<String> tagsList) {
+    return new Tags(items: tagsList)
   }
 
   // TODO(duftler/odedmeri): We should determine if there is a better approach than this naming convention.

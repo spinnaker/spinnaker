@@ -54,63 +54,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    def BasicGoogleDeployDescription newDescription = description.clone()
-
-    if (description?.source?.zone && description?.source?.serverGroupName) {
-      task.updateStatus BASE_PHASE, "Initializing copy of server group $description.source.serverGroupName..."
-
-      // Locate the ancestor server group.
-      InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroup(description.credentials.project,
-                                                                                   description.source.zone,
-                                                                                   description.source.serverGroupName,
-                                                                                   description.credentials,
-                                                                                   replicaPoolBuilder,
-                                                                                   GCEUtil.APPLICATION_NAME)
-
-      if (ancestorServerGroup) {
-        def ancestorNames = Names.parseName(ancestorServerGroup.name)
-
-        // Override any ancestor values that were specified directly on the call.
-        newDescription.zone = description.zone ?: description.source.zone
-        newDescription.networkLoadBalancers =
-                description.networkLoadBalancers != null
-                ? description.networkLoadBalancers
-                : GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
-        newDescription.application = description.application ?: ancestorNames.app
-        newDescription.stack = description.stack ?: ancestorNames.stack
-        newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-        newDescription.initialNumReplicas = description.initialNumReplicas ?: ancestorServerGroup.targetSize
-
-        def project = description.credentials.project
-        def compute = description.credentials.compute
-        def ancestorInstanceTemplate =
-                GCEUtil.queryInstanceTemplate(project, GCEUtil.getLocalName(ancestorServerGroup.instanceTemplate), compute)
-
-        if (ancestorInstanceTemplate) {
-          // Override any ancestor values that were specified directly on the call.
-          InstanceProperties ancestorInstanceProperties = ancestorInstanceTemplate.properties
-
-          newDescription.instanceType = description.instanceType ?: ancestorInstanceProperties.machineType
-
-          List<AttachedDisk> attachedDisks = ancestorInstanceProperties?.disks
-
-          if (attachedDisks) {
-            newDescription.image = description.image ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.sourceImage)
-            newDescription.diskType = description.diskType ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.diskType)
-            newDescription.diskSizeGb = description.diskSizeGb ?: attachedDisks[0].initializeParams.diskSizeGb
-          }
-
-          def instanceMetadata = ancestorInstanceProperties.metadata
-
-          if (instanceMetadata) {
-            newDescription.instanceMetadata =
-                    description.instanceMetadata != null
-                    ? description.instanceMetadata
-                    : GCEUtil.buildMapFromMetadata(instanceMetadata)
-          }
-        }
-      }
-    }
+    BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
 
     def result = basicGoogleDeployHandler.handle(newDescription, priorOutputs)
     def newServerGroupName = getServerGroupName(result?.serverGroupNames?.getAt(0))
@@ -120,6 +64,78 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
                                   "New server group = $newServerGroupName in zone $newDescription.zone."
 
     result
+  }
+
+  private BasicGoogleDeployDescription cloneAndOverrideDescription() {
+    BasicGoogleDeployDescription newDescription = description.clone()
+
+    if (!description?.source?.zone || !description?.source?.serverGroupName) {
+      return newDescription
+    }
+
+    task.updateStatus BASE_PHASE, "Initializing copy of server group $description.source.serverGroupName..."
+
+    // Locate the ancestor server group.
+    InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroup(description.credentials.project,
+                                                                                 description.source.zone,
+                                                                                 description.source.serverGroupName,
+                                                                                 description.credentials,
+                                                                                 replicaPoolBuilder,
+                                                                                 GCEUtil.APPLICATION_NAME)
+
+    if (!ancestorServerGroup) {
+      return newDescription
+    }
+
+    def ancestorNames = Names.parseName(ancestorServerGroup.name)
+
+    // Override any ancestor values that were specified directly on the copyLastGoogleServerGroupDescription call.
+    newDescription.zone = description.zone ?: description.source.zone
+    newDescription.networkLoadBalancers =
+        description.networkLoadBalancers != null
+        ? description.networkLoadBalancers
+        : GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
+    newDescription.application = description.application ?: ancestorNames.app
+    newDescription.stack = description.stack ?: ancestorNames.stack
+    newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
+    newDescription.initialNumReplicas = description.initialNumReplicas ?: ancestorServerGroup.targetSize
+
+    def project = description.credentials.project
+    def compute = description.credentials.compute
+    def ancestorInstanceTemplate =
+        GCEUtil.queryInstanceTemplate(project, GCEUtil.getLocalName(ancestorServerGroup.instanceTemplate), compute)
+
+    if (ancestorInstanceTemplate) {
+      // Override any ancestor values that were specified directly on the call.
+      InstanceProperties ancestorInstanceProperties = ancestorInstanceTemplate.properties
+
+      newDescription.instanceType = description.instanceType ?: ancestorInstanceProperties.machineType
+
+      List<AttachedDisk> attachedDisks = ancestorInstanceProperties?.disks
+
+      if (attachedDisks) {
+        newDescription.image = description.image ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.sourceImage)
+        newDescription.diskType = description.diskType ?: GCEUtil.getLocalName(attachedDisks[0].initializeParams.diskType)
+        newDescription.diskSizeGb = description.diskSizeGb ?: attachedDisks[0].initializeParams.diskSizeGb
+      }
+
+      def instanceMetadata = ancestorInstanceProperties.metadata
+
+      if (instanceMetadata) {
+        newDescription.instanceMetadata =
+            description.instanceMetadata != null
+            ? description.instanceMetadata
+            : GCEUtil.buildMapFromMetadata(instanceMetadata)
+      }
+
+      def tags = ancestorInstanceProperties.tags
+
+      if (tags != null) {
+        newDescription.tags = description.tags != null ? description.tags : tags.items
+      }
+    }
+
+    return newDescription
   }
 
   private static String getServerGroupName(String regionPlusServerGroupName) {

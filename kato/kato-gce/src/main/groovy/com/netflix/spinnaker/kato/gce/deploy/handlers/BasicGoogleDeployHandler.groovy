@@ -68,6 +68,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
    * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
    * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "networkLoadBalancers": ["testlb"], "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-b", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:8501/ops
    *
    * @param description
    * @param priorOutputs
@@ -92,6 +93,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def serverGroupName = "${clusterName}-v${nextSequence}".toString()
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
+
+    def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
 
@@ -122,10 +125,13 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
-    def instanceProperties = new InstanceProperties(machineType: description.instanceType,
+    def tags = GCEUtil.buildTagsFromList(description.tags)
+
+    def instanceProperties = new InstanceProperties(machineType: machineType.name,
                                                     disks: [attachedDisk],
                                                     networkInterfaces: [networkInterface],
-                                                    metadata: metadata)
+                                                    metadata: metadata,
+                                                    tags: tags)
 
     def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
                                                 properties: instanceProperties)

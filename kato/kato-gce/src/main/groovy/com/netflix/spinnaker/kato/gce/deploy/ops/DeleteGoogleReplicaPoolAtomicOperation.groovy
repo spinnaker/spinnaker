@@ -74,7 +74,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
-    googleOperationPoller.waitForZoneOperation(replicapool, project, zone, instanceGroupOperationName, null, task,
+    googleOperationPoller.waitForReplicaPoolZonalOperation(replicapool, project, zone, instanceGroupOperationName, null, task,
         "instance group $replicaPoolName", BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleted instance group."
