@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.accountLabelColor.directive', [
     'spinnaker.settings'
   ])

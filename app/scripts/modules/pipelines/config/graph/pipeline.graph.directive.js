@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.graph.directive', [
+module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
   require('../../../utils/d3.js'),
   require('../../../utils/lodash.js'),
   require('../../../utils/jQuery.js'),

@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.config.service', [
+module.exports = angular.module('spinnaker.pipelines.config.services.configService', [
   require('restangular'),
   require('../../../caches/deckCacheFactory.js'),
   require('../../../utils/lodash.js'),

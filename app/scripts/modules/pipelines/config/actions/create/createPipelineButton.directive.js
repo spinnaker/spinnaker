@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.create')
+module.exports = angular.module('spinnaker.pipelines.config.actions.create.createPipelineButtonDirective', [
+])
   .directive('createPipelineButton', function() {
     return {
       restrict: 'E',

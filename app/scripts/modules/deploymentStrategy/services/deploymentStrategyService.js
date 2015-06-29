@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy')
+module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategyService', [
+  require('../../utils/lodash.js'),
+])
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
 
     function listAvailableStrategies(provider) {

@@ -2,7 +2,7 @@
 
 describe('Controller: createPipelineModal', function() {
 
-  beforeEach(module('spinnaker.pipelines.create'));
+  beforeEach(module('spinnaker.pipelines.config.actions.create'));
 
   beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
     this.$q = $q;

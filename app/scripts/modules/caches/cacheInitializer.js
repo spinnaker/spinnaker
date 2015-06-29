@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.caches.initializer', [
   require('../keyPairs/keyParis.read.service.js'),
   require('../loadBalancers/loadBalancer.read.service.js'),
   require('../applications/applications.read.service.js'),
-  require('../pipelines/config/triggers/jenkins/igor.service.js'),
+  require('../jenkins/index.js'),
   require('./infrastructureCaches.js'),
   require('./infrastructureCacheConfig.js'),
 ])

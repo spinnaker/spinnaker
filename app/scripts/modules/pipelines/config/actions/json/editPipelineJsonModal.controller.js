@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.rename')
+module.exports = angular.module('spinnaker.pipelines.config.actions.editJson.EditPipelineJsonModalCtrl', [
+])
   .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $modalInstance) {
 
     this.cancel = $modalInstance.dismiss;

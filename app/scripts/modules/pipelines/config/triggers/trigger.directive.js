@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.trigger')
+module.exports = angular.module('spinnaker.pipelines.config.trigger.triggerDirective', [
+])
   .directive('trigger', function() {
     return {
       restrict: 'E',

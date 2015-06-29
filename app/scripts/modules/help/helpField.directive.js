@@ -18,8 +18,8 @@
 
 let angular = require('angular');
 
-
-module.exports = angular.module('spinnaker.help')
+module.exports = angular.module('spinnaker.help.helpField', [
+])
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',

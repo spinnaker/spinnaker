@@ -7,4 +7,5 @@ module.exports = angular.module('spinnaker.deploymentStrategy', [
   require('./deploymentStrategySelector.directive.js'),
   require('./deploymentStrategyConfigProvider.js'),
   require('./deploymentStrategySelector.controller.js'),
+  require('./services/deploymentStrategyService.js')
 ]);

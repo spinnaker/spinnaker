@@ -2,8 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.create', [
+module.exports = angular.module('spinnaker.pipelines.config.actions.create', [
   require('../../../../utils/lodash.js'),
   require('../../../pipelines.module.js'),
   require('../../../../caches/deckCacheFactory.js'),
+  require('./createPipelineButton.controller.js'),
+  require('./createPipelineButton.directive.js'),
 ]);

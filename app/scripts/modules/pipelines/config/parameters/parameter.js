@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.parameters')
+module.exports = angular.module('spinnaker.pipelines.parameters.parameter', [
+])
   .directive('parameter', function() {
     return {
       restrict: 'E',
