@@ -1,5 +1,8 @@
 'use strict';
 
+
+console.log('hello world');
+
 /**
  * @ngdoc overview
  * @name spinnaker
@@ -255,4 +258,3 @@ module.exports = angular.module('spinnaker', [
         '');
   });
 
-  //BEN_TODO require config
