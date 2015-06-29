@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider.view
 
 import com.amazonaws.services.ec2.model.Vpc
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
@@ -35,12 +36,12 @@ class AmazonVpcProvider implements VpcProvider<AmazonVpc> {
   private static final String NAME_TAG_KEY = 'Name'
 
   private final Cache cacheView
-  private final ObjectMapper objectMapper
+  private final AmazonObjectMapper objectMapper
 
   @Autowired
-  AmazonVpcProvider(Cache cacheView, ObjectMapper objectMapper) {
+  AmazonVpcProvider(Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
     this.cacheView = cacheView
-    this.objectMapper = objectMapper
+    this.objectMapper = amazonObjectMapper
   }
 
   @Override
