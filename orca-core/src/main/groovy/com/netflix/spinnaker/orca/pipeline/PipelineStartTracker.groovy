@@ -29,7 +29,7 @@ class PipelineStartTracker {
   PipelineStack pipelineStack
 
   static final String PIPELINE_STARTED = "PIPELINE:STARTED"
-  static final String PIPELINE_QUEUED = "PIPELINE:QUEDED"
+  static final String PIPELINE_QUEUED = "PIPELINE:QUEUED"
   static final String PIPELINE_STARTED_ALL = "PIPELINE:STARTED_ALL"
 
   boolean hasStartedExecutions(String pipelineConfigId) {
