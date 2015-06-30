@@ -70,7 +70,7 @@ class NetworkLoadBalancersCallback<ForwardingRuleAggregatedList> extends JsonBat
           }
 
           forwardingRules?.each { forwardingRule ->
-            def googleLoadBalancer = new GoogleLoadBalancer(forwardingRule.name, accountName, region)
+            def googleLoadBalancer = new GoogleLoadBalancer(name: forwardingRule.name, account: accountName, region: region)
 
             networkLoadBalancerMap[region] << googleLoadBalancer
 

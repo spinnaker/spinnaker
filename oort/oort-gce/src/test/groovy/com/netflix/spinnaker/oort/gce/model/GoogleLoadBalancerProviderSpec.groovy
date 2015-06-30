@@ -237,9 +237,8 @@ class GoogleLoadBalancerProviderSpec extends Specification {
     then:
       1 * resourceRetrieverMock.getNetworkLoadBalancerMap() >> networkLoadBalancerMap
       applicationLoadBalancers == [
-        [
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend1",
-          type: "gce",
           region: "us-central1",
           account: "my-account-name",
           serverGroups: [
@@ -272,87 +271,75 @@ class GoogleLoadBalancerProviderSpec extends Specification {
               ]
             ]
           ]
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend2",
-          type: "gce",
           region: "us-central1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend3",
-          type: "gce",
           region: "us-central1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend4",
-          type: "gce",
           region: "europe-west1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend5",
-          type: "gce",
           region: "europe-west1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend6",
-          type: "gce",
           region: "europe-west1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend1",
-          type: "gce",
           region: "us-central1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend2",
-          type: "gce",
           region: "us-central1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend3",
-          type: "gce",
           region: "us-central1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend4",
-          type: "gce",
           region: "europe-west1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend5",
-          type: "gce",
           region: "europe-west1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "roscoapp-dev-frontend7",
-          type: "gce",
           region: "europe-west1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend3",
-          type: "gce",
           region: "asia-east1",
           account: "my-account-name",
           serverGroups: [
@@ -385,7 +372,7 @@ class GoogleLoadBalancerProviderSpec extends Specification {
               ]
             ]
           ]
-        ]
+        )
       ] as Set
 
     when:
@@ -394,23 +381,20 @@ class GoogleLoadBalancerProviderSpec extends Specification {
     then:
       1 * resourceRetrieverMock.getNetworkLoadBalancerMap() >> networkLoadBalancerMap
       applicationLoadBalancers == [
-        [
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend1",
-          type: "gce",
           region: "europe-west1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend2",
-          type: "gce",
           region: "asia-east1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend3",
-          type: "gce",
           region: "asia-east1",
           account: "my-account-name",
           serverGroups: [
@@ -443,42 +427,37 @@ class GoogleLoadBalancerProviderSpec extends Specification {
               ]
             ]
           ]
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend4",
-          type: "gce",
           region: "asia-east1",
           account: "my-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend1",
-          type: "gce",
           region: "europe-west1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend2",
-          type: "gce",
           region: "asia-east1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend3",
-          type: "gce",
           region: "asia-east1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ],
-        [
+        ),
+        new GoogleLoadBalancer(
           name: "testapp-dev-frontend4",
-          type: "gce",
           region: "asia-east1",
           account: "other-account-name",
           serverGroups: [] as Set
-        ]
+        )
       ] as Set
 
     when:
@@ -843,26 +822,14 @@ class GoogleLoadBalancerProviderSpec extends Specification {
 
     then:
       1 * resourceRetrieverMock.getNetworkLoadBalancerMap() >> networkLoadBalancerMap
-      loadBalancer == [
-        name: "roscoapp-dev-frontend3",
-        type: "gce",
-        region: "us-central1",
-        account: "my-account-name",
-        serverGroups: [] as Set
-      ]
+      loadBalancer == new GoogleLoadBalancer(name: "roscoapp-dev-frontend3", account: "my-account-name", region: "us-central1")
 
     when:
       loadBalancer = googleLoadBalancerProvider.getLoadBalancer("other-account-name", "roscoapp-dev-frontend3", "gce", "roscoapp-dev-frontend3", "us-central1")
 
     then:
       1 * resourceRetrieverMock.getNetworkLoadBalancerMap() >> networkLoadBalancerMap
-      loadBalancer == [
-        name: "roscoapp-dev-frontend3",
-        type: "gce",
-        region: "us-central1",
-        account: "other-account-name",
-        serverGroups: [] as Set
-      ]
+      loadBalancer == new GoogleLoadBalancer(name: "roscoapp-dev-frontend3", account: "other-account-name", region: "us-central1")
 
     when:
       loadBalancer = googleLoadBalancerProvider.getLoadBalancer("wrong-account-name", "roscoapp-dev-frontend3", "gce", "roscoapp-dev-frontend3", "us-central1")

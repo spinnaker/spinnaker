@@ -53,7 +53,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
           long instanceTimestamp = instance.creationTimestamp
                                    ? Utils.getTimeFromTimestamp(instance.creationTimestamp)
                                    : Long.MAX_VALUE
-          def googleInstance = new GoogleInstance(instance.name)
+          def googleInstance = new GoogleInstance(name: instance.name)
 
           // Set attributes that deck requires to render instance.
           googleInstance.setProperty("instanceId", instance.name)
@@ -68,10 +68,14 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
             instance.name, healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
           googleInstance.setProperty("health", healthStates)
-          googleInstance.setProperty("isHealthy", calculateIsHealthy(googleInstance))
+          googleInstance.setProperty("healthy", calculateIsHealthy(googleInstance))
 
           // Set all google-provided attributes for use by non-deck callers.
-          googleInstance.putAll(instance)
+          instance.keySet().each { key ->
+            if (!googleInstance.hasProperty(key)) {
+              googleInstance[key] = instance[key]
+            }
+          }
 
           def googleServerGroup = instanceNameToGoogleServerGroupMap[instance.name]
 

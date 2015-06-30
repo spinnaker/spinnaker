@@ -152,7 +152,7 @@ class GoogleResourceRetrieverSpec extends Specification {
       } as Set == ["testapp-dev-v000", "testapp-dev-v001"] as Set
       cluster.serverGroups.find { serverGroup ->
         serverGroup.name == "testapp-dev-v000"
-      }.zones == ["us-central1-a"]
+      }.zones == ["us-central1-a"] as Set
 
     when:
       googleResourceRetriever.createUpdatedApplicationMap(
@@ -166,7 +166,7 @@ class GoogleResourceRetrieverSpec extends Specification {
       } as Set == ["testapp-dev-v000", "testapp-dev-v001"] as Set
       cluster.serverGroups.find { serverGroup ->
         serverGroup.name == "testapp-dev-v000"
-      }.zones == ["us-central1-f"]
+      }.zones == ["us-central1-f"] as Set
   }
 
   void "server group summaries are set on load balancers and only include instances registered with load balancers"() {
@@ -191,7 +191,7 @@ class GoogleResourceRetrieverSpec extends Specification {
       def origGoogleCluster =
         Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
       def origGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
-      def origGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      def origGoogleInstance = new GoogleInstance(name: "testapp-dev-v000-abcd")
       origGoogleInstance.setProperty("health", [
         buildGCEHealthState(HealthState.Unknown),
         buildLoadBalancerHealthState(HealthState.Up, "testapp-dev-frontend2", "testapp-dev-v000-abcd", "InService")
@@ -201,7 +201,7 @@ class GoogleResourceRetrieverSpec extends Specification {
 
       // Build new server group and instance.
       def newGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
-      def newGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      def newGoogleInstance = new GoogleInstance(name: "testapp-dev-v000-abcd")
       newGoogleInstance.setProperty("health", [
         buildGCEHealthState(HealthState.Unknown)
       ])
@@ -243,7 +243,7 @@ class GoogleResourceRetrieverSpec extends Specification {
       def origGoogleCluster =
         Utils.retrieveOrCreatePathToCluster(googleResourceRetriever.applicationsMap, "account-1", "testapp", "testapp-dev")
       def origGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
-      def origGoogleInstance = new GoogleInstance("testapp-dev-v000-efgh")
+      def origGoogleInstance = new GoogleInstance(name: "testapp-dev-v000-efgh")
       origGoogleInstance.setProperty("health", [
         buildGCEHealthState(HealthState.Unknown),
         buildLoadBalancerHealthState(HealthState.Up, "testapp-dev-frontend2", "testapp-dev-v000-efgh", "InService")
@@ -253,7 +253,7 @@ class GoogleResourceRetrieverSpec extends Specification {
 
       // Build new server group and instance.
       def newGoogleServerGroup = new GoogleServerGroup(name: "testapp-dev-v000")
-      def newGoogleInstance = new GoogleInstance("testapp-dev-v000-abcd")
+      def newGoogleInstance = new GoogleInstance(name: "testapp-dev-v000-abcd")
       newGoogleInstance.setProperty("health", [
         buildGCEHealthState(HealthState.Unknown)
       ])
@@ -295,20 +295,20 @@ class GoogleResourceRetrieverSpec extends Specification {
     app1.clusters["some-account-name"] = new HashMap<String, GoogleCluster>()
     def cluster1 = new GoogleCluster(name: "roscoapp1-dev", accountName: "some-account-name")
     app1.clusters["some-account-name"]["roscoapp1-dev"] = cluster1
-    def serverGroup1 = new GoogleServerGroup("roscoapp1-dev-v001", "gce", "us-central1")
+    def serverGroup1 = new GoogleServerGroup(name: "roscoapp1-dev-v001", region: "us-central1")
     serverGroup1.setProperty("asg", [loadBalancerNames: ["roscoapp-dev-frontend2"]])
     serverGroup1.setDisabled(false)
-    def instance1 = new GoogleInstance("roscoapp1-dev-v001-abcd")
+    def instance1 = new GoogleInstance(name: "roscoapp1-dev-v001-abcd")
     instance1.setProperty("placement", [availabilityZone: "us-central1-a"])
     instance1.setProperty("health", [
       buildGCEHealthState(HealthState.Unknown),
       buildLoadBalancerHealthState(HealthState.Up, "roscoapp-dev-frontend2", "roscoapp1-dev-v001-abcd", "InService")
     ])
     serverGroup1.instances << instance1
-    def instance2 = new GoogleInstance("roscoapp1-dev-v001-efgh")
+    def instance2 = new GoogleInstance(name: "roscoapp1-dev-v001-efgh")
     instance2.setProperty("placement", [availabilityZone: "us-central1-a"])
     serverGroup1.instances << instance2
-    def instance3 = new GoogleInstance("roscoapp1-dev-v001-ijkl")
+    def instance3 = new GoogleInstance(name: "roscoapp1-dev-v001-ijkl")
     instance3.setProperty("placement", [availabilityZone: "us-central1-a"])
     instance3.setProperty("health", [
       buildGCEHealthState(HealthState.Unknown),
