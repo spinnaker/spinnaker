@@ -16,14 +16,14 @@
 
 package com.netflix.spinnaker.orca.notifications
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import java.util.concurrent.TimeUnit
 import javax.annotation.PreDestroy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import net.greghaines.jesque.Job
 import net.greghaines.jesque.client.Client
 import org.springframework.context.ApplicationListener
@@ -71,14 +71,14 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<E
   void startPolling() {
     subscription = Observable
       .timer(pollingInterval, TimeUnit.SECONDS, scheduler)
-      .flatMap({ Long ignored -> return events } as Func1<Long, Observable<Execution>>)
-      .doOnError({ Throwable err -> log.error("Error fetching executions", err) })
+      .flatMap({ Long ignored -> getEvents() } as Func1<Long, Observable<Execution>>)
+      .doOnError { Throwable err -> log.error("Error fetching executions", err) }
       .retry()
       .filter(filter())
-      .map({ Execution execution -> return objectMapper.convertValue(execution, Map) })
+      .map { Execution execution -> objectMapper.convertValue(execution, Map) }
       .flatMap(Observable.&from)
       .repeat()
-      .subscribe({ Map event -> notify(event) })
+      .subscribe { Map event -> notify(event) }
   }
 
   @PreDestroy
