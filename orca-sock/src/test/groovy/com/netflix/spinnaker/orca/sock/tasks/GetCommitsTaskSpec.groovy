@@ -146,10 +146,9 @@ class GetCommitsTaskSpec extends Specification {
   def "get commits from a single region canary stage"() {
     given:
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], canary : [
-                         canaryDeployments : [
-                          [ baselineCluster : [imageId: sourceImage, region: region], canaryCluster : [imageId: targetImage, region: region]]]
-                        ]
+                      source     : [asgName: serverGroup, region: region, account: account],
+                      clusterPairs :
+                          [[ baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [amiName: targetImage, availabilityZones: [(region) : ["${region}-1c"]]]]]
                       ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
 
@@ -174,13 +173,13 @@ class GetCommitsTaskSpec extends Specification {
   def "get commits from a multi-region canary stage"() {
     given:
     def contextMap = [application: app, account: account,
-                      source     : [asgName: serverGroup, region: region, account: account], canary : [
-      canaryDeployments : [
-         [baselineCluster : [imageId: "ami-fake", region: "us-east-1"], canaryCluster : [imageId: "ami-fake2", region: "us-east-1"]],
-         [baselineCluster : [imageId: sourceImage, region: region], canaryCluster : [imageId: targetImage, region: region]],
-         [baselineCluster : [imageId: "ami-fake3", region: "eu-west-1"], canaryCluster : [imageId: "ami-fake4", region: "eu-west-1"]]
+                      source     : [asgName: serverGroup, region: region, account: account],
+                      clusterPairs : [
+                        [baseline : [amiName: "ami-fake", availabilityZones: ["us-east-1" : ["us-east-1-1c"]]], canary : [amiName: "ami-fake2",  availabilityZones: ["us-east-1" : ["us-east-1-1c"]]]],
+                        [baseline : [amiName: sourceImage, availabilityZones: [(region) : ["${region}-1c"]]], canary : [amiName: targetImage, availabilityZones: [(region) : ["${region}-1c"]]]],
+                        [baseline : [amiName: "ami-fake3", availabilityZones: ["eu-west-1" : ["eu-west-1-1c"]]], canary : [amiName: "ami-fake4", availabilityZones: ["eu-west-1" : ["eu-west-1-1c"]]]]
       ]
-    ]]
+    ]
     def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0)
 
     when:
