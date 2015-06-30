@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.deploy.transformer', [
-  require('../../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .service('deployStageTransformer', function(_) {
 

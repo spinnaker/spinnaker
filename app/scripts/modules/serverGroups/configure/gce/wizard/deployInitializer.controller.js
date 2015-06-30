@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployInitialization.controller', [
   require('../../../serverGroup.read.service.js'),
-  require('../../../../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../../aws/serverGroupCommandBuilder.service.js'),
 ])
   .controller('gceDeployInitializerCtrl', function($scope, gceServerGroupCommandBuilder, serverGroupReader, _) {

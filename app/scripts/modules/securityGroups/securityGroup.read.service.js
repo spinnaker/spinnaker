@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('restangular'),
   require('../caches/deckCacheFactory.js'),
   require('../search/search.service.js'),
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../caches/scheduledCache.js'),
   require('../caches/infrastructureCaches.js'),
 ])

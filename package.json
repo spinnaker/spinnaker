@@ -3,7 +3,7 @@
   "name": "deck",
   "version": "0.0.0",
   "publishConfig": {
-    "registry" : "http://artifacts.netflix.com/api/npm/npm-local"
+    "registry": "http://artifacts.netflix.com/api/npm/npm-local"
   },
   "dependencies": {
     "angular": "^1.4.1",
@@ -19,9 +19,13 @@
     "angular-wizard": "^0.5.3",
     "angulartics": "^0.18.0",
     "bootstrap": "^3.3.5",
+    "d3": "^3.5.5",
+    "jquery": "^2.1.4",
+    "lodash": "^3.10.0",
     "moment": "^2.10.3",
     "ng-infinite-scroll": "^1.2.0",
     "restangular": "^1.5.1",
+    "rx": "^2.5.3",
     "select2-bootstrap-css": "^1.4.6",
     "source-sans-pro": "^2.0.10",
     "spin": "0.0.1",

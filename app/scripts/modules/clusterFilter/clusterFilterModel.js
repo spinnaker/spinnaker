@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('cluster.filter.model', [
     require('angular-ui-router'),
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .factory('ClusterFilterModel', function($rootScope, $state, $stateParams, $location, _) {
 

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery.executionGroups.filter', [
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('./timeBoundaries.service.js')
 ])
   .filter('executionGroups', function(timeBoundaries, _) {

@@ -8,5 +8,5 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake', [
   require('./bakeExecutionDetails.controller.js'),
   require('../../../../providerSelection/providerSelector.directive.js'),
   require('../../../../account/accountService.js'),
-  require('../../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ]);

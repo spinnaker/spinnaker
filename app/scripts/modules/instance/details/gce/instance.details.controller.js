@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
-  require('../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,

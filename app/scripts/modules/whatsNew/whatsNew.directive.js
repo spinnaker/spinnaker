@@ -8,7 +8,7 @@ module.exports = angular
     require('angular-marked'),
     require('../caches/viewStateCache.js'),
     require('./whatsNew.read.service.js'),
-    require('../utils/timeFormatters.js'),
+    require('utils/timeFormatters.js'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(

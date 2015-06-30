@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.transformer.service', [
   require('../caches/deckCacheFactory.js'),
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../delegation/serviceDelegate.service.js'),
 ])
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {

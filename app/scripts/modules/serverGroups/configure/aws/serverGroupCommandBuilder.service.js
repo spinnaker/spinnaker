@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   require('../../../subnet/subnet.read.service.js'),
   require('../../../../services/instanceTypeService.js'),
   require('../../../naming/naming.service.js'),
-  require('../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
                                                      accountService, subnetReader, namingService, instanceTypeService, _) {

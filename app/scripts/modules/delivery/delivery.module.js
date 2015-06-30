@@ -28,11 +28,11 @@ module.exports = angular.module('spinnaker.delivery', [
 
   require('./details/executionDetails.controller.js'),
   require('../caches/deckCacheFactory.js'),
-  require('../utils/appendTransform.js'),
-  require('../utils/d3.js'),
-  require('../utils/lodash.js'),
-  require('../utils/moment.js'),
-  require('../utils/rx.js'),
-  require('../utils/scrollTo/scrollTo.service.js'),
+  require('utils/appendTransform.js'),
+  require('utils/d3.js'),
+  require('utils/lodash.js'),
+  require('utils/moment.js'),
+  require('utils/rx.js'),
+  require('utils/scrollTo/scrollTo.service.js'),
   require('../../services/orchestratedItem.js'),
 ]);

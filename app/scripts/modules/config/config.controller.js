@@ -8,7 +8,7 @@ module.exports = angular
     require('../confirmationModal/confirmationModal.service.js'),
     require('../caches/cacheInitializer.js'),
     require('../caches/infrastructureCaches.js'),
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, application, notificationService, _) {

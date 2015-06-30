@@ -20,7 +20,7 @@ module.exports = angular
   .module('spinnaker.fastPropertyScope.selection.directive', [
     require('./fastPropertyScope.service.js'),
     require('./fastProperty.read.service.js'),
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .directive('scopeSelect', selectScopeDirective)
   .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader, _) {
