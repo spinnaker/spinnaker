@@ -39,6 +39,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
               max: 1,
               desired: 1
             },
+            targetHealthyDeployPercentage: 100,
             cooldown: 10,
             healthCheckType: 'EC2',
             healthCheckGracePeriod: 600,
@@ -149,6 +150,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
             'max': serverGroup.asg.maxSize,
             'desired': serverGroup.asg.desiredCapacity
           },
+          targetHealthyDeployPercentage: 100,
           availabilityZones: zones,
           selectedProvider: 'aws',
           source: {
