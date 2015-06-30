@@ -42,6 +42,7 @@ module.exports = angular.module('spinnaker', [
     require('./providers/states.js'),
     require('./modules/delivery/states.js'),
     require('ng-infinite-scroll'),
+    require('./directives/directives.module.js'),
 
     require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
