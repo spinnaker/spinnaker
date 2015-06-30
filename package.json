@@ -30,9 +30,7 @@
     "source-sans-pro": "^2.0.10",
     "spin": "0.0.1",
     "ui-select": "^0.11.2",
-    "utils": "./utils/",
-    "webpack": "^1.9.12",
-    "webpack-dev-server": "^1.9.0"
+    "utils": "./utils/"
   },
   "engines": {
     "node": ">=0.10.0",
@@ -57,6 +55,7 @@
     "node-libs-browser": "^0.5.2",
     "style-loader": "^0.12.3",
     "url-loader": "^0.5.6",
-    "webpack": "^1.9.11"
+    "webpack": "^1.9.11",
+    "webpack-dev-server": "^1.9.0"
   }
 }
