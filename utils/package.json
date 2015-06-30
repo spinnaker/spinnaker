@@ -1,0 +1,17 @@
+{
+  "name": "utils",
+  "version": "1.0.0",
+  "description": "utility library wrapper",
+  "main": "utils.modules.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "d3": "^3.5.5",
+    "jquery": "^2.1.4",
+    "moment": "^2.10.3",
+    "rx": "^2.5.3"
+  }
+}
