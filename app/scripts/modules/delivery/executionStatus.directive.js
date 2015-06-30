@@ -3,8 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery.executionStatus.directive', [
+  require('utils/lodash.js'),
 ])
-  .directive('executionStatus', function() {
+  .directive('executionStatus', function(_) {
     return {
       restrict: 'E',
       scope: {
