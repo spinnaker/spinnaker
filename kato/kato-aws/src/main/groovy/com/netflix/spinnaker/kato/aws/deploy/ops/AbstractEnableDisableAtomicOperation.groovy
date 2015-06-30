@@ -119,12 +119,13 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       } catch (e) {
         def errorMessage = "Could not ${verb} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
         log.error(errorMessage, e)
-
-        task.updateStatus phaseName, errorMessage
+        if (!task.status.isFailed()) {
+          task.updateStatus phaseName, errorMessage
+        }
         failures = true
       }
     }
-    if (failures) {
+    if (failures && !task.status.isFailed()) {
       task.fail()
     }
     null
