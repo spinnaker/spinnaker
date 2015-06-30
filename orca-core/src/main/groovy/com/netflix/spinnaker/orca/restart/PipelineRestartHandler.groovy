@@ -43,6 +43,8 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
       log.warn "Restarting pipeline $pipeline.application $pipeline.name $pipeline.id with status $pipeline.status"
       resetJobExecutionFor(pipeline)
       pipelineStarter.resume(pipeline)
+    } catch (IllegalStateException e) {
+      log.error("Unable to resume pipeline: $e.message")
     } catch (e) {
       log.error("Unable to resume pipeline", e)
       throw e
@@ -51,11 +53,16 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
 
   private void resetJobExecutionFor(Pipeline pipeline) {
     def jobName = pipelineJobBuilder.jobNameFor(pipeline)
-    def executions = jobExplorer.findRunningJobExecutions(jobName)
-    if (executions.size() == 1) {
-      resetExecution(executions.first())
+    def jobInstances = jobExplorer.getJobInstances(jobName, 0, 100)
+    if (jobInstances.size() == 1) {
+      def executions = jobExplorer.getJobExecutions(jobInstances.first())
+      if (executions.size() == 1) {
+        resetExecution(executions.first())
+      } else {
+        throw new IllegalStateException("Expected to a find one job execution but found ${executions.size()}")
+      }
     } else {
-      throw new IllegalStateException("Expected to a find one running job execution but found ${executions.size()}")
+      throw new IllegalStateException("Expected to find one job instance but found ${jobInstances.size()}")
     }
   }
 

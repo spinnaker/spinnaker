@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.orca.restart
 
-import com.netflix.appinfo.ApplicationInfoManager
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -16,16 +16,16 @@ import org.springframework.stereotype.Component
 class ExecutionTracker implements JobExecutionListener {
 
   private final ExecutionRepository executionRepository
-  private final ApplicationInfoManager applicationInfoManager
+  private final InstanceInfo currentInstance
 
   @Autowired
-  ExecutionTracker(ExecutionRepository executionRepository, ApplicationInfoManager applicationInfoManager) {
+  ExecutionTracker(ExecutionRepository executionRepository, InstanceInfo currentInstance) {
     this.executionRepository = executionRepository
-    this.applicationInfoManager = applicationInfoManager
+    this.currentInstance = currentInstance
   }
 
   void beforeExecution(Execution<?> execution) {
-    execution.executingInstance = applicationInfoManager.info.id
+    execution.executingInstance = currentInstance.id
     // I really don't want to do this but the craziness of the repository API is too much to deal with today
     switch (execution) {
       case Pipeline:

@@ -4,10 +4,7 @@ import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.ExitStatus
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.*
 import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.batch.core.repository.JobRepository
 import spock.lang.Shared
@@ -33,7 +30,8 @@ class PipelineRestartHandlerSpec extends Specification {
 
   def "handler resets underlying job then resumes the pipeline"() {
     given:
-    jobExplorer.findRunningJobExecutions(jobName) >> [jobExecution(jobName)]
+    jobExplorer.getJobInstances(jobName, _, _) >> [new JobInstance(1L, jobName)]
+    jobExplorer.getJobExecutions({ it.jobName == jobName }) >> [jobExecution(jobName)]
 
     when:
     handler.run()
@@ -48,17 +46,15 @@ class PipelineRestartHandlerSpec extends Specification {
   }
 
   @Unroll
-  def "if the handler finds #n executions it fails"() {
+  def "if the handler finds #n executions it ignores the job"() {
     given:
-    jobExplorer.findRunningJobExecutions(jobName) >> executions
+    jobExplorer.getJobInstances(jobName, _, _) >> [new JobInstance(1L, jobName)]
+    jobExplorer.getJobExecutions({ it.jobName == jobName }) >> executions
 
     when:
     handler.run()
 
     then:
-    thrown(IllegalStateException)
-
-    and:
     0 * jobRepository.update(_)
     0 * pipelineStarter.resume(_)
 
