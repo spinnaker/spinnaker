@@ -6,12 +6,15 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 @CompileStatic
 class ExecutionTracker implements JobExecutionListener {
 
@@ -19,8 +22,9 @@ class ExecutionTracker implements JobExecutionListener {
   private final InstanceInfo currentInstance
 
   @Autowired
-  ExecutionTracker(ExecutionRepository executionRepository, InstanceInfo currentInstance) {
+  ExecutionTracker(ExecutionRepository executionRepository, @Qualifier("instanceInfo") InstanceInfo currentInstance) {
     this.executionRepository = executionRepository
+    log.info "current instance: ${currentInstance.appName} ${currentInstance.id}"
     this.currentInstance = currentInstance
   }
 
