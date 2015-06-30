@@ -104,7 +104,12 @@ class DiscoverySupport {
           if (resp.status != 200) {
             throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
           }
-          task.updateStatus phaseName, "Marked ${instanceId} in application $applicationName as '${discoveryStatus.value}' in discovery."
+        }
+      } catch (RetrofitError retrofitError) {
+        if (retrofitError.response?.status == 404 && discoveryStatus == DiscoveryStatus.Disable) {
+          task.updateStatus phaseName, "Could not find ${instanceId} in application $applicationName in discovery, skipping disable operation."
+        } else {
+          errors[instanceId] = retrofitError
         }
       } catch (ex) {
         errors[instanceId] = ex

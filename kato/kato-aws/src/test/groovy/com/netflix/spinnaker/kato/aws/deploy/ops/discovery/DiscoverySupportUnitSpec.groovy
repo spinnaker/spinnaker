@@ -227,6 +227,33 @@ class DiscoverySupportUnitSpec extends Specification {
     instanceIds = ["i-123"]
   }
 
+  void "should NOT fail disable operation if instance is not found"() {
+    given:
+    def status = DiscoverySupport.DiscoveryStatus.Disable
+    def task = Mock(Task)
+    def description = new EnableDisableInstanceDiscoveryDescription(
+      region: 'us-east-1',
+      credentials: TestCredential.named('test', [discovery: "http://us-east-1.discovery.netflix.net"])
+    )
+
+    when:
+    discoverySupport.updateDiscoveryStatusForInstances(description, task, "PHASE", status, ['i-123'])
+
+    then: "task should not be failed"
+    1 * eureka.getInstanceInfo('i-123') >>
+      [
+        instance: [
+          app: appName
+        ]
+      ]
+    eureka.updateInstanceStatus(appName, 'i-123', status.value) >> { throw httpError(404) }
+    task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
+    0 * task.fail()
+
+    where:
+    appName = "kato"
+  }
+
 
   void "should attempt to mark each instance in discovery even if some fail"() {
     given:
