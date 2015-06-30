@@ -1,8 +1,5 @@
 'use strict';
 
-
-console.log('hello world');
-
 /**
  * @ngdoc overview
  * @name spinnaker
@@ -97,27 +94,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/help/help.module.js'),
     require('./modules/delivery/delivery.module.js'),
     require('./modules/pipelines/pipelines.module.js'),
-    require('./modules/pipelines/config/triggers/trigger.module.js'),
-    require('./modules/pipelines/config/triggers/jenkins/jenkinsTrigger.module.js'),
-    require('./modules/pipelines/config/triggers/pipeline/pipelineTrigger.module.js'),
-    require('./modules/pipelines/config/stages/stage.module.js'),
-    require('./modules/pipelines/config/stages/bake/bakeStage.module.js'),
-    require('./modules/pipelines/config/stages/canary/canaryStage.module.js'),
-    require('./modules/pipelines/config/stages/deploy/deployStage.module.js'),
-    require('./modules/pipelines/config/stages/script/scriptStage.module.js'),
-    require('./modules/pipelines/config/stages/wait/waitStage.module.js'),
-    require('./modules/pipelines/config/stages/jenkins/jenkinsStage.module.js'),
-    require('./modules/pipelines/config/stages/pipeline/pipelineStage.module.js'),
-    require('./modules/pipelines/config/stages/resizeAsg/resizeAsgStage.module.js'),
-    require('./modules/pipelines/config/stages/enableAsg/enableAsgStage.module.js'),
-    require('./modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
-    require('./modules/pipelines/config/stages/destroyAsg/destroyAsgStage.module.js'),
-    require('./modules/pipelines/config/stages/disableAsg/disableAsgStage.module.js'),
-    require('./modules/pipelines/config/stages/executionWindows/executionWindowsStage.module.js'),
-    require('./modules/pipelines/config/stages/findAmi/findAmiStage.module.js'),
-    require('./modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgStage.module.js'),
-    require('./modules/pipelines/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
-    require('./modules/pipelines/config/stages/manualJudgment/manualJudgmentStage.module.js'),
     require('./modules/authentication/authentication.module.js'),
     require('./modules/search/search.module.js'),
     //require('./modules/notifications/notifications.module.js'),
