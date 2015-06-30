@@ -7,6 +7,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
@@ -17,6 +18,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
  * Looks for pipelines that were previously running on the current instance before it restarted and resumes them.
  */
 @Component
+@ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
 @Slf4j
 @CompileStatic
 class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEvent> {
