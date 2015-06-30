@@ -24,28 +24,38 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
+@Slf4j
 @Component
 @CompileStatic
 class MonitorBakeTask implements RetryableTask {
 
-  long backoffPeriod = 1000
+  long backoffPeriod = 30000
   long timeout = 3600000 // 1hr
 
-  @Autowired BakeryService bakery
+  @Autowired
+  BakeryService bakery
+
+  @Autowired
+  CreateBakeTask createBakeTask
 
   @Override
   TaskResult execute(Stage stage) {
     def region = stage.context.region as String
     def previousStatus = stage.context.status as BakeStatus
 
-    // TODO: could skip the lookup if it's already complete as it will be for a previously requested bake
-
     try {
       def newStatus = bakery.lookupStatus(region, previousStatus.id).toBlocking().single()
+      if (newStatus.state == BakeStatus.State.CANCELLED && previousStatus.state == BakeStatus.State.PENDING) {
+        log.info("Original bake was 'cancelled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
+        def rebakeResult = createBakeTask.execute(stage)
+        return new DefaultTaskResult(ExecutionStatus.RUNNING, rebakeResult.stageOutputs, rebakeResult.globalOutputs)
+      }
+
       new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
