@@ -16,17 +16,12 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobExecutionListener
-import org.springframework.batch.core.JobParameter
-import org.springframework.batch.core.JobParameters
-import org.springframework.batch.core.JobParametersBuilder
+import org.springframework.batch.core.*
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.repository.JobRepository
@@ -47,7 +42,7 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected JobRepository jobRepository
   @Autowired protected ObjectMapper mapper
 
-  @Autowired(required=false)
+  @Autowired(required = false)
   List<JobExecutionListener> pipelineListeners
 
   T start(String configJson) {
@@ -58,7 +53,8 @@ abstract class ExecutionStarter<T extends Execution> {
     persistExecution(subject)
 
     if (subject.status.isComplete()) {
-      log.warn("Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
+      log.warn(
+        "Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
       if (subject instanceof Pipeline) {
         pipelineListeners?.each {
           it.afterJob(new JobExecution(0L, new JobParameters([pipeline: new JobParameter(subject.id)])))
@@ -75,7 +71,12 @@ abstract class ExecutionStarter<T extends Execution> {
     log.warn "Resuming $subject.id"
     def jobName = executionJobBuilder.jobNameFor(subject)
     def execution = jobRepository.getLastJobExecution(jobName, createJobParameters(subject))
-    jobOperator.restart(execution.id)
+    if (execution) {
+      resetExecution(execution)
+      jobOperator.restart(execution.id)
+    } else {
+      throw new IllegalStateException("Could not find a previous JobExecution for pipeline $jobName")
+    }
   }
 
   protected abstract ExecutionJobBuilder<T> getExecutionJobBuilder()
@@ -89,5 +90,18 @@ abstract class ExecutionStarter<T extends Execution> {
     params.addString(type, subject.id)
     params.addString("application", subject.application)
     params.toJobParameters()
+  }
+
+  /**
+   * Because "restartability" of a Spring Batch job relies on it having been cleanly stopped and we can't guarantee
+   * that we need to update the job to a STOPPED state.
+   */
+  private void resetExecution(JobExecution execution) {
+    if (execution.status != BatchStatus.STOPPED) {
+      execution.setExitStatus(ExitStatus.STOPPED.addExitDescription("restarted after instance shutdown"))
+      execution.setStatus(BatchStatus.STOPPED)
+      execution.setEndTime(new Date())
+      jobRepository.update(execution)
+    }
   }
 }
