@@ -37,8 +37,9 @@ import java.util.concurrent.TimeUnit
 @Slf4j
 @Component
 class GetCommitsTask implements RetryableTask {
+  private static final int MAX_RETRIES = 10
+
   long backoffPeriod = 1000
-  int retries = 10 // only retry this many times so we can return a success even if it doesnt work and avoid the timeout error which will kill pipelines
   long timeout = TimeUnit.SECONDS.toMillis(30) // always set this higher than retries * backoffPeriod would take
 
   @Autowired
@@ -55,10 +56,11 @@ class GetCommitsTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
+    def retriesRemaining = stage.context.getCommitsRetriesRemaining != null ? stage.context.getCommitsRetriesRemaining : MAX_RETRIES
     // is sock not configured or have we exceeded configured retries
-    if (!sockService || retries-- == 0) {
-      log.info("sock is not configured or retries exceeded : sockService : ${sockService}, retries : ${retries}")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+    if (!sockService || retriesRemaining == 0) {
+      log.info("sock is not configured or retries exceeded : sockService : ${sockService}, retries : ${retriesRemaining}")
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
     }
 
     Map repoInfo = [:]
@@ -103,14 +105,14 @@ class GetCommitsTask implements RetryableTask {
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         } else { // retry on other status codes
           log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
-          return new DefaultTaskResult(ExecutionStatus.RUNNING)
+          return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
         }
     } catch(Exception f) { // retry on everything else
       log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", f)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
     } catch(Throwable g) {
       log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", g)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
     }
   }
 

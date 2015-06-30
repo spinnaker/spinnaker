@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.config
 
-import com.netflix.spectator.api.ValueFunction
-import groovy.transform.CompileDynamic
-
 import java.time.Clock
 import java.time.Duration
+import java.util.concurrent.ThreadPoolExecutor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spectator.api.ValueFunction
 import com.netflix.spinnaker.kork.eureka.EurekaConfiguration
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.StageTaskPropagationListener
@@ -42,6 +41,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.configuration.ListableJobLocator
@@ -59,15 +59,12 @@ import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import rx.Scheduler
 import rx.schedulers.Schedulers
-
-import java.util.concurrent.ThreadPoolExecutor
-
 import static java.time.temporal.ChronoUnit.MINUTES
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
 @Configuration
 @Import([EurekaConfiguration])
-@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.initialization"])
+@ComponentScan(["com.netflix.spinnaker.orca.pipeline", "com.netflix.spinnaker.orca.notifications.scheduling", "com.netflix.spinnaker.orca.restart"])
 @CompileStatic
 class OrcaConfiguration {
 

@@ -1,0 +1,114 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.restart
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.appinfo.InstanceInfo
+import com.netflix.discovery.shared.LookupService
+import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
+import com.netflix.spinnaker.orca.notifications.NotificationHandler
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import net.greghaines.jesque.client.Client
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.stereotype.Component
+import rx.Observable
+import rx.functions.Func1
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static java.util.concurrent.TimeUnit.MINUTES
+
+@Component
+@ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
+@Slf4j
+@CompileStatic
+class PipelineRestartAgent extends AbstractPollingNotificationAgent {
+
+  public static final String NOTIFICATION_TYPE = "stalePipeline"
+
+  private final ExecutionRepository executionRepository
+  private final LookupService discoveryClient
+  private final InstanceInfo currentInstance
+
+  @Autowired
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, ExecutionRepository executionRepository, LookupService discoveryClient,
+                       @Qualifier("instanceInfo") InstanceInfo currentInstance) {
+    super(mapper, jesqueClient)
+    this.executionRepository = executionRepository
+    this.discoveryClient = discoveryClient
+    log.info "current instance: ${currentInstance.appName} ${currentInstance.id}"
+    this.currentInstance = currentInstance
+  }
+
+  @Override
+  long getPollingInterval() {
+    return MINUTES.toSeconds(2)
+  }
+
+  @Override
+  String getNotificationType() {
+    NOTIFICATION_TYPE
+  }
+
+  @Override
+  @CompileDynamic
+  protected Observable<Execution> getEvents() {
+    log.info("Starting stale pipelines polling cycle")
+    return executionRepository.retrievePipelines().doOnCompleted({
+      log.info("Finished stale pipelines polling cycle")
+    })
+  }
+
+  @Override
+  protected Func1<Execution, Boolean> filter() {
+    return { Execution execution ->
+      if (execution?.status in [NOT_STARTED, RUNNING]) {
+        log.info "Found a restart candidate: $execution.application $execution.id"
+        if (!execution.executingInstance) {
+          log.info "...but it has no record of its executing instance (old pipeline)"
+          return false
+        } else if (execution.executingInstance == currentInstance.id) {
+          log.info "...but it is already running on this instance"
+          return false
+        } else if (executingInstanceIsDown(execution)) {
+          log.info "...and its instance is down $execution.executingInstance"
+          return true
+        } else {
+          log.info "...but its instance is up $execution.executingInstance"
+          return false
+        }
+      } else {
+        return false
+      }
+    } as Func1<Execution, Boolean>
+  }
+
+  @Override
+  Class<? extends NotificationHandler> handlerType() {
+    PipelineRestartHandler
+  }
+
+  private boolean executingInstanceIsDown(Execution execution) {
+    def instanceId = execution.executingInstance
+    instanceId && !discoveryClient.getApplication("orca")?.getByInstanceId(instanceId)
+  }
+}

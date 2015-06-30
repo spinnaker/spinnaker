@@ -31,6 +31,7 @@ abstract class Execution<T> implements Serializable {
   boolean canceled
   boolean parallel
   Long buildTime
+  String executingInstance
 
   /*
    * Used to track Stages/Steps as they're built to prevent unnecessary re-builds in parallel pipelines
@@ -143,6 +144,10 @@ abstract class Execution<T> implements Serializable {
       @Override
       Execution asImmutable() {
         this
+      }
+
+      String getExecutingInstance() {
+        self.executingInstance
       }
     }
   }

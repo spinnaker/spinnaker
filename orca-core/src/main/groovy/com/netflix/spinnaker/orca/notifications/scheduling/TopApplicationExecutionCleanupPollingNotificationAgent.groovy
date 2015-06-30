@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.notifications.scheduling
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
@@ -51,7 +49,9 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   private Scheduler scheduler = Schedulers.io()
   private Subscription subscription
 
-  private Func1<Execution, Boolean> filter = { Execution execution -> execution.status == ExecutionStatus.SUCCEEDED }
+  private Func1<Execution, Boolean> filter = {
+    Execution execution -> execution.status.complete
+  }
   private Func1<Execution, Map> mapper = { Execution execution -> [id: execution.id, startTime: execution.startTime] }
 
   @Autowired

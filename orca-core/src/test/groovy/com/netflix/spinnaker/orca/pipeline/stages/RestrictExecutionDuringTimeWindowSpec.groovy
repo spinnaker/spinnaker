@@ -15,6 +15,9 @@
  */
 
 package com.netflix.spinnaker.orca.pipeline.stages
+
+import java.text.SimpleDateFormat
+import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.StageStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -34,19 +37,17 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Unroll
-
-import java.text.SimpleDateFormat
-
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
 import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
+
 /**
  *
  * @author sthadeshwar
  */
 @Unroll
-@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, OrcaConfiguration])
+@ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, OrcaConfiguration])
 class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
 
   @Autowired ApplicationContext applicationContext;
@@ -54,6 +55,7 @@ class RestrictExecutionDuringTimeWindowSpec extends AbstractBatchLifecycleSpec {
   def task = Mock(Task)
 
   def setup() {
+    System.properties."pollers.stalePipelines.enabled" = "false"
     TimeZone.'default' = TimeZone.getTimeZone("America/Los_Angeles")
     System.setProperty("user.timezone", "America/Los_Angeles")
   }

@@ -25,14 +25,9 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
-  @Override
-  protected boolean hasSucceeded(Stage stage, Map asg, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    // favor using configured target capacity whenever available (rather than in-progress asg's minSize)
-    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
-    Map source = stage.context.source as Map
-    Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
-    Integer targetMinSize = (capacityConfig?.min != null && !useSourceCapacity) ? capacityConfig.min : asg.minSize as Integer
-    if (targetMinSize > instances.size()) {
+  static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
+    if (targetDesiredSize > instances.size()) {
       return false
     }
 
@@ -53,7 +48,33 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       someAreUp && noneAreDown
     }
 
-    return healthyCount >= targetMinSize
+    return healthyCount >= targetDesiredSize
+  }
+
+  private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
+    // favor using configured target capacity whenever available (rather than in-progress asg's desiredCapacity)
+    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
+    Map source = stage.context.source as Map
+    Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
+    Map asg = (Map) serverGroup?.asg ?: [:]
+    Integer targetDesiredSize = (capacityConfig?.desired != null && !useSourceCapacity) ?
+      capacityConfig.desired :
+      stage.context.capacitySnapshot ?
+        ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer :
+        asg.desiredCapacity as Integer
+    if (stage.context.targetHealthyDeployPercentage != null) {
+      Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
+      if (percentage < 0 || percentage > 100) {
+        throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
+      }
+      targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
+    }
+    targetDesiredSize
+  }
+
+  @Override
+  protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
   @Immutable
