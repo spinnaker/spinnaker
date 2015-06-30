@@ -31,6 +31,12 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       return false
     }
 
+    def accountName = stage.context."deploy.account.name" as String
+    if (accountName && accountName.startsWith("mce") && !interestingHealthProviderNames) {
+      // TODO-AJ Temporary hack until MCE updates their API calls
+      interestingHealthProviderNames = ["Amazon"]
+    }
+
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
