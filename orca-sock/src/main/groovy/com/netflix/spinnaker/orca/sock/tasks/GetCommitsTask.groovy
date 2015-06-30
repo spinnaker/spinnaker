@@ -106,7 +106,10 @@ class GetCommitsTask implements RetryableTask {
           return new DefaultTaskResult(ExecutionStatus.RUNNING)
         }
     } catch(Exception f) { // retry on everything else
-      log.error("unexpeced error for : for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
+      log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", f)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING)
+    } catch(Throwable g) {
+      log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", g)
       return new DefaultTaskResult(ExecutionStatus.RUNNING)
     }
   }
@@ -134,10 +137,10 @@ class GetCommitsTask implements RetryableTask {
   }
 
   String getTargetAmi(Map context, region) {
-    if(context.canary?.canaryDeployments) { // canary cluster stage
-      return context.canary.canaryDeployments?.find{ canaryDeployment ->
-        canaryDeployment?.canaryCluster?.region == region
-      }?.canaryCluster?.imageId
+    if(context.clusterPairs) { // canary cluster stage
+      return context.clusterPairs?.find{ clusterPair ->
+        clusterPair?.canary?.availabilityZones?.findResult { key, value -> key == region }
+      }?.canary?.amiName
     } else if (context.deploymentDetails) { // deploy asg stage
       return context.deploymentDetails.find { it.region == region }?.ami
     } else if (context.amiName) { // copyLastAsg stage
@@ -148,10 +151,10 @@ class GetCommitsTask implements RetryableTask {
   }
 
   String getAncestorAmi(Map context, String region, String account) {
-    if(context.canary?.canaryDeployments) { // separate cluster diff
-      return context.canary.canaryDeployments?.find{ canaryDeployment ->
-        canaryDeployment?.baselineCluster?.region == region
-      }?.baselineCluster?.imageId
+    if(context.clusterPairs) { // separate cluster diff
+      return context.clusterPairs?.find{ clusterPair ->
+        clusterPair?.baseline?.availabilityZones?.findResult { key, value -> key == region }
+      }?.baseline?.amiName
     } else if(context.get("kato.tasks")) { // same cluster asg diff
       String ancestorAsg = context.get("kato.tasks")?.find { item ->
         item.find { key, value ->
@@ -182,6 +185,6 @@ class GetCommitsTask implements RetryableTask {
     def globalAccount = front50Service.credentials.find { it.global }
     def applicationAccount = globalAccount?.name ?: account
     Application app = front50Service.get(applicationAccount, application)
-    return [repoType : app.repoType, projectKey : app.repoProjectKey, repositorySlug : app.repoSlug]
+    return [repoType : app?.repoType, projectKey : app?.repoProjectKey, repositorySlug : app?.repoSlug]
   }
 }
