@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function ($timeout, $filter, $rootScope, $state, scrollTriggerService, clusterFilterService) {
+module.exports = function ($timeout, $filter, $rootScope, $state, $, _, scrollTriggerService, clusterFilterService) {
   return {
     restrict: 'C',
     scope: {

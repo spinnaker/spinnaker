@@ -10,7 +10,6 @@ module.exports = angular.module('spinnaker.directives', [
 .directive(require('./accountLabelColor.directive.js'))
 .directive(require('./accountSelectField.js'))
 .directive(require('./accountTag.js'))
-.directive(require('./angularUiTemplateOverrides.js'))
 .directive(require('./autoScroll.directive.js'))
 .directive(require('./autofocus.js'))
 .directive(require('./availabilityZoneSelector.js'))

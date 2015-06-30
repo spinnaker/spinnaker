@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function ($timeout, $) {
+module.exports = function ($timeout, $, _) {
   return {
     restrict: 'E',
     scope: {

@@ -5,7 +5,7 @@
 module.exports = function(settings) {
   return {
     restrict: 'E',
-    templateUrl: require('views/directives/accountSelectField.html'),
+    templateUrl: require('../../views/directives/accountSelectField.html'),
     scope: {
       accounts: '=',
       component: '=',
