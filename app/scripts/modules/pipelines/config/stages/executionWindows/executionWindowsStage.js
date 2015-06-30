@@ -9,4 +9,7 @@ angular.module('spinnaker.pipelines.stage.executionWindows')
       key: 'restrictExecutionDuringTimeWindow',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/executionWindows/executionWindowsDetails.html',
     });
+  })
+  .run(function(pipelineConfig, executionWindowsTransformer) {
+    pipelineConfig.registerTransformer(executionWindowsTransformer);
   });
