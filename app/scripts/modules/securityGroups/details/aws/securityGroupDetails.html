@@ -63,7 +63,9 @@
       <dl ng-repeat="rule in securityGroup.securityGroupRules">
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
-          {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+          <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'aws'})">
+            {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
+          </a>
         </dd>
         <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges:</dt>
         <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
