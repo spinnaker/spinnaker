@@ -60,10 +60,10 @@ module.exports = angular.module('spinnaker', [
 
     require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
-    //require('./modules/feedback/feedback.module.js'),
-    //
-    //require('utils/stickyHeader/stickyHeader.directive.js'),
-    //
+    require('./modules/feedback/feedback.module.js'),
+
+    require('utils/stickyHeader/stickyHeader.directive.js'),
+
     require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
     require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
     //
