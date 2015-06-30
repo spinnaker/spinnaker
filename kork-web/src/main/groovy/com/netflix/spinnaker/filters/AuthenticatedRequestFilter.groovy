@@ -102,8 +102,7 @@ class AuthenticatedRequestFilter implements Filter {
 
       chain.doFilter(request, response)
     } finally {
-      MDC.remove(SPINNAKER_USER)
-      MDC.remove(SPINNAKER_ACCOUNTS)
+      MDC.clear()
     }
   }
 

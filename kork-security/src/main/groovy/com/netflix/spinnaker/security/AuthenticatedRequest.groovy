@@ -30,6 +30,7 @@ class AuthenticatedRequest {
    * Ensure an appropriate MDC context is available when {@code closure} is executed.
    */
   public static final Closure propagate(Closure closure,
+                                        boolean restoreOriginalContext = true,
                                         Object principal = SecurityContextHolder.context?.authentication?.principal) {
     def spinnakerUser = getSpinnakerUser(principal).orElse(null)
     if (!spinnakerUser) {
@@ -57,16 +58,20 @@ class AuthenticatedRequest {
         log.error("Error occurred propagating authentication context", e)
         throw e
       } finally {
-        if (originalSpinnakerUser) {
+        if (originalSpinnakerUser && restoreOriginalContext) {
           MDC.put(SPINNAKER_USER, originalSpinnakerUser)
         } else {
           MDC.remove(SPINNAKER_USER)
         }
 
-        if (originalSpinnakerAccounts) {
+        if (originalSpinnakerAccounts && restoreOriginalContext) {
           MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts)
         } else {
           MDC.remove(SPINNAKER_ACCOUNTS)
+        }
+
+        if (MDC.copyOfContextMap.isEmpty()) {
+          MDC.clear()
         }
       }
     }
