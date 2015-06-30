@@ -6,7 +6,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.vpc.read.service', [
     require('restangular'),
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .factory('vpcReader', function ($q, Restangular, infrastructureCaches ) {
 

@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service', [
   require('../../../caches/deckCacheFactory.js'),
-  require('../../../utils/lodash.js')
+  require('utils/lodash.js')
 ])
   .factory('gceLoadBalancerTransformer', function ( settings, _) {
 

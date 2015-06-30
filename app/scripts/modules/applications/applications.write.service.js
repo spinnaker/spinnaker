@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.applications.write.service', [
     require('../../services/taskExecutor.js'),
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .factory('applicationWriter', function($q, taskExecutor, _) {
 

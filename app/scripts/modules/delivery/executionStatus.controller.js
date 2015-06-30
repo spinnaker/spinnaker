@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery.executionStatus.controller', [
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .controller('executionStatus', function(_) {
     var controller = this;

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.monitor.service', [
-  require('../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .factory('taskMonitorService', function($exceptionHandler, _) {
 

@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../keyPairs/keyParis.read.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
-  require('../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,

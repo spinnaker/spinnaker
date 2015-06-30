@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
   require('../../../serverGroup.read.service.js'),
-  require('../../../../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../serverGroupCommandBuilder.service.js'),
 ])
   .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader, _) {

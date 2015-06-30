@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),
-  require('../../../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../../../confirmationModal/confirmationModal.service.js')
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,

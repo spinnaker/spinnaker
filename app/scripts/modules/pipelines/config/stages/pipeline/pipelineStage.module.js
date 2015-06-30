@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipeline', [
   require('../core/stage.core.module.js'),
   require('../../../../caches/cacheInitializer.js'),
   require('../../../../caches/infrastructureCaches.js'),
-  require('../../../../utils/timeFormatters.js'),
+  require('utils/timeFormatters.js'),
   require('../../services/pipelineConfigService.js'),
   require('./pipelineExecutionDetails.controller.js'),
   require('../../../../applications/applications.read.service.js'),

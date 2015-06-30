@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.timeBoundaries.service', [
-  require('../utils/moment.js')
+  require('utils/moment.js')
 ])
   .factory('timeBoundaries', function(momentService) {
     var boundaries = [

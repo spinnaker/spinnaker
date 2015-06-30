@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   require('angular-bootstrap'),
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('../providerSelection/providerSelection.service.js'),
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {

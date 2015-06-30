@@ -8,5 +8,5 @@ module.exports = angular
     'cluster',
     'clusters.all',
     'cluster.filter.collapse',
-    require('../utils/lodash.js'),
+    require('utils/lodash.js'),
   ]);

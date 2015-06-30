@@ -4,7 +4,7 @@ let angular = require('angular');
 
 // TODO: Clean this up on the backend - this is a mess
 module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', [
-  require('../../../../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .service('canaryStageTransformer', function(_) {
 

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.navigation.controller', [
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .controller('SecurityGroupsNavCtrl', function ($scope, application, _) {
 

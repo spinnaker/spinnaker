@@ -11,7 +11,7 @@ module.exports = angular.module('clusters.all', [
   require('../providerSelection/providerSelection.service.js'),
   require('../securityGroups/securityGroup.read.service.js'),
   require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
-  require('../utils/waypoints/waypointContainer.directive.js'),
+  require('utils/waypoints/waypointContainer.directive.js'),
 ])
   .controller('AllClustersCtrl', function($scope, application, $modal, $location,
                                           securityGroupReader, accountService, providerSelectionService,

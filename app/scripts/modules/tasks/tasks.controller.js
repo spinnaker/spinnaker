@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.main', [
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
   require('./taskProgressBar.directive.js'),
   require('../caches/viewStateCache.js'),
   require('../tasks/tasks.write.service.js'),

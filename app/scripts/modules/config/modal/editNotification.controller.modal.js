@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.editNotification.modal.controller', [
-    require('../../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .controller('EditNotificationController', function ($scope, $modalInstance, notification, _) {
     var vm = this;

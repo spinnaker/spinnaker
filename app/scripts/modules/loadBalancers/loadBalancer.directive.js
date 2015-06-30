@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.directive', [
-  require('../utils/lodash.js'),
+  require('utils/lodash.js'),
 ])
   .directive('loadBalancer', function ($rootScope, $timeout, _) {
     return {

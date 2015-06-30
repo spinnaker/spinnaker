@@ -6,7 +6,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.newFastProperty.controller', [
     require('../fastProperty.write.service.js'),
-    require('../../utils/lodash.js'),
+    require('utils/lodash.js'),
   ])
   .controller('CreateFastPropertyModalController', function($modalInstance, clusters, appName, fastProperty, fastPropertyWriter, isEditing, _) {
     var vm = this;

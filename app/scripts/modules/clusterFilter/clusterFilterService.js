@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('cluster.filter.service', [
     'cluster.filter.model',
-    require('../utils/lodash.js'),
-    require('../utils/waypoints/waypoint.service.js'),
+    require('utils/lodash.js'),
+    require('utils/waypoints/waypoint.service.js'),
   ])
   .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log) {
 
