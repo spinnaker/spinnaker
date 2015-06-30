@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.config', [
   require('./pipelineConfigProvider.js'),
   require('./pipelineConfig.controller.js'),
   require('./actions/actions.module.js'),
-  require('./graph/graph.directive.js'),
+  require('./graph/pipeline.graph.directive.js'),
   require('./services/services.module.js'),
   require('./triggers/trigger.module.js'),
 ]);
