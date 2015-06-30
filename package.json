@@ -23,6 +23,7 @@
     "d3-tip": "^0.6.7",
     "ng-infinite-scroll": "^1.2.0",
     "restangular": "^1.5.1",
+    "rx": "^2.5.3",
     "select2-bootstrap-css": "^1.4.6",
     "source-sans-pro": "^2.0.10",
     "spin": "0.0.1",
