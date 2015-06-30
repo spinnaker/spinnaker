@@ -5,7 +5,8 @@ let angular = require('angular');
 /**
  * Simple registry to track pipelines that have been changed without being saved
  */
-module.exports = angular.module('spinnaker.pipelines.config.services.dirtyTracker', [])
+module.exports = angular.module('spinnaker.pipelines.config.services.dirtyTracker', [
+])
   .factory('dirtyPipelineTracker', function() {
 
     var dirtyPipelines = [];

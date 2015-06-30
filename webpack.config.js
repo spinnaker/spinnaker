@@ -6,7 +6,7 @@ var path = require('path');
 
 module.exports = {
   entry: './app/scripts/app.js',
-  devtool: 'eval',
+  devtool: 'source-map',
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -24,7 +24,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'babel!eslint',
+        loader: 'deck-loader!babel!eslint',
         exclude: /node_modules/,
       },
       {

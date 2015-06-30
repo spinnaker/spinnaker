@@ -4,11 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
   require('../trigger.directive.js'),
-  require('restangular'),
-  require('../../../../jenkins/index.js'),
+  require('../../../../jenkins/index.js'), //igorService BEN_TODO
   require('../../../../caches/cacheInitializer.js'),
   require('../../../../caches/infrastructureCaches.js'),
-  require('utils/timeFormatters.js'),
+  require('../../pipelineConfigProvider.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

@@ -3,9 +3,11 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.trigger.pipeline', [
-  require('../trigger.module.js'),
   require('../../services/pipelineConfigService.js'),
+  require('../../pipelineConfigProvider.js'),
   require('../../../../applications/applications.read.service.js'),
+  require('../trigger.directive.js'),
+  require('utils/lodash.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerTrigger({

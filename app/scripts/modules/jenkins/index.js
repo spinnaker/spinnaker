@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.jenkins', [
   require('restangular'),
-  require('../caches/deckCacheFactory.js'),
 ])
   .factory('igorService', function (settings, Restangular) {
 

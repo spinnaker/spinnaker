@@ -3,9 +3,37 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.actions.delete', [
-  require('../../../pipelines.module.js'),
-  require('../../../../caches/deckCacheFactory.js'),
-  require('utils/lodash.js'),
-  require('../../services/dirtyPipelineTracker.service.js'),
-  require('./deletePipelineModal.controller.js'),
-]);
+  require('../../services/services.module.js'),
+])
+  .controller('DeletePipelineModalCtrl', function($scope, $modalInstance, $log,
+                                                  dirtyPipelineTracker, pipelineConfigService,
+                                                  application, pipeline) {
+
+    this.cancel = $modalInstance.dismiss;
+
+    $scope.viewState = {};
+
+    $scope.pipeline = pipeline;
+
+    this.deletePipeline = function() {
+      return pipelineConfigService.deletePipeline(application.name, pipeline.name).then(
+        function() {
+          application.pipelines.splice(application.pipelines.indexOf(pipeline), 1);
+          application.pipelines.forEach(function(pipeline, index) {
+            if (pipeline.index !== index) {
+              pipeline.index = index;
+              pipelineConfigService.savePipeline(pipeline);
+            }
+          });
+          dirtyPipelineTracker.remove(pipeline.name);
+          $modalInstance.close();
+        },
+        function(response) {
+          $log.warn(response);
+          $scope.viewState.saveError = true;
+          $scope.viewState.errorMessage = response.message || 'No message provided';
+        }
+      );
+    };
+
+  });

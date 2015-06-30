@@ -4,9 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.services.configService', [
   require('restangular'),
-  require('../../../caches/deckCacheFactory.js'),
   require('utils/lodash.js'),
-  require('../pipelineConfigProvider.js'),
+  require('angular-bootstrap'),
   require('../../../authentication/authenticationService.js'),
   require('../../../caches/viewStateCache.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),

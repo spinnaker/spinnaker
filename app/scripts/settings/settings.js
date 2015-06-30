@@ -2,10 +2,13 @@
 
 let angular = require('angular');
 
+let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
+let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
+
 module.exports = angular.module('spinnaker.settings', [])
   .constant('settings', {
-    feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',
+    feedbackUrl: feedbackUrl,
+    gateUrl: `https://${gateHost}`,
     pollSchedule: 30000,
     providers: {
       aws: {
@@ -74,10 +77,10 @@ module.exports = angular.module('spinnaker.settings', [])
       gistId: '32526cd608db3d811b38',
       fileName: 'news.md',
     },
-    authEnabled: false,
+    authEnabled: process.env.AUTH === 'enabled',
     feature: {
       notifications: false,
-      canary: true,
+      canary: process.env.CANARY !== 'disabled',
       parallelPipelines: true,
       fastProperty: true,
     },

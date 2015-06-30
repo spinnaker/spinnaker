@@ -4,7 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.stage', [
   require('utils/lodash.js'),
-  require('../../pipelines.module.js'),
+  require('../pipelineConfigProvider.js'),
+  require('../services/pipelineConfigService.js'),
 ])
   .directive('pipelineConfigStage', function() {
     return {

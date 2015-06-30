@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.trigger.triggerDirective', [
+  require('../pipelineConfigProvider.js'),
 ])
   .directive('trigger', function() {
     return {

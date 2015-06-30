@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches.applicationLevelScheduled', [])
+module.exports = angular.module('spinnaker.caches.applicationLevelScheduled', [
+])
   .factory('applicationLevelScheduledCache', function(scheduledCache, $rootScope, $stateParams) {
     var currentApplication = '';
     var toRemove = [];
