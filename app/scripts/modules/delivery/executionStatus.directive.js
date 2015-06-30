@@ -13,16 +13,16 @@ angular.module('spinnaker.delivery.executionStatus.directive', [])
       link: function(scope) {
 
         function findDeployStageList() {
-          return _(scope.execution.stages)
+          var deploymentDetails = _(scope.execution.stages)
             .chain()
             .find(function(stage) {
               return stage.type === 'deploy';
             })
             .get('context')
             .get('deploymentDetails')
-            .first()
-            .get('jenkins')
             .value();
+
+          return deploymentDetails && deploymentDetails.length ? deploymentDetails[0].jenkins : null;
         }
 
         scope.execution.buildInfo = findDeployStageList();

@@ -22,7 +22,7 @@
             </div>
             <div class="col-md-6" ng-if="!stage.isNew">
               <p class="form-control-static" ng-if="!stage.isNew">
-                {{stage.type}}
+                {{stage.type | robotToHuman}}
                 <help-field content="{{description}}"></help-field>
               </p>
             </div>
