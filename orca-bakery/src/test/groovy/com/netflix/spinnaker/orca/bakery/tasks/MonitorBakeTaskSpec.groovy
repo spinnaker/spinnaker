@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
+import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
@@ -31,7 +32,7 @@ import static java.util.UUID.randomUUID
 class MonitorBakeTaskSpec extends Specification {
 
   @Subject
-    task = new MonitorBakeTask()
+  MonitorBakeTask task = new MonitorBakeTask()
 
   @Shared
   Pipeline pipeline = new Pipeline()
@@ -57,10 +58,34 @@ class MonitorBakeTaskSpec extends Specification {
     BakeStatus.State.COMPLETED | BakeStatus.Result.SUCCESS || ExecutionStatus.SUCCEEDED
     BakeStatus.State.COMPLETED | BakeStatus.Result.FAILURE || ExecutionStatus.FAILED
     BakeStatus.State.COMPLETED | null                      || ExecutionStatus.FAILED
-    BakeStatus.State.CANCELLED | null                      || ExecutionStatus.FAILED
     BakeStatus.State.SUSPENDED | null                      || ExecutionStatus.RUNNING
 
     id = randomUUID().toString()
+  }
+
+  def "should attempt a new bake when previous status is PENDING and current status is CANCELLED"() {
+    given:
+    def id = randomUUID().toString()
+    def previousStatus = new BakeStatus(id: id, state: BakeStatus.State.PENDING)
+    def stage = new PipelineStage(pipeline, "bake", [region: "us-west-1", status: previousStatus]).asImmutable()
+
+    and:
+    task.bakery = Stub(BakeryService) {
+      lookupStatus(stage.context.region, id) >> Observable.from(
+        new BakeStatus(id: id, state: BakeStatus.State.CANCELLED, result: null)
+      )
+    }
+    task.createBakeTask = Mock(CreateBakeTask) {
+      1 * execute(_) >> { return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [stage: 1], [global: 2]) }
+    }
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.RUNNING
+    (result.stageOutputs as Map) == [stage: 1]
+    (result.globalOutputs as Map) == [global: 2]
   }
 
   def "outputs the updated bake status"() {

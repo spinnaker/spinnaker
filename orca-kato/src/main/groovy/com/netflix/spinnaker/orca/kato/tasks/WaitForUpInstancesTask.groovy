@@ -26,18 +26,15 @@ import org.springframework.stereotype.Component
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    // favor using configured target capacity whenever available (rather than in-progress asg's minSize)
-    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
-    Map source = stage.context.source as Map
-    Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
-    Map asg = (Map) serverGroup?.asg ?: [:]
-    Integer targetDesiredSize = (capacityConfig?.desired != null && !useSourceCapacity) ?
-      capacityConfig.desired :
-      stage.context.capacitySnapshot ?
-        ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer :
-        asg.desiredCapacity as Integer
+    int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
     if (targetDesiredSize > instances.size()) {
       return false
+    }
+
+    def accountName = stage.context."deploy.account.name" as String
+    if (accountName && accountName.startsWith("mce") && !interestingHealthProviderNames) {
+      // TODO-AJ Temporary hack until MCE updates their API calls
+      interestingHealthProviderNames = ["Amazon"]
     }
 
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
@@ -58,6 +55,27 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
 
     return healthyCount >= targetDesiredSize
+  }
+
+  private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
+    // favor using configured target capacity whenever available (rather than in-progress asg's desiredCapacity)
+    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
+    Map source = stage.context.source as Map
+    Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
+    Map asg = (Map) serverGroup?.asg ?: [:]
+    Integer targetDesiredSize = (capacityConfig?.desired != null && !useSourceCapacity) ?
+      capacityConfig.desired :
+      stage.context.capacitySnapshot ?
+        ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer :
+        asg.desiredCapacity as Integer
+    if (stage.context.targetHealthyDeployPercentage != null) {
+      Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
+      if (percentage < 0 || percentage > 100) {
+        throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
+      }
+      targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
+    }
+    targetDesiredSize
   }
 
   @Override

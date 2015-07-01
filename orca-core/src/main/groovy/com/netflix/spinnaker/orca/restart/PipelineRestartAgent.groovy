@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.initialization
+package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.shared.LookupService
 import com.netflix.spinnaker.orca.notifications.AbstractPollingNotificationAgent
 import com.netflix.spinnaker.orca.notifications.NotificationHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import net.greghaines.jesque.client.Client
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 import rx.Observable
 import rx.functions.Func1
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static java.util.Collections.emptySet
 import static java.util.concurrent.TimeUnit.MINUTES
 
+/**
+ * Detects pipelines that were running on another Orca instance that no longer exists and enqueues them for restart.
+ */
 @Component
 @ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
 @Slf4j
@@ -48,16 +48,18 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   public static final String NOTIFICATION_TYPE = "stalePipeline"
 
-  private final JobExplorer jobExplorer
   private final ExecutionRepository executionRepository
   private final LookupService discoveryClient
+  private final InstanceInfo currentInstance
 
   @Autowired
-  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, JobExplorer jobExplorer, ExecutionRepository executionRepository, LookupService discoveryClient) {
+  PipelineRestartAgent(ObjectMapper mapper, Client jesqueClient, ExecutionRepository executionRepository, LookupService discoveryClient,
+                       @Qualifier("instanceInfo") InstanceInfo currentInstance) {
     super(mapper, jesqueClient)
-    this.jobExplorer = jobExplorer
     this.executionRepository = executionRepository
     this.discoveryClient = discoveryClient
+    log.info "current instance: ${currentInstance.appName} ${currentInstance.id}"
+    this.currentInstance = currentInstance
   }
 
   @Override
@@ -74,14 +76,7 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   @CompileDynamic
   protected Observable<Execution> getEvents() {
     log.info("Starting stale pipelines polling cycle")
-    Observable.from(jobExplorer.getJobNames())
-              .buffer(100)
-              .flatMap({ names ->
-      Observable.from(names)
-                .flatMapIterable(this.&runningJobExecutions)
-                .doOnNext({ log.info "found stale job $it.id started=$it.startTime" })
-                .map(this.&executionToPipeline)
-    }).doOnCompleted({
+    return executionRepository.retrievePipelines().doOnCompleted({
       log.info("Finished stale pipelines polling cycle")
     })
   }
@@ -89,7 +84,24 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   @Override
   protected Func1<Execution, Boolean> filter() {
     return { Execution execution ->
-      execution?.status in [NOT_STARTED, RUNNING] && executingInstanceIsDown(execution)
+      if (execution?.status in [NOT_STARTED, RUNNING]) {
+        log.info "Found a restart candidate: $execution.application $execution.id"
+        if (!execution.executingInstance) {
+          log.info "...but it has no record of its executing instance (old pipeline)"
+          return false
+        } else if (execution.executingInstance == currentInstance.id) {
+          log.info "...but it is already running on this instance"
+          return false
+        } else if (executingInstanceIsDown(execution)) {
+          log.info "...and its instance is down $execution.executingInstance"
+          return true
+        } else {
+          log.info "...but its instance is up $execution.executingInstance"
+          return false
+        }
+      } else {
+        return false
+      }
     } as Func1<Execution, Boolean>
   }
 
@@ -100,37 +112,6 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
 
   private boolean executingInstanceIsDown(Execution execution) {
     def instanceId = execution.executingInstance
-    instanceId && !discoveryClient.getApplication("orca").getByInstanceId(instanceId)
-  }
-
-  private Iterable<JobExecution> runningJobExecutions(String name) {
-    try {
-      return jobExplorer.findRunningJobExecutions(name)
-    } catch (IllegalArgumentException e) {
-      if (e.cause instanceof InvalidClassException) {
-        log.warn "Failed to deserialize running job for $name"
-        return emptySet()
-      } else {
-        throw e
-      }
-    }
-  }
-
-  private Pipeline executionToPipeline(JobExecution execution) {
-    def parameters = execution.getJobParameters()
-    def id = parameters.getString("pipeline")
-    if (id != null) {
-      try {
-        return executionRepository.retrievePipeline(id)
-      } catch (ExecutionNotFoundException e) {
-        log.error("No pipeline found for id $id")
-        return null
-      } catch (Exception e) {
-        log.error("Failed to retrieve pipeline $id", e)
-        return null
-      }
-    } else {
-      log.warn "Job $execution.id has no 'pipeline' parameter in ${parameters.parameters.keySet()}"
-    }
+    instanceId && !discoveryClient.getApplication("orca")?.getByInstanceId(instanceId)
   }
 }

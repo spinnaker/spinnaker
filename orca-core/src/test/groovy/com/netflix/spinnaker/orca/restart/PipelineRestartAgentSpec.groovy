@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.initialization
+package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo
@@ -26,45 +26,36 @@ import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import net.greghaines.jesque.client.Client
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParametersBuilder
-import org.springframework.batch.core.explore.JobExplorer
+import rx.Observable
 import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.google.common.collect.Sets.newHashSet
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
 import static java.util.concurrent.TimeUnit.SECONDS
-import static org.apache.commons.lang.math.JVMRandom.nextLong
 
 class PipelineRestartAgentSpec extends Specification {
 
-  def jobExplorer = Mock(JobExplorer)
   def executionRepository = Mock(ExecutionRepository)
   def jesqueClient = Mock(Client)
   def orcaApplication = new Application("orca")
   def discoveryClient = [getApplication: { it == "orca" ? orcaApplication : null }] as LookupService
-
+  @Shared def currentInstance = InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
   @Shared scheduler = Schedulers.test()
 
-  @Subject pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, jobExplorer,
-                                                        executionRepository, discoveryClient)
+  @Subject
+    pipelineRestarter = new PipelineRestartAgent(new ObjectMapper(), jesqueClient, executionRepository, discoveryClient,
+                                                 currentInstance)
 
   def setup() {
     pipelineRestarter.scheduler = scheduler // TODO: evil. Make this a constructor param
   }
 
-  def "the agent should look for incomplete jobs and resume them"() {
+  def "the agent should look for incomplete pipelines and resume them"() {
     given:
-    jobExplorer.getJobNames() >> jobNames
-    jobNames.eachWithIndex { name, i ->
-      jobExplorer.findRunningJobExecutions(name) >> newHashSet(executions[i])
-      executionRepository.retrievePipeline("pipeline-$name") >> new Pipeline(id: "pipeline-$name",
-                                                                             executingInstance: instanceId)
-    }
+    executionRepository.retrievePipelines() >> Observable.from(pipelines)
 
     and:
     applicationIsUp()
@@ -73,22 +64,21 @@ class PipelineRestartAgentSpec extends Specification {
     advanceTime()
 
     then:
-    jobNames.eachWithIndex { name, i ->
-      1 * jesqueClient.enqueue("stalePipeline", { it.args[0].id == "pipeline-$name" })
+    pipelines.eachWithIndex { pipeline, i ->
+      1 * jesqueClient.enqueue("stalePipeline", { it.args[0].id == pipeline.id })
     }
 
     where:
     instanceId = "i-06ce57cd"
-    jobNames = ["job1", "job2"]
-    executions = jobNames.collect { jobExecution(it) }
+    pipelines = ["pipeline1", "pipeline2"].collect {
+      new Pipeline(id: it, executingInstance: instanceId)
+    }
   }
 
   @Unroll
   def "if a pipeline is #status it does not get restarted"() {
     given:
-    jobExplorer.getJobNames() >> [jobName]
-    jobExplorer.findRunningJobExecutions(jobName) >> newHashSet(execution)
-    executionRepository.retrievePipeline("pipeline-$jobName") >> pipeline
+    executionRepository.retrievePipelines() >> Observable.just(pipeline)
 
     and:
     applicationIsUp()
@@ -105,9 +95,7 @@ class PipelineRestartAgentSpec extends Specification {
     where:
     status = CANCELED
     instanceId = "i-06ce57cd"
-    jobName = "job1"
-    execution = jobExecution(jobName)
-    pipeline = new Pipeline(id: "pipeline-$jobName", executingInstance: instanceId, canceled: true)
+    pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId, canceled: true)
   }
 
   def "if the executing instance is in discovery it is assumed to still be running the pipeline"() {
@@ -115,9 +103,7 @@ class PipelineRestartAgentSpec extends Specification {
     orcaApplication.addInstance(InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName(instanceId).build())
 
     and:
-    jobExplorer.getJobNames() >> [jobName]
-    jobExplorer.findRunningJobExecutions(jobName) >> newHashSet(execution)
-    executionRepository.retrievePipeline("pipeline-$jobName") >> new Pipeline(id: "pipeline-$jobName")
+    executionRepository.retrievePipelines() >> Observable.just(pipeline)
 
     and:
     applicationIsUp()
@@ -130,8 +116,25 @@ class PipelineRestartAgentSpec extends Specification {
 
     where:
     instanceId = "i-06ce57cd"
-    jobName = "job1"
-    execution = jobExecution(jobName)
+    pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId)
+  }
+
+  def "if the executing instance is the current instance it is assumed to already be running the pipeline"() {
+    given:
+    executionRepository.retrievePipelines() >> Observable.just(pipeline)
+
+    and:
+    applicationIsUp()
+
+    when:
+    advanceTime()
+
+    then:
+    0 * jesqueClient.enqueue(*_)
+
+    where:
+    instanceId = currentInstance.id
+    pipeline = new Pipeline(id: "pipeline1", executingInstance: instanceId)
   }
 
   @Unroll
@@ -150,44 +153,12 @@ class PipelineRestartAgentSpec extends Specification {
     to << [OUT_OF_SERVICE, DOWN]
   }
 
-  def "if a pipeline fails to restart the agent should continue"() {
-    given:
-    jobExplorer.getJobNames() >> jobNames
-    jobNames.eachWithIndex { name, i ->
-      jobExplorer.findRunningJobExecutions(name) >> newHashSet(executions[i])
-    }
-    executionRepository.retrievePipeline("pipeline-${jobNames[0]}") >> {
-      throw new RuntimeException("failed to load pipeline")
-    }
-    executionRepository.retrievePipeline("pipeline-${jobNames[1]}") >> new Pipeline(id: "pipeline-${jobNames[1]}",
-                                                                                    executingInstance: instanceId)
-
-    and:
-    applicationIsUp()
-
-    when:
-    advanceTime()
-
-    then:
-    1 * jesqueClient.enqueue("stalePipeline", { it.args[0].id == "pipeline-${jobNames[1]}" })
-
-    where:
-    instanceId = "i-06ce57cd"
-    jobNames = ["job1", "job2"]
-    executions = jobNames.collect { jobExecution(it) }
-  }
-
   private advanceTime() {
     scheduler.advanceTimeBy(pipelineRestarter.pollingInterval, SECONDS)
   }
 
   private applicationIsUp() {
     pipelineRestarter.onApplicationEvent(statusChangeEvent(STARTING, UP))
-  }
-
-  private JobExecution jobExecution(String name) {
-    new JobExecution(nextLong(100L),
-                     new JobParametersBuilder().addString("pipeline", "pipeline-$name").toJobParameters())
   }
 
   private static EurekaStatusChangedEvent statusChangeEvent(
