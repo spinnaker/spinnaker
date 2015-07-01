@@ -22,7 +22,7 @@ import retrofit.http.Headers
 
 interface DiscoveryApi {
 
-  @GET('/discovery/v2/apps')
+  @GET('/v2/apps')
   @Headers(['Accept: application/json'])
   DiscoveryApplications loadDiscoveryApplications()
 }
