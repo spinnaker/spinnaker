@@ -103,6 +103,12 @@ class AuthenticatedRequestFilter implements Filter {
       chain.doFilter(request, response)
     } finally {
       MDC.clear()
+
+      try {
+        // force clear to avoid the potential for a memory leak if log4j is being used
+        def log4jMDC = Class.forName("org.apache.log4j.MDC")
+        log4jMDC.clear()
+      } catch (Exception ignored) {}
     }
   }
 

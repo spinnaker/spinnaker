@@ -58,20 +58,20 @@ class AuthenticatedRequest {
         log.error("Error occurred propagating authentication context", e)
         throw e
       } finally {
+        MDC.clear()
+
+        try {
+          // force clear to avoid the potential for a memory leak if log4j is being used
+          def log4jMDC = Class.forName("org.apache.log4j.MDC")
+          log4jMDC.clear()
+        } catch (Exception ignored) {}
+
         if (originalSpinnakerUser && restoreOriginalContext) {
           MDC.put(SPINNAKER_USER, originalSpinnakerUser)
-        } else {
-          MDC.remove(SPINNAKER_USER)
         }
 
         if (originalSpinnakerAccounts && restoreOriginalContext) {
           MDC.put(SPINNAKER_ACCOUNTS, originalSpinnakerAccounts)
-        } else {
-          MDC.remove(SPINNAKER_ACCOUNTS)
-        }
-
-        if (MDC.copyOfContextMap.isEmpty()) {
-          MDC.clear()
         }
       }
     }
