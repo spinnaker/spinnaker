@@ -143,6 +143,71 @@ class WaitForUpInstancesTaskSpec extends Specification {
 
   }
 
+  void 'should succeed when ASG desired size is reached, even though snapshotCapacity is larger'() {
+    when:
+    def serverGroup = [
+      asg: [
+        desiredCapacity: 2
+      ]
+    ]
+    def context = [
+      snapshotCapacity: [ desiredCapacity: 5 ]
+    ]
+
+    def instances = [
+      [ health: [ [state: 'Up'] ] ],
+      [ health: [ [state: 'Up'] ] ]
+    ]
+
+    then:
+    task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", context),
+      serverGroup, instances, null
+    )
+  }
+
+  @Unroll
+  void 'should return #result for #healthy instances when #description'() {
+    when:
+    def serverGroup = [
+      asg: [
+        desiredCapacity: asg
+      ]
+    ]
+
+    def context = [
+      source: [ useSourceCapacity: useSource ],
+    ]
+    if (configured) {
+      context.capacity = [ desired: configured ]
+    }
+    if (snapshot) {
+      context.capacitySnapshot = [ desiredCapacity: snapshot ]
+    }
+
+    def instances = []
+    (1..healthy).each {
+      instances << [ health: [ [state: 'Up'] ] ]
+    }
+
+    then:
+    result == task.hasSucceeded(
+      new PipelineStage(new Pipeline(), "", "", context),
+      serverGroup, instances, null
+    )
+
+    where:
+    result || useSource | healthy | configured | snapshot | asg | description
+    true   || true      | 3       | 4          | 4        | 3   | 'using source capacity of 3, ignoring snapshot capacity and configured capacity'
+    false  || true      | 3       | 3          | null     | 4   | 'using source capacity of 4 with no snapshot, ignoring configured capacity'
+    true   || true      | 3       | 4          | 3        | 5   | 'using source capacity of 4, snapshot overrides to account for autoscaling'
+    true   || true      | 3       | 4          | 4        | 3   | 'using source capacity of 4, snapshot ignored because it is larger than actual desired capacity'
+    true   || false     | 2       | null       | null     | 2   | 'source not specified, falling back to ASG desired size of 2'
+    false  || false     | 2       | null       | null     | 3   | 'source not specified, falling back to ASG desired size of 3'
+    false  || false     | 2       | 3          | null     | 2   | 'not using source, using configured size of 3, ignoring ASG desired size of 2'
+    true   || false     | 2       | 2          | null     | 3   | 'not using source, using configured size of 2, ignoring ASG desired size of 3'
+  }
+
   @Unroll
   void 'should throw an exception if targetHealthyDeployPercentage is not between 0 and 100'() {
     when:
