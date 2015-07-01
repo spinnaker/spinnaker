@@ -73,6 +73,6 @@ class AwsProviderConfig {
       }
     }
 
-    new AwsProvider(agents)
+    new AwsProvider(accountCredentialsRepository, agents)
   }
 }

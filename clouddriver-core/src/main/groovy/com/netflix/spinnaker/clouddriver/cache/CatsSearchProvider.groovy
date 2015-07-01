@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,55 +14,63 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.clouddriver.cache
 
 
-package com.netflix.spinnaker.mort.aws.search.aws
-
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchResultSet
-import com.netflix.spinnaker.mort.aws.cache.Keys
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
-import org.apache.log4j.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Component
+class CatsSearchProvider implements SearchProvider {
 
-/**
- * TODO(cfieber): Copied from oort - need to make CatsSearchProvider support multiple Providers as suppliers
- */
-@Component('mortSearchProvider')
-class AmazonSearchProvider implements SearchProvider {
-
-  protected static final Logger log = Logger.getLogger(this)
-
-  static final List<String> defaultCaches = [
-    Keys.Namespace.SECURITY_GROUPS.ns
-  ]
-
-  static SimpleTemplateEngine urlMappingTemplateEngine = new SimpleTemplateEngine()
-
-  static Map<String, Template> urlMappings = [
-    (Keys.Namespace.SECURITY_GROUPS.ns):
-      urlMappingTemplateEngine.createTemplate('/securityGroups/$account/aws/$name?region=$region'),
-  ]
-
-  static Map<String, Closure> searchResultHydrators = [:]
+  private static final Logger log = LoggerFactory.getLogger(CatsSearchProvider)
 
   private final Cache cacheView
-  private final AccountCredentialsProvider accountCredentialsProvider
+  private final List<SearchableProvider> providers
+  private final List<String> defaultCaches
+  private final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators
+  private final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
+
+  private final Map<String, Template> urlMappings
+
+  private static class DefaultQueryIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
+    @Override
+    Collection<String> getIdentifiers(Cache cacheView, String type, String query) {
+      return cacheView.filterIdentifiers(type, "${type}:*${query}*")
+    }
+  }
 
   @Autowired
-  public AmazonSearchProvider(Cache cacheView, AccountCredentialsProvider accountCredentialsProvider) {
+  public CatsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
     this.cacheView = cacheView
-    this.accountCredentialsProvider = accountCredentialsProvider
+    this.providers = providers
+    defaultCaches = providers.defaultCaches.flatten()
+    searchResultHydrators = providers.inject([:]) { Map acc, SearchableProvider prov ->
+      acc.putAll(prov.searchResultHydrators)
+      return acc
+    }
+    SimpleTemplateEngine tmpl = new SimpleTemplateEngine()
+    urlMappings = providers.inject([:]) { Map mappings, SearchableProvider provider ->
+      mappings.putAll(provider.urlMappingTemplates.collectEntries { [(it.key): tmpl.createTemplate(it.value)] })
+      return mappings
+    }
+    SearchableProvider.IdentifierExtractor defaultExtractor = new DefaultQueryIdentifierExtractor()
+    identifierExtractors = providers.inject([:].withDefault { defaultExtractor }) { Map acc, SearchableProvider prov ->
+      acc.putAll(prov.getIdentifierExtractors())
+      return acc
+    }
   }
 
   @Override
   String getPlatform() {
-    return "aws"
+    return "aws" //TODO(cfieber) - need a better story around this
   }
 
   @Override
@@ -83,24 +91,28 @@ class AmazonSearchProvider implements SearchProvider {
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
     List<String> matches = findMatches(query, types, filters)
-    generateResultSet(cacheView, query, matches, pageNumber, pageSize)
+    generateResultSet(query, matches, pageNumber, pageSize)
   }
 
-  private static SearchResultSet generateResultSet(Cache cacheView, String query, List<String> matches, Integer pageNumber, Integer pageSize) {
-    List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).collect {
-      Map<String, String> result = Keys.parse(it)
-      return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type](cacheView, result, it) : result
+  private SearchResultSet generateResultSet(String query, List<String> matches, Integer pageNumber, Integer pageSize) {
+    List<Map<String, String>> results = paginateResults(matches, pageSize, pageNumber).findResults { String key ->
+      Map<String, String> result = providers.findResult { it.parseKey(key) }
+      if (result) {
+        return searchResultHydrators.containsKey(result.type) ? searchResultHydrators[result.type].hydrateResult(cacheView, result, key) : result
+      }
+      return null
     }
+
     SearchResultSet resultSet = new SearchResultSet(
       totalMatches: matches.size(),
-      platform: 'aws',
+      platform: getPlatform(),
       query: query,
       pageNumber: pageNumber,
       pageSize: pageSize,
       results: results
     )
     resultSet.results.each { Map<String, String> result ->
-      result.provider = "aws"
+      result.provider = getPlatform()
 
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]
@@ -116,7 +128,7 @@ class AmazonSearchProvider implements SearchProvider {
     String normalizedWord = q.toLowerCase()
     List<String> matches = new ArrayList<String>()
     toQuery.each { String cache ->
-      matches.addAll(buildFilterIdentifiers(accountCredentialsProvider, cache, normalizedWord).findAll { String key ->
+      matches.addAll(identifierExtractors[cache].getIdentifiers(cacheView, cache, normalizedWord).findAll { String key ->
         try {
           if (!filters) {
             return true
@@ -140,13 +152,6 @@ class AmazonSearchProvider implements SearchProvider {
       def indexA = aKey.indexOf(q)
       def indexB = bKey.indexOf(q)
       return indexA == indexB ? aKey <=> bKey : indexA - indexB
-    }
-  }
-
-  private Collection<String> buildFilterIdentifiers(AccountCredentialsProvider accountCredentialsProvider, String cache, String query) {
-    switch (cache) {
-      default:
-        return cacheView.filterIdentifiers(cache, "${cache}:*${query}*")
     }
   }
 
