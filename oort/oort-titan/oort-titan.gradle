@@ -1,6 +1,6 @@
 dependencies {
-  compile project(":oort-core")
-  compile project(":oort-aws")
+  compile project(":oort:oort-core")
+  compile project(":oort:oort-aws")
 
   spinnaker.group("bootWeb")
 
