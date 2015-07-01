@@ -16,6 +16,12 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spectator.api.ValueFunction
+import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
+import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
+import groovy.transform.CompileDynamic
+
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
@@ -146,6 +152,11 @@ class OrcaConfiguration {
     new InMemoryPipelineStore(mapper)
   }
 
+  @Bean @ConditionalOnMissingBean(name = "pipelineStack")
+  PipelineStack pipelineStack() {
+    new InMemoryPipelineStack()
+  }
+
   @Bean
   ExecutionRepository executionRepository(ExecutionStore<Pipeline> pipelineStore,
                                           ExecutionStore<Orchestration> orchestrationStore) {
@@ -182,4 +193,10 @@ class OrcaConfiguration {
   StageTaskPropagationListener stageTaskPropagationListener(ExecutionRepository executionRepository) {
     new StageTaskPropagationListener(executionRepository)
   }
+
+  @Bean
+  PipelineStarterListener pipelineStarterListener() {
+    new PipelineStarterListener()
+  }
+
 }

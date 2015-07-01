@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
+import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -32,6 +33,9 @@ import java.time.Clock
 class TaskController {
   @Autowired
   ExecutionRepository executionRepository
+
+  @Autowired
+  PipelineStartTracker startTracker
 
   @Value('${daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -88,16 +92,24 @@ class TaskController {
     pipeline
   }
 
+  @RequestMapping(value = "/pipelines/running", method = RequestMethod.GET)
+  List<String> runningPipelines() {
+    startTracker.getAllStartedExecutions()
+  }
+
+  @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
+  List<String> waitingPipelines() {
+    startTracker.getAllWaitingExecutions()
+  }
+
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Pipeline updatePipelineStage(@PathVariable String id, @PathVariable String stageId, @RequestBody Map context) {
     def pipeline = executionRepository.retrievePipeline(id)
-
     def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
     if (stage) {
       stage.context.putAll(context)
       executionRepository.storeStage(stage)
     }
-
     pipeline
   }
 

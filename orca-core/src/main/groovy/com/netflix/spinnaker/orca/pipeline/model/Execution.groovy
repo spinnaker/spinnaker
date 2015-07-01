@@ -30,6 +30,7 @@ abstract class Execution<T> implements Serializable {
   List<Stage<T>> stages = []
   boolean canceled
   boolean parallel
+  boolean limitConcurrent = false
   Long buildTime
   String executingInstance
 

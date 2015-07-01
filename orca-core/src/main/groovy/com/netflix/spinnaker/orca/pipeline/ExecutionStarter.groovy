@@ -37,21 +37,48 @@ abstract class ExecutionStarter<T extends Execution> {
     this.type = type
   }
 
-  @Autowired protected JobLauncher launcher
-  @Autowired protected JobOperator jobOperator
-  @Autowired protected JobRepository jobRepository
-  @Autowired protected ObjectMapper mapper
+  @Autowired
+  protected JobLauncher launcher
+  @Autowired
+  protected JobOperator jobOperator
+  @Autowired
+  protected JobRepository jobRepository
+  @Autowired
+  protected ObjectMapper mapper
+  @Autowired(required = false)
+  protected PipelineStartTracker startTracker
 
   @Autowired(required = false)
   List<JobExecutionListener> pipelineListeners
 
   T start(String configJson) {
+    boolean startImmediately = true
     Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
+
+    if (startTracker && subject instanceof Pipeline) {
+      def pipeline = (Pipeline) subject
+
+      if (startTracker &&
+          pipeline.pipelineConfigId &&
+          (pipeline.limitConcurrent == true) &&
+          startTracker.queueIfNotStarted(pipeline.pipelineConfigId, subject.id)){
+        log.info "Queueing: $subject.id"
+        startImmediately = false
+      }
+    }
+
+    if (startImmediately) {
+      subject = startExecution(subject)
+    }
+
+    subject
+  }
+
+  T startExecution(T subject) {
     def job = executionJobBuilder.build(subject)
     persistExecution(subject)
-
     if (subject.status.isComplete()) {
       log.warn(
         "Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
@@ -62,8 +89,11 @@ abstract class ExecutionStarter<T extends Execution> {
       }
       return subject
     }
-
+    log.info "Starting $subject.id"
     launcher.run job, createJobParameters(subject)
+    if (startTracker && subject instanceof Pipeline) {
+      startTracker.addToStarted(((Pipeline) subject).pipelineConfigId, subject.id)
+    }
     subject
   }
 

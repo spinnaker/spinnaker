@@ -100,5 +100,10 @@ class Pipeline extends Execution<Pipeline> {
       pipeline.parallel = parallel
       return this
     }
+
+    Builder withLimitConcurrent(boolean concurrent) {
+      pipeline.limitConcurrent = concurrent
+      return this
+    }
   }
 }
