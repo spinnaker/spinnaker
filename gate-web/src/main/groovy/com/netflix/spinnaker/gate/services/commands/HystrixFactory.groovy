@@ -31,20 +31,20 @@ class HystrixFactory {
 
   public static ListCommand newListCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback,
                                            Closure<? extends List> work) {
-    new ListCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work))
+    new ListCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work, false))
   }
 
   public static ListCommand newListCommand(String groupKey, String commandKey, Closure<? extends List> work) {
-    new ListCommand(groupKey, commandKey, false, applyMDC(work))
+    new ListCommand(groupKey, commandKey, false, propagate(work, false))
   }
 
   public static MapCommand newMapCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback,
                                          Closure<? extends Map> work) {
-    new MapCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work))
+    new MapCommand(groupKey, commandKey, withLastKnownGoodFallback, propagate(work, false))
   }
 
   public static MapCommand newMapCommand(String groupKey, String commandKey, Closure<? extends Map> work) {
-    new MapCommand(groupKey, commandKey, false, propagate(work))
+    new MapCommand(groupKey, commandKey, false, propagate(work, false))
   }
 
   private static class ListCommand extends AbstractHystrixCommand<List> {
