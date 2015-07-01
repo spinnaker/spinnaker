@@ -97,6 +97,11 @@ class TaskController {
     startTracker.getAllStartedExecutions()
   }
 
+  @RequestMapping(value = "/pipelines/waiting", method = RequestMethod.GET)
+  List<String> waitingPipelines() {
+    startTracker.getAllWaitingExecutions()
+  }
+
   @RequestMapping(value = "/pipelines/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Pipeline updatePipelineStage(@PathVariable String id, @PathVariable String stageId, @RequestBody Map context) {
     def pipeline = executionRepository.retrievePipeline(id)

@@ -64,6 +64,7 @@ abstract class ExecutionStarter<T extends Execution> {
           pipeline.pipelineConfigId &&
           (pipeline.limitConcurrent == true) &&
           startTracker.queueIfNotStarted(pipeline.pipelineConfigId, subject.id)){
+        log.info "Queueing: $subject.id"
         startImmediately = false
       }
     }

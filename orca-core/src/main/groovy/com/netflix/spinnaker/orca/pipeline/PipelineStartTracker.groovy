@@ -31,6 +31,7 @@ class PipelineStartTracker {
   static final String PIPELINE_STARTED = "PIPELINE:STARTED"
   static final String PIPELINE_QUEUED = "PIPELINE:QUEUED"
   static final String PIPELINE_STARTED_ALL = "PIPELINE:STARTED_ALL"
+  static final String PIPELINE_QUEUED_ALL = "PIPELINE:QUEUED_ALL"
 
   void addToStarted(String pipelineConfigId, String executionId) {
     if (pipelineConfigId) {
@@ -40,7 +41,11 @@ class PipelineStartTracker {
   }
 
   boolean queueIfNotStarted(String pipelineConfigId, String executionId) {
-    pipelineStack.addToListIfKeyExists("${PIPELINE_STARTED}:${pipelineConfigId}", "${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+    boolean isQueued = pipelineStack.addToListIfKeyExists("${PIPELINE_STARTED}:${pipelineConfigId}", "${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+    if (isQueued) {
+      pipelineStack.add(PIPELINE_QUEUED_ALL, executionId)
+    }
+    isQueued
   }
 
   void markAsFinished(String pipelineConfigId, String executionId) {
@@ -54,12 +59,17 @@ class PipelineStartTracker {
     pipelineStack.elements(PIPELINE_STARTED_ALL)
   }
 
+  List<String> getAllWaitingExecutions() {
+    pipelineStack.elements(PIPELINE_QUEUED_ALL)
+  }
+
   List<String> getQueuedPipelines(String pipelineConfigId) {
     pipelineStack.elements("${PIPELINE_QUEUED}:${pipelineConfigId}")
   }
 
   void removeFromQueue(String pipelineConfigId, String executionId) {
     pipelineStack.remove("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+    pipelineStack.remove(PIPELINE_QUEUED_ALL, executionId)
   }
 
 }
