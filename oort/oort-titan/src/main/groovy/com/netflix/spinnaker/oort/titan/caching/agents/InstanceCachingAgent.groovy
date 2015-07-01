@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.agents
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -30,15 +29,15 @@ import com.netflix.spinnaker.oort.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Task
 import com.netflix.titanclient.model.TaskState
-import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
 
-@CompileStatic
 class InstanceCachingAgent implements CachingAgent {
 
   private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
