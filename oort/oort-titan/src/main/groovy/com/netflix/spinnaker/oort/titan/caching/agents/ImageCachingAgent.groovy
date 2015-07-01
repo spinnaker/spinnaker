@@ -1,0 +1,94 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.oort.titan.caching.agents
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
+import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.DefaultCacheResult
+import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.oort.titan.TitanClientProvider
+import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
+import com.netflix.spinnaker.oort.titan.credentials.NetflixTitanCredentials
+import com.netflix.titanclient.TitanClient
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.NAMED_IMAGES
+
+/**
+ * TODO: This is a WIP. There needs to be docker registry APIs to support this agent
+ */
+class ImageCachingAgent implements CachingAgent {
+
+  private static final Logger log = LoggerFactory.getLogger(ImageCachingAgent)
+
+  final Set<AgentDataType> types = Collections.unmodifiableSet([
+    AUTHORITATIVE.forType(IMAGES.ns),
+    INFORMATIVE.forType(NAMED_IMAGES.ns)
+  ] as Set)
+
+  final TitanClient titanClient
+  final NetflixTitanCredentials account
+  final String region
+  final ObjectMapper objectMapper
+
+  ImageCachingAgent(TitanClientProvider titanClientProvider, NetflixTitanCredentials account, String region, ObjectMapper objectMapper) {
+    this.account = account
+    this.region = region
+    this.objectMapper = objectMapper
+    this.titanClient = titanClientProvider.getTitanClient(account, region)
+  }
+
+  @Override
+  String getProviderName() {
+    return TitanCachingProvider.PROVIDER_NAME
+  }
+
+  @Override
+  String getAgentType() {
+    return ImageCachingAgent.simpleName
+  }
+
+  @Override
+  Collection<AgentDataType> getProvidedDataTypes() {
+    return types
+  }
+
+  @Override
+  CacheResult loadData(ProviderCache providerCache) {
+    List images = [] // TODO: Fetch a list of docker images - add specific constraints to this agent (via constructor) like account/region
+    Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
+    Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
+    /*
+    for (each image) {
+      Map<String, Object> attributes = objectMapper.convertValue(image, new TypeReference<Map<String, Object>>() {})
+      def imageId = Keys.getImageKey(_, _)
+      def namedImageId = Keys.getNamedImageKey(_)
+      imageCacheData.add(new DefaultCacheData(imageId, attributes, [(NAMED_IMAGES.ns):[namedImageId]]))
+      namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
+    }
+    */
+    new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
+  }
+
+}

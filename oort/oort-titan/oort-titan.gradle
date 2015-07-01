@@ -1,0 +1,12 @@
+dependencies {
+  compile project(":oort-core")
+  compile project(":oort-aws")
+
+  spinnaker.group("bootWeb")
+
+  compile spinnaker.dependency("frigga")
+  spinnaker.group('retrofitDefault')
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+
+  compile ("com.netflix:titan-client:0.10")
+}
