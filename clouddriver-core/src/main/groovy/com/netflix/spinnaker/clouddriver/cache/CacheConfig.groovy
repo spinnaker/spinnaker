@@ -67,9 +67,9 @@ class CacheConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(Provider)
-  Provider noopProvider() {
-    new Provider() {
+  @ConditionalOnMissingBean(SearchableProvider)
+  SearchableProvider noopProvider() {
+    new SearchableProvider() {
       @Override
       String getProviderName() {
         "noop"
@@ -78,6 +78,31 @@ class CacheConfig {
       @Override
       Collection<CachingAgent> getCachingAgents() {
         Collections.emptySet()
+      }
+
+      @Override
+      Set<String> getDefaultCaches() {
+        Collections.emptySet()
+      }
+
+      @Override
+      Map<String, String> getUrlMappingTemplates() {
+        Collections.emptyMap()
+      }
+
+      @Override
+      Map<String, SearchableProvider.SearchResultHydrator> getSearchResultHydrators() {
+        Collections.emptyMap()
+      }
+
+      @Override
+      Map<String, SearchableProvider.IdentifierExtractor> getIdentifierExtractors() {
+        Collections.emptyMap()
+      }
+
+      @Override
+      Map<String, String> parseKey(String key) {
+        null
       }
     }
   }
