@@ -73,8 +73,8 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
     new JedisPipelineStore(jedisCommands, jedisPool, new OrcaObjectMapper(), threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 
-  @Bean JedisPipelineStack pipelineStack(JedisCommands jedisCommands){
-    new JedisPipelineStack("PIPELINE_QUEUE", jedisCommands)
+  @Bean JedisPipelineStack pipelineStack(Pool<Jedis> jedisPool){
+    new JedisPipelineStack("PIPELINE_QUEUE", jedisPool)
   }
 
   @Bean

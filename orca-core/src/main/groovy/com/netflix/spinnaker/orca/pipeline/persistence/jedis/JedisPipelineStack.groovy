@@ -16,32 +16,67 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
-import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 
-class JedisPipelineStack implements PipelineStack{
+class JedisPipelineStack implements PipelineStack {
 
-  private JedisCommands jedis
+  private JedisPool jedisPool
   private String prefix
 
-  JedisPipelineStack(String prefix, JedisCommands jedis) {
-    this.jedis = jedis
+  JedisPipelineStack(String prefix, Pool<Jedis> jedisPool) {
+    this.jedisPool = jedisPool
     this.prefix = prefix
   }
 
+  boolean addToListIfKeyExists(String id1, String id2, String content) {
+    def result = false
+
+    // lua script here ensures that the add and check happens in one atomic operation
+
+    jedisPool.resource.withCloseable { jedis ->
+      def script = '''
+      local key1 = KEYS[1];
+      local key2 = KEYS[2];
+      local value = ARGV[1];
+      if redis.call('exists', key1) == 1 then
+        redis.call('lpush', key2, value);
+        return true;
+      end
+      return false;
+      '''
+      result = jedis.eval(script, [key(id1), key(id2)], [content])
+    }
+    result
+  }
+
   void add(String id, String content) {
-    jedis.lpush(key(id), content)
+    jedisPool.resource.withCloseable { jedis ->
+      jedis.lpush(key(id), content)
+    }
   }
 
   void remove(String id, String content) {
-    jedis.lrem(key(id), 1, content)
+    jedisPool.resource.withCloseable { jedis ->
+      jedis.lrem(key(id), 1, content)
+    }
   }
 
   boolean contains(String id) {
-    jedis.exists(key(id))
+    def result = false
+    jedisPool.resource.withCloseable { jedis ->
+      result = jedis.exists(key(id))
+    }
+    result
   }
 
-  List<String> elements(String id){
-    jedis.lrange(key(id), 0, -1)
+  List<String> elements(String id) {
+    def result = []
+    jedisPool.resource.withCloseable { jedis ->
+      result = jedis.lrange(key(id), 0, -1)
+    }
+    result
   }
 
   private String key(id) {

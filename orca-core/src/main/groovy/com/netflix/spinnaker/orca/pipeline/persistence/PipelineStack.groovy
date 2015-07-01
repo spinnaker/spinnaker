@@ -26,5 +26,7 @@ interface PipelineStack {
 
   List<String> elements(String id)
 
+  boolean addToListIfKeyExists(String id1, String id2, String content)
+
 }
 

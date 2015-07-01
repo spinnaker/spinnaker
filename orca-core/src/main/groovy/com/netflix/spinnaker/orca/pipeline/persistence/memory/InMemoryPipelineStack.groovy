@@ -28,6 +28,14 @@ class InMemoryPipelineStack implements PipelineStack {
     (keys[id]).add(content)
   }
 
+  boolean addToListIfKeyExists(String id1, String id2, String content) {
+    if( keys.keySet().contains(id1) ){
+      add(id2, content)
+      return true
+    }
+    false
+  }
+
   void remove(String id, String content) {
     (keys[id]).remove(content)
     if (keys[id].empty) {

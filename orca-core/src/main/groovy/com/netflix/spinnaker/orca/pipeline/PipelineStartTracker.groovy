@@ -32,20 +32,15 @@ class PipelineStartTracker {
   static final String PIPELINE_QUEUED = "PIPELINE:QUEUED"
   static final String PIPELINE_STARTED_ALL = "PIPELINE:STARTED_ALL"
 
-  boolean hasStartedExecutions(String pipelineConfigId) {
-    pipelineStack.contains("${PIPELINE_STARTED}:${pipelineConfigId}")
-  }
-
   void addToStarted(String pipelineConfigId, String executionId) {
     if (pipelineConfigId) {
       pipelineStack.add("${PIPELINE_STARTED}:${pipelineConfigId}", executionId)
     }
-
     pipelineStack.add(PIPELINE_STARTED_ALL, executionId)
   }
 
-  void addToQueue(String pipelineConfigId, String executionId) {
-    pipelineStack.add("${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
+  boolean queueIfNotStarted(String pipelineConfigId, String executionId) {
+    pipelineStack.addToListIfKeyExists("${PIPELINE_STARTED}:${pipelineConfigId}", "${PIPELINE_QUEUED}:${pipelineConfigId}", executionId)
   }
 
   void markAsFinished(String pipelineConfigId, String executionId) {

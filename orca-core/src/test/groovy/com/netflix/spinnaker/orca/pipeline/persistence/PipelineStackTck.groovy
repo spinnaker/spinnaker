@@ -77,4 +77,25 @@ abstract class PipelineStackTck<T extends PipelineStack> extends Specification {
     pipelineStack.elements(id) == ['abc3', 'abc2', 'abc']
   }
 
+  void "return false if value not added to addToListIfKeyExists"(){
+    when:
+    def result = pipelineStack.addToListIfKeyExists('i1', 'i2', 'abc')
+
+    then:
+    result == false
+    pipelineStack.elements('i2') == []
+  }
+
+  void "return true for addToListIfKeyExists"() {
+    given:
+    pipelineStack.add('i1', 'xyz')
+
+    when:
+    def result = pipelineStack.addToListIfKeyExists('i1', 'i2', 'abc')
+
+    then:
+    result == true
+    pipelineStack.elements('i2') == ['abc']
+  }
+
 }

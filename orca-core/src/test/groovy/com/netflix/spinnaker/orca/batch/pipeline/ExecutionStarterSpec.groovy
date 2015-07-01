@@ -73,14 +73,13 @@ class ExecutionStarterSpec extends Specification {
     given:
     def executionStarter = getExecutionStarter(ExecutionStatus.NOT_STARTED)
     executionStarter.startTracker = Mock(PipelineStartTracker)
-    executionStarter.startTracker.hasStartedExecutions(_) >> isStarted
+    executionStarter.startTracker.queueIfNotStarted(_,_) >> isStarted
 
     when:
     executionStarter.start(pipeline)
 
     then:
     launched * executionStarter.launcher.run(_, _)
-    queued * executionStarter.startTracker.addToQueue(pipelineConfigId, _)
 
     where:
     limitConcurrent | pipelineConfigId | isStarted | launched | queued

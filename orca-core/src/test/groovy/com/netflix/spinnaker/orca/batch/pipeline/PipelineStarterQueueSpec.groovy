@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class PipelineStarterQueueSpec extends Specification {
 
@@ -51,8 +52,9 @@ class PipelineStarterQueueSpec extends Specification {
 
   void "should get a list of queued jobs"() {
     given:
+    queue.addToStarted('123', 'xxx')
     (1..5).each {
-      queue.addToQueue("123", "123-queue-${it}")
+      queue.queueIfNotStarted("123", "123-queue-${it}")
     }
 
     expect:
@@ -68,16 +70,17 @@ class PipelineStarterQueueSpec extends Specification {
     queue.getQueuedPipelines('123').first() == "123-queue-3"
   }
 
-  void "should return correct hasStartedExecutions values"() {
+  @Unroll
+  void "should return correct queueIfNotStarted values"() {
     given:
-    queue.addToStarted("123", "333")
+    queue.addToStarted('123', '444')
 
     expect:
-    queue.hasStartedExecutions(providedId) == expectedResult
+    queue.queueIfNotStarted(providedId, '333') == queued
 
     where:
-    providedId || expectedResult
-    "123"      || true
+    providedId || queued
+    '123'      || true
     "not-123"  || false
   }
 

@@ -67,9 +67,7 @@ abstract class ExecutionStarter<T extends Execution> {
       if (startTracker &&
           pipeline.pipelineConfigId &&
           (pipeline.limitConcurrent == true) &&
-          startTracker.hasStartedExecutions(pipeline.pipelineConfigId)) {
-        log.warn "Queueing $subject.id"
-        startTracker.addToQueue(pipeline.pipelineConfigId, subject.id)
+          startTracker.queueIfNotStarted(pipeline.pipelineConfigId, subject.id)){
         startImmediately = false
       }
     }
