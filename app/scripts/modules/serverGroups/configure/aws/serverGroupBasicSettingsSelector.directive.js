@@ -36,6 +36,9 @@ angular.module('spinnaker.serverGroup.configure.aws')
       .flatMapLatest(searchImages)
       .subscribe(function (data) {
         $scope.allImageSearchResults = data.map(function(image) {
+          if (image.message && !image.imageName) {
+            return image;
+          }
           return {
             imageName: image.imageName,
             ami: image.amis ? image.amis[$scope.command.region][0] : null
