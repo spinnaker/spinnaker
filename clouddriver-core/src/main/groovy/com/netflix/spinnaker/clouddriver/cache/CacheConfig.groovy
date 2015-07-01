@@ -27,7 +27,7 @@ import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.mem.InMemoryNamedCacheFactory
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.clouddriver.core.RedisConfig
+import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -107,4 +107,10 @@ class CacheConfig {
   OnDemandCacheUpdater catsOnDemandCacheUpdater(List<Provider> providers, CatsModule catsModule) {
     new CatsOnDemandCacheUpdater(providers, catsModule)
   }
+
+  @Bean
+  SearchProvider catsSearchProvider(Cache cacheView, List<SearchableProvider> providers) {
+    new CatsSearchProvider(cacheView, providers)
+  }
+
 }
