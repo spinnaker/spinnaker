@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.oort.titan.caching.agents
 
 import com.netflix.spinnaker.cats.module.CatsModule
-import com.netflix.spinnaker.oort.model.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,8 +35,8 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
     this.catsModule = catsModule
   }
 
-  private Collection<com.netflix.spinnaker.oort.aws.provider.agent.OnDemandAgent> getOnDemandAgents() {
-    titanProvider.cachingAgents.findAll { it instanceof com.netflix.spinnaker.oort.aws.provider.agent.OnDemandAgent }  // TODO
+  private Collection<OnDemandAgent> getOnDemandAgents() {
+    titanProvider.cachingAgents.findAll { it instanceof OnDemandAgent }  // TODO
   }
 
   @Override
