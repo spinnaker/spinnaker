@@ -83,6 +83,11 @@ class GetCommitsTask implements RetryableTask {
       //figure out the old asg/ami/commit
       String ancestorAmi = getAncestorAmi(stage.context, region, account) // FIXME: multi-region deployments/canaries
 
+      if(!ancestorAmi) {
+        log.info "could not determine ancestor ami, this may be a new cluster with no ancestor asg"
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+      }
+
       //figure out the new asg/ami/commit
       String targetAmi = getTargetAmi(stage.context, region)
 
@@ -169,7 +174,9 @@ class GetCommitsTask implements RetryableTask {
       }?.get(region)
 
       String sourceCluster
-      if (ancestorAsg.lastIndexOf("-") > 0) {
+      if(!ancestorAsg) {
+        return null
+      } else if (ancestorAsg.lastIndexOf("-") > 0) {
         sourceCluster = ancestorAsg.substring(0, ancestorAsg.lastIndexOf("-"))
       } else {
         sourceCluster = ancestorAsg
