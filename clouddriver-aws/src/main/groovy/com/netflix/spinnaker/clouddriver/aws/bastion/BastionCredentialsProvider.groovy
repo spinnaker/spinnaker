@@ -76,8 +76,7 @@ class BastionCredentialsProvider implements AWSCredentialsProvider {
     CommandOutput output = engine.remoteSession("${user}@${host}:${port}") {
       exec command: command
     }
-    def outParts = output.output.split("\n")
-    def jsonText = outParts[0..<outParts.size()].join("\n")
+    def jsonText = output.output.substring(output.output.indexOf('{'))
     def json = slurper.parseText(jsonText) as Map
     expiration = format.parse(json.Expiration as String)
     new BasicSessionCredentials(json.AccessKeyId as String, json.SecretAccessKey as String, json.Token as String)
