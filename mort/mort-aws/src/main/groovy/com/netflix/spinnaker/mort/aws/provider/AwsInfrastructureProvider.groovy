@@ -18,9 +18,12 @@ package com.netflix.spinnaker.mort.aws.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.cats.provider.Provider
+import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.mort.aws.cache.Keys
 
-class AwsInfrastructureProvider implements Provider {
+import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUPS
+
+class AwsInfrastructureProvider implements SearchableProvider {
   public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
@@ -39,5 +42,24 @@ class AwsInfrastructureProvider implements Provider {
   @Override
   Collection<CachingAgent> getCachingAgents() {
     agents
+  }
+
+  final Set<String> defaultCaches = [SECURITY_GROUPS.ns].asImmutable()
+
+  final Map<String, String> urlMappingTemplates = [
+    (SECURITY_GROUPS.ns): '/securityGroups/$account/aws/$name?region=$region'
+  ]
+
+  final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
+
+  final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors = Collections.emptyMap()
+
+  @Override
+  Map<String, String> parseKey(String key) {
+    def result = Keys.parse(key)
+    if (result.size() == 1) {
+      return null
+    }
+    return result
   }
 }
