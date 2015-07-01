@@ -200,7 +200,7 @@ class GetCommitsTaskSpec extends Specification {
     jobState = 'SUCCESS'
   }
 
-  PipelineStage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1) {
+  PipelineStage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1) {
     def stage = new PipelineStage(pipeline, "stash", contextMap)//.asImmutable()
 
     task.sockService = Stub(SockService) {
@@ -218,8 +218,8 @@ class GetCommitsTaskSpec extends Specification {
     Response targetResponse = new Response('http://oort', 200, 'OK', [], new TypedString('[{ "tags" : { "appversion" : "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" }}]'))
     task.oortService = oortService
     serverGroupCalls * oortService.getServerGroup(app, account, cluster, serverGroup, region, "aws") >> response
-    1 * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
-    1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
+    oortCalls * oortService.getByAmiId("aws", account, region, sourceImage) >> sourceResponse
+    oortCalls * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
     return stage
   }
 
@@ -501,6 +501,35 @@ class GetCommitsTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
+  }
+
+  def "return success if there is no ancestor asg"() {
+    given:
+    String katoTasks = "[{\"resultObjects\": [" +
+      "{\"messages\" : [ ], \"serverGroupNameByRegion\": {\"${region}\": \"${targetServerGroup}\"},\"serverGroupNames\": [\"${region}:${targetServerGroup}\"]}],\"status\": {\"completed\": true,\"failed\": false}}]"
+    ObjectMapper mapper = new ObjectMapper()
+    def katoMap = mapper.readValue(katoTasks, List)
+    def contextMap = [application: app, account: account,
+                      source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]
+    def stage = setupGetCommits(contextMap, account, app, sourceImage, targetImage, region, cluster, serverGroup, 0, 0)
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.outputs.commits.size == 0
+
+    where:
+    app = "myapp"
+    account = "test"
+    region = "us-west-1"
+    sourceImage = "ami-source"
+    targetImage = "ami-target"
+    jobState = 'SUCCESS'
+
+    cluster | serverGroup | targetServerGroup
+    "myapp" | null | "myapp-v000"
   }
 
 }
