@@ -56,7 +56,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/aws.module.js'),
     require('./modules/gce.module.js'),
     require('./modules/subnet/subnet.module.js'),
-    require('./modules/utils/utils.module.js'),
+    require('utils/utils.module.js'),
     require('./modules/caches/caches.module.js'),
     require('./modules/naming/naming.service.js'),
     require('./modules/delegation/serviceDelegate.service.js'),

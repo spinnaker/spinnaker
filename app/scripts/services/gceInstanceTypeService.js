@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.instanceType.service', [
   require('restangular'),
   require('../modules/caches/deckCacheFactory.js'),
-  require('../modules/utils/lodash.js')
+  require('utils/lodash.js')
 ])
   .factory('gceInstanceTypeService', function ($http, $q, settings, _) {
 
