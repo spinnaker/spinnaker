@@ -95,10 +95,12 @@ angular.module('spinnaker.loadBalancer.aws.create.controller', [
           if (!allLoadBalancerNames[result.account][result.region]) {
             allLoadBalancerNames[result.account][result.region] = [];
           }
-          allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
-          $scope.state.loadBalancerNamesLoaded = true;
+          if (result.loadBalancer) {
+            allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
+          }
           updateLoadBalancerNames();
         });
+        $scope.state.loadBalancerNamesLoaded = true;
       });
     }
 
