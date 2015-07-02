@@ -48,6 +48,11 @@ class SearchIndex {
 
     Map addToIndex(Event event) {
         event.content._event_details = event.details
+
+        if(event.content?.execution) {
+            event.content?.execution = mapper.writeValueAsString(event.content?.execution)
+        }
+
         String contentString = mapper.writeValueAsString(event.content)
         String eventKey = keyFrom(event.details.source, event.details.type)
         Index index = new Index.Builder(contentString).index(ES_INDEX).type(eventKey).build()
@@ -128,17 +133,17 @@ class SearchIndex {
          hits          : result.jsonObject.hits?.hits.collect {
              def fields = it.fields
              full ? get(
-                 fields.get('source').asString,
-                 fields.get('type').asString,
-                 fields.get('_content_id').asString
+                 fields.get('source')?.asString,
+                 fields.get('type')?.asString,
+                 fields.get('_content_id')?.asString
              ) : [
                  application : fields.get('application')?.asString,
-                 source      : fields.get('source').asString,
-                 type        : fields.get('type').asString,
-                 id          : fields.get('_content_id').asString,
+                 source      : fields.get('source')?.asString,
+                 type        : fields.get('type')?.asString,
+                 id          : fields.get('_content_id')?.asString,
                  project     : fields.get('project')?.asString,
                  organization: fields.get('organization')?.asString,
-                 created     : fields.get('created').asString
+                 created     : fields.get('created')?.asString
              ]
          } ?: [],
          paginationFrom: from,
