@@ -24,7 +24,7 @@ describe('Applications Landing Page', function() {
     };
   });
 
-  describe('Rerouting from /', function () {
+  describe('Rerouting: ', function () {
 
     it('should redirect to /applications from /', function() {
       browser.get('/');
@@ -33,12 +33,9 @@ describe('Applications Landing Page', function() {
 
   });
 
-
-
   describe('The Actions Button', function() {
 
     describe('Create Application', function () {
-
 
       it('Click the Actions Button to display Create Application action', function(done) {
         this.openMenu().then(function() {
@@ -67,7 +64,6 @@ describe('Applications Landing Page', function() {
         });
 
         it('should have an disabled submit button when the form is not filled out', function () {
-          newApplicationModal.selectProdAccount();
           expect(newApplicationModal.submit.getAttribute('disabled')).not.toBe(null);
         });
 
@@ -77,21 +73,22 @@ describe('Applications Landing Page', function() {
           expect(newApplicationModal.uniqueNameWarning.getText()).toContain('unique');
         });
 
-        it('should give a warn', function () {
-
-        });
-
         it('takes a name, email, description and account', function() {
-          newApplicationModal.typeName('deck-e2e-test-'+browserName);
+          newApplicationModal.typeName('deck_e2e_test_'+browserName);
           newApplicationModal.typeDescription('a deck test');
           newApplicationModal.typeEmail('delivery-engineering+deck-e2e@netflix.com');
-          newApplicationModal.selectProdAccount();
+          newApplicationModal.selectTestAccount();
 
           expect(newApplicationModal.submit.getAttribute('disabled')).toBe(null);
         });
 
         it('creates the application', function(done) {
           // TODO: application creation is currently busted in prestaging
+          newApplicationModal.typeName('deck.e2e.'+browserName);
+          newApplicationModal.typeDescription('a deck test');
+          newApplicationModal.typeEmail('delivery-engineering+deck-e2e@netflix.com');
+          newApplicationModal.selectTestAccount();
+
           newApplicationModal.submitForm().then(
             function() {
               done();
