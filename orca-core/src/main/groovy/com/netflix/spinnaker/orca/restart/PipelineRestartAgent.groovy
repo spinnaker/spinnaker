@@ -85,18 +85,17 @@ class PipelineRestartAgent extends AbstractPollingNotificationAgent {
   protected Func1<Execution, Boolean> filter() {
     return { Execution execution ->
       if (execution?.status in [NOT_STARTED, RUNNING]) {
-        log.info "Found a restart candidate: $execution.application $execution.id"
         if (!execution.executingInstance) {
-          log.info "...but it has no record of its executing instance (old pipeline)"
+          log.info "Pipeline $execution.application $execution.id is $execution.status but it has no record of its executing instance (old pipeline)"
           return false
         } else if (execution.executingInstance == currentInstance.id) {
-          log.info "...but it is already running on this instance"
+          log.info "Pipeline $execution.application $execution.id is $execution.status but it is already running on this instance"
           return false
         } else if (executingInstanceIsDown(execution)) {
-          log.info "...and its instance is down $execution.executingInstance"
+          log.info "Pipeline $execution.application $execution.id is $execution.status and its instance is down $execution.executingInstance"
           return true
         } else {
-          log.info "...but its instance is up $execution.executingInstance"
+          log.info "Pipeline $execution.application $execution.id is $execution.status but its instance is up $execution.executingInstance"
           return false
         }
       } else {
