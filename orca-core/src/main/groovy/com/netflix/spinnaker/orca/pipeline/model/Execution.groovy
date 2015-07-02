@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline.model
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
@@ -33,6 +34,8 @@ abstract class Execution<T> implements Serializable {
   boolean limitConcurrent = false
   Long buildTime
   String executingInstance
+
+  AuthenticationDetails authentication
 
   /*
    * Used to track Stages/Steps as they're built to prevent unnecessary re-builds in parallel pipelines
@@ -156,5 +159,23 @@ abstract class Execution<T> implements Serializable {
   @JsonIgnore
   Set<Object> getBuiltPipelineObjects() {
     return builtPipelineObjects
+  }
+
+  static class AuthenticationDetails implements Serializable {
+    String user
+    Collection<String> allowedAccounts
+
+    static Optional<AuthenticationDetails> build() {
+      def spinnakerUserOptional = AuthenticatedRequest.getSpinnakerUser()
+      def spinnakerAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts()
+      if (spinnakerUserOptional.present || spinnakerAccountsOptional.present) {
+        return Optional.of(new AuthenticationDetails(
+          user: spinnakerUserOptional.orElse(null),
+          allowedAccounts: spinnakerAccountsOptional.present ? spinnakerAccountsOptional.get().split(",") as Collection<String> : null
+        ))
+      }
+
+      return Optional.empty()
+    }
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.web.config
 
 import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisOrchestrationStore
@@ -80,6 +81,11 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
   @Bean
   BatchConfigurer multiThreadedJedisBatchConfigurer(JedisCommands jedisCommands, TaskExecutor taskExecutor) {
     new MultiThreadedJedisBatchConfigurer(jedisCommands, taskExecutor)
+  }
+
+  @Bean
+  Filter authenticatedRequestFilter() {
+    new AuthenticatedRequestFilter(true)
   }
 
   @Bean
