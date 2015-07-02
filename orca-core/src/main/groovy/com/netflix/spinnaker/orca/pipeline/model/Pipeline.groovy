@@ -83,6 +83,8 @@ class Pipeline extends Execution<Pipeline> {
 
     Pipeline build() {
       pipeline.buildTime = System.currentTimeMillis()
+      pipeline.authentication = Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails())
+
       pipeline
     }
 

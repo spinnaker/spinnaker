@@ -27,14 +27,19 @@ import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.step.tasklet.Tasklet
 import org.springframework.batch.repeat.RepeatStatus
 
+@Slf4j
 @CompileStatic
 class TaskTasklet implements Tasklet {
   private static final String METRIC_NAME = "task.invocations"
@@ -137,7 +142,12 @@ class TaskTasklet implements Tasklet {
 
   private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
     try {
-      return doExecuteTask(stage.asImmutable(), chunkContext)
+      def currentUser = new User(
+        stage.execution?.authentication?.user, null, null, [], stage.execution?.authentication?.allowedAccounts
+      )
+      return AuthenticatedRequest.propagate({
+        doExecuteTask(stage.asImmutable(), chunkContext)
+      }, false, currentUser).call() as TaskResult
     } catch (Exception e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {

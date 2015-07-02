@@ -24,6 +24,7 @@ dependencies {
   compile spinnaker.dependency('jacksonGuava')
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('korkJedis')
+  compile spinnaker.dependency('korkSecurity')
   compile spinnaker.dependency('korkJedisTest')
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('spectatorApi')

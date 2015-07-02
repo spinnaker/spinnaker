@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
@@ -68,6 +69,8 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
     }
 
     orchestration.buildTime = System.currentTimeMillis()
+    orchestration.authentication = Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails())
+
     return orchestration
   }
 
