@@ -4,3 +4,6 @@ npm-debug.log
 .idea
 *.iml
 test-results.xml
+*.DS_Store
+build
+.gradle
