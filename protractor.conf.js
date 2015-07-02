@@ -8,6 +8,7 @@ exports.config = {
   baseUrl: 'http://0.0.0.0:9000',
   specs: 'test/e2e/**/*.js',
   getPageTimeout: 20000,
+  allScriptsTimeout: 20000,
   //directConnect:true,
   capabilities: {
     'browserName': 'chrome',
