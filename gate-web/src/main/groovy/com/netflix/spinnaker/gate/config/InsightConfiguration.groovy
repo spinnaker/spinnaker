@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.config
 
 import groovy.text.GStringTemplateEngine
+import groovy.text.Template
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -33,21 +34,26 @@ class InsightConfiguration {
 
   static class Link {
     private static final GStringTemplateEngine templateEngine = new GStringTemplateEngine()
+    private Template template
 
     String url
     String label
 
-    Link applyContext(Map<String, String> context) {
+    Map applyContext(Map<String, String> context) {
       try {
-        def url = templateEngine.createTemplate(url).make(context.withDefault { null }).toString()
-        return new Link(
-          url: url,
+        return [
+          url  : template.make(context.withDefault { null }).toString(),
           label: label
-        )
+        ]
       } catch (Exception e) {
         log.info("Unable to apply context to link (url: ${url})", e)
-        return this
+        return [url: url, label: label]
       }
+    }
+
+    void setUrl(String url) {
+      this.url = url
+      this.template = templateEngine.createTemplate(url)
     }
   }
 }
