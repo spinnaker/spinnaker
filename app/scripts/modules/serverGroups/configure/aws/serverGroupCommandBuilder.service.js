@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
         var viewState = {
           instanceProfile: asyncData.instanceProfile,
           disableImageSelection: true,
-          useSimpleCapacity: pipelineCluster.capacity.minSize === pipelineCluster.capacity.maxSize && pipelineCluster.useSourceCapacity !== true,
+          useSimpleCapacity: pipelineCluster.capacity.min === pipelineCluster.capacity.max && pipelineCluster.useSourceCapacity !== true,
           usePreferredZones: usePreferredZones,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
