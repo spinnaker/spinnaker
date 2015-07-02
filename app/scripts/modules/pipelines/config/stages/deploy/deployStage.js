@@ -2,14 +2,14 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.deploy')
+module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
       description: 'Deploys the previously baked or found image',
       key: 'deploy',
       templateUrl: require('./deployStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
       validators: [

@@ -11,8 +11,9 @@ module.exports = angular
     require('./fastPropetyTrasnformer.service.js'),
     require('utils/lodash.js'),
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
+    const application = app;
 
     vm.app = application.name;
     vm.itemsPerPage = 25;

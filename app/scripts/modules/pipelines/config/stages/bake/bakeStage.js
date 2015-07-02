@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.bake')
+module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [])
   //BEN_TODO: executionDetailsUrl?
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake')
       controller: 'BakeStageCtrl',
       controllerAs: 'bakeStageCtrl',
       templateUrl: require('./bakeStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
       validators: [
         {
           type: 'requiredField',

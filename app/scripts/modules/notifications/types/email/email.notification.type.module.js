@@ -7,6 +7,6 @@ module.exports = angular.module('spinnaker.notification.types.email', [])
     notificationTypeConfigProvider.registerNotificationType({
       label: 'Email',
       key: 'email',
-      addressTemplateUrl: 'scripts/modules/notifications/types/email/additionalFields.html',
+      addressTemplateUrl: 'app/scripts/modules/notifications/types/email/additionalFields.html',
     });
   }).name;

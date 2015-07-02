@@ -7,6 +7,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
     pipelineConfigProvider.registerStage({
       synthetic: true,
       key: 'canaryDeployment',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/canary/canaryDeployment/canaryDeploymentExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/canary/canaryDeployment/canaryDeploymentExecutionDetails.html',
     });
   }).name;

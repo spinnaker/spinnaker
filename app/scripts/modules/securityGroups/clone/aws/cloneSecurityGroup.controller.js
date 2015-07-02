@@ -1,13 +1,17 @@
 'use strict';
 
-angular
+var angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.securityGroup.clone.controller', [
     'spinnaker.account.service',
     'spinnaker.tasks.monitor.service',
     'spinnaker.securityGroup.write.service',
     'spinnaker.vpc.read.service',
+    require('utils/lodash.js'),
+    require('../../configure/aws/ConfigSecurityGroupMixin.controller.js')
   ])
-  .controller('CloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application) {
+  .controller('CloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application, _) {
     var vm = this;
 
 

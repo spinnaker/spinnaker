@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.awsServerGroupBasicSettingsSelector', [])
   .directive('awsServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -54,7 +54,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
 
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
-      $scope.latestServerGroup = this.getLatestServerGroup();
       return !_.find($scope.application.clusters, { name: name });
     };
 
@@ -103,5 +102,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
       }
     };
 
-  })
-  .name;
+  }).name;

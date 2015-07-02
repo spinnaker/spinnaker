@@ -449,7 +449,6 @@ module.exports = angular.module('spinnaker.states', [
             return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true})
               .then(
                 function(app) {
-                  console.warn('application resolve', app);
                   return app;
                 },
                 function() { return {notFound: true, name: $stateParams.application}; }

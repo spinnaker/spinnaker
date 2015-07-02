@@ -6,6 +6,7 @@ module.exports = angular
   .module('spinnaker.fastProperties.data.controller', [])
   .controller('FastPropertyDataController', function () {
 
-  });
+  })
+  .name;
 
 

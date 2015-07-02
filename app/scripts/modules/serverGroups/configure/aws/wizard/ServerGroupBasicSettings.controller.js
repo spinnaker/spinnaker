@@ -2,7 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws')
+require('./basicSettings.html');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettings', [
+  require('../../../../../directives/modalWizard.js'),
+])
   .controller('awsServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
 
     $scope.$watch('form.$valid', function(newVal) {

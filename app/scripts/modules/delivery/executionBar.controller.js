@@ -66,7 +66,7 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
       if (config && config.executionLabelTemplateUrl) {
         return config.executionLabelTemplateUrl;
       } else {
-        return 'scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
+        return 'app/scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
       }
     };
 

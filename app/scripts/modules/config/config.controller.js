@@ -11,8 +11,10 @@ module.exports = angular
     require('utils/lodash.js'),
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
-                                            cacheInitializer, infrastructureCaches, application, notificationService, _) {
+                                            cacheInitializer, infrastructureCaches, app, notificationService, _) {
+    const application = app;
     var vm = this;
+
     vm.serverGroupCount = application.serverGroups.length;
     vm.hasServerGroups = Boolean(vm.serverGroupCount);
     vm.error = '';

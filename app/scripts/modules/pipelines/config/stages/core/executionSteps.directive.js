@@ -18,5 +18,6 @@ module.exports = angular.module('spinnaker.pipelines.stages.core.executionStepDe
   })
   .controller('ExecutionStepDetailsCtrl', function() {
 
-  });
+  })
+  .name;
 

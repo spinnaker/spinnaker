@@ -9,5 +9,6 @@ module.exports = angular
     require('./config.controller.js'),
     require('./notification.service.js'),
     require('./notification.details.filter.js')
-  ]);
+  ])
+  .name;
 

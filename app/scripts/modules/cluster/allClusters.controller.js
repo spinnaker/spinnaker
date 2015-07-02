@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('../../modules/serverGroups/configure/aws/wizard/serverGroupWizard.html');
+require('../../modules/serverGroups/configure/gce/wizard/serverGroupWizard.html');
+
 module.exports = angular.module('clusters.all', [
   require('../clusterFilter/clusterFilterService.js'),
   require('../clusterFilter/clusterFilterModel.js'),
@@ -73,7 +76,7 @@ module.exports = angular.module('clusters.all', [
       // BEN_TODO: figure out interpolated values with webpack
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
-          templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          templateUrl: 'app/scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function() { return 'Create New Server Group'; },

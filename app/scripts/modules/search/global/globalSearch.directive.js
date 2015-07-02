@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.search.global')
+module.exports = angular.module('spinnaker.search.global.directive', [
+  require('./globalSearch.controller.js')
+])
   .directive('globalSearch', function($window, $) {
     return {
       restrict: 'E',

@@ -48,5 +48,6 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
 
     this.initialize();
 
-  });
+  })
+  .name;
 

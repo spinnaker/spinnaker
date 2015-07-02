@@ -12,8 +12,9 @@ module.exports = angular.module('spinnaker.tasks.main', [
   require('angular-ui-router'),
   require('../caches/deckCacheFactory.js'),
 ])
-  .controller('TasksCtrl', function ($scope, $state, settings, application, _, viewStateCache, tasksWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, tasksWriter, confirmationModalService) {
     var controller = this;
+    const application = app;
 
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
 

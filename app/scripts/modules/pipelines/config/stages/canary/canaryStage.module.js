@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.canary', [
+  require('./canaryStage.js'),
   require('./canaryExecutionDetails.controller.js'),
   require('./canaryExecutionSummary.controller.js'),
   require('../stage.module.js'),

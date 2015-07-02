@@ -4,7 +4,7 @@ let angular = require('angular');
 
 
 //BEN_TODO
-module.exports = angular.module('spinnaker.pipelines.stage.findAmi')
+module.exports = angular.module('spinnaker.pipelines.stage.findAmiStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Find Image',
@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmi')
       controller: 'findAmiStageCtrl',
       controllerAs: 'findAmiStageCtrl',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/findAmi/findAmiExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/findAmi/findAmiExecutionDetails.html',
     });
   }).controller('findAmiStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;
@@ -80,5 +80,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmi')
     })();
 
     $scope.$watch('stage.account', $scope.accountUpdated);
-  });
+  })
+  .name;
 

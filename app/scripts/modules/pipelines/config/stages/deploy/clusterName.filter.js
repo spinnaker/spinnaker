@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines')
+module.exports = angular.module('spinnaker.pipelines.clusterName.filter', [])
   .filter('clusterName', function(namingService) {
     return function(input) {
       if (!input) {

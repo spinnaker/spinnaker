@@ -10,11 +10,17 @@
  */
 //BEN_TODO figure out what actually gets used here
 global.$ = global.jQuery = require('jquery'); //  deck is reliant on my jquery features we need to load it before angular.
-require('bootstrap');
 
-require('../fonts/spinnaker/icons.css');
 require('bootstrap/dist/css/bootstrap.css');
+require('select2-bootstrap-css/select2-bootstrap.css');
+require('Select2/select2.css');
+require('ui-select/dist/select.css');
+
+require('angular-wizard/dist/angular-wizard.css');
+
 require('source-sans-pro');
+
+
 // likely that some of these can be moved to the modules that support them
 require('../styles/application.less');
 require('../styles/counters.less');
@@ -33,24 +39,30 @@ require('../styles/tasks.less');
 require('../styles/imports/commonImports.less');
 require('./modules/search/global/globalSearch.less');
 
-require('spin');
+require('../fonts/spinnaker/icons.css');
 
-//let uiselect = require('exports?"ui.select"!imports?angular=angular!../../bower_components/angular-ui-select/dist/select.js');
+require('spin');
+require('select2');
+
 let angular = require('angular');
 
-require('angular-bootstrap');
+require('bootstrap/dist/js/bootstrap.js');
+//require('angular-bootstrap');
+//require('angular-wizard');
 
 module.exports = angular.module('spinnaker', [
+    require('angular-sanitize'),
     require('utils/timeFormatters.js'),
-    require('exports?"ui.select"!imports?angular=angular!../../bower_components/angular-ui-select/dist/select.js'),
+    require('exports?"ui.select"!ui-select'),
+    //require('exports?"ui.select2"!angular-ui-select2/src/select2.js'),
     require('exports?"angulartics"!angulartics'),
     require('angular-animate'),
-    require('angular-sanitize'),
     require('angular-ui-router'),
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('./filters/filters.module.js'),
-    //require('exports?"angular-spinner"!angular-spinner'),
+    require('exports?"angularSpinner"!angular-spinner'),
+
     //require('angular-filter'),
     require('./providers/states.js'),
     require('./modules/caches/cacheInitializer.js'),
@@ -61,20 +73,20 @@ module.exports = angular.module('spinnaker', [
     require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
     require('./modules/feedback/feedback.module.js'),
-
+    //
     require('utils/stickyHeader/stickyHeader.directive.js'),
-
+    //
     require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
     require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
     //
     require('./modules/aws.module.js'),
     require('./modules/gce.module.js'),
-    //require('./modules/subnet/subnet.module.js'),
-    //require('utils/utils.module.js'),
-    //require('./modules/caches/caches.module.js'),
-    //require('./modules/naming/naming.service.js'),
-    //require('./modules/delegation/serviceDelegate.service.js'),
-    //require('./modules/healthCounts/healthCounts.directive.js'),
+    require('./modules/subnet/subnet.module.js'),
+    require('utils/utils.module.js'),
+    require('./modules/caches/caches.module.js'),
+    require('./modules/naming/naming.service.js'),
+    require('./modules/delegation/serviceDelegate.service.js'),
+    require('./modules/healthCounts/healthCounts.directive.js'),
     require('./settings/settings.js'),
     //require('./modules/scheduler/scheduler.service.js'),
     //require('./services/urlbuilder.js'),
@@ -82,18 +94,36 @@ module.exports = angular.module('spinnaker', [
     //require('./directives/modalWizard.js'),
     //require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/common/ajaxError.interceptor.js'),
-    //require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
-    //require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
-    //require('./modules/deploymentStrategy/strategies/none/none.strategy.module.js'),
-    //require('./modules/deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
-    //require('./modules/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
+    require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
+    require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
+    require('./modules/deploymentStrategy/strategies/none/none.strategy.module.js'),
+    require('./modules/deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
+    require('./modules/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     require('./modules/serverGroups/configure/common/transformer/serverGroup.transformer.service.js'),
     require('./modules/serverGroups/serverGroup.module.js'),
     require('./modules/securityGroups/securityGroup.module.js'),
     require('./modules/instance/instance.module.js'),
+    require('./modules/pageTitle/pageTitleService.js'),
     require('./modules/help/help.module.js'),
     require('./modules/delivery/delivery.module.js'),
     require('./modules/pipelines/pipelines.module.js'),
+    require('./modules/pipelines/config/stages/bake/bakeStage.module.js'),
+    require('./modules/pipelines/config/stages/core/stage.core.module.js'),
+    require('./modules/pipelines/config/stages/deploy/deployStage.module.js'),
+    require('./modules/pipelines/config/stages/destroyAsg/destroyAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/disableAsg/disableAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/enableAsg/enableAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/executionWindows/executionWindowsStage.module.js'),
+    require('./modules/pipelines/config/stages/findAmi/findAmiStage.module.js'),
+    require('./modules/pipelines/config/stages/jenkins/jenkinsStage.module.js'),
+    require('./modules/pipelines/config/stages/manualJudgment/manualJudgmentStage.module.js'),
+    require('./modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
+    require('./modules/pipelines/config/stages/pipeline/pipelineStage.module.js'),
+    require('./modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/resizeAsg/resizeAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/script/scriptStage.module.js'),
+    require('./modules/pipelines/config/stages/wait/waitStage.module.js'),
+    require('./modules/pipelines/config/stages/determineTargetReference/determineTargetReference.module.js'),
     require('./modules/authentication/authentication.module.js'),
     require('./modules/search/search.module.js'),
     //require('./modules/notifications/notifications.module.js'),
@@ -103,15 +133,15 @@ module.exports = angular.module('spinnaker', [
     //require('./modules/tasks/tasks.module.js'),
     //require('./modules/validation/validation.module.js'),
     require('./modules/loadBalancers/loadBalancers.module.js'),
-    //require('./modules/vpc/vpc.module.js'),
-    //require('./modules/keyPairs/keyPairs.module.js'),
-    //require('./modules/config/config.module.js'),
-    //require('./directives/gist.directive.js'),
-    //require('./modules/whatsNew/whatsNew.directive.js'),
-    //require('./directives/help.directive.js'),
+    require('./modules/vpc/vpc.module.js'),
+    require('./modules/keyPairs/keyPairs.module.js'),
+    require('./modules/config/config.module.js'),
+    require('./directives/gist.directive.js'),
+    require('./modules/whatsNew/whatsNew.directive.js'),
+    require('./directives/help.directive.js'),
     //require('./modules/networking/networking.module.js'),
-    //require('./modules/blesk/blesk.module.js'),
-    //require('./modules/fastProperties/fastProperties.module.js'),
+    require('./modules/blesk/blesk.module.js'),
+    require('./modules/fastProperties/fastProperties.module.js'),
     //require('./directives/accountLabelColor.directive.js'),
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {

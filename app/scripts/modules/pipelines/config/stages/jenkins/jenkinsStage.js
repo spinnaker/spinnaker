@@ -4,7 +4,7 @@ let angular = require('angular');
 
 //BEN_TODO
 
-module.exports = angular.module('spinnaker.pipelines.stage.jenkins')
+module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Jenkins',
@@ -13,8 +13,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins')
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
       templateUrl: require('./jenkinsStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
-      executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
+      executionLabelTemplateUrl: 'app/scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
       validators: [
         {
           type: 'requiredField',
@@ -113,5 +113,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins')
     $scope.$watch('stage.master', updateJobsList);
     $scope.$watch('stage.job', updateJobConfig);
 
-  });
+  })
+  .name;
 

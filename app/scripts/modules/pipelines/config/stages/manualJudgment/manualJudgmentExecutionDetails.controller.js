@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment.executionDetails.controller', [
-  require('angular-ui-router'),
+  //require('angular-ui-router'),
   require('../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])

@@ -8,8 +8,9 @@ module.exports = angular.module('spinnaker.directives', [
   require('./modalWizard.js'),
   require('./accountLabelColor.directive.js'),
   require('utils/scrollTriggerService.js'),
+  require('utils/lodash.js'),
 ])
-//.directive(require('./accountLabelColor.directive.js'))
+//.directive('accountLabelColor', require('./accountLabelColor.directive.js'))
 .directive('accountSelectField', require('./accountSelectField.js'))
 .directive('accountTag', require('./accountTag.js'))
 .directive('autoScroll', require('./autoScroll.directive.js'))

@@ -2,7 +2,7 @@
 
 //BEN_TODO
 
-module.exports = function(settings) {
+module.exports = function(settings, _) {
   return {
     restrict: 'E',
     templateUrl: require('../../views/directives/accountSelectField.html'),
@@ -18,7 +18,7 @@ module.exports = function(settings) {
       readOnly: '=',
       multiselect: '='
     },
-    link: function(scope, _) {
+    link: function(scope) {
       function groupAccounts(accounts) {
         if (accounts && accounts[0] && accounts[0].name) {
           accounts = _.pluck(accounts, 'name');

@@ -4,7 +4,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.enableAsg')
+module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Enable Server Group',
@@ -13,9 +14,9 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsg')
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
     });
-  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, _) {
+  }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;
 
     $scope.state = {
@@ -49,5 +50,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsg')
     })();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  })
+  .name;
 

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.help.directive', [
     //require('exports?"ui-bootstrap"!angular-bootstrap'),
-    require('exports?"hc.marked"!angular-marked'),
+    require('angular-marked'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(

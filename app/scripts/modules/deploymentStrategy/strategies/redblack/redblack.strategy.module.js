@@ -9,6 +9,6 @@ module.exports = angular.module('spinnaker.deploymentStrategy.redblack', [])
       description: 'Disables previous server group as soon as new server group passes health checks',
       key: 'redblack',
       additionalFields: ['scaleDown', 'maxRemainingAsgs'],
-      additionalFieldsTemplateUrl: 'scripts/modules/deploymentStrategy/strategies/redblack/additionalFields.html',
+      additionalFieldsTemplateUrl: 'app/scripts/modules/deploymentStrategy/strategies/redblack/additionalFields.html',
     });
   }).name;

@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
 
     this.cloneSecurityGroup = function cloneSecurityGroup() {
       $modal.open({
-        templateUrl: 'scripts/modules/securityGroups/clone/aws/cloneSecurityGroup.html',
+        templateUrl: 'app/scripts/modules/securityGroups/clone/aws/cloneSecurityGroup.html',
         controller: 'CloneSecurityGroupController as ctrl',
         resolve: {
           securityGroup: function() {

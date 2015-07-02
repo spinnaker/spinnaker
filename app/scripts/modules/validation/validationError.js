@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.validation')
+module.exports = angular.module('spinnaker.validation.error', [])
   .directive('validationError', function () {
     return {
       restrict: 'E',

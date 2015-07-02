@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows.transformer', [])
+let angular = require('angular');
+
+module.exports =  angular.module('spinnaker.pipelines.stage.executionWindows.transformer', [])
   .service('executionWindowsTransformer', function() {
 
     /**

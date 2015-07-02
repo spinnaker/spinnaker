@@ -80,5 +80,6 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
         }
       }).result.then(startPipeline);
     };
-  });
+  })
+  .name;
 

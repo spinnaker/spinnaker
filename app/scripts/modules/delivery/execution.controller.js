@@ -48,5 +48,6 @@ module.exports = angular.module('spinnaker.delivery.execution.controller', [
 
     };
 
-  });
+  })
+  .name;
 

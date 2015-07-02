@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.pipelines.config.trigger.pipeline', [
       controller: 'pipelineTriggerCtrl',
       controllerAs: 'pipelineTriggerCtrl',
       templateUrl: require('./pipelineTrigger.html'),
-      popoverLabelUrl: 'scripts/modules/pipelines/config/triggers/pipeline/pipelinePopoverLabel.html'
+      popoverLabelUrl: 'app/scripts/modules/pipelines/config/triggers/pipeline/pipelinePopoverLabel.html'
     });
   })
   .controller('pipelineTriggerCtrl', function ($scope, trigger, pipelineConfigService, applicationReader, _) {

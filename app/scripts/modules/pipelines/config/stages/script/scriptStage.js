@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.script')
+module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Script',
@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.script')
       controller: 'ScriptStageCtrl',
       controllerAs: 'scriptStageCtrl',
       templateUrl: require('./scriptStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
     });
   })
   .controller('ScriptStageCtrl', function($scope, stage, scriptService, $q, authenticationService) {
@@ -31,4 +31,5 @@ module.exports = angular.module('spinnaker.pipelines.stage.script')
       $scope.credentials = results.credentials;
       $scope.viewState.loading = false;
     });
-  }).name;
+  })
+  .name;

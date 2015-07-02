@@ -4,6 +4,8 @@
  * Based on https://github.com/polarblau/stickySectionHeaders
  */
 
+require('./stickyHeader.less');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils.stickyHeader', [

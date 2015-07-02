@@ -1,11 +1,13 @@
 'use strict';
+let angular = require('angular');
 
-angular.module('spinnaker.pipelines.stage.determineTargetReference')
+module.exports =  angular.module('spinnaker.pipelines.stage.determineTargetReferenceStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       key: 'determineTargetReference',
       synthetic: true,
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/determineTargetReference/determineTargetReferenceDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/determineTargetReference/determineTargetReferenceDetails.html',
     });
-  });
+  })
+  .name;
 

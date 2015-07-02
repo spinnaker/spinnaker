@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.pipeline')
+module.exports = angular.module('spinnaker.pipelines.stage.pipelineStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Pipeline',
@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipeline')
       controller: 'pipelineStageCtrl',
       controllerAs: 'pipelineStageCtrl',
       templateUrl: require('./pipelineStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/pipeline/pipelineExecutionDetails.html',
       validators: [
         {
           type: 'requiredField',
@@ -107,5 +107,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipeline')
     $scope.$watch('stage.application', initializeMasters);
     $scope.$watch('stage.pipeline', updatePipelineConfig);
 
-  });
+  })
+  .name;
 

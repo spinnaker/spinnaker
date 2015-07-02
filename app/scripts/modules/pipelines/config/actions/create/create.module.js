@@ -8,4 +8,4 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.create', [
   require('../../../../caches/deckCacheFactory.js'),
   require('./createPipelineButton.controller.js'),
   require('./createPipelineButton.directive.js'),
-]);
+]).name;

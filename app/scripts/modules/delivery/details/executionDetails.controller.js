@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         }
       }
       // BEN_TODO
-      return 'scripts/modules/pipelines/config/stages/core/executionSummary.html';
+      return 'app/scripts/modules/pipelines/config/stages/core/executionSummary.html';
 
     };
 
@@ -94,7 +94,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       if (stageConfig && stageConfig.executionStepLabelUrl) {
         return stageConfig.executionStepLabelUrl;
       } else {
-        return 'scripts/modules/pipelines/config/stages/core/stepLabel.html';
+        return 'app/scripts/modules/pipelines/config/stages/core/stepLabel.html';
       }
     };
 

@@ -1,6 +1,12 @@
 'use strict';
 /* jshint camelcase:false */
 
+require('../../configure/aws/wizard/serverGroupWizard.html');
+require('../../configure/aws/wizard/loadBalancers.html');
+
+require('../../configure/gce/wizard/serverGroupWizard.html');
+require('../../configure/aws/serverGroup.configure.aws.module.js');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
@@ -11,6 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../serverGroup.read.service.js'),
   require('../../configure/aws/serverGroupCommandBuilder.service.js'),
   require('../../configure/common/runningExecutions.service.js'),
+
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
@@ -239,7 +246,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrlUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrl: 'app/scripts/modules/serverGroups/configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },

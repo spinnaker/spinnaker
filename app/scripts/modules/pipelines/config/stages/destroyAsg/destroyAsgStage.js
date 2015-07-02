@@ -4,8 +4,10 @@ let angular = require('angular');
 
 //BEN_TODO: where is this defined?
 
-module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg')
-  .config(function(pipelineConfigProvider, _) {
+module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
+  require('utils/lodash.js'),
+])
+  .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Destroy Server Group',
       description: 'Destroys a server group',
@@ -13,8 +15,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg')
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
+      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
       validators: [
         {
           type: 'targetImpedance',
@@ -57,5 +59,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsg')
       }
     })();
 
-  });
+  })
+  .name;
 

@@ -4,7 +4,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
+module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Resize Server Group',
@@ -13,8 +13,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
       controller: 'ResizeAsgStageCtrl',
       controllerAs: 'resizeAsgStageCtrl',
       templateUrl: require('./resizeAsgStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
+      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
       validators: [
         {
           type: 'targetImpedance',
@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
         },
       ],
     });
-  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService, _) {
+  }).controller('ResizeAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
 
     var ctrl = this;
 
@@ -107,5 +107,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsg')
       delete $scope.stage.scaleNum;
     };
 
-  });
+  })
+  .name;
 

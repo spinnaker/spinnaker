@@ -4,7 +4,9 @@ let angular = require('angular');
 
 
 //BEN_TODO lodash
-module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
+module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
+  require('utils/lodash.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Disable Server Group',
@@ -13,8 +15,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
       controller: 'DisableAsgStageCtrl',
       controllerAs: 'disableAsgStageCtrl',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
+      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
+      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
       validators: [
         {
           type: 'targetImpedance',
@@ -22,7 +24,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
         },
       ],
     });
-  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;
 
     $scope.stage = stage;
@@ -57,5 +59,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsg')
       }
     })();
 
-  });
+  })
+  .name;
 

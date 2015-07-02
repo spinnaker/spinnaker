@@ -39,12 +39,12 @@ module.exports = {
         test: /\.less$/,
         loader: 'style!css!less',
       },
+      //{
+      //  test: /\.woff(2)?(.*)?$/,
+      //  loader: 'url?limit=1000000&minetype=application/font-woff',
+      //},
       {
-        test: /\.woff(2)?(.*)?$/,
-        loader: 'url?limit=10000&minetype=application/font-woff',
-      },
-      {
-        test: /\.(otf|ttf|eot|svg)(.*)?$/,
+        test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
         loader: 'file',
       },
       {

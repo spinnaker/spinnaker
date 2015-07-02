@@ -11,6 +11,7 @@ angular
         options: '=',
         model: '='
       },
-      templateUrl: 'scripts/modules/pipelines/config/targetSelect.html'
+      templateUrl: 'app/scripts/modules/pipelines/config/targetSelect.html'
     };
-  }).name;
+  })
+  .name;
