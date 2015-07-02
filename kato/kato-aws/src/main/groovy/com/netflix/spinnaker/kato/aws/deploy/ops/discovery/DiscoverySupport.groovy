@@ -95,11 +95,6 @@ class DiscoverySupport {
         retry(task, discoveryRetry) { retryCount ->
           task.updateStatus phaseName, "Attempting to mark ${instanceId} as '${discoveryStatus.value}' in discovery (attempt: ${retryCount})."
 
-          if (discoveryStatus == DiscoveryStatus.Disable && !verifyInstanceAndAsgExist(amazonEC2, asgService, instanceId, description.asgName)) {
-            task.updateStatus phaseName, "Instance (${instanceId}) or ASG (${description.asgName}) no longer exist, skipping"
-            return
-          }
-
           Response resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
           if (resp.status != 200) {
             throw new RetryableException("Non HTTP 200 response from discovery for instance ${instanceId}, will retry (attempt: $retryCount}).")
