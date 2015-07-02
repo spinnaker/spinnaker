@@ -98,5 +98,6 @@ subprojects {
     }
 }
 
-defaultTasks "build"
 tasks.checkSnapshotDependencies.enabled = false
+
+defaultTasks ':echo-web:bootRun'
