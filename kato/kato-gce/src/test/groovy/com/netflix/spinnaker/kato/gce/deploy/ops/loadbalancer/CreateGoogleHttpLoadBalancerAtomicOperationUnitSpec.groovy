@@ -19,10 +19,10 @@ package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -91,7 +91,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
      operation.operate([])
@@ -179,7 +179,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       )
       @Subject def operation = new CreateGoogleHttpLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])

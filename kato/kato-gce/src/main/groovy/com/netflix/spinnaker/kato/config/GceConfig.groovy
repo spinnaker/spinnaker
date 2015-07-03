@@ -17,7 +17,7 @@ class GceConfig {
   private static final long DISK_SIZE_GB = 100
 
   @Bean
-  @ConfigurationProperties('gce.defaults')
+  @ConfigurationProperties('google.defaults')
   DeployDefaults gceDeployDefaults() {
     new DeployDefaults()
   }

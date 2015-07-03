@@ -88,4 +88,4 @@ subprojects { project ->
 }
 
 tasks.checkSnapshotDependencies.enabled = false
-
+defaultTasks ':clouddriver-web:bootRun'

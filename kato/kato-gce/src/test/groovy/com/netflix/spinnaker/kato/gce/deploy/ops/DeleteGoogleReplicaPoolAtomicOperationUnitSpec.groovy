@@ -21,10 +21,10 @@ import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.google.api.services.replicapool.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import spock.lang.Specification
 import spock.lang.Subject
@@ -66,7 +66,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
                                                                credentials: credentials)
       @Subject def operation = new DeleteGoogleReplicaPoolAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])

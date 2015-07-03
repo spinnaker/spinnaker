@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.gce.health
+package com.netflix.spinnaker.clouddriver.google.health
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-class GceHealthIndicator implements HealthIndicator {
+class GoogleHealthIndicator implements HealthIndicator {
 
-  private static final Logger LOG = LoggerFactory.getLogger(GceHealthIndicator)
+  private static final Logger LOG = LoggerFactory.getLogger(GoogleHealthIndicator)
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -91,3 +91,4 @@ class GceHealthIndicator implements HealthIndicator {
   @InheritConstructors
   static class GoogleIOException extends RuntimeException {}
 }
+
