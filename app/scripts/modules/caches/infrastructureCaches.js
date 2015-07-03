@@ -13,9 +13,8 @@ module.exports = angular.module('spinnaker.caches.infrastructure', [
     var namespace = 'infrastructure';
 
     function clearCache(key) {
-      if (caches[key] && caches[key].destroy) {
-        caches[key].destroy();
-        createCache(key, caches[key].config);
+      if (caches[key] && caches[key].removeAll) {
+        caches[key].removeAll();
       }
     }
 
