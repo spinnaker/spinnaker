@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy
 
 import com.google.api.services.compute.model.Operation
-import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import spock.lang.Specification
 
 class GoogleOperationPollerSpec extends Specification {
@@ -25,7 +25,7 @@ class GoogleOperationPollerSpec extends Specification {
   void "waitForOperation should query the operation at least once"() {
     setup:
       def googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "DONE")}, 0) == new Operation(status: "DONE")
@@ -34,7 +34,7 @@ class GoogleOperationPollerSpec extends Specification {
   void "waitForOperation should return null on timeout"() {
     setup:
       def googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     expect:
       googleOperationPoller.waitForOperation({return new Operation(status: "PENDING")}, 0) == null
@@ -45,7 +45,7 @@ class GoogleOperationPollerSpec extends Specification {
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties(),
+            googleConfigurationProperties: new GoogleConfigurationProperties(),
             threadSleeper: threadSleeperMock)
 
     when:
@@ -73,7 +73,7 @@ class GoogleOperationPollerSpec extends Specification {
       def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
       def googleOperationPoller =
         new GoogleOperationPoller(
-            googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties(
+            googleConfigurationProperties: new GoogleConfigurationProperties(
                 asyncOperationMaxPollingIntervalSeconds: 3),
             threadSleeper: threadSleeperMock)
 

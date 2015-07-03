@@ -76,7 +76,7 @@ aws:
   accounts: []
 
 
-gce:
+google:
   enabled: ${GCE_ENABLED:false}
   defaults:
     instanceTypePersistentDisks:

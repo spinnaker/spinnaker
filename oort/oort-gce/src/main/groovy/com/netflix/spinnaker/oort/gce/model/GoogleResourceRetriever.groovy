@@ -27,7 +27,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.oort.config.GoogleConfig.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.MIGSCallback
@@ -233,12 +233,12 @@ class GoogleResourceRetriever {
                 it.loadBalancerName == loadBalancerName
               }
 
-              def health = loadBalancerHealth
-                           ? [
+              def health = loadBalancerHealth ?
+                           [
                              state      : loadBalancerHealth.state,
                              description: loadBalancerHealth.description
-                           ]
-                           : [
+                           ] :
+                           [
                              state      : "Unknown",
                              description: "Unable to determine load balancer health."
                            ]

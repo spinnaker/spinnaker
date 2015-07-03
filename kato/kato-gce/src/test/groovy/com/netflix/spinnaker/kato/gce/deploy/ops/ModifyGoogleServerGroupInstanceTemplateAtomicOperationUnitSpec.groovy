@@ -28,11 +28,11 @@ import com.google.api.services.compute.model.Tags
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import spock.lang.Specification
@@ -104,7 +104,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -169,7 +169,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -229,7 +229,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -282,7 +282,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -338,7 +338,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                credentials: credentials)
       @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
       operation.googleOperationPoller =
-          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+          new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
