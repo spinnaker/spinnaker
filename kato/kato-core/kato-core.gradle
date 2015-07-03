@@ -21,4 +21,5 @@ dependencies {
   compile spinnaker.dependency('amos')
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency("frigga")
+  compile spinnaker.dependency('korkSecurity')
 }
