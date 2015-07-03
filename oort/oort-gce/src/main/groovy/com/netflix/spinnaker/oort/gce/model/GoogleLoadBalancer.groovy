@@ -16,31 +16,39 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.LoadBalancer
-import groovy.transform.CompileStatic
 
-@CompileStatic
-class GoogleLoadBalancer extends HashMap implements LoadBalancer {
+class GoogleLoadBalancer implements LoadBalancer {
 
-  GoogleLoadBalancer() {
-    this(null, null, null)
-  }
+  private static final String GOOGLE_LOAD_BALANCER_TYPE = "gce"
 
-  GoogleLoadBalancer(String name, String account, String region) {
-    setProperty "account", account
-    setProperty "name", name
-    setProperty "type", "gce"
-    setProperty "region", region
-    setProperty "serverGroups", new HashSet<>()
-  }
+  String account
+  String name
+  String region
+  Set<Map<String, Object>> serverGroups = new HashSet<>()
+
+  Long createdTime
+  String ipAddress
+  String ipProtocol
+  String portRange
+  Map<String, Object> healthCheck
+
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
   // Used as a deep copy-constructor.
   public static GoogleLoadBalancer newInstance(GoogleLoadBalancer originalGoogleLoadBalancer) {
     GoogleLoadBalancer copyGoogleLoadBalancer = new GoogleLoadBalancer()
 
-    originalGoogleLoadBalancer.keySet().each { key ->
-      def valueCopy = Utils.getImmutableCopy(originalGoogleLoadBalancer[key])
+    // Don't want to copy 'class'.
+    def keySet = originalGoogleLoadBalancer.properties.keySet() - "class"
+
+    keySet += originalGoogleLoadBalancer.anyProperty().keySet()
+
+    keySet.each { key ->
+      def valueCopy = Utils.getImmutableCopy(originalGoogleLoadBalancer.hasProperty(key) ? originalGoogleLoadBalancer[key] : originalGoogleLoadBalancer.anyProperty()[key])
 
       if (valueCopy) {
         copyGoogleLoadBalancer[key] = valueCopy
@@ -50,47 +58,19 @@ class GoogleLoadBalancer extends HashMap implements LoadBalancer {
     copyGoogleLoadBalancer
   }
 
-  String getAccount() {
-    getProperty "account"
+  @JsonAnyGetter
+  public Map<String, Object> anyProperty() {
+    return dynamicProperties;
   }
 
-  @Override
-  String getName() {
-    getProperty "name"
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   String getType() {
-    getProperty "type"
-  }
-
-  @Override
-  Set<String> getServerGroups() {
-    (Set<String>) getProperty("serverGroups")
-  }
-
-  String getRegion() {
-    (String) getProperty("region")
-  }
-
-  Map<String, Object> getHealthCheck() {
-    (Map<String, Object>) getProperty("healthCheck")
-  }
-
-  Long getCreatedTime() {
-    (Long) getProperty("createdTime")
-  }
-
-  String getIpAddress() {
-    (String) getProperty("ipAddress")
-  }
-
-  String getIpProtocol() {
-    (String) getProperty("ipProtocol")
-  }
-
-  String getPortRange() {
-    (String) getProperty("portRange")
+    return GOOGLE_LOAD_BALANCER_TYPE
   }
 
   @Override

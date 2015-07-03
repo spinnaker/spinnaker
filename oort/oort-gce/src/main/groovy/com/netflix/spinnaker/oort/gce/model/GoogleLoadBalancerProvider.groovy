@@ -88,7 +88,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           // If the naming-convention is followed, add it to the list of matches.
           if (Names.parseName(loadBalancer.name).app == application) {
             // Clone the load balancer so the original is not mutated when we prune the server groups.
-            applicationLoadBalancers << new GoogleLoadBalancer(loadBalancer)
+            applicationLoadBalancers << GoogleLoadBalancer.newInstance(loadBalancer)
           } else {
             loadBalancerListCopy << loadBalancer
 
@@ -97,7 +97,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
               Names.parseName(loadBalancerServerGroup.name).app == application
             }) {
               // Clone the load balancer so the original is not mutated when we delete the instanceNames key/value.
-              applicationLoadBalancers << new GoogleLoadBalancer(loadBalancer)
+              applicationLoadBalancers << GoogleLoadBalancer.newInstance(loadBalancer)
             }
           }
         }
@@ -106,7 +106,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
 
     // Remove instanceNames key/value since we don't need to return it.
     applicationLoadBalancers.each { loadBalancer ->
-      loadBalancer.remove("instanceNames")
+      loadBalancer.anyProperty().remove("instanceNames")
     }
 
     applicationLoadBalancers

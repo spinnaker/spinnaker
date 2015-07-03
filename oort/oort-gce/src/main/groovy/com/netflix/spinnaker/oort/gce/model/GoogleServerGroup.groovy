@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,28 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 
-class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
+class GoogleServerGroup implements ServerGroup, Serializable {
 
-  private boolean disabled = true
+  private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"
 
-  GoogleServerGroup() {
-    this(null, null, null)
-  }
+  String name
+  String region
+  Set<String> zones = new HashSet<>()
+  Set<Instance> instances = new HashSet<>()
+  Set health = new HashSet<>()
+  Map<String, Object> launchConfig
+  Map<String, Object> asg
+  Map buildInfo
+  Boolean disabled = true
 
-  GoogleServerGroup(String name, String type, String region) {
-    setProperty "name", name
-    setProperty "type", type
-    setProperty "region", region
-    setProperty "zones", new HashSet<>()
-    setProperty "instances", new HashSet<>()
-    setProperty "health", new HashSet<>()
-  }
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
   // Used as a deep copy-constructor.
   public static GoogleServerGroup newInstance(GoogleServerGroup originalGoogleServerGroup) {
@@ -63,53 +64,19 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
     copyGoogleServerGroup
   }
 
-  @Override
-  String getName() {
-    getProperty "name"
+  @JsonAnyGetter
+  public Map<String, Object> anyProperty() {
+    return dynamicProperties;
+  }
+
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   String getType() {
-    getProperty "type"
-  }
-
-  @Override
-  String getRegion() {
-    getProperty "region"
-  }
-
-  @Override
-  Set<String> getSecurityGroups() {
-    (Set<String>) getProperty("securityGroups")
-  }
-
-  @Override
-  Set<String> getLoadBalancers() {
-    def loadBalancerNames = []
-    def asg = getAsg()
-    if (asg && asg.containsKey("loadBalancerNames")) {
-      loadBalancerNames = asg.loadBalancerNames
-    }
-    return loadBalancerNames
-  }
-
-  @Override
-  Map<String, Object> getLaunchConfig() {
-    (Map<String, Object>) getProperty("launchConfig")
-  }
-
-  @Override
-  ServerGroup.InstanceCounts getInstanceCounts() {
-    Set<Instance> instances = getInstances()
-    def total = instances.size()
-    def up = filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0
-    def down = filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0
-    def unknown = filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0
-    new ServerGroup.InstanceCounts(total: total, up: up, down: down, unknown: unknown)
-  }
-
-  static Set filterInstancesByHealthState(Set instances, HealthState healthState) {
-    instances.findAll { Instance it -> it.getHealthState() == healthState }
+    return GOOGLE_SERVER_GROUP_TYPE
   }
 
   @Override
@@ -117,13 +84,8 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
     return disabled
   }
 
-  void setDisabled(boolean disabled) {
-    this.disabled = disabled
-  }
-
   @Override
   Long getCreatedTime() {
-    def launchConfig = getLaunchConfig()
     if (launchConfig) {
       return launchConfig.createdTime
     }
@@ -131,21 +93,34 @@ class GoogleServerGroup extends HashMap implements ServerGroup, Serializable {
   }
 
   @Override
-  Set<String> getZones() {
-    (Set<String>) getProperty("zones")
+  Set<String> getLoadBalancers() {
+    Set<String> loadBalancerNames = []
+    if (asg && asg.containsKey("loadBalancerNames")) {
+      loadBalancerNames = (Set<String>) asg.loadBalancerNames
+    }
+    return loadBalancerNames
   }
 
   @Override
-  Set<Instance> getInstances() {
-    (Set<Instance>) getProperty("instances")
+  Set<String> getSecurityGroups() {
+    return null
   }
 
-  Map getBuildInfo() {
-    (Map) getProperty("buildInfo")
+  @Override
+  ServerGroup.InstanceCounts getInstanceCounts() {
+    Set<Instance> instances = getInstances()
+    new ServerGroup.InstanceCounts(
+      total: instances.size(),
+      up: filterInstancesByHealthState(instances, HealthState.Up)?.size() ?: 0,
+      down: filterInstancesByHealthState(instances, HealthState.Down)?.size() ?: 0,
+      unknown: filterInstancesByHealthState(instances, HealthState.Unknown)?.size() ?: 0,
+      starting: filterInstancesByHealthState(instances, HealthState.Starting)?.size() ?: 0,
+      outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0
+    )
   }
 
-  private Map<String, Object> getAsg() {
-    (Map<String, Object>) getProperty("asg")
+  static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
+    instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 
 }

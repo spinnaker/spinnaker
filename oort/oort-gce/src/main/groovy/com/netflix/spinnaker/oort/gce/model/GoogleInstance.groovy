@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,32 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter
+import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.netflix.spinnaker.oort.gce.model.callbacks.Utils
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 
-class GoogleInstance extends HashMap implements Instance, Serializable {
+class GoogleInstance implements Instance, Serializable {
 
-  GoogleInstance() {
-    this(null)
-  }
+  String name
+  boolean healthy
+  Long launchTime
+  List<Map<String, Object>> health = []
 
-  GoogleInstance(String name) {
-    setProperty "name", name
-  }
+  private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
   // Used as a deep copy-constructor.
   public static GoogleInstance newInstance(GoogleInstance originalGoogleInstance) {
     GoogleInstance copyGoogleInstance = new GoogleInstance()
 
-    originalGoogleInstance.keySet().each { key ->
-      def valueCopy = Utils.getImmutableCopy(originalGoogleInstance[key])
+    // Don't want to copy 'class' and 'healthState' has a getter but no setter.
+    def keySet = originalGoogleInstance.properties.keySet() - "class" - "healthState"
+
+    keySet += originalGoogleInstance.anyProperty().keySet()
+
+    keySet.each { key ->
+      def valueCopy = Utils.getImmutableCopy(originalGoogleInstance.hasProperty(key) ? originalGoogleInstance[key] : originalGoogleInstance.anyProperty()[key])
 
       if (valueCopy) {
         copyGoogleInstance[key] = valueCopy
@@ -45,24 +51,27 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
     copyGoogleInstance
   }
 
-  @Override
-  String getName() {
-    getProperty "name"
+  @JsonAnyGetter
+  public Map<String, Object> anyProperty() {
+    return dynamicProperties;
   }
 
-  boolean isHealthy() {
-    getProperty "isHealthy"
+  @JsonAnySetter
+  public void set(String name, Object value) {
+    dynamicProperties.put(name, value);
   }
 
   @Override
   HealthState getHealthState() {
-    List<Map<String, String>> healthList = getHealth()
-
-    someUpRemainingUnknown(healthList) ? HealthState.Up :
-      anyStarting(healthList) ? HealthState.Starting :
-        anyDown(healthList) ? HealthState.Down :
-          anyOutOfService(healthList) ? HealthState.OutOfService :
+    someUpRemainingUnknown(health) ? HealthState.Up :
+      anyStarting(health) ? HealthState.Starting :
+        anyDown(health) ? HealthState.Down :
+          anyOutOfService(health) ? HealthState.OutOfService :
             HealthState.Unknown
+  }
+
+  private static boolean anyDown(List<Map<String, String>> healthList) {
+    healthList.any { it.state == HealthState.Down }
   }
 
   private static boolean someUpRemainingUnknown(List<Map<String, String>> healthList) {
@@ -74,27 +83,13 @@ class GoogleInstance extends HashMap implements Instance, Serializable {
     healthList.any { it.state == HealthState.Starting }
   }
 
-  private static boolean anyDown(List<Map<String, String>> healthList) {
-    healthList.any { it.state == HealthState.Down}
-  }
-
   private static boolean anyOutOfService(List<Map<String, String>> healthList) {
     healthList.any { it.state == HealthState.OutOfService }
   }
 
   @Override
-  Long getLaunchTime() {
-    getProperty "launchTime"
-  }
-
-  @Override
   String getZone() {
-    getProperty("placement")?.availabilityZone
-  }
-
-  @Override
-  List<Map<String, String>> getHealth() {
-    getProperty "health"
+    anyProperty().get("placement")?.availabilityZone
   }
 
   @Override
