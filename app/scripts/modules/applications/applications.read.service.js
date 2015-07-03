@@ -238,7 +238,7 @@ angular
                 .then(
                   function() {
                     application.serverGroups.forEach(function(sg) {
-                      sg.stringVal = angular.toJson(sg);
+                      sg.stringVal = JSON.stringify(sg, jsonReplacer);
                     });
                     return application;
                   },
@@ -251,6 +251,23 @@ angular
             });
         });
     }
+
+    // strips out Angular bits (see angular.js#toJsonReplacer), as well as executions, which often
+    // have circular references because of the horrible things we do in executions.transformer.js
+    function jsonReplacer(key, value) {
+      var val = value;
+
+      if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
+        val = undefined;
+      }
+
+      if (key === 'executions') {
+        val = undefined;
+      }
+
+      return val;
+    }
+
 
 
     return {
