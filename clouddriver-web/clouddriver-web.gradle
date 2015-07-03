@@ -1,4 +1,5 @@
 apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
 apply plugin: 'groovy'
 
 configurations.all {
@@ -18,4 +19,45 @@ dependencies {
   testCompile ("org.springframework.boot:spring-boot-starter-test")
 }
 
+tasks.bootRepackage.enabled = false
+
+applicationName = 'clouddriver'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+  into 'config'
+}
+
+sourceSets {
+  main {
+    resources {
+      srcDir 'src/main/resources'
+      srcDir 'config'
+    }
+  }
+}
+
+jar {
+  doFirst {
+    exclude "${rootProject.name}.yml"
+  }
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
+
+ospackage {
+  packageName = project.applicationName
+  version = project.version.replaceAll('-SNAPSHOT', '')
+  release '4'
+  into "/opt/${project.applicationName}"
+  from ("${project.buildDir}/install/${project.applicationName}")
+}
+
+buildDeb {
+  dependsOn installApp
+}
 
