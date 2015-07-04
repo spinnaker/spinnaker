@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.config
+package com.netflix.spinnaker.kato.gce.deploy.config
 
-import com.netflix.spinnaker.oort.gce.model.GoogleResourceRetriever
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
+import org.springframework.stereotype.Component
 
-
-@Configuration
-@ConditionalOnProperty('google.enabled')
-@ComponentScan('com.netflix.spinnaker.oort.gce')
-class GoogleConfig {
+@Component
+class KatoGoogleConfig {
   @Bean
-  GoogleResourceRetriever googleResourceRetriever() {
-    new GoogleResourceRetriever()
+  GoogleOperationPoller googleOperationPoller() {
+    new GoogleOperationPoller()
   }
 }
