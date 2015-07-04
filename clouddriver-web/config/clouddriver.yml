@@ -69,7 +69,7 @@ aws:
      - us-west-2a
      - us-west-2b
      - us-west-2c
-  defaultKeyPairTemplate: {{name}}-keypair
+  defaultKeyPairTemplate: '{{name}}-keypair'
 
   # an empty list means we are directly managing the AWS account we have credentials for (named default.account.env)
   # see prod profile section below for an example configuration to manage other accounts via STS assume role
@@ -207,7 +207,3 @@ bastion:
 
 redis:
   connection: redis://localhost:6379
-
-
-server:
-  port: 8081
