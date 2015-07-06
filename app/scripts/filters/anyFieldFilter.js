@@ -11,6 +11,8 @@
 
 'use strict';
 
+const angular = require('angular');
+
 module.exports = function () {
   return function (items, props) {
     var out = [];

@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.help.directive', [
-    require('angular-bootstrap'),
-    require('angular-marked'),
+    //require('exports?"ui-bootstrap"!angular-bootstrap'),
+    require('exports?"hc.marked"!angular-marked'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
@@ -39,4 +39,5 @@ module.exports = angular
         };
       }
     };
-  }).name;
+  })
+  .name;

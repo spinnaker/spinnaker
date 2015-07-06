@@ -21,5 +21,5 @@ module.exports = angular.module('spinnaker.application.controller', [])
 
     application.enableAutoRefresh($scope);
   }
-);
+).name;
 

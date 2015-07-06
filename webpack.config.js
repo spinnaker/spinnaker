@@ -46,7 +46,7 @@ module.exports = {
       },
       {
         test: /\.html$/,
-        loader: 'ngtemplate!html'
+        loader: 'ngtemplate?relativeTo=' + __dirname  + '/!html'
       },
     ],
   },

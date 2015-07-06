@@ -27,27 +27,34 @@ require('../styles/pipelines.less');
 require('../styles/rollups.less');
 require('../styles/tasks.less');
 
+require('../styles/imports/commonImports.less');
+require('./modules/search/global/globalSearch.less');
+
+require('spin');
+
 //let uiselect = require('exports?"ui.select"!imports?angular=angular!../../bower_components/angular-ui-select/dist/select.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker', [
+    require('utils/timeFormatters.js'),
     require('exports?"ui.select"!imports?angular=angular!../../bower_components/angular-ui-select/dist/select.js'),
     require('exports?"angulartics"!angulartics'),
-    //require('angular-animate'),
-    //require('angular-sanitize'),
-    //require('angular-ui-router'),
+    require('angular-animate'),
+    require('angular-sanitize'),
+    require('angular-ui-router'),
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    //require('angular-spinner'),
+    require('./filters/filters.module.js'),
+    //require('exports?"angular-spinner"!angular-spinner'),
     //require('angular-filter'),
     require('./providers/states.js'),
     require('./modules/caches/cacheInitializer.js'),
-    //require('./modules/delivery/states.js'),
+    require('./modules/delivery/states.js'),
     //require('ng-infinite-scroll'),
-    //require('./directives/directives.module.js'),
+    require('./directives/directives.module.js'),
     //
     //require('./modules/insight/insight.module.js'),
-    //require('./modules/applications/application.module.js'),
+    require('./modules/applications/application.module.js'),
     //require('./modules/feedback/feedback.module.js'),
     //
     //require('utils/stickyHeader/stickyHeader.directive.js'),

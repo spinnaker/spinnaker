@@ -14,4 +14,5 @@ module.exports = angular.module('spinnaker.utils', [
   require('./rx.js'),
   require('./stickyHeader/stickyHeader.directive.js'),
   require('./timeFormatters.js'),
-]);
+])
+.name;

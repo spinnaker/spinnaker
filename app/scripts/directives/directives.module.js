@@ -6,8 +6,9 @@ module.exports = angular.module('spinnaker.directives', [
   require('./gist.directive.js'),
   require('./help.directive.js'),
   require('./modalWizard.js'),
+  require('./accountLabelColor.directive.js'),
 ])
-.directive(require('./accountLabelColor.directive.js'))
+//.directive(require('./accountLabelColor.directive.js'))
 .directive(require('./accountSelectField.js'))
 .directive(require('./accountTag.js'))
 .directive(require('./autoScroll.directive.js'))
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.directives', [
 .directive(require('./checklist.directive.js'))
 .directive(require('./collapsibleSection.js'))
 .directive(require('./dynamicOverlay.js'))
-.directive(require('./insightmenu.js'))
+.directive('insightMenu', require('./insightmenu.js'))
 .directive(require('./instanceList.directive.js'))
 .directive(require('./instanceListBody.directive.js'))
 .directive(require('./instances.js'))
@@ -34,4 +35,5 @@ module.exports = angular.module('spinnaker.directives', [
 .directive(require('./submitButton.js'))
 .directive(require('./subnetSelectField.js'))
 .directive(require('./visible.js'))
-.directive(require('./wizardPage.js')).name;
+.directive(require('./wizardPage.js'))
+.name;

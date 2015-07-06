@@ -4,7 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.filters', [
 ])
-.directive(require('./anyFieldFilter.js'))
-.directive(require('./robotToHuman.js'))
-.directive(require('./stageNames.js'));
+.filter('anyFieldFilter', require('./anyFieldFilter.js'))
+.filter('robotToHuman', require('./robotToHuman.js'))
+.filter('stageNames', require('./stageNames.js'))
+.name;
 

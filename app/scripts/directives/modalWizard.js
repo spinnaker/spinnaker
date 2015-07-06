@@ -206,5 +206,5 @@ module.exports = angular.module('spinnaker.modalWizard', [])
       getWizard: getWizard
     };
   }
-);
+).name;
 
