@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.controllers.CacheController
 import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
 import com.netflix.spinnaker.clouddriver.controllers.SearchController
 import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -55,6 +56,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   Filter eTagFilter() {
     new ShallowEtagHeaderFilter()
+  }
+
+  @Bean
+  Filter authenticatedRequestFilter() {
+    new AuthenticatedRequestFilter(true)
   }
 
   @Bean

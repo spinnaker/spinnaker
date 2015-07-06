@@ -27,6 +27,8 @@ import org.cloudfoundry.client.lib.domain.InstanceState
 import org.cloudfoundry.client.lib.domain.InstancesInfo
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.core.io.ResourceLoader
+import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -111,6 +113,25 @@ class CloudFoundryDeployHandlerUnitSpec extends Specification {
     handler.handles description
   }
 
+  static boolean isOffline() {
+    Socket s
+    try {
+      s = new Socket('repo.spring.io', 80)
+      return false
+    } catch (e) {
+      return true
+    } finally {
+      if (s != null) {
+        try {
+          s.close()
+        } catch (ignored) {
+
+        }
+      }
+    }
+  }
+
+  @IgnoreIf({CloudFoundryDeployHandlerUnitSpec.isOffline()})
   void "handler handles cf deploy description with remote artifact"() {
     setup:
     handler = new CloudFoundryDeployHandler(new TestCloudFoundryClientFactory(stubClient: clientToTwoRunningInstances));

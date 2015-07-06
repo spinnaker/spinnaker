@@ -27,7 +27,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.oort.config.GoogleConfig.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.MIGSCallback
@@ -222,8 +222,10 @@ class GoogleResourceRetriever {
           def instances = [] as Set
 
           serverGroup.instances.each { instance ->
+            def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
+
             // Only include the instances from the server group that are also registered with the load balancer.
-            if (loadBalancer["instanceNames"].contains(instance.name)) {
+            if (instanceNames?.contains(instance.name)) {
               // Only include the health returned by this load balancer.
               def loadBalancerHealth = instance.health.find {
                 it.type == "LoadBalancer"
@@ -231,12 +233,12 @@ class GoogleResourceRetriever {
                 it.loadBalancerName == loadBalancerName
               }
 
-              def health = loadBalancerHealth
-                           ? [
+              def health = loadBalancerHealth ?
+                           [
                              state      : loadBalancerHealth.state,
                              description: loadBalancerHealth.description
-                           ]
-                           : [
+                           ] :
+                           [
                              state      : "Unknown",
                              description: "Unable to determine load balancer health."
                            ]
@@ -437,7 +439,7 @@ class GoogleResourceRetriever {
         }
 
         // Calculate the instance's health based on the new GCE health state and any migrated load balancer health states.
-        newGoogleInstance.setProperty("isHealthy", InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance))
+        newGoogleInstance.setProperty("healthy", InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance))
       }
     }
   }

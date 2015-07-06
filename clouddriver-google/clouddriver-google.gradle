@@ -1,0 +1,6 @@
+dependencies {
+  spinnaker.group('google')
+  compile spinnaker.dependency('frigga')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+}

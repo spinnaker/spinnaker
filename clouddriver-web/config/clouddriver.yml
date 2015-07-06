@@ -1,0 +1,209 @@
+server:
+  port: 7002
+  ssl:
+    enabled: false
+
+redis:
+  connection: redis://localhost:6379
+
+swagger:
+  enabled: true
+  title: clouddriver
+  description: Cloud read and write operations
+  contact: admin@host.net
+  patterns:
+    - .*elasticIps.*
+    - .*cache.*
+    - .*instance.*
+    - .*search.*
+    - .*security.*
+    - .*vpcs.*
+    - .*credentials.*
+    - .*subnets.*
+    - .*ops.*
+    - .*task.*
+    - .*applications.*
+    - .*aws.*
+    - .*gce.*
+    - .*instances.*
+    - .*reports.*
+
+default:
+  # legacyServerPort is a non-ssl listener, if ssl is enabled. -1 to disable
+  legacyServerPort: -1
+  account:
+    env: ${netflix.account}
+
+aws:
+  enabled: ${AWS_ENABLED:false}
+  defaults:
+    iamRole: FooRole
+    instanceClassBlockDevices:
+    - instanceClass: m3
+      blockDevices:
+      - deviceName: /dev/sdb
+        virtualName: ephemeral0
+      - deviceName: /dev/sdc
+        virtualName: ephemeral1
+
+  defaultRegions:
+   - name: eu-west-1
+     availabilityZones:
+     - eu-west-1a
+     - eu-west-1b
+     - eu-west-1c
+   - name: us-east-1
+     availabilityZones:
+     - us-east-1a
+     - us-east-1b
+     - us-east-1c
+     - us-east-1d
+     - us-east-1e
+   - name: us-west-1
+     availabilityZones:
+     - us-west-1a
+     - us-west-1b
+     - us-west-1c
+   - name: us-west-2
+     availabilityZones:
+     - us-west-2a
+     - us-west-2b
+     - us-west-2c
+  defaultKeyPairTemplate: '{{name}}-keypair'
+
+  # an empty list means we are directly managing the AWS account we have credentials for (named default.account.env)
+  # see prod profile section below for an example configuration to manage other accounts via STS assume role
+  accounts: []
+
+
+google:
+  enabled: ${GCE_ENABLED:false}
+  defaults:
+    instanceTypePersistentDisks:
+    - instanceType: n1-standard-1
+      persistentDisk:
+        type: pd-ssd
+        size: 20
+    - instanceType: n1-standard-2
+      persistentDisk:
+        type: pd-ssd
+        size: 40
+    - instanceType: n1-standard-4
+      persistentDisk:
+        type: pd-ssd
+        size: 80
+    - instanceType: n1-standard-8
+      persistentDisk:
+        type: pd-ssd
+        size: 160
+    - instanceType: n1-standard-16
+      persistentDisk:
+        type: pd-ssd
+        size: 320
+    - instanceType: f1-micro
+      persistentDisk:
+        type: pd-standard
+        size: 10
+    - instanceType: g1-small
+      persistentDisk:
+        type: pd-standard
+        size: 10
+    - instanceType: n1-highmem-2
+      persistentDisk:
+        type: pd-ssd
+        size: 40
+    - instanceType: n1-highmem-4
+      persistentDisk:
+        type: pd-ssd
+        size: 80
+    - instanceType: n1-highmem-8
+      persistentDisk:
+        type: pd-ssd
+        size: 160
+    - instanceType: n1-highmem-16
+      persistentDisk:
+        type: pd-ssd
+        size: 320
+    - instanceType: n1-highcpu-2
+      persistentDisk:
+        type: pd-ssd
+        size: 40
+    - instanceType: n1-highcpu-4
+      persistentDisk:
+        type: pd-ssd
+        size: 80
+    - instanceType: n1-highcpu-8
+      persistentDisk:
+        type: pd-ssd
+        size: 160
+    - instanceType: n1-highcpu-16
+      persistentDisk:
+        type: pd-ssd
+        size: 320
+    - instanceType: default
+      persistentDisk:
+        type: pd-standard
+        size: 100
+
+docker:
+  enabled: ${DOCKER_ENABLED:false}
+
+titan:
+  enabled: ${TITAN_ENABLED:false}
+
+cf:
+  enabled: ${CF_ENABLED:false}
+
+
+---
+
+spring:
+  profiles: prod
+
+# example https configuration for client auth to services:
+#default:
+  # legacyServerPort is a non-ssl listener when the main listener has SSL enabled
+  #legacyServerPort: 8501
+
+#server:
+  #ssl:
+    # enabled: true
+    # keyStore: clouddriver-keystore.p12
+    # keyStoreType: PKCS12
+    # keyStorePassword: changeme
+    # trustStore: services-truststore.p12
+    # trustStoreType: PKCS12
+    # trustStorePassword: changeme
+    # clientAuth: need
+
+#aws:
+  # example configuration for managing multiple accounts
+  # role in managed account to assume:
+  #defaultAssumeRole: role/myrole
+  #accounts:
+    # - name: account-display-name
+    #   defaultKeyPair: key-pair
+    #   edda: http://edda.{{region}}.host.net:7001
+    #   discovery: "http://{{region}}.discovery.host.net:7001/eureka"
+    #   accountId: 123456789012
+    #   regions: #override default regions
+    #     - name: us-east-1
+    #     - name: ap-northeast-1
+
+
+---
+
+# local profile is activated by default when running the application - override values here for local development
+#  for production, set spring.profiles.active to select the appropriate profile for your environment
+spring:
+  profiles: local
+
+# an AWSCredentialsProvider that obtains session credentials via SSH through a bastion instance (useful for local development):
+bastion:
+  enabled: false
+  port: 22
+  proxyRegion: us-west-1
+  proxyCluster: my-credentials-cluster
+
+redis:
+  connection: redis://localhost:6379

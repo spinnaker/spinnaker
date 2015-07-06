@@ -32,8 +32,6 @@ import org.apache.log4j.Logger
 class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> {
   protected static final Logger log = Logger.getLogger(this)
 
-  private static final String GOOGLE_SERVER_GROUP_TYPE = "gce"
-
   private HashMap<String, GoogleApplication> tempAppMap
   private String region
   private String localZoneName
@@ -80,7 +78,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
         def cluster = Utils.retrieveOrCreatePathToCluster(tempAppMap, accountName, appName, names.cluster)
 
         // instanceGroupManager.name == names.group
-        def googleServerGroup = new GoogleServerGroup(instanceGroupManager.name, GOOGLE_SERVER_GROUP_TYPE, region)
+        def googleServerGroup = new GoogleServerGroup(name: instanceGroupManager.name, region: region)
         googleServerGroup.zones << localZoneName
         googleServerGroup.setProperty(
           "launchConfig", [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)])

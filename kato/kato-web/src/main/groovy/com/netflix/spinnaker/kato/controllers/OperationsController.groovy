@@ -26,6 +26,8 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
+import com.netflix.spinnaker.kato.security.AllowedAccountsValidator
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -52,6 +54,9 @@ class OperationsController {
 
   @Autowired
   ExtendedRegistry extendedRegistry
+
+  @Autowired(required = false)
+  Collection<AllowedAccountsValidator> allowedAccountValidators = []
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
@@ -104,6 +109,9 @@ class OperationsController {
   }
 
   private List<AtomicOperationBindingResult> convert(List<Map<String, Map>> inputs) {
+    def username = AuthenticatedRequest.getSpinnakerUser().orElse(null)
+    def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
+
     def descriptions = []
     inputs.collectMany { input ->
       input.collect { k, v ->
@@ -115,6 +123,11 @@ class OperationsController {
           def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
           validator.validate(descriptions, description, errors)
         }
+
+        allowedAccountValidators.each {
+          it.validate(username, allowedAccounts, description, errors)
+        }
+
         AtomicOperation atomicOperation = converter.convertOperation(v)
         if (!atomicOperation) {
           throw new AtomicOperationNotFoundException(k)

@@ -38,7 +38,9 @@ class RedisConfig {
   }
 
   @Bean
-  JedisPool jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection, GenericObjectPoolConfig redisPoolConfig) {
+  JedisPool jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
+                      @Value('${redis.timeout:2000}') int timeout,
+                      GenericObjectPoolConfig redisPoolConfig) {
     URI redisConnection = URI.create(connection)
 
     String host = redisConnection.host
@@ -48,7 +50,7 @@ class RedisConfig {
 
     String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
 
-    new JedisPool(redisPoolConfig, host, port, Protocol.DEFAULT_TIMEOUT, password, database, null)
+    new JedisPool(redisPoolConfig, host, port, timeout, password, database, null)
   }
 
   @Bean

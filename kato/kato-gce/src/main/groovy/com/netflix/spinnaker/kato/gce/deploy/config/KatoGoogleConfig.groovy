@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":clouddriver-core")
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootDataRest')
-  compile spinnaker.dependency('amos')
-  compile spinnaker.dependency('kork')
-  compile spinnaker.dependency("frigga")
-  compile spinnaker.dependency('korkSecurity')
+package com.netflix.spinnaker.kato.gce.deploy.config
+
+import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
+import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
+
+@Component
+class KatoGoogleConfig {
+  @Bean
+  GoogleOperationPoller googleOperationPoller() {
+    new GoogleOperationPoller()
+  }
 }

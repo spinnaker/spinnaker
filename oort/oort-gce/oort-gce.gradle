@@ -1,5 +1,6 @@
 dependencies {
   compile project(":oort:oort-core")
+  compile project(":clouddriver-google")
 
   spinnaker.group("bootWeb")
   spinnaker.group("google")

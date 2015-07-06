@@ -41,15 +41,15 @@ class GoogleLoadBalancerControllerSpec extends Specification {
     setup:
       def networkLoadBalancerMap = [
         'my-account-name': [
-          'us-central1' : [new GoogleLoadBalancer('lb1', 'some-account', 'us-central1'),
-                           new GoogleLoadBalancer('lb2', 'some-account', 'us-central1'),
-                           new GoogleLoadBalancer('lb3', 'some-account', 'us-central1')],
-          'europe-west1': [new GoogleLoadBalancer('lb4', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb5', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb6', 'some-account', 'europe-west1')],
-          'asia-east1'  : [new GoogleLoadBalancer('lb7', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb8', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb9', 'some-account', 'asia-east1')],
+          'us-central1' : [new GoogleLoadBalancer(name: 'lb1', account: 'some-account', region: 'us-central1'),
+                           new GoogleLoadBalancer(name: 'lb2', account: 'some-account', region: 'us-central1'),
+                           new GoogleLoadBalancer(name: 'lb3', account: 'some-account', region: 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer(name: 'lb4', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb5', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb6', account: 'some-account', region: 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer(name: 'lb7', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb8', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb9', account: 'some-account', region: 'asia-east1')],
         ]
       ]
 
@@ -70,23 +70,23 @@ class GoogleLoadBalancerControllerSpec extends Specification {
     setup:
       def networkLoadBalancerMap = [
         'my-account-name': [
-          'us-central1' : [new GoogleLoadBalancer('lb1', 'some-account', 'us-central1'),
-                           new GoogleLoadBalancer('lb2', 'some-account', 'us-central1'),
-                           new GoogleLoadBalancer('lb3', 'some-account', 'us-central1')],
-          'europe-west1': [new GoogleLoadBalancer('lb4', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb5', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb6', 'some-account', 'europe-west1')],
-          'asia-east1'  : [new GoogleLoadBalancer('lb7', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb8', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb9', 'some-account', 'asia-east1')],
+          'us-central1' : [new GoogleLoadBalancer(name: 'lb1', account: 'some-account', region: 'us-central1'),
+                           new GoogleLoadBalancer(name: 'lb2', account: 'some-account', region: 'us-central1'),
+                           new GoogleLoadBalancer(name: 'lb3', account: 'some-account', region: 'us-central1')],
+          'europe-west1': [new GoogleLoadBalancer(name: 'lb4', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb5', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb6', account: 'some-account', region: 'europe-west1')],
+          'asia-east1'  : [new GoogleLoadBalancer(name: 'lb7', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb8', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb9', account: 'some-account', region: 'asia-east1')],
         ],
         'my-account-name-2': [
-          'asia-east1'  : [new GoogleLoadBalancer('lb10', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb11', 'some-account', 'asia-east1'),
-                           new GoogleLoadBalancer('lb12', 'some-account', 'asia-east1')],
-          'europe-west1': [new GoogleLoadBalancer('lb13', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb14', 'some-account', 'europe-west1'),
-                           new GoogleLoadBalancer('lb15', 'some-account', 'europe-west1')]
+          'asia-east1'  : [new GoogleLoadBalancer(name: 'lb10', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb11', account: 'some-account', region: 'asia-east1'),
+                           new GoogleLoadBalancer(name: 'lb12', account: 'some-account', region: 'asia-east1')],
+          'europe-west1': [new GoogleLoadBalancer(name: 'lb13', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb14', account: 'some-account', region: 'europe-west1'),
+                           new GoogleLoadBalancer(name: 'lb15', account: 'some-account', region: 'europe-west1')]
         ]
       ]
 

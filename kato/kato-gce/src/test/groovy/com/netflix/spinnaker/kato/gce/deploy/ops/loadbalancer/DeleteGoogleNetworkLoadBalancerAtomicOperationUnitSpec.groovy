@@ -21,10 +21,10 @@ import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPool
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.kato.gce.deploy.config.GoogleConfig
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationTimedOutException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
@@ -84,7 +84,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -141,7 +141,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -215,7 +215,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -259,7 +259,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
@@ -310,7 +310,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           credentials: credentials)
       @Subject def operation = new DeleteGoogleNetworkLoadBalancerAtomicOperation(description)
       operation.googleOperationPoller =
-        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfig.GoogleConfigurationProperties())
+        new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
     when:
       operation.operate([])
