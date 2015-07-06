@@ -17,6 +17,9 @@
 package com.netflix.spinnaker.gate.security.onelogin.saml
 
 import com.netflix.spinnaker.gate.security.onelogin.AccountSettings
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 import java.lang.reflect.Method
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
@@ -32,6 +35,8 @@ import org.xml.sax.SAXException
 
 class Response {
 
+  private final Logger log = LoggerFactory.getLogger(Response)
+
   private Document xmlDoc;
   private NodeList assertions;
   private Element rootElement;
@@ -46,21 +51,26 @@ class Response {
   }
 
   public void loadXml(String xml) throws ParserConfigurationException, SAXException, IOException, XPathExpressionException {
-    DocumentBuilderFactory fty = DocumentBuilderFactory.newInstance();
-    fty.setNamespaceAware(true);
-    // XMLConstants with FEATURE_SECURE_PROCESSING prevents external document access. (XXE/XEE Possible Attacks).
-    fty.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-    DocumentBuilder builder = fty.newDocumentBuilder();
-    ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes());
-    xmlDoc = builder.parse(bais);
-    // Loop through the doc and tag every element with an ID attribute as an XML ID node.
-    XPath xpath = XPathFactory.newInstance().newXPath();
-    XPathExpression expr = xpath.compile("//*[@ID]");
-    NodeList nodeList = (NodeList) expr.evaluate(xmlDoc, XPathConstants.NODESET);
-    for (int i = 0; i < nodeList.getLength(); i++) {
-      Element elem = (Element) nodeList.item(i);
-      Attr attr = (Attr) elem.getAttributes().getNamedItem("ID");
-      elem.setIdAttributeNode(attr, true);
+    try {
+      DocumentBuilderFactory fty = DocumentBuilderFactory.newInstance();
+      fty.setNamespaceAware(true);
+      // XMLConstants with FEATURE_SECURE_PROCESSING prevents external document access. (XXE/XEE Possible Attacks).
+      fty.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+      DocumentBuilder builder = fty.newDocumentBuilder();
+      ByteArrayInputStream bais = new ByteArrayInputStream(xml.getBytes());
+      xmlDoc = builder.parse(bais);
+      // Loop through the doc and tag every element with an ID attribute as an XML ID node.
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      XPathExpression expr = xpath.compile("//*[@ID]");
+      NodeList nodeList = (NodeList) expr.evaluate(xmlDoc, XPathConstants.NODESET);
+      for (int i = 0; i < nodeList.getLength(); i++) {
+        Element elem = (Element) nodeList.item(i);
+        Attr attr = (Attr) elem.getAttributes().getNamedItem("ID");
+        elem.setIdAttributeNode(attr, true);
+      }
+    } catch (e) {
+      log.error("Failed parsing OneLogin response XML:\n------\n${xml}\n------", e)
+      throw e
     }
   }
 
