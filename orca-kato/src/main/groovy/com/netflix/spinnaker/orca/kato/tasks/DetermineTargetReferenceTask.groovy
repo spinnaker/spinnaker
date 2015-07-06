@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,46 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class ResizeAsgTask implements Task {
-
-  @Autowired
-  KatoService kato
+class DetermineTargetReferenceTask implements Task {
 
   @Autowired
   TargetReferenceSupport targetReferenceSupport
 
-  @Autowired
-  ResizeAsgStage resizeAsgStage
-
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[resizeAsgDescription: operation]])
-                     .toBlocking()
-                     .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"   : "resizeasg",
-        "deploy.account.name" : operation.credentials,
-        "kato.last.task.id"   : taskId,
-        "asgName"             : operation.asgName,
-        "deploy.server.groups": operation.regions.collectEntries {
-          [(it): [operation.asgName]]
-        }
+      targetReferences: targetReferenceSupport.getTargetAsgReferences(stage)
     ])
-  }
-
-  Map convert(Stage stage) {
-    Map context = stage.context
-    if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
-      def descriptors = resizeAsgStage.createResizeStageDescriptors(stage, targetReferences)
-      if (!descriptors.isEmpty()) {
-        context = descriptors[0]
-      }
-    }
-    if (context.containsKey(ResizeAsgStage.MAYO_CONFIG_TYPE)) {
-      context = (Map) context[ResizeAsgStage.MAYO_CONFIG_TYPE]
-    }
-    context
   }
 }

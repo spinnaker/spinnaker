@@ -86,4 +86,19 @@ class AbstractScalingProcessTaskSpec extends Specification {
       ]
     ])
   }
+
+  def "should get target reference dynamically when stage is dynamic"() {
+    given:
+    TargetReferenceSupport targetReferenceSupport = Mock()
+
+    def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+    def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
+    1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> tR("targetAsg", ["Launch"])
+  }
 }

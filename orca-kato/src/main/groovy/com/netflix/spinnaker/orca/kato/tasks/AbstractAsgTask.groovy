@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -35,24 +36,36 @@ abstract class AbstractAsgTask implements Task {
   @Autowired
   ObjectMapper mapper
 
+  @Autowired
+  TargetReferenceSupport targetReferenceSupport
+
   abstract String getAsgAction()
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = new HashMap(stage.context)
-    def taskId = kato.requestOperations([
-      [("${asgAction}Description".toString()): operation]
-    ]).toBlocking().first()
+    def operation = convert(stage)
+    def taskId = kato.requestOperations([[("${asgAction}Description".toString()): operation]])
+                     .toBlocking()
+                     .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"                             : getAsgAction().toLowerCase(),
       "kato.last.task.id"                             : taskId,
-      "kato.task.id"                                  : taskId, // TODO retire this.
       "deploy.account.name"                           : operation.credentials,
+      "asgName"                                       : operation.asgName,
       ("targetop.asg.${asgAction}.name".toString())   : operation.asgName,
       ("targetop.asg.${asgAction}.regions".toString()): operation.regions,
       "deploy.server.groups"                          : (operation.regions as Collection<String>).collectEntries {
         [(it): [operation.asgName]]
       }
     ])
+  }
+
+  Map convert(Stage stage) {
+    def operation = new HashMap(stage.context)
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+      operation.asgName = targetReference.asg.name
+    }
+    operation
   }
 }

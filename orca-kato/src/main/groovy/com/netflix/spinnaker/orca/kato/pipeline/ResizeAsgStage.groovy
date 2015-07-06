@@ -42,6 +42,9 @@ class ResizeAsgStage extends LinearStage {
   @Autowired
   ModifyScalingProcessStage modifyScalingProcessStage
 
+  @Autowired
+  DetermineTargetReferenceStage determineTargetReferenceStage
+
   ResizeAsgStage() {
     super(MAYO_CONFIG_TYPE)
   }
@@ -51,11 +54,13 @@ class ResizeAsgStage extends LinearStage {
     if (!stage.parentStageId || stage.execution.stages.find { it.id == stage.parentStageId}.type != stage.type) {
       // configure iff this stage has no parent or has a parent that is not a ResizeAsg stage
       configureTargets(stage)
+      if (targetReferenceSupport.isDynamicallyBound(stage)) {
+        injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, stage.context)
+      }
       stage.initializationStage = true
 
       // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
       stage.status = ExecutionStatus.SUCCEEDED
-
       return []
     } else {
       def step1 = buildStep(stage, "resizeAsg", ResizeAsgTask)
@@ -73,14 +78,52 @@ class ResizeAsgStage extends LinearStage {
       throw new RuntimeException("Could not determine target ASGs!")
     }
 
+    def descriptions = createResizeStageDescriptors(stage, targetReferences)
+
+    if (descriptions.size()) {
+      for (description in descriptions) {
+        injectAfter(stage, "resizeAsg", this, description)
+      }
+    }
+
+    targetReferences.each { targetReference ->
+      def context = [
+        asgName    : targetReference.asg?.name,
+        credentials: stage.context.credentials,
+        regions    : [targetReference.region]
+      ]
+
+      if (targetReferenceSupport.isDynamicallyBound(stage)) {
+        context.remove("asgName")
+        context.target = stage.context.target
+      }
+
+      injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
+        action: "resume",
+        processes: ["Launch", "Terminate"]
+      ])
+      injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, context + [
+        action: "suspend"
+      ])
+    }
+  }
+
+  @CompileDynamic
+  public List<Map<String, Object>> createResizeStageDescriptors(Stage stage, List<TargetReference> targetReferences) {
     def optionalConfig = stage.mapTo(OptionalConfiguration)
     Map<String, Map<String, Object>> descriptions = [:]
+    Map<String, Object> dynamicDescription = null
 
     for (TargetReference target : targetReferences) {
       def region = target.region
       def asg = target.asg
 
       def description = new HashMap(stage.context)
+
+      if (!asg && targetReferenceSupport.isDynamicallyBound(stage)) {
+        dynamicDescription = new HashMap(stage.context)
+        continue
+      }
 
       if (descriptions.containsKey(asg.name)) {
         descriptions[asg.name as String].regions.add(region)
@@ -126,32 +169,14 @@ class ResizeAsgStage extends LinearStage {
 
       descriptions[asg.name as String] = description
     }
-
-    def descriptionList = descriptions.values()
-    if (descriptionList.size()) {
-      for (description in descriptionList) {
-        injectAfter(stage, "resizeAsg", this, description)
-      }
-    }
-
-    targetReferences.each { targetReference ->
-      def context = [
-        asgName    : targetReference.asg.name,
-        credentials: stage.context.credentials,
-        regions    : [targetReference.region]
-      ]
-
-      injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
-        action: "resume",
-        processes: ["Launch", "Terminate"]
-      ])
-      injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, context + [
-        action: "suspend"
-      ])
+    if (dynamicDescription) {
+      [dynamicDescription]
+    } else {
+      descriptions.values().flatten()
     }
   }
 
-  enum ResizeAction {
+  static enum ResizeAction {
     scale_up, scale_down
   }
 

@@ -32,7 +32,7 @@ import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
 import spock.lang.Specification
 
-class ResizeAsgStageSpec extends Specification {
+class ResizeASgStageSpec extends Specification {
 
   def mapper = OrcaObjectMapper.DEFAULT
   def targetReferenceSupport = Mock(TargetReferenceSupport)
@@ -141,6 +141,29 @@ class ResizeAsgStageSpec extends Specification {
       ]
     ])
 
+  }
+
+  void "should inject a determineTargetReferences stage if target is dynamic"() {
+    setup:
+    def config = [cluster: "testapp-asg", target: target, regions: ["us-east-1"],
+                  capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, "resizeAsg", config)
+
+    when:
+    stageBuilder.buildSteps(stage)
+
+    then:
+    _ * targetReferenceSupport.isDynamicallyBound(_) >> true
+    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1", cluster: "testapp-asg")]
+
+    stage.afterStages.size() == 2
+    stage.beforeStages.size() == 2
+    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
+    stage.beforeStages*.name == ['resumeScalingProcesses', 'determineTargetReferences']
+
+    where:
+    target << ['ancestor_asg_dynamic', 'current_asg_dynamic']
   }
 
   void "should allow target capacity to be percentage based"() {

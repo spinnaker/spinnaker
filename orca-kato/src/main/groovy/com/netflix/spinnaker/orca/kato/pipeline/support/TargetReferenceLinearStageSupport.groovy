@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,14 +29,29 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   @Autowired
   TargetReferenceSupport targetReferenceSupport
 
+  @Autowired
+  DetermineTargetReferenceStage determineTargetReferenceStage
+
   TargetReferenceLinearStageSupport(String name) {
     super(name)
   }
 
   void composeTargets(Stage stage) {
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      // We only want to determine the target ASG once per stage, so only inject if this is the root stage, i.e.
+      // the one the user configured
+      // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
+      // as part of some other stage that is not itself injecting a determineTargetReferences stage
+      if (!stage.parentStageId) {
+        injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, stage.context)
+      }
+      return
+    }
+
     def targets = targetReferenceSupport.getTargetAsgReferences(stage)
     if (!targets) {
-      throw new TargetReferenceNotFoundException("Could not ascertain targets! ${objectMapper.writeValueAsString(stage.context)}")
+      throw new TargetReferenceNotFoundException("Could not ascertain targets! " +
+        "${objectMapper.writeValueAsString(stage.context)}")
     }
 
     Map<String, Map<String, Object>> descriptions = [:]
@@ -44,13 +60,16 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
       def asg = target.asg
 
       def description = new HashMap(stage.context)
-
-      if (descriptions.containsKey(asg.name)) {
-        ((List<String>)descriptions.get(asg.name).regions) << region
-      } else {
-        description.asgName = asg.name
-        description.regions = [region]
-        descriptions[asg.name as String] = description
+      // for dynamically configured stages, the ASG will not be present until
+      // the determineTargetReferences stage completes
+      if (asg) {
+        if (descriptions.containsKey(asg.name)) {
+          ((List<String>)descriptions.get(asg.name).regions) << region
+        } else {
+          description.asgName = asg.name
+          description.regions = [region]
+          descriptions[asg.name as String] = description
+        }
       }
     }
 

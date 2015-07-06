@@ -21,6 +21,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceConfiguration
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -42,8 +45,10 @@ class DestroyAsgTaskSpec extends Specification {
     mapper.registerModule(new GuavaModule())
 
     task.mapper = mapper
+    task.targetReferenceSupport = Mock(TargetReferenceSupport)
 
     stage.context = destroyASGConfig
+
   }
 
   def "creates a destroy ASG task based on job parameters"() {
@@ -80,8 +85,8 @@ class DestroyAsgTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
-    result.outputs."deploy.account.name" == destroyASGConfig.credentials
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == destroyASGConfig.credentials
   }
 
   void "should pop inputs off destroyAsgDescriptions context field when present"() {
@@ -99,9 +104,29 @@ class DestroyAsgTaskSpec extends Specification {
 
     then:
     1 == stage.context.destroyAsgDescriptions.size()
-    result.outputs."deploy.account.name" == account
+    result.stageOutputs."deploy.account.name" == account
 
     where:
     account = "account"
+  }
+
+  void "should get target dynamically when configured"() {
+    setup:
+    stage.context.target = TargetReferenceConfiguration.Target.ancestor_asg_dynamic
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    1 * task.targetReferenceSupport.isDynamicallyBound(stage) >> true
+    1 * task.targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> [
+      asg: [name: "foo-v001"],
+      region: "us-west-1"
+    ]
+    result.stageOutputs.asgName == "foo-v001"
+    result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
   }
 }

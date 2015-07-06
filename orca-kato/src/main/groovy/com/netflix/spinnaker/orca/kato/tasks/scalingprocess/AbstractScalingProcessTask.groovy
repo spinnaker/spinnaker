@@ -44,9 +44,15 @@ abstract class AbstractScalingProcessTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def targetReference = targetReferenceSupport.getTargetAsgReferences(stage).find {
-      it.asg.name == stage.context.asgName
+    def targetReference
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+    } else {
+      targetReference = targetReferenceSupport.getTargetAsgReferences(stage).find {
+        it.asg.name == stage.context.asgName
+      }
     }
+    def asgName = targetReference.asg.name
 
     /*
      * If scaling processes have been explicitly supplied (context.processes), use them.
@@ -55,16 +61,20 @@ abstract class AbstractScalingProcessTask implements Task {
      */
     def processes = filterProcesses(
       targetReference,
-      (stage.context.processes ?: stage.context["scalingProcesses.${stage.context.asgName}" as String]) as List<String>
+      (stage.context.processes ?: stage.context["scalingProcesses.${asgName}" as String]) as List<String>
     )
     def stageContext = new HashMap(stage.context) + [
       processes: processes
     ]
 
+    def stageData = stage.mapTo(StageData)
+    stageData.asgName = asgName
+
     def stageOutputs = [
       "notification.type"   : getType().toLowerCase(),
-      "deploy.server.groups": stage.mapTo(StageData).affectedServerGroupMap,
-      "processes"           : stageContext.processes
+      "deploy.server.groups": stageData.affectedServerGroupMap,
+      "processes"           : stageContext.processes,
+      "asgName"             : asgName
     ]
     if (stageContext.processes) {
       def taskId = katoService.requestOperations([[(getType()): stageContext]])
@@ -75,7 +85,7 @@ abstract class AbstractScalingProcessTask implements Task {
     }
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
-      ("scalingProcesses.${stageContext.asgName}" as String): stageContext.processes
+      ("scalingProcesses.${asgName}" as String): stageContext.processes
     ])
   }
 

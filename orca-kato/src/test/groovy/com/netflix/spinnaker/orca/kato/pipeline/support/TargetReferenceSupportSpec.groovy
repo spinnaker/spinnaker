@@ -18,12 +18,15 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class TargetReferenceSupportSpec extends Specification {
 
@@ -33,8 +36,19 @@ class TargetReferenceSupportSpec extends Specification {
 
   def pipeline = new Pipeline()
 
-  def cluster = [serverGroups: [[
+  def cluster = [serverGroups: [
+                                [
+                                  name  : "kato-main-v999",
+                                  createdTime: 0,
+                                  region: "us-west-1",
+                                  asg   : [
+                                    minSize        : 5,
+                                    maxSize        : 5,
+                                    desiredCapacity: 5
+                                  ]
+                                ], [
                                   name  : "kato-main-v000",
+                                  createdTime: 1,
                                   region: "us-west-1",
                                   asg   : [
                                     minSize        : 5,
@@ -43,6 +57,7 @@ class TargetReferenceSupportSpec extends Specification {
                                   ]
                                 ], [
                                   name  : "kato-main-v001",
+                                  createdTime: 2,
                                   region: "us-west-1",
                                   asg   : [
                                     minSize        : 5,
@@ -51,6 +66,7 @@ class TargetReferenceSupportSpec extends Specification {
                                   ]
                                 ], [
                                   name  : "kato-main-v001",
+                                  createdTime: 2,
                                   region: "us-east-1",
                                   asg   : [
                                     minSize        : 5,
@@ -59,6 +75,7 @@ class TargetReferenceSupportSpec extends Specification {
                                   ]
                                 ], [
                                   name  : "kato-main-v002",
+                                  createdTime: 3,
                                   region: "us-east-1",
                                   asg   : [
                                     minSize        : 5,
@@ -72,7 +89,8 @@ class TargetReferenceSupportSpec extends Specification {
     subject = new TargetReferenceSupport(mapper: mapper, oort: oort)
   }
 
-  void "should resolve target reference appropriately"() {
+  @Unroll
+  void "should resolve target (#target) reference appropriately"() {
     setup:
     def config = [
       regions    : ["us-west-1", "us-east-1"],
@@ -80,7 +98,7 @@ class TargetReferenceSupportSpec extends Specification {
       target     : target,
       credentials: "prod"
     ]
-    def stage = new PipelineStage(pipeline, "test", config)
+    def stage = new PipelineStage(pipeline, type, config)
 
     when:
     def targets = subject.getTargetAsgReferences(stage)
@@ -100,9 +118,90 @@ class TargetReferenceSupportSpec extends Specification {
     targets*.asg.name == asgNames
 
     where:
-    target         | regions                    | asgNames
-    "current_asg"  | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v002"]
-    "ancestor_asg" | ["us-west-1", "us-east-1"] | ["kato-main-v000", "kato-main-v001"]
+    target                 | type                       | regions                    | asgNames
+    "current_asg"          | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v002"]
+    "ancestor_asg"         | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v000", "kato-main-v001"]
+    "oldest_asg"           | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v999", "kato-main-v001"]
+    "current_asg_dynamic"  | "determineTargetReference" | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v002"]
+    "ancestor_asg_dynamic" | "determineTargetReference" | ["us-west-1", "us-east-1"] | ["kato-main-v000", "kato-main-v001"]
+
+  }
+
+  @Unroll
+  void "should look up cluster info for dynamic target (#target) only on DetermineTargetReferenceStage"() {
+    setup:
+    def config = [
+      regions    : ["us-west-1", "us-east-1"],
+      cluster    : "kato-main",
+      target     : target,
+      credentials: "prod"
+    ]
+    def stage = new PipelineStage(pipeline, type, config)
+
+    when:
+    subject.getTargetAsgReferences(stage)
+
+    then:
+    oortCalls * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+      new Response(
+        "foo", 200, "ok", [],
+        new TypedByteArray(
+          "application/json",
+          mapper.writeValueAsBytes(cluster)
+        )
+      )
+    }
+
+    where:
+    target                 | type                       | oortCalls
+    "current_asg_dynamic"  | "determineTargetReference" | 1
+    "ancestor_asg_dynamic" | "determineTargetReference" | 1
+    "current_asg_dynamic"  | "test"                     | 0
+    "ancestor_asg_dynamic" | "test"                     | 0
+  }
+
+  @Unroll
+  void "should resolve target (#target) from upstream stage when dynamically bound"() {
+    setup:
+    def config = [
+      regions    : ["us-west-1", "us-east-1"],
+      cluster    : "kato-main",
+      target     : target,
+      credentials: "prod"
+    ]
+
+    def upstreamTargets = [
+      targetReferences: [
+        new TargetReference(region: "us-west-1", cluster: "kato-main", asg: [ name: "kato-main-v001"]),
+        new TargetReference(region: "us-east-1", cluster: "kato-main", asg: [ name: "kato-main-v000"])
+      ]
+    ]
+
+
+    def rootStage = new PipelineStage(pipeline, "root", config)
+
+    def stage = new PipelineStage(pipeline, "test", config)
+    stage.parentStageId = rootStage.id
+
+    def determineTargetStage = new PipelineStage(pipeline, DetermineTargetReferenceStage.MAYO_CONFIG_TYPE, upstreamTargets)
+    determineTargetStage.parentStageId = rootStage.id
+
+    pipeline.stages = [rootStage, stage, determineTargetStage]
+
+    when:
+    def targets = subject.getTargetAsgReferences(stage)
+
+    then:
+    0 * oort.getCluster(_, _, _, _)
+    2 == targets.size()
+    targets*.region == regions
+    targets*.asg.name == asgNames
+
+    where:
+    target                 | regions                    | asgNames
+    "current_asg_dynamic"  | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v000"]
+    "ancestor_asg_dynamic" | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v000"]
+
   }
 
   void "should resolve exact target reference appropriately"() {
