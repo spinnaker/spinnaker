@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 class TargetReferenceConfiguration {
   enum Target {
-    current_asg, ancestor_asg, current_asg_dynamic, ancestor_asg_dynamic, oldest_asg
+    current_asg, ancestor_asg, current_asg_dynamic, ancestor_asg_dynamic, oldest_asg_dynamic
   }
 
   Target target

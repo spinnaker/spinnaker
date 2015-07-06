@@ -121,19 +121,18 @@ class TargetReferenceSupportSpec extends Specification {
     target                 | type                       | regions                    | asgNames
     "current_asg"          | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v002"]
     "ancestor_asg"         | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v000", "kato-main-v001"]
-    "oldest_asg"           | "test"                     | ["us-west-1", "us-east-1"] | ["kato-main-v999", "kato-main-v001"]
+    "oldest_asg_dynamic"   | "determineTargetReference" | ["us-west-1", "us-east-1"] | ["kato-main-v999", "kato-main-v001"]
     "current_asg_dynamic"  | "determineTargetReference" | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v002"]
     "ancestor_asg_dynamic" | "determineTargetReference" | ["us-west-1", "us-east-1"] | ["kato-main-v000", "kato-main-v001"]
 
   }
 
-  @Unroll
-  void "should throw exception when less than two ASGs are found and target is #target"() {
+  void "should throw exception when less than two ASGs are found and target is ancestor_asg"() {
     setup:
     def config = [
       regions     : ["us-east-1"],
       cluster     : "kato-main",
-      target      : target,
+      target      : "ancestor_asg",
       credentials : "prod"
     ]
     def stage = new PipelineStage(pipeline, "test", config)
@@ -159,9 +158,6 @@ class TargetReferenceSupportSpec extends Specification {
       new Response("foo", 200, "ok", [], new TypedByteArray("application/json", response))
     }
     thrown TargetReferenceNotFoundException
-
-    where:
-    target << ["oldest_asg", "ancestor_asg"]
   }
 
   @Unroll
@@ -186,7 +182,7 @@ class TargetReferenceSupportSpec extends Specification {
     thrown TargetReferenceNotFoundException
 
     where:
-    target << ["oldest_asg", "ancestor_asg", "current_asg"]
+    target << ["ancestor_asg", "current_asg"]
   }
 
   @Unroll
@@ -218,8 +214,10 @@ class TargetReferenceSupportSpec extends Specification {
     target                 | type                       | oortCalls
     "current_asg_dynamic"  | "determineTargetReference" | 1
     "ancestor_asg_dynamic" | "determineTargetReference" | 1
+    "oldest_asg_dynamic"   | "determineTargetReference" | 1
     "current_asg_dynamic"  | "test"                     | 0
     "ancestor_asg_dynamic" | "test"                     | 0
+    "oldest_asg_dynamic"   | "test"                     | 0
   }
 
   @Unroll
@@ -263,6 +261,7 @@ class TargetReferenceSupportSpec extends Specification {
     target                 | regions                    | asgNames
     "current_asg_dynamic"  | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v000"]
     "ancestor_asg_dynamic" | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v000"]
+    "oldest_asg_dynamic"   | ["us-west-1", "us-east-1"] | ["kato-main-v001", "kato-main-v000"]
 
   }
 

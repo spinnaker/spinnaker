@@ -159,13 +159,14 @@ class TargetReferenceSupport {
   }
 
   private static boolean isOldestAsg(config) {
-    TargetReferenceConfiguration.Target.oldest_asg == config.target
+    TargetReferenceConfiguration.Target.oldest_asg_dynamic == config.target
   }
 
   boolean isDynamicallyBound(Stage stage) {
     def config = stage.mapTo(TargetReferenceConfiguration)
     config.target == TargetReferenceConfiguration.Target.ancestor_asg_dynamic ||
-      config.target == TargetReferenceConfiguration.Target.current_asg_dynamic
+      config.target == TargetReferenceConfiguration.Target.current_asg_dynamic ||
+      config.target == TargetReferenceConfiguration.Target.oldest_asg_dynamic
   }
 
   List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
