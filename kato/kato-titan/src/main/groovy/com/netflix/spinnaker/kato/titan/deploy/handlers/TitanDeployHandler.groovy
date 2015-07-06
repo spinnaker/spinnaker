@@ -20,7 +20,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeployDescription
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
-import com.netflix.spinnaker.kato.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.kato.titan.model.DockerImage
 import com.netflix.spinnaker.kato.titan.deploy.TitanServerGroupNameResolver
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
@@ -56,7 +56,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}:${subnetType}..."
     DockerImage dockerImage = DockerImage.DockerImageResolver.resolveImage(description.dockerImage)
 
-    TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient, description.source.account, description.subnetType)
+    TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient)
     String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.details)
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 

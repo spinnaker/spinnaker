@@ -27,12 +27,12 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
 @Component
-class CatsInstanceProvider implements InstanceProvider<TitanInstance> {
+class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
 
   private final Cache cacheView
 
   @Autowired
-  CatsInstanceProvider(Cache cacheView) {
+  TitanInstanceProvider(Cache cacheView) {
     this.cacheView = cacheView
   }
 

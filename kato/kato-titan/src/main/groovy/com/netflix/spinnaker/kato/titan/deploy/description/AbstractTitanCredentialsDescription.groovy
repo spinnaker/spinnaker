@@ -18,7 +18,7 @@ package com.netflix.spinnaker.kato.titan.deploy.description
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.kato.titan.credentials.NetflixTitanCredentials
+import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 
 /**
  * @author sthadeshwar

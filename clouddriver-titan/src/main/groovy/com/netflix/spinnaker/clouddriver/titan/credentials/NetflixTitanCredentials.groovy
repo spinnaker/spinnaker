@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.titan.credentials
+package com.netflix.spinnaker.clouddriver.titan.credentials
 
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.kato.titan.credentials.config.CredentialsConfig
+import com.netflix.spinnaker.amos.AccountCredentials    // TODO - Titan module should not need 'amos'!
+import com.netflix.titanclient.TitanRegion
+import com.netflix.titanclient.security.TitanCredentials
 
 /**
  * @author sthadeshwar
@@ -25,9 +26,9 @@ import com.netflix.spinnaker.kato.titan.credentials.config.CredentialsConfig
 class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
 
   private final String name
-  private final List<Region> regions
+  private final List<TitanRegion> regions
 
-  NetflixTitanCredentials(String name, List<CredentialsConfig.Region> regions) {
+  NetflixTitanCredentials(String name, List<TitanRegion> regions) {
     this.name = name
     this.regions = regions
   }
@@ -47,11 +48,8 @@ class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
     "titan"
   }
 
-  List<CredentialsConfig.Region> getRegions() {
+  List<TitanRegion> getRegions() {
     return regions
   }
 
-  static class Region {
-    String name
-  }
 }

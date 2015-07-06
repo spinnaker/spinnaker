@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.providers
-
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
@@ -28,24 +27,24 @@ import com.netflix.spinnaker.oort.titan.model.TitanInstance
 import com.netflix.spinnaker.oort.titan.model.TitanServerGroup
 import com.netflix.titanclient.model.Job
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
 
 @Component
-class CatsClusterProvider implements ClusterProvider<TitanCluster> {
+class TitanClusterProvider implements ClusterProvider<TitanCluster> {
 
   private final Cache cacheView
-  private final TitanCachingProvider titanProvider
-
-  @Value('${default.build.host:http://builds.netflix.com/}')
-  String defaultBuildHost
+  private final TitanCachingProvider titanCachingProvider
 
   @Autowired
-  CatsClusterProvider(Cache cacheView, TitanCachingProvider titanProvider) {
+  TitanClusterProvider(Cache cacheView, TitanCachingProvider titanCachingProvider) {
     this.cacheView = cacheView
-    this.titanProvider = titanProvider
+    this.titanCachingProvider = titanCachingProvider
   }
 
   @Override
@@ -161,7 +160,7 @@ class CatsClusterProvider implements ClusterProvider<TitanCluster> {
     Map<String, String> healthKeysToInstance = [:]
     instanceData.each { instanceEntry ->
       Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
-      titanProvider.healthAgents.each {
+      titanCachingProvider.healthAgents.each {
         def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
         healthKeysToInstance.put(key, instanceEntry.id)
       }

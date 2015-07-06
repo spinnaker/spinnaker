@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.titan.caching.config
-
+package com.netflix.spinnaker.oort.titan.caching
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.CachingAgent
-import com.netflix.spinnaker.oort.titan.TitanClientProvider
-import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.oort.titan.caching.agents.ClusterCachingAgent
 import com.netflix.spinnaker.oort.titan.caching.agents.ImageCachingAgent
 import com.netflix.spinnaker.oort.titan.caching.agents.InstanceCachingAgent
-import com.netflix.spinnaker.oort.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.oort.titan.credentials.config.CredentialsConfig
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.DependsOn
 
 /**
  * @author sthadeshwar
@@ -36,11 +34,12 @@ import org.springframework.context.annotation.Configuration
 class TitanCachingProviderConfig {
 
   @Bean
-  TitanCachingProvider titanProvider(AccountCredentialsRepository accountCredentialsRepository, TitanClientProvider titanClientProvider, ObjectMapper objectMapper) {
+  @DependsOn('netflixTitanCredentials')
+  TitanCachingProvider titanCachingProvider(AccountCredentialsRepository accountCredentialsRepository, TitanClientProvider titanClientProvider, ObjectMapper objectMapper) {
     List<CachingAgent> agents = []
     def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitanCredentials } as Collection<NetflixTitanCredentials>
     allAccounts.each { NetflixTitanCredentials account ->
-      for (CredentialsConfig.Region region : account.regions) {
+      account.regions.each { region ->
         agents << new ClusterCachingAgent(titanClientProvider, account, region.name, objectMapper)
         agents << new ImageCachingAgent(titanClientProvider, account, region.name, objectMapper)
         agents << new InstanceCachingAgent(titanClientProvider, account, region.name, objectMapper)

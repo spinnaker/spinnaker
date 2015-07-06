@@ -25,9 +25,9 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
-import com.netflix.spinnaker.oort.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
-import com.netflix.spinnaker.oort.titan.credentials.NetflixTitanCredentials
+import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 import com.netflix.titanclient.model.Task

@@ -27,19 +27,15 @@ import com.netflix.titanclient.model.Job
 class TitanServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   private final TitanClient titanClient
-  private final String account
-  private final String subnetType
 
-  TitanServerGroupNameResolver(TitanClient titanClient, String account, String subnetType) {
+  TitanServerGroupNameResolver(TitanClient titanClient) {
     this.titanClient = titanClient
-    this.account = account
-    this.subnetType = subnetType
   }
 
   @Override
   String getPreviousServerGroupName(String clusterName) {
     def clusterNameParts = Names.parseName(clusterName)
-    List<Job> jobs = titanClient.getJobsByApplication(account, subnetType, clusterNameParts.app)
+    List<Job> jobs = titanClient.getJobsByApplication(clusterNameParts.app)
                                 .findAll { it.name?.startsWith(clusterName) }
     if (jobs) {
       jobs.sort(true, {it.submittedAt}).reverse(true)

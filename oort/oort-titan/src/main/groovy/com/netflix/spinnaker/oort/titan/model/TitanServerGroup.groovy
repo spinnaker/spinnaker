@@ -20,7 +20,7 @@ import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.titanclient.model.Job
 /**
- * Equivalent of a Titan {@code Job}
+ * Equivalent of a Titan {@link com.netflix.titanclient.model.Job}
  * @author sthadeshwar
  */
 class TitanServerGroup implements ServerGroup, Serializable {

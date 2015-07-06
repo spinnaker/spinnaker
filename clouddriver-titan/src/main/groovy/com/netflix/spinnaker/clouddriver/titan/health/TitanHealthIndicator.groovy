@@ -15,14 +15,17 @@
  */
 
 
-package com.netflix.spinnaker.oort.titan.health
-import com.netflix.spinnaker.oort.titan.TitanClientProvider
-import com.netflix.spinnaker.oort.titan.credentials.config.CredentialsConfig
+package com.netflix.spinnaker.clouddriver.titan.health
+import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
+import com.netflix.titanclient.TitanRegion
+import com.netflix.titanclient.model.HealthStatus
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
+import org.springframework.boot.actuate.health.Status
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -33,13 +36,13 @@ class TitanHealthIndicator implements HealthIndicator {
 
   private static final Logger LOG = LoggerFactory.getLogger(TitanHealthIndicator)
 
-  private final CredentialsConfig titanConfig
+  private final List<NetflixTitanCredentials> credentialsList
   private final TitanClientProvider titanClientProvider
   private AtomicReference<Health> health = new AtomicReference<>(new Health.Builder().up().build())
 
   @Autowired
-  TitanHealthIndicator(CredentialsConfig titanConfig, TitanClientProvider titanClientProvider) {
-    this.titanConfig = titanConfig
+  TitanHealthIndicator(List<NetflixTitanCredentials> credentialsList, TitanClientProvider titanClientProvider) {
+    this.credentialsList = credentialsList
     this.titanClientProvider = titanClientProvider
   }
 
@@ -50,18 +53,27 @@ class TitanHealthIndicator implements HealthIndicator {
 
   @Scheduled(fixedDelay = 300000L)
   void checkHealth() {
-    // TODO
-    /*for (CredentialsConfig.Account account in titanConfig.accounts) {
-      for (CredentialsConfig.Region region in account.regions) {
+    Status status = Status.UP
+    Map<String, Object> details = [:]
+    for (NetflixTitanCredentials account in credentialsList) {
+      for (TitanRegion region in account.regions) {
+        Status regionStatus
+        Map regionDetails = [:]
         try {
-          TitanHealth titanHealth = titanClientProvider.getTitanClient(account.name, region.name).getHealth()
-          titanHealth.healthStatus == HealthStatus.UNHEALTHY
+          HealthStatus health = titanClientProvider.getTitanClient(account, region.name).getHealth().healthStatus
+          regionStatus = health == HealthStatus.UNHEALTHY ? Status.OUT_OF_SERVICE : Status.UP
         } catch (e) {
-          new Health.Builder().outOfService().withException(new TitanUnreachableException(e))
-          throw new TitanUnreachableException(e)
+          regionStatus = Status.OUT_OF_SERVICE
+          regionDetails << [reason: e]
         }
+        regionDetails << [status: regionStatus]
+        if (regionStatus == Status.OUT_OF_SERVICE) {
+          status = Status.OUT_OF_SERVICE
+        }
+        details << [("${account.name}:${region.name}"): regionDetails]
       }
-    }*/
+    }
+    health.set(new Health.Builder(status, details).build())
   }
 
 }

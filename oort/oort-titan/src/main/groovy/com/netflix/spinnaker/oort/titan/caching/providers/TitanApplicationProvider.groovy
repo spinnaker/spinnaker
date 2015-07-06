@@ -30,13 +30,13 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
 
 @Component
-class CatsApplicationProvider implements ApplicationProvider {
+class TitanApplicationProvider implements ApplicationProvider {
 
   private final Cache cacheView
   private final ObjectMapper objectMapper
 
   @Autowired
-  CatsApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  TitanApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
