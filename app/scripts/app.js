@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker', [
     //require('./modules/delivery/delivery.module.js'),
     //require('./modules/pipelines/pipelines.module.js'),
     //require('./modules/authentication/authentication.module.js'),
-    //require('./modules/search/search.module.js'),
+    require('./modules/search/search.module.js'),
     //require('./modules/notifications/notifications.module.js'),
     //require('./modules/notifications/types/email/email.notification.type.module.js'),
     //require('./modules/notifications/types/hipchat/hipchat.notification.type.module.js'),

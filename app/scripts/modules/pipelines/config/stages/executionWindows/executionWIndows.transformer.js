@@ -20,4 +20,4 @@ angular.module('spinnaker.pipelines.stage.executionWindows.transformer', [])
     this.transform = function(application, execution) {
       transformRunningExecutionWindows(execution);
     };
-  });
+  }).name;

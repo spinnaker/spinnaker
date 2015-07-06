@@ -72,4 +72,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
       function() { $timeout(initialize); },
     true);
 
-  });
+  }).name;

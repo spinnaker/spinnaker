@@ -33,4 +33,4 @@ module.exports = angular.module('spinnaker.delivery.executionStatus.directive', 
 
       }
     };
-  });
+  }).name;

@@ -152,4 +152,4 @@ module.exports = angular.module('spinnaker.help')
       '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
     'loadBalancers.filter.onlyUnhealthy': '<p>Filters the list of load balancers and server groups (if enabled) ' +
       'to only show load balancers with instances failing the health check for the load balancer.</p>',
-  });
+  }).name;

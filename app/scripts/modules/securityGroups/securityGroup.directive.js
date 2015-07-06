@@ -39,4 +39,4 @@ module.exports = angular.module('spinnaker.securityGroup.rollup', [])
       }
     };
   }
-);
+).name;

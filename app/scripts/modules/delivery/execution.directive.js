@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.delivery.execution.directive', [
         scope.$location = $location;
       }
     };
-  });
+  }).name;

@@ -9,4 +9,4 @@ module.exports = angular
     'clusters.all',
     'cluster.filter.collapse',
     require('utils/lodash.js'),
-  ]);
+  ]).name;

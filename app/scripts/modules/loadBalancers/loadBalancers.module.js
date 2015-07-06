@@ -13,4 +13,4 @@ module.exports = angular
     require('./configure/gce/CreateLoadBalancerCtrl.js'),
     require('./LoadBalancersNavCtrl.js'),
     require('./loadBalancer.directive.js'),
-  ]);
+  ]).name;

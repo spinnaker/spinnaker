@@ -64,4 +64,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
       }
       return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
-  });
+  }).name;

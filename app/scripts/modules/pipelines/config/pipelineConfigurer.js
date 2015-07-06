@@ -278,4 +278,4 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
     $scope.$watch('viewState', cacheViewState, true);
     $scope.$watch('pipeline.name', cacheViewState);
 
-  });
+  }).name;

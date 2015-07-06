@@ -25,4 +25,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.details.contro
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

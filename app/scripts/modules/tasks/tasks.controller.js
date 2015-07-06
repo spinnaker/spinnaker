@@ -247,4 +247,4 @@ module.exports = angular.module('spinnaker.tasks.main', [
     initializeViewState();
 
   }
-);
+).name;

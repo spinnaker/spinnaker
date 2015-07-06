@@ -13,4 +13,4 @@ angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration
     };
 
-  });
+  }).name;

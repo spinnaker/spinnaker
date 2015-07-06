@@ -35,4 +35,4 @@ module.exports = angular.module('spinnaker.delivery', [
   require('utils/rx.js'),
   require('utils/scrollTo/scrollTo.service.js'),
   require('../../services/orchestratedItem.js'),
-]);
+]).name;

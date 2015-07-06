@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.search.global', [
   require('utils/lodash.js'),
   require('../../clusterFilter/clusterFilterModel.js'),
   require('../../clusterFilter/clusterFilterService.js'),
-]);
+]).name;

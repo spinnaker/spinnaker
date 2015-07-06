@@ -47,4 +47,4 @@ module.exports = angular.module('spinnaker.delivery.executionStatus.controller',
       return 'Unknown';
     };
 
-  });
+  }).name;

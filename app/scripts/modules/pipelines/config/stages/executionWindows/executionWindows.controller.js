@@ -98,4 +98,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.cont
     $scope.$watch('stage.restrictedExecutionWindow.whitelist', this.updateTimelineWindows, true);
     $scope.$watch('stage.restrictExecutionDuringTimeWindow', this.toggleWindowRestriction);
 
-  });
+  }).name;

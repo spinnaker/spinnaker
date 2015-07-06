@@ -18,4 +18,4 @@ module.exports = angular
 
     require('./details/gce/serverGroupDetails.gce.controller.js'),
     require('./configure/aws/wizard/CloneServerGroup.aws.controller.js')
-  ]);
+  ]).name;

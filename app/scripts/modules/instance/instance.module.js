@@ -7,4 +7,4 @@ module.exports = angular
     require('./details/aws/instance.details.controller.js'),
     require('./details/gce/instance.details.controller.js'),
     require('./loadBalancer/instanceLoadBalancerHealth.js'),
-  ]);
+  ]).name;

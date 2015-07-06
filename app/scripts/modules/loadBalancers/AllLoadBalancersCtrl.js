@@ -117,4 +117,4 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
     updateLoadBalancerGroups();
 
   }
-);
+).name;

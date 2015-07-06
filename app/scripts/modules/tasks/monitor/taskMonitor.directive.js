@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.tasks.monitor.directive', [])
       }
     };
   }
-);
+).name;

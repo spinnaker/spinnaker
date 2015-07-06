@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.blesk', [
     if (settings.feature && settings.feature.blesk) {
       blesk.initialize();
     }
-  });
+  }).name;

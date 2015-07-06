@@ -22,4 +22,4 @@ module.exports = angular.module('spinnaker.pipelines.parameters.parameter', [
       $scope.pipeline.parameterConfig.splice(index, 1);
     };
 
-  });
+  }).name;

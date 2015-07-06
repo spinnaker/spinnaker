@@ -12,4 +12,4 @@ module.exports = angular
     require('./fastProperties.data.controller.js'),
     require('./fastPropertyProgressBar.directive.js'),
     require('./modal/fastPropertyConstraint.directive.js'),
-  ]);
+  ]).name;

@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common')
       $scope.command.instanceType = type;
     };
 
-  });
+  }).name;

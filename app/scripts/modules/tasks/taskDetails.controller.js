@@ -38,4 +38,4 @@ module.exports = angular.module('spinnaker.tasks.detail.controller', [])
     };
 
     return vm;
-  });
+  }).name;

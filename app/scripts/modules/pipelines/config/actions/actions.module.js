@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.pipelines.config.actions', [
   require('./rename/rename.module.js'),
   require('./enableParallel/enableParallel.controller.js'),
   require('./disableParallel/disableParallel.controller.js'),
-]);
+]).name;

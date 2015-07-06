@@ -119,4 +119,4 @@ module.exports = angular
       disableInstanceInDiscovery: disableInstanceInDiscovery
     };
 
-  });
+  }).name;

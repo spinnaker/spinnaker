@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.script')
       $scope.credentials = results.credentials;
       $scope.viewState.loading = false;
     });
-  });
+  }).name;

@@ -35,4 +35,4 @@ module.exports = angular.module('spinnaker.whatsNew.read.service', [
     return {
       getWhatsNewContents: getWhatsNewContents,
     };
-  });
+  }).name;

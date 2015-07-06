@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.capacity.min = newVal;
       $scope.command.capacity.max = newVal;
     };
-  });
+  }).name;

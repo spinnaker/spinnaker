@@ -38,4 +38,4 @@ module.exports = angular.module('spinnaker.caches.viewStateCache', [
   caches.createCache = createCache;
 
   return caches;
-});
+}).name;

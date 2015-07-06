@@ -109,4 +109,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake')
 
     $scope.$watch('stage.cloudProviderType', this.providerSelected);
     $scope.$watch('stage', deleteEmptyProperties, true);
-  });
+  }).name;

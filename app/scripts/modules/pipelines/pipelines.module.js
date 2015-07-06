@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.pipelines', [
   require('utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('angular-ui-sortable'),
-]);
+]).name;

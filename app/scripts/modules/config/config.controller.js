@@ -161,4 +161,4 @@ module.exports = angular
 
     return vm;
 
-  });
+  }).name;

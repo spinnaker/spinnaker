@@ -32,4 +32,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.summary.contro
       });
     };
 
-  });
+  }).name;

@@ -85,4 +85,4 @@ module.exports = angular.module('spinnaker.pipelines.config.trigger.pipeline', [
 
     $scope.$watch('trigger.application', init);
 
-  });
+  }).name;

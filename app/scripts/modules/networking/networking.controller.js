@@ -47,4 +47,4 @@ module.exports = angular.module('spinnaker.networking.controller', [
         }
       });
     };
-  });
+  }).name;

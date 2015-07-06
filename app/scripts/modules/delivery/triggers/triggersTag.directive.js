@@ -61,4 +61,4 @@ module.exports = angular.module('spinnaker.delivery.execution.triggers', [
     };
 
     updateTriggerInfo();
-  });
+  }).name;

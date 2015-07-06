@@ -26,4 +26,4 @@ module.exports = angular.module('spinnaker.pipelines.config.validator.directive'
 
     $scope.popover = { show: false };
 
-  });
+  }).name;

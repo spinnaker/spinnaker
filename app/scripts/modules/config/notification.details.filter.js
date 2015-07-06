@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.config.notification.details.filter', 
     return function(input) {
       return input.charAt(0).toUpperCase() + input.slice(1);
     };
-  });
+  }).name;

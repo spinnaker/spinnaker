@@ -36,4 +36,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common')
       this.selectInstanceType('custom');
     }
 
-  });
+  }).name;

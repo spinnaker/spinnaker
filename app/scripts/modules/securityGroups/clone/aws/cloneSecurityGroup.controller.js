@@ -63,4 +63,4 @@ angular
 
     vm.initializeSecurityGroups();
 
-  });
+  }).name;

@@ -28,4 +28,4 @@ module.exports = angular.module('spinnaker.cluster.pod', [
         );
       }
     };
-  });
+  }).name;

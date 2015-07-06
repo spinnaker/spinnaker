@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.deploymentStrategy.highlander', [])
       description: 'Destroys previous server group as soon as new server group passes health checks',
       key: 'highlander',
     });
-  });
+  }).name;

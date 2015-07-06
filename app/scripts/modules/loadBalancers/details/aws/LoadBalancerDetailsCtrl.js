@@ -121,4 +121,4 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     };
 
   }
-);
+).name;

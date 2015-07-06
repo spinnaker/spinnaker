@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.search.infrastructure')
+module.exports = angular.module('spinnaker.search.infrastructure.controller', [
+  require('./infrastructureSearch.service.js')
+])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService, _) {
 
     var search = infrastructureSearchService();
@@ -29,4 +31,4 @@ module.exports = angular.module('spinnaker.search.infrastructure')
     this.noMatches = function() {
       return angular.isObject($scope.categories) && Object.keys($scope.categories).length === 0 && $scope.query && $scope.query.length > 0;
     };
-  });
+  }).name;

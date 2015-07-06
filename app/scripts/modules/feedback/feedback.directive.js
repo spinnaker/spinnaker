@@ -27,4 +27,4 @@ module.exports = angular.module('spinnaker.feedback.directive', [
         };
       }
     };
-  });
+  }).name;

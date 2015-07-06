@@ -89,4 +89,5 @@ module.exports = angular.module('spinnaker.utils.waypoints.service', [
       getLastWindow: getLastWindow,
     };
 
-  });
+  })
+  .name;

@@ -9,4 +9,4 @@ module.exports = angular.module('spinnaker.notification.types.sms', [])
       key: 'sms',
       addressTemplateUrl: 'scripts/modules/notifications/types/sms/additionalFields.html',
     });
-  });
+  }).name;

@@ -62,4 +62,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
 
-  });
+  }).name;

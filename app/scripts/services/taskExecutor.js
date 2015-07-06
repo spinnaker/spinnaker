@@ -58,4 +58,4 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
     return {
       executeTask: executeTask,
     };
-  });
+  }).name;

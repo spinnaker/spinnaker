@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.pipelines.stages.canary.deployment.hi
       getAnalysisHistory: getAnalysisHistory,
     };
 
-  });
+  }).name;

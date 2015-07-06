@@ -137,4 +137,4 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     $scope.$on('pipeline-parallel-changed', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
-  });
+  }).name;

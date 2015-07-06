@@ -46,4 +46,4 @@ module.exports = angular.module('spinnaker.fastProperty.progressBar.directive', 
         }
       }
     };
-  });
+  }).name;

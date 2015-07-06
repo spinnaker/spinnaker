@@ -162,4 +162,4 @@ module.exports = angular.module('spinnaker.pipelines.config.services.configServi
       toggleTrigger: toggleTrigger,
     };
 
-  });
+  }).name;

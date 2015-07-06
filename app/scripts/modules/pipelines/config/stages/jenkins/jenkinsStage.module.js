@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins', [
   require('utils/timeFormatters.js'),
   require('../../../../jenkins/index.js'),
   require('./jenkinsExecutionDetails.controller.js'),
-]);
+]).name;

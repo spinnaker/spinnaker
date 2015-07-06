@@ -155,4 +155,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
     };
 
 
-  });
+  }).name;

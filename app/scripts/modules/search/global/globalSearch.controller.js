@@ -136,4 +136,4 @@ module.exports = angular.module('spinnaker.search.global')
         event.preventDefault();
       }
     };
-  });
+  }).name;

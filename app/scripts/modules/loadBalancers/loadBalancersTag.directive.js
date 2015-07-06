@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.loadBalancer.tag', [])
       }
     };
   }
-);
+).name;

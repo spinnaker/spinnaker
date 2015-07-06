@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.delivery.statusNames.filter', [])
       delete names.terminal;
       return ret;
     };
-  });
+  }).name;

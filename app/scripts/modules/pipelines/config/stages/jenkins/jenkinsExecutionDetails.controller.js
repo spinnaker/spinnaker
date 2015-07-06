@@ -43,4 +43,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkins.executionDeta
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

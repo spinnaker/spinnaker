@@ -317,4 +317,4 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

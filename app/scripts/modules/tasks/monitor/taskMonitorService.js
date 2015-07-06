@@ -120,4 +120,4 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
     return {
       buildTaskMonitor: buildTaskMonitor
     };
-  });
+  }).name;

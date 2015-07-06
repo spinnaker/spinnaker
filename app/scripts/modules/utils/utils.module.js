@@ -8,4 +8,4 @@ module.exports = angular.module('spinnaker.utils', [
   require('./lodash.js'),
   require('./moment.js'),
   require('./rx.js'),
-]);
+]).name;

@@ -70,4 +70,4 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
       }
     };
 
-  });
+  }).name;

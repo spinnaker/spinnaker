@@ -16,4 +16,4 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.create.creat
       controller: 'CreatePipelineButtonCtrl',
       controllerAs: 'buttonCtrl',
     };
-  });
+  }).name;

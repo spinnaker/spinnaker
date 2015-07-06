@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategy
       getStrategy: getStrategy
     };
 
-  });
+  }).name;

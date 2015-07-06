@@ -82,5 +82,6 @@ module.exports = angular.module('cluster', [
     application.registerAutoRefreshHandler(this.initialize, $scope);
 
   }
-);
+)
+.name;
 

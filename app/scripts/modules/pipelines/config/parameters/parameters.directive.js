@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.pipelines.parameters.parameters', [
       $scope.pipeline.parameterConfig.push(newParameter);
     };
 
-  });
+  }).name;

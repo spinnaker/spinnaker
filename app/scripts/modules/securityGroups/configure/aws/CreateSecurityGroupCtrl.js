@@ -43,4 +43,4 @@ module.exports = angular.module('spinnaker.securityGroup.aws.create.controller',
 
     ctrl.initializeSecurityGroups();
 
-  });
+  }).name;

@@ -14,4 +14,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy', [
 ])
   .run(function(pipelineConfig, deployStageTransformer) {
     pipelineConfig.registerTransformer(deployStageTransformer);
-  });
+  }).name;

@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQui
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsg', [
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
   require('./disableAsgExecutionDetails.controller.js'),
-]);
+]).name;

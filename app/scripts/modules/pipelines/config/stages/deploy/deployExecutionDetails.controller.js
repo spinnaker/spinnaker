@@ -53,4 +53,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

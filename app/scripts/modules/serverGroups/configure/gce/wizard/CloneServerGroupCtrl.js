@@ -147,4 +147,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
-  });
+  }).name;

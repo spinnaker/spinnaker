@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment.modal.
     };
 
     return vm;
-  });
+  }).name;

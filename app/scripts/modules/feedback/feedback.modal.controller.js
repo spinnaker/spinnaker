@@ -71,4 +71,4 @@ module.exports = angular.module('spinnaker.feedback.modal.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

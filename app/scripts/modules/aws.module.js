@@ -2,4 +2,4 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.aws', []);
+module.exports = angular.module('spinnaker.aws', []).name;

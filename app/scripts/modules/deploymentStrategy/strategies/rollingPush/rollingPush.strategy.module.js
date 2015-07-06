@@ -20,4 +20,4 @@ module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
         };
       }
     });
-  });
+  }).name;

@@ -14,4 +14,4 @@ module.exports = angular.module('spinnaker.delivery.executionDetails.directive',
       templateUrl: require('./executionDetails.html'),
       controller: 'executionDetails as ctrl',
     };
-  });
+  }).name;

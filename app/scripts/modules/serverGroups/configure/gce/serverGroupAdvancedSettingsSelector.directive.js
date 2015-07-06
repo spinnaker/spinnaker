@@ -30,4 +30,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.tags.splice(index, 1);
     };
 
-  });
+  }).name;

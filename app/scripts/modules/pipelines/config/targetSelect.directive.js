@@ -13,4 +13,4 @@ angular
       },
       templateUrl: 'scripts/modules/pipelines/config/targetSelect.html'
     };
-  });
+  }).name;

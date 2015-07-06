@@ -98,4 +98,4 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       }
     };
 
-  });
+  }).name;

@@ -65,4 +65,4 @@ module.exports = angular.module('spinnaker.elasticIp.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

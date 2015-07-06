@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.actions.genera
 
     this.cancel = $modalInstance.dismiss;
 
-  });
+  }).name;

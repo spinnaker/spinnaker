@@ -26,4 +26,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake.executionDetails
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

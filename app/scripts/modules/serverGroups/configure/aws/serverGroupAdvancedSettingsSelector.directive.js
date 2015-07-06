@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
       return $scope.command.suspendedProcesses.indexOf(process) !== -1;
     };
 
-  });
+  }).name;

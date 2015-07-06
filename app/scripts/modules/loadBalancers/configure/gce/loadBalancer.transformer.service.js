@@ -156,4 +156,4 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
 
-  });
+  }).name;

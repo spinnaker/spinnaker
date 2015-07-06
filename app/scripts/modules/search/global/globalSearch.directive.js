@@ -36,4 +36,4 @@ module.exports = angular.module('spinnaker.search.global')
         });
       }
     };
-  });
+  }).name;

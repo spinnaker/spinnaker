@@ -15,4 +15,4 @@ module.exports = angular.module('spinnaker.instance.loadBalancer.health.directiv
         scope.name = scope.loadBalancer.name || scope.loadBalancer.loadBalancerName;
       }
     };
-  });
+  }).name;

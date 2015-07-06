@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.securityGroup.counts', [])
       }
     };
   }
-);
+).name;

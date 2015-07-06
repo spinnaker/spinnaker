@@ -13,4 +13,4 @@ module.exports = angular.module('spinnaker.delivery.stages.filter', [])
              filter.stage.name[stage.name]);
       });
     };
-  });
+  }).name;

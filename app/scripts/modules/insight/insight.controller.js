@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.insight.controller', [
       self.isSideNavHideable = isSideNavHideable();
     });
 
-  });
+  }).name;

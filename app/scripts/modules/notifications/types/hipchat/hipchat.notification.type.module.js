@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.notification.types.hipchat', [])
       key: 'hipchat',
       addressTemplateUrl: 'scripts/modules/notifications/types/hipchat/additionalFields.html',
     });
-  });
+  }).name;

@@ -31,4 +31,4 @@ module.exports = angular.module('spinnaker.providerSelection.service', [
       selectProvider: selectProvider,
     };
 
-  });
+  }).name;

@@ -181,4 +181,4 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
     $scope.$on('executions-reloaded', updateExecutions);
     $scope.$watch('filter', cacheViewState, true);
 
-  });
+  }).name;

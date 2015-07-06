@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.delivery.execution.triggers.toggle.mo
       pipelineConfigService.savePipeline(pipeline).then($modalInstance.close);
     };
 
-  });
+  }).name;

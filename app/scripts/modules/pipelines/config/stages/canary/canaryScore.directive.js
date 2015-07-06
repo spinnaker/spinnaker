@@ -29,4 +29,4 @@ module.exports = angular.module('spinnaker.pipelines.stages.canary.score.directi
         scope.$watch('health', applyLabel);
       }
     };
-  });
+  }).name;

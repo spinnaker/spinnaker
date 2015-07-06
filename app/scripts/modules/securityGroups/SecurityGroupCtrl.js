@@ -45,4 +45,4 @@ module.exports = angular.module('spinnaker.securityGroup.single.controller', [
       });
     };
   }
-);
+).name;

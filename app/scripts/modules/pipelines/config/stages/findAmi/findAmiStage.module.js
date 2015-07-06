@@ -7,4 +7,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmi', [
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
   require('./findAmiExecutionDetails.controller.js'),
-]);
+]).name;

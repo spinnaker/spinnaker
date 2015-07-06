@@ -115,4 +115,4 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
     updateSecurityGroups();
 
   }
-);
+).name;

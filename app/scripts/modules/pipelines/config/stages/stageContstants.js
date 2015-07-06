@@ -18,4 +18,4 @@ angular
           description: lastServerGroupTargetHelp
         }
       ]
-  });
+  }).name;

@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.pipeline', [
   require('../../services/pipelineConfigService.js'),
   require('./pipelineExecutionDetails.controller.js'),
   require('../../../../applications/applications.read.service.js'),
-]);
+]).name;

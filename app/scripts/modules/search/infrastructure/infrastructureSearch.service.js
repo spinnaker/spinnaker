@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.search')
+module.exports = angular.module('spinnaker.infrastructure.search.service', [
+  require('utils/rx.js'),
+])
   .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;
@@ -77,4 +79,4 @@ module.exports = angular.module('spinnaker.search')
         },
       };
     };
-  });
+  }).name;

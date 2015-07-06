@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.service', [
-  require('angular-bootstrap'),
   require('../../settings/settings.js'),
 ])
   .factory('authenticationService', function ( $rootScope, $http, $location, $window, $modal, settings, redirectService ) {
@@ -63,4 +62,5 @@ module.exports = angular.module('spinnaker.authentication.service', [
         $window.location.href = url;
       }
     };
-  });
+  })
+  .name;

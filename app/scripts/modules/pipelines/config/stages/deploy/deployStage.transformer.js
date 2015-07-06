@@ -55,4 +55,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.transformer', 
     this.transform = function(application, execution) {
       transformRollingPushes(execution);
     };
-  });
+  }).name;

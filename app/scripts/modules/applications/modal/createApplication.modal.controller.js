@@ -6,8 +6,8 @@ module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
     //require('angular-ui-router'),
     //require('angular-bootstrap'),
-    //require('../applications.write.service.js'),
-    //require('utils/lodash.js'),
+    require('../applications.write.service.js'),
+    require('utils/lodash.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter, _) {
     var vm = this;

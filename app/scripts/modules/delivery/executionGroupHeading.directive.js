@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.direct
       templateUrl: require('./executionGroupHeading.html'),
       controller: 'executionGroupHeading as ctrl',
     };
-  });
+  }).name;

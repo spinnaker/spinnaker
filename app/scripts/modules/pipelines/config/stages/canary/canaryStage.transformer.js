@@ -237,4 +237,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', 
       });
       execution.stages = execution.stages.concat(syntheticStagesToAdd);
     };
-  });
+  }).name;

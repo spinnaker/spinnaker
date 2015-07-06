@@ -26,4 +26,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws')
         $scope.command.useSourceCapacity = false;
       }
     };
-  });
+  }).name;

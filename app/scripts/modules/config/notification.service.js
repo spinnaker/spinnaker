@@ -21,4 +21,4 @@ module.exports = angular.module('spinnaker.config.notification.service', [
       saveNotificationsForApplication: saveNotificationsForApplication
     };
 
-  });
+  }).name;

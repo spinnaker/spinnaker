@@ -12,4 +12,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.script')
     return {
       getCredentials: getCredentials,
     };
-  });
+  }).name;

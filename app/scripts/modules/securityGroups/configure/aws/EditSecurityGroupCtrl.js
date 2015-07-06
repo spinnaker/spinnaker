@@ -111,4 +111,4 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
     };
 
     initializeSecurityGroups();
-  });
+  }).name;

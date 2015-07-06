@@ -210,4 +210,4 @@ module.exports = angular
       getResultsForScope: getResultsForScope
     };
 
-  });
+  }).name;

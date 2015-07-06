@@ -24,4 +24,4 @@ module.exports = angular.module('spinnaker.networking.ip.sort.filter', [])
         return result;
       }
     };
-  });
+  }).name;

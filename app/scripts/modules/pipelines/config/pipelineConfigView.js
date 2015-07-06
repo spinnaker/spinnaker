@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.pipelines.config.configView', [
         scope.pipelineConfigurerCtrl = pipelineConfigurerCtrl;
       }
     };
-  });
+  }).name;

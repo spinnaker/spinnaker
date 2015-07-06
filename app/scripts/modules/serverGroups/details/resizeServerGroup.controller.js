@@ -63,4 +63,4 @@ module.exports = angular.module('spinnaker.resizeServerGroup.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

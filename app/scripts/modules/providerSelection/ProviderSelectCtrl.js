@@ -17,4 +17,4 @@ module.exports = angular.module('spinnaker.providerSelection')
 
     this.cancel = $modalInstance.dismiss;
 
-  });
+  }).name;

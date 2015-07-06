@@ -19,4 +19,4 @@ module.exports = angular.module('spinnaker.delivery.executionGroups.filter', [
           return _.unique(_.pluck(executions.concat(configurations), filter.execution.groupBy)).sort();
       }
     };
-  });
+  }).name;

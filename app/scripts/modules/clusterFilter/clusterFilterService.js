@@ -400,5 +400,6 @@ module.exports = angular
       shouldShowInstance: shouldShowInstance,
     };
   }
-);
+)
+.name;
 

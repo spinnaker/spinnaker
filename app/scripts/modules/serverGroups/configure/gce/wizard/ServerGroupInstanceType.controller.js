@@ -22,4 +22,4 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.instanceType = type;
     };
 
-  });
+  }).name;

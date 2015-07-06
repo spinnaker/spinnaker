@@ -10,4 +10,4 @@ module.exports = angular.module('spinnaker.pipelines')
       }
       return namingService.getClusterName(input.application, input.stack, input.freeFormDetails);
     };
-  });
+  }).name;

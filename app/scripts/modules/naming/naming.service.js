@@ -80,4 +80,4 @@ module.exports = angular.module('spinnaker.naming', [])
       getClusterName: getClusterName,
       getSequence: getSequence,
     };
-  });
+  }).name;

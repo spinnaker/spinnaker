@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.delivery.buildDisplayName.filter', []
       }
       return formattedInput;
     };
-  });
+  }).name;

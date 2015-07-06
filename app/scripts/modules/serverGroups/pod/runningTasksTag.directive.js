@@ -23,4 +23,4 @@ module.exports = angular.module('spinnaker.serverGroup.display.tasks.tag', [
       return executionFilterService.filterRunningExecutions($scope.executions);
     };
 
-  });
+  }).name;

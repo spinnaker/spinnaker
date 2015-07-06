@@ -87,4 +87,4 @@ module.exports = angular.module('spinnaker.pipelines.config.controller', [
 
     ctrl.initialize();
 
-  });
+  }).name;

@@ -76,4 +76,4 @@ module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
 
     $scope.$watch('trigger.master', updateJobsList);
 
-  });
+  }).name;

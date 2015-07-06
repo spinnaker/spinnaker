@@ -35,4 +35,4 @@ module.exports = angular.module('spinnaker.aws.image.service', [
       findImages: findImages,
       getAmi: getAmi,
     };
-  });
+  }).name;

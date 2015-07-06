@@ -18,4 +18,4 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.create.Creat
         }
       });
     };
-  });
+  }).name;

@@ -11,4 +11,4 @@ module.exports = angular.module('spinnaker.deploymentStrategy.redblack', [])
       additionalFields: ['scaleDown', 'maxRemainingAsgs'],
       additionalFieldsTemplateUrl: 'scripts/modules/deploymentStrategy/strategies/redblack/additionalFields.html',
     });
-  });
+  }).name;

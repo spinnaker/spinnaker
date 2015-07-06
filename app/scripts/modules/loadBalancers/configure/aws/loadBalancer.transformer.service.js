@@ -156,4 +156,4 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
     };
 
-  });
+  }).name;

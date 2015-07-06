@@ -166,4 +166,4 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary')
     this.deleteClusterPair = function(index) {
       $scope.stage.clusterPairs.splice(index, 1);
     };
-  });
+  }).name;
