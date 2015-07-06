@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.config
 
 import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
+import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.gate.security.onelogin.AccountSettings
 import com.netflix.spinnaker.gate.security.onelogin.AppSettings
 import com.netflix.spinnaker.gate.security.onelogin.saml.AuthRequest
@@ -49,7 +50,6 @@ import javax.servlet.http.HttpServletResponse
 
 @ConditionalOnExpression('${onelogin.enabled:false}')
 @Configuration
-@EnableConfigurationProperties
 class OneLoginSecurityConfig implements WebSecurityAugmentor {
   @Component
   @ConfigurationProperties("onelogin")
@@ -115,6 +115,9 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
     @Autowired
     RememberMeServices rememberMeServices
 
+    @Autowired(required = false)
+    AnonymousSecurityConfig anonymousSecurityConfig
+
     @RequestMapping(method = RequestMethod.GET)
     void get(
       @RequestParam(value = "callback", required = false) String cb,
@@ -146,7 +149,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       def resp = new Response(accountSettings)
       resp.loadXmlFromBase64(samlResponse)
 
-      def user = buildUser(oneLoginProperties, resp)
+      def user = buildUser(oneLoginProperties, resp, anonymousSecurityConfig?.allowedAccounts)
       if (!hasRequiredRole(user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
@@ -184,7 +187,9 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       }
     }
 
-    static User buildUser(OneLoginSecurityConfigProperties oneLoginSecurityConfig, Response response) {
+    static User buildUser(OneLoginSecurityConfigProperties oneLoginSecurityConfig,
+                          Response response,
+                          Collection<String> anonymousAllowedAccounts) {
       def roles = response.attributes["memberOf"].collect { String roles ->
         def commonNames = roles.split(";")
         commonNames.collect {
@@ -192,7 +197,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
         }
       }.flatten()*.toLowerCase()
 
-      def allowedAccounts = []
+      def allowedAccounts = (anonymousAllowedAccounts ?: []) as Set<String>
       (oneLoginSecurityConfig.requiredRoleByAccount ?: [:]).each { key, value ->
         if (roles.contains(value.toLowerCase())) {
           allowedAccounts << key
