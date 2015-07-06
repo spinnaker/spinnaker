@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.elasticIp.read.service', [
-    require('restangular'),
+    require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
   .factory('elasticIpReader', function (Restangular, $exceptionHandler) {
     function getElasticIpsForCluster(application, account, clusterName, region) {

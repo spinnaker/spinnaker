@@ -18,4 +18,5 @@ module.exports = angular.module('spinnaker.loadBalancer.transformer.service', [
       normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
     };
 
-  });
+  })
+  .name;

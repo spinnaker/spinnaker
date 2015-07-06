@@ -5,7 +5,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),
 ])
   .factory('clusterService', function ($q, Restangular, _) {
@@ -247,4 +247,4 @@ module.exports = angular.module('spinnaker.cluster.service', [
       extractRegionFromContext: extractRegionFromContext,
     };
 
-  });
+  }).name;

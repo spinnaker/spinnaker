@@ -58,5 +58,6 @@ module.exports = angular.module('spinnaker.caches.scheduled', ['spinnaker.schedu
     };
 
     return that;
-  });
+  })
+  .name;
 

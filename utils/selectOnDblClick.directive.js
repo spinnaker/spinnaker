@@ -24,4 +24,5 @@ module.exports = angular.module('spinnaker.utils.selectOnDblClick', [])
         });
       }
     };
-  });
+  })
+  .name;

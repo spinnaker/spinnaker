@@ -252,4 +252,5 @@ module.exports = angular.module('spinnaker.urlBuilder', [
       buildFromTask: fromTask,
       buildFromMetadata: fromMetadata,
     };
-  });
+  })
+  .name;

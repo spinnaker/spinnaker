@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instanceType.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../modules/caches/deckCacheFactory.js'),
   require('utils/lodash.js')
 ])
@@ -281,4 +281,5 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
       getAllTypesByRegion: getAllTypesByRegion
     };
   }
-);
+)
+.name;

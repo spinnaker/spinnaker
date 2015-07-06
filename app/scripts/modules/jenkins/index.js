@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.jenkins', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
 ])
   .factory('igorService', function (settings, Restangular) {
 
@@ -30,4 +30,5 @@ module.exports = angular.module('spinnaker.jenkins', [
       getJobConfig: getJobConfig,
     };
 
-});
+})
+.name;

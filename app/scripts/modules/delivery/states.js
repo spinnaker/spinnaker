@@ -55,4 +55,5 @@ module.exports = angular.module('spinnaker.delivery.states', [])
         }
       }
     }
-  });
+  })
+  .name;

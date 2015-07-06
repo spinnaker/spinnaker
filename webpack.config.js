@@ -2,11 +2,16 @@
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var IgnorePlugin = require("webpack/lib/IgnorePlugin");
+var ResolverPlugin = require("webpack/lib/ResolverPlugin");
 var path = require('path');
 
+var nodeModulePath = path.join(__dirname, 'node_modules');
+var bowerModulePath = path.join(__dirname, 'bower_components');
+
 module.exports = {
+  debug: true,
   entry: './app/scripts/app.js',
-  devtool: 'source-map',
+  devtool: 'eval',
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -24,7 +29,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'deck-loader!babel!eslint',
+        loader: 'babel!eslint',
         exclude: /node_modules/,
       },
       {
@@ -44,6 +49,17 @@ module.exports = {
         loader: 'ngtemplate!html'
       },
     ],
+  },
+  resolve: {
+    //root: [nodeModulePath, bowerModulePath],
+    alias: {
+      //lodash: 'utils/lodash.js'
+      //angular: 'imports?window={}!exports?window.angular!angular/angular.js',
+      //uiselect: 'angular-ui-select/dist/select.js'
+    }
+  },
+  resolveLoader: {
+    root: nodeModulePath
   },
   plugins: [
     new IgnorePlugin(

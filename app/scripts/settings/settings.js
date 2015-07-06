@@ -86,7 +86,8 @@ module.exports = angular.module('spinnaker.settings', [])
     },
 
 
-});
+})
+.name;
 
 window.tracking = {
   enabled: false, // set to true to enable GA tracking

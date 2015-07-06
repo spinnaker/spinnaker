@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.fastProperty.write.service', [
-    require('restangular'),
+    require('exports?"restangular"!imports?_=lodash!restangular'),
     require('utils/lodash.js'),
     require('../authentication/authenticationService.js')
   ])

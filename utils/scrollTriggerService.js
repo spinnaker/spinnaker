@@ -94,4 +94,5 @@ module.exports = angular.module('spinnaker.utils.scrollTrigger', [
       register: register,
     };
   }
-);
+)
+.name;

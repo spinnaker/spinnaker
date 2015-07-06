@@ -41,5 +41,6 @@ module.exports = angular
         return $q.reject(rejection);
       }
     };
-  });
+  })
+  .name;
 

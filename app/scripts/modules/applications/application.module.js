@@ -7,4 +7,4 @@ module.exports = angular
     require('./application.controller.js'),
     require('./applications.controller.js'),
     require('./modal/createApplication.modal.controller.js'),
-  ]);
+  ]).name;

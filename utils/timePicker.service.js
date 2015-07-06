@@ -34,4 +34,5 @@ module.exports = angular.module('spinnaker.utils.timePicker.service', [
       getMinutes: getMinutes,
     };
 
-  });
+  })
+  .name;

@@ -33,4 +33,5 @@ module.exports = angular.module('spinnaker.caches.applicationLevelScheduled', [
         return currentApplication;
       },
     };
-  });
+  })
+  .name;

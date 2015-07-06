@@ -62,4 +62,5 @@ module.exports = angular.module('spinnaker.utils.timeFormatters', [
       }
       return '-';
     };
-  });
+  })
+  .name;

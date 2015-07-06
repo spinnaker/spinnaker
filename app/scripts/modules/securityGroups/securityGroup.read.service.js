@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.read.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../caches/deckCacheFactory.js'),
   require('../search/search.service.js'),
   require('utils/lodash.js'),
@@ -181,4 +181,4 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
       getAllSecurityGroups: getAllSecurityGroups
     };
 
-  });
+  }).name;

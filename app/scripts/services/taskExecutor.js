@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.taskExecutor.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../modules/caches/deckCacheFactory.js'),
   require('../modules/scheduler/scheduler.service.js'),
   require('./urlbuilder.js'),

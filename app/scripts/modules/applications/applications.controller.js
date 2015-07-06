@@ -99,4 +99,4 @@ module.exports = angular.module('spinnaker.applications.controller', [
     });
 
   }
-);
+).name;

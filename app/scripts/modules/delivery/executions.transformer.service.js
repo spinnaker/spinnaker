@@ -193,4 +193,5 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
     return {
       transformExecution: transformExecution
     };
-  });
+  })
+  .name;

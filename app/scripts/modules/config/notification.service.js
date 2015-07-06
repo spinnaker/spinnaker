@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.config.notification.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../caches/deckCacheFactory.js')
 ])
   .factory('notificationService', function (settings, Restangular) {

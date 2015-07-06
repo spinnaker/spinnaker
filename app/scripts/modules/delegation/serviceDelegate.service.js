@@ -18,4 +18,5 @@ module.exports = angular.module('spinnaker.delegation', [])
     return {
       getDelegate: getDelegate,
     };
-  });
+  })
+  .name;

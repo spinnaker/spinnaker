@@ -65,4 +65,5 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
     };
 
   }
-);
+)
+.name;

@@ -31,4 +31,5 @@ module.exports = angular.module('spinnaker.stateHelper', [
         state.name = state.parent + '.' + state.name;
       }
     }
-  });
+  })
+  .name;

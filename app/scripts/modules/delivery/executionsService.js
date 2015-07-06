@@ -117,4 +117,4 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
       getSectionCacheKey: getSectionCacheKey,
     };
-  });
+  }).name;

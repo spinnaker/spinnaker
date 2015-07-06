@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.tasks.write.service', [
-    require('restangular'),
+    require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
   .factory('tasksWriter', function(Restangular) {
 

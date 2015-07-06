@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.applications.read.service', [
-    require('restangular'),
+    require('exports?"restangular"!imports?_=lodash!restangular'),
     require('../../services/clusterService.js'),
     require('../tasks/tasks.read.service.js'),
     require('../loadBalancers/loadBalancer.read.service.js'),
@@ -260,4 +260,4 @@ module.exports = angular
       getApplication: getApplication,
       getApplicationWithoutAppendages: getApplicationEndpoint,
     };
-  });
+  }).name;

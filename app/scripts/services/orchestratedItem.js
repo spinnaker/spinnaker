@@ -101,4 +101,5 @@ module.exports = angular.module('spinnaker.orchestratedItem.service', [
     return {
       defineProperties: defineProperties,
     };
-  });
+  })
+  .name;

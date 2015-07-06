@@ -27,4 +27,5 @@ module.exports = angular.module('spinnaker.caches.infrastructure.config', [])
     buildJobs: {
       maxAge: 7 * 24 * 60 * 60 * 1000
     }
-  });
+  })
+  .name;

@@ -34,4 +34,4 @@ module.exports = angular.module('spinnaker.directives', [
 .directive(require('./submitButton.js'))
 .directive(require('./subnetSelectField.js'))
 .directive(require('./visible.js'))
-.directive(require('./wizardPage.js'));
+.directive(require('./wizardPage.js')).name;

@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.caches.core', [
 
       clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory);
 
-      cacheFactory.create(key, {
+      cacheFactory.createCache(key, {
         maxAge: maxAge,
         deleteOnExpire: 'aggressive',
         storageMode: 'localStorage',
@@ -78,14 +78,14 @@ module.exports = angular.module('spinnaker.caches.core', [
       if (currentVersion) {
 
         // clear non-versioned cache (TODO: remove after 5/15/15)
-        cacheFactory.create(cacheId, { storageMode: 'localStorage', });
+        cacheFactory.createCache(cacheId, { storageMode: 'localStorage', });
         cacheFactory.get(cacheId).removeAll();
         cacheFactory.get(cacheId).destroy();
 
         // clear previous versions
         for (var i = 0; i < currentVersion; i++) {
           // non-namespaced (TODO: remove after 5/15/15)
-          cacheFactory.create(cacheId, {
+          cacheFactory.createCache(cacheId, {
             storageMode: 'localStorage',
             storagePrefix: getStoragePrefix(cacheId, i+1),
           });
@@ -97,7 +97,7 @@ module.exports = angular.module('spinnaker.caches.core', [
           if (cacheFactory.get(key)) {
             cacheFactory.get(key).destroy();
           }
-          cacheFactory.create(key, {
+          cacheFactory.createCache(key, {
             storageMode: 'localStorage',
             storagePrefix: getStoragePrefix(key, i),
           });
@@ -121,4 +121,5 @@ module.exports = angular.module('spinnaker.caches.core', [
 
     return caches;
 
-  });
+  })
+  .name;

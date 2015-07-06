@@ -44,4 +44,5 @@ module.exports = angular
       listGCELoadBalancers: listGCELoadBalancers
     };
 
-  });
+  })
+  .name;

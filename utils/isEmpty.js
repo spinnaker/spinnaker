@@ -12,4 +12,5 @@ module.exports = angular.module('spinnaker.utils.isEmpty', [])
       return angular.isUndefined(value) || value === '' || value === null || value !== value;
     };
   }
-);
+)
+.name;

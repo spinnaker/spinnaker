@@ -29,4 +29,5 @@ describe('isEmpty', function() {
     });
   });
 
-});
+})
+.name;

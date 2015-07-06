@@ -585,4 +585,5 @@ module.exports = angular.module('spinnaker.states', [
 
     this.$get = angular.noop;
 
-  });
+  })
+  .name;

@@ -38,4 +38,4 @@ module.exports = angular.module('spinnaker.search.service', [
       getFallbackResults: getFallbackResults,
       defaultPageSize: defaultPageSize,
     };
-  });
+  }).name;

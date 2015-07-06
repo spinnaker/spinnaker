@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.services.configService', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),
   require('angular-bootstrap'),
   require('../../../authentication/authenticationService.js'),

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.api', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../services/kato.js'),
   require('../caches/deckCacheFactory.js'),
   require('../../services/urlbuilder.js'),
@@ -290,4 +290,4 @@ module.exports = angular.module('spinnaker.tasks.api', [
 
     return configureRestangular();
 
-  });
+  }).name;

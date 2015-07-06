@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
-  require('restangular'),
+  require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../caches/deckCacheFactory.js'),
   require('../../../account/accountService.js'),
   require('../../../naming/naming.service.js'),

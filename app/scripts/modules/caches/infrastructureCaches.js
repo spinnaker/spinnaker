@@ -33,4 +33,5 @@ module.exports = angular.module('spinnaker.caches.infrastructure', [
     caches.createCache = createCache;
 
     return caches;
-  });
+  })
+  .name;

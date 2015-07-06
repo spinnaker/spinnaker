@@ -43,4 +43,5 @@ module.exports = angular.module('spinnaker.instanceType.service', [
       getCategoryForInstanceType: getCategoryForInstanceType
     };
   }
-);
+)
+.name;

@@ -99,4 +99,4 @@ describe('Controller: Applications', function () {
 
 
   });
-});
+}).name;

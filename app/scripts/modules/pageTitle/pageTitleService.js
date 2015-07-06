@@ -86,4 +86,5 @@ module.exports = angular.module('spinnaker.pageTitle', [require('angular-ui-rout
       handleRoutingError: handleRoutingError
     };
 
-  });
+  })
+  .name;

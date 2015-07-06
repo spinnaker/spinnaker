@@ -3,7 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.keyPairs.read.service', [require('restangular'), 'spinnaker.caches.infrastructure'])
+  .module('spinnaker.keyPairs.read.service', [
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../caches/infrastructureCacheConfig.js')
+  ])
   .factory('keyPairsReader', function ($q, Restangular, infrastructureCaches) {
 
     function listKeyPairs() {
@@ -16,4 +19,5 @@ module.exports = angular
       listKeyPairs: listKeyPairs
     };
 
-  });
+  })
+  .name;

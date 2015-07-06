@@ -49,4 +49,4 @@ module.exports = angular.module('spinnaker')
       };
     });
   })
-;
+.name;

@@ -28,4 +28,5 @@ module.exports = angular.module('spinnaker.caches.collapsibleSectionState', [
         stateCache.put(heading, !!expanded);
       }
     };
-  });
+  })
+  .name;

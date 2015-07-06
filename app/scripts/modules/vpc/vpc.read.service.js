@@ -5,7 +5,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.vpc.read.service', [
-    require('restangular'),
+    require('exports?"restangular"!imports?_=lodash!restangular'),
     require('utils/lodash.js'),
   ])
   .factory('vpcReader', function ($q, Restangular, infrastructureCaches ) {
@@ -20,4 +20,4 @@ module.exports = angular
       listVpcs: listVpcs
     };
 
-  });
+  }).name;
