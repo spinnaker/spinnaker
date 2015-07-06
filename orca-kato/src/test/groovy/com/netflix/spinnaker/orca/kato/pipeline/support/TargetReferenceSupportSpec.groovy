@@ -128,6 +128,68 @@ class TargetReferenceSupportSpec extends Specification {
   }
 
   @Unroll
+  void "should throw exception when less than two ASGs are found and target is #target"() {
+    setup:
+    def config = [
+      regions     : ["us-east-1"],
+      cluster     : "kato-main",
+      target      : target,
+      credentials : "prod"
+    ]
+    def stage = new PipelineStage(pipeline, "test", config)
+    def response = mapper.writeValueAsBytes(
+      [serverGroups: [[
+        name  : "kato-main-v001",
+        createdTime: 2,
+        region: "us-east-1",
+          asg   : [
+            minSize        : 5,
+            maxSize        : 5,
+            desiredCapacity: 5
+          ]
+        ]
+      ]]
+    )
+
+    when:
+    subject.getTargetAsgReferences(stage)
+
+    then:
+    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", response))
+    }
+    thrown TargetReferenceNotFoundException
+
+    where:
+    target << ["oldest_asg", "ancestor_asg"]
+  }
+
+  @Unroll
+  void "should throw TargetReferenceNotFoundException when no ASGs are found and target is #target"() {
+    setup:
+    def config = [
+      regions     : ["us-east-1"],
+      cluster     : "kato-main",
+      target      : target,
+      credentials : "prod"
+    ]
+    def stage = new PipelineStage(pipeline, "test", config)
+    def response = mapper.writeValueAsBytes([serverGroups: []])
+
+    when:
+    subject.getTargetAsgReferences(stage)
+
+    then:
+    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+      new Response("foo", 200, "ok", [], new TypedByteArray("application/json", response))
+    }
+    thrown TargetReferenceNotFoundException
+
+    where:
+    target << ["oldest_asg", "ancestor_asg", "current_asg"]
+  }
+
+  @Unroll
   void "should look up cluster info for dynamic target (#target) only on DetermineTargetReferenceStage"() {
     setup:
     def config = [

@@ -74,9 +74,6 @@ class ResizeAsgStage extends LinearStage {
   @CompileDynamic
   private void configureTargets(Stage stage) {
     def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
-    if (!targetReferences) {
-      throw new RuntimeException("Could not determine target ASGs!")
-    }
 
     def descriptions = createResizeStageDescriptors(stage, targetReferences)
 

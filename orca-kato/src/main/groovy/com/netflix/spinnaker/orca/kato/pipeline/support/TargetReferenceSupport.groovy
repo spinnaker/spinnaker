@@ -90,7 +90,8 @@ class TargetReferenceSupport {
           new TargetReference(region: it, cluster: config.cluster)
         }
       } else {
-        return null
+        throw new TargetReferenceNotFoundException("Could not ascertain targets for cluster ${names.cluster} " +
+          "in ${config.credentials} (regions: ${config.regions.join(',')})")
       }
     }
 
@@ -103,13 +104,24 @@ class TargetReferenceSupport {
       }
 
       def sortedAsgs = entry.value.sort { a, b -> b.createdTime <=> a.createdTime }
+      def asgCount = sortedAsgs.size()
 
       def targetReference = new TargetReference(region: region, cluster: config.cluster)
       if (isCurrentAsg(config)) {
         targetReference.asg = sortedAsgs.get(0)
       } else if (isAncestorAsg(config)) {
+        // because of the groupBy above, there will be at least one - no need to check for zero
+        if (asgCount == 1) {
+          throw new TargetReferenceNotFoundException("Only one server group (${sortedAsgs.get(0).name}) found for " +
+            "cluster ${config.cluster} in ${config.credentials}:${region} - no ancestor available")
+        }
         targetReference.asg = sortedAsgs.get(1)
       } else if (isOldestAsg(config)) {
+        // because of the groupBy above, there will be at least one - no need to check for zero
+        if (asgCount == 1) {
+          throw new TargetReferenceNotFoundException("Only one server group (${sortedAsgs.get(0).name}) found for " +
+            "cluster ${config.cluster} in ${config.credentials}:${region} - at least two expected")
+        }
         targetReference.asg = sortedAsgs.last()
       } else if (!config.target && config.asgName) {
         def asg = sortedAsgs.find { it.name == config.asgName }

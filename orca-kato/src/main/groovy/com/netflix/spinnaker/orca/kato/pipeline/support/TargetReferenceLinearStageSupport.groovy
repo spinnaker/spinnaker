@@ -49,10 +49,6 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
     }
 
     def targets = targetReferenceSupport.getTargetAsgReferences(stage)
-    if (!targets) {
-      throw new TargetReferenceNotFoundException("Could not ascertain targets! " +
-        "${objectMapper.writeValueAsString(stage.context)}")
-    }
 
     Map<String, Map<String, Object>> descriptions = [:]
     for (target in targets) {
