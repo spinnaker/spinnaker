@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.gate.security.x509
 
+import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.security.User
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.core.Authentication
@@ -22,6 +23,12 @@ class X509AuthenticationProvider implements AuthenticationProvider {
   */
   private static final String RFC822_NAME_ID = "1"
 
+  private final Collection<String> anonymousAllowedAccounts
+
+  X509AuthenticationProvider(Collection<String> anonymousAllowedAccounts) {
+    this.anonymousAllowedAccounts = anonymousAllowedAccounts ?: []
+  }
+
   @Override
   Authentication authenticate(Authentication authentication) throws AuthenticationException {
     def x509 = (X509Certificate) authentication.credentials
@@ -30,7 +37,7 @@ class X509AuthenticationProvider implements AuthenticationProvider {
     }?.get(1) ?: authentication.principal
 
     return new PreAuthenticatedAuthenticationToken(
-      new User(rfc822Name as String, null, null, [], []),
+      new User(rfc822Name as String, null, null, [], anonymousAllowedAccounts),
       authentication.credentials)
   }
 
