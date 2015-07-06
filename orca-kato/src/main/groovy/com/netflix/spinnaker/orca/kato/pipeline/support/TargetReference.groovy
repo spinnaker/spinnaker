@@ -18,5 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 class TargetReference {
   String region
+  String cluster
   Map<String, Object> asg
 }

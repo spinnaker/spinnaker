@@ -26,33 +26,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class SourceResolverSpec extends Specification {
-  @Unroll
-  void "sortAsgs works as expected for (#inputAsgs => #expectedSortedAsgs)"() {
-    when:
-    def sorted = inputAsgs.sort(true, SourceResolver.ServerGroupNameComparator.forNames())
-
-    then:
-    sorted == expectedSortedAsgs
-
-    where:
-    inputAsgs                                                    | expectedSortedAsgs
-    ["asgard-test", "asgard-test-v000"]                          | ["asgard-test", "asgard-test-v000"]
-    ["asgard-test-v000", "asgard-test"]                          | ["asgard-test", "asgard-test-v000"]
-    ["asgard-test", "asgard-test-v999"]                          | ["asgard-test-v999", "asgard-test"]
-    ["asgard-test-v999", "asgard-test"]                          | ["asgard-test-v999", "asgard-test"]
-    ["asgard-test-v999", "asgard-test-v002"]                     | ["asgard-test-v999", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v999"]                     | ["asgard-test-v999", "asgard-test-v002"]
-    ["asgard-test-v999", "asgard-test-v002", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
-    ["asgard-test-v999", "asgard-test", "asgard-test-v002"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v002"]
-    ["asgard-test-v001", "asgard-test-v002"]                     | ["asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v001"]                     | ["asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v002", "asgard-test-v003", "asgard-test-v001"] | ["asgard-test-v001", "asgard-test-v002", "asgard-test-v003"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v998"] | ["asgard-test-v998", "asgard-test-v999", "asgard-test-v000"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test-v001"] | ["asgard-test-v999", "asgard-test-v000", "asgard-test-v001"]
-    ["asgard-test-v001", "asgard-test-v000", "asgard-test-v002"] | ["asgard-test-v000", "asgard-test-v001", "asgard-test-v002"]
-    ["asgard-test-v001", "asgard-test-v000", "asgard-test"]      | ["asgard-test", "asgard-test-v000", "asgard-test-v001"]
-    ["asgard-test-v000", "asgard-test-v999", "asgard-test"]      | ["asgard-test-v999", "asgard-test", "asgard-test-v000"]
-  }
 
   @Unroll
   void "should populate deploy stage 'source' with latest ASG details if not explicitly specified"() {
@@ -107,7 +80,7 @@ class SourceResolverSpec extends Specification {
     "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
   }
 
-  void 'should sort oort server groups by name'() {
+  void 'should sort oort server groups by createdTime'() {
     given:
     OortService oort = Mock(OortService)
     SourceResolver resolver = new SourceResolver(oortService: oort, mapper: new ObjectMapper())
@@ -116,23 +89,27 @@ class SourceResolverSpec extends Specification {
     def existing = resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws')
 
     then:
-    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oortse.cx', 200, 'Okay', [], new TypedString('''\
+    1 * oort.getCluster('foo', 'test', 'foo-test', 'aws') >> new Response('http://oort.com', 200, 'Okay', [], new TypedString('''\
     {
       "serverGroups": [{
         "name": "foo-test-v001",
-        "region": "us-west-1"
+        "region": "us-west-1",
+        "createdTime": 4
       },{
         "name": "foo-test-v000",
-        "region": "us-west-1"
+        "region": "us-west-1",
+        "createdTime": 3
       },{
         "name": "foo-test-v000",
-        "region": "us-east-1"
+        "region": "us-east-1",
+        "createdTime": 2
       },{
-        "name": "foo-test-v003",
-        "region": "us-east-1"
+        "name": "foo-test-v999",
+        "region": "us-east-1",
+        "createdTime": 1
       }]
     }'''.stripIndent()))
-    existing*.name == ['foo-test-v000', 'foo-test-v000', 'foo-test-v001', 'foo-test-v003']
+    existing*.name == ['foo-test-v999', 'foo-test-v000', 'foo-test-v000', 'foo-test-v001']
   }
 
 }

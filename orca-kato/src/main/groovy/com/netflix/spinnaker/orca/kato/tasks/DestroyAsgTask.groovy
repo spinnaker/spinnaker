@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -38,6 +39,9 @@ class DestroyAsgTask implements Task {
   @Autowired
   ObjectMapper mapper
 
+  @Autowired
+  TargetReferenceSupport targetReferenceSupport
+
   @Override
   TaskResult execute(Stage stage) {
     def operation = convert(stage)
@@ -48,7 +52,7 @@ class DestroyAsgTask implements Task {
         "notification.type"   : "destroyasg",
         "deploy.account.name" : operation.credentials,
         "kato.last.task.id"   : taskId,
-        "kato.task.id"        : taskId, // TODO retire this.
+        "asgName"             : operation.asgName,
         "deploy.server.groups": ((Iterable) operation.regions).collectEntries {
           [(it): [operation.asgName]]
         }
@@ -62,6 +66,11 @@ class DestroyAsgTask implements Task {
       input = ((List) stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
     }
 
-    mapper.convertValue(input, Map)
+    def operation = mapper.convertValue(input, Map)
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+      operation.asgName = targetReference.asg.name
+    }
+    operation
   }
 }

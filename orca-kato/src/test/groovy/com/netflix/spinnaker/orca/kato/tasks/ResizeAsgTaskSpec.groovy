@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -40,6 +41,7 @@ class ResizeAsgTaskSpec extends Specification {
   ]
 
   def setup() {
+    task.targetReferenceSupport = Stub(TargetReferenceSupport)
     stage.context.putAll(resizeASGConfig)
   }
 
@@ -83,7 +85,7 @@ class ResizeAsgTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
-    result.outputs."deploy.account.name" == resizeASGConfig.credentials
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == resizeASGConfig.credentials
   }
 }

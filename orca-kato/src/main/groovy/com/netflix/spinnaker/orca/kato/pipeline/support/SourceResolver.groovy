@@ -62,58 +62,9 @@ class SourceResolver {
       def response = oortService.getCluster(app, account, cluster, providerType)
       def json = response.body.in().text
       def map = mapper.readValue(json, Map)
-      sortAsgs(map.serverGroups as List<Map>)
+      (map.serverGroups as List<Map>).sort { it.createdTime }
     } catch (e) {
       null
-    }
-  }
-
-  protected List<Map> sortAsgs(List<Map> asgs) {
-    return asgs?.sort(true, ServerGroupNameComparator.forServerGroups())
-  }
-
-  static class ServerGroupNameComparator {
-
-    static Comparator<String> forNames() {
-      return new NameComparator()
-    }
-
-    static Comparator<Map> forServerGroups() {
-      return new ServerGroupComparator()
-    }
-
-    static class NameComparator implements Comparator<String> {
-      @Override
-      int compare(String a, String b) {
-        // cases where there is no version
-        if (a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-          1
-        } else if (a.lastIndexOf("-v") == -1 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-          -1
-        } else if (b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900) {
-          1
-        } else if (b.lastIndexOf("-v") == -1 && Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900) {
-          -1
-          // cases where versions cross 999
-        } else if (Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) < 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) > 900) {
-          1
-        } else if (Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2)) > 900 && Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2)) < 900) {
-          -1
-        } else { // normal case
-          int aNum = Integer.parseInt(a.substring(a.lastIndexOf("-v") + 2))
-          int bNum = Integer.parseInt(b.substring(b.lastIndexOf("-v") + 2))
-          aNum.equals(bNum) ? 0 : Math.abs(aNum) < Math.abs(bNum) ? -1 : 1
-        }
-      }
-    }
-
-    static class ServerGroupComparator implements Comparator<Map> {
-      private final NameComparator comparator = new NameComparator()
-
-      @Override
-      int compare(Map o1, Map o2) {
-        comparator.compare(o1.name as String, o2.name as String)
-      }
     }
   }
 
