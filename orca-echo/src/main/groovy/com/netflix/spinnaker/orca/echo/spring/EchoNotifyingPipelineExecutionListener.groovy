@@ -5,11 +5,13 @@ import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 
 @CompileStatic
+@Slf4j
 class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
 
   protected final ExecutionRepository executionRepository
@@ -23,36 +25,44 @@ class EchoNotifyingPipelineExecutionListener implements JobExecutionListener {
   @Override
   void beforeJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
-    if (execution.status != ExecutionStatus.SUSPENDED) {
-      echoService.recordEvent(
-        details: [
-          source     : "orca",
-          type       : "orca:pipeline:starting",
-          application: execution.application,
-        ],
-        content: [
-          execution  : executionRepository.retrievePipeline(execution.id),
-          executionId: execution.id
-        ]
-      )
+    try {
+      if (execution.status != ExecutionStatus.SUSPENDED) {
+        echoService.recordEvent(
+          details: [
+            source     : "orca",
+            type       : "orca:pipeline:starting",
+            application: execution.application,
+          ],
+          content: [
+            execution  : executionRepository.retrievePipeline(execution.id),
+            executionId: execution.id
+          ]
+        )
+      }
+    } catch (Exception e) {
+      log.error("Failed to send pipeline start event: ${execution?.id}")
     }
   }
 
   @Override
   void afterJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
-    if (execution.status != ExecutionStatus.SUSPENDED) {
-      echoService.recordEvent(
-        details: [
-          source     : "orca",
-          type       : "orca:pipeline:${(wasSuccessful(jobExecution) ? "complete" : "failed")}".toString(),
-          application: execution.application,
-        ],
-        content: [
-          execution  : executionRepository.retrievePipeline(execution.id),
-          executionId: execution.id
-        ]
-      )
+    try {
+      if (execution.status != ExecutionStatus.SUSPENDED) {
+        echoService.recordEvent(
+          details: [
+            source     : "orca",
+            type       : "orca:pipeline:${(wasSuccessful(jobExecution) ? "complete" : "failed")}".toString(),
+            application: execution.application,
+          ],
+          content: [
+            execution  : executionRepository.retrievePipeline(execution.id),
+            executionId: execution.id
+          ]
+        )
+      }
+    } catch (Exception e) {
+      log.error("Failed to send pipeline end event: ${execution?.id}")
     }
   }
 

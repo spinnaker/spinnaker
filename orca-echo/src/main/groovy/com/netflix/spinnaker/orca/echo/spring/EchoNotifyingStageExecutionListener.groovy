@@ -6,18 +6,17 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
 import org.springframework.beans.factory.annotation.Autowired
 
-import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit
-
 /**
  * Converts step execution events to Echo events.
  */
 @CompileStatic
+@Slf4j
 class EchoNotifyingStageExecutionListener extends StageExecutionListener {
 
   private final EchoService echoService
@@ -43,12 +42,13 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
   }
 
   private void recordEvent(String phase, Stage stage, StepExecution stepExecution) {
-    echoService.recordEvent(
-      details: [
-        source     : "orca",
-        type       : "orca:task:${phase}".toString(),
-        application: stage.execution.application
-      ], content: [
+    try {
+      echoService.recordEvent(
+        details: [
+          source     : "orca",
+          type       : "orca:task:${phase}".toString(),
+          application: stage.execution.application
+        ], content: [
         standalone : stage.execution instanceof Orchestration,
         canceled   : stage.execution.canceled,
         context    : stage.context,
@@ -58,7 +58,10 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
         execution  : stage.execution,
         executionId: stage.execution.id
       ]
-    )
+      )
+    } catch (Exception e) {
+      log.error("Failed to send task event ${phase} ${stage.execution.id} ${stepExecution.stepName}")
+    }
   }
 
   /**
