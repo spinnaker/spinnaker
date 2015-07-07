@@ -6,7 +6,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
-  require('angular-bootstrap'),
   require('../../configure/gce/ServerGroupCommandBuilder.js'),
   require('../../serverGroup.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),

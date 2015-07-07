@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.networking.controller', [
-  require('angular-bootstrap'),
   require('../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
   require('./elasticIp.read.service.js'),

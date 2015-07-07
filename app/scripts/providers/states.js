@@ -5,8 +5,14 @@ let angular = require('angular');
 // need to require these here so they get put in the cache. Look into a better way
 require('../modules/instance/details/aws/instanceDetails.html');
 require('../modules/instance/details/gce/instanceDetails.html');
+
 require('../modules/serverGroups/details/aws/serverGroupDetails.html');
 require('../modules/serverGroups/details/gce/serverGroupDetails.html');
+
+require('../modules/loadBalancers/details/aws/loadBalancerDetails.html');
+require('../modules/loadBalancers/details/gce/loadBalancerDetails.html');
+
+require('../modules/securityGroups/details/aws/securityGroupDetails.html');
 
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
@@ -115,7 +121,7 @@ module.exports = angular.module('spinnaker.states', [
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('../../scripts/modules/loadBalancers/details/' + provider + '/loadBalancerDetails.html'); }],
+              return $templateCache.get('app/scripts/modules/loadBalancers/details/' + provider + '/loadBalancerDetails.html'); }],
             controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'LoadBalancerDetailsCtrl';
@@ -156,7 +162,7 @@ module.exports = angular.module('spinnaker.states', [
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('../../scripts/modules/securityGroups/details/' + provider + '/securityGroupDetails.html'); }],
+              return $templateCache.get('app/scripts/modules/securityGroups/details/' + provider + '/securityGroupDetails.html'); }],
             controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'SecurityGroupDetailsCtrl';
@@ -165,7 +171,7 @@ module.exports = angular.module('spinnaker.states', [
           }
         },
         resolve: {
-          securityGroup: ['$stateParams', function($stateParams) {
+          resolvedSecurityGroup: ['$stateParams', function($stateParams) {
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
@@ -335,7 +341,7 @@ module.exports = angular.module('spinnaker.states', [
                 }
               },
               resolve: {
-                securityGroup: ['$stateParams', function($stateParams) {
+                resolveSecurityGroup: ['$stateParams', function($stateParams) {
                   return {
                     account: $stateParams.securityGroupAccount,
                     name: $stateParams.securityGroup,

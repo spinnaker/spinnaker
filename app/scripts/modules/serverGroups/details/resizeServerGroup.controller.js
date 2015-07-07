@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.resizeServerGroup.controller', [
-  require('angular-bootstrap'),
   require('../../account/accountService.js'),
   require('../serverGroup.write.service.js'),
   require('../../tasks/monitor/taskMonitorService.js')

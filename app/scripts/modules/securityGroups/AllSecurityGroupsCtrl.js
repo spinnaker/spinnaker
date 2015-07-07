@@ -2,12 +2,15 @@
 
 let angular = require('angular');
 
+require('./filters.html');
+require('./groupings.html');
+
 module.exports = angular.module('spinnaker.securityGroup.all.controller', [
-  require('angular-bootstrap'),
   require('utils/lodash.js'),
   require('../providerSelection/providerSelection.service.js'),
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {
+  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, app) {
+    const application = app;
     $scope.application = application;
 
     $scope.sortFilter = {

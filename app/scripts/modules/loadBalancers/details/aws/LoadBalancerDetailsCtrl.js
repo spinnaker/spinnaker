@@ -4,14 +4,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
   require('angular-ui-router'),
-  require('angular-bootstrap'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),
   require('utils/lodash.js'),
   require('../../../confirmationModal/confirmationModal.service.js')
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
@@ -22,7 +21,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       if (!loadBalancer.vpcId) {
         loadBalancer.vpcId = null;
       }
-      $scope.loadBalancer = application.loadBalancers.filter(function (test) {
+      $scope.loadBalancer = app.loadBalancers.filter(function (test) {
         var testVpc = test.vpcId || null;
         return test.name === loadBalancer.name && test.region === loadBalancer.region && test.account === loadBalancer.accountId && testVpc === loadBalancer.vpcId;
       })[0];
@@ -44,7 +43,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
             }
 
             $scope.loadBalancer.elb.securityGroups.forEach(function (securityGroupId) {
-              var match = securityGroupReader.getApplicationSecurityGroup(application, loadBalancer.accountId, loadBalancer.region, securityGroupId);
+              var match = securityGroupReader.getApplicationSecurityGroup(app, loadBalancer.accountId, loadBalancer.region, securityGroupId);
               if (match) {
                 securityGroups.push(match);
               }
@@ -60,7 +59,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
 
     extractLoadBalancer();
 
-    application.registerAutoRefreshHandler(extractLoadBalancer, $scope);
+    app.registerAutoRefreshHandler(extractLoadBalancer, $scope);
 
     //BEN_TODO
 
@@ -70,7 +69,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         template: '../../configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
-          application: function() { return application; },
+          application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
           isNew: function() { return false; }
         }
@@ -83,7 +82,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         template: '../../configure/' + provider + '/createLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
-          application: function() { return application; },
+          application: function() { return app; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
           isNew: function() { return true; }
         }
@@ -96,7 +95,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       }
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Deleting ' + loadBalancer.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true
@@ -105,7 +104,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
         loadBalancer.vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application);
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app);
       };
 
       confirmationModalService.confirm({
@@ -114,7 +113,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
         destructive: true,
         provider: 'aws',
         account: loadBalancer.accountId,
-        applicationName: application.name,
+        applicationName: app.name,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
       });

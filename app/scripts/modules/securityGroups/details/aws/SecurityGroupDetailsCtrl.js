@@ -5,15 +5,17 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
   require('angular-ui-router'),
-  require('angular-bootstrap'),
   require('../../securityGroup.read.service.js'),
   require('../../securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
 ])
-  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, securityGroup, application,
+  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $modal, _) {
+
+    const application = app;
+    const securityGroup = resolvedSecurityGroup;
 
     $scope.state = {
       loading: true

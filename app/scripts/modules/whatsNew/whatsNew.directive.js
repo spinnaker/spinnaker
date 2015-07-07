@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.whatsNew.directive', [
-    require('angular-bootstrap'),
     require('angular-marked'),
     require('../caches/viewStateCache.js'),
     require('./whatsNew.read.service.js'),

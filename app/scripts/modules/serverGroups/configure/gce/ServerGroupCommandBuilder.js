@@ -254,5 +254,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       buildSubmittableCommand: buildSubmittableCommand,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
-});
+})
+.name;
 

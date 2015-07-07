@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
   require('angular-ui-router'),
-  require('angular-bootstrap'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),

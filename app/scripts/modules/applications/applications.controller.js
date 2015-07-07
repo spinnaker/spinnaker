@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.applications.controller', [
-  //require('angular-bootstrap'),
   require('./applications.read.service.js'),
   require('../account/accountService.js'),
 ])

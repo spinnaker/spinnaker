@@ -9,7 +9,7 @@ module.exports = angular
     require('./details/resizeServerGroup.controller.js'),
 
     require('./serverGroup.write.service.js'),
-    require('./configure/common/transformer/serverGroup.transformer.service.module.js'),
+    require('./configure/common/transformer/serverGroup.transformer.service.js'),
     require('./configure/aws/serverGroup.configure.aws.module.js'),
     require('./configure/gce/serverGroup.configure.gce.module.js'),
     require('./configure/common/serverGroup.configure.common.module.js'),

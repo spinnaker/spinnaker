@@ -4,11 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.single.controller', [
   require('angular-ui-router'),
-  require('angular-bootstrap'),
   require('./securityGroup.read.service.js'),
 ])
-  .controller('SecurityGroupCtrl', function($scope, $state, securityGroup, application, securityGroupReader, $modal) {
-
+  .controller('SecurityGroupCtrl', function($scope, $state, resolveSecurityGroup, app, securityGroupReader, $modal) {
+    const application = app;
+    const securityGroup = resolveSecurityGroup;
     $scope.displayOptions = {
       showServerGroups: true,
       showLoadBalancers: true

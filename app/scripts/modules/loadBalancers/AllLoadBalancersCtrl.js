@@ -3,15 +3,14 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.controller', [
-  require('angular-bootstrap'),
   require('../account/accountService.js'),
   require('../providerSelection/providerSelection.service.js'),
   require('utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('./LoadBalancerCtrl.js'),
 ])
-  .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, application ) {
-    $scope.application = application;
+  .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, app ) {
+    $scope.application = app;
 
     $scope.sortFilter = {
       sortPrimary: 'account',
@@ -62,7 +61,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
 
     function updateLoadBalancerGroups() {
       $scope.$evalAsync(function() {
-        var loadBalancers = application.loadBalancers,
+        var loadBalancers = app.loadBalancers,
             groups = [],
             filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
             primarySort = $scope.sortFilter.sortPrimary,
@@ -102,7 +101,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
           templateUrl: './configure/' + provider + '/createLoadBalancer.html',
           controller: provider + 'CreateLoadBalancerCtrl as ctrl',
           resolve: {
-            application: function() { return application; },
+            application: function() { return app; },
             loadBalancer: function() { return null; },
             isNew: function() { return true; }
           }
@@ -112,7 +111,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    application.registerAutoRefreshHandler(updateLoadBalancerGroups, $scope);
+    app.registerAutoRefreshHandler(updateLoadBalancerGroups, $scope);
 
     updateLoadBalancerGroups();
 

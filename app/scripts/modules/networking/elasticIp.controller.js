@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.elasticIp.controller', [
-  require('angular-bootstrap'),
   require('../account/accountService.js'),
   require('./elasticIp.write.service.js'),
   require('../tasks/monitor/taskMonitorService.js')

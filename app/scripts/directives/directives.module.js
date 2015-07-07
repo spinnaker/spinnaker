@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.directives', [
 .directive('collapsibleSection', require('./collapsibleSection.js'))
 .directive('dynamicOverlay', require('./dynamicOverlay.js'))
 .directive('insightMenu', require('./insightmenu.js'))
-.directive('insightmenu', require('./instanceList.directive.js'))
+.directive('instanceList', require('./instanceList.directive.js'))
 .directive('instanceListBody', require('./instanceListBody.directive.js'))
 .directive('instances', require('./instances.js'))
 .directive('katoError', require('./katoError.js'))
@@ -35,6 +35,6 @@ module.exports = angular.module('spinnaker.directives', [
 .directive('stateActive', require('./stateactive.js'))
 .directive('submitButton', require('./submitButton.js'))
 .directive('subnetSelectField', require('./subnetSelectField.js'))
-.directive('vilible', require('./visible.js'))
+.directive('visible', require('./visible.js'))
 .directive('wizardPage', require('./wizardPage.js'))
 .name;
