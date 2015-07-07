@@ -170,21 +170,28 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
     static boolean hasRequiredRole(AnonymousSecurityConfig anonymousSecurityConfig,
                                    OneLoginSecurityConfigProperties oneLoginProperties,
                                    User user) {
-      if (anonymousSecurityConfig?.allowedAccounts) {
-        return true
+      if (anonymousSecurityConfig) {
+        def hasAuthenticated = user.email != anonymousSecurityConfig.defaultEmail
+        if (!hasAuthenticated) {
+          return false
+        }
+
+        if (anonymousSecurityConfig.allowedAccounts) {
+          return true
+        }
       }
 
-      def hasRequiredRole = true
       if (oneLoginProperties.requiredRoleByAccount) {
         def allAllowedAccountRoles = oneLoginProperties.requiredRoleByAccount.values()*.toLowerCase()
-        hasRequiredRole = user.roles?.find { allAllowedAccountRoles.contains(it.toLowerCase()) }
+        if (oneLoginProperties.requiredRoleByAccount && !user.roles?.find {
+          allAllowedAccountRoles.contains(it.toLowerCase())
+        }) {
+          log.error("User '${user.email}' does not have a required role (userRoles: ${user.roles.join(",")}, requiredRoles: ${oneLoginProperties.requiredRoleByAccount.values().join(",")})")
+          return false
+        }
       }
 
-      if (!hasRequiredRole) {
-        log.error("User '${user.email}' does not have a required role (userRoles: ${user.roles.join(",")}, requiredRoles: ${oneLoginProperties.requiredRoleByAccount.values().join(",")})")
-      }
-
-      return hasRequiredRole
+      return true
     }
 
     @RequestMapping(value = "/info", method = RequestMethod.GET)

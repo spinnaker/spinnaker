@@ -42,20 +42,22 @@ class OneLoginSecurityConfigSpec extends Specification {
   @Unroll
   void "should check for anonymous allowed accounts when determining whether user has required roles"() {
     given:
-    def anonymousSecurityConfig = new AnonymousSecurityConfig(allowedAccounts: anonymousAllowedAccounts)
+    def anonymousSecurityConfig = (anonymousAllowedAccounts != null) ? new AnonymousSecurityConfig(allowedAccounts: anonymousAllowedAccounts) : null
     def oneLoginSecurityConfig = new OneLoginSecurityConfig.OneLoginSecurityConfigProperties(
       requiredRoleByAccount: requiredRolesByAccount
     )
-    def user = new User(roles: userRoles)
+    def user = new User(email: email, roles: userRoles)
 
     expect:
     OneLoginSecurityConfig.OneLoginSecurityController.hasRequiredRole(anonymousSecurityConfig, oneLoginSecurityConfig, user) == hasRequiredRole
 
     where:
-    requiredRolesByAccount | anonymousAllowedAccounts | userRoles  || hasRequiredRole
-    ["test": "groupA"]     | ["prod"]                 | []         || true
-    ["test": "groupA"]     | []                       | []         || false
-    ["test": "groupA"]     | null                     | []         || false
-    ["test": "groupA"]     | null                     | ["groupA"] || true
+    email        | requiredRolesByAccount | anonymousAllowedAccounts | userRoles  || hasRequiredRole
+    "authorized" | ["test": "groupA"]     | ["prod"]                 | []         || true
+    "anonymous"  | ["test": "groupA"]     | ["prod"]                 | []         || false
+    "authorized" | ["test": "groupA"]     | []                       | []         || false
+    "authorized" | ["test": "groupA"]     | null                     | []         || false
+    "authorized" | ["test": "groupA"]     | null                     | ["groupA"] || true
+    "authorized" | ["test": "groupA"]     | null                     | ["groupA"] || true
   }
 }

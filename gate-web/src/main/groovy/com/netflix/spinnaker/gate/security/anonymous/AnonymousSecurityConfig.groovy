@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.AnonymousAuthenticationFi
 @ConfigurationProperties(prefix = "anonymous")
 class AnonymousSecurityConfig implements WebSecurityAugmentor {
   String key = "spinnaker-anonymous"
+  String defaultEmail = "anonymous"
   Collection<String> allowedAccounts = []
 
   @Override
@@ -25,7 +26,7 @@ class AnonymousSecurityConfig implements WebSecurityAugmentor {
                  UserDetailsService userDetailsService,
                  AuthenticationManager authenticationManager) {
     def filter = new AnonymousAuthenticationFilter(
-      key, new User("anonymous", null, null, ["anonymous"], allowedAccounts), [new SimpleGrantedAuthority("anonymous")]
+      key, new User(defaultEmail, null, null, ["anonymous"], allowedAccounts), [new SimpleGrantedAuthority("anonymous")]
     )
     http.addFilter(filter)
     http.csrf().disable()
