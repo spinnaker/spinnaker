@@ -9,6 +9,9 @@
  * Main module of the application.
  */
 //BEN_TODO figure out what actually gets used here
+require('jquery'); //  deck is reliant on my jquery features we need to load it before angular.
+
+
 require('../fonts/spinnaker/icons.css');
 require('bootstrap/dist/css/bootstrap.css');
 require('source-sans-pro');
@@ -52,15 +55,15 @@ module.exports = angular.module('spinnaker', [
     require('./modules/delivery/states.js'),
     //require('ng-infinite-scroll'),
     require('./directives/directives.module.js'),
-    //
-    //require('./modules/insight/insight.module.js'),
+
+    require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
     //require('./modules/feedback/feedback.module.js'),
     //
     //require('utils/stickyHeader/stickyHeader.directive.js'),
     //
-    //require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
-    //require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
+    require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
+    require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
     //
     //require('./modules/aws.module.js'),
     //require('./modules/gce.module.js'),
@@ -73,7 +76,7 @@ module.exports = angular.module('spinnaker', [
     require('./settings/settings.js'),
     //require('./modules/scheduler/scheduler.service.js'),
     //require('./services/urlbuilder.js'),
-    //require('./modules/clusterFilter/cluster.filter.module.js'),
+    require('./modules/clusterFilter/cluster.filter.module.js'),
     //require('./directives/modalWizard.js'),
     //require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/common/ajaxError.interceptor.js'),

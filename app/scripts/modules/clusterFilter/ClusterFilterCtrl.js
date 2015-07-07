@@ -5,13 +5,13 @@ let angular = require('angular');
 // controllerAs: clustersFilters
 
 module.exports = angular.module('cluster', [
-  'cluster.filter.service',
-  'cluster.filter.model',
+  require('./clusterFilterService.js'),
+  require('./clusterFilterModel.js'),
   require('utils/lodash.js'),
 ])
-  .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
+  .controller('ClusterFilterCtr', function ($scope, app, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
-    $scope.application = application;
+    $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
     var ctrl = this;
@@ -44,17 +44,17 @@ module.exports = angular.module('cluster', [
     this.updateClusterGroups = _.debounce(function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
       $scope.$evalAsync(
-        clusterFilterService.updateClusterGroups(application)
+        clusterFilterService.updateClusterGroups(app)
       );
     }, 300);
 
     function getHeadingsForOption(option) {
-      var allValues = application.serverGroups.map(option.getDisplayValue);
+      var allValues = app.serverGroups.map(option.getDisplayValue);
       return _.compact(_.unique(_.flatten(allValues))).sort();
     }
 
     function getAvailabilityZones() {
-      return _(application.serverGroups)
+      return _(app.serverGroups)
         .pluck('instances')
         .flatten()
         .pluck('availabilityZone')
@@ -64,7 +64,7 @@ module.exports = angular.module('cluster', [
 
     function clearFilters() {
       clusterFilterService.clearFilters();
-      clusterFilterService.updateClusterGroups(application);
+      clusterFilterService.updateClusterGroups(app);
     }
 
     this.initialize = function() {
@@ -74,12 +74,12 @@ module.exports = angular.module('cluster', [
       ctrl.providerTypeHeadings = getHeadingsForOption(providerType);
       ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.clearFilters = clearFilters;
-      $scope.clusters = application.clusters;
+      $scope.clusters = app.clusters;
     };
 
     this.initialize();
 
-    application.registerAutoRefreshHandler(this.initialize, $scope);
+    app.registerAutoRefreshHandler(this.initialize, $scope);
 
   }
 )

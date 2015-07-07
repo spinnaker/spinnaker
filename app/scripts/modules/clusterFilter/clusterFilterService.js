@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('cluster.filter.service', [
-    'cluster.filter.model',
+    require('./clusterFilterModel.js'),
     require('utils/lodash.js'),
     require('utils/waypoints/waypoint.service.js'),
   ])

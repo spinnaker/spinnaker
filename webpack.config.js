@@ -2,7 +2,6 @@
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var IgnorePlugin = require("webpack/lib/IgnorePlugin");
-var ResolverPlugin = require("webpack/lib/ResolverPlugin");
 var path = require('path');
 
 var nodeModulePath = path.join(__dirname, 'node_modules');
@@ -29,7 +28,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'babel!eslint',
+        loader: 'ng-annotate!babel!eslint',
         exclude: /node_modules/,
       },
       {

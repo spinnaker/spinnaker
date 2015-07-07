@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('clusters.all', [
-  'cluster.filter.service',
-  'cluster.filter.model',
+  require('../clusterFilter/clusterFilterService.js'),
+  require('../clusterFilter/clusterFilterModel.js'),
   require('./clusterPod.directive.js'),
   require('../account/account.module.js'),
   require('../providerSelection/providerSelection.module.js'),
@@ -13,7 +13,7 @@ module.exports = angular.module('clusters.all', [
   require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
   require('utils/waypoints/waypointContainer.directive.js'),
 ])
-  .controller('AllClustersCtrl', function($scope, application, $modal, $location,
+  .controller('AllClustersCtrl', function($scope, app, $modal, $location,
                                           securityGroupReader, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
@@ -31,7 +31,7 @@ module.exports = angular.module('clusters.all', [
     });
 
     function addSearchFields() {
-      application.serverGroups.forEach(function(serverGroup) {
+      app.serverGroups.forEach(function(serverGroup) {
         var buildInfo = '';
         if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
           buildInfo = [
@@ -55,7 +55,7 @@ module.exports = angular.module('clusters.all', [
     function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
       $scope.$evalAsync(function() {
-          clusterFilterService.updateClusterGroups(application);
+          clusterFilterService.updateClusterGroups(app);
         }
       );
 
@@ -77,9 +77,9 @@ module.exports = angular.module('clusters.all', [
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function() { return 'Create New Server Group'; },
-            application: function() { return application; },
+            application: function() { return app; },
             serverGroup: function() { return null; },
-            serverGroupCommand: function() { return serverGroupCommandBuilder.buildNewServerGroupCommand(application, selectedProvider); },
+            serverGroupCommand: function() { return serverGroupCommandBuilder.buildNewServerGroupCommand(app, selectedProvider); },
             provider: function() { return selectedProvider; }
           }
         });
@@ -95,6 +95,6 @@ module.exports = angular.module('clusters.all', [
 
     autoRefreshHandler();
 
-    application.registerAutoRefreshHandler(autoRefreshHandler, $scope);
-  }
-).name;
+    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
+  })
+  .name;
