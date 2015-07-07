@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.gate.config
 
+import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.gate.security.onelogin.saml.Response
+import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -35,5 +37,25 @@ class OneLoginSecurityConfigSpec extends Specification {
     ["anonymous"]            || ["anonymous", "test"]
     []                       || ["test"]
     null                     || ["test"]
+  }
+
+  @Unroll
+  void "should check for anonymous allowed accounts when determining whether user has required roles"() {
+    given:
+    def anonymousSecurityConfig = new AnonymousSecurityConfig(allowedAccounts: anonymousAllowedAccounts)
+    def oneLoginSecurityConfig = new OneLoginSecurityConfig.OneLoginSecurityConfigProperties(
+      requiredRoleByAccount: requiredRolesByAccount
+    )
+    def user = new User(roles: userRoles)
+
+    expect:
+    OneLoginSecurityConfig.OneLoginSecurityController.hasRequiredRole(anonymousSecurityConfig, oneLoginSecurityConfig, user) == hasRequiredRole
+
+    where:
+    requiredRolesByAccount | anonymousAllowedAccounts | userRoles  || hasRequiredRole
+    ["test": "groupA"]     | ["prod"]                 | []         || true
+    ["test": "groupA"]     | []                       | []         || false
+    ["test": "groupA"]     | null                     | []         || false
+    ["test": "groupA"]     | null                     | ["groupA"] || true
   }
 }

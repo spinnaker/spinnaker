@@ -23,10 +23,10 @@ import com.netflix.spinnaker.gate.security.onelogin.AppSettings
 import com.netflix.spinnaker.gate.security.onelogin.saml.AuthRequest
 import com.netflix.spinnaker.gate.security.onelogin.saml.Response
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -50,6 +50,7 @@ import javax.servlet.http.HttpServletResponse
 
 @ConditionalOnExpression('${onelogin.enabled:false}')
 @Configuration
+@Slf4j
 class OneLoginSecurityConfig implements WebSecurityAugmentor {
   @Component
   @ConfigurationProperties("onelogin")
@@ -150,7 +151,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       resp.loadXmlFromBase64(samlResponse)
 
       def user = buildUser(oneLoginProperties, resp, anonymousSecurityConfig?.allowedAccounts)
-      if (!hasRequiredRole(user)) {
+      if (!hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
       def auth = new UsernamePasswordAuthenticationToken(user, "", [new SimpleGrantedAuthority("USER")])
@@ -166,19 +167,30 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       response.sendRedirect callback
     }
 
-    boolean hasRequiredRole(User user) {
-      if (oneLoginProperties.requiredRoleByAccount) {
-        def allAllowedAccountRoles = oneLoginProperties.requiredRoleByAccount.values()*.toLowerCase()
-        return user.roles?.find { allAllowedAccountRoles.contains(it.toLowerCase()) }
+    static boolean hasRequiredRole(AnonymousSecurityConfig anonymousSecurityConfig,
+                                   OneLoginSecurityConfigProperties oneLoginProperties,
+                                   User user) {
+      if (anonymousSecurityConfig?.allowedAccounts) {
+        return true
       }
 
-      return true
+      def hasRequiredRole = true
+      if (oneLoginProperties.requiredRoleByAccount) {
+        def allAllowedAccountRoles = oneLoginProperties.requiredRoleByAccount.values()*.toLowerCase()
+        hasRequiredRole = user.roles?.find { allAllowedAccountRoles.contains(it.toLowerCase()) }
+      }
+
+      if (!hasRequiredRole) {
+        log.error("User '${user.email}' does not have a required role (userRoles: ${user.roles.join(",")}, requiredRoles: ${oneLoginProperties.requiredRoleByAccount.values().join(",")})")
+      }
+
+      return hasRequiredRole
     }
 
     @RequestMapping(value = "/info", method = RequestMethod.GET)
     User getUser(HttpServletRequest request, HttpServletResponse response) {
       Object whoami = SecurityContextHolder.context.authentication.principal
-      if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(whoami))) {
+      if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, whoami))) {
         response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
         response.sendError 401
         null
