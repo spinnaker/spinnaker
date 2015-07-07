@@ -70,6 +70,9 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
+      <p ng-if="instance.healthState !== 'Starting' && !healthMetrics.length">
+        No health metrics found for this instance
+      </p>
       <p ng-if="instance.healthState === 'Starting' && !healthMetrics.length">
         <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
       </p>
