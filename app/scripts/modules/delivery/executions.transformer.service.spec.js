@@ -27,6 +27,24 @@ describe('executionsService', function() {
       expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e','f','b','c','a','g','d','h']);
     });
 
+    it('should sort stages by start time if available', function() {
+      var execution = {
+        stages: [
+          { id: 'a', name: 'a' },
+          { id: 'b', name: 'b', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE', startTime: 2 },
+          { id: 'c', name: 'c', parentStageId: 'a', syntheticStageOwner: 'STAGE_BEFORE', startTime: 1 },
+          { id: 'd', name: 'd', parentStageId: 'a', syntheticStageOwner: 'STAGE_AFTER' },
+          { id: 'e', name: 'e', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'f', name: 'f', parentStageId: 'b', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'g', name: 'g', parentStageId: 'd', syntheticStageOwner: 'STAGE_BEFORE' },
+          { id: 'h', name: 'h', parentStageId: 'd', syntheticStageOwner: 'STAGE_AFTER' },
+        ]
+      };
+
+      this.transformer.transformExecution({}, execution);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e','f','c','b','a','g','d','h']);
+    });
+
     it('should group stages into summaries when no synthetic stages added', function() {
       var execution = {
         stages: [
