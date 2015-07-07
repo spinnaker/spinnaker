@@ -25,7 +25,6 @@ import com.netflix.spinnaker.oort.model.Instance
 class GoogleInstance implements Instance, Serializable {
 
   String name
-  boolean healthy
   Long launchTime
   List<Map<String, Object>> health = []
 

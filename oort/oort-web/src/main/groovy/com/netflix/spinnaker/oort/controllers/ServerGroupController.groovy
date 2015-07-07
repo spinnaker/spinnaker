@@ -125,14 +125,12 @@ class ServerGroupController {
   static class InstanceViewModel {
     String id
     List<Map<String, Object>> health
-    Boolean isHealthy
     String healthState
     Long launchTime
     String availabilityZone
 
     InstanceViewModel(Instance instance) {
       id = instance.name
-      isHealthy = instance.isHealthy()
       healthState = instance.getHealthState().toString()
       launchTime = instance.getLaunchTime()
       availabilityZone = instance.getZone()

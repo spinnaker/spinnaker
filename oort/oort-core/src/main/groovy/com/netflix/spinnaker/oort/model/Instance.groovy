@@ -30,13 +30,6 @@ interface Instance {
   String getName()
 
   /**
-   * A flag indicating whether the instance is healthy
-   *
-   * @return true/false depending on healthy/unhealthy
-   */
-  boolean isHealthy()
-
-  /**
    * A status of the health of the instance
    * @return HealthState
    */
