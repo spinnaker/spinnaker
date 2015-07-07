@@ -48,11 +48,6 @@ class SearchIndex {
 
     Map addToIndex(Event event) {
         event.content._event_details = event.details
-
-        if(event.content?.execution) {
-            event.content?.execution = mapper.writeValueAsString(event.content?.execution)
-        }
-
         String contentString = mapper.writeValueAsString(event.content)
         String eventKey = keyFrom(event.details.source, event.details.type)
         Index index = new Index.Builder(contentString).index(ES_INDEX).type(eventKey).build()
