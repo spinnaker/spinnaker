@@ -80,6 +80,7 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
         startTime: deployParent.startTime,
         endTime: deploymentEndTime,
         context: {
+          commits: deployment.commits,
           canaryDeploymentId: canaryDeploymentId,
           application: stage.context.canary.application || execution.application,
           canaryCluster: deployment.canaryCluster,
@@ -150,12 +151,15 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
           stage.status = status;
 
           var tasks = _.map(deployStages, function(deployStage) {
+            var region = _.first(_.keys(deployStage.context.availabilityZones));
             return {
               id: deployStage.id,
+              region: region,
               name: getDeployTaskName(deployStage),
               startTime: deployStage.startTime,
               endTime: deployStage.endTime,
               status: deployStage.status,
+              commits: deployStage.context.commits
             };
           });
 
@@ -198,6 +202,11 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
             deployment.canaryResult = deployment.canaryAnalysisResult || {};
             deployment.canaryCluster = deployment.canaryCluster || {};
 
+            var foundTask = _.find(stage.tasks, function(task){ return task.region === deployment.baselineCluster.region && task.commits !== undefined && task.commits.length > 0;});
+            if(foundTask !== undefined && foundTask.commits !== undefined) {
+              deployment.commits = foundTask.commits;
+            }
+
             if (deployedClusterPair) {
               var canaryServerGroup = _.find(application.serverGroups, {
                 name: deployedClusterPair.canaryCluster.serverGroup,
@@ -226,7 +235,6 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
             }
 
             var canaryDeploymentId = deployment.canaryAnalysisResult ? deployment.canaryAnalysisResult.canaryDeploymentId : null;
-
             syntheticStagesToAdd.push(createSyntheticCanaryDeploymentStage(stage, deployment, status, deployParent, deploymentEndTime, canaryDeploymentId, execution));
           });
         }
