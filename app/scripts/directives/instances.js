@@ -30,7 +30,7 @@ angular.module('spinnaker')
                   '" data-toggle="tooltip" data-instance-id="' + id +
                   '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
         }).join('') + '</div>';
-        $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
+        elem.tooltip({selector: 'a.instance', placement: 'top', container: elem});
 
         elem.click(function(event) {
           $timeout(function() {
@@ -65,7 +65,6 @@ angular.module('spinnaker')
         scope.$on('$locationChangeSuccess', clearActiveState);
 
         scope.$on('$destroy', function() {
-          $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
           elem.unbind('click');
         });
       }
