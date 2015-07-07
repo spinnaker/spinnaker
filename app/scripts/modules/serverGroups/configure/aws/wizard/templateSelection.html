@@ -48,10 +48,10 @@
             </ul>
             These fields <strong>will NOT</strong> be copied over, and will be reset to defaults:
             <ul>
-              <li>scaling policies</li>
               <li>suspended processes</li>
               <li ng-if="!command.viewState.disableStrategySelection">the deployment strategy (if any) used to deploy the most recent server group</li>
             </ul>
+            If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.
           </div>
         </div>
       </form>
