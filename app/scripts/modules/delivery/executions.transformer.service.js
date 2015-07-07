@@ -86,7 +86,21 @@ angular.module('spinnaker.delivery.executionTransformer.service', [
           return stage.type !== 'initialization' && stage.initializationStage !== true;
         })
         .sort(function(a, b) {
-          return a.startTime - b.startTime;
+          if (a.syntheticStageOwner === 'STAGE_BEFORE' &&
+            b.syntheticStageOwner === 'STAGE_BEFORE' &&
+            a.parentStageId === b.parentStageId) {
+              if (!a.startTime && !b.startTime) {
+                return 0;
+              }
+              if (!a.startTime) {
+                return 1;
+              }
+              if (!b.startTime) {
+                return -1;
+              }
+              return a.startTime - b.startTime;
+          }
+          return 0;
         });
     }
 
