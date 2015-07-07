@@ -101,4 +101,24 @@ class AbstractScalingProcessTaskSpec extends Specification {
     1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
     1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> tR("targetAsg", ["Launch"])
   }
+
+  def "should send asg name to kato when dynamic references configured"() {
+    given:
+    TargetReferenceSupport targetReferenceSupport = Mock()
+    KatoService katoService = Mock(KatoService)
+
+    def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+    def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
+
+    when:
+    task.execute(stage)
+
+    then:
+    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
+    1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> tR("targetAsg", ["Launch"])
+    1 * katoService.requestOperations({ Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg"}) >> {
+      return rx.Observable.from([new TaskId(id: "1")])
+    }
+    0 * katoService.requestOperations(_)
+  }
 }

@@ -64,7 +64,8 @@ abstract class AbstractScalingProcessTask implements Task {
       (stage.context.processes ?: stage.context["scalingProcesses.${asgName}" as String]) as List<String>
     )
     def stageContext = new HashMap(stage.context) + [
-      processes: processes
+      processes: processes,
+      asgName: asgName
     ]
 
     def stageData = stage.mapTo(StageData)
@@ -81,7 +82,6 @@ abstract class AbstractScalingProcessTask implements Task {
         .toBlocking().first()
 
       stageOutputs."kato.last.task.id" = taskId
-      stageOutputs."kato.task.id" = taskId // TODO retire this.
     }
 
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
