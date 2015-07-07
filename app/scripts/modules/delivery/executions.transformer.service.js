@@ -83,9 +83,13 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
     }
 
     function flattenAndFilter(stage) {
-      return flattenStages([], stage).filter(function(stage) {
-        return stage.type !== 'initialization' && stage.initializationStage !== true;
-      });
+      return flattenStages([], stage)
+        .filter(function(stage) {
+          return stage.type !== 'initialization' && stage.initializationStage !== true;
+        })
+        .sort(function(a, b) {
+          return a.startTime - b.startTime;
+        });
     }
 
     function getCurrentStages(execution) {
