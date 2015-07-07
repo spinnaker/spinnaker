@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import spock.lang.Specification
 
@@ -53,7 +54,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
       1 * front50.credentials >> { [] }
-      1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
+      1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
       1 * oort.getApplication(name) >> oortApp
       1 * front50.getMetaData(account, name) >> front50App
 
@@ -93,7 +94,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [[name: front50Account, type: providerType]]
+    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: front50Account, type: providerType)]
     1 * oort.getApplication(name) >> oortApp
     1 * front50.getMetaData(front50Account, name) >> front50App
 
@@ -131,7 +132,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
+    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> [name: name, foo: 'bar']
 
@@ -172,7 +173,7 @@ class ApplicationServiceSpec extends Specification {
 
     then:
     1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [[name: account, type: providerType]]
+    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
 

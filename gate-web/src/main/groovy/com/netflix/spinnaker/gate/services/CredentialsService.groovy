@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.KatoService
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -28,9 +29,19 @@ class CredentialsService {
   @Autowired
   KatoService katoService
 
-  List<Map> getAccounts() {
+  List<KatoService.Account> getAccounts() {
     HystrixFactory.newListCommand(GROUP, "getAccounts", true) {
-      katoService.accounts
+      def accounts = katoService.accounts
+
+      if (!AuthenticatedRequest.getSpinnakerUser().present) {
+        return accounts
+      }
+
+      def allowedAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts()
+      def allowedAccounts = allowedAccountsOptional.orElse("").split(",").collect { it.toLowerCase() }
+      return accounts.findAll {
+        allowedAccounts.contains(it.name.toLowerCase())
+      }
     } execute()
   }
 

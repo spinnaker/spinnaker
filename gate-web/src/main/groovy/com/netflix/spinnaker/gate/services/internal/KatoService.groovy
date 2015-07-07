@@ -22,11 +22,16 @@ import retrofit.http.Path
 interface KatoService {
 
   @GET('/credentials')
-  List<Map> getAccounts()
+  List<Account> getAccounts()
 
   @GET('/credentials/{account}')
   Map getAccount(@Path("account") String account)
 
   @GET('/task/{taskDetailsId}')
   Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId)
+
+  static class Account {
+    String name
+    String type
+  }
 }
