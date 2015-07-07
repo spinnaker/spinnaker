@@ -1,0 +1,22 @@
+<div>
+  <div class="step-section-details">
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="stage.context.credentials" provider="'aws'"></account-tag>
+          </dd>
+          <dt ng-if="stage.context.regions">Region</dt>
+          <dd ng-if="stage.context.regions">{{stage.context.regions.join(', ')}}</dd>
+          <dt>Cluster</dt>
+          <dd>{{stage.context.cluster}}</dd>
+          <dt>Server Group</dt>
+          <dd ng-if="stage.context.targetReferences.length">{{stage.context.targetReferences[0].asg.name}}</dd>
+          <dd ng-if="!stage.context.targetReferences.length">[n/a]</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+  </div>
+</div>

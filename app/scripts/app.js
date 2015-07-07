@@ -71,6 +71,7 @@ angular.module('spinnaker', [
     'spinnaker.pipelines.stage.bake',
     'spinnaker.pipelines.stage.canary',
     'spinnaker.pipelines.stage.deploy',
+    'spinnaker.pipelines.stage.determineTargetReference',
     'spinnaker.pipelines.stage.script',
     'spinnaker.pipelines.stage.wait',
     'spinnaker.pipelines.stage.jenkins',
