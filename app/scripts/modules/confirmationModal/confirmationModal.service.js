@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.confirmationModal.service', [
-  require('angular-bootstrap'),
   require('../tasks/monitor/taskMonitor.module.js'),
   require('../account/account.module.js'),
   require('angular-ui-router')

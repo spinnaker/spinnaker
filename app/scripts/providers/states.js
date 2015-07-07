@@ -2,10 +2,17 @@
 
 let angular = require('angular');
 
+// need to require these here so they get put in the cache. Look into a better way
+require('../modules/instance/details/aws/instanceDetails.html');
+require('../modules/instance/details/gce/instanceDetails.html');
+require('../modules/serverGroups/details/aws/serverGroupDetails.html');
+require('../modules/serverGroups/details/gce/serverGroupDetails.html');
+
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
   require('./statehelper.js'),
   require('../modules/delivery/states.js'),
+  require('../modules/serverGroups/details/aws/serverGroup.details.module.js'),
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
@@ -38,7 +45,7 @@ module.exports = angular.module('spinnaker.states', [
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('../../scripts/modules/instance/details/' + provider + '/instanceDetails.html'); }],
+              return $templateCache.get('app/scripts/modules/instance/details/' + provider + '/instanceDetails.html'); }],
             controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'InstanceDetailsCtrl';
@@ -68,7 +75,7 @@ module.exports = angular.module('spinnaker.states', [
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('../../scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); }],
+              return $templateCache.get('app/scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); }],
             controllerProvider: ['$stateParams', function($stateParams) {
               var provider = $stateParams.provider || 'aws';
               return provider + 'ServerGroupDetailsCtrl';

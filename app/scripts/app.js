@@ -9,8 +9,8 @@
  * Main module of the application.
  */
 //BEN_TODO figure out what actually gets used here
-require('jquery'); //  deck is reliant on my jquery features we need to load it before angular.
-
+global.$ = global.jQuery = require('jquery'); //  deck is reliant on my jquery features we need to load it before angular.
+require('bootstrap');
 
 require('../fonts/spinnaker/icons.css');
 require('bootstrap/dist/css/bootstrap.css');
@@ -37,6 +37,8 @@ require('spin');
 
 //let uiselect = require('exports?"ui.select"!imports?angular=angular!../../bower_components/angular-ui-select/dist/select.js');
 let angular = require('angular');
+
+require('angular-bootstrap');
 
 module.exports = angular.module('spinnaker', [
     require('utils/timeFormatters.js'),
@@ -65,8 +67,8 @@ module.exports = angular.module('spinnaker', [
     require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
     require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
     //
-    //require('./modules/aws.module.js'),
-    //require('./modules/gce.module.js'),
+    require('./modules/aws.module.js'),
+    require('./modules/gce.module.js'),
     //require('./modules/subnet/subnet.module.js'),
     //require('utils/utils.module.js'),
     //require('./modules/caches/caches.module.js'),
@@ -87,11 +89,10 @@ module.exports = angular.module('spinnaker', [
     //require('./modules/deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
     //require('./modules/securityGroups/securityGroup.module.js'),
     //require('./modules/serverGroups/serverGroup.module.js'),
-    //require('./modules/instance/instance.module.js'),
+    require('./modules/instance/instance.module.js'),
     require('./modules/pageTitle/pageTitleService.js'),
     //require('./modules/securityGroups/securityGroup.module.js'),
     //require('./modules/serverGroups/serverGroup.module.js'),
-    //require('./modules/instance/instance.module.js'),
     //require('./modules/help/help.module.js'),
     //require('./modules/delivery/delivery.module.js'),
     //require('./modules/pipelines/pipelines.module.js'),
