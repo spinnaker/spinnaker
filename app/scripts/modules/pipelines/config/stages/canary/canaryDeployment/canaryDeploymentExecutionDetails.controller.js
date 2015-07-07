@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
                                                                 canaryDeploymentHistoryService, urlBuilder) {
 
     function initialize() {
-      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
+      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory', 'codeChanges'];
 
       $scope.deployment = $scope.stage.context;
       $scope.viewState = {
@@ -25,6 +25,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
 
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
+
+      $scope.commits = $scope.stage.context.commits;
 
       if ($scope.deployment.baselineCluster) {
         $scope.baselineClusterUrl = urlBuilder.buildFromMetadata({
