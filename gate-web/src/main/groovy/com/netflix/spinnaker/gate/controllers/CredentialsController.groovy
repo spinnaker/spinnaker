@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -28,7 +29,7 @@ class CredentialsController {
   CredentialsService credentialsService
 
   @RequestMapping(method = RequestMethod.GET)
-  List<Map> getAccounts() {
+  List<KatoService.Account> getAccounts() {
     credentialsService.accounts
   }
 
