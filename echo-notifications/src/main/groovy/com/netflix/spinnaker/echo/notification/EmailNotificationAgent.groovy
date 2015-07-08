@@ -23,10 +23,12 @@ import com.netflix.spinnaker.echo.email.EmailNotificationService
 import groovy.util.logging.Slf4j
 import org.apache.velocity.app.VelocityEngine
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.ui.velocity.VelocityEngineUtils
 
 @Slf4j
+@ConditionalOnProperty('mail.enabled')
 @Service
 class EmailNotificationAgent extends AbstractEventNotificationAgent {
 

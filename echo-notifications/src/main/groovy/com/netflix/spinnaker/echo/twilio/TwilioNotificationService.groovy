@@ -21,9 +21,11 @@ import com.netflix.spinnaker.echo.api.Notification
 import com.netflix.spinnaker.echo.notification.NotificationTemplateEngine
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty('twilio.enabled')
 class TwilioNotificationService implements NotificationService {
   private static Notification.Type TYPE = Notification.Type.SMS
 

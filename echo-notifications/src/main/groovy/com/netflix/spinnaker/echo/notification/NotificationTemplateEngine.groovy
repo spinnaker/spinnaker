@@ -25,6 +25,7 @@ import org.jsoup.Jsoup
 import org.jsoup.examples.HtmlToPlainText
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.springframework.ui.velocity.VelocityEngineUtils
 

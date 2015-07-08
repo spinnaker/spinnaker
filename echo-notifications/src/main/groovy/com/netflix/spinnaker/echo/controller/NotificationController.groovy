@@ -27,11 +27,11 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/notifications")
 @RestController
 class NotificationController {
-  @Autowired
+  @Autowired(required=false)
   Collection<NotificationService> notificationServices
 
   @RequestMapping(method = RequestMethod.POST)
   void create(@RequestBody Notification notification) {
-    notificationServices.find { it.supportsType(notification.notificationType) }?.handle(notification)
+    notificationServices?.find { it.supportsType(notification.notificationType) }?.handle(notification)
   }
 }

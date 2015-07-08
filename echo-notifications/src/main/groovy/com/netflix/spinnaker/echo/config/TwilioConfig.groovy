@@ -24,6 +24,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
@@ -33,6 +34,7 @@ import retrofit.client.Client
 import retrofit.converter.JacksonConverter
 
 @Configuration
+@ConditionalOnProperty('twilio.enabled')
 @Slf4j
 @CompileStatic
 class TwilioConfig {
