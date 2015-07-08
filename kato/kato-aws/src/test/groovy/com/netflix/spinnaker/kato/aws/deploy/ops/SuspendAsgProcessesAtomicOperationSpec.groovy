@@ -55,10 +55,10 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for 'asg1'...",
-      "Suspending ASG processes (Launch, Terminate) for 'asg1' in us-west-1...",
-      "Suspending ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done suspending ASG processes for 'asg1'."
+      "Initializing Suspend ASG Processes operation for asg1...",
+      "Suspending ASG processes (Launch, Terminate) for asg1 in us-west-1...",
+      "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Suspend ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }
@@ -78,10 +78,10 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for 'asg1'...",
+      "Initializing Suspend ASG Processes operation for asg1...",
       "No ASG named 'asg1' found in us-west-1.",
-      "Suspending ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done suspending ASG processes for 'asg1'."
+      "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Suspend ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }
@@ -104,11 +104,11 @@ class SuspendAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Suspend ASG Processes operation for 'asg1'...",
-      "Suspending ASG processes (Launch, Terminate) for 'asg1' in us-west-1...",
+      "Initializing Suspend ASG Processes operation for asg1...",
+      "Suspending ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Could not suspend processes for ASG 'asg1' in region us-west-1! Reason: Uh oh!",
-      "Suspending ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done suspending ASG processes for 'asg1'."
+      "Suspending ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Suspend ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }

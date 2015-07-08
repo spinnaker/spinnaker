@@ -45,29 +45,40 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    boolean hasFailure = false
-
-    task.updateStatus BASE_PHASE, "Initializing Upsert Asg Tags operation for $description.asgName..."
+    boolean hasSucceeded = true
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus BASE_PHASE, "Initializing Upsert Asg Tags operation for $descriptor..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-      def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
-      if (!result.autoScalingGroups) {
-        task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
-        hasFailure = true
-        continue
-      }
-      task.updateStatus BASE_PHASE, "Preparing tags for $description.asgName in $region..."
-      def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(description.asgName).withResourceType("auto-scaling-group").withPropagateAtLaunch(true) }
-      def createTagsRequest = new CreateOrUpdateTagsRequest().withTags(tags)
-      task.updateStatus BASE_PHASE, "Creating tags for $description.asgName in $region..."
-      autoScaling.createOrUpdateTags(createTagsRequest)
-      task.updateStatus BASE_PHASE, "Tags created for $description.asgName in $region"
+      hasSucceeded = upsertAsgTags(description.asgName, region)
     }
-    task.updateStatus BASE_PHASE, "Done tagging ASG $description.asgName."
-
-    if (hasFailure) {
+    for (asg in description.asgs) {
+      hasSucceeded = upsertAsgTags(asg.asgName, asg.region)
+    }
+    if (!hasSucceeded) {
       task.fail()
+    } else {
+      task.updateStatus BASE_PHASE, "Finished Upsert ASG Tags operation for $descriptor."
     }
     null
+  }
+
+  private boolean upsertAsgTags(String asgName, String region) {
+    try {
+      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
+      def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
+      if (!result.autoScalingGroups) {
+        task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
+        return false
+      }
+      task.updateStatus BASE_PHASE, "Preparing tags for $asgName in $region..."
+      def tags = description.tags.collect { k, v -> new Tag().withKey(k).withValue(v).withResourceId(asgName).withResourceType("auto-scaling-group").withPropagateAtLaunch(true) }
+      def createTagsRequest = new CreateOrUpdateTagsRequest().withTags(tags)
+      task.updateStatus BASE_PHASE, "Creating tags for $asgName in $region..."
+      autoScaling.createOrUpdateTags(createTagsRequest)
+      task.updateStatus BASE_PHASE, "Tags created for $asgName in $region"
+      return true
+    } catch (e) {
+      task.updateStatus BASE_PHASE, "Could not upsert ASG tags for ASG '$asgName' in region $region! Reason: $e.message"
+    }
   }
 }
