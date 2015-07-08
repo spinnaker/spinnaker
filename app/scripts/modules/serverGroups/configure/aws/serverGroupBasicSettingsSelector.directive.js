@@ -13,7 +13,7 @@ angular.module('spinnaker.serverGroup.configure.aws')
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService) {
+  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, RxService, imageService, namingService, $modalStack, $state) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -52,6 +52,7 @@ angular.module('spinnaker.serverGroup.configure.aws')
 
     this.createsNewCluster = function() {
       var name = this.getNamePreview();
+      $scope.latestServerGroup = this.getLatestServerGroup();
       return !_.find($scope.application.clusters, { name: name });
     };
 
@@ -62,4 +63,42 @@ angular.module('spinnaker.serverGroup.configure.aws')
       }
       return namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
     };
+
+    this.getLatestServerGroup = function() {
+      var command = $scope.command;
+      var cluster = namingService.getClusterName($scope.application.name, command.stack, command.freeFormDetails);
+      var inCluster = $scope.application.serverGroups.filter(function(serverGroup) {
+        return serverGroup.cluster === cluster &&
+          serverGroup.account === command.credentials &&
+          serverGroup.region === command.region;
+      }).sort(function (a, b) { return a.createdTime - b.createdTime; });
+      return inCluster.length ? inCluster.pop() : null;
+    };
+
+    this.getLatestServerGroup();
+
+    this.showPreviewAsWarning = function() {
+      var mode = $scope.command.viewState.mode,
+          createsNewCluster = this.createsNewCluster();
+
+      return (mode === 'create' && !createsNewCluster) || (mode !== 'create' && createsNewCluster);
+    };
+
+    this.navigateToLatestServerGroup = function() {
+      var latest = $scope.latestServerGroup,
+          params = {
+            provider: 'aws',
+            accountId: latest.account,
+            region: latest.region,
+            serverGroup: latest.name
+          };
+
+      $modalStack.dismissAll();
+      if ($state.is('home.applications.application.insight.clusters')) {
+        $state.go('.serverGroup', params);
+      } else {
+        $state.go('^.serverGroup', params);
+      }
+    };
+
   });
