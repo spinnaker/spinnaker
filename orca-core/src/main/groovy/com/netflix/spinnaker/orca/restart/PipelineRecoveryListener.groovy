@@ -1,7 +1,9 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.netflix.appinfo.InstanceInfo
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -26,14 +28,17 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
   private final ExecutionRepository executionRepository
   private final PipelineStarter pipelineStarter
   private final InstanceInfo currentInstance
+  private final ExtendedRegistry extendedRegistry
 
   @Autowired
   PipelineRecoveryListener(ExecutionRepository executionRepository,
                            PipelineStarter pipelineStarter,
-                           @Qualifier("instanceInfo") InstanceInfo currentInstance) {
+                           @Qualifier("instanceInfo") InstanceInfo currentInstance,
+                           ExtendedRegistry extendedRegistry) {
     this.currentInstance = currentInstance
     this.executionRepository = executionRepository
     this.pipelineStarter = pipelineStarter
+    this.extendedRegistry = extendedRegistry
   }
 
   @Override
@@ -45,6 +50,15 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
                        .retry()
                        .filter { it.status in [NOT_STARTED, RUNNING] && it.executingInstance == currentInstance.id }
                        .doOnNext { log.warn "Found pipeline $it.application $it.name owned by this instance" }
-                       .subscribe { pipelineStarter.resume(it) }
+                       .subscribe this.&onResumablePipeline
+  }
+
+  private void onResumablePipeline(Pipeline pipeline) {
+    try {
+      pipelineStarter.resume(pipeline)
+      extendedRegistry.counter("pipeline.restarts").increment()
+    } catch (Exception e) {
+      extendedRegistry.counter("pipeline.failed.restarts").increment()
+    }
   }
 }

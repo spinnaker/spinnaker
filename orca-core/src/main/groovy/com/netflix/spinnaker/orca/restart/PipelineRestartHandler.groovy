@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.orca.restart
 
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.notifications.AbstractNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -18,6 +19,7 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
 
   @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired ExecutionRepository executionRepository
+  @Autowired ExtendedRegistry extendedRegistry
 
   PipelineRestartHandler(Map input) {
     super(input)
@@ -34,10 +36,13 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
       def pipeline = executionRepository.retrievePipeline(input.id as String)
       log.warn "Restarting pipeline $pipeline.application $pipeline.name $pipeline.id with status $pipeline.status"
       pipelineStarter.resume(pipeline)
+      extendedRegistry.counter("pipeline.restarts").increment()
     } catch (IllegalStateException e) {
       log.error("Unable to resume pipeline: $e.message")
+      extendedRegistry.counter("pipeline.failed.restarts").increment()
     } catch (e) {
       log.error("Unable to resume pipeline", e)
+      extendedRegistry.counter("pipeline.failed.restarts").increment()
       throw e
     }
   }
