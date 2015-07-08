@@ -49,6 +49,7 @@ class TaskControllerSpec extends Specification {
 
   Clock clock = Mock(Clock)
   int daysOfExecutionHistory = 14
+  int numberOfOldPipelineExecutionsToInclude = 2
 
   ObjectMapper objectMapper = new ObjectMapper()
 
@@ -58,6 +59,7 @@ class TaskControllerSpec extends Specification {
       new TaskController(
         executionRepository: executionRepository,
         daysOfExecutionHistory: daysOfExecutionHistory,
+        numberOfOldPipelineExecutionsToInclude: numberOfOldPipelineExecutionsToInclude,
         clock: clock
       )
     ).build()
@@ -74,10 +76,10 @@ class TaskControllerSpec extends Specification {
   void '/tasks are sorted by startTime, with non-started tasks first'() {
     given:
     def tasks = [
-      [ startTime: 1, id: 'c' ],
-      [ startTime: 2, id: 'd' ],
-      [ id: 'b' ],
-      [ id: 'a' ]
+      [startTime: 1, id: 'c'],
+      [startTime: 2, id: 'd'],
+      [id: 'b'],
+      [id: 'a']
     ]
 
     when:
@@ -86,7 +88,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrievePipelines() >> rx.Observable.from(tasks)
-    results.id == [ 'b', 'a', 'd', 'c']
+    results.id == ['b', 'a', 'd', 'c']
   }
 
   void 'step names are properly translated'() {
@@ -144,11 +146,11 @@ class TaskControllerSpec extends Specification {
     given:
     def now = new Date()
     def tasks = [
-      [ stages: [new OrchestrationStage(startTime: (now  - daysOfExecutionHistory).time - 1)], id: 'too-old' ] as Orchestration,
-      [ stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old' ] as Orchestration,
-      [ stages: [new OrchestrationStage(startTime: (now - 1).time)], id: 'pretty-new' ] as Orchestration,
-      [ stages: [new OrchestrationStage()], id: 'not-started-1' ] as Orchestration,
-      [ stages: [new OrchestrationStage()], id: 'not-started-2' ] as Orchestration
+      [stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time - 1)], id: 'too-old'] as Orchestration,
+      [stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old'] as Orchestration,
+      [stages: [new OrchestrationStage(startTime: (now - 1).time)], id: 'pretty-new'] as Orchestration,
+      [stages: [new OrchestrationStage()], id: 'not-started-1'] as Orchestration,
+      [stages: [new OrchestrationStage()], id: 'not-started-2'] as Orchestration
     ]
     def app = 'test'
 
@@ -174,10 +176,10 @@ class TaskControllerSpec extends Specification {
   void '/pipelines sorted by startTime, with non-started pipelines first'() {
     given:
     def pipelines = [
-      [ startTime: 1, id: 'c' ],
-      [ startTime: 2, id: 'd' ],
-      [ id: 'b' ],
-      [ id: 'a' ]
+      [startTime: 1, id: 'c'],
+      [startTime: 2, id: 'd'],
+      [id: 'b'],
+      [id: 'a']
     ]
 
     when:
@@ -186,17 +188,24 @@ class TaskControllerSpec extends Specification {
 
     then:
     1 * executionRepository.retrievePipelines() >> rx.Observable.from(pipelines)
-    results.id == [ 'b', 'a', 'd', 'c']
+    results.id == ['b', 'a', 'd', 'c']
   }
 
   void '/applications/{application}/pipelines should only return pipelines from the past two weeks, newest first'() {
     given:
     def now = new Date()
     def pipelines = [
-      [ startTime: (new Date() - daysOfExecutionHistory).time - 1, id: 'old' ],
-      [ startTime: (new Date() - daysOfExecutionHistory).time + 1, id: 'newer' ],
-      [ id: 'not-started' ],
-      [ id: 'also-not-started' ]
+      [pipelineConfigId: "1", startTime: (new Date() - daysOfExecutionHistory).time - 1, id: 'old'],
+      [pipelineConfigId: "1", startTime: (new Date() - daysOfExecutionHistory).time + 1, id: 'newer'],
+      [pipelineConfigId: "1", id: 'not-started'],
+      [pipelineConfigId: "1", id: 'also-not-started'],
+
+      /*
+       * If a pipeline has no recent executions, the most recent N executions should be included
+       */
+      [pipelineConfigId: "2", id: 'older1', startTime: (new Date() - daysOfExecutionHistory - 1).time - 1],
+      [pipelineConfigId: "2", id: 'older2', startTime: (new Date() - daysOfExecutionHistory - 1).time - 2],
+      [pipelineConfigId: "2", id: 'older3', startTime: (new Date() - daysOfExecutionHistory - 1).time - 3]
     ]
     def app = 'test'
 
@@ -209,9 +218,9 @@ class TaskControllerSpec extends Specification {
     1 * executionRepository.retrievePipelinesForApplication(app) >> rx.Observable.from(pipelines.collect {
       def pipelineStage = new PipelineStage(new Pipeline(), "")
       pipelineStage.startTime = it.startTime
-      new Pipeline(id: it.id, stages: it.startTime ? [pipelineStage] : [])
+      new Pipeline(id: it.id, stages: it.startTime ? [pipelineStage] : [], pipelineConfigId: it.pipelineConfigId)
     })
-    results.id == [ 'not-started', 'also-not-started', 'newer']
+    results.id == ['not-started', 'also-not-started', 'older2', 'older1', 'newer']
   }
 
   void 'should update existing stage context'() {
@@ -227,14 +236,16 @@ class TaskControllerSpec extends Specification {
     then:
     1 * executionRepository.retrievePipeline("p1") >> {
       [
-          stages: [pipelineStage]
+        stages: [pipelineStage]
       ]
     }
-    1 * executionRepository.storeStage({ stage -> stage.id == "s1" && stage.context == [
+    1 * executionRepository.storeStage({ stage ->
+      stage.id == "s1" && stage.context == [
         judgmentStatus: "stop", value: "1"
-    ]} as PipelineStage)
+      ]
+    } as PipelineStage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
-        [ value: "1", judgmentStatus: "stop"]
+      [value: "1", judgmentStatus: "stop"]
     ]
     0 * _
   }
