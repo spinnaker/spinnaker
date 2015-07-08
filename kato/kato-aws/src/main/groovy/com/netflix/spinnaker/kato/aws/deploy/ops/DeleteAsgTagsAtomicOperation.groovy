@@ -43,19 +43,27 @@ class DeleteAsgTagsAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Delete Asg Tags operation for $description.asgName..."
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus BASE_PHASE, "Initializing Delete ASG Tags operation for $descriptor..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-      def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(description.asgName))
-      if (!result.autoScalingGroups) {
-        task.updateStatus BASE_PHASE, "No ASG named $description.asgName found in $region"
-        continue
-      }
-      def deleteTagsRequest = new DeleteTagsRequest(tags: description.tagKeys.collect { new Tag(resourceId: description.asgName, resourceType: "auto-scaling-group", key: it) })
-      autoScaling.deleteTags(deleteTagsRequest)
-      task.updateStatus BASE_PHASE, "Tags deleted for $description.asgName in $region"
+      deleteAsgTags(description.asgName, region)
     }
-    task.updateStatus BASE_PHASE, "Done removing tags from ASG $description.asgName."
+    for (asg in description.asgs) {
+      deleteAsgTags(asg.asgName, asg.region)
+    }
+    task.updateStatus BASE_PHASE, "Finished Delete ASG Tags operation for $descriptor."
     null
+  }
+
+  private void deleteAsgTags(String asgName, String region) {
+    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
+    def result = autoScaling.describeAutoScalingGroups(new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName))
+    if (!result.autoScalingGroups) {
+      task.updateStatus BASE_PHASE, "No ASG named $asgName found in $region"
+      return
+    }
+    def deleteTagsRequest = new DeleteTagsRequest(tags: description.tagKeys.collect { new Tag(resourceId: asgName, resourceType: "auto-scaling-group", key: it) })
+    autoScaling.deleteTags(deleteTagsRequest)
+    task.updateStatus BASE_PHASE, "Tags deleted for $asgName in $region"
   }
 }

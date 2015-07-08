@@ -24,6 +24,7 @@ import com.amazonaws.services.autoscaling.model.DeleteLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -49,47 +50,56 @@ class DestroyAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing ASG Destroy Operation..."
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus BASE_PHASE, "Initializing ASG Destroy operation for $descriptor..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-      task.updateStatus BASE_PHASE, "Looking up instance ids for $description.asgName in $region..."
-
-      def result = autoScaling.describeAutoScalingGroups(
-              new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [description.asgName]))
-      if (!result.autoScalingGroups) {
-        return null // Okay, there is no auto scaling group. Let's be idempotent and not complain about that.
-      }
-      if (result.autoScalingGroups.size() > 1) {
-        throw new IllegalStateException(
-                "There should only be one ASG in ${description.credentials}:${region} named ${description.asgName}")
-      }
-      AutoScalingGroup autoScalingGroup = result.autoScalingGroups[0]
-      List<String> instanceIds = autoScalingGroup.instances.instanceId
-
-      task.updateStatus BASE_PHASE, "Force deleting $description.asgName in $region."
-      autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
-              autoScalingGroupName: description.asgName, forceDelete: true))
-
-      if (autoScalingGroup.launchConfigurationName) {
-        task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
-        autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
-            launchConfigurationName: autoScalingGroup.launchConfigurationName))
-      }
-      def ec2 = amazonClientProvider.getAmazonEC2(description.credentials, region, true)
-
-      for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
-        int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
-        try {
-          task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
-          ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
-        } catch (AmazonClientException e) {
-          task.updateStatus BASE_PHASE, "Unable to terminate instances, reason: '${e.message}'"
-        }
-      }
+      deleteAsg(description.asgName, region)
+    }
+    for (asg in description.asgs) {
+      deleteAsg(asg.asgName, asg.region)
     }
 
-    task.updateStatus BASE_PHASE, "Done destroying $description.asgName in $description.regions."
+    task.updateStatus BASE_PHASE, "Finished Destroy ASG operation for $descriptor."
     null
+  }
+
+  private void deleteAsg(String asgName, String region) {
+    def credentials = description.credentials
+    def autoScaling = amazonClientProvider.getAutoScaling(credentials, region, true)
+    task.updateStatus BASE_PHASE, "Looking up instance ids for $asgName in $region..."
+
+    def result = autoScaling.describeAutoScalingGroups(
+        new DescribeAutoScalingGroupsRequest(autoScalingGroupNames: [asgName]))
+    if (!result.autoScalingGroups) {
+      return // Okay, there is no auto scaling group. Let's be idempotent and not complain about that.
+    }
+    if (result.autoScalingGroups.size() > 1) {
+      throw new IllegalStateException(
+          "There should only be one ASG in ${credentials}:${region} named ${asgName}")
+    }
+    AutoScalingGroup autoScalingGroup = result.autoScalingGroups[0]
+    List<String> instanceIds = autoScalingGroup.instances.instanceId
+
+    task.updateStatus BASE_PHASE, "Force deleting $asgName in $region."
+    autoScaling.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest(
+        autoScalingGroupName: asgName, forceDelete: true))
+
+    if (autoScalingGroup.launchConfigurationName) {
+      task.updateStatus BASE_PHASE, "Deleting launch config ${autoScalingGroup.launchConfigurationName} in $region."
+      autoScaling.deleteLaunchConfiguration(new DeleteLaunchConfigurationRequest(
+          launchConfigurationName: autoScalingGroup.launchConfigurationName))
+    }
+    def ec2 = amazonClientProvider.getAmazonEC2(credentials, region, true)
+
+    for (int i = 0; i < instanceIds.size(); i += MAX_SIMULTANEOUS_TERMINATIONS) {
+      int end = Math.min(instanceIds.size(), i + MAX_SIMULTANEOUS_TERMINATIONS)
+      try {
+        task.updateStatus BASE_PHASE, "Issuing terminate instances request for ${end - i} instances."
+        ec2.terminateInstances(new TerminateInstancesRequest().withInstanceIds(instanceIds.subList(i, end)))
+      } catch (AmazonClientException e) {
+        task.updateStatus BASE_PHASE, "Unable to terminate instances, reason: '${e.message}'"
+      }
+    }
   }
 
 }

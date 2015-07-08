@@ -15,6 +15,8 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.description
 
+import groovy.transform.ToString
+
 /**
  * Description for "enabling" a supplied ASG. "Enabling" means Resuming "AddToLoadBalancer", "Launch", and "Terminate" processes on an ASG. If Eureka/Discovery is available, setting a status
  * override will also be achieved.
@@ -23,6 +25,17 @@ package com.netflix.spinnaker.kato.aws.deploy.description
  * override will also be achieved.
  */
 class EnableDisableAsgDescription extends AbstractAmazonCredentialsDescription {
+  List<AsgDescription> asgs = []
+
+  @Deprecated
   String asgName
-  List<String> regions
+
+  @Deprecated
+  List<String> regions = []
+
+  @ToString
+  static class AsgDescription {
+    String region
+    String asgName
+  }
 }
