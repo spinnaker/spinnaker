@@ -37,8 +37,11 @@ class TaskController {
   @Autowired
   PipelineStartTracker startTracker
 
-  @Value('${daysOfExecutionHistory:14}')
+  @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
+
+  @Value('${tasks.numberOfOldPipelineExecutionsToInclude:2}')
+  int numberOfOldPipelineExecutionsToInclude
 
   Clock clock = Clock.systemUTC()
 
@@ -120,16 +123,32 @@ class TaskController {
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
   List<Pipeline> getApplicationPipelines(@PathVariable String application) {
-    def startTimeCutoff = (new Date(clock.millis()) - daysOfExecutionHistory).time
-    executionRepository.retrievePipelinesForApplication(application)
-      .filter({ Pipeline pipeline -> !pipeline.startTime || (pipeline.startTime > startTimeCutoff) })
-      .subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+    def pipelines = executionRepository.retrievePipelinesForApplication(application)
+      .subscribeOn(Schedulers.io()).toList().toBlocking().single()
+
+    def cutoffTime = (new Date(clock.millis()) - daysOfExecutionHistory).time
+
+    def allPipelines = []
+    pipelines.groupBy { it.pipelineConfigId }.values().each { List<Pipeline> pipelinesGroup ->
+      def sortedPipelinesGroup = pipelinesGroup.sort(startTimeOrId).reverse()
+      def recentPipelines = sortedPipelinesGroup.findAll { !it.startTime || it.startTime > cutoffTime }
+      if (!recentPipelines && sortedPipelinesGroup) {
+        // no pipeline executions within `daysOfExecutionHistory` so include the first `numberOfOldPipelineExecutionsToInclude`
+        def upperBounds = Math.min(sortedPipelinesGroup.size(), numberOfOldPipelineExecutionsToInclude) - 1
+        recentPipelines = sortedPipelinesGroup[0..upperBounds]
+      }
+
+      allPipelines.addAll(recentPipelines)
+    }
+
+    return allPipelines.sort(startTimeOrId)
   }
 
   private static Closure startTimeOrId = { a, b ->
-    a.startTime && b.startTime ? a.startTime - b.startTime
-      : a.startTime ? 1 : b.startTime ? -1
-      : b.id <=> a.id
+    def aStartTime = a.startTime ?: 0
+    def bStartTime = b.startTime ?: 0
+
+    return aStartTime.compareTo(bStartTime) ?: b.id <=> a.id
   }
 
   private OrchestrationViewModel convert(Orchestration orchestration) {
