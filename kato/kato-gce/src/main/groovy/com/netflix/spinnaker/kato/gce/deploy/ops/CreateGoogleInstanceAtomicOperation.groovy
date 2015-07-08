@@ -48,7 +48,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "debian-7-wheezy-v20141108", "instanceType": "f1-micro", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "debian-7-wheezy-v20141108", "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {

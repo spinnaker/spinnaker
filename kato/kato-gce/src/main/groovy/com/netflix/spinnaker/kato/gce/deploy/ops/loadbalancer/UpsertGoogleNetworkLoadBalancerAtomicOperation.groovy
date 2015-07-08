@@ -52,7 +52,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleNetworkLoadBalancerDescription": { "region": "us-central1", "credentials" : "my-account-name", "networkLoadBalancerName" : "testlb" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleNetworkLoadBalancerDescription": { "region": "us-central1", "credentials" : "my-account-name", "networkLoadBalancerName" : "testlb" }} ]' localhost:7002/ops
    *
    * @param priorOutputs
    * @return

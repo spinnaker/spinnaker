@@ -45,7 +45,7 @@ class ResetGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
    * Throws a runtime exception if any of the ids fails. The exception only contains the
    * first error. Additional errors from other instances are only visible in the task status.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "resetGoogleInstancesDescription": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resetGoogleInstancesDescription": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
