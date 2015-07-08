@@ -1,0 +1,7 @@
+#if($notification.additionalContext.instructions && !$notification.additionalContext.instructions.empty)
+Instructions:
+$htmlToText.convert($notification.additionalContext.instructions)
+#end
+For more details, please visit:
+
+$baseUrl/#/applications/$notification.source.application/executions/$notification.source.executionId

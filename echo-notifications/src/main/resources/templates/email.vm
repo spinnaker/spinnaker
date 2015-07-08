@@ -1,0 +1,5 @@
+Spinnaker $type $name for $application $status.
+
+To see more details, please visit:
+
+$url/#/applications/$application/$link/$executionId
