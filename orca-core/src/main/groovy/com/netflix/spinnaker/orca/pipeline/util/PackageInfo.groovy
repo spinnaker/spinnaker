@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
-import org.springframework.beans.factory.annotation.Autowired
 
 class PackageInfo {
   ObjectMapper mapper
@@ -37,6 +37,11 @@ class PackageInfo {
     this.extractBuildDetails = extractBuildDetails
     this.extractVersion = extractVersion
     this.mapper = mapper
+  }
+
+  @VisibleForTesting
+  private boolean isUrl(String potentialUrl) {
+    potentialUrl ==~ /\b(https?|ssh):\/\/.*/
   }
 
   public Map findTargetPackage() {
@@ -64,10 +69,11 @@ class PackageInfo {
    * @return
    */
   @CompileDynamic
+  @VisibleForTesting
   private Map createAugmentedRequest(Map trigger, Map buildInfo, Map request) {
     List<Map> triggerArtifacts = trigger.buildInfo?.artifacts
     List<Map> buildArtifacts = buildInfo.artifacts
-    if (!triggerArtifacts && !buildArtifacts) {
+    if ((!triggerArtifacts && !buildArtifacts) || isUrl(request.package)) {
       return request
     }
 
@@ -94,7 +100,7 @@ class PackageInfo {
 
     if (buildArtifact) {
       packageName = extractPackageName(buildArtifact, fileExtension)
-      if(extractVersion) {
+      if (extractVersion) {
         packageVersion = extractPackageVersion(buildArtifact, prefix, fileExtension)
       }
     }
