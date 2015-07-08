@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.echo.email
 
 import com.netflix.spinnaker.echo.notification.NotificationService
