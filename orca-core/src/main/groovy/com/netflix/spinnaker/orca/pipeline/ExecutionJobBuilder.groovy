@@ -16,11 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import groovy.transform.CompileStatic
 import javax.annotation.PostConstruct
 import com.google.common.collect.ImmutableList
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory

@@ -25,6 +25,8 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import org.springframework.batch.core.JobExecutionListener
+import org.springframework.batch.core.configuration.support.MapJobRegistry
+import org.springframework.batch.core.job.SimpleJob
 import org.springframework.batch.core.launch.JobLauncher
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -131,7 +133,12 @@ class ExecutionStarterSpec extends Specification {
   }
 
   private def getExecutionStarter(ExecutionStatus executionStatus) {
-    def executionJobBuilder = Mock(ExecutionJobBuilder)
+    def executionJobBuilder = Stub(ExecutionJobBuilder) {
+      jobNameFor(_) >> { Pipeline pipeline -> "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}" }
+      build(_) >> { Pipeline pipeline ->
+        new SimpleJob("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
+      }
+    }
     def executionStarter = new ExecutionStarter<Pipeline>("bake") {
       @Override
       protected ExecutionJobBuilder getExecutionJobBuilder() { executionJobBuilder }
@@ -157,6 +164,7 @@ class ExecutionStarterSpec extends Specification {
         return pipeline
       }
     }
+    executionStarter.jobRegistry = new MapJobRegistry()
     executionStarter.mapper = new ObjectMapper()
     executionStarter.launcher = Mock(JobLauncher)
     executionStarter

@@ -22,6 +22,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.*
+import org.springframework.batch.core.configuration.JobRegistry
+import org.springframework.batch.core.configuration.support.ReferenceJobFactory
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.repository.JobRepository
@@ -37,19 +39,14 @@ abstract class ExecutionStarter<T extends Execution> {
     this.type = type
   }
 
-  @Autowired
-  protected JobLauncher launcher
-  @Autowired
-  protected JobOperator jobOperator
-  @Autowired
-  protected JobRepository jobRepository
-  @Autowired
-  protected ObjectMapper mapper
-  @Autowired(required = false)
-  protected PipelineStartTracker startTracker
+  @Autowired protected JobRegistry jobRegistry
+  @Autowired protected JobLauncher launcher
+  @Autowired protected JobOperator jobOperator
+  @Autowired protected JobRepository jobRepository
+  @Autowired protected ObjectMapper mapper
+  @Autowired(required = false) protected PipelineStartTracker startTracker
 
-  @Autowired(required = false)
-  List<JobExecutionListener> pipelineListeners
+  @Autowired(required = false) List<JobExecutionListener> pipelineListeners
 
   T start(String configJson) {
     boolean startImmediately = true
@@ -77,7 +74,7 @@ abstract class ExecutionStarter<T extends Execution> {
   }
 
   T startExecution(T subject) {
-    def job = executionJobBuilder.build(subject)
+    def job = createJob(subject)
     persistExecution(subject)
     if (subject.status.isComplete()) {
       log.warn(
@@ -97,6 +94,15 @@ abstract class ExecutionStarter<T extends Execution> {
     subject
   }
 
+  public Job createJob(T subject) {
+    def jobName = executionJobBuilder.jobNameFor(subject)
+    if (!jobRegistry.jobNames.contains(jobName)) {
+      def job = executionJobBuilder.build(subject)
+      jobRegistry.register(new ReferenceJobFactory(job))
+    }
+    return jobRegistry.getJob(jobName)
+  }
+
   void resume(T subject) {
     log.warn "Resuming $subject.id"
     def jobName = executionJobBuilder.jobNameFor(subject)
@@ -105,7 +111,7 @@ abstract class ExecutionStarter<T extends Execution> {
       resetExecution(execution)
       jobOperator.restart(execution.id)
     } else {
-      throw new IllegalStateException("Could not find a previous JobExecution for pipeline $jobName")
+      startExecution(subject)
     }
   }
 

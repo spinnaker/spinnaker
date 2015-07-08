@@ -22,7 +22,6 @@ dependencies {
   compile spinnaker.dependency('springTest')
   compile spinnaker.dependency('korkJedisTest')
   compile spinnaker.dependency('batchTest')
-  compile spinnaker.dependency('redbatch')
   compile spinnaker.dependency('spectatorApi')
   runtime spinnaker.dependency('objenesis')
   runtime spinnaker.dependency('cglib')

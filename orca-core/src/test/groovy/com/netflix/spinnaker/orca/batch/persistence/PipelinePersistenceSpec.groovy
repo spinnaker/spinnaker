@@ -38,8 +38,7 @@ class PipelinePersistenceSpec extends Specification {
   @Autowired PipelineStarter pipelineStarter
   @Autowired ObjectMapper mapper
   @Autowired JobRegistry jobRegistry
-  @Autowired
-  JobExplorer jobExplorer
+  @Autowired JobExplorer jobExplorer
 
   def task1 = Mock(Task)
   def task2 = Mock(Task)
