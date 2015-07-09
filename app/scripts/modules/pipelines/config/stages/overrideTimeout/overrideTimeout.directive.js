@@ -33,10 +33,6 @@ angular.module('spinnaker.pipelines.stage.overrideTimeout', [
           stageConfig = pipelineConfig.getStageConfig(stage.type),
           stageDefaults = stageConfig.defaultTimeoutMs;
 
-      if (stage.overrideTimeout === undefined) {
-        stage.overrideTimeout = !!stage.stageTimeoutMs;
-      }
-
       $scope.vm = {
         configurable: !!stageDefaults
       };
