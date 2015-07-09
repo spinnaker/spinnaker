@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.post.pipeline
+package com.netflix.spinnaker.orca.echo.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.post.PostService
+import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -50,7 +50,7 @@ class ManualJudgmentStageSpec extends Specification {
 
   void "should only send notifications for supported types"() {
     given:
-    def task = new WaitForManualJudgmentTask(postService: Mock(PostService))
+    def task = new WaitForManualJudgmentTask(echoService: Mock(EchoService))
 
     when:
     def result = task.execute(new PipelineStage(new Pipeline(), "", [notifications: [
@@ -79,7 +79,7 @@ class ManualJudgmentStageSpec extends Specification {
 
   void "should update `lastNotified` whenever a notification is sent"() {
     given:
-    def postService = Mock(PostService)
+    def echoService = Mock(EchoService)
     def notification = new Notification(type: "sms", address: "111-222-3333")
 
     def stage = new PipelineStage(new Pipeline(), "")
@@ -87,22 +87,22 @@ class ManualJudgmentStageSpec extends Specification {
     stage.execution.application = "APPLICATION"
 
     when:
-    notification.notify(postService, stage)
+    notification.notify(echoService, stage)
 
     then:
     notification.lastNotified != null
 
-    1 * postService.create({ PostService.Notification n ->
-      assert n.notificationType == PostService.Notification.Type.SMS
+    1 * echoService.create({ EchoService.Notification n ->
+      assert n.notificationType == EchoService.Notification.Type.SMS
       assert n.to == ["111-222-3333"]
       assert n.templateGroup == "manualJudgment"
-      assert n.severity == PostService.Notification.Severity.HIGH
+      assert n.severity == EchoService.Notification.Severity.HIGH
 
       assert n.source.executionId == "ID"
       assert n.source.executionType == "pipeline"
       assert n.source.application == "APPLICATION"
       true
-    } as PostService.Notification)
+    } as EchoService.Notification)
     0 * _
   }
 }

@@ -71,7 +71,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   RushConfiguration,
   IgorConfiguration,
   SockConfiguration,
-  PostConfiguration,
   DiscoveryPollingConfiguration,
   TomcatConfiguration,
   MineConfiguration
