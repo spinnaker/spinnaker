@@ -31,9 +31,15 @@ class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
       def healths = interestingHealthProviderNames ? it.health.findAll { health ->
         health.type in interestingHealthProviderNames
       } : it.health
+
+      if (!interestingHealthProviderNames && !healths) {
+        // no health indications (and no specific providers to check), consider instance to be down
+        return true
+      }
+
       boolean someAreDown = healths.any { it.state == 'Down' || it.state == 'OutOfService' }
       boolean noneAreUp = !healths.any { it.state == 'Up' }
-      someAreDown && noneAreUp
+      return someAreDown && noneAreUp
     }
   }
 }

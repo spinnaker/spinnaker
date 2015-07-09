@@ -83,6 +83,7 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
     where:
     hasSucceeded || healthProviderNames | instances
     true         || null                | []
+    true         || null                | [ [ health: [ ] ] ]
     true         || ['a']               | []
     true         || null                | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     false        || null                | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
