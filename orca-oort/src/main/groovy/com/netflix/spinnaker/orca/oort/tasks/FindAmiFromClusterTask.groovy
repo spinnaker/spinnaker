@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 class FindAmiFromClusterTask implements Task {
@@ -97,7 +98,15 @@ class FindAmiFromClusterTask implements Task {
     SelectionStrategy clusterSelectionStrategy = SelectionStrategy.valueOf(stage.context.selectionStrategy?.toString() ?: "NEWEST")
 
     TypeReference<Map<String, Object>> jsonType = new TypeReference<Map<String, Object>>() {}
-    Map<String, Object> clusterData = objectMapper.readValue(oortService.getCluster(app, account, cluster, "aws").body.in(), jsonType)
+    Map<String, Object> clusterData = [:]
+    try {
+      def lookupResults = oortService.getCluster(app, account, cluster, "aws")
+      clusterData = objectMapper.readValue(lookupResults.body.in(), jsonType)
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        throw new IllegalStateException("Could not find cluster '$cluster' in account '$account'")
+      }
+    }
 
 
     List<Map<String, Object>> sgs = clusterData.serverGroups
