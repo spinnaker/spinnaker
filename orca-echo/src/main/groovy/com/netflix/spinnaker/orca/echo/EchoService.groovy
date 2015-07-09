@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.echo
 import retrofit.client.Response
 import retrofit.http.Body
 import retrofit.http.GET
+import retrofit.http.Headers
 import retrofit.http.POST
 import retrofit.http.Path
 
@@ -29,4 +30,36 @@ interface EchoService {
 
   @GET("/events/recent/{type}/{since}/")
   Response getEvents(@Path("type") String type, @Path("since") Long since)
+
+  @Headers("Content-type: application/json")
+  @POST("/notifications")
+  Response create(@Body Notification notification)
+
+  static class Notification {
+    Type notificationType
+    Collection<String> to
+    String templateGroup
+    Severity severity
+
+    Source source
+    Map<String, Object> additionalContext = [:]
+
+    static class Source {
+      String executionType
+      String executionId
+      String application
+    }
+
+    static enum Type {
+      HIPCHAT,
+      EMAIL,
+      SMS
+    }
+
+    static enum Severity {
+      NORMAL,
+      HIGH
+    }
+  }
+
 }

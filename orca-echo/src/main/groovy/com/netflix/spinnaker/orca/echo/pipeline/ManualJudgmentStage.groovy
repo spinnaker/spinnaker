@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.post.pipeline
+package com.netflix.spinnaker.orca.echo.pipeline
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.post.PostService
+import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
@@ -52,7 +52,7 @@ class ManualJudgmentStage extends LinearStage {
     long timeout = TimeUnit.HOURS.toMillis(120)
 
     @Autowired(required = false)
-    PostService postService
+    EchoService echoService
 
     @Override
     TaskResult execute(Stage stage) {
@@ -65,11 +65,11 @@ class ManualJudgmentStage extends LinearStage {
       }
 
       def outputs = [:]
-      if (postService) {
+      if (echoService) {
         outputs = [notifications: stageData.notifications]
         stageData.notifications.findAll { it.shouldNotify() }.each {
           try {
-            it.notify(postService, stage)
+            it.notify(echoService, stage)
           } catch (Exception e) {
             log.error("Unable to send notification (executionId: ${stage.execution.id}, address: ${it.address}, type: ${it.type})", e)
           }
@@ -104,19 +104,19 @@ class ManualJudgmentStage extends LinearStage {
       return new Date(lastNotified.time + notifyEveryMs) <= now
     }
 
-    void notify(PostService postService, Stage stage) {
-      postService.create(new PostService.Notification(
-        notificationType: PostService.Notification.Type.valueOf(type.toUpperCase()),
+    void notify(EchoService echoService, Stage stage) {
+      echoService.create(new EchoService.Notification(
+        notificationType: EchoService.Notification.Type.valueOf(type.toUpperCase()),
         to: [address],
         templateGroup: MAYO_CONFIG_NAME,
-        severity: PostService.Notification.Severity.HIGH,
-        source: new PostService.Notification.Source(
+        severity: EchoService.Notification.Severity.HIGH,
+        source: new EchoService.Notification.Source(
           executionType: stage.execution.class.simpleName.toLowerCase(),
           executionId: stage.execution.id,
           application: stage.execution.application
         ),
         additionalContext: [
-            instructions: stage.context.instructions ?: ""
+          instructions: stage.context.instructions ?: ""
         ]
       ))
       lastNotified = new Date()

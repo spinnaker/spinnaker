@@ -46,7 +46,6 @@ dependencies {
   compile project(":orca-rush")
   compile project(":orca-igor")
   compile project(":orca-sock")
-  compile project(":orca-post")
   compile project(":orca-eureka")
 
   runtime spinnaker.dependency("kork")
