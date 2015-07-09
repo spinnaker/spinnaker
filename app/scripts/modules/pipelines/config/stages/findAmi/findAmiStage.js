@@ -27,21 +27,21 @@ angular.module('spinnaker.pipelines.stage.findAmi')
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
     $scope.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.stage.account).then(function(regions) {
+      accountService.getRegionsForAccount(stage.account).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
         $scope.regionsLoaded = true;
       });
     };
 
     $scope.toggleRegion = function(region) {
-      if (!$scope.stage.regions) {
-        $scope.stage.regions = [];
+      if (!stage.regions) {
+        stage.regions = [];
       }
-      var idx = $scope.stage.regions.indexOf(region);
+      var idx = stage.regions.indexOf(region);
       if (idx > -1) {
-        $scope.stage.regions.splice(idx,1);
+        stage.regions.splice(idx,1);
       } else {
-        $scope.stage.regions.push(region);
+        stage.regions.push(region);
       }
     };
 
@@ -63,17 +63,25 @@ angular.module('spinnaker.pipelines.stage.findAmi')
       description: 'When multiple server groups exist, fail'
     }];
 
-    (function() {
-      if ($scope.stage.account) {
-        $scope.accountUpdated();
-      }
-      if (!$scope.stage.selectionStrategy) {
-        $scope.stage.selectionStrategy = $scope.selectionStrategies[0].val;
-      }
-      if (angular.isUndefined($scope.stage.onlyEnabled)) {
-        $scope.stage.onlyEnabled = true;
-      }
-    })();
+    stage.regions = stage.regions || [];
+    stage.selectionStrategy = stage.selectionStrategy || $scope.selectionStrategies[0].val;
+
+    if (angular.isUndefined(stage.onlyEnabled)) {
+      stage.onlyEnabled = true;
+    }
+
+    if (!stage.account && $scope.application.defaultCredentials) {
+      stage.account = $scope.application.defaultCredentials;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegion) {
+      stage.regions.push($scope.application.defaultRegion);
+    }
+
+    if (stage.account) {
+      $scope.accountUpdated();
+    }
+
+    
 
     $scope.$watch('stage.account', $scope.accountUpdated);
   });
