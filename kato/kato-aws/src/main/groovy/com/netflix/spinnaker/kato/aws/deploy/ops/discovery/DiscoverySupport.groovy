@@ -25,6 +25,8 @@ import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDi
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.InheritConstructors
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
@@ -39,12 +41,18 @@ import retrofit.client.Response
 class DiscoverySupport {
   private static final long THROTTLE_MS = 150
 
+  static final int ATTEMPT_SHORT_CIRCUIT_EVERY = 100
   static final int DISCOVERY_RETRY_MAX = 10
   private static final long DEFAULT_DISCOVERY_RETRY_MS = 3000
 
   @Value('${discovery.retry.max:#{T(com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport).DISCOVERY_RETRY_MAX}}')
   int discoveryRetry = DISCOVERY_RETRY_MAX
 
+  @Value('${discovery.attemptShortCurcuitEvery:#{T(com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport).ATTEMPT_SHORT_CIRCUIT_EVERY}}')
+  int attemptShortCircuitEveryNInstances = ATTEMPT_SHORT_CIRCUIT_EVERY
+
+  @Autowired
+  List<ClusterProvider> clusterProviders
 
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
@@ -85,9 +93,30 @@ class DiscoverySupport {
       }
     }
 
-    instanceIds.eachWithIndex { instanceId, index ->
+    int index = 0
+    for (String instanceId : instanceIds) {
       if (index > 0) {
         sleep THROTTLE_MS
+      }
+
+      if (discoveryStatus == DiscoveryStatus.Disable) {
+        if (index % attemptShortCircuitEveryNInstances == 0) {
+          try {
+            def hasUpInstances = doesCachedClusterContainDiscoveryStatus(
+              clusterProviders, description.credentialAccount, description.region, description.asgName, "UP"
+            )
+            if (hasUpInstances.present && !hasUpInstances.get()) {
+              // there are no UP instances, we can return early
+              task.updateStatus phaseName, "ASG and all instances are '${discoveryStatus.value}', short circuiting."
+              break
+            }
+          } catch (Exception e) {
+            def account = description.credentialAccount
+            def region = description.region
+            def asgName = description.asgName
+            log.error("Unable to verify cached discovery status (account: ${account}, region: ${region}, asgName: ${asgName}", e)
+          }
+        }
       }
 
       def errors = [:]
@@ -114,7 +143,37 @@ class DiscoverySupport {
         task.fail()
         log.info("Failed marking discovery $discoveryStatus.value for instances ${errors}")
       }
+
+      index++
     }
+  }
+
+  /**
+   * Determine whether at least one cached instance in target ASG has a discovery status of <code>targetDiscoveryStatus</code>.
+   */
+  static Optional<Boolean> doesCachedClusterContainDiscoveryStatus(Collection<ClusterProvider> clusterProviders,
+                                                                   String account,
+                                                                   String region,
+                                                                   String asgName,
+                                                                   String targetDiscoveryStatus) {
+    def matches = (Set<ServerGroup>) clusterProviders.findResults {
+      it.getServerGroup(account, region, asgName)
+    }
+
+    if (!matches) {
+      return Optional.empty()
+    }
+
+    def serverGroup = matches.first()
+    def containsDiscoveryStatus = false
+
+    serverGroup*.instances*.health.flatten().each { Map<String, String> health ->
+      if (targetDiscoveryStatus.equalsIgnoreCase(health?.discoveryStatus)) {
+        containsDiscoveryStatus = true
+      }
+    }
+
+    return Optional.of(containsDiscoveryStatus)
   }
 
   def retry(Task task, int maxRetries, Closure c) {
