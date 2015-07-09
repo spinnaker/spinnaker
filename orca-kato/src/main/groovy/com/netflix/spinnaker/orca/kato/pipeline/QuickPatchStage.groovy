@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem
@@ -94,67 +95,21 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    // infer the app from the cluster prefix since we want to be able to quick patch different apps from the same pipeline
-    def app
-    if(stage.context.clusterName.indexOf("-") > 0) {
-      app = stage.context.clusterName.substring(0, stage.context.clusterName.indexOf("-"))
-    } else {
-      app = stage.context.clusterName
-    }
+    Map instances = new OortHelper().getInstancesForCluster(stage.context, true, true)
+    Map skippedMap = [:]
 
-    def response = oortService.getCluster(app, stage.context.account, stage.context.clusterName, stage.context.providerType ?: "aws")
-    def oortCluster = objectMapper.readValue(response.body.in().text, Map)
-    def instanceMap = [:]
-    def skippedMap = [:]
-
-    if (!oortCluster || !oortCluster.serverGroups) {
-      throw new RuntimeException("unable to find any server groups")
-    }
-
-    def asgsForCluster = oortCluster.serverGroups.findAll {
-      it.region == stage.context.region
-    }
-
-    //verify that there is only one ASG, maybe support it in the future
-    if (asgsForCluster.size() != 1) {
-      throw new RuntimeException("quick patch only runs if there is a single server group in the cluster")
-    }
-
-    asgsForCluster.get(0).instances.each { instance ->
-      String hostName = instance.publicDnsName
-      if(!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
-        hostName = instance.privateIpAddress
-      }
-
-     int index = -1
-     instance.health.eachWithIndex { health, idx ->
-       if (health.healthCheckUrl != null && !health.healthCheckUrl.isEmpty()) {
-         index = idx
-       }
-     }
-
-      if(index == -1 || instance.health.get(index).status == "STARTING") {
-        throw new RuntimeException("at least one instance is down or in the STARTING state, exiting")
-      }
-
-      String healthCheckUrl = instance.health.get(index).healthCheckUrl
-      Map instanceInfo = [hostName : hostName, healthCheckUrl : healthCheckUrl]
-
-      // optionally check the installed package version and skip if == target version
-      if(stage.context.skipUpToDate && getAppVersion(hostName, stage.context.package) == stage.context.version) {
-        skippedMap.put(instance.instanceId, instanceInfo)
-      } else {
-        instanceMap.put(instance.instanceId, instanceInfo)
+    if(stage.context.skipUpToDate) {
+      instances.each { instanceId, instanceInfo ->
+        // optionally check the installed package version and skip if == target version
+        if(getAppVersion(instanceInfo.hostName, stage.context.package) == stage.context.version) {
+          skippedMap.put(instanceId, instanceInfo)
+          instances.remove(instanceId)
+        }
       }
     }
 
     stage.context.put("skippedInstances", skippedMap)
-
-    if(instanceMap.size() == 0 && skippedMap.size() == 0) {
-      throw new RuntimeException("could not find any instances")
-    }
-    stage.context.put("deploy.server.groups", [region : asgsForCluster.get(0).name]) // for ServerGroupCacheForceRefreshTask
-    return instanceMap
+    return instances
   }
 
   String getAppVersion(String hostName, String packageName) {
