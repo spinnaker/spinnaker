@@ -143,9 +143,13 @@ class TargetReferenceSupport {
   }
 
   TargetReference getDynamicallyBoundTargetAsgReference(Stage stage) {
-    getTargetAsgReferences(stage).find {
+    def target = getTargetAsgReferences(stage).find {
       ((List) stage.context.regions).contains(it.region)
     }
+    if (!target.asg) {
+      throw new TargetReferenceNotFoundException("No target found for cluster '${target.cluster}' in region '${target.region}'")
+    }
+    target
   }
 
   private static boolean isCurrentAsg(config) {
