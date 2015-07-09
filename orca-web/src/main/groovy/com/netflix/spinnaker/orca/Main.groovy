@@ -34,7 +34,6 @@ import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.post.config.PostConfiguration
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.sock.config.SockConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
