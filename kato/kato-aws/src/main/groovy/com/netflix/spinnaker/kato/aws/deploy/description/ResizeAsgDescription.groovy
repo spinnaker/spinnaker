@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.description
 
-import groovy.transform.ToString
-
 class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
   List<AsgDescription> asgs = []
 
@@ -29,16 +27,25 @@ class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
   List<String> regions = []
   Capacity capacity = new Capacity()
 
-  @ToString
   static class Capacity {
     int min
     int max
     int desired
+
+    @Override
+    String toString() {
+      return "min: $min, max: $max, desired: $desired"
+    }
   }
 
-  @ToString
   static class AsgDescription {
     String region
     String asgName
+    Capacity capacity
+
+    @Override
+    String toString() {
+      "region: $region, asgName: $asgName, capacity: $capacity"
+    }
   }
 }
