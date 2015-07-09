@@ -17,6 +17,7 @@
 dependencies {
   compile project(":clouddriver-aws")
   compile project(":kato:kato-core")
+  compile project(":oort:oort-core")
   compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('rxJava')
   compile spinnaker.dependency('bootActuator')
