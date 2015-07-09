@@ -10,6 +10,7 @@ angular.module('spinnaker.pipelines.stage.deploy')
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
+      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         {
           type: 'stageBeforeType',

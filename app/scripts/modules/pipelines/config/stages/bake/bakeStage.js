@@ -10,6 +10,7 @@ angular.module('spinnaker.pipelines.stage.bake')
       controllerAs: 'bakeStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
+      defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         {
           type: 'requiredField',
