@@ -91,7 +91,9 @@ angular.module('spinnaker.orchestratedItem.service', [
         case 'UNKNOWN':
           return 'UNKNOWN';
         default:
-          $log.warn('Unrecognized status:', item.originalStatus);
+          if (item.originalStatus) {
+            $log.warn('Unrecognized status:', item.originalStatus);
+          }
           return item.originalStatus;
       }
     }
