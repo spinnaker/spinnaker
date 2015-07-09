@@ -18,6 +18,7 @@ package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.hipchat.HipchatMessage
 import com.netflix.spinnaker.echo.hipchat.HipchatService
+import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,47 +38,55 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
     String token
 
     @Override
-    void sendNotifications(Map event, Map config, String status) {
+    void sendNotifications(Event event, Map config, String status) {
         String application = event.details.application
-
-        log.info("Hipchat: ${lastCheck}: Event: ${application} ${config.type} ${status} ${event.content?.executionId}")
-
         mayoService.getNotificationPreferences(application)?.hipchat?.each { preference ->
             if (preference.when?.contains("$config.type.$status".toString())) {
                 try {
                     boolean notify = false
-                    if(status == 'failed'){
+                    if (status == 'failed') {
                         notify = true
                     }
 
                     String color = 'gray'
 
-                    if(status == 'failed'){
+                    if (status == 'failed') {
                         color = 'red'
                     }
 
-                    if(status == 'complete'){
+                    if (status == 'complete') {
                         color = 'green'
                     }
 
                     String buildInfo = ''
 
-                    if(config.type == 'pipeline'){
-                        if(event.content?.execution?.trigger?.buildInfo?.url){
-                            buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${event.content.execution.trigger.buildInfo.number as Integer}</a> """
+                    if (config.type == 'pipeline') {
+                        if (event.content?.execution?.trigger?.buildInfo?.url) {
+                            buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
+                                event.content.execution.trigger.buildInfo.number as Integer
+                            }</a> """
                         }
                     }
 
+                    log.info("Send Hipchat message to" +
+                        " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+
                     hipchatService.sendMessage(
-                            token,
-                            preference.address,
-                            new HipchatMessage(
-                                    message: """${WordUtils.capitalize(application)}'s <a href="${spinnakerUrl}/#/applications/${application}/${
-                                        config.link
-                                    }/${event.content?.execution?.id}">${event.content?.execution?.name ?: event.content?.execution?.description}</a> ${buildInfo} ${config.type} ${status == 'starting' ? 'is' : 'has' } ${status == 'complete' ? 'completed successfully' : status}""",
-                                    color: color,
-                                    notify: notify
-                            )
+                        token,
+                        preference.address,
+                        new HipchatMessage(
+                            message: """${WordUtils.capitalize(application)}'s <a href="${
+                                spinnakerUrl
+                            }/#/applications/${application}/${
+                                config.link
+                            }/${event.content?.execution?.id}">${
+                                event.content?.execution?.name ?: event.content?.execution?.description
+                            }</a> ${buildInfo} ${config.type} ${status == 'starting' ? 'is' : 'has'} ${
+                                status == 'complete' ? 'completed successfully' : status
+                            }""",
+                            color: color,
+                            notify: notify
+                        )
                     )
                 } catch (Exception e) {
                     log.error('failed to send hipchat message ', e)

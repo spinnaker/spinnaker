@@ -20,6 +20,7 @@ import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
 
 import com.netflix.spinnaker.echo.email.EmailNotificationService
+import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
 import org.apache.velocity.app.VelocityEngine
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,28 +40,32 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     VelocityEngine engine
 
     @Override
-    void sendNotifications(Map event, Map config, String status) {
+    void sendNotifications(Event event, Map config, String status) {
         String application = event.details.application
-        log.info("${lastCheck}: Event: ${application} ${config.type} ${status} ${event.content?.executionId}")
         String[] addresses = getEmailReceipients(application, config.type, status)
 
         String buildInfo = ''
 
-        if(config.type == 'pipeline'){
-            if(event.content?.execution?.trigger?.buildInfo?.url){
+        if (config.type == 'pipeline') {
+            if (event.content?.execution?.trigger?.buildInfo?.url) {
                 buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
             }
         }
 
         if (addresses.length > 0) {
-            log.info("${lastCheck}: Send Email: ${addresses} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+            log.info("Send Email: ${addresses} for ${application} ${config.type} ${status} ${event.content?.executionId}")
             sendMessage(
-                    addresses,
-                    event,
-                    """[Spinnaker] ${config.type} for ${event.content?.execution?.name ?: event.content?.execution?.description} ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${status == 'complete' ? 'completed successfully' : status} for application ${application}""",
-                    config.type,
-                    status,
-                    config.link
+                addresses,
+                event,
+                """[Spinnaker] ${config.type} for ${
+                    event.content?.execution?.name ?: event.content?.execution?.description
+                } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
+                    status == 'complete' ? 'completed successfully' : status
+                } for application ${application}""",
+                config.type,
+                status,
+                config.link
+
             )
         }
     }
@@ -75,25 +80,25 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
         addresses.toArray()
     }
 
-    private void sendMessage(String[] email, Map event, String title, String type, String status, String link) {
+    private void sendMessage(String[] email, Event event, String title, String type, String status, String link) {
         mailService.send(
-                email,
-                title,
-                VelocityEngineUtils.mergeTemplateIntoString(
-                        engine,
-                        'email.vm',
-                        "UTF-8",
-                        [
-                                event      : prettyPrint(toJson(event.content)),
-                                url        : spinnakerUrl,
-                                application: event.details?.application,
-                                executionId: event.content?.execution?.id,
-                                type       : type,
-                                status     : status,
-                                link       : link,
-                                name       : event.content?.execution?.name ?: event.content?.execution?.description
-                        ]
-                )
+            email,
+            title,
+            VelocityEngineUtils.mergeTemplateIntoString(
+                engine,
+                'email.vm',
+                "UTF-8",
+                [
+                    event: prettyPrint(toJson(event.content)),
+                    url: spinnakerUrl,
+                    application: event.details?.application,
+                    executionId: event.content?.execution?.id,
+                    type: type,
+                    status: status,
+                    link: link,
+                    name: event.content?.execution?.name ?: event.content?.execution?.description
+                ]
+            )
         )
     }
 

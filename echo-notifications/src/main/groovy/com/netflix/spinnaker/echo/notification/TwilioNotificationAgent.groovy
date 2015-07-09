@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.notification
 
+import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.twilio.TwilioService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,31 +39,35 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
     String from
 
     @Override
-    void sendNotifications(Map event, Map config, String status) {
+    void sendNotifications(Event event, Map config, String status) {
         String application = event.details.application
-
-        log.info("Twilio: ${lastCheck}: Event: ${application} ${config.type} ${status} ${event.content?.executionId}")
 
         mayoService.getNotificationPreferences(application)?.sms?.each { preference ->
             if (preference.when?.contains("$config.type.$status".toString())) {
                 try {
                     String name = event.content?.execution?.name ?: event.content?.execution?.description
                     String link = "${spinnakerUrl}/#/applications/${application}/${config.link}/${event.content?.execution?.id}"
-                    log.info("Twilio: sms for ${preference.address} - ${link}")
 
                     String buildInfo = ''
 
-                    if(config.type == 'pipeline'){
-                        if(event.content?.execution?.trigger?.buildInfo?.url){
+                    if (config.type == 'pipeline') {
+                        if (event.content?.execution?.trigger?.buildInfo?.url) {
                             buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
                         }
                     }
 
+                    log.info("Twilio: sms for ${preference.address} - ${link}")
+
+
                     twilioService.sendMessage(
-                            account,
-                            from,
-                            preference.address,
-                            """The Spinnaker ${config.type} for ${event.content?.execution?.name ?: event.content?.execution?.description} ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${status == 'complete' ? 'completed successfully' : status} for application ${application} ${link}"""
+                        account,
+                        from,
+                        preference.address,
+                        """The Spinnaker ${config.type} for ${
+                            event.content?.execution?.name ?: event.content?.execution?.description
+                        } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
+                            status == 'complete' ? 'completed successfully' : status
+                        } for application ${application} ${link}"""
                     )
                 } catch (Exception e) {
                     log.error('failed to send sms message ', e)

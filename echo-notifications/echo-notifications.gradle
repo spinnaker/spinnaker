@@ -16,7 +16,8 @@
 
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
-  dependencies {
+dependencies {
+    compile project(':echo-core')
     spinnaker.group("test")
     spinnaker.group("bootWeb")
     spinnaker.group("retrofitDefault")
@@ -28,4 +29,4 @@ apply from: "$rootDir/gradle/groovy-module.gradle"
     compile "org.apache.velocity:velocity:1.7"
     compile "org.jsoup:jsoup:1.8.2"
     testCompile "com.icegreen:greenmail:1.4.0"
-  }
+}

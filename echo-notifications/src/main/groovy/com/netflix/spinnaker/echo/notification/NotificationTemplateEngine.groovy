@@ -25,54 +25,53 @@ import org.jsoup.Jsoup
 import org.jsoup.examples.HtmlToPlainText
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import org.springframework.ui.velocity.VelocityEngineUtils
 
 @Slf4j
 @Component
 class NotificationTemplateEngine {
-  @Autowired
-  VelocityEngine engine
+    @Autowired
+    VelocityEngine engine
 
-  @Value('${spinnaker.baseUrl}')
-  String spinnakerUrl
+    @Value('${spinnaker.baseUrl}')
+    String spinnakerUrl
 
-  String build(Notification notification, Type type) {
-    VelocityEngineUtils.mergeTemplateIntoString(
-        engine,
-        determinateTemplate(engine, notification.templateGroup, type, notification.notificationType),
-        "UTF-8",
-        [
-            baseUrl     : spinnakerUrl,
-            notification: notification,
-            htmlToText  : new HtmlToPlainTextFormatter()
-        ]
-    )
-  }
-
-  @PackageScope
-  @VisibleForTesting
-  static String determinateTemplate(VelocityEngine engine, String templateGroup, Type type, Notification.Type notificationType) {
-    def specificTemplate = "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toString().toLowerCase()}.vm"
-    def genericTemplate = "${templateGroup}/${type.toString().toLowerCase()}.vm"
-
-    if (engine.resourceExists(specificTemplate)) {
-      return specificTemplate
+    String build(Notification notification, Type type) {
+        VelocityEngineUtils.mergeTemplateIntoString(
+            engine,
+            determinateTemplate(engine, notification.templateGroup, type, notification.notificationType),
+            "UTF-8",
+            [
+                baseUrl     : spinnakerUrl,
+                notification: notification,
+                htmlToText  : new HtmlToPlainTextFormatter()
+            ]
+        )
     }
-    return genericTemplate
-  }
 
-  static enum Type {
-    BODY,
-    SUBJECT
-  }
+    @PackageScope
+    @VisibleForTesting
+    static String determinateTemplate(VelocityEngine engine, String templateGroup, Type type, Notification.Type notificationType) {
+        def specificTemplate = "${templateGroup}/${type.toString().toLowerCase()}-${notificationType.toString().toLowerCase()}.vm"
+        def genericTemplate = "${templateGroup}/${type.toString().toLowerCase()}.vm"
 
-  static class HtmlToPlainTextFormatter {
-    private final HtmlToPlainText htmlToPlainText = new HtmlToPlainText()
-
-    String convert(String content) {
-      return htmlToPlainText.getPlainText(Jsoup.parse(content))
+        if (engine.resourceExists(specificTemplate)) {
+            return specificTemplate
+        }
+        return genericTemplate
     }
-  }
+
+    static enum Type {
+        BODY,
+        SUBJECT
+    }
+
+    static class HtmlToPlainTextFormatter {
+        private final HtmlToPlainText htmlToPlainText = new HtmlToPlainText()
+
+        String convert(String content) {
+            return htmlToPlainText.getPlainText(Jsoup.parse(content))
+        }
+    }
 }
