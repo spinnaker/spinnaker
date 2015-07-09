@@ -22,7 +22,7 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
     var ctrl = this;
 
     $scope.stage = stage;
-
+    
     $scope.state = {
       accounts: false,
       regionsLoaded: false
@@ -36,7 +36,7 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
     $scope.regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'us-west-2'];
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
+      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
         $scope.state.regionsLoaded = true;
       });
@@ -44,14 +44,21 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
 
     $scope.targets = stageConstants.targetList;
 
-    (function() {
-      if ($scope.stage.credentials) {
-        ctrl.accountUpdated();
-      }
-      if (!$scope.stage.target) {
-        $scope.stage.target = $scope.targets[0].val;
-      }
-    })();
+    stage.regions = stage.regions || [];
+
+    if (!stage.credentials && $scope.application.defaultCredentials) {
+      stage.credentials = $scope.application.defaultCredentials;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegion) {
+      stage.regions.push($scope.application.defaultRegion);
+    }
+
+    if (stage.credentials) {
+      ctrl.accountUpdated();
+    }
+    if (!stage.target) {
+      stage.target = $scope.targets[0].val;
+    }
 
   });
 

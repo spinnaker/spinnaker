@@ -5,8 +5,9 @@ angular.module('spinnaker.securityGroup.all.controller', [
   'ui.bootstrap',
   'spinnaker.utils.lodash',
   'spinnaker.providerSelection.service',
+  'spinnaker.settings',
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application) {
+  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application, settings) {
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -53,15 +54,17 @@ angular.module('spinnaker.securityGroup.all.controller', [
 
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider().then(function(provider) {
+        var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
+            defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
         $modal.open({
           templateUrl: 'scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
           controller: 'CreateSecurityGroupCtrl as ctrl',
           resolve: {
             securityGroup: function () {
               return {
-                credentials: 'test',
+                credentials: defaultCredentials,
                 subnet: 'none',
-                regions: [],
+                regions: [defaultRegion],
                 vpcId: null,
                 securityGroupIngress: []
               };

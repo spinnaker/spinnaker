@@ -37,7 +37,7 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
     $scope.regionsLoaded = false;
 
     ctrl.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.stage.credentials).then(function(regions) {
+      accountService.getRegionsForAccount(stage.credentials).then(function(regions) {
         $scope.regions = _.map(regions, function(v) { return v.name; });
         $scope.regionsLoaded = true;
       });
@@ -71,36 +71,31 @@ angular.module('spinnaker.pipelines.stage.resizeAsg')
       }
     ];
 
-    (function() {
-      if (!$scope.stage.capacity) {
-        $scope.stage.capacity = {};
-      }
-      if (!$scope.stage.regions) {
-        $scope.stage.regions = [];
-      }
-      if ($scope.stage.credentials) {
-        ctrl.accountUpdated();
-      }
-      if (!$scope.stage.target) {
-        $scope.stage.target = $scope.resizeTargets[0].val;
-      }
-      if (!$scope.stage.action) {
-        $scope.stage.action = $scope.scaleActions[0].val;
-      }
-      if (!$scope.stage.resizeType) {
-        $scope.stage.resizeType = $scope.resizeTypes[0].val;
-      }
-    })();
+    stage.capacity = stage.capacity || {};
+    stage.regions = stage.regions || [];
+    stage.target = stage.target || $scope.resizeTargets[0].val;
+    stage.action = stage.action || $scope.scaleActions[0].val;
+    stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
 
+    if (!stage.credentials && $scope.application.defaultCredentials) {
+      stage.credentials = $scope.application.defaultCredentials;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegion) {
+      stage.regions.push($scope.application.defaultRegion);
+    }
+
+    if (stage.credentials) {
+      ctrl.accountUpdated();
+    }
 
     ctrl.updateCapacity = function() {
-      $scope.stage.capacity.desired = $scope.stage.capacity.max;
+      stage.capacity.desired = stage.capacity.max;
     };
 
     ctrl.updateResizeType = function() {
-      $scope.stage.capacity = {};
-      delete $scope.stage.scalePct;
-      delete $scope.stage.scaleNum;
+      stage.capacity = {};
+      delete stage.scalePct;
+      delete stage.scaleNum;
     };
 
   });

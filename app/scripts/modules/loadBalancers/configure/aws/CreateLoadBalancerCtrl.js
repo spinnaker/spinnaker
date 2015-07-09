@@ -78,7 +78,7 @@ angular.module('spinnaker.loadBalancer.aws.create.controller', [
           delete $scope.loadBalancer.name;
         }
       } else {
-        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate();
+        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate(application);
       }
       if (isNew) {
         initializeLoadBalancerNames();
