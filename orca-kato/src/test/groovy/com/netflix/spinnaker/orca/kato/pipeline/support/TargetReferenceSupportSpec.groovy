@@ -290,6 +290,30 @@ class TargetReferenceSupportSpec extends Specification {
     1 == targets.size()
     targets*.region == ["us-west-1"]
     targets*.asg.name == ["kato-main-v000"]
+  }
 
+  void "should throw exception when target reference not found or does not contain an ASG"() {
+    setup:
+    def config = [
+        regions    : ["us-west-1", "us-east-1"],
+        asgName    : "kato-main-v000",
+        credentials: "prod"
+    ]
+    def stage = new PipelineStage(pipeline, "test", config)
+
+    when:
+    subject.getDynamicallyBoundTargetAsgReference(stage)
+
+    then:
+    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+      new Response(
+          "foo", 200, "ok", [],
+          new TypedByteArray(
+              "application/json",
+              mapper.writeValueAsBytes([])
+          )
+      )
+    }
+    thrown TargetReferenceNotFoundException
   }
 }
