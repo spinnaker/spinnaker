@@ -35,14 +35,21 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
 
     $scope.targets = stageConstants.targetList;
 
-    (function() {
-      if ($scope.stage.credentials) {
-        $scope.accountUpdated();
-      }
-      if (!$scope.stage.target) {
-        $scope.stage.target = $scope.targets[0].val;
-      }
-    })();
+    stage.regions = stage.regions || [];
+
+    if (!stage.credentials && $scope.application.defaultCredentials) {
+      stage.credentials = $scope.application.defaultCredentials;
+    }
+    if (!stage.regions.length && $scope.application.defaultRegion) {
+      stage.regions.push($scope.application.defaultRegion);
+    }
+
+    if (stage.credentials) {
+      $scope.accountUpdated();
+    }
+    if (!stage.target) {
+      stage.target = $scope.targets[0].val;
+    }
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
   });

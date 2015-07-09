@@ -76,6 +76,9 @@ angular.module('spinnaker.pipelines.stage.bake')
         } else if ($scope.regions.indexOf($scope.stage.region) === -1) {
           delete $scope.stage.region;
         }
+        if (!$scope.stage.regions.length && $scope.application.defaultRegion) {
+          $scope.stage.regions.push($scope.application.defaultRegion);
+        }
         $scope.baseOsOptions = results.baseOsOptions;
         $scope.vmTypes = results.vmTypes;
         $scope.baseLabelOptions = results.baseLabelOptions;

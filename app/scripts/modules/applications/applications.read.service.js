@@ -155,6 +155,30 @@ angular
       return gateEndpoint.one('applications', application);
     }
 
+    function addDefaultRegion(application) {
+      var fromServerGroups = _.pluck(application.serverGroups, 'region'),
+        fromLoadBalancers = _.pluck(application.loadBalancers, 'region'),
+        fromSecurityGroups = _.pluck(application.securityGroups, 'region');
+
+      var allRegions = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
+
+      if (allRegions.length === 1) {
+        application.defaultRegion = allRegions[0];
+      }
+    }
+
+    function addDefaultCredentials(application) {
+      var fromServerGroups = _.pluck(application.serverGroups, 'account'),
+        fromLoadBalancers = _.pluck(application.loadBalancers, 'account'),
+        fromSecurityGroups = _.pluck(application.securityGroups, 'accountName');
+
+      var allCredentials = _.union(fromServerGroups, fromLoadBalancers, fromSecurityGroups);
+
+      if (allCredentials.length === 1) {
+        application.defaultCredentials = allCredentials[0];
+      }
+    }
+
     function addTasksToApplication(application, tasks) {
       application.tasks = angular.isArray(tasks) ? tasks : [];
       clusterService.addTasksToServerGroups(application);
@@ -174,6 +198,9 @@ angular
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
       original.securityGroupsIndex = newApplication.securityGroupsIndex;
+      original.defaultRegion = newApplication.defaultRegion;
+      original.defaultCredentials = newApplication.defaultCredentials;
+
       clusterService.addTasksToServerGroups(original);
       clusterService.addExecutionsToServerGroups(original);
 
@@ -240,6 +267,8 @@ angular
                     application.serverGroups.forEach(function(sg) {
                       sg.stringVal = JSON.stringify(sg, jsonReplacer);
                     });
+                    addDefaultRegion(application);
+                    addDefaultCredentials(application);
                     return application;
                   },
                   function(err) {

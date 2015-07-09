@@ -121,12 +121,14 @@ angular.module('spinnaker.aws.loadBalancer.transformer.service', [
       return toEdit;
     }
 
-    function constructNewLoadBalancerTemplate() {
+    function constructNewLoadBalancerTemplate(application) {
+      var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
+          defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
       return {
         stack: '',
         detail: 'frontend',
-        credentials: settings.providers.aws.defaults.account,
-        region: settings.providers.aws.defaults.region,
+        credentials: defaultCredentials,
+        region: defaultRegion,
         vpcId: null,
         healthCheckProtocol: 'HTTP',
         healthCheckPort: 7001,
