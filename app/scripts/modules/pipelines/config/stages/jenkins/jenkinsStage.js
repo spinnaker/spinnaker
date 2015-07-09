@@ -11,6 +11,7 @@ angular.module('spinnaker.pipelines.stage.jenkins')
       templateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
       executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
+      defaultTimeoutMs: 2 * 60 * 60 * 1000, // 2 hours
       validators: [
         {
           type: 'requiredField',

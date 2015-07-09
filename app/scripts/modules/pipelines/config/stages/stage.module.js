@@ -3,5 +3,6 @@
 angular.module('spinnaker.pipelines.stage', [
   'spinnaker.pipelines',
   'spinnaker.pipelines.stageConfig',
-  'spinnaker.stage.constants'
+  'spinnaker.stage.constants',
+  'spinnaker.pipelines.stage.overrideTimeout',
 ]);
