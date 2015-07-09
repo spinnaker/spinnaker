@@ -2,6 +2,13 @@ spinnaker:
   cassandra:
     cluster: 'spinnaker'
     keyspace: 'echo'
+  baseUrl: 'http://localhost:8083'
+
+echo:
+  baseUrl: 'http://localhost:8080'
+
+mayo:
+  baseUrl: 'http://localhost:8081'
 
 search:
   index: 'event_history'
