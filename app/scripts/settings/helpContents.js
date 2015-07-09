@@ -119,6 +119,11 @@ angular.module('spinnaker.help')
     'pipeline.config.dependsOn': 'Declares which stages must be run <em>before</em> this stage begins.',
     'pipeline.config.parallel.execution': '<p>Enabling parallel stage execution allows you to run stages only after dependent ' +
       'stages have completed.</p><p>By configuring a pipeline this way, you can reduce the time it takes to run.</p>',
+    'pipeline.config.timeout': '<p>Allows you to override the amount of time the stage can run before failing.</p> ' +
+    '<p><b>Note:</b> this is not the overall time the stage has, but rather the time for specific tasks.</p>',
+    'pipeline.config.timeout.bake': '<p>For the Bake stage, the timeout will apply to both the "Create Bake" and "Monitor Bake" tasks.</p>',
+    'pipeline.config.timeout.deploy': '<p>For the Deploy stage, the timeout will apply to both the "Monitor Deploy" and "Wait For Up Instances" tasks.</p>',
+    'pipeline.config.timeout.jenkins': '<p>For the Jenkins stage, the timeout will apply to both the "Wait For Jenkins Job Start" and "Monitor Jenkins Job" tasks.</p>',
     'serverGroupCapacity.useSourceCapacityTrue':  '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
       '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
       '<p>In the event that there is no existing server group, the deploy will fail.</p>',
