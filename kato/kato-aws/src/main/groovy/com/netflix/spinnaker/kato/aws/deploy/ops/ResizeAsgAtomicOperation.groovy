@@ -17,12 +17,11 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.ops
 
-import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -44,25 +43,27 @@ class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    String descriptor = description.asgName ?:
+        description.asgs.size() == 1 ? description.asgs[0].toString() :
+        description.asgs.collect { it.toString() }
     task.updateStatus PHASE, "Initializing Resize ASG operation for $descriptor..."
 
     for (String region : description.regions) {
-      resizeAsg(description.asgName, region)
+      resizeAsg(description.asgName, region, description.capacity)
     }
     for (asg in description.asgs) {
-      resizeAsg(asg.asgName, asg.region)
+      resizeAsg(asg.asgName, asg.region, asg.capacity)
     }
     task.updateStatus PHASE, "Finished Resize ASG operation for $descriptor."
     null
   }
 
-  private void resizeAsg(String asgName, String region) {
-    task.updateStatus PHASE, "Beginning resize of ${asgName} in ${region}."
+  private void resizeAsg(String asgName, String region, ResizeAsgDescription.Capacity capacity) {
+    task.updateStatus PHASE, "Beginning resize of ${asgName} in ${region} to ${capacity}."
     def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
     def request = new UpdateAutoScalingGroupRequest().withAutoScalingGroupName(asgName)
-        .withMinSize(description.capacity.min).withMaxSize(description.capacity.max)
-        .withDesiredCapacity(description.capacity.desired)
+        .withMinSize(capacity.min).withMaxSize(capacity.max)
+        .withDesiredCapacity(capacity.desired)
 
     autoScaling.updateAutoScalingGroup request
     task.updateStatus PHASE, "Completed resize of ${asgName} in ${region}."
