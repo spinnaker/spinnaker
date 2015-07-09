@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
@@ -39,6 +40,8 @@ class QuickPatchStageSpec extends Specification {
 
   @Subject quickPatchStage = Spy(QuickPatchStage)
   def oort = Mock(OortService)
+
+  def oortHelper = Mock(OortHelper)
   def bulkQuickPatchStage = Spy(BulkQuickPatchStage)
 
   def objectMapper = new OrcaObjectMapper()
@@ -48,6 +51,8 @@ class QuickPatchStageSpec extends Specification {
   InstanceService instanceService = Mock(InstanceService)
 
   void setup() {
+    GroovyMock(OortHelper, global: true)
+
     quickPatchStage.applicationContext = Stub(ApplicationContext) {
       getBean(_) >> { Class type -> type.newInstance() }
     }
@@ -57,17 +62,17 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.oortService = oort
     quickPatchStage.bulkQuickPatchStage = bulkQuickPatchStage
     quickPatchStage.INSTANCE_VERSION_SLEEP = 1
+
   }
 
-  @Unroll
   def "quick patch can't run due to too many asgs"() {
     given:
     def config = [
       application: "deck",
       clusterName: "deck-cluster",
-      account: "account",
-      region: "us-east-1",
-      baseOs: "ubuntu"
+      account    : "account",
+      region     : "us-east-1",
+      baseOs     : "ubuntu"
     ]
 
     and:
@@ -79,20 +84,8 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster(_,_,_,_) >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: "us-east-1"]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
-    }
+    1 * OortHelper.getOortHelper() >> oortHelper
+    1 * oortHelper.getInstancesForCluster(config, null, true, true) >> { throw new RuntimeException("too many asgs!") }
 
     and:
     thrown(RuntimeException)
@@ -101,7 +94,6 @@ class QuickPatchStageSpec extends Specification {
     asgNames = ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"]
   }
 
-  @Unroll
   def "configures bulk quickpatch"() {
     given:
     def config = [
@@ -113,6 +105,9 @@ class QuickPatchStageSpec extends Specification {
     ]
 
     and:
+    1 * OortHelper.getOortHelper() >> oortHelper
+    1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
+
     def stage = new PipelineStage(null, "quickPatch", config)
     stage.beforeStages = new NeverClearedArrayList()
     stage.afterStages = new NeverClearedArrayList()
@@ -121,22 +116,6 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster(_,_,_,_) >> {
-      def responseBody = [
-          serverGroups: asgNames.collect { name ->
-            [name: name, region: "us-east-1", instances: [ instance1, instance2]]
-          }
-      ]
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              objectMapper.writeValueAsBytes(responseBody)
-          )
-      )
-    }
-
-    and:
     1 == stage.afterStages.size()
 
     and:
@@ -174,20 +153,8 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster(_,_,_,_) >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: "us-east-1", instances: [instance1, instance2]]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
-    }
+    1 * OortHelper.getOortHelper() >> oortHelper
+    1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     and:
     2 == stage.afterStages.size()
@@ -270,20 +237,8 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster(_,_,_,_) >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: "us-east-1", instances: [instance1, instance2]]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
-    }
+    1 * OortHelper.getOortHelper() >> oortHelper
+    1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     and:
     stage.context.skippedInstances.'i-2345'
@@ -337,26 +292,14 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * oort.getCluster(_,_,_,_) >> {
-      def responseBody = [
-        serverGroups: asgNames.collect { name ->
-          [name: name, region: "us-east-1", instances: [instance1]]
-        }
-      ]
-      new Response(
-        "foo", 200, "ok", [],
-        new TypedByteArray(
-          "application/json",
-          objectMapper.writeValueAsBytes(responseBody)
-        )
-      )
-    }
+    1 * OortHelper.getOortHelper() >> oortHelper
+    1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     where:
     application = "deck"
     region = "us-east-1"
     account = "account"
     asgNames = ["deck-prestaging-v300"]
-    instance1 = [instanceId : "i-1234", publicDnsName : "foo.com", health : [ [foo : "bar"], [ healthCheckUrl : "http://foo.com:7001/healthCheck"] ]]
+    expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
   }
 }

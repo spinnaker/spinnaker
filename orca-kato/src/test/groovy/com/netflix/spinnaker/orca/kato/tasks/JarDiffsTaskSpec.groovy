@@ -110,5 +110,4 @@ class JarDiffsTaskSpec extends Specification {
     then:
     result.jars.size() == 3
   }
-
 }

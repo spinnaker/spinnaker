@@ -95,7 +95,7 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    Map instances = new OortHelper().getInstancesForCluster(stage.context, true, true)
+    Map instances = OortHelper.getOortHelper().getInstancesForCluster(stage.context, null, true, true)
     Map skippedMap = [:]
 
     if(stage.context.skipUpToDate) {

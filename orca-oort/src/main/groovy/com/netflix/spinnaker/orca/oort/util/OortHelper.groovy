@@ -14,6 +14,10 @@ class OortHelper {
   @Autowired
   ObjectMapper objectMapper
 
+  static OortHelper getOortHelper() {
+    return new OortHelper()
+  }
+
   Map getInstancesForCluster(Map context, String expectedAsgName = null, boolean expectOneAsg = false, boolean failIfAnyInstancesUnhealthy = false) {
     // infer the app from the cluster prefix since this is used by quip and we want to be able to quick patch different apps from the same pipeline
     def app
