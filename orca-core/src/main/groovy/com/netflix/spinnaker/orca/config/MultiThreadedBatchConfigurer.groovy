@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.config
 
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
 import org.springframework.batch.core.launch.JobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.core.task.TaskExecutor
 
+@CompileStatic
 class MultiThreadedBatchConfigurer extends DefaultBatchConfigurer {
 
   private final TaskExecutor taskExecutor
@@ -29,7 +31,8 @@ class MultiThreadedBatchConfigurer extends DefaultBatchConfigurer {
     this.taskExecutor = taskExecutor
   }
 
-  @Override
+//  @Override
+  // Not overridden until we upgrade spring batch to 3.0.4. Then we can get rid of the jobLauncher field, getter and overridden initialize method
   protected JobLauncher createJobLauncher() {
     def launcher = new SimpleJobLauncher()
     launcher.jobRepository = jobRepository
@@ -37,4 +40,19 @@ class MultiThreadedBatchConfigurer extends DefaultBatchConfigurer {
     launcher.afterPropertiesSet()
     launcher
   }
+
+  // Once Batch is upgraded to 3.0.4 cut here...
+  private JobLauncher jobLauncher
+
+  @Override
+  JobLauncher getJobLauncher() {
+    return jobLauncher
+  }
+
+  @Override
+  void initialize() {
+    super.initialize()
+    this.jobLauncher = createJobLauncher()
+  }
+  // ... to here
 }
