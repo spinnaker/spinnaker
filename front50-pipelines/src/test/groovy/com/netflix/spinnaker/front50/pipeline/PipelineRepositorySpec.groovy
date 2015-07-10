@@ -37,7 +37,6 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
     void setupSpec() {
         repo = new PipelineRepository()
         repo.keyspace = keyspace
-        repo.runQuery '''DROP TABLE pipeline;'''
         repo.onApplicationEvent(null)
     }
 
