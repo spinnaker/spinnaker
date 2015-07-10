@@ -109,7 +109,7 @@ class OperationsController {
   }
 
   private List<AtomicOperationBindingResult> convert(List<Map<String, Map>> inputs) {
-    def username = AuthenticatedRequest.getSpinnakerUser().orElse(null)
+    def username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown")
     def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
 
     def descriptions = []
