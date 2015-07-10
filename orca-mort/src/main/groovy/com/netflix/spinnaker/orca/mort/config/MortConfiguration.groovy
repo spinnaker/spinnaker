@@ -19,6 +19,7 @@
 package com.netflix.spinnaker.orca.mort.config
 
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import retrofit.RequestInterceptor
 
 import static retrofit.Endpoints.newFixedEndpoint
 
@@ -44,12 +45,16 @@ class MortConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
+
   @Bean Endpoint mortEndpoint(@Value('${mort.baseUrl}') String mortBaseUrl) {
     newFixedEndpoint(mortBaseUrl)
   }
 
   @Bean MortService mortDeployService(Endpoint mortEndpoint, Gson gson) {
     new RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(mortEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)

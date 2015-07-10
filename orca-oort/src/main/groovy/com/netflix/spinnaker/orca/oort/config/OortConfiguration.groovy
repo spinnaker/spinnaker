@@ -30,6 +30,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
@@ -47,12 +48,16 @@ class OortConfiguration {
   @Autowired Client retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
 
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
+
   @Bean Endpoint oortEndpoint(@Value('${oort.baseUrl}') String oortBaseUrl) {
     newFixedEndpoint(oortBaseUrl)
   }
 
   @Bean OortService oortDeployService(Endpoint oortEndpoint, Gson gson) {
     new RestAdapter.Builder()
+        .setRequestInterceptor(spinnakerRequestInterceptor)
         .setEndpoint(oortEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)

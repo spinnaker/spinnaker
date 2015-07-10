@@ -32,6 +32,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Scope
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
@@ -41,15 +42,9 @@ import retrofit.client.OkClient
 
 @Configuration
 @CompileStatic
+@Import(OkHttpClientConfiguration)
 @EnableConfigurationProperties
 class RetrofitConfiguration {
-
-   @Bean
-   @ConfigurationProperties('okHttpClient')
-   OkHttpClientConfiguration okHttpClientConfig() {
-     new OkHttpClientConfiguration()
-   }
-
    @Bean
    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
    Client retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {

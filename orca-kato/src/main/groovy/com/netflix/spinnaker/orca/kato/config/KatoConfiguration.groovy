@@ -31,6 +31,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
 import retrofit.client.Client
@@ -49,6 +50,9 @@ class KatoConfiguration {
   @Autowired Client retrofitClient
   @Autowired LogLevel retrofitLogLevel
 
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
+
   @ConditionalOnMissingBean(ObjectMapper) @Bean ObjectMapper mapper() {
     new OrcaObjectMapper()
   }
@@ -60,6 +64,7 @@ class KatoConfiguration {
 
   @Bean KatoService katoDeployService(Endpoint katoEndpoint, Gson gson) {
     new RestAdapter.Builder()
+        .setRequestInterceptor(spinnakerRequestInterceptor)
         .setEndpoint(katoEndpoint)
         .setClient(retrofitClient)
         .setLogLevel(retrofitLogLevel)

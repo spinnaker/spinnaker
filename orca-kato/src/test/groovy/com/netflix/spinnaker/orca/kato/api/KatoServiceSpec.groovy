@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.api
 
+import retrofit.RequestInterceptor
 import spock.lang.Specification
 import spock.lang.Subject
 import com.google.gson.Gson
@@ -36,11 +37,19 @@ class KatoServiceSpec extends Specification {
   @Subject
   KatoService service
 
+  RequestInterceptor noopInterceptor = new RequestInterceptor() {
+    @Override
+    void intercept(RequestInterceptor.RequestFacade request) {
+      // do nothing
+    }
+  }
+
   final taskId = "e1jbn3"
 
   def setup() {
-    service = new KatoConfiguration(retrofitClient: new OkClient(), retrofitLogLevel: FULL)
-        .katoDeployService(newFixedEndpoint(httpServer.baseURI), new Gson())
+    service = new KatoConfiguration(
+      retrofitClient: new OkClient(), retrofitLogLevel: FULL, spinnakerRequestInterceptor: noopInterceptor
+    ).katoDeployService(newFixedEndpoint(httpServer.baseURI), new Gson())
   }
 
   def "can interpret the response from an operation request"() {
