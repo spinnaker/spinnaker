@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
-
-include 'front50-web', 'front50-core', 'front50-aws', 'front50-gce', 'front50-cassandra', 'front50-pipelines'
-
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
+configurations.all {
+    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
-rootProject.children.each {
-  setBuildFile(it)
+dependencies {
+    compile project(":front50-core")
+    compile project(":front50-cassandra")
 }

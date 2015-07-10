@@ -1,11 +1,10 @@
 /*
  * Copyright 2014 Netflix, Inc.
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,17 +13,17 @@
  * limitations under the License.
  */
 
-rootProject.name = "front50"
+package com.netflix.spinnaker.front50.notifications
 
-include 'front50-web', 'front50-core', 'front50-aws', 'front50-gce', 'front50-cassandra', 'front50-pipelines'
+public enum HierarchicalLevel {
+    STAGE,
+    PIPELINE,
+    APPLICATION,
+    PROJECT,
+    ORGANIZATION,
+    GLOBAL
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile(it)
+    static HierarchicalLevel fromString(String level) {
+        values().find { it.name() == level.toUpperCase() }
+    }
 }
