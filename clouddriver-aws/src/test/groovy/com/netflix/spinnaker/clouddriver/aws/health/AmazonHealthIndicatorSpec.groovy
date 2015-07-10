@@ -90,6 +90,6 @@ class AmazonHealthIndicatorSpec extends Specification {
   }
 
   NetflixAmazonCredentials credential(String name = 'foo') {
-    new NetflixAmazonCredentials(name, '12345', 'key', [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1c', 'us-east-1d'])], null, false, null, false, null, false)
+    new NetflixAmazonCredentials(name, '12345', 'key', [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1c', 'us-east-1d'])], null, null, false, null, false, null, false)
   }
 }
