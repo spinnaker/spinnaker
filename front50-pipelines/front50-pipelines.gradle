@@ -1,0 +1,115 @@
+buildscript {
+  ext {
+    springBootVersion = "1.2.1.RELEASE"
+  }
+  repositories {
+    jcenter()
+  }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+apply plugin: 'spring-boot'
+apply plugin: 'spinnaker-debpublish'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+repositories {
+  jcenter()
+  maven { url "http://repo.spring.io/snapshot" }
+}
+
+dependencies {
+    compile 'joda-time:joda-time:2.3'
+    compile "cz.jirutka.spring:spring-rest-exception-handler:1.0.0"
+    compile spinnaker.dependency("korkCassandra")
+    compile spinnaker.dependency("bootWeb")
+    compile spinnaker.dependency("bootActuator")
+    compile spinnaker.dependency("groovy")
+    compile spinnaker.dependency("eurekaClient")
+    runtime spinnaker.dependency("kork")
+    compile spinnaker.dependency("korkWeb")
+
+    spinnaker.group('jackson')
+    spinnaker.group('test')
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.apache.log4j:log4j:1.2.17'
+        force 'com.google.guava:guava:14.0.1'
+        force 'commons-codec:commons-codec:1.7'
+    }
+    exclude group: 'javax.servlet', module: 'servlet-api'
+    exclude group: "org.slf4j", module: "slf4j-log4j12"
+    exclude group: "org.mortbay.jetty", module: "servlet-api"
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDir 'src/main/resources'
+            srcDir 'config'
+        }
+    }
+}
+
+jar {
+    doFirst {
+        exclude "${rootProject.name}.yml"
+    }
+}
+
+run {
+    classpath += configurations.provided
+}
+
+ideaConfig {
+  mainClassName = 'com.netflix.spinnaker.mayo.Application'
+}
+
+startScripts {
+  doLast {
+    unixScript.text = unixScript.text.replace('CLASSPATH=$APP_HOME', 'CLASSPATH=$APP_HOME/config:$APP_HOME')
+    windowsScript.text = windowsScript.text.replace('set CLASSPATH=', 'set CLASSPATH=%APP_HOME%\\config;')
+  }
+}
+
+applicationName = 'mayo'
+applicationDefaultJvmArgs = ["-Djava.security.egd=file:/dev/./urandom"]
+applicationDistribution.from(project.file('config')) {
+  into 'config'
+}
+
+
+ospackage {
+  packageName = project.applicationName
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/opt/${project.applicationName}"
+  from "${project.buildDir}/install/${project.applicationName}"
+}
+
+tasks.bootRepackage.enabled = false
+
+tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
+    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
+    if (jamm) {
+      jvmArgs "-javaagent:${jamm}"
+    }
+}
+
+test {
+    // jamm is required when using prepared statements with in-memory C*
+    def jamm = project.configurations.compile.find { it.name.startsWith('jamm') }
+    if (jamm) {
+      jvmArgs "-javaagent:${jamm}"
+    }
+}
+
+buildDeb {
+  dependsOn installApp
+  requires("openjdk-7-jre")
+}
+
