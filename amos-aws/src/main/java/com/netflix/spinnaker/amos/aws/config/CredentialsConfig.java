@@ -49,6 +49,7 @@ public class CredentialsConfig {
         private String accountId;
         private String defaultKeyPair;
         private List<Region> regions;
+        private List<String> requiredGroupMembership;
         private String edda;
         private Boolean eddaEnabled;
         private String discovery;
@@ -88,6 +89,14 @@ public class CredentialsConfig {
 
         public void setRegions(List<Region> regions) {
             this.regions = regions;
+        }
+
+        public List<String> getRequiredGroupMembership() {
+            return requiredGroupMembership;
+        }
+
+        public void setRequiredGroupMembership(List<String> requiredGroupMembership) {
+            this.requiredGroupMembership = requiredGroupMembership;
         }
 
         public String getEdda() {
