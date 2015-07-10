@@ -17,13 +17,13 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.security.AuthenticatedRequest
-import com.squareup.okhttp.Interceptor
 import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Response
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import retrofit.RequestInterceptor
 
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
@@ -54,30 +54,34 @@ class OkHttpClientConfiguration {
   String secureRandomInstanceType = "NativePRNGNonBlocking"
 
   /**
+   * @return RequestInterceptor that will propagate Spinnaker headers if <code>propagateSpinnakerHeaders</code> is true
+   */
+  @Bean
+  RequestInterceptor spinnakerRequestInterceptor() {
+    return new RequestInterceptor() {
+      @Override
+      void intercept(RequestInterceptor.RequestFacade request) {
+        if (!propagateSpinnakerHeaders) {
+          // noop
+          return
+        }
+
+        AuthenticatedRequest.authenticationHeaders.each { String key, Optional<String> value ->
+          if (value.present) {
+            request.addHeader(key, value.get())
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * @return OkHttpClient w/ <optional> key and trust stores
    */
   OkHttpClient create() {
     def okHttpClient = new OkHttpClient()
     okHttpClient.setConnectTimeout(connectTimoutMs, TimeUnit.MILLISECONDS)
     okHttpClient.setReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS)
-
-    if (propagateSpinnakerHeaders) {
-      okHttpClient.interceptors().add(
-        new Interceptor() {
-          @Override
-          Response intercept(Interceptor.Chain chain) throws IOException {
-            def builder = chain.request().newBuilder()
-            AuthenticatedRequest.authenticationHeaders.each { String key, Optional<String> value ->
-              if (value.present) {
-                builder.addHeader(key, value.get())
-              }
-            }
-
-            return chain.proceed(builder.build())
-          }
-        }
-      )
-    }
 
     if (!keyStore && !trustStore) {
       return okHttpClient

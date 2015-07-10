@@ -6,6 +6,8 @@ dependencies {
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('groovy')
   compile spinnaker.dependency('okHttp')
+  compile spinnaker.dependency('retrofit')
+
 
   spinnaker.group('spockBase')
 }
