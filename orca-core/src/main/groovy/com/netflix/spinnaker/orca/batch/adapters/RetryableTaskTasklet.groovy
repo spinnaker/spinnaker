@@ -17,8 +17,6 @@
 package com.netflix.spinnaker.orca.batch.adapters
 
 import com.netflix.spectator.api.ExtendedRegistry
-import groovy.transform.CompileStatic
-import java.time.Clock
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -26,9 +24,14 @@ import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
+import org.joda.time.Duration
+import org.joda.time.format.PeriodFormat
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.repeat.RepeatStatus
+
+import java.time.Clock
 
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
 
@@ -63,7 +66,9 @@ class RetryableTaskTasklet extends TaskTasklet {
 
     def timeoutMs = (stage.context[STAGE_TIMEOUT_OVERRIDE_KEY] ?: timeoutMs) as long
     if (now - startTime > timeoutMs) {
-      throw new TimeoutException("Operation timed out after ${timeoutMs}ms")
+      def formatter = PeriodFormat.getDefault()
+      def dur = formatter.print(new Duration(timeoutMs).toPeriod())
+      throw new TimeoutException("Operation timed out after ${dur}")
     }
     return super.doExecuteTask(stage, chunkContext)
   }
