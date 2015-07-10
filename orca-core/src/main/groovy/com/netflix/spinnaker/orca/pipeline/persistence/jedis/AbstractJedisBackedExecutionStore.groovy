@@ -16,23 +16,24 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import java.util.concurrent.ThreadPoolExecutor
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.ValueFunction
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.*
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
-import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
 import rx.schedulers.Schedulers
-
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
-import java.util.concurrent.ThreadPoolExecutor
 
 @Slf4j
 abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements ExecutionStore<T> {
@@ -43,13 +44,13 @@ abstract class AbstractJedisBackedExecutionStore<T extends Execution> implements
   private final String prefix
   private final Class<T> executionClass
   protected final JedisCommands jedisCommands
-  protected final JedisPool jedisPool
+  protected final Pool<Jedis> jedisPool
   protected final ObjectMapper mapper
 
   AbstractJedisBackedExecutionStore(String prefix,
                                     Class<T> executionClass,
                                     JedisCommands jedisCommands,
-                                    JedisPool jedisPool,
+                                    Pool<Jedis> jedisPool,
                                     ObjectMapper mapper,
                                     int threadPoolSize,
                                     int threadPoolChunkSize,

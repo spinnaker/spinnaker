@@ -20,13 +20,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
-import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 
 @Slf4j
+@CompileStatic
 class JedisOrchestrationStore extends AbstractJedisBackedExecutionStore<Orchestration> {
-  JedisOrchestrationStore(JedisCommands jedis, JedisPool jedisPool, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
+  JedisOrchestrationStore(JedisCommands jedis, Pool<Jedis> jedisPool, ObjectMapper mapper, int threadPoolSize, int threadPoolChunkSize, ExtendedRegistry extendedRegistry) {
     super(ExecutionStore.ORCHESTRATION, Orchestration, jedis, jedisPool, mapper, threadPoolSize, threadPoolChunkSize, extendedRegistry)
   }
 }
