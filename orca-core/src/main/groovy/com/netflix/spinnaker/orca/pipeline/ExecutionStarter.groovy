@@ -108,7 +108,6 @@ abstract class ExecutionStarter<T extends Execution> {
     def jobName = executionJobBuilder.jobNameFor(subject)
     def execution = jobRepository.getLastJobExecution(jobName, createJobParameters(subject))
     if (execution) {
-      resetExecution(execution)
       jobOperator.restart(execution.id)
     } else {
       startExecution(subject)
@@ -126,18 +125,5 @@ abstract class ExecutionStarter<T extends Execution> {
     params.addString(type, subject.id)
     params.addString("application", subject.application)
     params.toJobParameters()
-  }
-
-  /**
-   * Because "restartability" of a Spring Batch job relies on it having been cleanly stopped and we can't guarantee
-   * that we need to update the job to a STOPPED state.
-   */
-  private void resetExecution(JobExecution execution) {
-    if (execution.status != BatchStatus.STOPPED) {
-      execution.setExitStatus(ExitStatus.STOPPED.addExitDescription("restarted after instance shutdown"))
-      execution.setStatus(BatchStatus.STOPPED)
-      execution.setEndTime(new Date())
-      jobRepository.update(execution)
-    }
   }
 }
