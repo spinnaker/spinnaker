@@ -25,6 +25,7 @@ import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.repository.MetricRepository
@@ -40,6 +41,7 @@ import org.springframework.session.data.redis.config.annotation.web.http.GateRed
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import retrofit.Endpoint
+import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
 import retrofit.http.Body
@@ -56,10 +58,17 @@ import static retrofit.Endpoints.newFixedEndpoint
 
 @CompileStatic
 @Configuration
+@Slf4j
 @Import(GateRedisHttpSessionConfiguration)
 class GateConfig {
 
   public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
+
+  @Value('${retrofit.logLevel:BASIC}')
+  String retrofitLogLevel
+
+  @Autowired
+  RequestInterceptor spinnakerRequestInterceptor
 
   @Bean
   JedisConnectionFactory jedisConnectionFactory(
@@ -286,10 +295,11 @@ class GateConfig {
     def client = new EurekaOkClient(okHttpClientConfig.create(), extendedRegistry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
+      .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(endpoint)
       .setClient(client)
       .setConverter(new JacksonConverter())
-      .setLogLevel(RestAdapter.LogLevel.BASIC)
+      .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
       .setLog(new Slf4jRetrofitLogger(type))
       .build()
       .create(type)
