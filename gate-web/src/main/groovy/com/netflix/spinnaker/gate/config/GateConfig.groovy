@@ -33,6 +33,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory
 import org.springframework.session.data.redis.config.annotation.web.http.GateRedisHttpSessionConfiguration
 import org.springframework.stereotype.Component
@@ -317,6 +319,7 @@ class GateConfig {
   }
 
   @Bean
+  @Order(Ordered.LOWEST_PRECEDENCE)
   Filter authenticatedRequestFilter() {
     new AuthenticatedRequestFilter(false)
   }
