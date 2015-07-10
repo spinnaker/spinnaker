@@ -31,15 +31,16 @@ class CredentialsService {
 
   List<KatoService.Account> getAccounts() {
     HystrixFactory.newListCommand(GROUP, "getAccounts", true) {
-      def accounts = katoService.accounts
+      def allAccounts = katoService.accounts
 
       if (!AuthenticatedRequest.getSpinnakerUser().present) {
-        return accounts
+        // if the request is unauthenticated, return only anonymously accessible accounts (no group membership required)
+        return allAccounts.findAll { !it.requiredGroupMembership }
       }
 
       def allowedAccountsOptional = AuthenticatedRequest.getSpinnakerAccounts()
       def allowedAccounts = allowedAccountsOptional.orElse("").split(",").collect { it.toLowerCase() }
-      return accounts.findAll {
+      return allAccounts.findAll {
         allowedAccounts.contains(it.name.toLowerCase())
       }
     } execute()

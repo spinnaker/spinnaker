@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.preauth.x509.X509Authenti
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
 class X509SecurityConfig implements WebSecurityAugmentor {
-  @Autowired(required = false)
+  @Autowired
   AnonymousSecurityConfig anonymousSecurityConfig
 
   @Override

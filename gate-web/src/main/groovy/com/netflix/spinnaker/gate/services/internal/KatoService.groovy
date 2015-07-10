@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import retrofit.http.GET
 import retrofit.http.Path
 
@@ -30,8 +31,10 @@ interface KatoService {
   @GET('/task/{taskDetailsId}')
   Map getTaskDetails(@Path("taskDetailsId") String taskDetailsId)
 
+  @JsonIgnoreProperties(ignoreUnknown = true)
   static class Account {
     String name
     String type
+    Collection<String> requiredGroupMembership
   }
 }

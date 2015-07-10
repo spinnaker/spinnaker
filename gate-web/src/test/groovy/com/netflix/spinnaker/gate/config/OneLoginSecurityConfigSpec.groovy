@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gate.config
 
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.gate.security.onelogin.saml.Response
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.User
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -42,7 +43,11 @@ class OneLoginSecurityConfigSpec extends Specification {
   @Unroll
   void "should check for anonymous allowed accounts when determining whether user has required roles"() {
     given:
-    def anonymousSecurityConfig = (anonymousAllowedAccounts != null) ? new AnonymousSecurityConfig(allowedAccounts: anonymousAllowedAccounts) : null
+    def anonymousSecurityConfig = (anonymousAllowedAccounts != null) ? new AnonymousSecurityConfig(
+      katoService: Mock(KatoService) {
+        (0..1) * getAccounts() >> { anonymousAllowedAccounts.collect { new KatoService.Account(name: it)} }
+      }
+    ) : null
     def oneLoginSecurityConfig = new OneLoginSecurityConfig.OneLoginSecurityConfigProperties(
       requiredRoleByAccount: requiredRolesByAccount
     )
@@ -53,8 +58,8 @@ class OneLoginSecurityConfigSpec extends Specification {
 
     where:
     email        | requiredRolesByAccount | anonymousAllowedAccounts | userRoles  || hasRequiredRole
-    "authorized" | ["test": "groupA"]     | ["prod"]                 | []         || true
     "anonymous"  | ["test": "groupA"]     | ["prod"]                 | []         || false
+    "authorized" | ["test": "groupA"]     | ["prod"]                 | []         || true
     "authorized" | ["test": "groupA"]     | []                       | []         || false
     "authorized" | ["test": "groupA"]     | null                     | []         || false
     "authorized" | ["test": "groupA"]     | null                     | ["groupA"] || true
