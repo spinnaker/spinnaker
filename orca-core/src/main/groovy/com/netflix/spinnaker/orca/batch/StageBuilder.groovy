@@ -51,7 +51,7 @@ import static java.util.Collections.EMPTY_LIST
  */
 @CompileStatic
 abstract class StageBuilder implements ApplicationContextAware {
-  private static final int MAX_PARALLEL_CONCURRENCY = 6
+  private static final int MAX_PARALLEL_CONCURRENCY = 25
 
   final String type
 
