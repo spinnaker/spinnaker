@@ -19,6 +19,7 @@ package com.netflix.spinnaker.filters
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.slf4j.MDC
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.context.SecurityContextImpl
 
 import javax.servlet.Filter
@@ -61,6 +62,7 @@ class AuthenticatedRequestFilter implements Filter {
   @Override
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def spinnakerUser = null
+    def spinnakerAccounts = null
 
     try {
       if (request.isSecure()) {
@@ -76,20 +78,23 @@ class AuthenticatedRequestFilter implements Filter {
       if (!spinnakerUser) {
         def session = ((HttpServletRequest) request).getSession(false)
         def securityContext = (SecurityContextImpl) session?.getAttribute("SPRING_SECURITY_CONTEXT")
+        if (!securityContext) {
+          securityContext = SecurityContextHolder.getContext()
+        }
         def principal = securityContext?.authentication?.principal
         if (principal && principal instanceof User) {
           spinnakerUser = principal.email
+          spinnakerAccounts = principal.allowedAccounts.join(",")
         }
       }
     } catch (Exception e) {
       log.error("Unable to extract spinnaker user and account information", e)
     }
 
-    def spinnakerAccounts = null
     if (extractSpinnakerHeaders) {
       def httpServletRequest = (HttpServletRequest) request
       spinnakerUser = spinnakerUser ?: httpServletRequest.getHeader(SPINNAKER_USER)
-      spinnakerAccounts = httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
+      spinnakerAccounts = spinnakerAccounts ?: httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
     }
 
     try {
