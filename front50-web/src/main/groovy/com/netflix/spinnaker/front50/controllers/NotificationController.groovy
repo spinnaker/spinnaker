@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.notifications
+package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.notifications.NotificationRepository
+import com.netflix.spinnaker.front50.notifications.HierarchicalLevel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder

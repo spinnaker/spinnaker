@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.pipeline
+package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.pipeline.PipelineRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody

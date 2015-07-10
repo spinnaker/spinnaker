@@ -20,10 +20,5 @@ configurations.all {
 
 dependencies {
     compile project(":front50-core")
-    compile spinnaker.dependency('korkCassandra')
-}
-
-test {
-    // jamm is required when using prepared statements with in-memory C*
-    jvmArgs "-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"
+    compile project(":front50-cassandra")
 }

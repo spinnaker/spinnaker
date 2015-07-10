@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.front50.pipeline
+package com.netflix.spinnaker.front50.controllers
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.front50.pipeline.PipelineRepository
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
