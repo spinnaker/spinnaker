@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo.pipeline
+package com.netflix.spinnaker.front50.pipeline
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 

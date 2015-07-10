@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo
+package com.netflix.spinnaker.front50.notifications
 
 public enum HierarchicalLevel {
     STAGE,

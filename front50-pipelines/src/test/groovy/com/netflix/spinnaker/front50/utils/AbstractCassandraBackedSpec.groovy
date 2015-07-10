@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.mayo.utils
+package com.netflix.spinnaker.front50.utils
 
 import com.netflix.astyanax.Keyspace
 import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents

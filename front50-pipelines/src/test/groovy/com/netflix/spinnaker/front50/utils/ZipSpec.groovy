@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo.utils
+package com.netflix.spinnaker.front50.utils
 
 import spock.lang.Specification
 

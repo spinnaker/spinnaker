@@ -13,34 +13,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo.notifications
+package com.netflix.spinnaker.front50.notifications
 
-import com.netflix.astyanax.Keyspace
-import com.netflix.spinnaker.mayo.Application
-import com.netflix.spinnaker.mayo.HierarchicalLevel
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
-import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.web.WebAppConfiguration
-import spock.lang.Specification
+import com.netflix.spinnaker.front50.utils.AbstractCassandraBackedSpec
+import spock.lang.Shared
 
-@WebAppConfiguration
-@ContextConfiguration(classes = [Application])
-class NotificationsRepositorySpec extends Specification {
+class NotificationsRepositorySpec extends AbstractCassandraBackedSpec {
 
-    @Autowired
+    @Shared
     NotificationRepository repo
 
-    @Autowired
-    Keyspace keyspace
-
-    @Autowired
-    ApplicationContext context
-
     void setupSpec() {
-        System.setProperty('netflix.environment', 'test')
-        System.setProperty('spinnaker.cassandra.cluster', 'workflow')
-        System.setProperty('spinnaker.cassandra.keyspace', 'test')
+        repo = new NotificationRepository()
+        repo.keyspace = keyspace
+        repo.onApplicationEvent(null)
     }
 
     void cleanup() {
@@ -54,10 +40,10 @@ class NotificationsRepositorySpec extends Specification {
     void 'globals can be saved, retrieved, and overwritten'() {
         when:
         repo.saveGlobal(
-            [ email: [
-                [address: 'tyrionl@netflix.com', when: ['pipeline.failed'] ]
-              ]
-            ]
+                [email: [
+                        [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
+                ]
+                ]
         )
 
         and:
@@ -70,10 +56,10 @@ class NotificationsRepositorySpec extends Specification {
 
         when:
         repo.saveGlobal(
-            [ email: [
-                [address: 'tywinl@netflix.com', when: ['tasks.failed'] ]
-              ]
-            ]
+                [email: [
+                        [address: 'tywinl@netflix.com', when: ['tasks.failed']]
+                ]
+                ]
         )
 
         and:
@@ -89,20 +75,20 @@ class NotificationsRepositorySpec extends Specification {
     void 'globals are folded into application notifications'() {
         when:
         repo.saveGlobal(
-            [ email: [
-                [address: 'tyrionl@netflix.com', when: ['pipeline.failed'] ]
-              ]
-            ]
+                [email: [
+                        [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
+                ]
+                ]
         )
-        repo.save(HierarchicalLevel.APPLICATION, 'mayo',
-            [ email: [
-                [address: 'orca@netflix.com', when: ['tasks.failed'] ]
-              ]
-            ]
+        repo.save(HierarchicalLevel.APPLICATION, 'front50',
+                [email: [
+                        [address: 'orca@netflix.com', when: ['tasks.failed']]
+                ]
+                ]
         )
 
         and:
-        Map notifications = repo.get(HierarchicalLevel.APPLICATION, 'mayo')
+        Map notifications = repo.get(HierarchicalLevel.APPLICATION, 'front50')
 
         then:
         notifications.email.size() == 2
@@ -119,10 +105,10 @@ class NotificationsRepositorySpec extends Specification {
     void 'globals are folded in when application does not exist'() {
         when:
         repo.saveGlobal(
-            [ email: [
-                [address: 'tyrionl@netflix.com', when: ['pipeline.failed'] ]
-              ]
-            ]
+                [email: [
+                        [address: 'tyrionl@netflix.com', when: ['pipeline.failed']]
+                ]
+                ]
         )
 
         and:

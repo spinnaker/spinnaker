@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo.pipeline
+package com.netflix.spinnaker.front50.pipeline
 
 import com.netflix.astyanax.Keyspace
-import com.netflix.spinnaker.mayo.utils.AbstractCassandraBackedSpec
+import com.netflix.spinnaker.front50.utils.AbstractCassandraBackedSpec
 import spock.lang.Shared
 
 class PipelineRepositorySpec extends AbstractCassandraBackedSpec {

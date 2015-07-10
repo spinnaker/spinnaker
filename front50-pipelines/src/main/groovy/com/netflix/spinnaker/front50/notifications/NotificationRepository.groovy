@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.mayo.notifications
+package com.netflix.spinnaker.front50.notifications
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.astyanax.Keyspace
@@ -27,8 +27,7 @@ import com.netflix.astyanax.model.ColumnList
 import com.netflix.astyanax.query.RowQuery
 import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.astyanax.util.RangeBuilder
-import com.netflix.spinnaker.mayo.HierarchicalLevel
-import com.netflix.spinnaker.mayo.utils.Zip
+import com.netflix.spinnaker.front50.utils.Zip
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
