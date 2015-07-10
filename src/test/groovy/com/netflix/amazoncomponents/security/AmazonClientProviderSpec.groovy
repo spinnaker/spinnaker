@@ -40,8 +40,8 @@ class AmazonClientProviderSpec extends Specification {
       getCredentials() >> new BasicAWSCredentials('foo', 'bar')
   }
 
-  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials("test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], credentialsProvider, 'foo', true, null, null, null, null)
-  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials("test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], credentialsProvider, null, null, null, null, null, null)
+  @Shared NetflixAmazonCredentials credentialsWithEdda = new NetflixAmazonCredentials("test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], null, credentialsProvider, 'foo', true, null, null, null, null)
+  @Shared NetflixAmazonCredentials credentialsNoEdda = new NetflixAmazonCredentials("test", "1", null, [new AmazonCredentials.AWSRegion('us-east-1', ['us-east-1e'])], null, credentialsProvider, null, null, null, null, null, null)
 
   void "client proxies to edda when available"() {
     setup:
