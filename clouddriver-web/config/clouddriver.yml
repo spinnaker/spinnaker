@@ -32,7 +32,7 @@ default:
   # legacyServerPort is a non-ssl listener, if ssl is enabled. -1 to disable
   legacyServerPort: -1
   account:
-    env: ${netflix.account}
+    env: default
 
 aws:
   enabled: ${AWS_ENABLED:false}
