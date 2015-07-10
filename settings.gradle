@@ -30,7 +30,6 @@ include "orca-core",
   "orca-rush",
   "orca-flex",
   "orca-sock",
-  "orca-post",
   "orca-web",
   "orca-smoke-test"
 
