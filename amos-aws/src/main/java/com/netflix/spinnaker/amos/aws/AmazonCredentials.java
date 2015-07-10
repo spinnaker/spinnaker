@@ -39,6 +39,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final String name;
     private final String accountId;
     private final String defaultKeyPair;
+    private final List<String> requiredGroupMembership;
     private final List<AWSRegion> regions;
     private final AWSCredentialsProvider credentialsProvider;
 
@@ -50,23 +51,36 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider);
         final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
-        return new AmazonCredentials(name, accountId, defaultKeyPair, regions, credentialsProvider);
+        return new AmazonCredentials(name, accountId, defaultKeyPair, regions, null, credentialsProvider);
     }
 
 
     public AmazonCredentials(@JsonProperty("name") String name,
                              @JsonProperty("accountId") String accountId,
                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
-                             @JsonProperty("regions") List<AWSRegion> regions) {
-        this(name, accountId, defaultKeyPair, regions, null);
+                             @JsonProperty("regions") List<AWSRegion> regions,
+                             @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership) {
+        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null);
     }
 
 
     public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
-        this(source.getName(), source.getAccountId(), source.getDefaultKeyPair(), source.getRegions(), credentialsProvider);
+        this(
+            source.getName(),
+            source.getAccountId(),
+            source.getDefaultKeyPair(),
+            source.getRegions(),
+            source.getRequiredGroupMembership(),
+            credentialsProvider
+        );
     }
 
-    AmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider) {
+    AmazonCredentials(String name,
+                      String accountId,
+                      String defaultKeyPair,
+                      List<AWSRegion> regions,
+                      List<String> requiredGroupMembership,
+                      AWSCredentialsProvider credentialsProvider) {
         if (name == null) {
             throw new NullPointerException("name");
         }
@@ -79,6 +93,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         this.accountId = accountId;
         this.defaultKeyPair = defaultKeyPair;
         this.regions = regions == null ? Collections.<AWSRegion>emptyList() : Collections.unmodifiableList(regions);
+        this.requiredGroupMembership = requiredGroupMembership == null ? Collections.<String>emptyList() : Collections.unmodifiableList(requiredGroupMembership);
         this.credentialsProvider = credentialsProvider;
     }
 
@@ -152,4 +167,9 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     @Override
     public String getProvider() { return PROVIDER; }
+
+    @Override
+    public List<String> getRequiredGroupMembership() {
+        return requiredGroupMembership;
+    }
 }

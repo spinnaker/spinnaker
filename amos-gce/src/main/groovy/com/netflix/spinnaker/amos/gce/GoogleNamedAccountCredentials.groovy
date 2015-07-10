@@ -38,11 +38,17 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final String accountName
   final String projectName
   final GoogleCredentials credentials
+  final List<String> requiredGroupMembership
 
   GoogleNamedAccountCredentials(String kmsServer, String accountName, String projectName) {
+    this(kmsServer, accountName, projectName, null)
+  }
+
+  GoogleNamedAccountCredentials(String kmsServer, String accountName, String projectName, List<String> requiredGroupMembership) {
     this.kmsServer = kmsServer
     this.accountName = accountName
     this.projectName = projectName
+    this.requiredGroupMembership = Collections.unmodifiableList(requiredGroupMembership ?: [])
 
     if (kmsServer) {
       this.credentials = buildCredentials()

@@ -18,6 +18,9 @@ package com.netflix.spinnaker.amos;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Implementations of this interface will provide properties specific to a named account object,
  * with capability to retrieve a type of credential object (such as AWSCredentials or GoogleCredentials).
@@ -47,4 +50,11 @@ public interface AccountCredentials<T> {
      * @return the name of the cloud provider
      */
     String getProvider();
+
+    /**
+     * A user in ANY required group should be allowed access to this account.
+     *
+     * @return the group names that govern access to this account, empty indicates a public account accessible by all.
+     */
+    List<String> getRequiredGroupMembership();
 }

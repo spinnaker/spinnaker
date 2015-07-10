@@ -55,17 +55,18 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
                                        @JsonProperty("accountId") String accountId,
                                        @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                        @JsonProperty("regions") List<AWSRegion> regions,
+                                       @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
                                        @JsonProperty("assumeRole") String assumeRole,
                                        @JsonProperty("sessionName") String sessionName) {
-        this(name, accountId, defaultKeyPair, regions, null, assumeRole, sessionName);
+        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null, assumeRole, sessionName);
     }
 
     public AssumeRoleAmazonCredentials(AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
     }
 
-    AssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
-        super(name, accountId, defaultKeyPair, regions, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+    AssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+        super(name, accountId, defaultKeyPair, regions, null, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     }

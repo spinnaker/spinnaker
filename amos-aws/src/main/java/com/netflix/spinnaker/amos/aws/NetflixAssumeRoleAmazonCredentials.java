@@ -37,6 +37,7 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                               @JsonProperty("accountId") String accountId,
                                               @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                               @JsonProperty("regions") List<AWSRegion> regions,
+                                              @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
                                               @JsonProperty("edda") String edda,
                                               @JsonProperty("eddaEnabled") Boolean eddaEnabled,
                                               @JsonProperty("discovery") String discovery,
@@ -46,15 +47,15 @@ public class NetflixAssumeRoleAmazonCredentials extends NetflixAmazonCredentials
                                               @JsonProperty("assumeRole") String assumeRole,
                                               @JsonProperty("sessionName") String sessionName) {
 
-        this(name, accountId, defaultKeyPair, regions, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, assumeRole, sessionName);
+        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, assumeRole, sessionName);
     }
 
     public NetflixAssumeRoleAmazonCredentials(NetflixAssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getAssumeRole(), copy.getSessionName());
     }
 
-    NetflixAssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String assumeRole, String sessionName) {
-        super(name, accountId, defaultKeyPair, regions, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
+    NetflixAssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled, String assumeRole, String sessionName) {
+        super(name, accountId, defaultKeyPair, regions, requiredGroupMembership, AssumeRoleAmazonCredentials.createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName), edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? AssumeRoleAmazonCredentials.DEFAULT_SESSION_NAME : sessionName;
     }
