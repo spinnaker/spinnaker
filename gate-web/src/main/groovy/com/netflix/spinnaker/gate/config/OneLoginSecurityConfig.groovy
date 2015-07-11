@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.security.onelogin.AccountSettings
 import com.netflix.spinnaker.gate.security.onelogin.AppSettings
 import com.netflix.spinnaker.gate.security.onelogin.saml.AuthRequest
 import com.netflix.spinnaker.gate.security.onelogin.saml.Response
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -105,12 +106,15 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
     private final String url
     private final String certificate
     private final OneLoginSecurityConfigProperties oneLoginProperties
+    private final KatoService katoService
+
 
     @Autowired
-    OneLoginSecurityController(OneLoginSecurityConfigProperties properties) {
+    OneLoginSecurityController(OneLoginSecurityConfigProperties properties, KatoService katoService) {
       this.url = properties.url
       this.certificate = properties.certificate
       this.oneLoginProperties = properties
+      this.katoService = katoService
     }
 
     @Autowired
@@ -150,7 +154,9 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       def resp = new Response(accountSettings)
       resp.loadXmlFromBase64(samlResponse)
 
-      def user = buildUser(oneLoginProperties, resp, anonymousSecurityConfig?.getAllowedAccounts())
+      def user = buildUser(
+        oneLoginProperties, resp, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts()
+      )
       if (!hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
@@ -206,9 +212,9 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       }
     }
 
-    static User buildUser(OneLoginSecurityConfigProperties oneLoginSecurityConfig,
-                          Response response,
-                          Collection<String> anonymousAllowedAccounts) {
+    static User buildUser(Response response,
+                          Collection<String> anonymousAllowedAccounts,
+                          Collection<KatoService.Account> allAccounts) {
       def roles = response.attributes["memberOf"].collect { String roles ->
         def commonNames = roles.split(";")
         commonNames.collect {
@@ -217,10 +223,12 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       }.flatten()*.toLowerCase()
 
       def allowedAccounts = (anonymousAllowedAccounts ?: []) as Set<String>
-      (oneLoginSecurityConfig.requiredRoleByAccount ?: [:]).each { key, value ->
-        if (roles.contains(value.toLowerCase())) {
-          allowedAccounts << key
+      allAccounts.findAll {
+        it.requiredGroupMembership.find {
+          roles.contains(it.toLowerCase())
         }
+      }.each {
+        allowedAccounts << it.name
       }
 
       return new User(

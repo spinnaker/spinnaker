@@ -11,9 +11,11 @@ class OneLoginSecurityConfigSpec extends Specification {
   @Unroll
   void "should parse LDAP CN's into roles"() {
     given:
-    def oneLoginSecurityConfig = new OneLoginSecurityConfig.OneLoginSecurityConfigProperties(
-      requiredRoleByAccount: ["test": "groupA"]
-    )
+    def allAccounts = [
+      new KatoService.Account(name: "test", requiredGroupMembership: ["groupA"]),
+      allowedAnonymousAccounts.collect { new KatoService.Account(name: it) }
+    ].flatten() as List<KatoService.Account>
+
     def commonNames = "CN=groupA,OU=Groups,DC=netflix,DC=com;CN=groupB,DC=netflix,DC=com;"
     def response = Mock(Response) {
       1 * getAttributes() >> { [memberOf: [commonNames]] }
@@ -24,7 +26,9 @@ class OneLoginSecurityConfigSpec extends Specification {
     }
 
     when:
-    def user = OneLoginSecurityConfig.OneLoginSecurityController.buildUser(oneLoginSecurityConfig, response, allowedAnonymousAccounts)
+    def user = OneLoginSecurityConfig.OneLoginSecurityController.buildUser(
+      response, allowedAnonymousAccounts, allAccounts
+    )
 
     then:
     user.email == "test@netflix.com"
@@ -45,7 +49,7 @@ class OneLoginSecurityConfigSpec extends Specification {
     given:
     def anonymousSecurityConfig = (anonymousAllowedAccounts != null) ? new AnonymousSecurityConfig(
       katoService: Mock(KatoService) {
-        (0..1) * getAccounts() >> { anonymousAllowedAccounts.collect { new KatoService.Account(name: it)} }
+        (0..1) * getAccounts() >> { anonymousAllowedAccounts.collect { new KatoService.Account(name: it) } }
       }
     ) : null
     def oneLoginSecurityConfig = new OneLoginSecurityConfig.OneLoginSecurityConfigProperties(
