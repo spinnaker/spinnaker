@@ -154,9 +154,7 @@ class OneLoginSecurityConfig implements WebSecurityAugmentor {
       def resp = new Response(accountSettings)
       resp.loadXmlFromBase64(samlResponse)
 
-      def user = buildUser(
-        oneLoginProperties, resp, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts()
-      )
+      def user = buildUser(resp, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
       if (!hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, user)) {
         throw new BadCredentialsException("Credentials are bad")
       }
