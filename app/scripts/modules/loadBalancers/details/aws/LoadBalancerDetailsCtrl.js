@@ -1,7 +1,9 @@
 'use strict';
 
-let angular = require('angular');
+require('./loadBalancerDetails.html');
+require('../../configure/aws/createLoadBalancer.html');
 
+let angular = require('angular');
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
   require('angular-ui-router'),
   require('../../../securityGroups/securityGroup.read.service.js'),
@@ -79,7 +81,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     this.cloneLoadBalancer = function () {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        template: '../../configure/' + provider + '/createLoadBalancer.html',
+        templateUrl: '../../configure/' + provider + '/createLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return app; },

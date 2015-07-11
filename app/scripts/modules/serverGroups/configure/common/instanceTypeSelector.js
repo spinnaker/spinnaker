@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.common')
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceTypeSelector', [])
   .directive('instanceTypeSelector', function() {
     return {
       restrict: 'E',

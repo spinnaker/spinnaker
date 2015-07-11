@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.capacitySelector.directive', [])
   .directive('awsServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',

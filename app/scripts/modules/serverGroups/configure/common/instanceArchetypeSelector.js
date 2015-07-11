@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.common')
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [])
   .directive('instanceArchetypeSelector', function() {
     return {
       restrict: 'E',

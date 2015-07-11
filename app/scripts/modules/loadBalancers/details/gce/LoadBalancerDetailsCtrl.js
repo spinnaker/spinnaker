@@ -1,5 +1,7 @@
 'use strict';
 
+require('./loadBalancerDetails.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [

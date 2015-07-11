@@ -1,8 +1,12 @@
 'use strict';
 
+require('./instanceArchetype.html');
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.instanceArchetype.controller', [
+
+])
   .controller('awsInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     var wizard = modalWizardService.getWizard();

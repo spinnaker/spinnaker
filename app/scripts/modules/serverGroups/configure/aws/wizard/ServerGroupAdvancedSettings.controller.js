@@ -1,8 +1,10 @@
 'use strict';
 
+require('./advancedSettings.html');
+
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws')
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.advancedSetting.controller', [])
   .controller('awsServerGroupAdvancedSettingsCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('advanced');

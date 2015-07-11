@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
         },
       ],
     });
-  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, _) {
+  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;
 
     $scope.stage = stage;

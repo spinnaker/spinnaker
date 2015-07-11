@@ -98,7 +98,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
       //BEN_TODO
       providerSelectionService.selectProvider().then(function(provider) {
         $modal.open({
-          templateUrl: './configure/' + provider + '/createLoadBalancer.html',
+          templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
           controller: provider + 'CreateLoadBalancerCtrl as ctrl',
           resolve: {
             application: function() { return app; },
