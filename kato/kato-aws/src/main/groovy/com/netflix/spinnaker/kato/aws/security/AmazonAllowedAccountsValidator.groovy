@@ -36,11 +36,11 @@ class AmazonAllowedAccountsValidator implements AllowedAccountsValidator {
       }
 
       def requiredGroups = description.credentials.requiredGroupMembership*.toLowerCase()
-      def isAuthorized = !requiredGroups || allowedAccounts.find { String allowedAccount ->
-        return requiredGroups.contains(allowedAccount.toLowerCase())
+      def isAuthorized = !requiredGroups || requiredGroups.find { String requiredAccount ->
+        return allowedAccounts.find { it.toLowerCase() == requiredAccount }
       }
 
-      def message = "${user} is ${isAuthorized ? '' : 'not '}authorized (account: ${description.credentialAccount}, description: ${description.class.simpleName}, allowedAccounts: ${allowedAccounts}, json: ${json})"
+      def message = "${user} is ${isAuthorized ? '' : 'not '}authorized (account: ${description.credentialAccount}, description: ${description.class.simpleName}, allowedAccounts: ${allowedAccounts}, requiredGroups: ${requiredGroups}, json: ${json})"
       if (!isAuthorized) {
         log.warn(message)
         errors.rejectValue("credentials", "unauthorized", "${user} is not authorized (account: ${description.credentialAccount}, description: ${description.class.simpleName})")
