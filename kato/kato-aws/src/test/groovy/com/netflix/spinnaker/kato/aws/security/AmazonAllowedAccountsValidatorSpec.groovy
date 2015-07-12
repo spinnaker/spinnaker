@@ -9,7 +9,7 @@ import spock.lang.Unroll
 
 class AmazonAllowedAccountsValidatorSpec extends Specification {
   NetflixAmazonCredentials credentialsWithRequiredGroup = new NetflixAmazonCredentials(
-    "TestAccount", "TestAccount", null, null, ["targetAccount1", "targetAccount2"], null, null, null, null, null, null
+    "TestAccount", "1", null, null, ["targetAccount1"], null, null, null, null, null, null
   )
 
   @Unroll
@@ -25,7 +25,7 @@ class AmazonAllowedAccountsValidatorSpec extends Specification {
     def description = new AllowLaunchDescription()
     description.credentials = credentialsWithRequiredGroup
 
-    validator.validate("TestAccount", allowedAccounts, description, errors)
+    validator.validate("TestUser", allowedAccounts, description, errors)
 
     then:
     rejectValueCount * errors.rejectValue("credentials", "unauthorized", _)
@@ -33,9 +33,10 @@ class AmazonAllowedAccountsValidatorSpec extends Specification {
     where:
     allowedAccounts                      || rejectValueCount
     []                                   || 1
-    ["targetAccount1"]                   || 0
-    ["targetAccount3"]                   || 1
-    ["targetAccount1", "targetAccount2"] || 0
+    null                                 || 1
+    ["testAccount"]                      || 0
+    ["testaccount"]                      || 0
+    ["TestAccount"]                      || 0
   }
 
   void "should allow if allow accounts intersect with required group memberships"() {
@@ -50,7 +51,7 @@ class AmazonAllowedAccountsValidatorSpec extends Specification {
     def description = new AllowLaunchDescription()
     description.credentials = credentialsWithRequiredGroup
 
-    validator.validate("TestAccount", [credentialsWithRequiredGroup.requiredGroupMembership[0]], description, errors)
+    validator.validate("TestUser", ["TestAccount", "RandomAccount"], description, errors)
 
     then:
     0 * errors.rejectValue(_, _, _)
