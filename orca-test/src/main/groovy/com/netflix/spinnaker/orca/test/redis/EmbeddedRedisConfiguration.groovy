@@ -16,14 +16,15 @@
 
 package com.netflix.spinnaker.orca.test.redis
 
-import groovy.transform.CompileDynamic
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import net.greghaines.jesque.Config
 import net.greghaines.jesque.ConfigBuilder
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.beans.factory.config.BeanDefinition
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
@@ -41,15 +42,20 @@ class EmbeddedRedisConfiguration {
 
   @Bean
   Config jesqueConfig() {
-    new ConfigBuilder()
-        .withHost("localhost")
-        .withPort(redisServer().redisServer.port)
-        .build()
+    new ConfigBuilder().withHost("localhost")
+                       .withPort(redisServer().redisServer.port)
+                       .build()
   }
 
   @Bean
   Pool<Jedis> jedisPool() {
     new JedisPool("localhost", redisServer().redisServer.port)
+  }
+
+  @Bean
+  @Scope(BeanDefinition.SCOPE_PROTOTYPE)
+  JedisCommands jedisCommands(Pool<Jedis> pool) {
+    pool.resource
   }
 
 }

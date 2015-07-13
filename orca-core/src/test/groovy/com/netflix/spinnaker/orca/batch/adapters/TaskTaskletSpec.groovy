@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -64,12 +67,16 @@ class TaskTaskletSpec extends Specification {
   def random = Random.newInstance()
 
   void setup() {
+    def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
+    stage.tasks << taskModel
     pipelineStore.store(pipeline)
     jobExecution = createJobExecution(
       "whatever", random.nextLong(), random.nextLong(),
       new JobParametersBuilder().addString("pipeline", pipeline.id).toJobParameters()
     )
-    stepExecution = createStepExecution(jobExecution, "${stage.id}.${stage.type}.task1", random.nextLong())
+    stepExecution = createStepExecution(jobExecution,
+                                        "${stage.id}.${stage.type}.${taskModel.name}.${taskModel.id}",
+                                        random.nextLong())
     stepContext = new StepContext(stepExecution)
     stepContribution = new StepContribution(stepExecution)
     chunkContext = new ChunkContext(stepContext)
@@ -85,6 +92,22 @@ class TaskTaskletSpec extends Specification {
 
     then:
     1 * task.execute(*_) >> new DefaultTaskResult(SUCCEEDED)
+  }
+
+  @Unroll
+  def "should skip the task if it is already #taskStatus"() {
+    given:
+    stage.tasks.each { it.status = taskStatus }
+    pipelineStore.store(pipeline)
+
+    when:
+    tasklet.execute(stepContribution, chunkContext)
+
+    then:
+    0 * task.execute(_)
+
+    where:
+    taskStatus << ExecutionStatus.values().findAll { it.complete }
   }
 
   def "should pass the correct stage to the task"() {
@@ -226,7 +249,7 @@ class TaskTaskletSpec extends Specification {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
 
-    def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new NoopRegistry()))
+    def tasklet = new TaskTasklet(task, executionRepository, [], new ExtendedRegistry(new DefaultRegistry()))
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true

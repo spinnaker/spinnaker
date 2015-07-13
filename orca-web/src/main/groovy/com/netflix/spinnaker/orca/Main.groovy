@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.data.jackson.StageMixins
 import com.netflix.spinnaker.orca.echo.config.EchoConfiguration
 import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
@@ -57,6 +58,7 @@ import org.springframework.scheduling.annotation.EnableAsync
 @Import([
   WebConfiguration,
   OrcaConfiguration,
+  OrcaPersistenceConfiguration,
   JedisConfig,
   JesqueConfiguration,
   BakeryConfiguration,

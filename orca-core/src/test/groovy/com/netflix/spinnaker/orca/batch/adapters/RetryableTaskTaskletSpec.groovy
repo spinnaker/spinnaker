@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-
 import java.time.Clock
 import java.time.Instant
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.batch.lifecycle.BatchExecutionSpec
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
@@ -41,9 +41,9 @@ import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.retry.backoff.Sleeper
 import spock.lang.Shared
 import spock.lang.Unroll
-
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.model.Stage.STAGE_TIMEOUT_OVERRIDE_KEY
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static java.time.ZoneOffset.UTC
 
 class RetryableTaskTaskletSpec extends BatchExecutionSpec {
@@ -64,13 +64,17 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
   def taskFactory = new TaskTaskletAdapter(executionRepository, [], new ExtendedRegistry(new NoopRegistry()), sleeper)
   Pipeline pipeline
 
+  @Shared def random = Random.newInstance()
+
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
     pipeline = Pipeline.builder().withStage("retryable").build()
+    def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
+    pipeline.stages.first().tasks << taskModel
     pipelineStore.store(pipeline)
-    def step = steps.get("${pipeline.stages[0].id}.retryable.task1")
-      .tasklet(taskFactory.decorate(task))
-      .build()
+    def step = steps.get("${pipeline.stages[0].id}.retryable.${taskModel.name}.${taskModel.id}")
+                    .tasklet(taskFactory.decorate(task))
+                    .build()
     jobBuilder.start(step).build()
   }
 

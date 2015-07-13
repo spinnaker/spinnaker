@@ -19,8 +19,6 @@ package com.netflix.spinnaker.orca.test.batch
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
-import com.netflix.spinnaker.kork.jedis.JedisConfig
 import org.springframework.batch.core.configuration.ListableJobLocator
 import org.springframework.batch.core.configuration.annotation.BatchConfigurer
 import org.springframework.batch.core.configuration.annotation.DefaultBatchConfigurer
@@ -32,11 +30,9 @@ import org.springframework.batch.core.launch.support.SimpleJobLauncher
 import org.springframework.batch.core.launch.support.SimpleJobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.config.PropertyPlaceholderConfigurer
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Import
 
 /**
  * This is a bare-bones configuration for running end-to-end Spring batch tests.
@@ -81,17 +77,5 @@ class BatchTestConfiguration {
   @ConditionalOnMissingBean(ExtendedRegistry)
   ExtendedRegistry getExtendedRegistry() {
     new ExtendedRegistry(new NoopRegistry())
-  }
-
-  @Configuration
-  @Import(JedisConfig)
-  static class JedisBatchTestConfiguration {
-
-    @Bean
-    @ConditionalOnExpression('\'${redis.connection}\' == null')
-    EmbeddedRedis redisServer() {
-      EmbeddedRedis.embed()
-    }
-
   }
 }

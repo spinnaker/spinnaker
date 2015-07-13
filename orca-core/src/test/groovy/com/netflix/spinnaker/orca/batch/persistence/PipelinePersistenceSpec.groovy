@@ -7,6 +7,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -38,18 +39,17 @@ class PipelinePersistenceSpec extends Specification {
   @Autowired PipelineStarter pipelineStarter
   @Autowired ObjectMapper mapper
   @Autowired JobRegistry jobRegistry
-  @Autowired
-  JobExplorer jobExplorer
+  @Autowired JobExplorer jobExplorer
 
   def task1 = Mock(Task)
   def task2 = Mock(Task)
 
   def setup() {
     def testStage = new AutowiredTestStage("test", task1, task2)
-
     applicationContext.with {
-      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents, AsyncJobLauncherConfiguration,
-               BatchTestConfiguration, OrcaConfiguration)
+      register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents,
+               AsyncJobLauncherConfiguration,
+               BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration)
       beanFactory.registerSingleton("testStage", testStage)
       refresh()
 
@@ -58,35 +58,17 @@ class PipelinePersistenceSpec extends Specification {
     }
   }
 
-  def "if a pipeline dies we can reconstitute it"() {
-    given:
-    task1.execute(_) >> new DefaultTaskResult(RUNNING)
-
-    and:
-    def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
-
-    and:
-    taskExecutor.shutdown()
-    taskExecutor.initialize()
-
-    expect:
-    with(jobRegistry.getJob(jobNameFor(pipeline))) {
-      name == jobNameFor(pipeline)
-      restartable
-    }
-  }
-
   def "if a pipeline restarts it resumes from where it left off"() {
     given:
     def latch = new CountDownLatch(1)
     task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
     task2.execute(_) >> {
-        try {
-          new DefaultTaskResult(RUNNING)
-        } finally {
-          latch.countDown()
-        }
+      try {
+        new DefaultTaskResult(RUNNING)
+      } finally {
+        latch.countDown()
       }
+    }
 
     and:
     def pipeline = pipelineStarter.start(pipelineConfigFor("test"))

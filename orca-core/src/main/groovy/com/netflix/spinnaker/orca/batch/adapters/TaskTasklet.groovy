@@ -26,13 +26,13 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepContribution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -66,18 +66,22 @@ class TaskTasklet implements Tasklet {
   @Override
   RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
     def stage = currentStage(chunkContext)
+    def task = currentTask(chunkContext)
 
     try {
       if (stage.execution.canceled) {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         return cancel(stage)
+      } else if (task.status.complete) {
+        // no-op
+        log.warn "Skipping task $task.name because its status is $task.status"
       } else {
         def result = executeTask(stage, chunkContext)
         logResult(result, stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
-        long scheduledTime =  stage.scheduledTime
+        long scheduledTime = stage.scheduledTime
         stage = currentStage(chunkContext)
         // Setting the scheduledTime if it has been set by the task
         stage.scheduledTime = scheduledTime
@@ -91,7 +95,8 @@ class TaskTasklet implements Tasklet {
           stageOutputs.put('batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id)
         }
 
-        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
+        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage,
+                              chunkContext)
 
         def batchStepStatus = BatchStepStatus.mapResult(result)
         chunkContext.stepContext.stepExecution.with {
@@ -146,8 +151,8 @@ class TaskTasklet implements Tasklet {
         stage.execution?.authentication?.user, null, null, [], stage.execution?.authentication?.allowedAccounts
       )
       return AuthenticatedRequest.propagate({
-        doExecuteTask(stage.asImmutable(), chunkContext)
-      }, false, currentUser).call() as TaskResult
+                                              doExecuteTask(stage.asImmutable(), chunkContext)
+                                            }, false, currentUser).call() as TaskResult
     } catch (Exception e) {
       def exceptionHandler = exceptionHandlers.find { it.handles(e) }
       if (!exceptionHandler) {
@@ -173,6 +178,11 @@ class TaskTasklet implements Tasklet {
     }
   }
 
+  private TaskModel currentTask(ChunkContext chunkContext) {
+    def stage = currentStage(chunkContext)
+    stage.tasks.find { TaskModel it -> it.id == taskId(chunkContext) }
+  }
+
   private Stage currentStage(ChunkContext chunkContext) {
     def execution = currentExecution(chunkContext)
     def stage = execution.stages.find { it.id == stageId(chunkContext) }
@@ -192,13 +202,17 @@ class TaskTasklet implements Tasklet {
     chunkContext.stepContext.stepName.tokenize(".").getAt(2) ?: "Unknown"
   }
 
+  private static String taskId(ChunkContext chunkContext) {
+    chunkContext.stepContext.stepName.tokenize(".").getAt(3) ?: "Unknown"
+  }
+
   private void logResult(TaskResult result, Stage stage, ChunkContext chunkContext) {
     Id id = extendedRegistry.createId(METRIC_NAME)
-      .withTag("status", result.status.toString())
-      .withTag("executionType", stage.execution.class.simpleName)
-      .withTag("stageType", stage.type)
-      .withTag("taskName", taskName(chunkContext))
-      .withTag("isComplete", result.status.complete ? "true" : "false")
+                            .withTag("status", result.status.toString())
+                            .withTag("executionType", stage.execution.class.simpleName)
+                            .withTag("stageType", stage.type)
+                            .withTag("taskName", taskName(chunkContext))
+                            .withTag("isComplete", result.status.complete ? "true" : "false")
 
     extendedRegistry.counter(id).increment()
 
