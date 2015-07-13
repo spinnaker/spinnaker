@@ -52,7 +52,7 @@ class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
   @Override
   String jobNameFor(Orchestration orchestration) {
-    "Orchestration:${randomUUID()}" // TODO: base on orchestration id
+    "Orchestration:$orchestration.id"
   }
 
 }
