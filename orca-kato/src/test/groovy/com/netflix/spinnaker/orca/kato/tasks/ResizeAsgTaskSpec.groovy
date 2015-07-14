@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.TaskId
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -87,5 +88,38 @@ class ResizeAsgTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
     result.stageOutputs."kato.last.task.id" == taskId
     result.stageOutputs."deploy.account.name" == resizeASGConfig.credentials
+  }
+
+  def "gets target dynamically when configured"() {
+    given:
+    def targetReferenceSupport = Mock(TargetReferenceSupport)
+    def resizeAsgStage = Mock(ResizeAsgStage)
+
+    task.kato = Stub(KatoService) {
+      requestOperations(*_) >> rx.Observable.from(taskId)
+    }
+    task.targetReferenceSupport = targetReferenceSupport
+    task.resizeAsgStage = resizeAsgStage
+
+    def calculatedCapacity = [ min: 5, max: 5, desired: 5]
+    def resizeDescriptor = [
+        asgName: "asg-v003",
+        capacity: calculatedCapacity,
+        regions: ["us-east-1"],
+        credentials: "prod"
+    ]
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
+    1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> []
+    1 * resizeAsgStage.createResizeStageDescriptors(stage, _) >> [resizeDescriptor]
+    result.status == ExecutionStatus.SUCCEEDED
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == "prod"
+    result.stageOutputs.capacity == calculatedCapacity
+    result.stageOutputs."deploy.server.groups" == [ "us-east-1" : ["asg-v003"]]
   }
 }

@@ -50,17 +50,19 @@ class ResizeAsgTask implements Task {
         "deploy.account.name" : operation.credentials,
         "kato.last.task.id"   : taskId,
         "asgName"             : operation.asgName,
+        "capacity"            : operation.capacity,
         "deploy.server.groups": operation.regions.collectEntries {
           [(it): [operation.asgName]]
         }
+
     ])
   }
 
   Map convert(Stage stage) {
     Map context = stage.context
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
-      def descriptors = resizeAsgStage.createResizeStageDescriptors(stage, targetReferences)
+      def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+      def descriptors = resizeAsgStage.createResizeStageDescriptors(stage, [targetReference])
       if (!descriptors.isEmpty()) {
         context = descriptors[0]
       }

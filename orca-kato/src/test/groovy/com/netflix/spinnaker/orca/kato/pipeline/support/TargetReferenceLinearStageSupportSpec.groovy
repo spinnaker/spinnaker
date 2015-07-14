@@ -30,7 +30,7 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     given:
     def targetReferenceSupport = Mock(TargetReferenceSupport)
     def supportStage = new TargetReferenceLinearStageSupportStage()
-    def stage = new PipelineStage(new Pipeline(), "test")
+    def stage = new PipelineStage(new Pipeline(), "test", [regions: ["us-east-1"]])
     stage.parentStageId = parentStageId
     supportStage.targetReferenceSupport = targetReferenceSupport
 
@@ -47,6 +47,25 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     parentStageId | stageNamesBefore              | description
     null          | ["determineTargetReferences"] | "should inject"
     "a"           | []                            | "should inject"
+  }
+
+  void "should inject a stage for each extra region when the target is dynamically bound"() {
+    given:
+    def targetReferenceSupport = Mock(TargetReferenceSupport)
+    def supportStage = new TargetReferenceLinearStageSupportStage()
+    def stage = new PipelineStage(new Pipeline(), "test", [regions: ["us-east-1", "us-west-1", "us-west-2", "eu-west-2"]])
+    supportStage.targetReferenceSupport = targetReferenceSupport
+
+    when:
+    supportStage.composeTargets(stage)
+
+    then:
+    stage.beforeStages.size() == 1
+    stage.afterStages.size() == 3
+    stage.afterStages*.name == ["targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage", "targetReferenceLinearStageSupportStage"]
+    stage.context.regions == ["us-east-1"]
+    stage.afterStages*.context.regions.flatten() == ["us-west-1", "us-west-2", "eu-west-2"]
+    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
   }
 
   void "should inject a stage after for each extra target when target is not dynamically bound"() {
