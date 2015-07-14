@@ -39,6 +39,7 @@ angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.control
       command.viewState.readOnlyFields = $scope.command.viewState.readOnlyFields || {};
       command.viewState.submitButtonLabel = 'Add';
       command.viewState.hideClusterNamePreview = $scope.command.viewState.hideClusterNamePreview || false;
+      command.viewState.templatingEnabled = true;
       if ($scope.command.viewState.overrides) {
         _.forOwn($scope.command.viewState.overrides, function(val, key) {
           command[key] = val;

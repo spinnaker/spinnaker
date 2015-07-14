@@ -5,4 +5,5 @@ angular.module('spinnaker.serverGroup.configure.aws', [
   'spinnaker.serverGroup.configure.aws.deployInitialization.controller',
   'spinnaker.caches.infrastructure',
   'ui.router',
+  'spinnaker.serverGroups.basicSettings.controller',
 ]);
