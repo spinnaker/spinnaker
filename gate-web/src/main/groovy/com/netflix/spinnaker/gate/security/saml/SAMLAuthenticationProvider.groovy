@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.security.onelogin
+package com.netflix.spinnaker.gate.security.saml
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.AuthenticationProvider
@@ -24,16 +24,16 @@ import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 /**
- * The OneLogin auth provider. By now, the user should have already been authenticated through OneLogin, and they've
+ * The SAML auth provider. By now, the user should have already been authenticated through a SAML IdP, and they've
  * sent us back a response, which we've decoded and reconstructed into a Spring Security authentication object.
  *
  * @author Dan Woods
  */
-class OneLoginAuthenticationProvider implements AuthenticationProvider {
+class SAMLAuthenticationProvider implements AuthenticationProvider {
 
   static final String YOLO_ROLE = "USER_ROLE"
 
-  @Value('${onelogin.user.domain:netflix.com}')
+  @Value('${saml.user.domain:netflix.com}')
   String userDomain
 
   @Override
@@ -47,6 +47,6 @@ class OneLoginAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   boolean supports(Class<?> authentication) {
-    true // yolo
+    true
   }
 }
