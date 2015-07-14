@@ -2,11 +2,12 @@
 
 angular
   .module('cluster.filter.service', [
+    'ui.router',
     'cluster.filter.model',
     'spinnaker.utils.lodash',
     'spinnaker.utils.waypoints.service',
   ])
-  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log) {
+  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log, $stateParams) {
 
     var lastApplication = null;
 
@@ -305,6 +306,27 @@ angular
       angular.copy(newOptions, ClusterFilterModel.displayOptions);
     }
 
+    function overrideFiltersForUrl(result) {
+      if (result.href.indexOf('/clusters') !== -1) {
+        ClusterFilterModel.clearFilters();
+        ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
+          result.cluster ? 'cluster:' + result.cluster : '';
+        if (result.account) {
+          var acct = {};
+          acct[result.account] = true;
+          ClusterFilterModel.sortFilter.account = acct;
+        }
+        if (result.region) {
+          var reg = {};
+          reg[result.region] = true;
+          ClusterFilterModel.sortFilter.region = reg;
+        }
+        if ($stateParams.application === result.application) {
+          updateClusterGroups();
+        }
+      }
+    }
+
     function clearFilters() {
       ClusterFilterModel.clearFilters();
       updateQueryParams();
@@ -396,6 +418,7 @@ angular
       sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,
       shouldShowInstance: shouldShowInstance,
+      overrideFiltersForUrl: overrideFiltersForUrl,
     };
   }
 );

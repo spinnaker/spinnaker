@@ -5,8 +5,10 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
   'ui.router',
   'spinnaker.executionDetails.section.service',
   'spinnaker.executionDetails.section.nav.directive',
+  'spinnaker.urlBuilder',
+  'cluster.filter.service',
 ])
-  .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout) {
+  .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
 
     $scope.configSections = ['deploymentConfig', 'taskStatus', 'codeChanges'];
 
@@ -26,11 +28,16 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
           var deployedArtifacts = _.find(resultObjects, key);
           if (deployedArtifacts) {
             _.forEach(deployedArtifacts[key], function (serverGroupName, region) {
-              results.push({
+              var result = {
+                type: 'serverGroups',
+                application: $scope.stage.context.application,
+                serverGroup: serverGroupName,
+                account: $scope.stage.context.account,
                 region: region,
-                name: serverGroupName,
-                provider: context.provider || 'aws',
-              });
+                provider: context.provider || 'aws'
+              };
+              result.href = urlBuilder.buildFromMetadata(result);
+              results.push(result);
             });
           }
         }
@@ -46,6 +53,8 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
         $scope.deployed = results;
       });
     }
+
+    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
     initialize();
 
