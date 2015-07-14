@@ -4,9 +4,8 @@ angular
   .module('spinnaker.loadBalancer.write.service', [
     'spinnaker.taskExecutor.service',
     'spinnaker.caches.infrastructure',
-    'spinnaker.caches.scheduled'
   ])
-  .factory('loadBalancerWriter', function(infrastructureCaches, scheduledCache, taskExecutor) {
+  .factory('loadBalancerWriter', function(infrastructureCaches, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, application) {
       var operation = taskExecutor.executeTask({
