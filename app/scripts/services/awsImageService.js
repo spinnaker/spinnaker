@@ -3,16 +3,14 @@
 
 angular.module('spinnaker.aws.image.service', [
   'restangular',
-  'spinnaker.settings',
-  'spinnaker.caches.scheduled',
 ])
-  .factory('awsImageService', function ($q, Restangular,  settings, scheduledCache) {
+  .factory('awsImageService', function ($q, Restangular) {
 
     function findImages(params) {
       if (!params.q || params.q.length < 3) {
         return $q.when([{message: 'Please enter at least 3 characters...'}]);
       }
-      return Restangular.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {})
+      return Restangular.all('images/find').getList(params, {})
         .then(function(results) {
           return results;
         },

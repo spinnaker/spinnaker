@@ -3,17 +3,14 @@
 
 angular.module('spinnaker.taskExecutor.service', [
   'restangular',
-  'spinnaker.settings',
   'spinnaker.scheduler',
   'spinnaker.urlBuilder',
   'spinnaker.authentication',
   'spinnaker.authentication.service',
-  'spinnaker.caches.scheduled',
-  'spinnaker.caches.infrastructure',
   'spinnaker.tasks.read.service',
   'spinnaker.tasks.write.service',
 ])
-  .factory('taskExecutor', function(settings, Restangular, scheduler, urlBuilder, $q, authenticationService, scheduledCache, infrastructureCaches, tasksReader, tasksWriter) {
+  .factory('taskExecutor', function(Restangular, scheduler, urlBuilder, $q, authenticationService, tasksReader, tasksWriter) {
 
 
     function executeTask(taskCommand) {

@@ -4,10 +4,10 @@
 angular.module('spinnaker.account.service', [
   'restangular',
   'spinnaker.utils.lodash',
-  'spinnaker.caches.scheduled',
+  'spinnaker.settings',
   'spinnaker.caches.infrastructure'
 ])
-  .factory('accountService', function(settings, _, Restangular, $q, scheduledCache, infrastructureCaches) {
+  .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches) {
 
     function getPreferredZonesByAccount(providerName) {
       var _providerName = providerName || 'aws';

@@ -1,11 +1,13 @@
 'use strict';
 
 
-angular.module('spinnaker.gce.image.service', [])
-  .factory('gceImageService', function (settings, $q, Restangular, scheduledCache) {
+angular.module('spinnaker.gce.image.service', [
+  'restangular',
+])
+  .factory('gceImageService', function ($q, Restangular) {
 
     function findImages(params) {
-      return Restangular.all('images/find').withHttpConfig({cache: scheduledCache}).getList(params, {}).then(function(results) {
+      return Restangular.all('images/find').getList(params, {}).then(function(results) {
           return results;
         },
         function() {
