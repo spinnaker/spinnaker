@@ -127,6 +127,13 @@
         <dd ng-repeat="tag in instance.tags.items">{{tag}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Custom Metadata">
+      <div ng-if="!instance.metadata.items.length">No custom metadata associated with this instance</div>
+      <dl ng-if="instance.metadata.items.length">
+        <dt ng-repeat-start="metadata in instance.metadata.items">{{metadata.key}}</dt>
+        <dd ng-repeat-end>{{metadata.value}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="SSH" ng-if="!instance.notFound">
       <dl>
         <dt ng-if="instance.sshLink">SSH into this instance:</dt>
