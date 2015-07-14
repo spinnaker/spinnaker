@@ -9,6 +9,7 @@ describe('DeployExecutionDetailsCtrl', function() {
     this._ = _;
     this.$timeout = $timeout;
     this.$scope = $rootScope.$new();
+    this.urlBuilder = { buildFromMetadata: function() { return '#'; }};
 
   }));
 
@@ -23,6 +24,7 @@ describe('DeployExecutionDetailsCtrl', function() {
           _: _,
           $stateParams: { details: 'deploymentConfig' },
           executionDetailsSectionService: jasmine.createSpyObj('executionDetailsSectionService', ['synchronizeSection']),
+          urlBuilder: this.urlBuilder,
         });
         this.$timeout.flush();
       };
@@ -73,8 +75,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       };
       this.initializeController();
       expect(this.$scope.deployed.length).toBe(1);
-      expect(this.$scope.deployed[0].region).toBe('us-west-1');
-      expect(this.$scope.deployed[0].name).toBe('deployedAsg');
+      expect(this.$scope.deployed[0].serverGroup).toBe('deployedAsg');
 
     });
 
@@ -109,8 +110,7 @@ describe('DeployExecutionDetailsCtrl', function() {
       };
       this.initializeController();
       expect(this.$scope.deployed.length).toBe(1);
-      expect(this.$scope.deployed[0].region).toBe('us-west-1');
-      expect(this.$scope.deployed[0].name).toBe('deployedAsg');
+      expect(this.$scope.deployed[0].serverGroup).toBe('deployedAsg');
 
     });
 

@@ -6,11 +6,13 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
   'spinnaker.executionDetails.section.service',
   'spinnaker.executionDetails.section.nav.directive',
   'spinnaker.urlBuilder',
+  'cluster.filter.service',
   'spinnaker.pipelines.stages.canary.deployment.history.service'
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,
                                                                 executionDetailsSectionService,
-                                                                canaryDeploymentHistoryService, urlBuilder) {
+                                                                canaryDeploymentHistoryService, urlBuilder,
+                                                                clusterFilterService) {
 
     function initialize() {
       $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory', 'codeChanges'];
@@ -27,19 +29,23 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
       $scope.commits = $scope.stage.context.commits;
 
       if ($scope.deployment.baselineCluster) {
-        $scope.baselineClusterUrl = urlBuilder.buildFromMetadata({
+        var baselineMetadata = {
           type: 'clusters',
           application: $scope.stage.context.application,
           cluster: $scope.deployment.baselineCluster.name,
           account: $scope.deployment.baselineCluster.accountName,
-        });
+        };
+        baselineMetadata.href = urlBuilder.buildFromMetadata(baselineMetadata);
+        $scope.baselineClusterUrl = baselineMetadata;
 
-        $scope.canaryClusterUrl = urlBuilder.buildFromMetadata({
+        var canaryMetadata = {
           type: 'clusters',
           application: $scope.stage.context.application,
           cluster: $scope.deployment.canaryCluster.name,
           account: $scope.deployment.canaryCluster.accountName,
-        });
+        };
+        canaryMetadata.href = urlBuilder.buildFromMetadata(canaryMetadata);
+        $scope.canaryClusterUrl = canaryMetadata;
 
         $scope.loadHistory();
       }
@@ -65,6 +71,8 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
         $scope.viewState.loadingHistory = false;
       }
     };
+
+    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
     initialize();
 
