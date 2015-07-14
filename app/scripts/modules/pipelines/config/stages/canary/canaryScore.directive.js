@@ -24,7 +24,8 @@ angular.module('spinnaker.pipelines.stages.canary.score.directive', [])
             : 'unknown';
         }
 
-        scope.$watch('health', applyLabel);
+        scope.$watch('health', applyLabel, true);
+        scope.$watch('result', applyLabel, true);
       }
     };
   });

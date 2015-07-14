@@ -5,7 +5,7 @@ describe('Jenkins Execution Details Controller:', function () {
 
   beforeEach(module('spinnaker.pipelines.stage.jenkins.executionDetails.controller'));
 
-  beforeEach(inject(function($controller, $rootScope) {
+  beforeEach(inject(function($controller, $rootScope, $timeout) {
     this.initializeController = function(stage) {
       var scope = $rootScope.$new();
       scope.stage = stage;
@@ -14,6 +14,7 @@ describe('Jenkins Execution Details Controller:', function () {
         executionDetailsSectionService: { synchronizeSection: angular.noop, },
       });
       $scope = scope;
+      $timeout.flush();
     };
   }));
 
