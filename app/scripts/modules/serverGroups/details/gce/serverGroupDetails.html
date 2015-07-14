@@ -167,6 +167,13 @@
         <dd ng-repeat="tag in serverGroup.launchConfig.instanceTemplate.properties.tags.items">{{tag}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Custom Metadata">
+      <div ng-if="!serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">No custom metadata associated with this server group</div>
+      <dl ng-if="serverGroup.launchConfig.instanceTemplate.properties.metadata.items.length">
+        <dt ng-repeat-start="metadata in serverGroup.launchConfig.instanceTemplate.properties.metadata.items">{{metadata.key}}</dt>
+        <dd ng-repeat-end>{{metadata.value}}</dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Package">
       <dl class="dl-horizontal dl-narrow" ng-if="serverGroup.buildInfo">
         <dt ng-if="serverGroup.buildInfo.jenkins">Job</dt>
