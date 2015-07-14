@@ -37,7 +37,9 @@
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
-          <div class="col-md-9"><a ng-href="{{baselineClusterUrl}}">{{deployment.baselineCluster.name}}</a></div>
+          <div class="col-md-9">
+            <a ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(baselineClusterUrl);"
+               ng-href="{{baselineClusterUrl.href}}">{{deployment.baselineCluster.name}}</a></div>
         </div>
         <div class="row">
           <div class="col-md-3"><strong>Image</strong></div>
@@ -59,7 +61,9 @@
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-3"><strong>Cluster</strong></div>
-          <div class="col-md-9"><a ng-href="{{canaryClusterUrl}}">{{deployment.canaryCluster.name}}</a></div>
+          <div class="col-md-9">
+            <a ng-click="$event.stopPropagation(); canaryDeploymentDetailsCtrl.overrideFiltersForUrl(canaryClusterUrl);"
+               ng-href="{{canaryClusterUrl.href}}">{{deployment.canaryCluster.name}}</a></div>
         </div>
         <div class="row">
           <div class="col-md-3"><strong>Image</strong></div>
