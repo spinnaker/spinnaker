@@ -18,17 +18,16 @@
 
 describe('Service: ImageService', function() {
 
-  var service, $http, config, scope, timeout;
+  var service, $http, scope, timeout;
 
   beforeEach(
     module('spinnaker.image.service')
   );
 
 
-  beforeEach(inject(function (settings, imageService, $httpBackend, $rootScope, $timeout) {
+  beforeEach(inject(function (imageService, $httpBackend, $rootScope, $timeout) {
 
     service = imageService;
-    config = settings;
     $http = $httpBackend;
     timeout = $timeout;
     scope = $rootScope.$new();

@@ -6,10 +6,9 @@ angular.module('spinnaker.securityGroup.read.service', [
   'spinnaker.settings',
   'spinnaker.search.service',
   'spinnaker.utils.lodash',
-  'spinnaker.caches.scheduled',
   'spinnaker.caches.infrastructure',
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, settings, _, scheduledCache, infrastructureCaches) {
+  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, infrastructureCaches) {
 
     function loadSecurityGroups(application) {
 
