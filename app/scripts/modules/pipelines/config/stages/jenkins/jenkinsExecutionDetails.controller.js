@@ -5,14 +5,14 @@ angular.module('spinnaker.pipelines.stage.jenkins.executionDetails.controller', 
   'spinnaker.executionDetails.section.service',
   'spinnaker.executionDetails.section.nav.directive',
 ])
-  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, $timeout, executionDetailsSectionService) {
 
     $scope.configSections = ['jenkinsConfig', 'taskStatus'];
 
     function initialize() {
       executionDetailsSectionService.synchronizeSection($scope.configSections);
       $scope.detailsSection = $stateParams.details;
-      getFailureMessage();
+      $timeout(getFailureMessage);
     }
 
     function getFailureMessage() {
