@@ -3,7 +3,7 @@
 angular.module('spinnaker.caches.core', [
   'angular-data.DSCacheFactory',
 ])
-.factory('deckCacheFactory', function(DSCacheFactory) {
+.factory('deckCacheFactory', function(DSCacheFactory, $log) {
 
     var caches = Object.create(null);
 
@@ -36,7 +36,7 @@ angular.module('spinnaker.caches.core', [
         ageMax = 0;
 
       keys.forEach(function (key) {
-        var info = cache.info(key);
+        var info = cache.info(key) || {};
         ageMin = Math.min(ageMin, info.created);
         ageMax = Math.max(ageMax, info.created);
       });
@@ -52,6 +52,29 @@ angular.module('spinnaker.caches.core', [
       return 'angular-cache.caches.' + key + ':' + version + '.';
     }
 
+    var selfClearingLocalStorage = {
+      setItem: function(k, v) {
+        try {
+          window.localStorage.setItem(k, v);
+        } catch (e) {
+          $log.warn('Local Storage Error! Clearing caches and trying again.\nException:', e);
+          for (var key in window.localStorage) {
+            // invalidate keystore for any angular caches
+            if (key.match(/angular-cache\.caches\.infrastructure:.*.\.keys/)) {
+              window.localStorage.setItem(key, '[]');
+            }
+            // clear the data itself
+            if (key.match(/angular-cache\.caches\.infrastructure:.*.\.data\./)) {
+              window.localStorage.removeItem(key);
+            }
+          }
+          window.localStorage.setItem(k, v);
+        }
+      },
+      getItem: function(k) { return window.localStorage.getItem(k); },
+      removeItem: function(k) { return window.localStorage.removeItem(k); },
+    };
+
     function addLocalStorageCache(namespace, cacheId, cacheConfig) {
       var key = buildCacheKey(namespace, cacheId);
       var cacheFactory = cacheConfig.cacheFactory || DSCacheFactory;
@@ -65,7 +88,8 @@ angular.module('spinnaker.caches.core', [
         deleteOnExpire: 'aggressive',
         storageMode: 'localStorage',
         storagePrefix: getStoragePrefix(key, currentVersion),
-        recycleFreq: 5000, // ms
+        recycleFreq: 5000, // ms,
+        storageImpl: selfClearingLocalStorage,
       });
       caches[key] = cacheFactory.get(key);
       caches[key].getStats = getStats.bind(null, caches[key]);
