@@ -85,6 +85,7 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
           usePreferredZones: usePreferredZones,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
+          templatingEnabled: true,
         };
 
         var viewOverrides = {
