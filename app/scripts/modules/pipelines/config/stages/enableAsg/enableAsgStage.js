@@ -10,6 +10,7 @@ angular.module('spinnaker.pipelines.stage.enableAsg')
       controllerAs: 'enableAsgStageCtrl',
       templateUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStage.html',
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
+      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/enableAsg/enableAsgStepLabel.html',
     });
   }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
     $scope.stage = stage;
