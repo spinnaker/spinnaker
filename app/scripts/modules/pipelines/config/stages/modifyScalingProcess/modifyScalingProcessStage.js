@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./modifyScalingProcessExecutionDetails.html');
+require('./modifyScalingProcessStage.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -11,7 +14,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessS
       controller: 'ModifyScalingProcessStageCtrl',
       controlelrAs: 'modifyScalingProcessStageCtrl',
       templateUrl: require('./modifyScalingProcessStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcessExecutionDetails.html',
+      executionDetailsUrl: require('./modifyScalingProcessExecutionDetails.html'),
     });
   }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;

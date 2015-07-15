@@ -99,7 +99,9 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
           updateStageName(config, oldVal);
           applyConfigController(config, stageScope);
 
+          console.warn(config.templateUrl);
           var template = $templateCache.get(config.templateUrl);
+          console.warn(template);
           var templateBody = $compile(template)(stageScope);
           $element.find('.stage-details').html(templateBody);
         }

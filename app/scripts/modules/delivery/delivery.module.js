@@ -19,14 +19,17 @@ module.exports = angular.module('spinnaker.delivery', [
 
   require('./execution.directive.js'),
   require('./executionBar.directive.js'),
+
   require('./details/executionDetails.directive.js'),
+  require('./details/executionDetailsSectionNav.directive.js'),
+  require('./details/executionDetails.controller.js'),
+
   require('./executionGroup.directive.js'),
   require('./executionGroupHeading.directive.js'),
   require('./executionStatus.directive.js'),
   require('./stageFailureMessage/stageFailureMessage.directive.js'),
   require('./manualPipelineExecution.controller.js'),
 
-  require('./details/executionDetails.controller.js'),
   require('../caches/deckCacheFactory.js'),
   require('utils/appendTransform.js'),
   require('utils/d3.js'),

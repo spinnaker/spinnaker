@@ -2,7 +2,10 @@
 
 let angular = require('angular');
 
-//BEN_TODO
+
+require('./jenkinsStage.html');
+require('./jenkinsExecutionDetails.html');
+require('./jenkinsExecutionLabel.html');
 
 module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
   .config(function(pipelineConfigProvider) {
@@ -13,8 +16,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
       templateUrl: require('./jenkinsStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionDetails.html',
-      executionLabelTemplateUrl: 'app/scripts/modules/pipelines/config/stages/jenkins/jenkinsExecutionLabel.html',
+      executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
+      executionLabelTemplateUrl: require('./jenkinsExecutionLabel.html'),
       validators: [
         {
           type: 'requiredField',

@@ -4,6 +4,10 @@
 
 let angular = require('angular');
 
+require('./resizeAsgStage.html');
+require('./resizeAsgExecutionDetails.html');
+require('./resizeAsgStepLabel.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,8 +17,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [])
       controller: 'ResizeAsgStageCtrl',
       controllerAs: 'resizeAsgStageCtrl',
       templateUrl: require('./resizeAsgStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgExecutionDetails.html',
-      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/resizeAsg/resizeAsgStepLabel.html',
+      executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',

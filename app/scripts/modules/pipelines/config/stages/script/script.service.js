@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.script')
+module.exports = angular.module('spinnaker.pipelines.stage.script.service', [])
   .factory('scriptService', function($q) {
 
     function getCredentials() {

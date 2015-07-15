@@ -40,7 +40,7 @@ module.exports = {
         loader: 'style!css!less',
       },
       {
-        test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
+        test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/,
         loader: 'file',
       },
       {
@@ -67,6 +67,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: './app/index.html',
+      favicon: 'app/favicon.ico',
       inject: true,
     }),
   ],

@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./quickPatchAsgStage.html');
+require('./quickPatchAsgExecutionDetails.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -11,7 +14,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsgStage', 
       controller: 'QuickPatchAsgStageCtrl',
       controllerAs: 'QuickPatchAsgStageCtrl',
       templateUrl: require('./quickPatchAsgStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgExecutionDetails.html'
+      executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html')
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
     $scope.stage = stage;

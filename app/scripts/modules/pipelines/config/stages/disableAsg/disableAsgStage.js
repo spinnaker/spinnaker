@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./disableAsgStage.html');
+require('./disableAsgExecutionDetails.html');
+require('./disableAsgStepLabel.html');
 
 //BEN_TODO lodash
 module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
@@ -15,8 +18,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
       controller: 'DisableAsgStageCtrl',
       controllerAs: 'disableAsgStageCtrl',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
-      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
+      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',

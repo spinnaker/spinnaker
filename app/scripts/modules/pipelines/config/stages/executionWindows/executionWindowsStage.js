@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./executionWindowsDetails.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.executionWindowsStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -9,7 +11,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.executionWindowsStage
       synthetic: true,
       description: 'Restricts execution of stage during specified period of time',
       key: 'restrictExecutionDuringTimeWindow',
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/executionWindows/executionWindowsDetails.html',
+      executionDetailsUrl: require('./executionWindowsDetails.html'),
     });
   })
   .run(function(pipelineConfig, executionWindowsTransformer) {

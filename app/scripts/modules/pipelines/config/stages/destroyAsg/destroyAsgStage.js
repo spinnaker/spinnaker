@@ -4,8 +4,13 @@ let angular = require('angular');
 
 //BEN_TODO: where is this defined?
 
+require('./destroyAsgStage.html');
+require('./destroyAsgExecutionDetails.html');
+require('./destroyAsgStepLabel.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
   require('utils/lodash.js'),
+  require('../stageConstants.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -15,8 +20,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
-      executionStepLabelUrl: 'app/scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
+      executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',

@@ -4,6 +4,9 @@
 
 let angular = require('angular');
 
+require('./enableAsgStage.html');
+require('./enableAsgExecutionDetails.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
 ])
   .config(function(pipelineConfigProvider) {
@@ -14,7 +17,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
       controller: 'EnableAsgStageCtrl',
       controllerAs: 'enableAsgStageCtrl',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/enableAsg/enableAsgExecutionDetails.html',
+      executionDetailsUrl: require('./enableAsgExecutionDetails.html'),
     });
   }).controller('EnableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;

@@ -2,6 +2,11 @@
 
 let angular = require('angular');
 
+require('./canaryStage.html');
+require('./canaryExecutionDetails.html');
+require('./canaryExecutionSummary.html');
+require('./canaryExecutionLabel.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.canary')
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
@@ -9,10 +14,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary')
           label: 'Canary',
           description: 'Canary tests new changes against a baseline version',
           key: 'canary',
-          templateUrl: 'scripts/modules/pipelines/config/stages/canary/canaryStage.html',
-          executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/canary/canaryExecutionDetails.html',
-          executionSummaryUrl: 'app/scripts/modules/pipelines/config/stages/canary/canaryExecutionSummary.html',
-          executionLabelTemplateUrl: 'scripts/modules/pipelines/config/stages/canary/canaryExecutionLabel.html',
+          templateUrl: require('./canaryStage.html'),
+          executionDetailsUrl: require('./canaryExecutionDetails.html'),
+          executionSummaryUrl: require('./canaryExecutionSummary.html'),
+          executionLabelTemplateUrl: require('./canaryExecutionLabel.html'),
           controller: 'CanaryStageCtrl',
           controllerAs: 'canaryStageCtrl',
           validators: [

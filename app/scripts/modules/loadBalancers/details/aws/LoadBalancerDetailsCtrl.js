@@ -2,6 +2,7 @@
 
 require('./loadBalancerDetails.html');
 require('../../configure/aws/createLoadBalancer.html');
+require('../../configure/aws/editLoadBalancer.html');
 
 let angular = require('angular');
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
@@ -68,7 +69,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     this.editLoadBalancer = function editLoadBalancer() {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        template: '../../configure/' + provider + '/editLoadBalancer.html',
+        templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return app; },

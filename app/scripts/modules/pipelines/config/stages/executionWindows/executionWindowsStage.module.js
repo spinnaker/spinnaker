@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./executionWindows.less');
+
 module.exports = angular.module('spinnaker.pipelines.stage.executionWindows', [
   require('./executionWindowsStage.js'),
   require('../stage.module.js'),

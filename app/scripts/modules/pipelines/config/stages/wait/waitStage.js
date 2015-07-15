@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./waitStage.html');
+require('./waitExecutionDetails.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.waitStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -9,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.waitStage', [])
       description: 'Waits a specified period of time',
       key: 'wait',
       templateUrl: require('./waitStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/wait/waitExecutionDetails.html',
+      executionDetailsUrl: require('./waitExecutionDetails.html'),
     });
   })
   .name;

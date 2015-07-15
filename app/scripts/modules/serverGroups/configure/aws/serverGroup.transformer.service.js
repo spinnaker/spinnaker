@@ -1,8 +1,12 @@
 'use strict';
 
-angular
-  .module('spinnaker.serverGroup.transformer.service')
-  .factory('awsServerGroupTransformer', function () {
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.serverGroup.aws.transformer.service', [
+    require('utils/lodash.js')
+  ])
+  .factory('awsServerGroupTransformer', function (_) {
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over

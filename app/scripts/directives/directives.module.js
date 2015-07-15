@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.directives', [
 .directive('availabilityZoneSelector', require('./availabilityZoneSelector.js'))
 .directive('checklist', require('./checklist.directive.js'))
 .directive('collapsibleSection', require('./collapsibleSection.js'))
-.directive('dynamicOverlay', require('./dynamicOverlay.js'))
+.directive('modalOverlay', require('./dynamicOverlay.js'))
 .directive('insightMenu', require('./insightmenu.js'))
 .directive('instanceList', require('./instanceList.directive.js'))
 .directive('instanceListBody', require('./instanceListBody.directive.js'))

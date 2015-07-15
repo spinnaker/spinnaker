@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./findAmiStage.html');
+require('./findAmiExecutionDetails.html');
 
 //BEN_TODO
 module.exports = angular.module('spinnaker.pipelines.stage.findAmiStage', [])
@@ -13,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmiStage', [])
       controller: 'findAmiStageCtrl',
       controllerAs: 'findAmiStageCtrl',
       templateUrl: require('./findAmiStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/findAmi/findAmiExecutionDetails.html',
+      executionDetailsUrl: require('./findAmiExecutionDetails.html'),
     });
   }).controller('findAmiStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;

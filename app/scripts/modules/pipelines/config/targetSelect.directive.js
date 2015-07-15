@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.pipeline.targetSelect.directive', [
   ])
   .directive('targetSelect', function() {

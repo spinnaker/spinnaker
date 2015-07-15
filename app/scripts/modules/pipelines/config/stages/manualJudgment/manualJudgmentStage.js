@@ -2,6 +2,10 @@
 
 let angular = require('angular');
 
+require('./manualJudgmentStage.html');
+require('./manualJudgmentExecutionDetails.html');
+require('./modal/editNotification.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.manualJudgmentStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -11,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.manualJudgmentStage',
       controller: 'ManualJudgmentStageCtrl',
       controllerAs: 'manualJudgmentStageCtrl',
       templateUrl: require('./manualJudgmentStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/manualJudgment/manualJudgmentExecutionDetails.html',
+      executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
       executionBarColorProvider: function (stageSummary) {
         if (stageSummary.status === 'RUNNING') {
           return '#F0AD4E';

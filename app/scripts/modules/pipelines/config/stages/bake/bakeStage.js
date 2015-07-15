@@ -2,7 +2,14 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [])
+require('./bakeExecutionDetails.html');
+require('./bakeStage.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [
+  require('utils/lodash.js'),
+  require('../../pipelineConfigProvider.js'),
+  require('./bakery.service.js'),
+])
   //BEN_TODO: executionDetailsUrl?
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./deployStage.html');
+require('./deployExecutionDetails.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -9,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
       description: 'Deploys the previously baked or found image',
       key: 'deploy',
       templateUrl: require('./deployStage.html'),
-      executionDetailsUrl: 'app/scripts/modules/pipelines/config/stages/deploy/deployExecutionDetails.html',
+      executionDetailsUrl: require('./deployExecutionDetails.html'),
       controller: 'DeployStageCtrl',
       controllerAs: 'deployStageCtrl',
       validators: [

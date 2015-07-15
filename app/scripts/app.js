@@ -11,6 +11,9 @@
 //BEN_TODO figure out what actually gets used here
 global.$ = global.jQuery = require('jquery'); //  deck is reliant on my jquery features we need to load it before angular.
 
+global.Spinner = require('spin.js');
+
+require('jquery-ui');
 require('bootstrap/dist/css/bootstrap.css');
 require('select2-bootstrap-css/select2-bootstrap.css');
 require('Select2/select2.css');
@@ -35,50 +38,49 @@ require('../styles/newapplication.less');
 require('../styles/pipelines.less');
 require('../styles/rollups.less');
 require('../styles/tasks.less');
+require('../../utils/stickyHeader/stickyHeader.less');
 
 require('../styles/imports/commonImports.less');
 require('./modules/search/global/globalSearch.less');
+require('./modules/confirmationModal/confirmationModal.less');
 
 require('../fonts/spinnaker/icons.css');
 
-require('spin');
 require('select2');
 
 let angular = require('angular');
 
 require('bootstrap/dist/js/bootstrap.js');
-//require('angular-bootstrap');
-//require('angular-wizard');
+
 
 module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),
     require('utils/timeFormatters.js'),
     require('exports?"ui.select"!ui-select'),
-    //require('exports?"ui.select2"!angular-ui-select2/src/select2.js'),
     require('exports?"angulartics"!angulartics'),
     require('angular-animate'),
     require('angular-ui-router'),
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('./filters/filters.module.js'),
-    require('exports?"angularSpinner"!angular-spinner'),
+    require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
 
-    //require('angular-filter'),
+    require('exports?"angular.filter"!angular-filter'),
     require('./providers/states.js'),
     require('./modules/caches/cacheInitializer.js'),
     require('./modules/delivery/states.js'),
-    //require('ng-infinite-scroll'),
+    require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
     require('./directives/directives.module.js'),
 
     require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
     require('./modules/feedback/feedback.module.js'),
-    //
+
     require('utils/stickyHeader/stickyHeader.directive.js'),
-    //
+
     require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
     require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
-    //
+
     require('./modules/aws.module.js'),
     require('./modules/gce.module.js'),
     require('./modules/subnet/subnet.module.js'),
@@ -88,11 +90,11 @@ module.exports = angular.module('spinnaker', [
     require('./modules/delegation/serviceDelegate.service.js'),
     require('./modules/healthCounts/healthCounts.directive.js'),
     require('./settings/settings.js'),
-    //require('./modules/scheduler/scheduler.service.js'),
-    //require('./services/urlbuilder.js'),
+    require('./modules/scheduler/scheduler.service.js'),
+    require('./services/urlbuilder.js'),
     require('./modules/clusterFilter/cluster.filter.module.js'),
-    //require('./directives/modalWizard.js'),
-    //require('./modules/confirmationModal/confirmationModal.service.js'),
+    require('./directives/modalWizard.js'),
+    require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/common/ajaxError.interceptor.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
     require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
@@ -131,6 +133,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/notifications/types/hipchat/hipchat.notification.type.module.js'),
     require('./modules/notifications/types/sms/sms.notification.type.module.js'),
     require('./modules/tasks/tasks.module.js'),
+    require('./modules/tasks/monitor/taskMonitor.module.js'),
     require('./modules/validation/validation.module.js'),
     require('./modules/loadBalancers/loadBalancers.module.js'),
     require('./modules/vpc/vpc.module.js'),
@@ -139,10 +142,10 @@ module.exports = angular.module('spinnaker', [
     require('./directives/gist.directive.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
     require('./directives/help.directive.js'),
-    //require('./modules/networking/networking.module.js'),
+    require('./modules/networking/networking.module.js'),
     require('./modules/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
-    //require('./directives/accountLabelColor.directive.js'),
+    require('./directives/accountLabelColor.directive.js'),
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {
     // This can go away when the next version of ui-router is available (0.2.11+)
@@ -214,6 +217,50 @@ module.exports = angular.module('spinnaker', [
   //})
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
+  })
+  .config(function($tooltipProvider) {
+    $tooltipProvider.options({
+      appendToBody: true
+    });
+    $tooltipProvider.setTriggers({
+      'mouseenter focus': 'mouseleave blur'
+    });
+  })
+  .config(function($modalProvider) {
+    $modalProvider.options.backdrop = 'static';
+    $modalProvider.options.keyboard = false;
+  })
+  .config(function(RestangularProvider, settings) {
+    RestangularProvider.setBaseUrl(settings.gateUrl);
+  })
+  .config(function($httpProvider){
+    $httpProvider.interceptors.push('ajaxErrorInterceptor');
+    $httpProvider.defaults.headers.patch = {
+      'Content-Type': 'application/json;charset=utf-8'
+    };
+  })
+  .config(function($provide) {
+    $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
+      return function (exception, cause) {
+        try {
+          var action = 'msg: ' + exception.message + ' url: ' + window.location;
+          var label = exception.stack;
+
+          $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
+          $delegate(exception, cause);
+        } catch(e) {
+          // eat it to permit a endless exception loop from happening
+        }
+      };
+    });
+  })
+  .config(require('./decorators/uiSelectDecorator.js'))
+  //.config(function ($compileProvider) {
+  //  $compileProvider.debugInfoEnabled(false);
+  //})
+  .config(function(uiSelectConfig) {
+    uiSelectConfig.theme = 'select2';
+    uiSelectConfig.appendToBody = true;
   })
   .config(function($tooltipProvider) {
     $tooltipProvider.options({
