@@ -5,7 +5,7 @@ angular.module('spinnaker.search.service', [
 ])
   .factory('searchService', function($q, $http, $log, settings) {
 
-    var defaultPageSize = 200;
+    var defaultPageSize = 500;
 
     function getFallbackResults() {
       return { results: [] };
