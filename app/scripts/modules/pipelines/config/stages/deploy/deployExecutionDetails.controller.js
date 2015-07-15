@@ -6,7 +6,7 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
   'spinnaker.executionDetails.section.service',
   'spinnaker.executionDetails.section.nav.directive',
   'spinnaker.urlBuilder',
-  'cluster.filter.service'
+  'cluster.filter.service',
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
 
