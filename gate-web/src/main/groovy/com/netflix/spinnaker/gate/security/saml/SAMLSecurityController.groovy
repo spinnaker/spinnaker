@@ -81,7 +81,7 @@ class SAMLSecurityController {
   void signIn(@RequestParam("SAMLResponse") String samlResponse,
               HttpServletRequest request,
               HttpServletResponse response) {
-    def assertion = SAMLUtils.buildAssertion(samlResponse)
+    def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(oneLoginProperties.certificate))
     def user = buildUser(assertion, oneLoginProperties.userAttributeMapping, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
     if (!hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, user)) {
       throw new BadCredentialsException("Credentials are bad")

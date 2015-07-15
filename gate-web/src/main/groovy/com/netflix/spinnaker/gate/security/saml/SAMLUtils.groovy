@@ -20,6 +20,8 @@ import org.opensaml.xml.security.CriteriaSet
 import org.opensaml.xml.security.credential.Credential
 import org.opensaml.xml.security.credential.KeyStoreCredentialResolver
 import org.opensaml.xml.security.criteria.EntityIDCriteria
+import org.opensaml.xml.security.x509.BasicX509Credential
+import org.opensaml.xml.signature.SignatureValidator
 
 import javax.servlet.http.HttpServletResponse
 import javax.xml.namespace.QName
@@ -90,7 +92,7 @@ class SAMLUtils {
     return context
   }
 
-  static Assertion buildAssertion(String samlResponse) {
+  static Assertion buildAssertion(String samlResponse, X509Certificate certificate = null) {
     def base64DecodedResponse = new Base64().decode(samlResponse)
     def documentBuilderFactory = DocumentBuilderFactory.newInstance()
     documentBuilderFactory.setNamespaceAware(true)
@@ -104,6 +106,18 @@ class SAMLUtils {
 
     if (!response.assertions) {
       throw new IllegalStateException("No assertions found in response (samlResponse: ${new String(samlResponse)})")
+    }
+
+    logSAMLObject(response)
+
+    if (certificate) {
+      response.getDOM().getOwnerDocument().getDocumentElement().setIdAttribute("ID", true)
+
+      BasicX509Credential publicCredential = new BasicX509Credential();
+      publicCredential.setEntityCertificate(certificate);
+
+      SignatureValidator sigValidator = new SignatureValidator(publicCredential)
+      sigValidator.validate(response.getSignature())
     }
 
     return response.assertions[0]
