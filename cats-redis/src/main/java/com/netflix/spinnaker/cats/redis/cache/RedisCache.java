@@ -45,7 +45,7 @@ import java.util.Set;
 
 public class RedisCache implements WriteableCache {
 
-    private static final int DEFAULT_SCAN_SIZE = 10000;
+    private static final int DEFAULT_SCAN_SIZE = 50000;
 
     private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {
     };
