@@ -45,6 +45,9 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
   def task1 = Mock(Task)
   def task2 = Mock(Task)
   def task3 = Mock(Task)
+  def detailsTask = Mock(Task){
+    execute(_) >> { new DefaultTaskResult(ExecutionStatus.SUCCEEDED) }
+  }
 
   void "should properly order stages and steps"() {
     setup:
@@ -55,7 +58,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     then:
     1 * task1.execute(_) >> { Stage stage ->
-      assert ctx1 == stage.context
+      assert ctx1.every{ stage.context[it.key] == it.value }
       pos << 1
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
@@ -64,7 +67,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task3.execute(_) >> { Stage stage ->
-      assert ctx2 == stage.context
+      assert ctx2.every{ stage.context[it.key] == it.value }
       pos << 3
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
@@ -168,6 +171,10 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     public List<Step> buildSteps(Stage stage) {
       return [buildStep(stage, "step", task)]
     }
+
+    protected Step buildStep(Stage stage, String taskName, Class task) {
+      buildStep(stage, taskName, detailsTask)
+    }
   }
 
   private Step buildStep(String stepName) {
@@ -204,6 +211,10 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       injectBefore(stage, "before", stageBuilder1, ctx1)
       injectAfter(stage, "after", stageBuilder2, ctx2)
       [buildStep(stage, "myTask", task2)]
+    }
+
+    protected Step buildStep(Stage stage, String taskName, Class task) {
+      buildStep(stage, taskName, detailsTask)
     }
   }
 }

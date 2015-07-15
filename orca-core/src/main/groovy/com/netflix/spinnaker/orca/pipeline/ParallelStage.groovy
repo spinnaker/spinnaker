@@ -63,9 +63,13 @@ abstract class ParallelStage extends StageBuilder {
       .split(new SimpleAsyncTaskExecutor())
       .add(flows as Flow[])
 
+    jobBuilder = jobBuilder.next(buildStep(stage, "stageStart", StageDetailsTask))
+
     jobBuilder = jobBuilder
       .next(parallelFlowBuilder.build())
       .next(buildStep(stage, "completeParallel", completeParallel()))
+
+    jobBuilder = jobBuilder.next(buildStep(stage, "stageEnd", StageDetailsTask))
 
     return jobBuilder
   }
@@ -100,7 +104,7 @@ abstract class ParallelStage extends StageBuilder {
   }
 
   private List<Step> buildSteps(Stage stage) {
-    stepProviders.find {it.type == stage.context.type}.buildSteps(stage)
+    stepProviders.find { it.type == stage.context.type }.buildSteps(stage)
   }
 
   abstract String parallelStageName(Stage stage, boolean hasParallelFlows)

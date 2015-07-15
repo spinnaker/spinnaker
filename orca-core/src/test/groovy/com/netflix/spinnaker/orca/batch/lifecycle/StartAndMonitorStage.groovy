@@ -25,7 +25,7 @@ import org.springframework.batch.core.Step
 @CompileStatic
 class StartAndMonitorStage extends LinearStage {
 
-  Task startTask, monitorTask
+  Task startTask, monitorTask, detailsTask
 
   StartAndMonitorStage() {
     super("startAndMonitor")
@@ -36,5 +36,9 @@ class StartAndMonitorStage extends LinearStage {
     def step1 = buildStep(stage, "start", startTask)
     def step2 = buildStep(stage, "monitor", monitorTask)
     [step1, step2]
+  }
+
+  protected Step buildStep(Stage stage, String taskName, Class task) {
+    buildStep(stage, taskName, detailsTask)
   }
 }

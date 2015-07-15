@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
+
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -28,12 +30,12 @@ import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 
-
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
-
 class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
   def startTask = Mock(Task)
   def endTask = Mock(Task)
+  def detailsTask = Mock(Task) {
+    execute(_) >> { new DefaultTaskResult(ExecutionStatus.SUCCEEDED ) }
+  }
 
   void "should cancel a pipeline and not invoke subsequent tasks"() {
     given:
@@ -85,6 +87,10 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
       def step1 = buildStep(stage, "startTask", startTask)
       def step2 = buildStep(stage, "endTask", endTask)
       [step1, step2]
+    }
+
+    protected Step buildStep(Stage stage, String taskName, Class task) {
+      buildStep(stage, taskName, detailsTask)
     }
   }
 }

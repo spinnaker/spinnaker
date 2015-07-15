@@ -31,6 +31,9 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
 
   def startTask = Stub(Task)
   def monitorTask = Mock(Task)
+  def detailsTask = Mock(Task){
+    execute(_) >> new DefaultTaskResult(SUCCEEDED)
+  }
 
   def "can start an external service and monitor until completed"() {
     given:
@@ -89,6 +92,7 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
     new StartAndMonitorStage(
         steps: steps,
         startTask: startTask,
+        detailsTask: detailsTask,
         monitorTask: monitorTask,
         taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
     ).build(builder, pipeline.namedStage("startAndMonitor"))
