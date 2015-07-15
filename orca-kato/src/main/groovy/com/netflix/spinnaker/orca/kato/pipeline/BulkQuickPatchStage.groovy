@@ -47,8 +47,7 @@ class BulkQuickPatchStage extends LinearStage {
     def step2 = buildStep(stage, "triggerQuip", TriggerQuipTask)
     def step3 = buildStep(stage, "monitorQuip", MonitorQuipTask)
     def step4 = buildStep(stage, "instanceHealthCheck", InstanceHealthCheckTask)
-    def step5 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-    def step6 = buildStep(stage, "waitForDiscoveryState", WaitForUpInstanceHealthTask)
-    [step1, step2, step3, step4, step5, step6]
+    def step5 = buildStep(stage, "waitForDiscoveryState", WaitForUpInstanceHealthTask)
+    [step1, step2, step3, step4, step5]
   }
 }
