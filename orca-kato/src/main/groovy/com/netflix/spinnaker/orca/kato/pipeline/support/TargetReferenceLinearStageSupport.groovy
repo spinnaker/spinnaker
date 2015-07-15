@@ -38,16 +38,24 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
 
   void composeTargets(Stage stage) {
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      // We only want to determine the target ASG once per stage, so only inject if this is the root stage, i.e.
-      // the one the user configured
-      // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
-      // as part of some other stage that is not itself injecting a determineTargetReferences stage
-      if (!stage.parentStageId) {
-        injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, stage.context)
-      }
-      return
+      composeDynamicTargets(stage)
+    } else {
+      composeStaticTargets(stage)
     }
+  }
 
+  private void composeStaticTargets(Stage stage) {
+    def descriptionList = buildStaticTargetDescriptions(stage)
+    def first = descriptionList.remove(0)
+    stage.context.putAll(first)
+    if (descriptionList.size()) {
+      for (description in descriptionList) {
+        injectAfter(stage, this.type, this, description)
+      }
+    }
+  }
+
+  private List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage) {
     def targets = targetReferenceSupport.getTargetAsgReferences(stage)
 
     Map<String, Map<String, Object>> descriptions = [:]
@@ -56,26 +64,35 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
       def asg = target.asg
 
       def description = new HashMap(stage.context)
-      // for dynamically configured stages, the ASG will not be present until
-      // the determineTargetReferences stage completes
-      if (asg) {
-        if (descriptions.containsKey(asg.name)) {
-          ((List<String>)descriptions.get(asg.name).regions) << region
-        } else {
-          description.asgName = asg.name
-          description.regions = [region]
-          descriptions[asg.name as String] = description
-        }
+      if (descriptions.containsKey(asg.name)) {
+        ((List<String>) descriptions.get(asg.name).regions) << region
+      } else {
+        description.asgName = asg.name
+        description.regions = [region]
+        descriptions[asg.name as String] = description
       }
     }
+    descriptions.values().toList()
+  }
 
-    def descriptionList = descriptions.values().toList()
-    def first = descriptionList.remove(0)
-    stage.context.putAll(first)
+  private void composeDynamicTargets(Stage stage) {
+    // We only want to determine the target ASGs once per stage, so only inject if this is the root stage, i.e.
+    // the one the user configured
+    // This may become a bad assumption, or a limiting one, in that we cannot inject a dynamic stage ourselves
+    // as part of some other stage that is not itself injecting a determineTargetReferences stage
+    if (!stage.parentStageId) {
+      def configuredRegions = stage.context.regions
+      Map injectedContext = new HashMap(stage.context)
+      injectedContext.regions = new ArrayList(configuredRegions)
+      injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, injectedContext)
 
-    if (descriptionList.size()) {
-      for (description in descriptionList) {
-        injectAfter(stage, this.type, this, description)
+      if (configuredRegions.size() > 1) {
+        stage.context.regions = [configuredRegions.remove(0)]
+        for (region in configuredRegions) {
+          def description = new HashMap(stage.context)
+          description.regions = [region]
+          injectAfter(stage, this.type, this, description)
+        }
       }
     }
   }

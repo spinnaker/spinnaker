@@ -85,14 +85,18 @@ class ResizeAsgStage extends LinearStage {
 
     targetReferences.each { targetReference ->
       def context = [
-        asgName    : targetReference.asg?.name,
-        credentials: stage.context.credentials,
-        regions    : [targetReference.region]
+          credentials : stage.context.credentials,
+          regions     : [targetReference.region]
       ]
 
       if (targetReferenceSupport.isDynamicallyBound(stage)) {
+        def resizeContext = new HashMap(stage.context)
+        resizeContext.regions = [targetReference.region]
         context.remove("asgName")
         context.target = stage.context.target
+        injectAfter(stage, "resizeAsg", this, resizeContext)
+      } else {
+        context.asgName = targetReference.asg.name
       }
 
       injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, context + [
@@ -109,7 +113,6 @@ class ResizeAsgStage extends LinearStage {
   public List<Map<String, Object>> createResizeStageDescriptors(Stage stage, List<TargetReference> targetReferences) {
     def optionalConfig = stage.mapTo(OptionalConfiguration)
     Map<String, Map<String, Object>> descriptions = [:]
-    Map<String, Object> dynamicDescription = null
 
     for (TargetReference target : targetReferences) {
       def region = target.region
@@ -118,7 +121,6 @@ class ResizeAsgStage extends LinearStage {
       def description = new HashMap(stage.context)
 
       if (!asg && targetReferenceSupport.isDynamicallyBound(stage)) {
-        dynamicDescription = new HashMap(stage.context)
         continue
       }
 
@@ -162,15 +164,13 @@ class ResizeAsgStage extends LinearStage {
 
       if (newMin && newDesired && newMax) {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
+      } else {
+        description.capacity = stage.context.capacity
       }
 
       descriptions[asg.name as String] = description
     }
-    if (dynamicDescription) {
-      [dynamicDescription]
-    } else {
-      descriptions.values().flatten()
-    }
+    descriptions.values().flatten()
   }
 
   static enum ResizeAction {
