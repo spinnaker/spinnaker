@@ -62,7 +62,7 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.oortService = oort
     quickPatchStage.bulkQuickPatchStage = bulkQuickPatchStage
     quickPatchStage.INSTANCE_VERSION_SLEEP = 1
-
+    quickPatchStage.oortHelper = oortHelper
   }
 
   def "quick patch can't run due to too many asgs"() {
@@ -84,7 +84,6 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * OortHelper.getOortHelper() >> oortHelper
     1 * oortHelper.getInstancesForCluster(config, null, true, true) >> { throw new RuntimeException("too many asgs!") }
 
     and:
@@ -105,7 +104,6 @@ class QuickPatchStageSpec extends Specification {
     ]
 
     and:
-    1 * OortHelper.getOortHelper() >> oortHelper
     1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     def stage = new PipelineStage(null, "quickPatch", config)
@@ -153,7 +151,6 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * OortHelper.getOortHelper() >> oortHelper
     1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     and:
@@ -237,7 +234,6 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * OortHelper.getOortHelper() >> oortHelper
     1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     and:
@@ -292,7 +288,6 @@ class QuickPatchStageSpec extends Specification {
     quickPatchStage.buildSteps(stage)
 
     then:
-    1 * OortHelper.getOortHelper() >> oortHelper
     1 * oortHelper.getInstancesForCluster(config, null, true, true) >> expectedInstances
 
     where:
