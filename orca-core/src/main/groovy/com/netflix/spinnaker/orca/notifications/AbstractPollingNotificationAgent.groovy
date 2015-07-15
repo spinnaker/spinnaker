@@ -76,7 +76,7 @@ abstract class AbstractPollingNotificationAgent implements ApplicationListener<E
       .retry()
       .filter(filter())
       .map { Execution execution -> objectMapper.convertValue(execution, Map) }
-      .flatMap(Observable.&from)
+      .flatMap(Observable.&from as Func1<Map, Observable<Map>>)
       .repeat()
       .subscribe { Map event -> notify(event) }
   }

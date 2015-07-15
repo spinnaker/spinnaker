@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.model
 
+import com.netflix.appinfo.InstanceInfo
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -105,6 +106,11 @@ class Pipeline extends Execution<Pipeline> {
 
     Builder withLimitConcurrent(boolean concurrent) {
       pipeline.limitConcurrent = concurrent
+      return this
+    }
+
+    Builder withExecutingInstance(InstanceInfo instance) {
+      pipeline.executingInstance = instance.id
       return this
     }
   }

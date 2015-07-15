@@ -25,6 +25,7 @@ dependencies {
   compile spinnaker.dependency('spectatorApi')
   runtime spinnaker.dependency('objenesis')
   runtime spinnaker.dependency('cglib')
+  compile spinnaker.dependency('eurekaClient')
   compile ("net.lariverosc:jesque-spring:1.0.1")
   compile ("net.greghaines:jesque:1.3.1")
 }
