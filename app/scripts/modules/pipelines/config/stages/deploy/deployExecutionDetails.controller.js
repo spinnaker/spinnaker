@@ -10,7 +10,7 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
 
-    $scope.configSections = ['deploymentConfig', 'taskStatus', 'codeChanges'];
+    $scope.configSections = ['deploymentConfig', 'taskStatus', 'codeChanges', 'JARChanges'];
 
     function initialize() {
 
