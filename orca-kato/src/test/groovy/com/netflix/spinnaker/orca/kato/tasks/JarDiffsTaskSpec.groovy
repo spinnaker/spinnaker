@@ -17,29 +17,36 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.oort.InstanceService
+import com.netflix.spinnaker.orca.oort.util.OortHelper
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Shared
-import spock.lang.Unroll
 
 class JarDiffsTaskSpec extends Specification {
   @Subject task = Spy(JarDiffsTask)
 
+  def oortHelper = Mock(OortHelper)
+
   InstanceService instanceService = Mock(InstanceService)
 
   def setup() {
+    GroovyMock(OortHelper, global: true)
     task.objectMapper = new ObjectMapper()
   }
 
-  Map deployContext = ["kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-east-1" : "myapp-v000"]],[serverGroupNameByRegion : ["us-east-1" : "myapp-v002"]]]]]]
+  Map deployContext = ["availabilityZones" : ["us-west-2": ["us-west-2a"]],"kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
 
   void "getTargetAsg with deploy context"() {
     when:
-      def result = task.getTargetAsg(deployContext, "us-east-1")
+      def result = task.getTargetAsg(deployContext, "us-west-2")
 
     then:
       result == "myapp-v002"
@@ -47,34 +54,16 @@ class JarDiffsTaskSpec extends Specification {
 
   void "getSourceAsg with deploy context"() {
     when:
-    def result = task.getSourceAsg(deployContext, "us-east-1")
+    def result = task.getSourceAsg(deployContext, "us-west-2")
 
     then:
     result == "myapp-v000"
   }
 
-  void "diffJars"() {
-    given:
-    def source = [jars: [[name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/base-explorer-2.1423.0.jar", implementationVersion: "2.1386.3.7", implementationTitle: "netflix#base-explorer;2.1386.3.7"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/account-common-55.87.jar", implementationVersion: "55.87", implementationTitle: "netflix#account-common;55.87"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/astyanax-3.6.0.jar", implementationVersion: "3.6.0", implementationTitle: "com.netflix.astyanax#astyanax;3.6.0"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/cassandra-thrift-2.0.12.jar", implementationVersion: "2.0.12", implementationTitle: "Cassandra"]
-    ]
-    ]
-    def target = [jars: [[name: "/apps/apache-tomcat-7.0.59/lib/tomcat-util.jar", implementationVersion: "7.0.59", implementationTitle: "Apache Tomcat"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/account-common-55.87.jar", implementationVersion: "55.87", implementationTitle: "netflix#account-common;55.87"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/astyanax-3.6.0.jar", implementationVersion: "3.6.0", implementationTitle: "com.netflix.astyanax#astyanax;3.6.0"],
-                         [name: "/apps/tomcat/webapps/ROOT/WEB-INF/lib/cassandra-thrift-2.0.11.jar", implementationVersion: "2.0.11", implementationTitle: "Cassandra"]
-    ]
-    ]
+  void "getTargetAsg with canary context"() {
+  }
 
-    when:
-    def result = task.diffJars(source, target)
-    println result.dump()
-
-    then:
-    result.source.name == ["/apps/tomcat/webapps/ROOT/WEB-INF/lib/base-explorer-2.1423.0.jar", "/apps/tomcat/webapps/ROOT/WEB-INF/lib/cassandra-thrift-2.0.12.jar"]
-    result.target.name == ["/apps/apache-tomcat-7.0.59/lib/tomcat-util.jar", "/apps/tomcat/webapps/ROOT/WEB-INF/lib/cassandra-thrift-2.0.11.jar"]
+  void "getSourceAsg with canary context"() {
   }
 
   void "getJarList single server"() {
@@ -87,10 +76,14 @@ class JarDiffsTaskSpec extends Specification {
     when:
     1 * instanceService.getJars() >> jarsResponse
     def result = task.getJarList([foo: [hostName : "bar"]])
-    println result.dump()
 
     then:
-    result.jars.size() == 3
+    result.size() == 3
+
+    Library lib1 = new Library("/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar", "IngrianLog4j", "-", "-", "-")
+    Library lib2 = new Library("/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar", "IngrianNAE", "5.4.0", "Ingrian Provider 5.4.0.000006", "-")
+    Library lib3 = new Library("/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar", "tomcat-juli", "7.0.59", "Apache Tomcat", "-")
+    result == [ lib1, lib2, lib3 ]
   }
 
   void "getJarList first server fails, second succeeds"() {
@@ -105,9 +98,89 @@ class JarDiffsTaskSpec extends Specification {
     1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
     1 * instanceService.getJars() >> jarsResponse
     def result = task.getJarList([foo: [hostName : "bar"], foo2: [hostName : "bar2"]])
-    println result.dump()
 
     then:
-    result.jars.size() == 3
+    result.size() == 3
+
+    Library lib1 = new Library("/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar", "IngrianLog4j", "-", "-", "-")
+    Library lib2 = new Library("/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar", "IngrianNAE", "5.4.0", "Ingrian Provider 5.4.0.000006", "-")
+    Library lib3 = new Library("/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar", "tomcat-juli", "7.0.59", "Apache Tomcat", "-")
+    result == [ lib1, lib2, lib3 ]
+  }
+
+  def "successfully run"() {
+    given:
+    2 * task.createInstanceService(_) >> instanceService
+    def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
+    def targetJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.5.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
+    Response sourceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
+    Response targetResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(targetJarsResponse))
+
+    def config = [
+      "account": "test",
+      "region" : "us-west-2",
+      "application": "app"
+    ]
+
+    def pipe = new Pipeline.Builder()
+      .withApplication("app")
+      .build()
+    def stage = new PipelineStage(pipe, 'jarDiff', config)
+
+    stage.context << deployContext
+
+    when:
+    task.oortHelper = oortHelper
+    1 * oortHelper.getInstancesForCluster(config, "myapp-v000", false, false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(config, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * instanceService.getJars() >> sourceResponse
+    1 * instanceService.getJars() >> targetResponse
+
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.stageOutputs.jarDiffs.downgraded.size() == 1
+
+    where:
+    sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+    targetExpectedInstances = ["i-2345" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+  }
+
+  def "succeeds when there is an exception"() {
+    given:
+    2 * task.createInstanceService(_) >> instanceService
+    def sourceJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.4.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
+    def targetJarsResponse = "{\"jars\":[{\"id\":0,\"name\":\"/apps/jre/lib/1.6.0/ext/IngrianLog4j.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"-\",\"implementationTitle\":\"-\",\"specificationVersion\":\"-\"},{\"id\":1,\"name\":\"/usr/lib/jvm/java-7-oracle-1.7.0.80/jre/lib/ext/IngrianNAE-5.5.0.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"5.4.0\",\"implementationTitle\":\"Ingrian Provider 5.4.0.000006\",\"specificationVersion\":\"-\"},{\"id\":2,\"name\":\"/apps/apache-tomcat-7.0.59/bin/tomcat-juli.jar\",\"libraryOwner\":\"-\",\"buildDate\":\"-\",\"status\":\"-\",\"implementationVersion\":\"7.0.59\",\"implementationTitle\":\"Apache Tomcat\",\"specificationVersion\":\"7.0\"}]}"
+    Response sourceResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(sourceJarsResponse))
+    Response targetResponse = new Response('http://foo.com', 200, 'OK', [], new TypedString(targetJarsResponse))
+
+    def config = [
+      "account": "test",
+      "region" : "us-west-2",
+      "application": "app"
+    ]
+
+    def pipe = new Pipeline.Builder()
+      .withApplication("app")
+      .build()
+    def stage = new PipelineStage(pipe, 'jarDiff', config)
+
+    stage.context << deployContext
+
+    when:
+    task.oortHelper = oortHelper
+    1 * oortHelper.getInstancesForCluster(config, "myapp-v000", false, false) >> sourceExpectedInstances
+    1 * oortHelper.getInstancesForCluster(config, "myapp-v002", false, false) >> targetExpectedInstances
+    1 * instanceService.getJars() >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    1 * instanceService.getJars() >> targetResponse
+
+    TaskResult result = task.execute(stage)
+
+    then:
+    result.stageOutputs == [jarDiffs:[downgraded:[], duplicates:[], removed:[], upgraded:[], added:[], unknown:[]]]
+
+    where:
+    sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+    targetExpectedInstances = ["i-2345" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
   }
 }

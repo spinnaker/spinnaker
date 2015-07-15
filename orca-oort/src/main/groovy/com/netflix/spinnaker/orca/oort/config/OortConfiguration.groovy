@@ -39,7 +39,8 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Import([RetrofitConfiguration])
 @ComponentScan([
   "com.netflix.spinnaker.orca.oort.pipeline",
-  "com.netflix.spinnaker.orca.oort.tasks"
+  "com.netflix.spinnaker.orca.oort.tasks",
+  "com.netflix.spinnaker.orca.oort.util"
 ])
 @CompileStatic
 class OortConfiguration {
