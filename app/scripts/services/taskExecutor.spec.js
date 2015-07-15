@@ -1,5 +1,6 @@
 'use strict';
 
+
 describe('Service: taskExecutor', function () {
 
   //NOTE: This is only testing the service dependencies. Please add more tests.
@@ -7,11 +8,11 @@ describe('Service: taskExecutor', function () {
   var taskExecutor;
 
   beforeEach(
-    module('spinnaker.taskExecutor.service')
+    window.module(require('./taskExecutor.js'))
   );
 
   beforeEach(
-    inject(function (_taskExecutor_) {
+    window.inject(function (_taskExecutor_) {
       taskExecutor = _taskExecutor_;
     })
   );

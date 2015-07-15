@@ -2,9 +2,13 @@
 
 describe('DeployExecutionDetailsCtrl', function() {
 
-  beforeEach(module('spinnaker.pipelines.stage.deploy.details.controller'));
+  beforeEach(
+    window.module(
+      require('./deployExecutionDetails.controller')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope, _, $timeout) {
+  beforeEach(window.inject(function ($controller, $rootScope, _, $timeout) {
     this.$controller = $controller;
     this._ = _;
     this.$timeout = $timeout;

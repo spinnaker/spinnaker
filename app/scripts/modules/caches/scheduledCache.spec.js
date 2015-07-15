@@ -1,11 +1,15 @@
 'use strict';
 
+
 describe('scheduledCache', function() {
+
+  const angular = require('angular');
+
   beforeEach(function() {
-    module('spinnaker.caches.scheduled');
+    window.module('spinnaker.caches.scheduled');
   });
 
-  beforeEach(inject(function(scheduledCache, $http, $cacheFactory, scheduler) {
+  beforeEach(window.inject(function(scheduledCache, $http, $cacheFactory, scheduler) {
     this.scheduledCache = scheduledCache;
     this.$http = $http;
     this.$cacheFactory = $cacheFactory;

@@ -2,9 +2,9 @@
 
 describe('isEmpty', function() {
 
-  beforeEach(module('spinnaker.utils.isEmpty'));
+  beforeEach(window.module('spinnaker.utils.isEmpty'));
 
-  beforeEach(inject(function(_isEmpty_) {
+  beforeEach(window.inject(function(_isEmpty_) {
     this.isEmpty = _isEmpty_;
   }));
 

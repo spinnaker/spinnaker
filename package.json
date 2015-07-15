@@ -22,7 +22,7 @@
     "bootstrap": "3.2.0",
     "d3-tip": "^0.6.7",
     "ng-infinite-scroll": "^1.2.0",
-    "restangular": "^1.5.1",
+    "restangular": "~1.4.0",
     "select2-bootstrap-css": "ssh://github.com/t0m/select2-bootstrap-css#v1.3.1",
     "source-sans-pro": "^2.0.10",
     "spin": "0.0.1",
@@ -35,7 +35,8 @@
   },
   "scripts": {
     "build": "node ./node_modules/webpack/bin/webpack.js",
-    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js"
+    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
+    "test": "./node_modules/karma/bin/karma start"
   },
   "devDependencies": {
     "angular-mocks": "^1.4.1",
@@ -56,6 +57,7 @@
     "karma-chrome-launcher": "^0.2.0",
     "karma-jasmine": "^0.3.6",
     "karma-phantomjs-launcher": "^0.2.0",
+    "karma-sourcemap-loader": "^0.3.5",
     "karma-webpack": "^1.5.1",
     "less": "^2.5.1",
     "less-loader": "^2.2.0",

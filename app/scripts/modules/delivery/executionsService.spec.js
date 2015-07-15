@@ -7,11 +7,13 @@ describe('Service: executionsService', function () {
   var executionsService;
 
   beforeEach(
-    module('spinnaker.delivery.executions.service')
+    window.module(
+      require('./executionsService')
+    )
   );
 
   beforeEach(
-    inject(function (_executionsService_) {
+    window.inject(function (_executionsService_) {
       executionsService = _executionsService_;
     })
   );

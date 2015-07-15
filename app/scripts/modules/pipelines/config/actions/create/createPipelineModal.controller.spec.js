@@ -1,10 +1,15 @@
 'use strict';
 
 describe('Controller: createPipelineModal', function() {
+  const angular = require('angular');
 
-  beforeEach(module('spinnaker.pipelines.config.actions.create'));
+  beforeEach(
+    window.module(
+      require('./createPipelineModal.controller')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
+  beforeEach(window.inject(function($controller, $rootScope, _, $log, $q, pipelineConfigService) {
     this.$q = $q;
     this.initializeController = function(application, reinitialize) {
       this.$scope = $rootScope.$new();
@@ -25,7 +30,7 @@ describe('Controller: createPipelineModal', function() {
 
   describe('template instantiation', function() {
 
-    it('provides a default value when no templates exist',function() {
+    it('provides a default value when no templates exist', function() {
       this.initializeController({name: 'the-app'});
       var template = this.$scope.templates[0];
       expect(this.$scope.templates.length).toBe(1);

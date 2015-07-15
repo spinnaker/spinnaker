@@ -4,14 +4,14 @@ describe('Filter: timeFormatters', function() {
   var $filter;
 
   beforeEach(
-    module('spinnaker.utils.timeFormatters')
+    window.module('spinnaker.utils.timeFormatters')
   );
 
   describe('timePickerTime', function() {
 
     var filter;
     beforeEach(
-      inject(
+      window.inject(
         function($filter) {
           filter = $filter('timePickerTime');
         }

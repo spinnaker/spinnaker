@@ -1,10 +1,13 @@
 'use strict';
 
+
 describe('Controller: Application', function () {
 
-  beforeEach(module('spinnaker.application.controller'));
+  const angular = require('angular');
 
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(window.module('spinnaker.application.controller'));
+
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
 
     this.application = {

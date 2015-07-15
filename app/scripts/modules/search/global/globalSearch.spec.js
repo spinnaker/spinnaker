@@ -1,13 +1,18 @@
 'use strict';
 
 describe('Controller: GlobalSearch', function () {
+  const angular = require('angular');
 
   // load the controller's module
-  beforeEach(module('spinnaker.search.global'));
+  beforeEach(
+    window.module(
+      require('./globalSearch.module')
+    )
+  );
 
   describe('keyboard navigation', function() {
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $window, $q, _, ClusterFilterModel, clusterFilterService) {
+    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, _, ClusterFilterModel, clusterFilterService) {
       var inputSpy = jasmine.createSpyObj('input', ['focus']),
           infrastructureSearchService = jasmine.createSpy('infrastructureSearchService');
       this.$scope = $rootScope.$new();
@@ -19,7 +24,9 @@ describe('Controller: GlobalSearch', function () {
       this.$element = { find: function() { return inputSpy; } };
 
       spyOn(_, 'debounce').and.callFake(function(method) { return method; });
-      spyOn(infrastructureSearchService, 'query').and.callFake(function() { return $q.when([])});
+      spyOn(infrastructureSearchService, 'query').and.callFake(function() {
+        return $q.when([]);
+      });
 
       this.ctrl = $controller('GlobalSearchCtrl', {
         $scope: this.$scope,

@@ -2,11 +2,16 @@
 
 describe('Directives: whatsNew', function () {
 
-  beforeEach(module('spinnaker.whatsNew.directive'));
-  beforeEach(module('spinnaker.templates'));
-  beforeEach(module('spinnaker.utils.timeFormatters'));
+  require('./whatsNew.directive.html');
 
-  beforeEach(inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $modal) {
+  beforeEach(
+    window.module(
+      require('./whatsNew.directive'),
+      require('exports?"ui.bootstrap"!angular-bootstrap')
+    )
+  );
+
+  beforeEach(window.inject(function ($rootScope, $compile, whatsNewReader, viewStateCache, $q, $filter, $modal) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.whatsNewReader = whatsNewReader;
@@ -19,8 +24,9 @@ describe('Directives: whatsNew', function () {
   describe('with content', function() {
 
     beforeEach(function() {
-      var lastUpdated = new Date().toString(),
-        expectedDate = this.$filter('timestamp')(lastUpdated);
+      var lastUpdated = new Date().toString();
+      var expectedDate = this.$filter('timestamp')(lastUpdated);
+
       spyOn(this.whatsNewReader, 'getWhatsNewContents').and.returnValue(this.$q.when({
         contents: 'stuff',
         lastUpdated: lastUpdated,

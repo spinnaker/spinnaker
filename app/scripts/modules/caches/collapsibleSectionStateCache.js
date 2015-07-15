@@ -9,11 +9,16 @@ module.exports = angular.module('spinnaker.caches.collapsibleSectionState', [
   .factory('collapsibleSectionStateCache', function(CacheFactory) {
 
     var cacheId = 'collapsibleSectionStateCache';
-    CacheFactory.createCache(cacheId, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      deleteOnExpire: 'aggressive',
-      storageMode: 'localStorage',
-    });
+
+    try {
+      CacheFactory.createCache(cacheId, {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        deleteOnExpire: 'aggressive',
+        storageMode: 'localStorage',
+      });
+    } catch (e) {
+      // trying to create a cache multiple times throws and Error
+    }
 
     var stateCache = CacheFactory.get(cacheId);
 

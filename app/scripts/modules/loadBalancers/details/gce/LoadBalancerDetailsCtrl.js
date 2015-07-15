@@ -12,8 +12,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('utils/lodash.js'),
   require('../../../confirmationModal/confirmationModal.service.js')
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
+
+    let application = app;
 
     $scope.state = {
       loading: true

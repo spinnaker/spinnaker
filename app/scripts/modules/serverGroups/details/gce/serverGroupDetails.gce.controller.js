@@ -13,9 +13,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../configure/common/runningExecutions.service.js'),
   require('utils/lodash.js'),
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, application, serverGroup,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
                                                      executionFilterService) {
+
+    let application = app;
 
     $scope.state = {
       loading: true

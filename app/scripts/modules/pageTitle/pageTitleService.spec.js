@@ -2,9 +2,13 @@
 
 describe('Service: pageTitleService', function() {
 
-  beforeEach(module('spinnaker.pageTitle'));
+  beforeEach(
+    window.module(
+      require('./pageTitleService')
+    )
+  );
 
-  beforeEach(inject(function (pageTitleService, $stateParams, $rootScope) {
+  beforeEach(window.inject(function (pageTitleService, $stateParams, $rootScope) {
     this.pageTitleService = pageTitleService;
     this.$stateParams = $stateParams;
     this.$rootScope = $rootScope;
@@ -172,7 +176,7 @@ describe('Service: pageTitleService', function() {
         }
       });
       expect(this.$rootScope.pageTitle).toBe('Spinnaker · The Section · The Details');
-    })
+    });
   });
 
 });

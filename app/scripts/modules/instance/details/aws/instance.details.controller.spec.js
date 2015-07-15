@@ -1,5 +1,6 @@
 'use strict';
 
+
 describe('Controller: awsInstanceDetailsCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
@@ -10,11 +11,13 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
   var $q;
 
   beforeEach(
-    module('spinnaker.instance.detail.aws.controller')
+    window.module(
+      require('./instance.details.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller, _instanceReader_, _$q_) {
+    window.inject(function ($rootScope, $controller, _instanceReader_, _$q_) {
       scope = $rootScope.$new();
       instanceReader = _instanceReader_;
       $q = _$q_;
@@ -22,7 +25,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
       controller = $controller('awsInstanceDetailsCtrl', {
         $scope: scope,
         instance: {},
-        application: {
+        app: {
           registerAutoRefreshHandler: angular.noop
         }
       });
@@ -32,7 +35,7 @@ describe('Controller: awsInstanceDetailsCtrl', function () {
         controller = $controller('awsInstanceDetailsCtrl', {
           $scope: scope,
           instance: instance,
-          application: application,
+          app: application,
         });
       };
     })

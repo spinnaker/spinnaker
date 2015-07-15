@@ -2,9 +2,13 @@
 
 describe('Controller: ServerGroupCapacitySelector', function () {
 
-  beforeEach(module('spinnaker.serverGroup.configure.aws'));
+  beforeEach(
+    window.module(
+      require('./serverGroupCapacitySelector.directive.js')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
 
     this.scope.command = {

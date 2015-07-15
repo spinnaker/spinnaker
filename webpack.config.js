@@ -18,9 +18,9 @@ module.exports = {
   },
   module: {
 
-    noParse: [
-      /\.spec\.js$/,
-    ],
+    //noParse: [
+    //  /\.spec\.js$/,
+    //],
     loaders: [
       {
         test: /jquery\.js$/,
@@ -39,10 +39,6 @@ module.exports = {
         test: /\.less$/,
         loader: 'style!css!less',
       },
-      //{
-      //  test: /\.woff(2)?(.*)?$/,
-      //  loader: 'url?limit=1000000&minetype=application/font-woff',
-      //},
       {
         test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
         loader: 'file',
@@ -65,9 +61,9 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    new IgnorePlugin(
-      /\.spec/
-    ),
+    //new IgnorePlugin(
+    //  /\.spec/
+    //),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: './app/index.html',

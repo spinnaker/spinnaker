@@ -7,9 +7,14 @@ describe('Model: ClusterFilterModel', function () {
   var $location;
   var searchParams;
 
-  beforeEach(module('cluster.filter.model'));
   beforeEach(
-    inject(
+    window.module(
+      require('./clusterFilterModel.js')
+    )
+  );
+
+  beforeEach(
+    window.inject(
       function (_ClusterFilterModel_, _$location_) {
         ClusterFilterModel = _ClusterFilterModel_;
         $location = _$location_;
@@ -49,7 +54,7 @@ describe('Model: ClusterFilterModel', function () {
     describe('multiple accounts in the query string', function () {
       it('should set the prod account to the model', function () {
         searchParams.acct = 'prod,test';
-        ClusterFilterModel.activate()
+        ClusterFilterModel.activate();
         expect(ClusterFilterModel.sortFilter.account).toEqual({'prod' : true, test: true});
       });
     });
@@ -67,7 +72,7 @@ describe('Model: ClusterFilterModel', function () {
       it('should set the us-west-1 region on the model', function () {
         searchParams.reg = 'us-west-1';
         ClusterFilterModel.activate();
-        expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true})
+        expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true});
       });
     });
 
@@ -75,7 +80,7 @@ describe('Model: ClusterFilterModel', function () {
       it('should set the all the regions region on the model', function () {
         searchParams.reg = 'us-west-1,eu-west-1,us-east-2';
         ClusterFilterModel.activate();
-        expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true, 'eu-west-1': true, 'us-east-2': true})
+        expect(ClusterFilterModel.sortFilter.region).toEqual({'us-west-1' : true, 'eu-west-1': true, 'us-east-2': true});
       });
     });
   });
@@ -208,7 +213,7 @@ describe('Model: ClusterFilterModel', function () {
     });
 
     it('should NOT show all the instances if the param IS on the query string', function () {
-      searchParams.hideInstances  = true
+      searchParams.hideInstances  = true;
       ClusterFilterModel.activate();
       expect(ClusterFilterModel.sortFilter.showAllInstances).toBe(false);
     });

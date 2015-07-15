@@ -9,11 +9,13 @@ describe('Controller: executionBar', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.delivery.executionBar.controller')
+    window.module(
+      require('./executionBar.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('executionBar', {
         $scope: scope

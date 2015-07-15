@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches.scheduled', ['spinnaker.scheduler'])
+module.exports = angular.module('spinnaker.caches.scheduled', [
+  require('../../modules/scheduler/scheduler.service'),
+])
   .factory('scheduledCache', function($cacheFactory, $http, scheduler) {
     // returns a cache that is cleared according to the scheduler
     var that = {};

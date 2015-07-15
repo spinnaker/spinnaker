@@ -2,14 +2,13 @@
 
 describe('authenticationService', function() {
 
-  beforeEach(function() {
-    loadDeck({
-      initializeCache: false,
-      generateUrls: true
-    })
-  });
+  beforeEach(
+    window.module(
+      require('./authenticationService.js')
+    )
+  );
 
-  beforeEach(inject(function(authenticationService) {
+  beforeEach(window.inject(function(authenticationService) {
     this.authenticationService = authenticationService;
   }));
 

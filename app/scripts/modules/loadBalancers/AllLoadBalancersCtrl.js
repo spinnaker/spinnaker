@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
   require('utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('./LoadBalancerCtrl.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap')
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, app ) {
     $scope.application = app;

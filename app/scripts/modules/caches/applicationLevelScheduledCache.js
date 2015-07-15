@@ -3,6 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.caches.applicationLevelScheduled', [
+  require('./scheduledCache.js'),
+  require('angular-ui-router')
 ])
   .factory('applicationLevelScheduledCache', function(scheduledCache, $rootScope, $stateParams) {
     var currentApplication = '';

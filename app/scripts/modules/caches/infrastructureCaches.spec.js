@@ -2,13 +2,28 @@
 
 describe('spinnaker.caches.infrastructure', function() {
 
-  var infrastructureCaches, deckCacheFactory;
+  let infrastructureCaches, deckCacheFactory;
+  let cacheFactory;
+  let cacheInstantiations;
+  let removalCalls;
 
-  beforeEach(module('spinnaker.caches.infrastructure'));
-  beforeEach(inject(function(_infrastructureCaches_, _deckCacheFactory_) {
+  beforeEach(
+    window.module(
+      require('./infrastructureCaches.js')
+    )
+  );
+
+  beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;
   }));
+
+  describe('injected values', function () {
+    it('should be valid instances', function () {
+      expect(infrastructureCaches).toBeDefined();
+      expect(deckCacheFactory).toBeDefined();
+    });
+  });
 
   describe('cache initialization', function() {
 
@@ -17,6 +32,10 @@ describe('spinnaker.caches.infrastructure', function() {
       var removalCalls = [];
 
       var cacheFactory = function(cacheId, config) {
+        cacheInstantiations.push({cacheId: cacheId, config: config});
+      };
+
+      cacheFactory.createCache = function(cacheId, config) {
         cacheInstantiations.push({cacheId: cacheId, config: config});
       };
 

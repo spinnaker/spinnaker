@@ -5,6 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.applications.controller', [
   require('./applications.read.service.js'),
   require('../account/accountService.js'),
+  require('../../filters/filters.module.js')
 ])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
                                            $state, applicationReader) {

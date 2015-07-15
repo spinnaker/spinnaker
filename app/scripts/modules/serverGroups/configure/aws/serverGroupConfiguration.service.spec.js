@@ -19,13 +19,13 @@
 describe('Service: awsServerGroupConfiguration', function () {
 
   beforeEach(
-    module(
-      'spinnaker.aws.serverGroup.configure.service'
+    window.module(
+      require('./serverGroupConfiguration.service.js')
     )
   );
 
 
-  beforeEach(inject(function (_awsServerGroupConfigurationService_) {
+  beforeEach(window.inject(function (_awsServerGroupConfigurationService_) {
     this.service = _awsServerGroupConfigurationService_;
   }));
 

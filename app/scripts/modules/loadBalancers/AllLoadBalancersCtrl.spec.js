@@ -1,22 +1,26 @@
 'use strict';
 
+
 describe('Controller: AllLoadBalancerCtrl', function () {
 
+  const angular = require('angular');
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
 
   beforeEach(
-    module('spinnaker.loadBalancer.controller')
+    window.module(
+      require('./AllLoadBalancersCtrl.js')
+    )
   );
 
   beforeEach(
-    inject(function($rootScope, $controller) {
+    window.inject(function($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('AllLoadBalancersCtrl', {
         $scope: scope,
-        application: {
+        app: {
           registerAutoRefreshHandler: angular.noop
         }
       });

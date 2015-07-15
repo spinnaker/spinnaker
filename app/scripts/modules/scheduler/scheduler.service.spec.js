@@ -1,16 +1,22 @@
 'use strict';
 
 describe('scheduler', function() {
+  const angular = require('angular');
   beforeEach(function() {
     var pollSchedule = 25;
-    module('spinnaker', function($provide) {
-      return $provide.constant('settings', {
-        pollSchedule: pollSchedule,
-      });
-    });
+    window.module(
+      require('./scheduler.service.js'),
+      function($provide) {
+        return $provide.constant('settings', {
+          pollSchedule: pollSchedule,
+        });
+      }
+    );
+
     this.pollSchedule = pollSchedule;
 
-    inject(function(scheduler) {
+
+    window.inject(function(scheduler) {
       this.scheduler = scheduler;
     });
 

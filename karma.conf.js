@@ -14,22 +14,66 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      './node_modules/jquery/dist/jquery.js',
+      './node_modules/angular/angular.js',
+      './node_modules/angular-mocks/angular-mocks.js',
       './node_modules/phantomjs-polyfill/bind-polyfill.js',
-      'app/scripts/**/*.spec.js',
+      //'app/**/*.spec.js',
+      'test/test_index.js'
     ],
 
     preprocessors: {
-      'app/scripts/**/*.spec.js': ['webpack'],
+      //'app/**/*.spec.js': ['webpack'],
+      'test/test_index.js': ['webpack', 'sourcemap'],
     },
 
     webpack: {
-      module: webpackConf.module,
+      module: {
+        loaders: [
+          {
+            test: /jquery\.js$/,
+            loader: 'expose?jQuery',
+          },
+          {
+            test: /\.css$/,
+            loader: 'style!css',
+          },
+          {
+            test: /\.js$/,
+            loader: 'ng-annotate!babel',
+            exclude: /node_modlules/,
+          },
+          {
+            test: /\.less$/,
+            loader: 'style!css!less',
+          },
+          {
+            test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
+            loader: 'file',
+          },
+          {
+            test: /\.html$/,
+            loader: 'ngtemplate?relativeTo=' + __dirname + '/!html'
+          },
+        ]
+      },
+      devtool: 'inline-source-map',
       watch: true,
     },
 
-    webpackServer: {
+    webpackMiddleware: {
       noInfo: true,
     },
+
+    plugins: [
+      require('karma-webpack'),
+      require('karma-jasmine'),
+      require('karma-phantomjs-launcher'),
+      require('karma-chrome-launcher'),
+      require('karma-junit-reporter'),
+      require('karma-mocha-reporter'),
+      require('karma-sourcemap-loader'),
+    ],
 
     // list of files / patterns to exclude
     exclude: [],
@@ -46,8 +90,8 @@ module.exports = function(config) {
     // - PhantomJS
     // - IE (only Windows)
     browsers: [
-      'PhantomJs',
-      'Chrome',
+      'PhantomJS',
+      //'Chrome',
     ],
 
     colors: true,
@@ -57,7 +101,7 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress'],
+    reporters: ['progress', 'mocha'],
 
     // the default configuration
     junitReporter: {

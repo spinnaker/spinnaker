@@ -4,7 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.scheduler', [
   require('utils/rx.js'),
-  require('../caches/deckCacheFactory.js')
+  require('../caches/deckCacheFactory.js'),
+  require('../../settings/settings.js')
 ])
   .factory('scheduler', function(RxService, settings, $q) {
     var scheduler = new RxService.Subject();

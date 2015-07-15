@@ -6,7 +6,8 @@ module.exports = angular.module('spinnaker.instanceType.service', [
   require('../modules/caches/deckCacheFactory.js'),
   require('utils/lodash.js'),
   require('./awsInstanceTypeService.js'),
-  require('./gceInstanceTypeService.js')
+  require('./gceInstanceTypeService.js'),
+  require('../settings/settings.js'),
 ])
   .factory('instanceTypeService', function ($http, $q, settings, _, $window, awsInstanceTypeService, gceInstanceTypeService) {
 

@@ -1,13 +1,16 @@
 'use strict';
 
-describe('Controller: Applications', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+describe('Controller: Applications', function() {
+
 
   beforeEach(
-    module(
-      'spinnaker.application.controller',
-      'spinnaker.applications.read.service'
+    window.module(
+      require('./applications.controller'),
+      require('exports?"ui.bootstrap"!angular-bootstrap')
+
+      //'spinnaker.application.controller',
+      //'spinnaker.applications.read.service'
     )
   );
 
@@ -19,7 +22,7 @@ describe('Controller: Applications', function () {
         applicationList = [ deck, oort, mort ];
 
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
+    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, $modal, $log, $filter, accountService,
                                 $state, $timeout, settings, applicationReader) {
 
       this.$scope = $rootScope.$new();
@@ -99,4 +102,4 @@ describe('Controller: Applications', function () {
 
 
   });
-}).name;
+});

@@ -2,9 +2,15 @@
 
 describe('Controller: jenkinsTrigger', function() {
 
-  beforeEach(module('spinnaker.pipelines.trigger.jenkins'));
+  beforeEach(
+    window.module(
+      require('./jenkinsTrigger.module.js'),
+      require('utils/lodash.js')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope, $q, igorService) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, igorService, ___) {
+    this._ = ___;
     this.$q = $q;
     this.igorService = igorService;
     this.infrastructureCaches = {
@@ -45,11 +51,11 @@ describe('Controller: jenkinsTrigger', function() {
     it('updates jobs list when master changes, preserving job if present in both masters', function() {
       var masterA = {
           name: 'masterA',
-          jobs: ['a','b']
+          jobs: ['a', 'b']
         },
         masterB = {
           name: 'masterB',
-          jobs: ['b','c']
+          jobs: ['b', 'c']
         },
         trigger = {
           master: 'masterA',

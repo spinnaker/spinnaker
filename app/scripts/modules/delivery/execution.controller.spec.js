@@ -8,11 +8,13 @@ describe('Controller: execution', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.delivery.execution.controller')
+    window.module(
+      require('./execution.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('execution', {
         $scope: scope
