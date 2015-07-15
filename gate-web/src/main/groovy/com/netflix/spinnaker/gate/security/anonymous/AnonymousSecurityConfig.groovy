@@ -15,7 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 
-@ConditionalOnExpression('${onelogin.enabled:false} || ${x509.enabled:false}')
+@ConditionalOnExpression('${saml.enabled:false} || ${x509.enabled:false}')
 @Configuration
 @ConfigurationProperties(prefix = "anonymous")
 class AnonymousSecurityConfig implements WebSecurityAugmentor {
