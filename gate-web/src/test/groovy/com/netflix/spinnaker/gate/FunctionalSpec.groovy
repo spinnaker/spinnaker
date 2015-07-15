@@ -80,7 +80,7 @@ class FunctionalSpec extends Specification {
     def localPort = sock.localPort
     sock.close()
     System.setProperty("server.port", localPort.toString())
-    System.setProperty("onelogin.enabled", "false")
+    System.setProperty("saml.enabled", "false")
     System.setProperty('security.basic.enabled', 'false')
     System.setProperty('management.security.enabled', 'false')
     def spring = new SpringApplication()
