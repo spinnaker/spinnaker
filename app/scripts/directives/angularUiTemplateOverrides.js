@@ -36,4 +36,19 @@ angular.module('spinnaker')
         '  </div>\n' +
         '</div>\n' +
         '');
+
+    $templateCache.put('template/modal/backdrop.html',
+      '<div class="modal-backdrop animate"\n' +
+      '     modal-animation-class="fade"\n' +
+      '     ng-class="{in: animate}"\n' +
+      '></div>\n' +
+      '');
+
+    $templateCache.put('template/modal/window.html',
+      '<div modal-render="{{$isRendered}}" tabindex="-1" role="dialog" class="modal"\n' +
+      '    modal-animation-class="fade"\n' +
+      '	ng-class=\"{in: animate}\" ng-style=\"{display: \'block\'}" ng-click="close($event)">\n' +
+      '    <div class="modal-dialog" ng-class="size ? \'modal-\' + size : \'\'"><div class="modal-content" modal-transclude></div></div>\n' +
+      '</div>\n' +
+      '');
   });
