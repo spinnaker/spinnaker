@@ -49,6 +49,9 @@ class QuickPatchStage extends LinearStage {
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  OortHelper oortHelper
+
   public static final String MAYO_CONFIG_TYPE = "quickPatch"
 
   private static INSTANCE_VERSION_SLEEP = 10000
@@ -95,7 +98,7 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    Map instances = OortHelper.getOortHelper().getInstancesForCluster(stage.context, null, true, true)
+    Map instances = oortHelper.getInstancesForCluster(stage.context, null, true, true)
     Map skippedMap = [:]
 
     if(stage.context.skipUpToDate) {
