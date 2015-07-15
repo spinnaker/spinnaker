@@ -35,6 +35,7 @@ class SAMLSecurityControllerSpec extends Specification {
          </saml:Attribute>
          <saml:Attribute Name="memberOf" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
             <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">CN=groupA,OU=Groups,DC=netflix,DC=com;CN=groupB,DC=netflix,DC=com;</saml:AttributeValue>
+            <saml:AttributeValue xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">groupC</saml:AttributeValue>
          </saml:Attribute>
       </saml:AttributeStatement>
    </saml:Assertion>
@@ -69,7 +70,7 @@ class SAMLSecurityControllerSpec extends Specification {
     user.email == "test@email.com"
     user.firstName == "GivenName"
     user.lastName == "FamilyName"
-    user.roles == ["groupa", "groupb"]
+    user.roles == ["groupa", "groupb", "groupc"]
     user.allowedAccounts.sort() == expectedAllowedAccounts
 
     where:

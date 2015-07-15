@@ -146,7 +146,7 @@ class SAMLSecurityController {
     def roles = attributes[userAttributeMapping.roles].collect { String roles ->
       def commonNames = roles.split(";")
       commonNames.collect {
-        it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
+        return it.indexOf("CN=") < 0 ? it : it.substring(it.indexOf("CN=") + 3, it.indexOf(","))
       }
     }.flatten()*.toLowerCase()
 
