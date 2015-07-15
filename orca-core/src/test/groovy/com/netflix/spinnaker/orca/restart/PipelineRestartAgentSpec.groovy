@@ -75,6 +75,19 @@ class PipelineRestartAgentSpec extends Specification {
     }
   }
 
+  def "the agent should keep polling"() {
+    given:
+    applicationIsUp()
+
+    when:
+    3.times {
+      advanceTime()
+    }
+
+    then:
+    3 * executionRepository.retrievePipelines() >> Observable.empty()
+  }
+
   @Unroll
   def "if a pipeline is #status it does not get restarted"() {
     given:
