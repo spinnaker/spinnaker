@@ -50,12 +50,6 @@ abstract class ExecutionJobBuilder<T extends Execution> {
     applicationContext.getBeansOfType(StageBuilder).values().each {
       stages[it.type] = it
     }
-    applicationContext.getBeansOfType(StandaloneTask).values().each {
-      def stage = new SimpleStage(it.type, it)
-      applicationContext.autowireCapableBeanFactory.autowireBean(stage)
-      // TODO: this should be a prototype scoped bean or use a factory I guess
-      stages[it.type] = stage
-    }
   }
 
   abstract Job build(T subject)
