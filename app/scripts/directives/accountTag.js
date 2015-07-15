@@ -15,7 +15,10 @@ angular.module('spinnaker')
 
         $scope.getAccountType = function() {
           if($scope.provider) {
-            var prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions || [];
+            var prodAccounts = [];
+            if (settings.providers && settings.providers[$scope.provider] && settings.providers[$scope.provider].challengeDestructiveActions) {
+              prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions;
+            }
             return prodAccounts.indexOf($scope.account) > -1 ? 'prod' : $scope.account;
           } else {
             return $scope.account;
