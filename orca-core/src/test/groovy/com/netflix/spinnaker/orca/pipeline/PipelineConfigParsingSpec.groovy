@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Subject
 
 class PipelineConfigParsingSpec extends Specification {
 
@@ -72,10 +74,12 @@ class PipelineConfigParsingSpec extends Specification {
 }"""
 
   @Shared mapper = new OrcaObjectMapper()
+  @Shared currentInstance = InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
+  @Subject pipelineStarter = new PipelineStarter(currentInstance: currentInstance)
 
   def "parses Pipeline object from JSON"() {
     when:
-    def pipeline = PipelineStarter.parseConfig(jsonMap)
+    def pipeline = pipelineStarter.create(jsonMap)
 
     then:
     with(pipeline) {
@@ -87,6 +91,16 @@ class PipelineConfigParsingSpec extends Specification {
         "nf-infrastructure-vpc",
         "nf-datacenter-vpc"
       ]
+    }
+
+    where:
+    jsonMap = mapper.readValue(pipelineJson, Map)
+  }
+
+  def "records the current instance so the pipeline can get resumed if this instance shuts down with the pipeline still queued"() {
+    expect:
+    with(pipelineStarter.create(jsonMap)) {
+      executingInstance == currentInstance.id
     }
 
     where:

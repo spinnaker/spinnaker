@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.test.batch
 
+import com.netflix.appinfo.InstanceInfo
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
 import groovy.transform.CompileStatic
@@ -77,5 +78,10 @@ class BatchTestConfiguration {
   @ConditionalOnMissingBean(ExtendedRegistry)
   ExtendedRegistry getExtendedRegistry() {
     new ExtendedRegistry(new NoopRegistry())
+  }
+
+  @Bean
+  InstanceInfo instanceInfo() {
+    InstanceInfo.Builder.newBuilder().setAppName("orca").setHostName("localhost").build()
   }
 }

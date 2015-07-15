@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
+import com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import com.google.common.annotations.VisibleForTesting
@@ -41,6 +42,9 @@ class DeployStage extends DeployStrategyStage {
   @Autowired(required = false)
   GetCommitsTask commitsTask
 
+  @Autowired(required = false)
+  JarDiffsTask jarDiffsTask
+
   @VisibleForTesting
   @Override
   protected List<Step> basicSteps(Stage stage) {
@@ -54,7 +58,9 @@ class DeployStage extends DeployStrategyStage {
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-
+    if(jarDiffsTask) {
+      steps << buildStep(stage, "jarDiffs", JarDiffsTask)
+    }
     return steps
   }
 }

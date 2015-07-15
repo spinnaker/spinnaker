@@ -36,4 +36,7 @@ interface InstanceService {
 
   @GET("/{healthCheckPath}")
   Response healthCheck(@Path(value="healthCheckPath",encode=false) String healthCheckPath)
+
+  @GET("/v1/platform/base/jars")
+  Response getJars()
 }

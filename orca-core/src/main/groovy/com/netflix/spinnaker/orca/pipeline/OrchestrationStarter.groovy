@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,6 +70,7 @@ class OrchestrationStarter extends ExecutionStarter<Orchestration> {
 
     orchestration.buildTime = System.currentTimeMillis()
     orchestration.authentication = Execution.AuthenticationDetails.build().orElse(new Execution.AuthenticationDetails())
+    orchestration.executingInstance = currentInstance.id
 
     return orchestration
   }
