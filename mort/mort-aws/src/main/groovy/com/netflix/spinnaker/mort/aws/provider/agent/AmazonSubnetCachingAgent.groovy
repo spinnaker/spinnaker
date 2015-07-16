@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.mort.aws.provider.agent
 
-import com.amazonaws.services.ec2.model.KeyPairInfo
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SUBNETS
+
 import com.amazonaws.services.ec2.model.Subnet
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -32,10 +32,9 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
+import groovy.util.logging.Slf4j
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SUBNETS
-
+@Slf4j
 class AmazonSubnetCachingAgent implements CachingAgent {
 
   final AmazonClientProvider amazonClientProvider
@@ -71,6 +70,7 @@ class AmazonSubnetCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     def subnets = ec2.describeSubnets().subnets
 
@@ -80,6 +80,7 @@ class AmazonSubnetCachingAgent implements CachingAgent {
         attributes,
         [:])
     }
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(SUBNETS.ns): data])
   }
 }
