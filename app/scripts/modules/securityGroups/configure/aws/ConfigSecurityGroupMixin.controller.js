@@ -219,7 +219,7 @@ angular
     };
 
     ctrl.getCurrentNamePattern = function() {
-      return $scope.securityGroup.vpc ? vpcPattern : classicPattern;
+      return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
     };
 
     ctrl.updateName = function() {
@@ -232,13 +232,11 @@ angular
       $scope.namePreview = name;
     };
 
-    ctrl.namePattern = (function() {
-      return {
-        test: function(name) {
-          return ctrl.getCurrentNamePattern().test(name);
-        }
-      };
-    })();
+    ctrl.namePattern = {
+      test: function(name) {
+        return ctrl.getCurrentNamePattern().test(name);
+      }
+    };
 
     ctrl.addRule = function(ruleset) {
       ruleset.push({

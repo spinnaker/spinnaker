@@ -24,7 +24,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('stack should accept underscores, letters, numbers, and nothing', function () {
-      var test = controller.getStackPattern.test;
+      var test = controller.stackPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
       expect(test('a_b')).toBe(true);
@@ -35,7 +35,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('stack should fail on dashes or various other special characters', function () {
-      var test = controller.getStackPattern.test;
+      var test = controller.stackPattern.test;
       expect(test('-a')).toBe(false);
       expect(test('a-')).toBe(false);
       expect(test('-')).toBe(false);
@@ -45,7 +45,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('detail should accept underscores, letters, numbers, dashes, and nothing', function() {
-      var test = controller.getDetailPattern.test;
+      var test = controller.detailPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
       expect(test('a_b')).toBe(true);
@@ -59,7 +59,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('detail should fail on various special characters', function () {
-      var test = controller.getDetailPattern.test;
+      var test = controller.detailPattern.test;
       expect(test('$')).toBe(false);
       expect(test('9*')).toBe(false);
       expect(test('#9')).toBe(false);
@@ -74,13 +74,13 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('unfortunately is greedy and accepts invalid placeholders', function () {
-      expect(controller.getStackPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
-      expect(controller.getDetailPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
+      expect(controller.stackPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
+      expect(controller.detailPattern.test('${not valid - trailing closing curly brackets}}}')).toBe(true);
     });
 
 
     it('stack should accept underscores, letters, numbers, and nothing', function () {
-      var test = controller.getStackPattern.test;
+      var test = controller.stackPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
       expect(test('a_b')).toBe(true);
@@ -91,7 +91,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('stack should accept template placeholders', function () {
-      var test = controller.getStackPattern.test;
+      var test = controller.stackPattern.test;
       expect(test('${a}')).toBe(true);
       expect(test('b${a}')).toBe(true);
       expect(test('${a}b')).toBe(true);
@@ -104,7 +104,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('detail should accept underscores, letters, numbers, dashes, and nothing', function() {
-      var test = controller.getDetailPattern.test;
+      var test = controller.detailPattern.test;
       expect(test('a')).toBe(true);
       expect(test('ab')).toBe(true);
       expect(test('a_b')).toBe(true);
@@ -118,7 +118,7 @@ describe('Basic Settings Mixin Controller:', function () {
     });
 
     it('detail should accept template placeholders', function () {
-      var test = controller.getDetailPattern.test;
+      var test = controller.detailPattern.test;
       expect(test('${a}')).toBe(true);
       expect(test('b${a}')).toBe(true);
       expect(test('${a}b')).toBe(true);
