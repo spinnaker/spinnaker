@@ -3,7 +3,7 @@
 angular.module('spinnaker.pipelines.stages.core.displayableTasks.filter', [])
   .filter('displayableTasks', function() {
     var blacklist = [
-      'forceCacheRefresh',
+      'forceCacheRefresh', 'stageStart', 'stageEnd'
     ];
     return function(input) {
       if (input) {
