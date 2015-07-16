@@ -51,7 +51,7 @@ class SAMLSecurityConfig implements WebSecurityAugmentor {
     String keyStorePassword
     String keyStoreAliasName
 
-    List<String> requiredAccounts
+    List<String> requiredRoles
     UserAttributeMapping userAttributeMapping = new UserAttributeMapping()
   }
 

@@ -83,7 +83,7 @@ class SAMLSecurityController {
               HttpServletResponse response) {
     def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(samlSecurityConfigProperties.certificate))
     def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
-    if (!hasRequiredRole(samlSecurityConfigProperties, user)) {
+    if (!hasRequiredRole(anonymousSecurityConfig, samlSecurityConfigProperties, user)) {
       throw new BadCredentialsException("Credentials are bad")
     }
     def auth = new UsernamePasswordAuthenticationToken(user, "", [new SimpleGrantedAuthority("USER")])
@@ -99,12 +99,19 @@ class SAMLSecurityController {
     response.sendRedirect callback
   }
 
-  static boolean hasRequiredRole(SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties,
+  static boolean hasRequiredRole(AnonymousSecurityConfig anonymousSecurityConfig,
+                                 SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties,
                                  User user) {
-    if (samlSecurityConfigProperties.requiredAccounts) {
-      return user.allowedAccounts.find { String allowedAccount ->
-        samlSecurityConfigProperties.requiredAccounts.contains(allowedAccount)
-      }
+    if (samlSecurityConfigProperties.requiredRoles) {
+      // ensure the user has at least one of the required roles (and at least one allowed account)
+      return user.getRoles().find { String allowedRole ->
+        samlSecurityConfigProperties.requiredRoles.contains(allowedRole)
+      } && user.allowedAccounts
+    }
+
+    if (anonymousSecurityConfig && user.email == anonymousSecurityConfig.defaultEmail) {
+      // force an anonymous user to login and get a proper set of roles/allowedAccounts
+      return false
     }
 
     return user.allowedAccounts
@@ -113,7 +120,7 @@ class SAMLSecurityController {
   @RequestMapping(value = "/info", method = RequestMethod.GET)
   User getUser(HttpServletRequest request, HttpServletResponse response) {
     Object whoami = SecurityContextHolder.context.authentication.principal
-    if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(samlSecurityConfigProperties, whoami))) {
+    if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(anonymousSecurityConfig, samlSecurityConfigProperties, whoami))) {
       response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
       response.sendError 401
       null

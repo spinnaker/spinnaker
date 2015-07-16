@@ -83,22 +83,28 @@ class SAMLSecurityControllerSpec extends Specification {
   @Unroll
   void "should check whether a user has a required role"() {
     given:
+    def anonymousSecurityConfig = new AnonymousSecurityConfig()
     def oneLoginSecurityConfig = new SAMLSecurityConfig.SAMLSecurityConfigProperties(
-      requiredAccounts: requiredAccounts
+      requiredRoles: requiredRoles
     )
-    def user = new User(allowedAccounts: allowedAccounts)
+    def user = new User(email: email, roles: roles, allowedAccounts: allowedAccounts)
 
     expect:
-    SAMLSecurityController.hasRequiredRole(oneLoginSecurityConfig, user) == hasRequiredRole
+    SAMLSecurityController.hasRequiredRole(anonymousSecurityConfig, oneLoginSecurityConfig, user) == hasRequiredRole
 
     where:
-    requiredAccounts | allowedAccounts || hasRequiredRole
-    ["test"]         | ["prod"]        || false
-    ["test"]         | ["prod"]        || false
-    ["test"]         | []              || false
-    ["test"]         | null            || false
-    ["test"]         | ["test"]        || true
-    []               | ["test"]        || true
-    null             | ["test"]        || true
+    email        | requiredRoles | roles    | allowedAccounts || hasRequiredRole
+    "authorized" | ["test"]      | ["prod"] | ["account"]     || false // does not have a required role
+    "authorized" | ["test"]      | ["prod"] | ["account"]     || false // does not have a required role
+    "authorized" | ["test"]      | []       | ["account"]     || false // does not have a required role
+    "authorized" | ["test"]      | null     | ["account"]     || false // does not have a required role
+    "authorized" | ["test"]      | ["test"] | []              || false // has required role but no allowed accounts
+    "authorized" | ["test"]      | ["test"] | null            || false // has required role but no allowed accounts
+    "authorized" | ["test"]      | ["test"] | ["account"]     || true  // has required role
+    "authorized" | []            | ["test"] | ["account"]     || true  // has an allowed account (no required roles necessary)
+    "authorized" | null          | ["test"] | ["account"]     || true  // has an allowed account (no required roles necessary)
+    "authorized" | null          | null     | ["account"]     || true  // has an allowed account (no required roles necessary)
+    "anonymous"  | null          | ["test"] | ["account"]     || false // anonymous users are forced to login
+
   }
 }
