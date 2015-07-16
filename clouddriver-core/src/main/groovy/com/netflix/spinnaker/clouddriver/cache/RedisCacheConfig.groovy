@@ -49,7 +49,13 @@ class RedisCacheConfig {
 
   @Bean
   @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
-  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.host:localhost}') String redisHost, @Value('${redis.port:6379}') int redisPort, @Value('${redis.poll.intervalSeconds:30}') int pollIntervalSeconds, @Value('${redis.poll.timeoutSeconds:300}') int pollTimeoutSeconds) {
+  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, @Value('${redis.poll.intervalSeconds:30}') int pollIntervalSeconds, @Value('${redis.poll.timeoutSeconds:300}') int pollTimeoutSeconds) {
+    URI redisUri = URI.create(redisConnection)
+    String redisHost = redisUri.getHost()
+    int redisPort = redisUri.getPort()
+    if (redisPort == -1) {
+      redisPort = 6379
+    }
     new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(pollIntervalSeconds), TimeUnit.SECONDS.toMillis(pollTimeoutSeconds)))
   }
 }
