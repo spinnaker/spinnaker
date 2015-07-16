@@ -96,25 +96,21 @@ angular
       }
     };
 
-    this.getStackPattern = (function() {
-      return {
-        test: function(stack) {
-          var pattern = $scope.command.viewState.templatingEnabled ?
-            /^([a-zA-z_0-9._]*(\${.+})*)*$/ :
-            /^[a-zA-z_0-9._]*$/;
-          return pattern.test(stack);
-        }
-      };
-    })();
+    this.stackPattern = {
+      test: function(stack) {
+        var pattern = $scope.command.viewState.templatingEnabled ?
+          /^([a-zA-z_0-9._]*(\${.+})*)*$/ :
+          /^[a-zA-z_0-9._]*$/;
+        return pattern.test(stack);
+      }
+    };
 
-    this.getDetailPattern = (function() {
-      return {
-        test: function(stack) {
-          var pattern = $scope.command.viewState.templatingEnabled ?
-            /^([a-zA-z_0-9._-]*(\${.+})*)*$/ :
-            /^[a-zA-z_0-9._-]*$/;
-          return pattern.test(stack);
-        }
-      };
-    })();
+    this.detailPattern = {
+      test: function(stack) {
+        var pattern = $scope.command.viewState.templatingEnabled ?
+          /^([a-zA-z_0-9._-]*(\${.+})*)*$/ :
+          /^[a-zA-z_0-9._-]*$/;
+        return pattern.test(stack);
+      }
+    };
   });
