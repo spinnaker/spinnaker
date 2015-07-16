@@ -1,8 +1,10 @@
 'use strict';
 
 
-angular.module('spinnaker.tasks.monitor.service', [])
-  .factory('taskMonitorService', function($exceptionHandler) {
+angular.module('spinnaker.tasks.monitor.service', [
+  'angulartics',
+])
+  .factory('taskMonitorService', function($exceptionHandler, $analytics) {
 
     /**
      * Either provide an onApplicationRefresh method OR an onTaskComplete method in the params!
@@ -57,6 +59,10 @@ angular.module('spinnaker.tasks.monitor.service', [])
         monitor.submitting = false;
         monitor.error = true;
         monitor.errorMessage = monitor.task.failureMessage || monitor.task.lastKatoMessage || 'There was an unknown server error.';
+        if (monitor.errorMessage === 'There was an unknown server error.') {
+          $analytics.eventTrack('Task Unknown Error:', {category: 'Task Error', label: JSON.stringify(task), noninteraction: true});
+          debugger;
+        }
         $exceptionHandler('Error with task:', monitor.task);
       };
 
