@@ -209,6 +209,15 @@ angular.module('spinnaker.aws.serverGroup.configure.service', [
       });
     }
 
+    function refreshInstanceTypes(command) {
+      return cacheInitializer.refreshCache('instanceTypes').then(function() {
+        return instanceTypeService.getAllTypesByRegion('aws').then(function(instanceTypes) {
+          command.backingData.instanceTypes = instanceTypes;
+          configureInstanceTypes(command);
+        });
+      });
+    }
+
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
@@ -339,6 +348,7 @@ angular.module('spinnaker.aws.serverGroup.configure.service', [
       configureVpcId: configureVpcId,
       refreshLoadBalancers: refreshLoadBalancers,
       refreshSecurityGroups: refreshSecurityGroups,
+      refreshInstanceTypes: refreshInstanceTypes,
     };
 
 

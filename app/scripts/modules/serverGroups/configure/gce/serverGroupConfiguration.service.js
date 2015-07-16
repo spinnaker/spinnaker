@@ -1,7 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
-  .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
+angular.module('spinnaker.gce.serverGroup.configure.service', [
+  'spinnaker.image.service',
+  'spinnaker.account.service',
+  'spinnaker.instanceType.service',
+  'spinnaker.caches.initializer',
+  'spinnaker.loadBalancer.read.service',
+])
+  .factory('gceServerGroupConfigurationService', function(imageService, accountService,
                                                           instanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader) {
 
@@ -106,6 +112,15 @@ angular.module('spinnaker.serverGroup.configure.gce')
       });
     }
 
+    function refreshInstanceTypes(command) {
+      return cacheInitializer.refreshCache('instanceTypes').then(function() {
+        return instanceTypeService.getAllTypesByRegion('aws').then(function(instanceTypes) {
+          command.backingData.instanceTypes = instanceTypes;
+          configureInstanceTypes(command);
+        });
+      });
+    }
+
     function attachEventHandlers(command) {
 
       command.regionChanged = function regionChanged() {
@@ -150,6 +165,7 @@ angular.module('spinnaker.serverGroup.configure.gce')
       configureZones: configureZones,
       configureLoadBalancerOptions: configureLoadBalancerOptions,
       refreshLoadBalancers: refreshLoadBalancers,
+      refreshInstanceTypes: refreshInstanceTypes,
     };
 
 
