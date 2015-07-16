@@ -23,7 +23,7 @@ angular.module('spinnaker.caches.initializer', [
 
     var initializers = {
       credentials: [accountService.getRegionsKeyedByAccount, accountService.listAccounts],
-      instanceTypes: [ function() { instanceTypeService.getAllTypesByRegion('aws'); }],
+      instanceTypes: [ function() { return instanceTypeService.getAllTypesByRegion('aws'); }],
       loadBalancers: [loadBalancerReader.listAWSLoadBalancers],
       securityGroups: [securityGroupReader.getAllSecurityGroups],
       subnets: [subnetReader.listSubnets],
