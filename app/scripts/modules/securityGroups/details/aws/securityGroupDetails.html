@@ -40,7 +40,7 @@
         <dt>Region:</dt>
         <dd>{{securityGroup.region}}</dd>
         <dt>VPC:</dt>
-        <dd>{{securityGroup.vpcId || 'None (EC2 Classic)'}}</dd>
+        <dd><vpc-tag vpc-id="securityGroup.vpcId"></vpc-tag></dd>
         <dt>Description:</dt>
         <dd>{{securityGroup.description}}</dd>
       </dl>

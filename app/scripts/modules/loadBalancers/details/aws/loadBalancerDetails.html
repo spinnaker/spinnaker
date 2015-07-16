@@ -51,7 +51,7 @@
         <dt>In:</dt>
         <dd><account-tag account="loadBalancer.account" pad="right" provider="loadBalancer.type"></account-tag> {{loadBalancer.region}}</dd>
         <dt>VPC:</dt>
-        <dd>{{loadBalancer.elb.vpcid || 'None (EC2 Classic)'}}</dd>
+        <dd><vpc-tag vpc-id="loadBalancer.elb.vpcid"></vpc-tag></dd>
       </dl>
       <dl>
         <dt>Availability Zones:</dt>
@@ -65,7 +65,13 @@
         <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
         <dd ng-if="loadBalancer.serverGroups">
           <ul style="margin-left: 30px">
-            <li ng-repeat="serverGroup in loadBalancer.serverGroups">{{serverGroup.name}}</li>
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'aws'})">
+              {{serverGroup.name}}
+            </li>
           </ul>
         </dd>
       </dl>
