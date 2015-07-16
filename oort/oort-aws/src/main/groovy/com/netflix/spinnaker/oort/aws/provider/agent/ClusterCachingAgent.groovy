@@ -240,12 +240,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
     }
-    log.info("Caching ${result[APPLICATIONS.ns].size()} applications in ${agentType}")
-    log.info("Caching ${result[CLUSTERS.ns].size()} clusters in ${agentType}")
-    log.info("Caching ${result[SERVER_GROUPS.ns].size()} server groups in ${agentType}")
-    log.info("Caching ${result[LOAD_BALANCERS.ns].size()} load balancers in ${agentType}")
-    log.info("Caching ${result[LAUNCH_CONFIGS.ns].size()} launch configs in ${agentType}")
-    log.info("Caching ${result[INSTANCES.ns].size()} instances in ${agentType}")
+    def cacheResults = result.cacheResults
+    log.info("Caching ${cacheResults[APPLICATIONS.ns]?.size()} applications in ${agentType}")
+    log.info("Caching ${cacheResults[CLUSTERS.ns]?.size()} clusters in ${agentType}")
+    log.info("Caching ${cacheResults[SERVER_GROUPS.ns]?.size()} server groups in ${agentType}")
+    log.info("Caching ${cacheResults[LOAD_BALANCERS.ns]?.size()} load balancers in ${agentType}")
+    log.info("Caching ${cacheResults[LAUNCH_CONFIGS.ns]?.size()} launch configs in ${agentType}")
+    log.info("Caching ${cacheResults[INSTANCES.ns]?.size()} instances in ${agentType}")
     result
   }
 
