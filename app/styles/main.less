@@ -944,5 +944,20 @@ body, html {
 }
 
 ul.select2-results {
-  max-height: 300px;
+  max-height: 225px;
+}
+
+.select2-container.input-sm.direction-up {
+  .select2-drop-active {
+    border-top: 1px solid #5897fb;
+    padding-top: 3px;
+    margin-bottom: 3px;
+  }
+  .select2-choice {
+    border-bottom-color: #5897fb;
+  }
+}
+
+body > .select2-container.open {
+  z-index: 10003;
 }
