@@ -12,6 +12,7 @@ angular.module('spinnaker')
   //})
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
+    uiSelectConfig.appendToBody = true;
   })
   .config(function($tooltipProvider) {
     $tooltipProvider.options({
