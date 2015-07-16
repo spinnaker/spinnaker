@@ -105,7 +105,7 @@ class SAMLUtils {
     def response = (Response) unmarshaller.unmarshall(element)
 
     if (!response.assertions) {
-      throw new IllegalStateException("No assertions found in response (samlResponse: ${new String(samlResponse)})")
+      throw new IllegalStateException("No assertions found in response (samlResponse: ${new String(base64DecodedResponse)})")
     }
 
     logSAMLObject(response)
