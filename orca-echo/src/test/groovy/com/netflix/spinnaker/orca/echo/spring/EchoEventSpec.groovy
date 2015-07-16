@@ -11,6 +11,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.SimpleStage
+import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
@@ -68,6 +69,7 @@ class EchoEventSpec extends Specification {
         def stage = new SimpleStage(name, task)
         autowireBean stage
         registerSingleton name, stage
+        stage.applicationContext = applicationContext
       }
       // needs to pick up the listeners
       autowireBean pipelineJobBuilder
@@ -89,9 +91,8 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-        (["orca:task:starting", "orca:task:complete"] * 2) +
+        (["orca:task:starting", "orca:task:complete"] * 6) +
         ["orca:pipeline:complete"]
-//    events.details.type == ["orca:stage:starting", "orca:task:starting", "orca:task:complete", "orca:stage:complete"] * 2
   }
 
   def "when tasks repeat they don't send duplicate start events"() {
@@ -107,7 +108,7 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-        (["orca:task:starting", "orca:task:complete"] * 2) +
+        (["orca:task:starting", "orca:task:complete"] * 6) +
         ["orca:pipeline:complete"]
   }
 
@@ -126,6 +127,8 @@ class EchoEventSpec extends Specification {
 
     and:
     events.details.type == ["orca:pipeline:starting",
+                            "orca:task:starting",
+                            "orca:task:complete",
                             "orca:task:starting",
                             "orca:task:failed",
                             "orca:pipeline:failed"]
