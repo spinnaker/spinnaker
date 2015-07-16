@@ -26,7 +26,4 @@ class AmazonInstanceType implements InstanceType {
     String account
     String region
     String name
-    String availabilityZone
-    String productDescription
-    Long durationSeconds
 }

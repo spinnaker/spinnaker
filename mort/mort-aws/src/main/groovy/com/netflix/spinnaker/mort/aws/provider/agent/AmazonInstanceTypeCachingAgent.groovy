@@ -72,16 +72,22 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
     def request = new DescribeReservedInstancesOfferingsRequest()
     while (true) {
       def offerings = ec2.describeReservedInstancesOfferings(request)
-      data.addAll(offerings.reservedInstancesOfferings.collect { ReservedInstancesOffering offering ->
-        new DefaultCacheData(Keys.getInstanceTypeKey(offering.reservedInstancesOfferingId, region, account.name), [
-          account : account.name,
-          region: region,
-          name: offering.instanceType,
-          availabilityZone: offering.availabilityZone,
-          productDescription:  offering.productDescription,
-          durationSeconds: offering.duration
-        ],
-        [:])
+      Set<String> allIdentifiers = []
+      data.addAll(offerings.reservedInstancesOfferings.findResults { ReservedInstancesOffering offering ->
+        String key = Keys.getInstanceTypeKey(offering.instanceType, region, account.name)
+        if (allIdentifiers.add(key)) {
+          new DefaultCacheData(Keys.getInstanceTypeKey(offering.instanceType, region, account.name), [
+            account           : account.name,
+            region            : region,
+            name              : offering.instanceType,
+            availabilityZone  : null,
+            productDescription: null,
+            durationSeconds   : null
+          ],
+            [:])
+        } else {
+          null
+        }
       })
 
       if (offerings.nextToken) {
