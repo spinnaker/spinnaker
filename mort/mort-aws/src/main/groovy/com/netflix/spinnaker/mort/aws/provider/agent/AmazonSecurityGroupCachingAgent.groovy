@@ -36,6 +36,9 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
   final AmazonClientProvider amazonClientProvider
@@ -104,6 +107,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
   }
 
   private CacheResult buildCacheResult(ProviderCache providerCache, AmazonEC2 ec2) {
+    log.info("Describing items in ${agentType}")
     def securityGroups = ec2.describeSecurityGroups().securityGroups
 
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
@@ -112,6 +116,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
         attributes,
         [:])
     }
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(SECURITY_GROUPS.ns): data])
   }
 }

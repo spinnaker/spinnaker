@@ -93,6 +93,7 @@ class ReservationReportCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     Map<String, AmazonReservationReport.OverallReservationDetail> reservations = [:].withDefault { String key ->
       def (availabilityZone, operatingSystemType, instanceType) = key.split(":")
       new AmazonReservationReport.OverallReservationDetail(
@@ -165,7 +166,7 @@ class ReservationReportCachingAgent implements CachingAgent {
     amazonReservationReport.reservations = reservations.values().sort {
       a,b -> a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
     }
-
+    log.info("Caching ${reservations.size()} items in ${agentType}")
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [new MutableCacheData("latest", ["report": amazonReservationReport], [:])]
     )

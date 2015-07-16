@@ -34,6 +34,7 @@ import com.netflix.spinnaker.oort.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.oort.aws.model.edda.LoadBalancerInstance
 import com.netflix.spinnaker.oort.aws.model.edda.LoadBalancerInstanceState
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 
@@ -41,6 +42,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 
+@Slf4j
 class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCachingAgent {
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
@@ -84,6 +86,7 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCach
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     def loadBalancerKeys = getCacheView().getIdentifiers(LOAD_BALANCERS.ns)
 
@@ -111,9 +114,10 @@ class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCach
           instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
         }
       } catch (LoadBalancerNotFoundException e) {
-        // this is acceptable since we may be waiting for the caches the catch-up
+        // this is acceptable since we may be waiting for the caches to catch up
       }
     }
+    log.info("Caching ${lbHealths.size()} items in ${agentType}")
     new DefaultCacheResult(
       (HEALTH.ns): lbHealths,
       (INSTANCES.ns): instances)

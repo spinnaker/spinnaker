@@ -34,6 +34,9 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
   final AmazonClientProvider amazonClientProvider
@@ -67,6 +70,7 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     List<CacheData> data = []
     def request = new DescribeReservedInstancesOfferingsRequest()
@@ -90,7 +94,7 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
         break
       }
     }
-
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(INSTANCE_TYPES.ns): data])
   }
 }

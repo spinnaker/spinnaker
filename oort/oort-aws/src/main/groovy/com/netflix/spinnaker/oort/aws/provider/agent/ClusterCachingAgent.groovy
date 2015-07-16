@@ -33,6 +33,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.oort.aws.data.Keys
+import groovy.util.logging.Slf4j
 import org.codehaus.jackson.annotate.JsonCreator
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
@@ -42,13 +43,10 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
+@Slf4j
 class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SERVER_GROUPS.ns),
@@ -201,6 +199,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
+
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     def request = new DescribeAutoScalingGroupsRequest()
@@ -240,6 +240,12 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
     }
+    log.info("Caching ${result[APPLICATIONS.ns].size()} applications in ${agentType}")
+    log.info("Caching ${result[CLUSTERS.ns].size()} clusters in ${agentType}")
+    log.info("Caching ${result[SERVER_GROUPS.ns].size()} server groups in ${agentType}")
+    log.info("Caching ${result[LOAD_BALANCERS.ns].size()} load balancers in ${agentType}")
+    log.info("Caching ${result[LAUNCH_CONFIGS.ns].size()} launch configs in ${agentType}")
+    log.info("Caching ${result[INSTANCES.ns].size()} instances in ${agentType}")
     result
   }
 
