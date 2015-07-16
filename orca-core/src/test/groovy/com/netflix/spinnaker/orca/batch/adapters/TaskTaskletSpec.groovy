@@ -29,9 +29,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
@@ -47,9 +45,7 @@ import static org.springframework.batch.test.MetaDataInstanceFactory.createStepE
 class TaskTaskletSpec extends Specification {
 
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
   def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
@@ -69,7 +65,7 @@ class TaskTaskletSpec extends Specification {
   void setup() {
     def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
     stage.tasks << taskModel
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
     jobExecution = createJobExecution(
       "whatever", random.nextLong(), random.nextLong(),
       new JobParametersBuilder().addString("pipeline", pipeline.id).toJobParameters()
@@ -83,7 +79,7 @@ class TaskTaskletSpec extends Specification {
   }
 
   void cleanup() {
-    pipelineStore.clear()
+    executionRepository.clear()
   }
 
   def "should invoke the step when executed"() {
@@ -98,7 +94,7 @@ class TaskTaskletSpec extends Specification {
   def "should skip the task if it is already #taskStatus"() {
     given:
     stage.tasks.each { it.status = taskStatus }
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -177,7 +173,7 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    with(pipelineStore.retrieve(pipeline.id)) {
+    with(executionRepository.retrievePipeline(pipeline.id)) {
       stages.first().context == outputs + (taskStatus == RUNNING ? [:] : ['batch.task.id.task1': stepExecution.id])
     }
 
@@ -201,7 +197,7 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    with(pipelineStore.retrieve(pipeline.id)) {
+    with(executionRepository.retrievePipeline(pipeline.id)) {
       stages.first().context[key] == value.reverse()
     }
 

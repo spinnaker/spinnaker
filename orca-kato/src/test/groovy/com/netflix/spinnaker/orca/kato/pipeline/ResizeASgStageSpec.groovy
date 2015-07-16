@@ -23,9 +23,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
@@ -37,9 +35,7 @@ class ResizeASgStageSpec extends Specification {
   def mapper = OrcaObjectMapper.DEFAULT
   def targetReferenceSupport = Mock(TargetReferenceSupport)
   def stageBuilder = new ResizeAsgStage(targetReferenceSupport: targetReferenceSupport)
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
 
   def setup() {
     stageBuilder.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
@@ -145,7 +141,7 @@ class ResizeASgStageSpec extends Specification {
 
   void "should inject a determineTargetReferences stage if target is dynamic"() {
     setup:
-    def config = [cluster: "testapp-asg", target: target, regions: ["us-east-1"],
+    def config = [cluster : "testapp-asg", target: target, regions: ["us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
     def pipeline = new Pipeline()
     def stage = new PipelineStage(pipeline, "resizeAsg", config)
@@ -155,7 +151,8 @@ class ResizeASgStageSpec extends Specification {
 
     then:
     _ * targetReferenceSupport.isDynamicallyBound(_) >> true
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1", cluster: "testapp-asg")]
+    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1",
+                                                                                     cluster: "testapp-asg")]
 
     stage.afterStages.size() == 2
     stage.beforeStages.size() == 2

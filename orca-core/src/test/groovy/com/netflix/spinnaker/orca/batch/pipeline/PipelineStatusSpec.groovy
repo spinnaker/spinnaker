@@ -23,9 +23,7 @@ import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
@@ -40,7 +38,6 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
-
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @Ignore("@robfletcher halp")
@@ -58,9 +55,7 @@ class PipelineStatusSpec extends Specification {
   @Autowired @Subject PipelineStarter pipelineStarter
 
   static mapper = new OrcaObjectMapper()
-  static def pipelineStore = new InMemoryPipelineStore(mapper)
-  static def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  static def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  static def executionRepository = new InMemoryExecutionRepository()
 
   def fooTask = Stub(Task) {
     execute(*_) >> DefaultTaskResult.SUCCEEDED
@@ -68,16 +63,9 @@ class PipelineStatusSpec extends Specification {
 
   def setup() {
     applicationContext.beanFactory.with {
-//      registerSingleton "mapper", mapper
-//      registerSingleton "pipelineStore", pipelineStore
-//      registerSingleton "orchestrationStore", orchestrationStore
-//      registerSingleton "executionRepository", executionRepository
-//      registerSingleton "pipelineStore", new InMemoryPipelineStore()
       ["foo", "bar", "baz"].each { name ->
         registerSingleton "${name}Stage", new TestStage(name, steps, executionRepository, fooTask)
       }
-
-//      autowireBean pipelineStarter
     }
     pipelineStarter.initialize()
   }

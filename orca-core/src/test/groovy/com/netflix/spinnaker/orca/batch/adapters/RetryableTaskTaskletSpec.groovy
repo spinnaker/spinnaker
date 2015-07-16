@@ -29,9 +29,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.StepExecution
@@ -58,9 +56,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
   def sleeper = Mock(Sleeper)
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
   def taskFactory = new TaskTaskletAdapter(executionRepository, [], new ExtendedRegistry(new NoopRegistry()), sleeper)
   Pipeline pipeline
 
@@ -71,7 +67,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
     pipeline = Pipeline.builder().withStage("retryable").build()
     def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
     pipeline.stages.first().tasks << taskModel
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
     def step = steps.get("${pipeline.stages[0].id}.retryable.${taskModel.name}.${taskModel.id}")
                     .tasklet(taskFactory.decorate(task))
                     .build()

@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
@@ -33,16 +31,14 @@ import spock.lang.Subject
 class StageStatusPropagationListenerSpec extends Specification {
 
   def mapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
   @Subject listener = new StageStatusPropagationListener(executionRepository)
   @Shared random = Random.newInstance()
 
   def "updates the stage status when a task execution completes"() {
     given: "a pipeline model"
     def pipeline = Pipeline.builder().withStage(stageType).build()
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
 
     and: "a batch execution context"
     def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
@@ -55,13 +51,13 @@ class StageStatusPropagationListenerSpec extends Specification {
     def exitStatus = listener.afterStep stepExecution
 
     then: "it updates the status of the stage"
-    pipelineStore.retrieve(pipeline.id).stages.first().status == taskStatus
+    executionRepository.retrievePipeline(pipeline.id).stages.first().status == taskStatus
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
 
     where:
-    taskStatus               | _
+    taskStatus                | _
     ExecutionStatus.SUCCEEDED | _
 
     id = random.nextLong()

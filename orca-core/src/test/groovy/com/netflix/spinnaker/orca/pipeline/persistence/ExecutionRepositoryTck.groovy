@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
@@ -192,5 +193,13 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   @Override
   JedisExecutionRepository createExecutionRepository() {
     new JedisExecutionRepository(jedisPool, 1, 50)
+  }
+}
+
+class InMemoryExecutionRepositorySpec extends ExecutionRepositoryTck<InMemoryExecutionRepository> {
+
+  @Override
+  InMemoryExecutionRepository createExecutionRepository() {
+    return new InMemoryExecutionRepository()
   }
 }

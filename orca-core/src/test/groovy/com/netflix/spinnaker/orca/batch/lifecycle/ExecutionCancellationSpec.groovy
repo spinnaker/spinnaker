@@ -29,6 +29,7 @@ import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.Job
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
+import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
   def startTask = Mock(Task)
@@ -41,7 +42,7 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
     given:
     startTask.execute(_) >> {
       pipeline.canceled = true
-      pipelineStore.store(pipeline)
+      executionRepository.store(pipeline)
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
 
@@ -55,7 +56,7 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
     jobExecution.exitStatus == ExitStatus.STOPPED
 
     when:
-    pipeline = pipelineStore.retrieve(pipeline.id)
+    pipeline = executionRepository.retrievePipeline(pipeline.id)
 
     then:
     pipeline.status == ExecutionStatus.CANCELED
@@ -71,8 +72,10 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
   protected Job configureJob(JobBuilder jobBuilder) {
     def stage = pipeline.namedStage("cancel")
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    def stageBuilder = new CancellationStageBuilder(steps: steps,
-      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, []))
+    def stageBuilder = new CancellationStageBuilder(
+      steps: steps,
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+    )
     stageBuilder.build(builder, stage).build().build()
   }
 

@@ -9,7 +9,9 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
 import redis.clients.util.Pool
@@ -18,6 +20,7 @@ import rx.Scheduler
 import rx.schedulers.Schedulers
 import static java.util.concurrent.Executors.newFixedThreadPool
 
+@Component
 @Slf4j
 @CompileStatic
 class JedisExecutionRepository implements ExecutionRepository {
@@ -28,6 +31,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private final Scheduler queryAllScheduler = Schedulers.from(newFixedThreadPool(10))
   private final Scheduler queryByAppScheduler
 
+  @Autowired
   JedisExecutionRepository(
     Pool<Jedis> jedisPool,
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
@@ -135,34 +139,38 @@ class JedisExecutionRepository implements ExecutionRepository {
     jedis.hset(key, "config", json)
   }
 
-  @CompileDynamic
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
     def key = "${type.simpleName.toLowerCase()}:$id"
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
       T execution = mapper.readValue(json, type)
 
-      List<Stage<T>> reorderedStages = []
-      execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
-        reorderedStages << parentStage
-
-        def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
-        while (!children.isEmpty()) {
-          def child = children.remove(0)
-          children.addAll(0, execution.stages.findAll { it.parentStageId == child.id })
-          reorderedStages << child
-        }
-      }
-      List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect { it.id })
-      execution.stages = reorderedStages.collect {
-        def explicitStage = retrievedStages.find { stage -> stage?.id == it.id } ?: it
-        explicitStage.execution = execution
-        return explicitStage
-      }
-      return execution
+      return sortStages(jedis, execution, type)
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
     }
+  }
+
+  @CompileDynamic
+  private <T extends Execution> T sortStages(Jedis jedis, T execution, Class<T> type) {
+    List<Stage<T>> reorderedStages = []
+    execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
+      reorderedStages << parentStage
+
+      def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
+      while (!children.isEmpty()) {
+        def child = children.remove(0)
+        children.addAll(0, execution.stages.findAll { it.parentStageId == child.id })
+        reorderedStages << child
+      }
+    }
+    List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect { it.id })
+    execution.stages = reorderedStages.collect {
+      def explicitStage = retrievedStages.find { stage -> stage?.id == it.id } ?: it
+      explicitStage.execution = execution
+      return explicitStage
+    }
+    return execution
   }
 
   private <T extends Execution> List<Stage<T>> retrieveStages(Jedis jedis, Class<T> type, List<String> ids) {

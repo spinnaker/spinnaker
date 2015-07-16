@@ -25,9 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationStage
 import com.netflix.spinnaker.orca.pipeline.parallel.PipelineInitializationTask
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.job.builder.FlowJobBuilder
 import org.springframework.batch.core.job.builder.JobBuilderHelper
@@ -43,7 +41,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
-
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 @ContextConfiguration(classes = [BatchTestConfiguration])
@@ -52,9 +49,7 @@ class PipelineJobBuilderSpec extends Specification {
   @Autowired AbstractApplicationContext applicationContext
 
   def mapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
 
   def pipelineInitializationStage = new PipelineInitializationStage()
   def waitForRequisiteCompletionStage = new WaitForRequisiteCompletionStage()

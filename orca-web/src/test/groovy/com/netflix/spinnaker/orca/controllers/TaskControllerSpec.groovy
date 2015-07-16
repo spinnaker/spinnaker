@@ -16,29 +16,16 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.fasterxml.jackson.core.type.TypeReference
+import java.time.Clock
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.model.OrchestrationViewModel
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.json.JsonSlurper
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobInstance
-import org.springframework.batch.core.JobParameters
-import org.springframework.batch.core.explore.JobExplorer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
-
-import java.time.Clock
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 
@@ -96,7 +83,8 @@ class TaskControllerSpec extends Specification {
     def response = mockMvc.perform(get('/tasks')).andReturn().response
 
     then:
-    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
+    executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
+      stages: [new OrchestrationStage(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }
@@ -146,8 +134,10 @@ class TaskControllerSpec extends Specification {
     given:
     def now = new Date()
     def tasks = [
-      [stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time - 1)], id: 'too-old'] as Orchestration,
-      [stages: [new OrchestrationStage(startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old'] as Orchestration,
+      [stages                                                   : [new OrchestrationStage(
+        startTime: (now - daysOfExecutionHistory).time - 1)], id: 'too-old'] as Orchestration,
+      [stages                                                   : [new OrchestrationStage(
+        startTime: (now - daysOfExecutionHistory).time + 1)], id: 'not-too-old'] as Orchestration,
       [stages: [new OrchestrationStage(startTime: (now - 1).time)], id: 'pretty-new'] as Orchestration,
       [stages: [new OrchestrationStage()], id: 'not-started-1'] as Orchestration,
       [stages: [new OrchestrationStage()], id: 'not-started-2'] as Orchestration
@@ -155,7 +145,8 @@ class TaskControllerSpec extends Specification {
     def app = 'test'
 
     when:
-    def response = new ObjectMapper().readValue(mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
+    def response = new ObjectMapper().readValue(
+      mockMvc.perform(get("/applications/$app/tasks")).andReturn().response.contentAsString, ArrayList)
 
     then:
     1 * clock.millis() >> now.time
@@ -243,7 +234,7 @@ class TaskControllerSpec extends Specification {
       stage.id == "s1" && stage.context == [
         judgmentStatus: "stop", value: "1"
       ]
-    } as PipelineStage)
+                                       } as PipelineStage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
       [value: "1", judgmentStatus: "stop"]
     ]

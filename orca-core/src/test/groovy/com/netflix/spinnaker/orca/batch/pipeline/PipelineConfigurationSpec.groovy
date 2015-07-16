@@ -26,10 +26,8 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -64,9 +62,7 @@ class PipelineConfigurationSpec extends Specification {
   def bazTask = Mock(Task)
 
   @Shared mapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new InMemoryExecutionRepository()
 
   def setup() {
 
@@ -77,8 +73,6 @@ class PipelineConfigurationSpec extends Specification {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "pipelineJobBuilder", pipelineJobBuilder
-      registerSingleton "pipelineStore", pipelineStore
-      registerSingleton "orchestrationStore", orchestrationStore
       registerSingleton "executionRepository", executionRepository
       registerSingleton "stageDetails", new StageDetailsTask()
       registerSingleton "fooStage", fooStage
@@ -137,7 +131,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],
@@ -164,7 +158,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     ]
     configJson = mapper.writeValueAsString(config)
@@ -185,7 +179,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],
