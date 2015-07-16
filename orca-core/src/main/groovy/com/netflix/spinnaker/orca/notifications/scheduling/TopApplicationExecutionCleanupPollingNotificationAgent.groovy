@@ -116,6 +116,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
           }
         }
       }
+    } catch (Exception e) {
+      log.error("Cleanup failed", e)
     } finally {
       jedisPool.returnResource(jedis)
     }
@@ -125,7 +127,8 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
     def executions = observable.filter(filter).map(mapper).toList().toBlocking().single().sort { it.startTime }
     if (executions.size() > threshold) {
       executions[0..(executions.size() - threshold - 1)].each {
-        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(it.startTime as Long)}, application: ${application})")
+        def startTime = it.startTime ?: (it.buildTime ?: 0)
+        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application})")
 
         switch (type) {
           case "pipeline":
