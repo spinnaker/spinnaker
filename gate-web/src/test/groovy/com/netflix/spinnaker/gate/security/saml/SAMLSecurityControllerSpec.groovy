@@ -81,28 +81,24 @@ class SAMLSecurityControllerSpec extends Specification {
   }
 
   @Unroll
-  void "should check for anonymous allowed accounts when determining whether user has required roles"() {
+  void "should check whether a user has a required role"() {
     given:
-    def anonymousSecurityConfig = (anonymousAllowedAccounts != null) ? new AnonymousSecurityConfig(
-      katoService: Mock(KatoService) {
-        (0..1) * getAccounts() >> { anonymousAllowedAccounts.collect { new KatoService.Account(name: it) } }
-      }
-    ) : null
     def oneLoginSecurityConfig = new SAMLSecurityConfig.SAMLSecurityConfigProperties(
-      requiredRoleByAccount: requiredRolesByAccount
+      requiredAccounts: requiredAccounts
     )
-    def user = new User(email: email, roles: userRoles)
+    def user = new User(allowedAccounts: allowedAccounts)
 
     expect:
-    SAMLSecurityController.hasRequiredRole(anonymousSecurityConfig, oneLoginSecurityConfig, user) == hasRequiredRole
+    SAMLSecurityController.hasRequiredRole(oneLoginSecurityConfig, user) == hasRequiredRole
 
     where:
-    email        | requiredRolesByAccount | anonymousAllowedAccounts | userRoles  || hasRequiredRole
-    "anonymous"  | ["test": "groupA"]     | ["prod"]                 | []         || false
-    "authorized" | ["test": "groupA"]     | ["prod"]                 | []         || true
-    "authorized" | ["test": "groupA"]     | []                       | []         || false
-    "authorized" | ["test": "groupA"]     | null                     | []         || false
-    "authorized" | ["test": "groupA"]     | null                     | ["groupA"] || true
-    "authorized" | ["test": "groupA"]     | null                     | ["groupA"] || true
+    requiredAccounts | allowedAccounts || hasRequiredRole
+    ["test"]         | ["prod"]        || false
+    ["test"]         | ["prod"]        || false
+    ["test"]         | []              || false
+    ["test"]         | null            || false
+    ["test"]         | ["test"]        || true
+    []               | ["test"]        || true
+    null             | ["test"]        || true
   }
 }

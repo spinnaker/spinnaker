@@ -32,14 +32,14 @@ class SAMLSecurityController {
 
   private final String url
   private final String certificate
-  private final SAMLSecurityConfig.SAMLSecurityConfigProperties oneLoginProperties
+  private final SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties
   private final KatoService katoService
 
   @Autowired
   SAMLSecurityController(SAMLSecurityConfig.SAMLSecurityConfigProperties properties, KatoService katoService) {
     this.url = properties.url
     this.certificate = properties.certificate
-    this.oneLoginProperties = properties
+    this.samlSecurityConfigProperties = properties
     this.katoService = katoService
   }
 
@@ -59,15 +59,15 @@ class SAMLSecurityController {
     request.session.setAttribute(SPINNAKER_SSO_CALLBACK_KEY, callback)
 
     URL redirect
-    if (oneLoginProperties.redirectBase) {
-      redirect = (oneLoginProperties.redirectBase + '/auth/signIn').toURI().normalize().toURL()
+    if (samlSecurityConfigProperties.redirectBase) {
+      redirect = (samlSecurityConfigProperties.redirectBase + '/auth/signIn').toURI().normalize().toURL()
     } else {
       redirect = new URL(request.scheme, request.serverName, request.serverPort, request.contextPath + '/auth/signIn')
     }
 
-    def authnRequest = SAMLUtils.buildAuthnRequest(url, redirect, oneLoginProperties.issuerId)
+    def authnRequest = SAMLUtils.buildAuthnRequest(url, redirect, samlSecurityConfigProperties.issuerId)
     def context = SAMLUtils.buildSAMLMessageContext(authnRequest, response, url)
-    oneLoginProperties.with {
+    samlSecurityConfigProperties.with {
       def credential = SAMLUtils.buildCredential(keyStoreType, keyStore, keyStorePassword, keyStoreAliasName)
       if (credential.present) {
         context.setOutboundSAMLMessageSigningCredential(credential.get())
@@ -81,9 +81,9 @@ class SAMLSecurityController {
   void signIn(@RequestParam("SAMLResponse") String samlResponse,
               HttpServletRequest request,
               HttpServletResponse response) {
-    def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(oneLoginProperties.certificate))
-    def user = buildUser(assertion, oneLoginProperties.userAttributeMapping, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
-    if (!hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, user)) {
+    def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(samlSecurityConfigProperties.certificate))
+    def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
+    if (!hasRequiredRole(samlSecurityConfigProperties, user)) {
       throw new BadCredentialsException("Credentials are bad")
     }
     def auth = new UsernamePasswordAuthenticationToken(user, "", [new SimpleGrantedAuthority("USER")])
@@ -99,37 +99,21 @@ class SAMLSecurityController {
     response.sendRedirect callback
   }
 
-  static boolean hasRequiredRole(AnonymousSecurityConfig anonymousSecurityConfig,
-                                 SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties,
+  static boolean hasRequiredRole(SAMLSecurityConfig.SAMLSecurityConfigProperties samlSecurityConfigProperties,
                                  User user) {
-    if (anonymousSecurityConfig) {
-      def hasAuthenticated = user.email != anonymousSecurityConfig.defaultEmail
-      if (!hasAuthenticated) {
-        return false
-      }
-
-      if (anonymousSecurityConfig.allowedAccounts) {
-        return true
+    if (samlSecurityConfigProperties.requiredAccounts) {
+      return user.allowedAccounts.find { String allowedAccount ->
+        samlSecurityConfigProperties.requiredAccounts.contains(allowedAccount)
       }
     }
 
-    if (samlSecurityConfigProperties.requiredRoleByAccount) {
-      def allAllowedAccountRoles = samlSecurityConfigProperties.requiredRoleByAccount.values()*.toLowerCase()
-      if (samlSecurityConfigProperties.requiredRoleByAccount && !user.roles?.find {
-        allAllowedAccountRoles.contains(it.toLowerCase())
-      }) {
-        log.error("User '${user.email}' does not have a required role (userRoles: ${user.roles.join(",")}, requiredRoles: ${samlSecurityConfigProperties.requiredRoleByAccount.values().join(",")})")
-        return false
-      }
-    }
-
-    return true
+    return user.allowedAccounts
   }
 
   @RequestMapping(value = "/info", method = RequestMethod.GET)
   User getUser(HttpServletRequest request, HttpServletResponse response) {
     Object whoami = SecurityContextHolder.context.authentication.principal
-    if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(anonymousSecurityConfig, oneLoginProperties, whoami))) {
+    if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(samlSecurityConfigProperties, whoami))) {
       response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
       response.sendError 401
       null
