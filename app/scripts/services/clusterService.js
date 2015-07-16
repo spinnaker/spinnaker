@@ -197,6 +197,7 @@ angular.module('spinnaker.cluster.service', [
         serverGroup.instances.forEach(function(instance) {
           instance.provider = serverGroup.type;
           instance.serverGroup = instance.serverGroup || serverGroup.name;
+          instance.vpcId = serverGroup.vpcId;
         });
       });
     }

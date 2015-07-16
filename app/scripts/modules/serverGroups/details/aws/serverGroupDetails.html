@@ -103,8 +103,10 @@
 
           {{serverGroup.region}}
         </dd>
-        <dt>Subnet:</dt>
-        <dd>{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
+        <dt>VPC:</dt>
+        <dd><vpc-tag vpc-id="serverGroup.vpcId"></vpc-tag></dd>
+        <dt ng-if="serverGroup.vpcId">Subnet:</dt>
+        <dd ng-if="serverGroup.vpcId">{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">

@@ -7,6 +7,7 @@ angular.module('spinnaker.instance.detail.aws.controller', [
   'spinnaker.instance.read.service',
   'spinnaker.confirmationModal.service',
   'spinnaker.utils.lodash',
+  'spinnaker.vpc.tag.directive',
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,
