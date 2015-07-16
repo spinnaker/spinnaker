@@ -3,6 +3,7 @@ package com.netflix.spinnaker.orca.echo.spring
 import com.netflix.spinnaker.orca.batch.StageExecutionListener
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -30,7 +31,10 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
     if (stepExecution.status == BatchStatus.STARTED) {
-      recordEvent('starting', stage, stepExecution)
+      if ((stage.execution instanceof Pipeline) && (stepExecution.stepName.contains('.stageStart.'))) {
+        recordEvent('stage', 'starting', stage, stepExecution)
+      }
+      recordEvent('task', 'starting', stage, stepExecution)
     }
   }
 
@@ -38,15 +42,23 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
     if (stepExecution.status.running) {
       return
     }
-    recordEvent((wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
+    recordEvent('task', (wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
+    if (stage.execution instanceof Pipeline){
+      if( wasSuccessful(stepExecution) ){
+        if (stepExecution.stepName.contains('.stageEnd.'))
+          recordEvent('stage', 'complete', stage, stepExecution)
+      } else {
+        recordEvent('stage', 'failed', stage, stepExecution)
+      }
+    }
   }
 
-  private void recordEvent(String phase, Stage stage, StepExecution stepExecution) {
+  private void recordEvent(String type, String phase, Stage stage, StepExecution stepExecution) {
     try {
       echoService.recordEvent(
         details: [
           source     : "orca",
-          type       : "orca:task:${phase}".toString(),
+          type       : "orca:${type}:${phase}".toString(),
           application: stage.execution.application
         ], content: [
         standalone : stage.execution instanceof Orchestration,
@@ -60,7 +72,7 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
       ]
       )
     } catch (Exception e) {
-      log.error("Failed to send task event ${phase} ${stage.execution.id} ${stepExecution.stepName}")
+      log.error("Failed to send ${type} event ${phase} ${stage.execution.id} ${stepExecution.stepName}")
     }
   }
 

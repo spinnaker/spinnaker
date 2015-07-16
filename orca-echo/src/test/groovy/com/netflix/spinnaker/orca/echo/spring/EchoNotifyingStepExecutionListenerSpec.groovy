@@ -9,7 +9,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.BatchStatus
 import org.springframework.batch.core.ExitStatus
 import org.springframework.batch.core.StepExecution
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -55,14 +54,14 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     echoListener.afterTask(stage, stepExecution)
 
     then:
-    1 * echoService.recordEvent(_)
+    invocations * echoService.recordEvent(_)
 
     where:
-    batchStatus           | exitStatus
-    BatchStatus.COMPLETED | ExitStatus.COMPLETED
-    BatchStatus.COMPLETED | ExitStatus.FAILED // this happens when you have a handled error in a step
-    BatchStatus.STOPPED   | ExitStatus.STOPPED
-    BatchStatus.FAILED    | ExitStatus.FAILED
+    invocations | batchStatus           | exitStatus
+    1           | BatchStatus.COMPLETED | ExitStatus.COMPLETED
+    2           | BatchStatus.COMPLETED | ExitStatus.FAILED // this happens when you have a handled error in a step
+    2           | BatchStatus.STOPPED   | ExitStatus.STOPPED
+    2           | BatchStatus.FAILED    | ExitStatus.FAILED
   }
 
   @Unroll
@@ -104,15 +103,15 @@ class EchoNotifyingStepExecutionListenerSpec extends Specification {
     then:
     message.details.source == "orca"
     message.details.application == pipeline.application
-    message.details.type == "orca:task:$echoMessage"
+    message.details.type == "orca:${type}:$echoMessage"
     message.details.type instanceof String
 
     where:
-    batchStatus           | exitStatus           | echoMessage
-    BatchStatus.COMPLETED | ExitStatus.COMPLETED | "complete"
-    BatchStatus.COMPLETED | ExitStatus.FAILED    | "failed"
-    BatchStatus.STOPPED   | ExitStatus.STOPPED   | "failed"
-    BatchStatus.FAILED    | ExitStatus.FAILED    | "failed"
+    batchStatus           | exitStatus           | echoMessage | type
+    BatchStatus.COMPLETED | ExitStatus.COMPLETED | "complete"  | 'task'
+    BatchStatus.COMPLETED | ExitStatus.FAILED    | "failed"    | 'stage'
+    BatchStatus.STOPPED   | ExitStatus.STOPPED   | "failed"    | 'stage'
+    BatchStatus.FAILED    | ExitStatus.FAILED    | "failed"    | 'stage'
   }
 
   @Unroll

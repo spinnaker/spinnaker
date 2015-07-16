@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
+
 import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -11,7 +13,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.SimpleStage
-import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
@@ -21,7 +22,6 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 /**
  * Most of what the listener does can be tested at a unit level, this is just to
@@ -40,21 +40,26 @@ class EchoEventSpec extends Specification {
 
   def echoService = Mock(EchoService)
 
-  @Autowired AbstractApplicationContext applicationContext
-  @Autowired PipelineStarter pipelineStarter
-  @Autowired PipelineJobBuilder pipelineJobBuilder
-  @Autowired ExecutionRepository executionRepository
+  @Autowired
+  AbstractApplicationContext applicationContext
+  @Autowired
+  PipelineStarter pipelineStarter
+  @Autowired
+  PipelineJobBuilder pipelineJobBuilder
+  @Autowired
+  ExecutionRepository executionRepository
 
   def task1 = Mock(Task)
   def task2 = Mock(Task)
 
-  @Shared json
+  @Shared
+    json
 
   def setupSpec() {
     def config = [
-        application: "app",
-        name: "my-pipeline",
-        stages     : [[type: "stage1"], [type: "stage2"]]
+      application: "app",
+      name       : "my-pipeline",
+      stages     : [[type: "stage1"], [type: "stage2"]]
     ]
     json = new OrcaObjectMapper().writeValueAsString(config)
   }
@@ -91,8 +96,8 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-        (["orca:task:starting", "orca:task:complete"] * 6) +
-        ["orca:pipeline:complete"]
+      (['orca:stage:starting'] + ["orca:task:starting", "orca:task:complete"] * 3 + ['orca:stage:complete']) * 2 +
+      ["orca:pipeline:complete"]
   }
 
   def "when tasks repeat they don't send duplicate start events"() {
@@ -108,8 +113,8 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-        (["orca:task:starting", "orca:task:complete"] * 6) +
-        ["orca:pipeline:complete"]
+      (['orca:stage:starting'] + ["orca:task:starting", "orca:task:complete"] * 3 + ['orca:stage:complete']) * 2 +
+      ["orca:pipeline:complete"]
   }
 
   def "when tasks fail they still send end events"() {
@@ -127,10 +132,12 @@ class EchoEventSpec extends Specification {
 
     and:
     events.details.type == ["orca:pipeline:starting",
+                            "orca:stage:starting",
                             "orca:task:starting",
                             "orca:task:complete",
                             "orca:task:starting",
                             "orca:task:failed",
+                            "orca:stage:failed",
                             "orca:pipeline:failed"]
   }
 
