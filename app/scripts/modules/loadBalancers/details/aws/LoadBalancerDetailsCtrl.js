@@ -8,7 +8,8 @@ angular.module('spinnaker.loadBalancer.aws.details.controller',[
   'spinnaker.loadBalancer.write.service',
   'spinnaker.loadBalancer.read.service',
   'spinnaker.utils.lodash',
-  'spinnaker.confirmationModal.service'
+  'spinnaker.confirmationModal.service',
+  'spinnaker.vpc.tag.directive',
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, application,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
