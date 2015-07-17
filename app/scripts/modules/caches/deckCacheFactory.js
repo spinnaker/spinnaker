@@ -90,6 +90,7 @@ angular.module('spinnaker.caches.core', [
         storagePrefix: getStoragePrefix(key, currentVersion),
         recycleFreq: 5000, // ms,
         storageImpl: selfClearingLocalStorage,
+        disabled: cacheConfig.disabled,
       });
       caches[key] = cacheFactory.get(key);
       caches[key].getStats = getStats.bind(null, caches[key]);
