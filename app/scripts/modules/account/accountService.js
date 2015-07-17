@@ -54,7 +54,7 @@ angular.module('spinnaker.account.service', [
       });
     }
 
-    var getRegionsKeyedByAccount = _.memoize(function(provider) {
+    function getRegionsKeyedByAccount(provider) {
       var deferred = $q.defer();
       listAccounts(provider).then(function(accounts) {
         $q.all(accounts.reduce(function(acc, account) {
@@ -69,7 +69,7 @@ angular.module('spinnaker.account.service', [
         });
       });
       return deferred.promise;
-    });
+    }
 
     function getAccountDetails(accountName) {
       return Restangular.one('credentials', accountName)
