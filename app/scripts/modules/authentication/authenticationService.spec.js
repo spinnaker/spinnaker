@@ -2,15 +2,19 @@
 
 describe('authenticationService', function() {
 
+  var $http, settings;
+
   beforeEach(function() {
     loadDeck({
       initializeCache: false,
-      generateUrls: true
-    })
+      generateUrls: true,
+    });
   });
 
-  beforeEach(inject(function(authenticationService) {
+  beforeEach(inject(function(authenticationService, $httpBackend, _settings_) {
     this.authenticationService = authenticationService;
+    $http = $httpBackend;
+    settings = _settings_;
   }));
 
   describe('setAuthenticatedUser', function() {
@@ -42,6 +46,26 @@ describe('authenticationService', function() {
       this.authenticationService.setAuthenticatedUser('');
       expect(user.name).toBe('[anonymous]');
       expect(user.authenticated).toBe(false);
+    });
+  });
+
+  describe('authentication', function () {
+
+    it('fires events and sets user', function () {
+      $http.expectGET(settings.gateUrl + '/auth/info').respond(200, {email: 'foo@bar.com'});
+      var firedEvents = 0;
+      this.authenticationService.onAuthentication(function() {
+        firedEvents++;
+      });
+      this.authenticationService.onAuthentication(function() {
+        firedEvents++;
+      });
+      this.authenticationService.authenticateUser();
+
+
+      $http.flush();
+      expect(this.authenticationService.getAuthenticatedUser().name).toBe('foo@bar.com');
+      expect(firedEvents).toBe(2);
     });
   });
 

@@ -10,6 +10,8 @@ angular.module('spinnaker.authentication.service', [
       authenticated: false
     };
 
+    var onAuthenticationEvents = [];
+
     function setAuthenticatedUser(authenticatedUser) {
       if (authenticatedUser) {
         user.name = authenticatedUser;
@@ -21,10 +23,17 @@ angular.module('spinnaker.authentication.service', [
       return user;
     }
 
+    function onAuthentication(event) {
+      onAuthenticationEvents.push(event);
+    }
+
     function authenticateUser() {
       $rootScope.authenticating = true;
       $http.get(settings.gateUrl + '/auth/info')
         .success(function (data) {
+          onAuthenticationEvents.forEach(function(event) {
+            event();
+          });
           if (data.email) {
             setAuthenticatedUser(data.email);
           }
@@ -52,6 +61,7 @@ angular.module('spinnaker.authentication.service', [
       setAuthenticatedUser: setAuthenticatedUser,
       getAuthenticatedUser: getAuthenticatedUser,
       authenticateUser: authenticateUser,
+      onAuthentication: onAuthentication,
     };
   })
   .factory('redirectService', function($window) {
