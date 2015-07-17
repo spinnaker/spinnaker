@@ -56,6 +56,7 @@ class PipelinePersistenceSpec extends Specification {
       beanFactory.autowireBean(testStage)
       beanFactory.autowireBean(this)
     }
+    testStage.applicationContext = applicationContext
   }
 
   def "if a pipeline restarts it resumes from where it left off"() {

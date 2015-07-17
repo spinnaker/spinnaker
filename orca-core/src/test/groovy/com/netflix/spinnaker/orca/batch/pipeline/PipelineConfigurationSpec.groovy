@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.NoSuchStageException
 import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
+import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
@@ -68,19 +69,29 @@ class PipelineConfigurationSpec extends Specification {
   def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
 
   def setup() {
+
+    def fooStage = new TestStage("foo", steps, executionRepository, fooTask)
+    def barStage = new TestStage("bar", steps, executionRepository, barTask)
+    def bazStage = new TestStage("baz", steps, executionRepository, bazTask)
+
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "pipelineJobBuilder", pipelineJobBuilder
       registerSingleton "pipelineStore", pipelineStore
       registerSingleton "orchestrationStore", orchestrationStore
       registerSingleton "executionRepository", executionRepository
-      registerSingleton "fooStage", new TestStage("foo", steps, executionRepository, fooTask)
-      registerSingleton "barStage", new TestStage("bar", steps, executionRepository, barTask)
-      registerSingleton "bazStage", new TestStage("baz", steps, executionRepository, bazTask)
+      registerSingleton "stageDetails", new StageDetailsTask()
+      registerSingleton "fooStage", fooStage
+      registerSingleton "barStage", barStage
+      registerSingleton "bazStage", bazStage
 
       autowireBean pipelineJobBuilder
       autowireBean pipelineStarter
     }
+
+    fooStage.applicationContext = applicationContext
+    barStage.applicationContext = applicationContext
+    bazStage.applicationContext = applicationContext
 
     // need to do this so that our stages are picked up
     pipelineJobBuilder.initialize()
