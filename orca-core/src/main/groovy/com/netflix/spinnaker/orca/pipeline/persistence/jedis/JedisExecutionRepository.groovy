@@ -139,12 +139,12 @@ class JedisExecutionRepository implements ExecutionRepository {
     jedis.hset(key, "config", json)
   }
 
+  @CompileDynamic
   private <T extends Execution> T retrieveInternal(Jedis jedis, Class<T> type, String id) throws ExecutionNotFoundException {
     def key = "${type.simpleName.toLowerCase()}:$id"
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
-      T execution = mapper.readValue(json, type)
-
+      def execution = mapper.readValue(json, type)
       return sortStages(jedis, execution, type)
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")

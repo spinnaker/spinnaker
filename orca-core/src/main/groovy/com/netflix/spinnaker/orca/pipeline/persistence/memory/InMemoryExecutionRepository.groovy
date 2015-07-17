@@ -1,9 +1,6 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.memory
 
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -44,7 +41,9 @@ class InMemoryExecutionRepository implements ExecutionRepository {
   @Override
   Pipeline retrievePipeline(String id) {
     if (pipelines.containsKey(id)) {
-      pipelines[id]
+      def pipeline = pipelines[id]
+      sortStages(pipeline)
+      return pipeline
     } else {
       throw new ExecutionNotFoundException("$id not found")
     }
@@ -68,7 +67,9 @@ class InMemoryExecutionRepository implements ExecutionRepository {
   @Override
   Orchestration retrieveOrchestration(String id) {
     if (orchestrations.containsKey(id)) {
-      orchestrations[id]
+      def orchestration = orchestrations[id]
+      sortStages(orchestration)
+      return orchestration
     } else {
       throw new ExecutionNotFoundException("$id not found")
     }
@@ -92,5 +93,20 @@ class InMemoryExecutionRepository implements ExecutionRepository {
   void clear() {
     orchestrations.clear()
     pipelines.clear()
+  }
+
+  private <T extends Execution> void sortStages(T execution) {
+    def reorderedStages = []
+    execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
+      reorderedStages << parentStage
+
+      def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
+      while (!children.isEmpty()) {
+        def child = children.remove(0)
+        children.addAll(0, execution.stages.findAll { it.parentStageId == child.id })
+        reorderedStages << child
+      }
+    }
+    execution.stages = reorderedStages
   }
 }
