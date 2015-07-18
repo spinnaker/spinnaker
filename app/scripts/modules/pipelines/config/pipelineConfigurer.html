@@ -49,7 +49,9 @@
       </div>
     </div>
     <div ng-if="pipeline.parallel && viewState.expanded">
-      <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
+      <div class="pipeline-graph-container">
+        <pipeline-graph view-state="viewState" pipeline="pipeline" on-node-click="pipelineConfigurerCtrl.navigateTo"></pipeline-graph>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <button class="btn btn-block btn-sm add-new" ng-click="pipelineConfigurerCtrl.addStage()">
