@@ -16,6 +16,8 @@ angular.module('spinnaker.pipelines.graph.directive', [
       templateUrl: 'scripts/modules/pipelines/config/graph/pipelineGraph.directive.html',
       link: function (scope, elem) {
 
+        var minLabelWidth = 100;
+
         scope.nodeRadius = 8;
         scope.rowPadding = 30;
         scope.graphVerticalPadding = 15;
@@ -203,14 +205,22 @@ angular.module('spinnaker.pipelines.graph.directive', [
          * Sets the width of the graph and determines the width available for each label
          */
         function applyPhaseWidth() {
-          scope.graphWidth = elem.width() - (2 * scope.nodeRadius);
-          var maxLabelWidth = scope.graphWidth;
+          var graphWidth = elem.width() - (2 * scope.nodeRadius);
+          var phaseOffset = 2*scope.nodeRadius + scope.labelOffsetX;
+          var maxLabelWidth = graphWidth;
 
           if (scope.phaseCount) {
-            maxLabelWidth = (scope.graphWidth / (scope.phaseCount + 1)) - (2*scope.nodeRadius) - scope.labelOffsetX;
+            maxLabelWidth = (graphWidth / (scope.phaseCount + 1)) - phaseOffset;
           }
-
+          maxLabelWidth = Math.max(minLabelWidth, maxLabelWidth);
           scope.maxLabelWidth = maxLabelWidth;
+          if (maxLabelWidth === minLabelWidth) {
+            scope.graphWidth = (scope.phaseCount + 1) * (maxLabelWidth + phaseOffset) + 5 + 'px';
+            scope.graphClass = 'small';
+          } else {
+            scope.graphWidth = '100%';
+            scope.graphClass = '';
+          }
         }
 
         function applyNodeHeights() {

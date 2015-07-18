@@ -1,4 +1,4 @@
-<svg ng-style="{height: graphHeight, width: '100%', padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px'}">
+<svg ng-style="{height: graphHeight, width: graphWidth, padding: graphVerticalPadding + 'px ' + nodeRadius*2 + 'px'}" class="{{graphClass}}">
   <g class="placeholder">
     <foreignobject ng-attr-width="{{maxLabelWidth > 0 ? maxLabelWidth : 1}}" height="200">
       <div class="label-body node active"></div>
