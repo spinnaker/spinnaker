@@ -27,10 +27,25 @@
     </li>
     <li ng-repeat="result in category.results.slice(0,5)"
         ng-repeat-end
+        ng-mouseover="ctrl.focussedResult = result"
         class="result">
       <a ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)" href="{{ result.href }}" analytics-on="click"
          analytics-category="Global Search"
-         analytics-label="{{result.name}}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
+         ng-class="{sublinked: result.sublinks}"
+         ng-focus="ctrl.focussedResult = result"
+         analytics-label="{{result.name}}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span>
+      </a>
+      <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
+      <span ng-repeat-start="sublink in result.sublinks.slice(1)"
+            ng-show="ctrl.focussedResult === result && $index > 0">|</span>
+      <a class="sublink small" analytics-on="click"
+         ng-show="ctrl.focussedResult === result"
+         ng-repeat-end
+         analytics-category="Global Search - sublink"
+         ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)"
+         href="{{ result.href + sublink.href }}">
+        {{sublink.name}}
+      </a>
     </li>
     <li class="divider"></li>
     <li class="result" ng-if="categories.length">
