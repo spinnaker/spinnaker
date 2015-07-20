@@ -34,6 +34,7 @@
          ng-class="{sublinked: result.sublinks}"
          ng-focus="ctrl.focussedResult = result"
          analytics-label="{{result.name}}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span>
+        <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">- {{result.sublinks[0].name}}</span>
       </a>
       <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
       <span ng-repeat-start="sublink in result.sublinks.slice(1)"
