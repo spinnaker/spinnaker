@@ -24,6 +24,8 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
       loading: true
     };
 
+    $scope.filterCountOptions = [1,2,5,10,25,50,100];
+
     $scope.filter = executionsViewStateCache.get($scope.application.name) || {
       count: 5,
       execution: {

@@ -28,6 +28,7 @@ angular.module('spinnaker.tasks.main', [
     }
 
     $scope.tasksUrl = [settings.gateUrl, 'applications', application.name, 'tasks/'].join('/');
+    $scope.filterCountOptions = [10,20,30,50,100,200];
 
     function initializeViewState() {
       var viewState = tasksViewStateCache.get(application.name) || {
