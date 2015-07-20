@@ -21,9 +21,7 @@ ospackage {
 
   requires("deck")
   requires("gate")
-  requires("mort")
-  requires("oort")
-  requires("kato")
+  requires("clouddriver")
   requires("orca")
   requires("front50")
 

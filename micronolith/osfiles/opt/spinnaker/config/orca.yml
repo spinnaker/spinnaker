@@ -8,11 +8,11 @@ default:
 front50:
   baseUrl: http://localhost:8080
 oort:
-  baseUrl: http://localhost:8081
+  baseUrl: http://localhost:7002
 mort:
-  baseUrl: http://localhost:8082
+  baseUrl: http://localhost:7002
 kato:
-  baseUrl: http://localhost:8501
+  baseUrl: http://localhost:7002
 
 redis:
   connection: redis://localhost:6379
