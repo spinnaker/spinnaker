@@ -27,3 +27,25 @@ services:
 
 redis:
   connection: redis://localhost:6379
+
+swagger:
+  enabled: true
+  title: Spinnaker API
+  description:
+  contact:
+  patterns:
+    - .*tasks.*
+    - .*applications.*
+    - .*securityGroups.*
+    - /search
+    - .*pipelines.*
+    - .*loadBalancers.*
+    - .*instances.*
+    - .*images.*
+    - .*elasticIps.*
+    - .*credentials.*
+    - .*events.*
+    - .*builds.*
+    - .*instanceTypes.*
+    - .*vpcs.*
+    - .*subnets.*
