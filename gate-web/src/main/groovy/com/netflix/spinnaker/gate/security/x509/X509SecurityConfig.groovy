@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.gate.security.x509
 
+import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,8 +15,9 @@ import org.springframework.security.web.authentication.preauth.x509.X509Authenti
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
 class X509SecurityConfig implements WebSecurityAugmentor {
+
   @Autowired
-  AnonymousSecurityConfig anonymousSecurityConfig
+  AnonymousAccountsService anonymousAccountsService
 
   @Override
   void configure(HttpSecurity http,
@@ -30,6 +32,6 @@ class X509SecurityConfig implements WebSecurityAugmentor {
 
   @Override
   void configure(AuthenticationManagerBuilder auth) {
-    auth.authenticationProvider(new X509AuthenticationProvider(anonymousSecurityConfig?.allowedAccounts))
+    auth.authenticationProvider(new X509AuthenticationProvider(anonymousAccountsService))
   }
 }

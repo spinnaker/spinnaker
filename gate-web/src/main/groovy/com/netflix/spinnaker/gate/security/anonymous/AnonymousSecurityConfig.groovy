@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.gate.security.anonymous
 
+import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.User
@@ -15,7 +16,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 
-@ConditionalOnExpression('${saml.enabled:false} || ${x509.enabled:false}')
+@ConditionalOnExpression('!${saml.requireAuthentication:false} && (${saml.enabled:false} || ${x509.enabled:false})')
 @Configuration
 @ConfigurationProperties(prefix = "anonymous")
 class AnonymousSecurityConfig implements WebSecurityAugmentor {
@@ -23,14 +24,15 @@ class AnonymousSecurityConfig implements WebSecurityAugmentor {
   String defaultEmail = "anonymous"
 
   @Autowired
-  KatoService katoService
+  AnonymousAccountsService anonymousAccountsService
 
   @Override
   void configure(HttpSecurity http,
                  UserDetailsService userDetailsService,
                  AuthenticationManager authenticationManager) {
     def filter = new AnonymousAuthenticationFilter(
-      key, new User(defaultEmail, null, null, ["anonymous"], getAllowedAccounts()), [new SimpleGrantedAuthority("anonymous")]
+      // it seems like a smell that this is statically initialized with the allowedAccounts
+      key, new User(defaultEmail, null, null, ["anonymous"], anonymousAccountsService.getAllowedAccounts()), [new SimpleGrantedAuthority("anonymous")]
     )
     http.addFilter(filter)
     http.csrf().disable()
@@ -41,7 +43,4 @@ class AnonymousSecurityConfig implements WebSecurityAugmentor {
     auth.authenticationProvider(new AnonymousAuthenticationProvider(key))
   }
 
-  public Collection<String> getAllowedAccounts() {
-    return katoService.accounts.findAll { !it.requiredGroupMembership }*.name
-  }
 }

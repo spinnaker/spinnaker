@@ -2,6 +2,7 @@ package com.netflix.spinnaker.gate.security.saml
 
 import com.netflix.spinnaker.gate.config.GateConfig
 import com.netflix.spinnaker.gate.config.SAMLSecurityConfig
+import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.User
@@ -49,6 +50,9 @@ class SAMLSecurityController {
   @Autowired(required = false)
   AnonymousSecurityConfig anonymousSecurityConfig
 
+  @Autowired
+  AnonymousAccountsService anonymousAccountsService
+
   @RequestMapping(method = RequestMethod.GET)
   void get(
     @RequestParam(value = "callback", required = false) String cb,
@@ -82,8 +86,10 @@ class SAMLSecurityController {
               HttpServletRequest request,
               HttpServletResponse response) {
     def assertion = SAMLUtils.buildAssertion(samlResponse, SAMLUtils.loadCertificate(samlSecurityConfigProperties.certificate))
-    def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousSecurityConfig?.getAllowedAccounts(), katoService.getAccounts())
+    def user = buildUser(assertion, samlSecurityConfigProperties.userAttributeMapping, anonymousAccountsService.getAllowedAccounts(), katoService.getAccounts())
     if (!hasRequiredRole(anonymousSecurityConfig, samlSecurityConfigProperties, user)) {
+      SecurityContextHolder.clearContext()
+      rememberMeServices.loginFail(request, response)
       throw new BadCredentialsException("Credentials are bad")
     }
     def auth = new UsernamePasswordAuthenticationToken(user, "", [new SimpleGrantedAuthority("USER")])

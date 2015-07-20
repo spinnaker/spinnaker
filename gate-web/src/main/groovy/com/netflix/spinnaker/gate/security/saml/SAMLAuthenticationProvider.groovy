@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.security.saml
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.AuthenticationProvider
+import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
@@ -38,11 +39,17 @@ class SAMLAuthenticationProvider implements AuthenticationProvider {
 
   @Override
   Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    if (!authentication.authenticated) {
+      throw new BadCredentialsException("Not Authenticated")
+    }
+    return authentication
+    /*
     String email = authentication.name
 
     email.endsWith("@${userDomain}") ?
         new UsernamePasswordAuthenticationToken(email, "", [new SimpleGrantedAuthority(YOLO_ROLE)])
         : null
+        */
   }
 
   @Override
