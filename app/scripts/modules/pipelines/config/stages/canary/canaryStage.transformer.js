@@ -2,7 +2,7 @@
 
 // TODO: Clean this up on the backend - this is a mess
 angular.module('spinnaker.pipelines.stage.canary.transformer', [])
-  .service('canaryStageTransformer', function() {
+  .service('canaryStageTransformer', function($log) {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
     function getDeployTaskName(stage) {
@@ -107,6 +107,10 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
               canaryStageId: stage.id,
             }
           });
+          if (!deployParent) {
+            $log.warn('No deployment parent found for canary stage in execution:', execution.id);
+            return;
+          }
           var monitorStage = _.find(execution.stages, {
             type: 'monitorCanary',
             context: {

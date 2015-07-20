@@ -90,6 +90,8 @@ angular.module('spinnaker.orchestratedItem.service', [
           return 'CANCELED';
         case 'UNKNOWN':
           return 'UNKNOWN';
+        case 'TERMINATED':
+          return 'TERMINATED';
         default:
           if (item.originalStatus) {
             $log.warn('Unrecognized status:', item.originalStatus);
