@@ -13,6 +13,7 @@ angular.module('spinnaker.search.global')
       $scope.query = null;
       $scope.categories = null;
       $scope.showSearchResults = false;
+      ctrl.focussedResult = null;
       $element.find('input').focus();
     }
 
@@ -92,6 +93,7 @@ angular.module('spinnaker.search.global')
         reset();
       }
       if (event.which === 40) { // down
+        ctrl.focussedResult = null;
         try {
           $target
             .parent()
@@ -104,6 +106,7 @@ angular.module('spinnaker.search.global')
         event.preventDefault();
       }
       if (event.which === 38) { // up
+        ctrl.focussedResult = null;
         try {
           $target
             .parent()
@@ -114,6 +117,27 @@ angular.module('spinnaker.search.global')
           ctrl.focusLastSearchResult(event);
         }
         event.preventDefault();
+      }
+      if (event.which === 39) { // right
+        if ($target.is('.sublinked') || $target.is('.sublink')) {
+          if ($target.nextAll('.sublink').size()) {
+            $target.nextAll('.sublink')[0].focus();
+          } else {
+            $target.prevAll('.sublinked')[0].focus();
+          }
+        }
+      }
+      if (event.which === 37) { // left
+        if ($target.is('.sublinked')) {
+          $target.nextAll('.sublink').last().focus();
+        }
+        if ($target.is('.sublink')) {
+          try {
+            $target.prevAll('.sublink')[0].focus();
+          } catch (e) {
+            $target.prevAll('.sublinked')[0].focus();
+          }
+        }
       }
     };
   });

@@ -57,7 +57,7 @@ angular.module('spinnaker.urlBuilder', ['ui.router'])
       // url for a single application
       'applications': function(input) {
         return $state.href(
-          'home.applications.application.insight.clusters',
+          'home.applications.application',
           {
             application: input.application,
           },
