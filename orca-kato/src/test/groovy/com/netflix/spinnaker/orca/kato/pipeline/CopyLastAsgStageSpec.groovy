@@ -16,21 +16,35 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.*
 
 class CopyLastAsgStageSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   @Subject copyLastAsgStage = new CopyLastAsgStage()
   def resolver = Mock(SourceResolver)
@@ -38,7 +52,7 @@ class CopyLastAsgStageSpec extends Specification {
   def destroyAsgStage = Mock(DestroyAsgStage)
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new InMemoryExecutionRepository()
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
 
   void setup() {
     copyLastAsgStage.applicationContext = Stub(ApplicationContext) {

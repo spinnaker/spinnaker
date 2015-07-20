@@ -16,24 +16,42 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class QuickPatchStageSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   @Subject quickPatchStage = Spy(QuickPatchStage)
   def oort = Mock(OortService)
@@ -42,7 +60,7 @@ class QuickPatchStageSpec extends Specification {
   def bulkQuickPatchStage = Spy(BulkQuickPatchStage)
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new InMemoryExecutionRepository()
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
   InstanceService instanceService = Mock(InstanceService)
 
   void setup() {

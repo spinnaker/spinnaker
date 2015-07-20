@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch.adapters
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.NoopRegistry
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -29,23 +30,35 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
 import org.springframework.batch.repeat.RepeatStatus
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 import static org.springframework.batch.test.MetaDataInstanceFactory.createJobExecution
 import static org.springframework.batch.test.MetaDataInstanceFactory.createStepExecution
 
 class TaskTaskletSpec extends Specification {
 
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new InMemoryExecutionRepository()
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
   def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
@@ -76,10 +89,6 @@ class TaskTaskletSpec extends Specification {
     stepContext = new StepContext(stepExecution)
     stepContribution = new StepContribution(stepExecution)
     chunkContext = new ChunkContext(stepContext)
-  }
-
-  void cleanup() {
-    executionRepository.clear()
   }
 
   def "should invoke the step when executed"() {

@@ -16,46 +16,37 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
+import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
-import org.springframework.batch.core.explore.JobExplorer
-import org.springframework.batch.core.launch.JobLauncher
-import org.springframework.batch.core.repository.JobRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
-import spock.lang.Ignore
 import spock.lang.Specification
-import spock.lang.Subject
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
-@Ignore("@robfletcher halp")
-@ContextConfiguration(classes = [BatchTestConfiguration, JesqueConfiguration, EmbeddedRedisConfiguration, OrcaConfiguration])
+@ContextConfiguration(classes = [BatchTestConfiguration, EurekaComponents, JesqueConfiguration, EmbeddedRedisConfiguration, OrcaConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineStatusSpec extends Specification {
 
   @Autowired AbstractApplicationContext applicationContext
-  @Autowired JobBuilderFactory jobs
   @Autowired StepBuilderFactory steps
-  @Autowired JobLauncher jobLauncher
-  @Autowired JobRepository jobRepository
-  @Autowired JobExplorer jobExplorer
-
-  @Autowired @Subject PipelineStarter pipelineStarter
+  @Autowired ExecutionRepository executionRepository
+  @Autowired PipelineJobBuilder pipelineJobBuilder
+  @Autowired PipelineStarter pipelineStarter
 
   static mapper = new OrcaObjectMapper()
-  static def executionRepository = new InMemoryExecutionRepository()
 
   def fooTask = Stub(Task) {
     execute(*_) >> DefaultTaskResult.SUCCEEDED
@@ -64,10 +55,12 @@ class PipelineStatusSpec extends Specification {
   def setup() {
     applicationContext.beanFactory.with {
       ["foo", "bar", "baz"].each { name ->
-        registerSingleton "${name}Stage", new TestStage(name, steps, executionRepository, fooTask)
+        def stage = new TestStage(name, steps, executionRepository, fooTask)
+        stage.applicationContext = applicationContext
+        registerSingleton "${name}Stage", stage
       }
     }
-    pipelineStarter.initialize()
+    pipelineJobBuilder.initialize()
   }
 
   def "can get a list of stages from the pipeline"() {
@@ -81,6 +74,7 @@ class PipelineStatusSpec extends Specification {
     stageTypes = ["foo", "bar", "baz"]
     config = [
       application: "app",
+      name       : "test-pipeline",
       stages     : stageTypes.collect {
         [type: it]
       }
@@ -101,6 +95,7 @@ class PipelineStatusSpec extends Specification {
     stageTypes = ["foo", "bar", "baz"]
     config = [
       application: "app",
+      name       : "test-pipeline",
       stages     : stageTypes.collect {
         [type: it]
       }
