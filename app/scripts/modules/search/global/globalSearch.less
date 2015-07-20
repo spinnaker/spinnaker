@@ -18,8 +18,16 @@
       a {
         font-variant: normal;
         color: #000;
+        transition: background-color 0.2s, outline-width 0.2s;
         .expand-results {
           font-weight: bold;
+        }
+        &.sublinked, &.sublink {
+          display: inline-block;
+          padding-right: 5px;
+        }
+        &.sublink {
+          padding: 3px 6px;
         }
       }
       &.category-heading {

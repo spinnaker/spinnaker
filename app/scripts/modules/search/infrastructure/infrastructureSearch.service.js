@@ -19,6 +19,21 @@ angular.module('spinnaker.search')
         };
       }
 
+      var sublinks = {
+        applications: [
+          { name: 'clusters', href: '/clusters' },
+          { name: 'pipelines', href: '/../executions' },
+          { name: 'tasks', href: '/../tasks' }
+        ]
+      };
+
+      function applySublinks(entry) {
+        if (sublinks[entry.type]) {
+          entry.sublinks = sublinks[entry.type];
+          entry.href += entry.sublinks[0].href;
+        }
+      }
+
       var displayNameFormatter = {
         serverGroups: function(entry) {
           return entry.serverGroup + ' (' + entry.account + ': ' + entry.region + ')';
@@ -52,6 +67,7 @@ angular.module('spinnaker.search')
             var cat = entry.type;
             entry.name = displayNameFormatter[entry.type](entry);
             entry.href = urlBuilder.buildFromMetadata(entry);
+            applySublinks(entry);
             if (angular.isDefined(categories[cat])) {
               categories[cat].push(entry);
             } else {
