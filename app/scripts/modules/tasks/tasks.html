@@ -172,13 +172,8 @@
             <select class="input input-sm"
                     ng-model="viewState.itemsPerPage"
                     ng-change="tasks.sortTasksAndResetPaginator()"
+                    ng-options="count for count in filterCountOptions"
                     style="width: 50px">
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
             </select>
             per page
         </div>
