@@ -79,6 +79,7 @@ angular.module('spinnaker.settings', [])
       canary: true,
       parallelPipelines: true,
       fastProperty: true,
+      vpcMigrator: true,
     },
 
 
