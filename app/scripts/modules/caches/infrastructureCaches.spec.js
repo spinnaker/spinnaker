@@ -99,6 +99,17 @@ describe('spinnaker.caches.infrastructure', function() {
       expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
     });
 
+    it('should remove all keys when clearCache called', function() {
+      infrastructureCaches.createCache('someBadCache', {
+        cacheFactory: this.cacheFactory,
+        version: 0,
+      });
+
+      var removalCallsAfterInitialization = this.removalCalls.length;
+      infrastructureCaches.clearCache('someBadCache');
+      expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
+    });
+
     it('should set disabled flag and register event when authEnabled', function () {
       var originalAuthEnabled = settings.authEnabled;
       settings.authEnabled = true;

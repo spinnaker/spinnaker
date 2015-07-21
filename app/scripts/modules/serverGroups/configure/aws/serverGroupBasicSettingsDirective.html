@@ -40,6 +40,26 @@
       <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
     </div>
   </div>
+  <div class="col-md-10" ng-if="command.viewState.useAllImageSelection">
+
+    <ui-select ng-model="command.viewState.allImageSelection"
+               class="form-control input-sm"
+               required>
+      <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || $select.selected}}</ui-select-match>
+      <ui-select-choices repeat="result.imageName as result in allImageSearchResults track by $index"
+                         refresh="basicSettingsCtrl.searchImages($select.search)"
+                         ui-disable-choice="result.message"
+                         reset-search-input="false"
+                         refresh-delay="0">
+        <span ng-bind-html="result.message"></span>
+        <span ng-bind-html="result.imageName | highlight: $select.search"></span>
+        <span ng-if="result.ami">(<span ng-bind-html="result.ami | highlight: $select.search"></span>)</span>
+      </ui-select-choices>
+    </ui-select>
+        <span ng-if="command.backingData.filtered.images.length > 0">
+          <help-field key="aws.serverGroup.filterImages"></help-field>
+        </span>
+  </div>
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
     <div class="col-md-2 sm-label-left">
       Image
