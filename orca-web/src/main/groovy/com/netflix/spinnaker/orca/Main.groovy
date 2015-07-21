@@ -36,6 +36,7 @@ import com.netflix.spinnaker.orca.mort.config.MortConfiguration
 import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
+import com.netflix.spinnaker.orca.tide.config.TideConfiguration
 import com.netflix.spinnaker.orca.sock.config.SockConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
@@ -74,7 +75,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   SockConfiguration,
   DiscoveryPollingConfiguration,
   TomcatConfiguration,
-  MineConfiguration
+  MineConfiguration,
+  TideConfiguration
 ])
 class Main extends SpringBootServletInitializer {
   static final Map<String, String> DEFAULT_PROPS = [
