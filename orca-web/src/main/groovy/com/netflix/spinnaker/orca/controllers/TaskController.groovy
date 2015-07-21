@@ -16,18 +16,19 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import java.time.Clock
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-
-import java.time.Clock
 
 @RestController
 class TaskController {
@@ -175,4 +176,8 @@ class TaskController {
       execution: orchestration
     )
   }
+
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  @ExceptionHandler(ExecutionNotFoundException)
+  void notFound() {}
 }
