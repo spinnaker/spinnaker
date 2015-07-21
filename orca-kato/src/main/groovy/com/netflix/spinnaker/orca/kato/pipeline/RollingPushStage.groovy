@@ -59,6 +59,7 @@ class RollingPushStage extends StageBuilder {
     jobBuilder.next(buildStep(stage, "monitorDisable", MonitorKatoTask))
     jobBuilder.next(buildStep(stage, "waitForDisabledState", WaitForDownInstanceHealthTask))
     jobBuilder.next(buildStep(stage, "terminateInstances", TerminateInstancesTask))
+    jobBuilder.next(buildStep(stage, "waitForTerminateOperation", MonitorKatoTask))
     jobBuilder.next(buildStep(stage, "waitForTerminatedInstances", WaitForTerminatedInstancesTask))
     jobBuilder.next(buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask))
     jobBuilder.next(buildStep(stage, "waitForNewInstances", WaitForNewInstanceLaunchTask))
