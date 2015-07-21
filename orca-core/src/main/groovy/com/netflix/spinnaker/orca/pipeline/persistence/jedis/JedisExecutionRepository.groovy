@@ -28,7 +28,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   private final Pool<Jedis> jedisPool
   private final ObjectMapper mapper = new OrcaObjectMapper()
   private final int chunkSize
-  private final Scheduler queryAllScheduler = Schedulers.from(newFixedThreadPool(10))
+  private final Scheduler queryAllScheduler
   private final Scheduler queryByAppScheduler
 
   @Autowired
@@ -37,9 +37,24 @@ class JedisExecutionRepository implements ExecutionRepository {
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
     @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
+    this(
+      jedisPool,
+      Schedulers.from(newFixedThreadPool(10)),
+      Schedulers.from(newFixedThreadPool(threadPoolSize)),
+      threadPoolChunkSize
+    )
+  }
+
+  JedisExecutionRepository(
+    Pool<Jedis> jedisPool,
+    Scheduler queryAllScheduler,
+    Scheduler queryByAppScheduler,
+    int threadPoolChunkSize
+  ) {
     this.jedisPool = jedisPool
+    this.queryAllScheduler = queryAllScheduler
+    this.queryByAppScheduler = queryByAppScheduler
     this.chunkSize = threadPoolChunkSize
-    this.queryByAppScheduler = Schedulers.from(newFixedThreadPool(threadPoolSize))
   }
 
   @Override
@@ -224,8 +239,7 @@ class JedisExecutionRepository implements ExecutionRepository {
             return Observable.just(retrieveInternal(jedis, type, executionId))
           } catch (ExecutionNotFoundException ignored) {
             log.info("Execution (${executionId}) does not exist")
-            delete(executionId)
-            jedisCommands.srem(lookupKey, executionId)
+            jedis.srem(lookupKey, executionId)
           } catch (Exception e) {
             log.error("Failed to retrieve execution '${executionId}', message: ${e.message}")
           }

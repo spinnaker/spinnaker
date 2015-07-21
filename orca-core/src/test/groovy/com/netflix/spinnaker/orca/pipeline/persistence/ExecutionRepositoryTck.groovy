@@ -188,9 +188,27 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
   }
 
   Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+  @AutoCleanup def jedis = jedisPool.resource
 
   @Override
   JedisExecutionRepository createExecutionRepository() {
     new JedisExecutionRepository(jedisPool, 1, 50)
+  }
+
+  def "cleans up indexes of non-existent executions"() {
+    given:
+    jedis.sadd("allJobs:pipeline", id)
+
+    when:
+    def result = repository.retrievePipelines().toList().toBlocking().first()
+
+    then:
+    result.isEmpty()
+
+    and:
+    !jedis.sismember("allJobs:pipeline", id)
+
+    where:
+    id = "some-pipeline-id"
   }
 }
