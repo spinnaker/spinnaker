@@ -28,8 +28,11 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
+
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
@@ -37,20 +40,32 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonInstanceTypeCachingAgent implements CachingAgent {
+class AmazonInstanceTypeCachingAgent implements CustomScheduledAgent {
+
+  public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(2)
+  public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(15)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
+
+  final long pollIntervalMillis
+  final long timeoutMillis
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set)
 
   AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region) {
+    this(amazonClientProvider, account, region, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
+  }
+
+  AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, long pollIntervalMillis, long timeoutMillis) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
+    this.pollIntervalMillis = pollIntervalMillis
+    this.timeoutMillis = timeoutMillis
   }
 
   @Override

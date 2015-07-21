@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.NamedCacheFactory
 import com.netflix.spinnaker.cats.redis.JedisPoolSource
 import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
+import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
 import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
@@ -48,14 +49,19 @@ class RedisCacheConfig {
   }
 
   @Bean
+  AgentIntervalProvider agentIntervalProvider(@Value('${redis.poll.intervalSeconds:30}') int pollIntervalSeconds, @Value('${redis.poll.timeoutSeconds:300}') int pollTimeoutSeconds) {
+    new CustomSchedulableAgentIntervalProvider(TimeUnit.SECONDS.toMillis(pollIntervalSeconds), TimeUnit.SECONDS.toMillis(pollTimeoutSeconds))
+  }
+
+  @Bean
   @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
-  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, @Value('${redis.poll.intervalSeconds:30}') int pollIntervalSeconds, @Value('${redis.poll.timeoutSeconds:300}') int pollTimeoutSeconds) {
+  AgentScheduler agentScheduler(JedisSource jedisSource, @Value('${redis.connection:redis://localhost:6379}') String redisConnection, AgentIntervalProvider agentIntervalProvider) {
     URI redisUri = URI.create(redisConnection)
     String redisHost = redisUri.getHost()
     int redisPort = redisUri.getPort()
     if (redisPort == -1) {
       redisPort = 6379
     }
-    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), new DefaultAgentIntervalProvider(TimeUnit.SECONDS.toMillis(pollIntervalSeconds), TimeUnit.SECONDS.toMillis(pollTimeoutSeconds)))
+    new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider)
   }
 }

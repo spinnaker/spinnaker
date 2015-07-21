@@ -199,11 +199,11 @@ spring:
   profiles: local
 
 # an AWSCredentialsProvider that obtains session credentials via SSH through a bastion instance (useful for local development):
-bastion:
-  enabled: false
-  port: 22
-  proxyRegion: us-west-1
-  proxyCluster: my-credentials-cluster
+#bastion:
+#  enabled: false
+#  port: 22
+#  proxyRegion: us-west-1
+#  proxyCluster: my-credentials-cluster
 
 redis:
   connection: redis://localhost:6379
