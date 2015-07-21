@@ -16,23 +16,35 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.*
 
 class CopyLastAsgStageSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   @Subject copyLastAsgStage = new CopyLastAsgStage()
   def resolver = Mock(SourceResolver)
@@ -40,9 +52,7 @@ class CopyLastAsgStageSpec extends Specification {
   def destroyAsgStage = Mock(DestroyAsgStage)
 
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
 
   void setup() {
     copyLastAsgStage.applicationContext = Stub(ApplicationContext) {
@@ -60,16 +70,16 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures destroy ASG tasks for all pre-existing clusters if strategy is #strategy"() {
     given:
     def config = [
-        application: "deck",
-        availabilityZones: [(region): []],
-        stack: stack,
+      application      : "deck",
+      availabilityZones: [(region): []],
+      stack            : stack,
+      account          : account,
+      source           : [
         account: account,
-        source  : [
-            account: account,
-            asgName: asgNames.last(),
-            region : region
-        ],
-        strategy: strategy
+        asgName: asgNames.last(),
+        region : region
+      ],
+      strategy         : strategy
     ]
 
     and:
@@ -83,7 +93,7 @@ class CopyLastAsgStageSpec extends Specification {
     then:
     1 * resolver.getExistingAsgs("deck", account, "deck-${stack}", "aws") >> {
       asgNames.collect { name ->
-            [name: name, region: region]
+        [name: name, region: region]
       }
     }
 
@@ -109,16 +119,16 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures disable ASG task for last cluster if strategy is redblack"() {
     given:
     def config = [
-      application: "deck",
+      application      : "deck",
       availabilityZones: [(region): []],
-      stack: stack,
-      account: account,
-      source  : [
+      stack            : stack,
+      account          : account,
+      source           : [
         account: account,
         asgName: asgNames.last(),
         region : region
       ],
-      strategy: strategy
+      strategy         : strategy
     ]
 
     and:
@@ -143,9 +153,9 @@ class CopyLastAsgStageSpec extends Specification {
     stage.afterStages[0].stageBuilder == disableAsgStage
 
     and:
-    stage.afterStages[0].context == [asgName: asgNames.sort().reverse().first(),
-                                                credentials: account,
-                                                regions: [region]]
+    stage.afterStages[0].context == [asgName    : asgNames.sort().reverse().first(),
+                                     credentials: account,
+                                     regions    : [region]]
 
     where:
     strategy = "redblack"
@@ -159,17 +169,17 @@ class CopyLastAsgStageSpec extends Specification {
   def "configures destroy ASG task #calledDestroyAsgNumTimes times if maxRemainingAsgs is defined"() {
     given:
     def config = [
-      application: "deck",
+      application      : "deck",
       availabilityZones: [(region): []],
-      stack: "main",
-      account: account,
-      source  : [
+      stack            : "main",
+      account          : account,
+      source           : [
         account: account,
         asgName: asgNames.last(),
         region : region
       ],
-      strategy: "redblack",
-      maxRemainingAsgs: maxRemainingAsgs
+      strategy         : "redblack",
+      maxRemainingAsgs : maxRemainingAsgs
     ]
 
     and:
@@ -188,10 +198,10 @@ class CopyLastAsgStageSpec extends Specification {
     }
 
     and:
-    calledDestroyAsgNumTimes + 1  == stage.afterStages.size()
+    calledDestroyAsgNumTimes + 1 == stage.afterStages.size()
 
     and:
-    if(calledDestroyAsgNumTimes > 0) {
+    if (calledDestroyAsgNumTimes > 0) {
       def index = 0
       stage.afterStages[1..calledDestroyAsgNumTimes].context.every { it ->
         it == [asgName: asgNames.get(index++), regions: [region.toString()], credentials: account.toString()]
@@ -202,32 +212,32 @@ class CopyLastAsgStageSpec extends Specification {
     }
 
     where:
-    asgNames | region | account | maxRemainingAsgs | calledDestroyAsgNumTimes
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 3 | 1
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 2 | 2
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 1 | 3
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 0 | 0
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | -1 | 0
+    asgNames                                                                 | region      | account | maxRemainingAsgs | calledDestroyAsgNumTimes
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 3                | 1
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 2                | 2
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 1                | 3
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 0                | 0
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | -1               | 0
 
-    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 0 | 0
-    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 1 | 1
-    ["deck-prestaging-v300"] | "us-east-1" | "prod" | 2 | 0
+    ["deck-prestaging-v300"]                                                 | "us-east-1" | "prod"  | 0                | 0
+    ["deck-prestaging-v300"]                                                 | "us-east-1" | "prod"  | 1                | 1
+    ["deck-prestaging-v300"]                                                 | "us-east-1" | "prod"  | 2                | 0
 
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 4 | 0
-    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod" | 5 | 0
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 4                | 0
+    ["deck-prestaging-v300", "deck-prestaging-v303", "deck-prestaging-v304"] | "us-east-1" | "prod"  | 5                | 0
   }
 
   def "doesn't configure any cleanup steps if no strategy is specified"() {
     given:
     def config = [
-      application: "deck",
+      application      : "deck",
       availabilityZones: [(region): []],
-      source  : [
+      source           : [
         account: account,
         asgName: asgName,
         region : region
       ],
-      strategy: strategy
+      strategy         : strategy
     ]
 
     and:
@@ -259,11 +269,11 @@ class CopyLastAsgStageSpec extends Specification {
       [
         "application"      : application,
         "availabilityZones": [(region): ["${region}a", "${region}b", "${region}c"].collect { it.toString() }],
-        "stack": stack,
-        "account": targetAccount,
+        "stack"            : stack,
+        "account"          : targetAccount,
         "source"           : [
           "account": sourceAccount,
-          "region": region,
+          "region" : region,
           "asgName": asgName
         ]
       ]
@@ -274,9 +284,9 @@ class CopyLastAsgStageSpec extends Specification {
 
     then:
     1 * resolver.getExistingAsgs(application, targetAccount, "${application}-${stack}", "aws") >> {
-       ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
-          [region: it, name: asgName]
-       }
+      ["us-east-1", "us-west-1", "us-west-2", "eu-west-1"].collect {
+        [region: it, name: asgName]
+      }
     }
 
     and:

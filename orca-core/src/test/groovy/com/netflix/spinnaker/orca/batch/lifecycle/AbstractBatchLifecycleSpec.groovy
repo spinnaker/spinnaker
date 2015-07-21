@@ -16,23 +16,37 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.JobExecution
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 
 abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {
 
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
   def pipeline = createPipeline()
 
   void setup() {
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
   }
 
   abstract Pipeline createPipeline()

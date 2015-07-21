@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
 import com.google.common.collect.Maps
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -26,10 +27,8 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -39,6 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -49,6 +52,18 @@ import static spock.util.matcher.HamcrestSupport.expect
 @ContextConfiguration(classes = [BatchTestConfiguration])
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineConfigurationSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   @Autowired AbstractApplicationContext applicationContext
   @Autowired JobBuilderFactory jobs
@@ -64,9 +79,7 @@ class PipelineConfigurationSpec extends Specification {
   def bazTask = Mock(Task)
 
   @Shared mapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
 
   def setup() {
 
@@ -77,8 +90,6 @@ class PipelineConfigurationSpec extends Specification {
     applicationContext.beanFactory.with {
       registerSingleton "mapper", mapper
       registerSingleton "pipelineJobBuilder", pipelineJobBuilder
-      registerSingleton "pipelineStore", pipelineStore
-      registerSingleton "orchestrationStore", orchestrationStore
       registerSingleton "executionRepository", executionRepository
       registerSingleton "stageDetails", new StageDetailsTask()
       registerSingleton "fooStage", fooStage
@@ -137,7 +148,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],
@@ -164,7 +175,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [[type: "foo", region: "us-west-1", os: "ubuntu"]]
     ]
     configJson = mapper.writeValueAsString(config)
@@ -185,7 +196,7 @@ class PipelineConfigurationSpec extends Specification {
     where:
     config = [
       application: "app",
-      name: "my-pipeline",
+      name       : "my-pipeline",
       stages     : [
         [type: "foo"],
         [type: "bar"],

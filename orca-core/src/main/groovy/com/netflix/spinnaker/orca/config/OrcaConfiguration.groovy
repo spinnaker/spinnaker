@@ -33,15 +33,9 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler
 import com.netflix.spinnaker.orca.pipeline.OrchestrationStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionStore
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.configuration.ListableJobLocator
@@ -131,25 +125,9 @@ class OrcaConfiguration {
     new OrcaObjectMapper()
   }
 
-  @Bean @ConditionalOnMissingBean(name = "orchestrationStore")
-  ExecutionStore<Orchestration> orchestrationStore(ObjectMapper mapper) {
-    new InMemoryOrchestrationStore(mapper)
-  }
-
-  @Bean @ConditionalOnMissingBean(name = "pipelineStore")
-  ExecutionStore<Pipeline> pipelineStore(ObjectMapper mapper) {
-    new InMemoryPipelineStore(mapper)
-  }
-
   @Bean @ConditionalOnMissingBean(name = "pipelineStack")
   PipelineStack pipelineStack() {
     new InMemoryPipelineStack()
-  }
-
-  @Bean
-  ExecutionRepository executionRepository(ExecutionStore<Pipeline> pipelineStore,
-                                          ExecutionStore<Orchestration> orchestrationStore) {
-    new DefaultExecutionRepository(orchestrationStore, pipelineStore)
   }
 
   @Bean OrchestrationStarter orchestrationStarter() {

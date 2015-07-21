@@ -22,6 +22,8 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
+import spock.lang.Unroll
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
 /**
  * Most of what the listener does can be tested at a unit level, this is just to
@@ -32,11 +34,10 @@ import spock.lang.Specification
 @DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class EchoEventSpec extends Specification {
 
-  public static
-  final taskSuccess = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+  public static final taskSuccess = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   public static final taskFailed = new DefaultTaskResult(ExecutionStatus.FAILED)
-  public static
-  final taskMustRepeat = new DefaultTaskResult(ExecutionStatus.RUNNING)
+  public static final taskTerminal = new DefaultTaskResult(ExecutionStatus.TERMINAL)
+  public static final taskMustRepeat = new DefaultTaskResult(ExecutionStatus.RUNNING)
 
   def echoService = Mock(EchoService)
 
@@ -117,12 +118,13 @@ class EchoEventSpec extends Specification {
       ["orca:pipeline:complete"]
   }
 
+  @Unroll
   def "when tasks fail they still send end events"() {
     given:
     def events = collectEvents()
 
     and:
-    task1.execute(_) >> taskFailed
+    task1.execute(_) >> failure
 
     when:
     pipelineStarter.start(json)
@@ -139,6 +141,9 @@ class EchoEventSpec extends Specification {
                             "orca:task:failed",
                             "orca:stage:failed",
                             "orca:pipeline:failed"]
+
+    where:
+    failure << [taskFailed, taskTerminal]
   }
 
   /**
@@ -153,13 +158,4 @@ class EchoEventSpec extends Specification {
     }
     return events
   }
-
-//  @Configuration
-//  private static class EchoTestConfiguration extends Specification {
-//    @Bean
-//    MayoService mayoService() {
-//      Mock(MayoService)
-//    }
-//  }
-
 }

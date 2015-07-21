@@ -16,27 +16,36 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
-import retrofit.client.Response
-import retrofit.mime.TypedByteArray
-import spock.lang.Shared
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.*
 
 class DeployStageSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   def configJson = """\
           {
@@ -71,9 +80,7 @@ class DeployStageSpec extends Specification {
 
   def mapper = new OrcaObjectMapper()
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
 
   @Subject DeployStage deployStage
 
@@ -92,9 +99,10 @@ class DeployStageSpec extends Specification {
     resizeAsgStage = Mock(ResizeAsgStage)
     modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
-    deployStage = new DeployStage(sourceResolver: sourceResolver, disableAsgStage: disableAsgStage, destroyAsgStage: destroyAsgStage,
-        resizeAsgStage: resizeAsgStage,
-        modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
+    deployStage = new DeployStage(sourceResolver: sourceResolver, disableAsgStage: disableAsgStage,
+                                  destroyAsgStage: destroyAsgStage,
+                                  resizeAsgStage: resizeAsgStage,
+                                  modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     deployStage.applicationContext = Stub(ApplicationContext) {
@@ -159,7 +167,7 @@ class DeployStageSpec extends Specification {
     then:
     "should call to oort to get the last ASG so that we know what to disable"
     1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
+      [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     2 == stage.afterStages.size()
     stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
@@ -181,7 +189,7 @@ class DeployStageSpec extends Specification {
     then:
     "should call to oort to get the last ASG so that we know what to disable"
     1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
+      [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     2 == stage.afterStages.size()
     stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
@@ -208,10 +216,10 @@ class DeployStageSpec extends Specification {
 
     and:
     stage.afterStages[0].stageBuilder == disableAsgStage
-    1 + calledDestroyAsgNumTimes  == stage.afterStages.size()
+    1 + calledDestroyAsgNumTimes == stage.afterStages.size()
 
     and:
-    if(calledDestroyAsgNumTimes > 0) {
+    if (calledDestroyAsgNumTimes > 0) {
       def index = 0
       stage.afterStages[1..calledDestroyAsgNumTimes].context.every { it ->
         it == [asgName: asgs.get(index++).name, regions: ["us-west-1"], credentials: config.account]
@@ -222,19 +230,19 @@ class DeployStageSpec extends Specification {
     }
 
     where:
-    asgs | maxRemainingAsgs | calledDestroyAsgNumTimes
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 3 | 1
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 2 | 2
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 1 | 3
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 0 | 0
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [name : "pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | -1 | 0
+    asgs                                                                                                                                                            | maxRemainingAsgs | calledDestroyAsgNumTimes
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 3                | 1
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 2                | 2
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 1                | 3
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 0                | 0
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | -1               | 0
 
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 0 | 0
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 1 | 1
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ]] | 2 | 0
+    [[name: "pond-prestaging-v300", region: "us-west-1"]]                                                                                                           | 0                | 0
+    [[name: "pond-prestaging-v300", region: "us-west-1"]]                                                                                                           | 1                | 1
+    [[name: "pond-prestaging-v300", region: "us-west-1"]]                                                                                                           | 2                | 0
 
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name : "pond-prestaging-v303", region: "us-west-1" ], [ name: "pond-prestaging-v304", region: "us-west-1" ]] | 4 | 0
-    [[ name  : "pond-prestaging-v300", region: "us-west-1" ], [ name :"pond-prestaging-v303", region: "us-west-1" ], [name : "pond-prestaging-v304", region: "us-west-1" ]] | 5 | 0
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 4                | 0
+    [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 5                | 0
   }
 
   void "should create stages of deploy and destroyAsg when strategy is highlander"() {
@@ -252,7 +260,7 @@ class DeployStageSpec extends Specification {
     then:
     "should call to oort to get the last ASG so that we know what to disable"
     1 * sourceResolver.getExistingAsgs(config.cluster.application, config.account, "pond-prestaging", "aws") >> {
-      [[ name  : "pond-prestaging-v000", region: "us-west-1" ]]
+      [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     1 == stage.afterStages.size()
     stage.afterStages[0].stageBuilder == destroyAsgStage

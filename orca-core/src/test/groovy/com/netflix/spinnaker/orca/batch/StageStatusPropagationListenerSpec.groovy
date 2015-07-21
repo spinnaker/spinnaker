@@ -16,33 +16,46 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.StepExecution
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
+import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
 class StageStatusPropagationListenerSpec extends Specification {
 
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
+
   def mapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(mapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(mapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
   @Subject listener = new StageStatusPropagationListener(executionRepository)
   @Shared random = Random.newInstance()
 
   def "updates the stage status when a task execution completes"() {
     given: "a pipeline model"
     def pipeline = Pipeline.builder().withStage(stageType).build()
-    pipelineStore.store(pipeline)
+    executionRepository.store(pipeline)
 
     and: "a batch execution context"
     def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
@@ -55,13 +68,13 @@ class StageStatusPropagationListenerSpec extends Specification {
     def exitStatus = listener.afterStep stepExecution
 
     then: "it updates the status of the stage"
-    pipelineStore.retrieve(pipeline.id).stages.first().status == taskStatus
+    executionRepository.retrievePipeline(pipeline.id).stages.first().status == taskStatus
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
 
     where:
-    taskStatus               | _
+    taskStatus                | _
     ExecutionStatus.SUCCEEDED | _
 
     id = random.nextLong()

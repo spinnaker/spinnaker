@@ -16,27 +16,42 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.pipeline.persistence.DefaultExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryOrchestrationStore
-import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStore
+import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.context.ApplicationContext
 import org.springframework.transaction.PlatformTransactionManager
+import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
+import redis.clients.util.Pool
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
+import spock.lang.AutoCleanup
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class QuickPatchStageSpec extends Specification {
+
+  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+
+  def setupSpec() {
+    embeddedRedis = EmbeddedRedis.embed()
+  }
+
+  def cleanup() {
+    embeddedRedis.jedis.flushDB()
+  }
+
+  Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   @Subject quickPatchStage = Spy(QuickPatchStage)
   def oort = Mock(OortService)
@@ -45,9 +60,7 @@ class QuickPatchStageSpec extends Specification {
   def bulkQuickPatchStage = Spy(BulkQuickPatchStage)
 
   def objectMapper = new OrcaObjectMapper()
-  def pipelineStore = new InMemoryPipelineStore(objectMapper)
-  def orchestrationStore = new InMemoryOrchestrationStore(objectMapper)
-  def executionRepository = new DefaultExecutionRepository(orchestrationStore, pipelineStore)
+  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
   InstanceService instanceService = Mock(InstanceService)
 
   void setup() {
@@ -96,11 +109,11 @@ class QuickPatchStageSpec extends Specification {
   def "configures bulk quickpatch"() {
     given:
     def config = [
-        application: "deck",
-        clusterName: "deck-cluster",
-        account: "account",
-        region: "us-east-1",
-        baseOs: "ubuntu"
+      application: "deck",
+      clusterName: "deck-cluster",
+      account    : "account",
+      region     : "us-east-1",
+      baseOs     : "ubuntu"
     ]
 
     and:
@@ -135,11 +148,10 @@ class QuickPatchStageSpec extends Specification {
 
     where:
     asgNames = ["deck-prestaging-v300"]
-    instance1 = [instanceId : "i-1234", publicDnsName : "foo.com", health : [ [foo : "bar"], [ healthCheckUrl : "http://foo.com:7001/healthCheck"] ]]
-    instance2 = [instanceId : "i-2345", publicDnsName : "foo2.com", health : [ [foo2 : "bar"], [ healthCheckUrl : "http://foo2.com:7001/healthCheck"] ]]
-    expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"], "i-2345" : [hostName : "foo2.com", healthCheckUrl : "http://foo.com:7001/healthCheck" ] ]
+    instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
+    instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
   }
-
 
   def "configures rolling quickpatch"() {
     given:
@@ -189,26 +201,26 @@ class QuickPatchStageSpec extends Specification {
 
     where:
     asgNames = ["deck-prestaging-v300"]
-    instance1 = [instanceId : "i-1234", publicDnsName : "foo.com", health : [ [foo : "bar"], [ healthCheckUrl : "http://foo.com:7001/healthCheck"] ]]
-    instance2 = [instanceId : "i-2345", publicDnsName : "foo2.com", health : [ [foo2 : "bar"], [ healthCheckUrl : "http://foo2.com:7001/healthCheck"] ]]
-    expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"], "i-2345" : [hostName : "foo2.com", healthCheckUrl : "http://foo.com:7001/healthCheck" ] ]
+    instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
+    instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
 
-   config | _
-    [ application: "deck", clusterName: "deck-cluster", account: "account", region: "us-east-1", rollingPatch: true, baseOs : "ubuntu" ] | _
-    [ application: "deck", clusterName: "deck", account: "account", region: "us-east-1", rollingPatch: true, baseOs : "ubuntu" ] | _
+    config | _
+    [application: "deck", clusterName: "deck-cluster", account: "account", region: "us-east-1", rollingPatch: true, baseOs: "ubuntu"] | _
+    [application: "deck", clusterName: "deck", account: "account", region: "us-east-1", rollingPatch: true, baseOs: "ubuntu"] | _
   }
 
   def "some instances are skipped due to skipUpToDate"() {
     given:
     def config = [
-      application: application,
-      clusterName: "deck-cluster",
-      account:account,
-      region: region,
-      baseOs: "ubuntu",
+      application : application,
+      clusterName : "deck-cluster",
+      account     : account,
+      region      : region,
+      baseOs      : "ubuntu",
       skipUpToDate: true,
       patchVersion: "1.2",
-      package: "deck"
+      package     : "deck"
     ]
     def stage = new PipelineStage(null, "quickPatch", config)
 
@@ -220,14 +232,14 @@ class QuickPatchStageSpec extends Specification {
       "foo", 200, "ok", [],
       new TypedByteArray(
         "application/json",
-        objectMapper.writeValueAsBytes(["version" : "1.21"])
+        objectMapper.writeValueAsBytes(["version": "1.21"])
       )
     )
     1 * instanceService.getCurrentVersion(_) >>> new Response(
       "foo", 200, "ok", [],
       new TypedByteArray(
         "application/json",
-        objectMapper.writeValueAsBytes(["version" : "1.2"])
+        objectMapper.writeValueAsBytes(["version": "1.2"])
       )
     )
     when:
@@ -256,31 +268,31 @@ class QuickPatchStageSpec extends Specification {
     region = "us-east-1"
     account = "account"
     asgNames = ["deck-prestaging-v300"]
-    instance1 = [instanceId : "i-1234", publicDnsName : "foo.com", health : [ [foo : "bar"], [ healthCheckUrl : "http://foo.com:7001/healthCheck"] ]]
-    instance2 = [instanceId : "i-2345", publicDnsName : "foo2.com", health : [ [foo2 : "bar"], [ healthCheckUrl : "http://foo2.com:7001/healthCheck"] ]]
-    expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"], "i-2345" : [hostName : "foo2.com", healthCheckUrl : "http://foo.com:7001/healthCheck" ] ]
+    instance1 = [instanceId: "i-1234", publicDnsName: "foo.com", health: [[foo: "bar"], [healthCheckUrl: "http://foo.com:7001/healthCheck"]]]
+    instance2 = [instanceId: "i-2345", publicDnsName: "foo2.com", health: [[foo2: "bar"], [healthCheckUrl: "http://foo2.com:7001/healthCheck"]]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"], "i-2345": [hostName: "foo2.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
   }
 
   def "skipUpToDate with getVersion retries"() {
     given:
     def config = [
-      application: application,
-      clusterName: "deck-cluster",
-      account:account,
-      region: region,
-      baseOs: "ubuntu",
+      application : application,
+      clusterName : "deck-cluster",
+      account     : account,
+      region      : region,
+      baseOs      : "ubuntu",
       skipUpToDate: true,
       patchVersion: "1.2",
-      package: "deck"
+      package     : "deck"
     ]
     def stage = new PipelineStage(null, "quickPatch", config)
     1 * quickPatchStage.createInstanceService(_) >> instanceService
-    4 * instanceService.getCurrentVersion(_) >> {throw new RetrofitError(null, null, null, null, null, null, null)}
+    4 * instanceService.getCurrentVersion(_) >> { throw new RetrofitError(null, null, null, null, null, null, null) }
     1 * instanceService.getCurrentVersion(_) >>> new Response(
       "foo", 200, "ok", [],
       new TypedByteArray(
         "application/json",
-        objectMapper.writeValueAsBytes(["version" : "1.21"])
+        objectMapper.writeValueAsBytes(["version": "1.21"])
       )
     )
 
@@ -295,6 +307,6 @@ class QuickPatchStageSpec extends Specification {
     region = "us-east-1"
     account = "account"
     asgNames = ["deck-prestaging-v300"]
-    expectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
+    expectedInstances = ["i-1234": [hostName: "foo.com", healthCheckUrl: "http://foo.com:7001/healthCheck"]]
   }
 }
