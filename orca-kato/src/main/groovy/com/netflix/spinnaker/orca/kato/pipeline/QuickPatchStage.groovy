@@ -32,6 +32,8 @@ import org.springframework.stereotype.Component
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 
+import java.util.concurrent.ConcurrentHashMap
+
 /**
  * Wrapper stage over BuilkQuickPatchStage.  We do this so we can reuse the same steps whether or not we are doing
  * a rolling quick patch.  The difference is that the rolling version will only update one instance at a time while
@@ -98,8 +100,8 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    Map instances = oortHelper.getInstancesForCluster(stage.context, null, true, true)
-    Map skippedMap = [:]
+    ConcurrentHashMap instances = new ConcurrentHashMap(oortHelper.getInstancesForCluster(stage.context, null, true, true))
+    ConcurrentHashMap skippedMap = new ConcurrentHashMap()
 
     if(stage.context.skipUpToDate) {
       instances.each { instanceId, instanceInfo ->
