@@ -1,44 +1,22 @@
-/*
- * Copyright 2014 Netflix, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
+apply plugin: 'nebula'
+apply plugin: 'nebula-ospackage'
+apply plugin: 'com.moowork.node'
 
 buildscript {
   repositories {
     jcenter()
-    maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.64'
     classpath 'com.moowork.gradle:gradle-node-plugin:0.8'
     classpath 'be.filipblondeel.gradle:gradle-gulp-plugin:0.1'
+    classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
   }
 }
 
-group = "com.netflix.spinnaker.deck"
-
-apply plugin: 'spinnaker-gradle-project'
-apply plugin: 'spinnaker-debpublish'
-apply plugin: 'com.moowork.node'
-apply plugin: 'gulp'
-
-jar {
-  from(fileTree("dist")) {
-    into "META-INF/resources"
-  }
+nebula {
+  moduleOwner = 'deliveryengineering@netflix.com'
 }
+
 
 node {
     // Version of node to use.
@@ -48,22 +26,24 @@ node {
     download = true
 }
 
-gulp_clean.dependsOn 'npmInstall'
-gulp_clean.dependsOn 'installGulp'
-installGulp.dependsOn 'npmInstall'
-clean.dependsOn 'gulp_clean'
+task webpack(type: Exec) {
+  workingDir '.'
+  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
+  environment [
+    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+  ]
+}
 
-gulp_build.dependsOn 'installGulp'
-build.dependsOn 'gulp_build'
-buildDeb.dependsOn 'build'
-
-gulp_e2e.dependsOn 'gulp_build'
+webpack.dependsOn 'npmInstall'
+buildDeb.dependsOn 'webpack'
 
 ospackage {
-  packageName = "deck"
-  version = project.version.replaceAll("-SNAPSHOT", "")
-  release '3'
-  into "/var/www"
-  requires "apache2"
-  from "dist"
+  requires('nflx-cloudpassage')
+  requires('platform-sidecar')
+  from(project.file('build/deck-content/META-INF/resources')) {
+    into '/apps/apache/htdocs'
+  }
+
+  postInstall '/sbin/chkconfig nflx-tomcat off'
+  postInstall "sed -i -e 's/proxy_enabled=.*/proxy_enabled=false/' /etc/default/nflx-httpd"
 }
