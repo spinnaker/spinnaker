@@ -70,9 +70,13 @@ class NotificationController {
     void batchUpdate(@RequestBody List<Map> notifications) {
         notifications.each { it ->
             try {
-                boolean isGlobal = it['hipchat']?.level == 'global'
+                boolean isGlobal = false
+
+                if( it.hipchat )
+                    isGlobal = it.hipchat.first().level == 'global'
+
                 if (isGlobal) {
-                    saveGlobal(it)
+                    notificationRepository.saveGlobal(it)
                 } else {
                     save('application', it.application, it)
                 }
