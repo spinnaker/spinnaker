@@ -97,7 +97,7 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-      (['orca:stage:starting'] + ["orca:task:starting", "orca:task:complete"] * 3 + ['orca:stage:complete']) * 2 +
+      (["orca:task:starting", "orca:task:complete"]) * 2 +
       ["orca:pipeline:complete"]
   }
 
@@ -114,7 +114,7 @@ class EchoEventSpec extends Specification {
 
     then:
     events.details.type == ["orca:pipeline:starting"] +
-      (['orca:stage:starting'] + ["orca:task:starting", "orca:task:complete"] * 3 + ['orca:stage:complete']) * 2 +
+      (["orca:task:starting", "orca:task:complete"]) * 2 +
       ["orca:pipeline:complete"]
   }
 
@@ -134,9 +134,6 @@ class EchoEventSpec extends Specification {
 
     and:
     events.details.type == ["orca:pipeline:starting",
-                            "orca:stage:starting",
-                            "orca:task:starting",
-                            "orca:task:complete",
                             "orca:task:starting",
                             "orca:task:failed",
                             "orca:stage:failed",

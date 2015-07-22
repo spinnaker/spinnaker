@@ -118,8 +118,7 @@ class PipelineJobBuilderSpec extends Specification {
     SimpleFlow flow = job.flow as SimpleFlow
 
     def startState = flow.startState
-    def firstTransition = getNextNonStageDetailsTransition(flow, startState.name)
-    def nextTransition = getNextNonStageDetailsTransition(flow, firstTransition)
+    def nextTransition = flow.transitionMap[flow.startState.name][0].next
 
     then:
     pipeline.stages*.refId == ["*", "B"]
@@ -134,13 +133,5 @@ class PipelineJobBuilderSpec extends Specification {
     SimpleJobBuilderHelper(String name) {
       super(name)
     }
-  }
-
-  private String getNextNonStageDetailsTransition(flow, currentState){
-    String nextName =  flow.transitionMap[currentState][0].next
-    while(nextName.contains('stage')){
-      nextName = flow.transitionMap[nextName][0].next
-    }
-    nextName
   }
 }
