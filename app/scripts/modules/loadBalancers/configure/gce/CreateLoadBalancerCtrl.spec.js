@@ -2,19 +2,21 @@
 
 describe('Controller: gceCreateLoadBalancerCtrl', function () {
 
+  beforeEach(loadDeckWithoutCacheInitializer);
   // load the controller's module
   beforeEach(module('spinnaker.loadBalancer.gce.create.controller'));
 
   // Initialize the controller and a mock scope
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(inject(function ($controller, $rootScope, _modalWizardService_) {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
       $modalInstance: { dismiss: angular.noop, result: { then: angular.noop } },
-      application: {name: 'app'},
+      application: {name: 'testApp'},
       loadBalancer: null,
       isNew: true
     });
+    this.wizardService = _modalWizardService_;
   }));
 
   it('requires health check path for HTTP/S', function () {
@@ -35,6 +37,31 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
     loadBalancer.healthCheckProtocol = 'TCP';
     expect(this.ctrl.requiresHealthCheckPath()).toBe(false);
 
+  });
+
+  it('should update name', function() {
+    var lb = this.$scope.loadBalancer;
+    expect(lb).toBeDefined();
+    expect(lb.name).toBeUndefined();
+
+    this.ctrl.updateName();
+    expect(lb.name).toBe('testApp--frontend');
+
+    this.$scope.loadBalancer.stack = 'testStack'
+    this.ctrl.updateName();
+    expect(lb.name).toBe('testApp-testStack-frontend');
+  });
+
+  it('should make the health check tab invisible then visible again', function() {
+    var wiz = jasmine.createSpyObj('wizard', ['markComplete', 'markIncomplete', 'includePage', 'excludePage']);
+    spyOn(this.wizardService, 'getWizard').and.returnValue(wiz);
+    this.$scope.loadBalancer.listeners[0].healthCheck = false;
+    this.ctrl.setVisibilityHealthCheckTab();
+    expect(wiz.excludePage.calls.count()).toEqual(1);
+
+    this.$scope.loadBalancer.listeners[0].healthCheck = true;
+    this.ctrl.setVisibilityHealthCheckTab();
+    expect(wiz.includePage.calls.count()).toEqual(1);
   });
 
 });
