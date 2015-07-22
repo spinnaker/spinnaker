@@ -39,13 +39,6 @@ import redis.clients.util.Pool
 @Slf4j
 @CompileStatic
 class JesqueConfiguration {
-  @Bean
-  @ConditionalOnMissingBean(Pool)
-  Pool<Jedis> jedisPool(@Value('${redis.connection}') String connection, @Value('${redis.timeout:2000}') int timeout) {
-    def jedisConnection = URI.create(connection)
-    def port = jedisConnection.port == -1 ? 6379 : jedisConnection.port
-    return new JedisPool(new URI("redis://${jedisConnection.host}:${port}"), timeout)
-  }
 
   @Bean
   @ConditionalOnMissingBean(Config)
