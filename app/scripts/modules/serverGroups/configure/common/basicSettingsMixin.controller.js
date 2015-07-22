@@ -7,17 +7,18 @@ module.exports = angular
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('angular-ui-router'),
     require('utils/rx.js'),
+    require('utils/lodash.js'),
     require('../../../naming/naming.service.js'),
     require('../../../../services/imageService.js')
   ])
-  .controller('BasicSettingsMixin', function ($scope, RxService, imageService, namingService, $modalStack, $state) {
+  .controller('BasicSettingsMixin', function ($scope, RxService, imageService, namingService, $modalStack, $state, _) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
           message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
         }
       ];
-      return new RxService.Observable.fromPromise(
+      return RxService.Observable.fromPromise(
         imageService.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
