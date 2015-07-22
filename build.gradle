@@ -20,27 +20,51 @@ nebula {
 
 node {
     // Version of node to use.
-    version = '0.10.31'
+    version = '0.12.3'
+    npmVersion = '2.8.3'
 
     // Enabled the automatic download. False is the default (for now).
     download = true
 }
 
-task webpack(type: Exec) {
+task webpackPrestaging(type: Exec) {
   workingDir '.'
   commandLine 'node', 'node_modules/webpack/bin/webpack.js'
-  environment [
-    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net"
+  environment = [
+    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+    "SPINNAKER_ENV": "prestaging"
   ]
 }
 
-webpack.dependsOn 'npmInstall'
-buildDeb.dependsOn 'webpack'
+task webpackProd(type: Exec) {
+  workingDir '.'
+  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
+  environment = [
+    "GATE_HOST": "spinnaker-api.prod.netflix.net",
+    "SPINNAKER_ENV": "main"
+  ]
+}
+
+task webpackProd(type: Exec) {
+  workingDir '.'
+  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
+  environment = [
+    "GATE_HOST": "spinnaker-api-test.prod.netflix.net",
+    "SPINNAKER_ENV": "test"
+  ]
+}
+
+webpackPrestaging.dependsOn 'npmInstall'
+webpackProd.dependsOn 'npmInstall'
+webpackTest.dependsOn 'npmInstall'
+buildDeb.dependsOn 'webpackPrestaging'
+buildDeb.dependsOn 'webpackProd'
+buildDeb.dependsOn 'webpackTest'
 
 ospackage {
   requires('nflx-cloudpassage')
   requires('platform-sidecar')
-  from(project.file('build/deck-content/META-INF/resources')) {
+  from(project.file('dist')) {
     into '/apps/apache/htdocs'
   }
 

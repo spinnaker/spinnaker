@@ -1,6 +1,7 @@
 'use strict';
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
+var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
 var IgnorePlugin = require("webpack/lib/IgnorePlugin");
 var path = require('path');
 
@@ -9,7 +10,10 @@ var bowerModulePath = path.join(__dirname, 'bower_components');
 
 module.exports = {
   debug: true,
-  entry: './app/scripts/app.js',
+  entry: {
+    app: './app/scripts/app.js',
+    settings: ['./app/scripts/settings/settings.js'],
+  },
   devtool: 'eval',
   output: {
     path: path.join(__dirname, 'dist'),
@@ -69,6 +73,13 @@ module.exports = {
       template: './app/index.html',
       favicon: 'app/favicon.ico',
       inject: true,
+    }),
+    new CommonsChunkPlugin({
+      name: 'settings',
+      filename: 'settings.js',
+      minChunks: Infinity,
+
+
     }),
   ],
 };
