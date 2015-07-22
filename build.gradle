@@ -30,7 +30,7 @@ task webpack(type: Exec) {
   workingDir '.'
   commandLine 'node', 'node_modules/webpack/bin/webpack.js'
   environment [
-    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
+    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net"
   ]
 }
 
