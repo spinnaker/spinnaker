@@ -197,7 +197,7 @@ module.exports = angular.module('spinnaker.modalWizard', [])
     }
 
     function getWizard() {
-      return modalWizard;
+      return modalWizard || createWizard();
     }
 
     return {

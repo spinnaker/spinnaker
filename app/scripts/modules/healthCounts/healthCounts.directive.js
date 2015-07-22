@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./healthLegend.html');
+
 module.exports = angular.module('spinnaker.healthCounts.directive', [
 ])
   .directive('healthCounts', function ($templateCache) {
