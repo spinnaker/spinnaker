@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [])
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [
+  require('./costFactor.js')
+])
   .directive('instanceArchetypeSelector', function() {
     return {
       restrict: 'E',
