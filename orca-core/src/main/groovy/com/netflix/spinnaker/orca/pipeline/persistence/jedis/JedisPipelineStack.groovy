@@ -17,12 +17,11 @@ package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 
 class JedisPipelineStack implements PipelineStack {
 
-  private JedisPool jedisPool
+  private Pool<Jedis> jedisPool
   private String prefix
 
   JedisPipelineStack(String prefix, Pool<Jedis> jedisPool) {

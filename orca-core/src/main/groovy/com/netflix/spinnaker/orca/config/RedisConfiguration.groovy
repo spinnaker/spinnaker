@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.config
 
+import groovy.transform.CompileStatic
+import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
@@ -28,7 +30,10 @@ import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
 import redis.clients.util.Pool
 
+import java.lang.reflect.Field
+
 @Configuration
+@CompileStatic
 class RedisConfiguration {
   @Bean
   @ConfigurationProperties('redis')
@@ -45,7 +50,8 @@ class RedisConfiguration {
     String host = redisConnection.host
     int port = redisConnection.port == -1 ? Protocol.DEFAULT_PORT : redisConnection.port
 
-    int database = Integer.parseInt((redisConnection.path ?: "/${Protocol.DEFAULT_DATABASE}").split('/', 2)[1])
+    String path = redisConnection.path ?: "/${Protocol.DEFAULT_DATABASE}"
+    int database = Integer.parseInt(path.split('/', 2)[1])
 
     String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
 
@@ -53,15 +59,17 @@ class RedisConfiguration {
   }
 
   @Bean
-  HealthIndicator redisHealth(JedisPool jedisPool) {
-    final JedisPool src = jedisPool
+  HealthIndicator redisHealth(Pool<Jedis> jedisPool) {
+    final Pool<Jedis> src = jedisPool
+    final Field poolAccess = Pool.getDeclaredField('internalPool')
+    poolAccess.setAccessible(true)
     new HealthIndicator() {
       @Override
       Health health() {
         Jedis jedis = null
         Health.Builder health = null
         try {
-          jedis = src.resource
+          jedis = src.getResource()
           if ('PONG'.equals(jedis.ping())) {
             health = Health.up()
           } else {
@@ -72,7 +80,7 @@ class RedisConfiguration {
         } finally {
           jedis?.close()
         }
-        def internal = jedisPool.internalPool //thx groovy
+        GenericObjectPool<Jedis> internal = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool)
         health.withDetail('maxIdle', internal.maxIdle)
         health.withDetail('minIdle', internal.minIdle)
         health.withDetail('numActive', internal.numActive)
