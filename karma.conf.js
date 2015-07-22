@@ -40,7 +40,7 @@ module.exports = function(config) {
           },
           {
             test: /\.js$/,
-            loader: 'ng-annotate!babel',
+            loader: 'babel',
             exclude: /node_modlules/,
           },
           {
