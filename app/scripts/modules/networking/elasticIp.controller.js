@@ -1,10 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.elasticIp.controller', [
-  'ui.bootstrap',
-  'spinnaker.account.service',
-  'spinnaker.elasticIp.write.service',
-  'spinnaker.tasks.monitor.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.elasticIp.controller', [
+  require('../account/accountService.js'),
+  require('./elasticIp.write.service.js'),
+  require('../tasks/monitor/taskMonitorService.js')
 ])
   .controller('ElasticIpCtrl', function($scope, $modalInstance, accountService, elasticIpWriter, taskMonitorService,
                                                 application, serverGroup, elasticIp, onTaskComplete) {
@@ -63,4 +64,4 @@ angular.module('spinnaker.elasticIp.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

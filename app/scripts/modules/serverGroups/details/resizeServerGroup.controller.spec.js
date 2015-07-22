@@ -8,11 +8,13 @@ describe('Controller: ResizeServerGroupCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.resizeServerGroup.controller')
+    window.module(
+      require('./resizeServerGroup.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('ResizeServerGroupCtrl', {
         $scope: scope,

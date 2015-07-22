@@ -1,15 +1,17 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.controller', [
-  'ui.bootstrap',
-  'spinnaker.account.service',
-  'spinnaker.providerSelection.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.loadBalancer.controller', [
+  require('../account/accountService.js'),
+  require('../providerSelection/providerSelection.service.js'),
+  require('utils/lodash.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('./LoadBalancerCtrl.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap')
 ])
-  .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, application ) {
-    $scope.application = application;
+  .controller('AllLoadBalancersCtrl', function($scope, $modal, $filter, $q, _, accountService, providerSelectionService, app ) {
+    $scope.application = app;
 
     $scope.sortFilter = {
       sortPrimary: 'account',
@@ -60,7 +62,7 @@ angular.module('spinnaker.loadBalancer.controller', [
 
     function updateLoadBalancerGroups() {
       $scope.$evalAsync(function() {
-        var loadBalancers = application.loadBalancers,
+        var loadBalancers = app.loadBalancers,
             groups = [],
             filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
             primarySort = $scope.sortFilter.sortPrimary,
@@ -94,12 +96,13 @@ angular.module('spinnaker.loadBalancer.controller', [
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
+      //BEN_TODO
       providerSelectionService.selectProvider().then(function(provider) {
         $modal.open({
-          templateUrl: 'scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
+          templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
           controller: provider + 'CreateLoadBalancerCtrl as ctrl',
           resolve: {
-            application: function() { return application; },
+            application: function() { return app; },
             loadBalancer: function() { return null; },
             isNew: function() { return true; }
           }
@@ -109,9 +112,9 @@ angular.module('spinnaker.loadBalancer.controller', [
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    application.registerAutoRefreshHandler(updateLoadBalancerGroups, $scope);
+    app.registerAutoRefreshHandler(updateLoadBalancerGroups, $scope);
 
     updateLoadBalancerGroups();
 
   }
-);
+).name;

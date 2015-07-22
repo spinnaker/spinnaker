@@ -1,6 +1,7 @@
 'use strict';
 
 describe('Controller: LoadBalancerDetailsCtrl', function () {
+  const angular = require('angular');
 
   //NOTE: This is just a skeleton test to test DI.  Please add more tests.;
 
@@ -17,21 +18,20 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
 
   beforeEach(
-    module(
-      'spinnaker.loadBalancer.aws.details.controller',
-      'spinnaker.states'
+    window.module(
+      require('./LoadBalancerDetailsCtrl')
     )
   );
 
   beforeEach(
-    inject(
+    window.inject(
       function($controller, $rootScope, _$state_) {
         $scope = $rootScope.$new();
         $state = _$state_;
         controller = $controller('awsLoadBalancerDetailsCtrl', {
           $scope: $scope,
           loadBalancer: loadBalancer,
-          application: {
+          app: {
             loadBalancers:[loadBalancer],
             registerAutoRefreshHandler: angular.noop
           },

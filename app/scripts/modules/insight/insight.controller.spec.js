@@ -8,11 +8,13 @@ describe('Controller: InsightCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.insight.controller')
+    window.module(
+      require('./insight.controller.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('InsightCtrl', {
         $scope: scope

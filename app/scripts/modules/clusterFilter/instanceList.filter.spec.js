@@ -5,11 +5,13 @@ describe('Filter: instanceList', function () {
   var filter;
 
   beforeEach(
-    module('spinnaker.instanceList.filter')
+    window.module(
+      require('./instanceList.filter.js')
+    )
   );
 
   beforeEach(
-    inject(
+    window.inject(
       function($filter) {
         filter = $filter('instanceSearch');
       }

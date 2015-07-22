@@ -1,7 +1,11 @@
 'use strict';
 
+let angular = require('angular');
+
 // TODO: Move to external plugins
-angular.module('spinnaker.blesk', ['spinnaker.settings'])
+module.exports = angular.module('spinnaker.blesk', [
+  require('../../settings/settings.js'),
+])
   .factory('blesk', function() {
     function initialize() {
       if (angular.element('.spinnaker-header').length && !angular.element('#blesk').length) {
@@ -20,4 +24,4 @@ angular.module('spinnaker.blesk', ['spinnaker.settings'])
     if (settings.feature && settings.feature.blesk) {
       blesk.initialize();
     }
-  });
+  }).name;

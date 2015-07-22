@@ -7,11 +7,13 @@ describe('Service: accountService ', function () {
   var $rootScope, accountService, $http, $q, settings;
 
   beforeEach(
-    module('spinnaker.account.service')
+    window.module(
+      require('./accountService')
+    )
   );
 
   beforeEach(
-    inject(function (_$rootScope_, _accountService_, $httpBackend, infrastructureCaches, _$q_, _settings_) {
+    window.inject(function (_$rootScope_, _accountService_, $httpBackend, infrastructureCaches, _$q_, _settings_) {
       $rootScope = _$rootScope_;
       accountService = _accountService_;
       $http = $httpBackend;
@@ -49,7 +51,7 @@ describe('Service: accountService ', function () {
     it('should return intersection of preferred and actual AZ when: actual count > preferred count', function () {
 
       var accountName = 'prod';
-      var regionName = 'us-east-1' ;
+      var regionName = 'us-east-1';
 
       settings.providers.aws.preferredZonesByAccount = {
         prod: {
@@ -87,7 +89,7 @@ describe('Service: accountService ', function () {
     it('should return intersection of preferred and actual AZ when: actual count < preferred count', function () {
 
       var accountName = 'prod';
-      var regionName = 'us-east-1' ;
+      var regionName = 'us-east-1';
 
       settings.providers.aws.preferredZonesByAccount = {
         prod: {
@@ -120,7 +122,7 @@ describe('Service: accountService ', function () {
     it('should return intersection of preferred and actual AZ when: actual count === preferred count', function () {
 
       var accountName = 'prod';
-      var regionName = 'us-east-1' ;
+      var regionName = 'us-east-1';
 
       settings.providers.aws.preferredZonesByAccount = {
         prod: {
@@ -151,7 +153,7 @@ describe('Service: accountService ', function () {
     it('should return an empty list when there is no intersection', function () {
 
       var accountName = 'prod';
-      var regionName = 'us-east-1' ;
+      var regionName = 'us-east-1';
 
       settings.providers.aws.preferredZonesByAccount = {
         prod: {
@@ -183,7 +185,7 @@ describe('Service: accountService ', function () {
     it('should return the default AZ if the credential fetch fails for an account', function () {
 
       var accountName = 'prod';
-      var regionName = 'us-east-1' ;
+      var regionName = 'us-east-1';
 
       settings.providers.aws.preferredZonesByAccount = {
         prod: {

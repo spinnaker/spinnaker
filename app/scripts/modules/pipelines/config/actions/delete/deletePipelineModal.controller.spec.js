@@ -1,10 +1,15 @@
 'use strict';
 
 describe('Controller: deletePipelineModal', function() {
+  const angular = require('angular');
 
-  beforeEach(module('spinnaker.pipelines.delete'));
+  beforeEach(
+    window.module(
+      require('./delete.module.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, $log, $q, pipelineConfigService) {
+  beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService) {
     this.$q = $q;
     this.initializeController = function(application, pipeline) {
       this.$scope = $rootScope.$new();

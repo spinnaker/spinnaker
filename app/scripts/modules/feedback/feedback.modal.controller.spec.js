@@ -8,11 +8,13 @@ describe('Controller: FeedbackModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.feedback.modal.controller')
+    window.module(
+      require('./feedback.modal.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('FeedbackModalCtrl', {
         $scope: scope,

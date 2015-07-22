@@ -1,10 +1,15 @@
 'use strict';
 
 describe('Controller: modifyScalingProcesses', function() {
+  const angular = require('angular');
 
-  beforeEach(module('spinnaker.serverGroup.details.aws.autoscaling.process.controller'));
+  beforeEach(
+    window.module(
+      require('./modifyScalingProcesses.controller.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, _) {
+  beforeEach(window.inject(function($controller, $rootScope, _) {
     this.$modalInstance = { close: angular.noop };
     this.taskMonitorService = { buildTaskMonitor: angular.noop };
     this.taskExecutor = { executeTask: angular.noop };
@@ -35,7 +40,7 @@ describe('Controller: modifyScalingProcesses', function() {
         { name: 'Terminate', enabled: true }
       ];
     });
-    it('starts as not dirty',function() {
+    it('starts as not dirty', function() {
       this.initializeController(this.serverGroup, this.processes);
       expect(this.controller.isDirty()).toBe(false);
     });

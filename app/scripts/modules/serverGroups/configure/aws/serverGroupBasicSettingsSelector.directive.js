@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.awsServerGroupBasicSettingsSelector', [])
   .directive('awsServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -9,7 +11,7 @@ angular.module('spinnaker.serverGroup.configure.aws')
         application: '=',
         hideClusterNamePreview: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupBasicSettingsDirective.html',
+      templateUrl: require('./serverGroupBasicSettingsDirective.html'),
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
@@ -23,4 +25,5 @@ angular.module('spinnaker.serverGroup.configure.aws')
       $modalStack: $modalStack,
       $state: $state,
     }));
-  });
+  })
+  .name;

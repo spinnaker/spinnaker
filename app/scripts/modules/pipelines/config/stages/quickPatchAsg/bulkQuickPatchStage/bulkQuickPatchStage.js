@@ -1,12 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
+let angular = require('angular');
+
+require('./bulkQuickPatchStageExecutionDetails.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg.bulkQuickPatchStage')
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,
       key: 'bulkQuickPatch',
       label: 'Bulk Quick Patch ASG',
       description: 'Bulk Quick Patches an ASG',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStageExecutionDetails.html'
+      executionDetailsUrl: require('./bulkQuickPatchStageExecutionDetails.html'),
     });
-  });
+  }).name;

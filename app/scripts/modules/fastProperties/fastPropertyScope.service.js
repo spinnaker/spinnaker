@@ -1,11 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.fastPropertyScope.service', [
-    'spinnaker.naming'
+    require('../naming/naming.service.js'),
+    require('utils/lodash.js'),
   ])
-  .factory('FastPropertyScopeService', function ($q, namingService) {
+  .factory('FastPropertyScopeService', function ($q, namingService, _) {
 
     function regionTransformer(appId, clusters) {
       return _.chain(clusters)
@@ -208,4 +210,4 @@ angular
       getResultsForScope: getResultsForScope
     };
 
-  });
+  }).name;

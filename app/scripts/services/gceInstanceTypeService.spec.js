@@ -7,11 +7,11 @@ describe('Service: gceInstanceTypeService', function () {
   var gceInstanceTypeService;
 
   beforeEach(
-    module('spinnaker.gce.instanceType.service')
+    window.module(require('./gceInstanceTypeService'))
   );
 
   beforeEach(
-    inject(function (_gceInstanceTypeService_) {
+    window.inject(function (_gceInstanceTypeService_) {
       gceInstanceTypeService = _gceInstanceTypeService_;
     })
   );

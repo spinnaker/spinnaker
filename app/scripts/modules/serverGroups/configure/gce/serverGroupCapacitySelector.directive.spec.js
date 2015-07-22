@@ -1,15 +1,21 @@
 'use strict';
 
+let angular = require('angular');
+require('./serverGroupCapacityDirective.html');
+
 describe('Directive: GCE Group Capacity Selector', function() {
 
-  beforeEach(module('spinnaker.serverGroup.configure.gce'));
-  beforeEach(module('spinnaker.templates'));
+  beforeEach(
+    window.module(
+      require('./serverGroupCapacitySelector.directive.js')
+    )
+  );
 
-  beforeEach(inject(function($rootScope, $compile) {
+  beforeEach(window.inject(function($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.scope.command = {capacity: {}};
     this.elem = angular.element('<gce-server-group-capacity-selector command="command" />');
-    this.element = $compile(this.elem)(this.scope)
+    this.element = $compile(this.elem)(this.scope);
     this.scope.$digest();
   }));
 

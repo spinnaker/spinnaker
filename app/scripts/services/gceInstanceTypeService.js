@@ -1,10 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.gce.instanceType.service', [
-  'restangular',
-  'spinnaker.settings',
-  'spinnaker.utils.lodash'
+module.exports = angular.module('spinnaker.gce.instanceType.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../modules/caches/deckCacheFactory.js'),
+  require('utils/lodash.js'),
+  require('../settings/settings.js'),
 ])
   .factory('gceInstanceTypeService', function ($http, $q, settings, _) {
 
@@ -280,4 +282,5 @@ angular.module('spinnaker.gce.instanceType.service', [
       getAllTypesByRegion: getAllTypesByRegion
     };
   }
-);
+)
+.name;

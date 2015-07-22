@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.bake.executionDetails.controller', [
-  'ui.router',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.bake.executionDetails.controller', [
+  require('angular-ui-router'),
+  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('BakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout) {
 
@@ -24,4 +26,4 @@ angular.module('spinnaker.pipelines.stage.bake.executionDetails.controller', [
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

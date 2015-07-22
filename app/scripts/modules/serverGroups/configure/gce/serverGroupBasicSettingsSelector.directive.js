@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettingsSelector', [])
   .directive('gceServerGroupBasicSettingsSelector', function() {
     return {
       restrict: 'E',
@@ -9,7 +11,7 @@ angular.module('spinnaker.serverGroup.configure.gce')
         application: '=',
         hideClusterNamePreview: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupBasicSettingsDirective.html',
+      templateUrl: require('./serverGroupBasicSettingsDirective.html'),
       controller: 'gceServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })

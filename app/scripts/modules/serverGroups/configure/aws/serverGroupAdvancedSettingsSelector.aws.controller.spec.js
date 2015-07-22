@@ -2,11 +2,13 @@
 
 describe('Controller: ServerGroupAdvancedSettingsSelector', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    window.module(
+      require('./serverGroupAdvancedSettingsSelector.directive.js')
+    )
+  );
 
-  beforeEach(module('spinnaker.serverGroup.configure.aws'));
-
-  beforeEach(inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope) {
     this.scope = $rootScope.$new();
 
     this.scope.command = {

@@ -1,11 +1,13 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.securityGroup.write.service', [
-    'spinnaker.caches.infrastructure',
-    'spinnaker.taskExecutor.service'
+    require('../caches/infrastructureCaches.js'),
+    require('../../services/taskExecutor.js')
   ])
-  .factory('securityGroupWriter' ,function (taskExecutor, infrastructureCaches) {
+  .factory('securityGroupWriter', function (taskExecutor, infrastructureCaches) {
 
     function upsertSecurityGroup(command, application, descriptor) {
       command.type = 'upsertSecurityGroup';
@@ -51,4 +53,4 @@ angular
       deleteSecurityGroup: deleteSecurityGroup,
     };
 
-  });
+  }).name;

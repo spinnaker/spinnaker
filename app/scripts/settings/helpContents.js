@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.help')
+module.exports = angular.module('spinnaker.help.contents', [])
   .constant('helpContents', {
     'aws.associateElasticIp.elasticIp': '<p>(Optional) <b>Elastic IP</b> is an IP address that Spinnaker will associate with this cluster.' +
       '<p>If specified, this elastic IP must exist and not already be attached to an instance or cluster.</p>' +
@@ -150,4 +151,4 @@ angular.module('spinnaker.help')
       '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
     'loadBalancers.filter.onlyUnhealthy': '<p>Filters the list of load balancers and server groups (if enabled) ' +
       'to only show load balancers with instances failing the health check for the load balancer.</p>',
-  });
+  }).name;

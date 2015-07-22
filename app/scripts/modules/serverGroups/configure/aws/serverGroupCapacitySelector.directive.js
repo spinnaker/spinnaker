@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.capacitySelector.directive', [])
   .directive('awsServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupCapacityDirective.html',
+      templateUrl: require('./serverGroupCapacityDirective.html'),
       controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })
@@ -24,4 +26,4 @@ angular.module('spinnaker.serverGroup.configure.aws')
         $scope.command.useSourceCapacity = false;
       }
     };
-  });
+  }).name;

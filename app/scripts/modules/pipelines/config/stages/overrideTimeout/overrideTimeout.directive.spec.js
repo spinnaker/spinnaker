@@ -1,20 +1,26 @@
 'use strict';
 
+require('./overrideTimeout.directive.html');
+
 describe('Directives: overrideTimeout', function () {
 
   var stageConfig = {};
 
-  beforeEach(module('spinnaker.pipelines.stage.overrideTimeout', function ($provide) {
-    $provide.service('pipelineConfig', function () {
-      return {
-        getStageConfig: function () { return stageConfig; }
-      };
-    });
-  }));
+  beforeEach(
+    window.module(
+      require('./overrideTimeout.directive.js'),
+      require('../../../../../settings/helpContents.js'),
+      function ($provide) {
+        $provide.service('pipelineConfig', function () {
+          return {
+            getStageConfig: function () { return stageConfig; }
+          };
+        });
+      }
+    ));
 
-  beforeEach(module('spinnaker.templates'));
 
-  beforeEach(inject(function ($rootScope, $compile, $controller, pipelineConfig, helpContents) {
+  beforeEach(window.inject(function ($rootScope, $compile, $controller, pipelineConfig, helpContents) {
     this.scope = $rootScope.$new();
     this.scope.stage = {};
     this.compile = $compile;

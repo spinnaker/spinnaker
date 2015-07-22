@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.create.controller', [
-  'spinnaker.utils.lodash',
-  'spinnaker.pipelines.config.service',
-  'spinnaker.utils.scrollTo',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.create.controller', [
+  require('utils/lodash.js'),
+  require('../../services/pipelineConfigService.js'),
+  require('utils/scrollTo/scrollTo.service.js'),
 ])
   .controller('CreatePipelineModalCtrl', function($scope, application, target, reinitialize,
                                                   _, pipelineConfigService, $modalInstance, $log) {
@@ -57,4 +59,4 @@ angular.module('spinnaker.pipelines.create.controller', [
       );
     };
 
-  });
+  }).name;

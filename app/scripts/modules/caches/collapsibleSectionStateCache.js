@@ -1,19 +1,26 @@
 'use strict';
 
+let angular = require('angular');
+
 /* jshint newcap: false */
-angular.module('spinnaker.caches.collapsibleSectionState', [
-  'angular-data.DSCacheFactory',
+module.exports = angular.module('spinnaker.caches.collapsibleSectionState', [
+  require('angular-cache'),
 ])
-  .factory('collapsibleSectionStateCache', function(DSCacheFactory) {
+  .factory('collapsibleSectionStateCache', function(CacheFactory) {
 
     var cacheId = 'collapsibleSectionStateCache';
-    DSCacheFactory(cacheId, {
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      deleteOnExpire: 'aggressive',
-      storageMode: 'localStorage',
-    });
 
-    var stateCache = DSCacheFactory.get(cacheId);
+    try {
+      CacheFactory.createCache(cacheId, {
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        deleteOnExpire: 'aggressive',
+        storageMode: 'localStorage',
+      });
+    } catch (e) {
+      // trying to create a cache multiple times throws and Error
+    }
+
+    var stateCache = CacheFactory.get(cacheId);
 
     return {
       isSet: function(heading) {
@@ -26,4 +33,5 @@ angular.module('spinnaker.caches.collapsibleSectionState', [
         stateCache.put(heading, !!expanded);
       }
     };
-  });
+  })
+  .name;

@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.tasks.progressBar.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.tasks.progressBar.directive', [])
   .directive('taskProgressBar', function($filter) {
     return {
       restrict: 'E',
       scope: {
         task: '='
       },
-      templateUrl: 'scripts/modules/tasks/taskProgressBar.directive.html',
+      templateUrl: require('./taskProgressBar.directive.html'),
       link: function(scope) {
         var task = scope.task;
 
@@ -43,4 +45,4 @@ angular.module('spinnaker.tasks.progressBar.directive', [])
         }
       }
     };
-  });
+  }).name;

@@ -1,12 +1,14 @@
 'use strict';
 
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.fastProperty.write.service', [
-    'restangular',
-    'spinnaker.authentication.service'
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('utils/lodash.js'),
+    require('../authentication/authenticationService.js')
   ])
-  .factory('fastPropertyWriter', function (Restangular, authenticationService) {
+  .factory('fastPropertyWriter', function (Restangular, authenticationService, _) {
 
     function upsertFastProperty(fastProperty) {
       var payload = createPromotedPayload(fastProperty);
@@ -83,4 +85,4 @@ angular
       continuePromotion: continuePromotion,
       stopPromotion: stopPromotion,
     };
-  });
+  }).name;

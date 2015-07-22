@@ -1,10 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.authentication', [
-  'ui.bootstrap',
-  'spinnaker.authentication.service',
-  'spinnaker.authentication.directive',
-  'spinnaker.settings',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.authentication', [
+  require('../authentication/authenticationService.js'),
+  require('../authentication/authenticatedUserDirective.js'),
+  require('../../settings/settings.js'),
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
@@ -23,4 +24,5 @@ angular.module('spinnaker.authentication', [
         return config;
       }
     };
-  });
+  })
+  .name;

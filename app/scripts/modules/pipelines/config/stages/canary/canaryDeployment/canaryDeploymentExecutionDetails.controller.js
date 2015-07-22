@@ -1,13 +1,14 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.controller', [
-  'ui.router',
-  'spinnaker.utils.lodash',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
-  'spinnaker.urlBuilder',
-  'cluster.filter.service',
-  'spinnaker.pipelines.stages.canary.deployment.history.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.controller', [
+  require('angular-ui-router'),
+  require('utils/lodash.js'),
+  require('../../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../../services/urlbuilder.js'),
+  require('./canaryDeploymentHistory.service.js')
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,
                                                                 executionDetailsSectionService,
@@ -80,4 +81,4 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
       function() { $timeout(initialize); },
     true);
 
-  });
+  }).name;

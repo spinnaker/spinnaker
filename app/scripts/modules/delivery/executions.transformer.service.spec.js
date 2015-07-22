@@ -1,11 +1,19 @@
 'use strict';
 
+
 describe('executionsService', function() {
 
-  beforeEach(module('spinnaker.delivery.executionTransformer.service'));
 
-  beforeEach(inject(function(executionsTransformer) {
+  beforeEach(
+    window.module(
+      require('./executions.transformer.service'),
+      require('utils/lodash.js')
+    )
+  );
+
+  beforeEach(window.inject(function(executionsTransformer, ___) {
     this.transformer = executionsTransformer;
+    this._ = ___;
   }));
 
   describe('transformExecution', function() {
@@ -24,7 +32,7 @@ describe('executionsService', function() {
       };
 
       this.transformer.transformExecution({}, execution);
-      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e','f','b','c','a','g','d','h']);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['e', 'f', 'b', 'c', 'a', 'g', 'd', 'h']);
     });
 
     it('should sort sibling before stages by start time if available', function() {
@@ -42,7 +50,7 @@ describe('executionsService', function() {
       };
 
       this.transformer.transformExecution({}, execution);
-      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['f','e','c','b','a','g','d','h']);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['f', 'e', 'c', 'b', 'a', 'g', 'd', 'h']);
     });
 
     it('should group stages into summaries when no synthetic stages added', function() {
@@ -75,9 +83,9 @@ describe('executionsService', function() {
       this.transformer.transformExecution({}, execution);
 
       expect(execution.stageSummaries.length).toBe(3);
-      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['5','1']);
-      expect(_.pluck(execution.stageSummaries[1].stages, 'id')).toEqual(['4','6','2']);
-      expect(_.pluck(execution.stageSummaries[2].stages, 'id')).toEqual(['7','3','8']);
+      expect(_.pluck(execution.stageSummaries[0].stages, 'id')).toEqual(['5', '1']);
+      expect(_.pluck(execution.stageSummaries[1].stages, 'id')).toEqual(['4', '6', '2']);
+      expect(_.pluck(execution.stageSummaries[2].stages, 'id')).toEqual(['7', '3', '8']);
     });
 
     it('should set summary status and start/end times based on child stages', function() {
@@ -132,7 +140,7 @@ describe('executionsService', function() {
 
       var nested = summary.stages[2];
 
-      expect(_.pluck(summary.stages, 'id')).toEqual(['1','3','2','4','5']);
+      expect(_.pluck(summary.stages, 'id')).toEqual(['1', '3', '2', '4', '5']);
       expect(nested.id).toBe('2');
       expect(nested.status).toBe('COMPLETED');
       expect(nested.startTime).toBe(8);

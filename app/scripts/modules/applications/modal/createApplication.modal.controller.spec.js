@@ -8,11 +8,13 @@ describe('Controller: CreateApplicationModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.application.create.modal.controller')
+    window.module(
+      require('./createApplication.modal.controller')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('CreateApplicationModalCtrl', {
         $scope: scope,

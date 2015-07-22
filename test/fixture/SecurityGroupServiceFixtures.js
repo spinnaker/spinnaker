@@ -13,3 +13,5 @@ securityGroupReaderFixture.allSecurityGroups = {
     }
   }
 };
+
+module.exports = securityGroupReaderFixture;

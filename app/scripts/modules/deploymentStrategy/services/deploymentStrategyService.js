@@ -1,7 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.deploymentStrategy')
+module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategyService', [
+  require('utils/lodash.js'),
+  require('../deploymentStrategyConfigProvider.js')
+])
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {
 
     function listAvailableStrategies(provider) {
@@ -20,4 +24,4 @@ angular.module('spinnaker.deploymentStrategy')
       getStrategy: getStrategy
     };
 
-  });
+  }).name;

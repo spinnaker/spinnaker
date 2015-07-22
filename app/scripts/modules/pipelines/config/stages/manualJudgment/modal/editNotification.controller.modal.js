@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.manualJudgment.modal.editNotification', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment.modal.editNotification', [])
   .controller('ManualJudgmentEditNotificationController', function ($scope, $modalInstance, notification) {
 
     var vm = this;
@@ -11,4 +13,4 @@ angular.module('spinnaker.pipelines.stage.manualJudgment.modal.editNotification'
     };
 
     return vm;
-  });
+  }).name;

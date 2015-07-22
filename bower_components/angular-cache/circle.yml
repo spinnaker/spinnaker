@@ -1,8 +1,0 @@
-dependencies:
-  pre:
-    - bower install
-  cache_directories:
-    - "bower_components"
-test:
-  post:
-    - grunt coveralls || true

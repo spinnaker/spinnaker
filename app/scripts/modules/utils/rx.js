@@ -1,8 +1,10 @@
 'use strict';
 
+let rx = require('rx');
+let angular = require('angular');
 
-angular.module('spinnaker.utils.rx', [])
+module.exports = angular.module('spinnaker.utils.rx', [])
   .factory('RxService', function () {
-    return Rx;
+    return rx;
   }
-);
+).name;

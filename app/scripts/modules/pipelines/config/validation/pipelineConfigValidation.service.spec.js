@@ -2,12 +2,14 @@
 
 describe('pipelineConfigValidator', function () {
 
-  beforeEach(module(
-    'spinnaker.pipelines.config.validator.service',
-    'spinnaker.pipelines.config'
-  ));
+  beforeEach(
+    window.module(
+      require('./pipelineConfigValidation.service'),
+      require('../config.module.js')
+    )
+  );
 
-  beforeEach(inject(function (pipelineConfigValidator, pipelineConfig) {
+  beforeEach(window.inject(function (pipelineConfigValidator, pipelineConfig) {
     this.validator = pipelineConfigValidator;
     this.pipelineConfig = pipelineConfig;
   }));

@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.instance.detail.gce.controller', [
-  'ui.router',
-  'spinnaker.instance.write.service',
-  'spinnaker.instance.read.service',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.utils.lodash',
+module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
+  require('angular-ui-router'),
+  require('../../instance.write.service.js'),
+  require('../../instance.read.service.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('utils/lodash.js'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,
@@ -328,4 +329,4 @@ angular.module('spinnaker.instance.detail.gce.controller', [
     $scope.account = instance.account;
 
   }
-);
+).name;

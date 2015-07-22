@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.advancedSettingSelector', [])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupAdvancedSettingsDirective.html',
+      templateUrl: require('./serverGroupAdvancedSettingsDirective.html'),
       controller: 'gceServerGroupAdvancedSettingsSelectorCtrl as advancedSettingsCtrl',
     };
   })
@@ -28,4 +30,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.tags.splice(index, 1);
     };
 
-  });
+  }).name;

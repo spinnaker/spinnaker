@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.delivery.execution.controller', [
-  'ui.router',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.delivery.executions.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.execution.controller', [
+  require('angular-ui-router'),
+  require('../confirmationModal/confirmationModal.service.js'),
+  require('./executionsService.js'),
 ])
   .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService, settings) {
     var controller = this;
@@ -46,5 +48,6 @@ angular.module('spinnaker.delivery.execution.controller', [
 
     };
 
-  });
+  })
+  .name;
 

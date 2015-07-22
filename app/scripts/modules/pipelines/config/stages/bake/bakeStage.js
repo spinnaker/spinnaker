@@ -1,6 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.bake')
+let angular = require('angular');
+
+require('./bakeExecutionDetails.html');
+require('./bakeStage.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [
+  require('utils/lodash.js'),
+  require('../../pipelineConfigProvider.js'),
+  require('./bakery.service.js'),
+])
+  //BEN_TODO: executionDetailsUrl?
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Bake',
@@ -8,8 +18,8 @@ angular.module('spinnaker.pipelines.stage.bake')
       key: 'bake',
       controller: 'BakeStageCtrl',
       controllerAs: 'bakeStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/bake/bakeStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/bake/bakeExecutionDetails.html',
+      templateUrl: require('./bakeStage.html'),
+      executionDetailsUrl: require('./bakeExecutionDetails.html'),
       defaultTimeoutMs: 60 * 60 * 1000, // 60 minutes
       validators: [
         {
@@ -47,7 +57,7 @@ angular.module('spinnaker.pipelines.stage.bake')
         $scope.viewState.providerSelectionRequired = true;
         $scope.viewState.loading = false;
       } else {
-        // If there is exactly one provider, and there is not already a provider selected, select the only choice.
+        // If there is exactly one provider, and there is not already a provider selected, select the only choice.
         if (providers.length === 1 && !$scope.stage.cloudProviderType) {
           $scope.stage.cloudProviderType = providers[0];
         }
@@ -110,4 +120,4 @@ angular.module('spinnaker.pipelines.stage.bake')
 
     $scope.$watch('stage.cloudProviderType', this.providerSelected);
     $scope.$watch('stage', deleteEmptyProperties, true);
-  });
+  }).name;

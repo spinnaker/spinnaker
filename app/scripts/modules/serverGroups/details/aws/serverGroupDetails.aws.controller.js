@@ -1,19 +1,25 @@
 'use strict';
 /* jshint camelcase:false */
 
+require('../../configure/aws/wizard/serverGroupWizard.html');
+require('../../configure/aws/wizard/loadBalancers.html');
 
-angular.module('spinnaker.serverGroup.details.aws.controller', [
-  'ui.bootstrap',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.serverGroup.write.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.serverGroup.details.aws.autoscaling.process',
-  'spinnaker.serverGroup.read.service',
-  'spinnaker.aws.serverGroupCommandBuilder.service',
-  'spinnaker.executionFilter.service',
-  'spinnaker.vpc.tag.directive',
+require('../../configure/gce/wizard/serverGroupWizard.html');
+require('../../configure/aws/serverGroup.configure.aws.module.js');
+
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../serverGroup.write.service.js'),
+  require('utils/lodash.js'),
+  require('./autoScalingProcess.service.js'),
+  require('../../serverGroup.read.service.js'),
+  require('../../configure/aws/serverGroupCommandBuilder.service.js'),
+  require('../../configure/common/runningExecutions.service.js'),
+
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, executionFilterService) {
 
@@ -38,11 +44,11 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
     }
 
     function extractServerGroupSummary() {
-      var summary = _.find(application.serverGroups, function (toCheck) {
+      var summary = _.find(app.serverGroups, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
       });
       if (!summary) {
-        application.loadBalancers.some(function (loadBalancer) {
+        app.loadBalancers.some(function (loadBalancer) {
           if (loadBalancer.account === serverGroup.accountId && loadBalancer.region === serverGroup.region) {
             return loadBalancer.serverGroups.some(function (possibleServerGroup) {
               if (possibleServerGroup.name === serverGroup.name) {
@@ -58,7 +64,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+      serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
         var restangularlessDetails = details.plain();
@@ -86,8 +92,8 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
           if (details.launchConfig && details.launchConfig.securityGroups) {
             $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
-              return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+              return _.find(app.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                _.find(app.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();
           }
 
@@ -105,13 +111,13 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     retrieveServerGroup();
 
-    application.registerAutoRefreshHandler(retrieveServerGroup, $scope);
+    app.registerAutoRefreshHandler(retrieveServerGroup, $scope);
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Destroying ' + serverGroup.name,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true,
@@ -119,7 +125,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.destroyServerGroup(serverGroup, application);
+        return serverGroupWriter.destroyServerGroup(serverGroup, app);
       };
 
       var stateParams = {
@@ -137,7 +143,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
         provider: 'aws',
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
-        body: this.getBodyTemplate(serverGroup, application),
+        body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -151,17 +157,17 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
       });
     };
 
-    this.getBodyTemplate = function(serverGroup, application) {
-      if(this.isLastServerGroupInRegion(serverGroup, application)){
+    this.getBodyTemplate = function(serverGroup, app) {
+      if(this.isLastServerGroupInRegion(serverGroup, app)){
         var template = $templateCache.get('scripts/modules/serverGroups/details/aws/deleteLastServerGroupWarning.html');
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);
       }
     };
 
-    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+    this.isLastServerGroupInRegion = function (serverGroup, app ) {
       try {
-        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
+        var cluster = _.find(app.clusters, {name: serverGroup.cluster, account:serverGroup.account});
         return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
       } catch (error) {
         return false;
@@ -172,12 +178,12 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
       var serverGroup = $scope.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Disabling ' + serverGroup.name
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.disableServerGroup(serverGroup, application);
+        return serverGroupWriter.disableServerGroup(serverGroup, app);
       };
 
       confirmationModalService.confirm({
@@ -196,12 +202,12 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
       var serverGroup = $scope.serverGroup;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Enabling ' + serverGroup.name,
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.enableServerGroup(serverGroup, application);
+        return serverGroupWriter.enableServerGroup(serverGroup, app);
       };
 
       confirmationModalService.confirm({
@@ -217,11 +223,11 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     this.toggleScalingProcesses = function toggleScalingProcesses() {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/aws/modifyScalingProcesses.html',
+        templateUrl: require('./modifyScalingProcesses.html'),
         controller: 'ModifyScalingProcessesCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; },
+          application: function() { return app; },
           processes: function() { return $scope.autoScalingProcesses; },
         }
       });
@@ -229,23 +235,23 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/resizeServerGroup.html',
+        templateUrl: require('../resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
-          application: function() { return application; }
+          application: function() { return app; }
         }
       });
     };
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrl: 'app/scripts/modules/serverGroups/configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
-          application: function() { return application; },
-          serverGroupCommand: function() { return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+          application: function() { return app; },
+          serverGroupCommand: function() { return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting(app, serverGroup); },
         }
       });
     };
@@ -253,10 +259,10 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
     this.showScalingActivities = function showScalingActivities() {
       $scope.activities = [];
       $modal.open({
-        templateUrl: 'scripts/modules/serverGroups/details/scalingActivities.html',
+        templateUrl: require('../scalingActivities.html'),
         controller: 'ScalingActivitiesCtrl as ctrl',
         resolve: {
-          applicationName: function() { return application.name; },
+          applicationName: function() { return app.name; },
           account: function() { return $scope.serverGroup.account; },
           clusterName: function() { return $scope.serverGroup.cluster; },
           serverGroup: function() { return $scope.serverGroup; }
@@ -267,7 +273,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        templateUrl: 'views/application/modal/serverGroup/userData.html',
+        templateUrl: require('../../../../../views/application/modal/serverGroup/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });
@@ -288,4 +294,4 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
       return null;
     };
   }
-);
+).name;

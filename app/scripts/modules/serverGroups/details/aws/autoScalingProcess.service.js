@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.details.aws.autoscaling.process', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process', [])
   .factory('autoScalingProcessService', function() {
     function listProcesses() {
       return [
@@ -44,4 +46,4 @@ angular.module('spinnaker.serverGroup.details.aws.autoscaling.process', [])
     return {
       listProcesses: listProcesses,
     };
-  });
+  }).name;

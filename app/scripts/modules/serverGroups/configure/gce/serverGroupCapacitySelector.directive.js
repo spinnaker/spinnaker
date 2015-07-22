@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.capacity.selector.directive', [])
   .directive('gceServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupCapacityDirective.html',
+      templateUrl: require('./serverGroupCapacityDirective.html'),
       controller: 'gceServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })
@@ -16,4 +18,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.capacity.min = newVal;
       $scope.command.capacity.max = newVal;
     };
-  });
+  }).name;

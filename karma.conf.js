@@ -1,11 +1,9 @@
-// Karma configuration
-// http://karma-runner.github.io/0.12/config/configuration-file.html
-// Generated on 2014-07-17 using
-// generator-karma 0.8.2
+'use strict';
+
+var webpackConf = require('./webpack.config.js');
 
 module.exports = function(config) {
   config.set({
-    // enable / disable watching file and executing tests whenever any file changes
     autoWatch: true,
 
     // base path, that will be used to resolve files and exclude
@@ -16,22 +14,65 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'node_modules/es5-shim/es5-shim.js',
-      'test/helpers/**/*.js',
-      'dist/scripts/vendor*.js',
-      'bower_components/angular-mocks/angular-mocks.js',
-      'dist/scripts/*.js',
-      'test/poly/**/*.js',
-      'test/mock/**/*.js',
-      'test/spec/**/*.js',
-      'app/scripts/testHelpers/*.js',
-      'app/scripts/modules/**/*.spec.js',
-      'app/scripts/controllers/**/*.spec.js',
-      'app/scripts/services/**/*.spec.js',
-      'app/scripts/directives/**/*.spec.js',
-      'test/fixture/**/*.js',
-      'app/views/**/*.html',
-      'app/scripts/modules/**/*.html'
+      './node_modules/jquery/dist/jquery.js',
+      './node_modules/angular/angular.js',
+      './node_modules/angular-mocks/angular-mocks.js',
+      './node_modules/phantomjs-polyfill/bind-polyfill.js',
+      //'app/**/*.spec.js',
+      'test/test_index.js'
+    ],
+
+    preprocessors: {
+      //'app/**/*.spec.js': ['webpack'],
+      'test/test_index.js': ['webpack', 'sourcemap'],
+    },
+
+    webpack: {
+      module: {
+        loaders: [
+          {
+            test: /jquery\.js$/,
+            loader: 'expose?jQuery',
+          },
+          {
+            test: /\.css$/,
+            loader: 'style!css',
+          },
+          {
+            test: /\.js$/,
+            loader: 'ng-annotate!babel',
+            exclude: /node_modlules/,
+          },
+          {
+            test: /\.less$/,
+            loader: 'style!css!less',
+          },
+          {
+            test: /\.(woff|otf|ttf|eot|svg|png|gif)(.*)?$/,
+            loader: 'file',
+          },
+          {
+            test: /\.html$/,
+            loader: 'ngtemplate?relativeTo=' + __dirname + '/!html'
+          },
+        ]
+      },
+      devtool: 'inline-source-map',
+      watch: true,
+    },
+
+    webpackMiddleware: {
+      noInfo: true,
+    },
+
+    plugins: [
+      require('karma-webpack'),
+      require('karma-jasmine'),
+      require('karma-phantomjs-launcher'),
+      require('karma-chrome-launcher'),
+      require('karma-junit-reporter'),
+      require('karma-mocha-reporter'),
+      require('karma-sourcemap-loader'),
     ],
 
     // list of files / patterns to exclude
@@ -49,32 +90,9 @@ module.exports = function(config) {
     // - PhantomJS
     // - IE (only Windows)
     browsers: [
-      'PhantomJS'
+      'PhantomJS',
+      //'Chrome',
     ],
-
-    // Which plugins to enable
-    plugins: [
-      'karma-phantomjs-launcher',
-      'karma-chrome-launcher',
-      'karma-junit-reporter',
-      'karma-mocha-reporter',
-      'karma-jasmine',
-      'karma-ng-html2js-preprocessor'
-    ],
-
-    preprocessors: {
-      '**/[modules|views]**/*.html': ['ng-html2js'],
-    },
-
-
-    ngHtml2JsPreprocessor: {
-      // strip this from the file path
-      stripPrefix: 'app/'
-    },
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
-    singleRun: false,
 
     colors: true,
 
@@ -83,11 +101,15 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'junit', 'mocha'],
+    reporters: ['progress', 'mocha'],
 
     // the default configuration
     junitReporter: {
       outputFile: 'test-results.xml'
+    },
+
+    client: {
+      captureConsole: true,
     }
   });
 };

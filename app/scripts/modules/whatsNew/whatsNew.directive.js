@@ -1,12 +1,13 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.whatsNew.directive', [
-    'ui.bootstrap',
-    'hc.marked',
-    'spinnaker.caches.viewStateCache',
-    'spinnaker.whatsNew.read.service',
-    'spinnaker.utils.timeFormatters',
+    require('angular-marked'),
+    require('../caches/viewStateCache.js'),
+    require('./whatsNew.read.service.js'),
+    require('utils/timeFormatters.js'),
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
@@ -16,7 +17,7 @@ angular
   .directive('whatsNew', function (whatsNewReader, viewStateCache) {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/whatsNew/whatsNew.directive.html',
+      templateUrl: require('./whatsNew.directive.html'),
       controller: function($scope, $modal) {
 
         // single cache, so we will use the cache name as the key, also
@@ -40,7 +41,7 @@ angular
           $scope.viewState.updateLastViewed = $scope.fileLastUpdated;
           whatsNewViewStateCache.put(cacheId, $scope.viewState);
           $modal.open({
-            templateUrl: 'scripts/modules/whatsNew/whatsNew.directive.modal.html',
+            templateUrl: require('./whatsNew.directive.modal.html'),
             scope: $scope,
           });
         };
@@ -51,4 +52,4 @@ angular
 
       }
     };
-  });
+  }).name;

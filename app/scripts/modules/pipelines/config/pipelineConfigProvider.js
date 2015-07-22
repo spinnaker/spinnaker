@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.config', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
+])
   .provider('pipelineConfig', function() {
 
     var triggerTypes = [],
@@ -62,4 +65,5 @@ angular.module('spinnaker.pipelines.config', [])
     };
 
   }
-);
+)
+.name;

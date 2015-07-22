@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
-  'spinnaker.utils.timePicker.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
+  require('utils/timePicker.service.js')
 ])
   .controller('ExecutionWindowsCtrl', function($scope, timePickerService) {
 
@@ -96,4 +98,4 @@ angular.module('spinnaker.pipelines.stage.executionWindows.controller', [
     $scope.$watch('stage.restrictedExecutionWindow.whitelist', this.updateTimelineWindows, true);
     $scope.$watch('stage.restrictExecutionDuringTimeWindow', this.toggleWindowRestriction);
 
-  });
+  }).name;

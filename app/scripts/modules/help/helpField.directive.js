@@ -16,12 +16,15 @@
 
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.help')
+module.exports = angular.module('spinnaker.help.helpField', [
+  require('../../settings/helpContents.js')
+])
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/help/helpField.html',
+      templateUrl: require('./helpField.html'),
       scope: {
         key: '@',
         fallback: '@',
@@ -47,4 +50,4 @@ angular.module('spinnaker.help')
         }
       }
     };
-  });
+  }).name;

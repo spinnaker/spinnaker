@@ -1,10 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 /* jshint newcap: false */
-angular.module('spinnaker.caches.infrastructure', [
-  'spinnaker.caches.core',
-  'spinnaker.authentication.service',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.caches.infrastructure', [
+  require('./deckCacheFactory.js'),
+  require('../authentication/authenticationService.js'),
+  require('../../settings/settings.js')
 ])
   .factory('infrastructureCaches', function(deckCacheFactory, authenticationService, settings) {
 
@@ -43,4 +45,5 @@ angular.module('spinnaker.caches.infrastructure', [
     caches.createCache = createCache;
 
     return caches;
-  });
+  })
+  .name;

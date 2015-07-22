@@ -2,21 +2,24 @@
 
 describe('Controller: AllClustersCtrl', function () {
 
+  const angular = require('angular');
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
 
   beforeEach(
-    module('clusters.all')
+    window.module(
+      require('./allClusters.controller.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('AllClustersCtrl', {
         $scope: scope,
-        application: {
+        app: {
           serverGroups: [],
           registerAutoRefreshHandler: angular.noop
         }

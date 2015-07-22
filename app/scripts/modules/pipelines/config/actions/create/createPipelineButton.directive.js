@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.create')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.config.actions.create.createPipelineButtonDirective', [
+])
   .directive('createPipelineButton', function() {
     return {
       restrict: 'E',
@@ -9,8 +12,8 @@ angular.module('spinnaker.pipelines.create')
         target: '@',
         reinitialize: '&',
       },
-      templateUrl: 'scripts/modules/pipelines/config/actions/create/createPipelineButton.html',
+      templateUrl: require('./createPipelineButton.html'),
       controller: 'CreatePipelineButtonCtrl',
       controllerAs: 'buttonCtrl',
     };
-  });
+  }).name;

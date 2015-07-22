@@ -1,7 +1,11 @@
 'use strict';
 
-angular
-  .module('spinnaker.tasks.read.service', ['spinnaker.tasks.api'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.tasks.read.service', [
+    require('./tasks.api.config.js'),
+  ])
   .factory('tasksReader', function(tasksApi) {
 
     function listAllTasksForApplication(applicationName) {
@@ -19,4 +23,4 @@ angular
 
     };
 
-  });
+  }).name;

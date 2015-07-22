@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionBar.controller', [
-  'spinnaker.pipelines.config',
-  'ui.router',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
+  require('../pipelines/config/pipelineConfigProvider.js'),
+  require('angular-ui-router'),
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
     var controller = this;
@@ -64,8 +66,8 @@ angular.module('spinnaker.delivery.executionBar.controller', [
       if (config && config.executionLabelTemplateUrl) {
         return config.executionLabelTemplateUrl;
       } else {
-        return 'scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
+        return 'app/scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
       }
     };
 
-  });
+  }).name;

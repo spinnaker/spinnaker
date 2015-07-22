@@ -1,6 +1,8 @@
 'use strict';
 
 describe('Controller: tasks', function () {
+  const angular = require('angular');
+
   var controller;
   var controllerInjector;
   var scope;
@@ -10,14 +12,18 @@ describe('Controller: tasks', function () {
     return function ($controller, $rootScope) {
       var viewStateCache = { createCache: function() { return { get: angular.noop, put: angular.noop }; }};
       scope = $rootScope.$new();
-      controller = $controller('TasksCtrl', { application: appData, $scope: scope, viewStateCache: viewStateCache });
+      controller = $controller('TasksCtrl', { app: appData, $scope: scope, viewStateCache: viewStateCache });
     };
   };
 
-  beforeEach(module('spinnaker.tasks.main'));
+  beforeEach(
+    window.module(
+      require('./tasks.controller.js')
+    )
+  );
 
   beforeEach(
-    inject(
+    window.inject(
       controllerInjector({})
     )
   );
@@ -29,7 +35,7 @@ describe('Controller: tasks', function () {
     });
 
     it('tasksLoaded flag should be true if tasks object is present on application', function() {
-      inject(controllerInjector({tasks: [] }));
+      window.inject(controllerInjector({tasks: [] }));
       scope.$digest();
       expect(controller.tasksLoaded).toBe(true);
     });
@@ -44,7 +50,7 @@ describe('Controller: tasks', function () {
     };
 
     beforeEach(
-      inject(
+      window.inject(
         controllerInjector(application)
       )
     );
@@ -65,7 +71,7 @@ describe('Controller: tasks', function () {
     };
 
     beforeEach(
-      inject(
+      window.inject(
         controllerInjector(application)
       )
     );
@@ -90,7 +96,7 @@ describe('Controller: tasks', function () {
     };
 
     beforeEach(
-      inject(
+      window.inject(
         controllerInjector(application)
       )
     );

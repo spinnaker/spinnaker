@@ -40,6 +40,26 @@
       <span>Only dot(.), underscore(_), and dash(-) special characters are allowed in the Detail field.</span>
     </div>
   </div>
+  <div class="col-md-10" ng-if="command.viewState.useAllImageSelection">
+
+    <ui-select ng-model="command.viewState.allImageSelection"
+               class="form-control input-sm"
+               required>
+      <ui-select-match placeholder="Search for an image...">{{$select.selected.imageName || $select.selected}}</ui-select-match>
+      <ui-select-choices repeat="result.imageName as result in allImageSearchResults track by $index"
+                         refresh="basicSettingsCtrl.searchImages($select.search)"
+                         ui-disable-choice="result.message"
+                         reset-search-input="false"
+                         refresh-delay="0">
+        <span ng-bind-html="result.message"></span>
+        <span ng-bind-html="result.imageName | highlight: $select.search"></span>
+        <span ng-if="result.ami">(<span ng-bind-html="result.ami | highlight: $select.search"></span>)</span>
+      </ui-select-choices>
+    </ui-select>
+        <span ng-if="command.backingData.filtered.images.length > 0">
+          <help-field key="aws.serverGroup.filterImages"></help-field>
+        </span>
+  </div>
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
     <div class="col-md-2 sm-label-left">
       Image
@@ -75,6 +95,38 @@
       <a href ng-click="command.viewState.useAllImageSelection = true">Search All Images</a><help-field key="aws.serverGroup.allImages"></help-field>
     </div>
   </div>
+</div>
+<deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+<div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+  <div class="col-md-9 col-md-offset-2">
+    <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+      <h5 class="text-center">
+        <p>Your server group will be in the cluster:</p>
+        <p>
+          <strong>
+            {{basicSettingsCtrl.getNamePreview()}}
+            <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
+          </strong>
+        </p>
+        <div ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+          <p>
+            There is already a server group in this cluster. Do you want to clone it?
+          </p>
+          <p>
+            Cloning copies the entire configuration from the selected server group, allowing you
+            modify whichever fields (e.g. image) you need to change in the new server group.
+          </p>
+          <p>
+            To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the
+            server group.
+          </p>
+          <p>
+            <a href ng-click="basicSettingsCtrl.navigateToLatestServerGroup()">
+              Go to details for {{latestServerGroup.name}}
+            </a>
+          </p>
+        </div>
+      </h5>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
     <div class="col-md-9 col-md-offset-2">

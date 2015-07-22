@@ -1,8 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.image.service', [
-  'restangular',
+module.exports = angular.module('spinnaker.aws.image.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../modules/caches/deckCacheFactory.js'),
+  require('../modules/caches/scheduledCache.js'),
 ])
   .factory('awsImageService', function ($q, Restangular) {
 
@@ -32,4 +35,4 @@ angular.module('spinnaker.aws.image.service', [
       findImages: findImages,
       getAmi: getAmi,
     };
-  });
+  }).name;

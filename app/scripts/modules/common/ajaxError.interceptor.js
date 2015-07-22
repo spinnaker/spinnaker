@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.ajaxError.interceptor', [
-    'spinnaker.utils.lodash'
+    require('utils/lodash.js')
   ])
   .factory('ajaxErrorInterceptor', function($q, $analytics, _) {
 
@@ -39,5 +41,6 @@ angular
         return $q.reject(rejection);
       }
     };
-  });
+  })
+  .name;
 

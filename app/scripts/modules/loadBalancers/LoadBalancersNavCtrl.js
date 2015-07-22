@@ -1,13 +1,14 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.nav.controller', [
- 'spinnaker.utils.lodash'
+module.exports = angular.module('spinnaker.loadBalancer.nav.controller', [
+ require('utils/lodash.js')
 ])
-  .controller('LoadBalancersNavCtrl', function ($scope, application, _) {
+  .controller('LoadBalancersNavCtrl', function ($scope, app, _) {
 
-    $scope.application = application;
-    $scope.loadBalancers = application.loadBalancers;
+    $scope.application = app;
+    $scope.loadBalancers = app.loadBalancers;
 
     $scope.sortField = 'account';
 
@@ -18,12 +19,12 @@ angular.module('spinnaker.loadBalancer.nav.controller', [
     ];
 
     this.getHeadings = function getHeadings() {
-      var allValues = _.collect(application.loadBalancers, $scope.sortField);
+      var allValues = _.collect(app.loadBalancers, $scope.sortField);
       return _.compact(_.unique(allValues)).sort();
     };
 
     this.getLoadBalancersFor = function getLoadBalancersFor(value) {
-      return application.loadBalancers.filter(function (loadBalancer) {
+      return app.loadBalancers.filter(function (loadBalancer) {
         return loadBalancer[$scope.sortField] === value;
       });
     };
@@ -45,4 +46,4 @@ angular.module('spinnaker.loadBalancer.nav.controller', [
       return loadBalancer[labelFields[0].key];
     };
   }
-);
+).name;

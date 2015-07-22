@@ -2,9 +2,15 @@
 
 describe('Controller: ExecutionGroupHeading', function () {
 
-  beforeEach(module('spinnaker.delivery.executionGroupHeading.controller'));
+  const angular = require('angular');
 
-  beforeEach(inject(function ($controller, $rootScope, $q) {
+  beforeEach(
+    window.module(
+      require('./executionGroupHeading.controller')
+    )
+  );
+
+  beforeEach(window.inject(function ($controller, $rootScope, $q) {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
     this.$q = $q;

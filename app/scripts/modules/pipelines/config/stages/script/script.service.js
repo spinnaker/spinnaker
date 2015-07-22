@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.script')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.script.service', [])
   .factory('scriptService', function($q) {
 
     function getCredentials() {
@@ -10,4 +12,4 @@ angular.module('spinnaker.pipelines.stage.script')
     return {
       getCredentials: getCredentials,
     };
-  });
+  }).name;

@@ -1,18 +1,20 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.healthCounts.directive', [])
+module.exports = angular.module('spinnaker.healthCounts.directive', [
+])
   .directive('healthCounts', function ($templateCache) {
     return {
-      templateUrl: 'scripts/modules/healthCounts/healthCounts.html',
+      templateUrl: require('./healthCounts.html'),
       restrict: 'E',
       scope: {
         container: '='
       },
       link: function(scope) {
 
-        var template = $templateCache.get('scripts/modules/healthCounts/healthLegend.html');
-        scope.legend = template;
+
+        scope.legend = $templateCache.get(require('./healthLegend.html'));
 
         function calculateHealthPercent() {
           var container = scope.container,
@@ -34,4 +36,4 @@ angular.module('spinnaker.healthCounts.directive', [])
       }
     };
   }
-);
+).name;

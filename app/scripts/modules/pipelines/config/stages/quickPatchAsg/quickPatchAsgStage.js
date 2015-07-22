@@ -1,6 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.quickPatchAsg')
+let angular = require('angular');
+
+require('./quickPatchAsgStage.html');
+require('./quickPatchAsgExecutionDetails.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Quick Patch Server Group',
@@ -8,8 +13,8 @@ angular.module('spinnaker.pipelines.stage.quickPatchAsg')
       key: 'quickPatch',
       controller: 'QuickPatchAsgStageCtrl',
       controllerAs: 'QuickPatchAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgExecutionDetails.html'
+      templateUrl: require('./quickPatchAsgStage.html'),
+      executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html')
     });
   }).controller('QuickPatchAsgStageCtrl', function($scope, stage, bakeryService, accountService) {
     $scope.stage = stage;
@@ -42,5 +47,6 @@ angular.module('spinnaker.pipelines.stage.quickPatchAsg')
     })();
 
     $scope.$watch('stage.credentials', $scope.accountUpdated);
-  });
+  })
+  .name;
 

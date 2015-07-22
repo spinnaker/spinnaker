@@ -1,8 +1,12 @@
 'use strict';
 
+let angular = require('angular');
+
 // TODO: Clean this up on the backend - this is a mess
-angular.module('spinnaker.pipelines.stage.canary.transformer', [])
-  .service('canaryStageTransformer', function($log) {
+module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', [
+  require('utils/lodash.js'),
+])
+  .service('canaryStageTransformer', function(_) {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
     function getDeployTaskName(stage) {
@@ -245,4 +249,4 @@ angular.module('spinnaker.pipelines.stage.canary.transformer', [])
       });
       execution.stages = execution.stages.concat(syntheticStagesToAdd);
     };
-  });
+  }).name;

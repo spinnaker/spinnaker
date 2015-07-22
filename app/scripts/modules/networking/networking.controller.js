@@ -1,14 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.networking.controller', [
-  'ui.bootstrap',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.utils.lodash',
-  'spinnaker.elasticIp.read.service',
-  'spinnaker.elasticIp.controller',
-  'spinnaker.networking.ip.sort.filter',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.networking.controller', [
+  require('../confirmationModal/confirmationModal.service.js'),
+  require('utils/lodash.js'),
+  require('./elasticIp.read.service.js'),
+  require('./elasticIp.controller.js'),
+  require('./ip.sort.filter.js'),
 ])
-  .controller('networkingCtrl', function ($scope, $modal, elasticIpReader) {
+  .controller('networkingCtrl', function ($scope, $modal, elasticIpReader, _) {
     var application = $scope.application;
 
     function getElasticIpsForCluster() {
@@ -22,7 +23,7 @@ angular.module('spinnaker.networking.controller', [
 
     $scope.associateElasticIp = function associateElasticIp() {
       $modal.open({
-        templateUrl: 'scripts/modules/networking/details/aws/associateElasticIp.html',
+        templateUrl: require('./details/aws/associateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },
@@ -35,14 +36,14 @@ angular.module('spinnaker.networking.controller', [
 
     $scope.disassociateElasticIp = function disassociateElasticIp(address) {
       $modal.open({
-        templateUrl: 'scripts/modules/networking/details/aws/disassociateElasticIp.html',
+        templateUrl: require('./details/aws/disassociateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },
           serverGroup: function() { return $scope.serverGroup; },
           elasticIp: function() { return _.find($scope.elasticIps, function (elasticIp) { return elasticIp.address === address; }); },
-          onTaskComplete: function() { return getElasticIpsForCluster;}
+          onTaskComplete: function() { return getElasticIpsForCluster; }
         }
       });
     };
-  });
+  }).name;

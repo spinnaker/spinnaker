@@ -16,13 +16,14 @@
 
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.modalWizard', [])
+module.exports = angular.module('spinnaker.modalWizard', [])
   .directive('modalWizard', function () {
     return {
       restrict: 'E',
       transclude: true,
-      templateUrl: 'views/modal/modalWizard.html',
+      templateUrl: require('../../views/modal/modalWizard.html'),
       controller: 'ModalWizardCtrl as wizardCtrl',
       link: function(scope, elem, attrs) {
         scope.wizard.setHeading(attrs.heading);
@@ -205,5 +206,5 @@ angular.module('spinnaker.modalWizard', [])
       getWizard: getWizard
     };
   }
-);
+).name;
 

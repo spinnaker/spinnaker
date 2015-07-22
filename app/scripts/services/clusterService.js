@@ -1,10 +1,14 @@
 'use strict';
 
+/* eslint consistent-return:0 */
 
-angular.module('spinnaker.cluster.service', [
-  'restangular'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.cluster.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('utils/lodash.js'),
 ])
-  .factory('clusterService', function ($q, Restangular) {
+  .factory('clusterService', function ($q, Restangular, _) {
 
     function loadServerGroups(applicationName) {
       return Restangular.one('applications', applicationName).one('serverGroups').getList()
@@ -244,4 +248,4 @@ angular.module('spinnaker.cluster.service', [
       extractRegionFromContext: extractRegionFromContext,
     };
 
-  });
+  }).name;

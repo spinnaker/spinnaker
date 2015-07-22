@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.search.service', [
-  'spinnaker.settings'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.search.service', [
+  require('../caches/deckCacheFactory.js')
 ])
   .factory('searchService', function($q, $http, $log, settings) {
 
@@ -36,4 +38,4 @@ angular.module('spinnaker.search.service', [
       getFallbackResults: getFallbackResults,
       defaultPageSize: defaultPageSize,
     };
-  });
+  }).name;

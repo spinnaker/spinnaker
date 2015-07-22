@@ -1,11 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.account.service', [
-  'restangular',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings',
-  'spinnaker.caches.infrastructure'
+module.exports = angular.module('spinnaker.account.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../caches/scheduledCache.js'),
+  require('utils/lodash.js'),
+  require('../caches/infrastructureCaches.js'),
 ])
   .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches) {
 
@@ -100,4 +101,5 @@ angular.module('spinnaker.account.service', [
       getPreferredZonesByAccount: getPreferredZonesByAccount,
       getAvailabilityZonesForAccountAndRegion: getAvailabilityZonesForAccountAndRegion
     };
-  });
+  })
+  .name;

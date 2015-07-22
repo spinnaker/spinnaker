@@ -1,18 +1,21 @@
 'use strict';
 
-angular.module('spinnaker.aws.serverGroup.configure.service', [
-  'spinnaker.image.service',
-  'spinnaker.account.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.instanceType.service',
-  'spinnaker.subnet.read.service',
-  'spinnaker.keyPairs.read.service',
-  'spinnaker.loadBalancer.read.service',
-  'spinnaker.caches.initializer',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
+  require('../../../../services/imageService.js'),
+  require('../../../account/accountService.js'),
+  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../../services/instanceTypeService.js'),
+  require('../../../subnet/subnet.read.service.js'),
+  require('../../../keyPairs/keyParis.read.service.js'),
+  require('../../../loadBalancers/loadBalancer.read.service.js'),
+  require('../../../caches/cacheInitializer.js'),
+  require('utils/lodash.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,
-                                                          subnetReader, keyPairsReader, loadBalancerReader) {
+                                                          subnetReader, keyPairsReader, loadBalancerReader, _) {
 
 
     function configureCommand(application, command) {
@@ -154,7 +157,7 @@ angular.module('spinnaker.aws.serverGroup.configure.service', [
         .reject({purpose: null})
         .pluck('purpose')
         .uniq()
-        .map(function(purpose) { return { purpose: purpose, label: purpose };})
+        .map(function(purpose) { return { purpose: purpose, label: purpose }; })
         .valueOf();
 
       if (!_(filteredData.subnetPurposes).some({purpose: command.subnetType})) {
@@ -352,4 +355,4 @@ angular.module('spinnaker.aws.serverGroup.configure.service', [
     };
 
 
-  });
+  }).name;

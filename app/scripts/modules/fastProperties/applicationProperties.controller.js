@@ -1,15 +1,19 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.applicationProperties.controller', [
-    'spinnaker.fastProperty.read.service',
-    'spinnaker.fastProperty.write.service',
-    'spinnaker.newFastProperty.controller',
-    'spinnaker.confirmationModal.service',
-    'spinnaker.fastProperty.transformer.service',
+    require('./fastProperty.read.service.js'),
+    require('./fastProperty.write.service.js'),
+    require('./modal/createNewFastProperty.controller.js'),
+    require('../confirmationModal/confirmationModal.service.js'),
+    require('./fastPropetyTrasnformer.service.js'),
+    require('utils/lodash.js'),
   ])
-  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, application, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer ) {
+  .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;
+    const application = app;
 
     vm.app = application.name;
     vm.itemsPerPage = 25;
@@ -92,7 +96,7 @@ angular
 
     vm.delete = function(property) {
       $modal.open({
-        templateUrl: 'scripts/modules/fastProperties/modal/deleteFastProperty.html',
+        templateUrl: require('./modal/deleteFastProperty.html'),
         controller: 'DeleteFastPropertyModalController',
         controllerAs: 'delete',
         resolve: {
@@ -105,13 +109,13 @@ angular
 
     vm.editFastProperty = function(property) {
       $modal.open({
-        templateUrl: 'scripts/modules/fastProperties/modal/newFastProperty.html',
+        templateUrl: require('./modal/newFastProperty.html'),
         controller: 'CreateFastPropertyModalController',
         controllerAs: 'newFP',
         resolve: {
-          clusters: function() {return application.clusters;},
-          appName: function() {return application.name;},
-          isEditing: function() {return true;},
+          clusters: function() {return application.clusters; },
+          appName: function() {return application.name; },
+          isEditing: function() {return true; },
           fastProperty: function() {
             var propertyWithScope = fastPropertyWriter.extractScopeIntoSelectedScope(property);
             return fastPropertyReader.fetchImpactCountForScope(propertyWithScope.selectedScope).then(function(impact) {
@@ -127,14 +131,14 @@ angular
 
     vm.newFastPropertyModal = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/fastProperties/modal/newFastProperty.html',
+        templateUrl: require('./modal/newFastProperty.html'),
         controller: 'CreateFastPropertyModalController',
         controllerAs: 'newFP',
         resolve: {
-          clusters: function() {return application.clusters;},
-          appName: function() {return application.name;},
-          isEditing: function() {return false;},
-          fastProperty: function() {return {};},
+          clusters: function() {return application.clusters; },
+          appName: function() {return application.name; },
+          isEditing: function() {return false; },
+          fastProperty: function() {return {}; },
         }
       }).result.then(routeToApplication);
     };
@@ -164,7 +168,7 @@ angular
         .then(
         function(data) {
           var list = data.propertiesList || [];
-          vm.properties = sortProperties(list) ;
+          vm.properties = sortProperties(list);
         }
       )
         .then(vm.setFilteredProperties);
@@ -205,4 +209,4 @@ angular
     loadPromotions();
 
     return vm;
-  });
+  }).name;
