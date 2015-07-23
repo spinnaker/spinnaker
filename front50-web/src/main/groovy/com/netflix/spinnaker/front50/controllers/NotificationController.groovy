@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.front50.notifications.NotificationRepository
 import com.netflix.spinnaker.front50.notifications.HierarchicalLevel
+import com.netflix.spinnaker.front50.notifications.NotificationRepository
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -33,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * Controller for presets
  */
+@Slf4j
 @RestController
 @RequestMapping('notifications')
 class NotificationController {
@@ -64,8 +66,31 @@ class NotificationController {
         notificationRepository.get(level, name)
     }
 
+    @RequestMapping(value = 'batchUpdate', method = RequestMethod.POST)
+    void batchUpdate(@RequestBody List<Map> notifications) {
+        notifications.each { it ->
+            try {
+                boolean isGlobal = false
+
+                if( it.hipchat )
+                    isGlobal = it.hipchat.first().level == 'global'
+
+                if (isGlobal) {
+                    notificationRepository.saveGlobal(it)
+                } else {
+                    save('application', it.application, it)
+                }
+                log.info("inserted ${it}")
+            } catch (e) {
+                log.error("could not insert ${it}", e)
+            }
+        }
+    }
+
     @RequestMapping(value = '{type}/{name}', method = RequestMethod.POST)
-    void save(@PathVariable(value = 'type') String type, @PathVariable(value = 'name') String name, @RequestBody Map notification) {
+    void save(
+            @PathVariable(value = 'type') String type,
+            @PathVariable(value = 'name') String name, @RequestBody Map notification) {
         HierarchicalLevel level = getLevel(type)
         if (name) {
             notificationRepository.save(level, name, notification)
