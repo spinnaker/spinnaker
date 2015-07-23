@@ -22,6 +22,7 @@ angular.module('spinnaker.serverGroup.configure.common')
     this.selectInstanceType = function (type) {
       if ($scope.selectedInstanceProfile && $scope.selectedInstanceProfile.type === type) {
         type = null;
+        $scope.selectedInstanceProfile = null;
       }
       $scope.command.viewState.instanceProfile = type;
       $scope.instanceProfiles.forEach(function(profile) {
