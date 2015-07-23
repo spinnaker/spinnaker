@@ -3,12 +3,27 @@
     <div class="col-md-7">
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h3 class="panel-title">Application Management</h3>
+          <h3 class="panel-title">Application Attributes</h3>
         </div>
         <div class="panel-body">
-          <p>You can edit the owner, PagerDuty API Key, or description of this application</p>
+          <dl class="dl-horizontal">
+            <dt>Description</dt>
+            <dd>{{application.attributes.description}}</dd>
+            <dt>Account(s)</dt>
+            <dd>{{application.attributes.accounts}}</dd>
+            <dt>Owner</dt>
+            <dd>{{application.attributes.email}}</dd>
+            <dt ng-if="application.attributes.pdApiKey">Page Duty API Key</dt>
+            <dd ng-if="application.attributes.pdApiKey">{{application.attributes.pdApiKey}}</dd>
+            <dt ng-if="application.attributes.repoType">Source Repo Type</dt>
+            <dd ng-if="application.attributes.repoType">{{application.attributes.repoType}}</dd>
+            <dt ng-if="application.attributes.repoProjectKey">Source Repo Project</dt>
+            <dd ng-if="application.attributes.repoProjectKey">{{application.attributes.repoProjectKey}}</dd>
+            <dt ng-if="application.attributes.repoSlug">Source Repo</dt>
+            <dd ng-if="application.attributes.repoSlug">{{application.attributes.repoSlug}}</dd>
+          </dl>
           <button class="btn btn-link" ng-click="config.editApplication()"><span class="glyphicon glyphicon-cog"></span>
-            Edit Application
+            Edit Application Attributes
           </button>
         </div>
       </div>
