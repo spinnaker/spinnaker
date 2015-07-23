@@ -5,23 +5,32 @@ apply plugin: 'com.moowork.node'
 buildscript {
   repositories {
     jcenter()
+    maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.64'
     classpath 'com.moowork.gradle:gradle-node-plugin:0.8'
     classpath 'be.filipblondeel.gradle:gradle-gulp-plugin:0.1'
     classpath 'org.codehaus.groovy:groovy-backports-compat23:2.3.5'
   }
 }
 
-nebula {
-  moduleOwner = 'deliveryengineering@netflix.com'
-}
+group = "com.netflix.spinnaker.deck"
 
+apply plugin: 'spinnaker-gradle-project'
+apply plugin: 'spinnaker-debpublish'
+apply plugin: 'com.moowork.node'
+apply plugin: 'gulp'
+
+jar {
+  from(fileTree("dist")) {
+    into "META-INF/resources"
+  }
+}
 
 node {
     // Version of node to use.
-    version = '0.12.3'
-    npmVersion = '2.8.3'
+    version = '0.10.31'
 
     // Enabled the automatic download. False is the default (for now).
     download = true
