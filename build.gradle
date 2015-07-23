@@ -50,47 +50,22 @@ node {
     download = true
 }
 
-task webpackPrestaging(type: Exec) {
-  workingDir '.'
-  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
-  environment = [
-    "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
-    "SPINNAKER_ENV": "prestaging"
-  ]
-}
+gulp_clean.dependsOn 'npmInstall'
+gulp_clean.dependsOn 'installGulp'
+installGulp.dependsOn 'npmInstall'
+clean.dependsOn 'gulp_clean'
 
-task webpackProd(type: Exec) {
-  workingDir '.'
-  commandLine 'node', 'node_modules/webpack/bin/webpack.js', '--display-error-details'
-  environment = [
-    "GATE_HOST": "spinnaker-api.prod.netflix.net",
-    "SPINNAKER_ENV": "main"
-  ]
-}
+gulp_build.dependsOn 'installGulp'
+build.dependsOn 'gulp_build'
+buildDeb.dependsOn 'build'
 
-task webpackTest(type: Exec) {
-  workingDir '.'
-  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
-  environment = [
-    "GATE_HOST": "spinnaker-api-test.prod.netflix.net",
-    "SPINNAKER_ENV": "test"
-  ]
-}
-
-webpackPrestaging.dependsOn 'npmInstall'
-webpackProd.dependsOn 'npmInstall'
-webpackTest.dependsOn 'npmInstall'
-buildDeb.dependsOn 'webpackPrestaging'
-buildDeb.dependsOn 'webpackProd'
-buildDeb.dependsOn 'webpackTest'
+gulp_e2e.dependsOn 'gulp_build'
 
 ospackage {
-  requires('nflx-cloudpassage')
-  requires('platform-sidecar')
-  from(project.file('dist')) {
-    into '/apps/apache/htdocs'
-  }
-
-  postInstall '/sbin/chkconfig nflx-tomcat off'
-  postInstall "sed -i -e 's/proxy_enabled=.*/proxy_enabled=false/' /etc/default/nflx-httpd"
+  packageName = "deck"
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/var/www"
+  requires "apache2"
+  from "dist"
 }
