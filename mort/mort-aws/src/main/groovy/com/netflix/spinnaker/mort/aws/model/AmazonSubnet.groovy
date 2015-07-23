@@ -29,4 +29,5 @@ class AmazonSubnet implements Subnet {
     String availabilityZone
     String purpose
     String target
+    boolean deprecated
 }
