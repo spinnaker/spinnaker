@@ -41,6 +41,10 @@ jar {
   }
 }
 
+release {
+  requireBranch: 'webpack'
+}
+
 node {
     // Version of node to use.
     version = '0.12.3'
