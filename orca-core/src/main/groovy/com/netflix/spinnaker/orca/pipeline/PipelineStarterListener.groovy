@@ -53,7 +53,8 @@ class PipelineStarterListener implements JobExecutionListener {
         if (execution.status in [
           ExecutionStatus.CANCELED,
           ExecutionStatus.FAILED,
-          ExecutionStatus.TERMINAL
+          ExecutionStatus.TERMINAL,
+          ExecutionStatus.SUCCEEDED
         ]) {
           processPipelines(execution)
         }
