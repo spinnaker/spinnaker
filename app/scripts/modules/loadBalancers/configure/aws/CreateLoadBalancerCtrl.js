@@ -179,7 +179,7 @@ angular.module('spinnaker.loadBalancer.aws.create.controller', [
       getAvailableSubnets().then(function(subnets) {
         var subnetOptions = subnets.reduce(function(accumulator, subnet) {
           if (!accumulator[subnet.purpose]) {
-            accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.purpose, vpcIds: [] };
+            accumulator[subnet.purpose] = { purpose: subnet.purpose, label: subnet.label, deprecated: subnet.deprecated, vpcIds: [] };
           }
           var vpcIds = accumulator[subnet.purpose].vpcIds;
           if (vpcIds.indexOf(subnet.vpcId) === -1) {
