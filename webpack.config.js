@@ -10,13 +10,10 @@ var bowerModulePath = path.join(__dirname, 'bower_components');
 
 module.exports = {
   debug: true,
-  entry: {
-    app: './app/scripts/app.js',
-    settings: ['./app/scripts/settings/settings.js'],
-  },
+  entry: './app/scripts/app.js',
   devtool: 'eval',
   output: {
-    path: path.join(__dirname, 'dist'),
+    path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV),
     filename: 'bundle.js',
 
   },
@@ -73,13 +70,6 @@ module.exports = {
       template: './app/index.html',
       favicon: 'app/favicon.ico',
       inject: true,
-    }),
-    new CommonsChunkPlugin({
-      name: 'settings',
-      filename: 'settings.js',
-      minChunks: Infinity,
-
-
     }),
   ],
 };

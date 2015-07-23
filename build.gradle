@@ -45,7 +45,7 @@ task webpackProd(type: Exec) {
   ]
 }
 
-task webpackProd(type: Exec) {
+task webpackTest(type: Exec) {
   workingDir '.'
   commandLine 'node', 'node_modules/webpack/bin/webpack.js'
   environment = [
