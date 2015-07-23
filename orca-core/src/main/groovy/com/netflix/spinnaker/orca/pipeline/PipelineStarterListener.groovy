@@ -16,8 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobExecutionListener
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired
 /**
  * Reacts to pipelines finishing and schedules the next job waiting
  */
+@Slf4j
 class PipelineStarterListener implements JobExecutionListener {
 
   @Autowired
@@ -43,20 +47,37 @@ class PipelineStarterListener implements JobExecutionListener {
 
   @Override
   void afterJob(JobExecution jobExecution) {
-    def execution = currentExecution(jobExecution)
-    if (startTracker.getAllStartedExecutions().contains(execution.id)) {
-      startTracker.markAsFinished(execution.pipelineConfigId, execution.id)
+    startTracker.getAllStartedExecutions().each { startedExecution ->
+      try {
+        Execution execution = executionRepository.retrievePipeline(startedExecution)
+        if (execution.status in [
+          ExecutionStatus.CANCELED,
+          ExecutionStatus.FAILED,
+          ExecutionStatus.TERMINAL
+        ]) {
+          processPipelines(execution)
+        }
+      } catch (Exception e) {
+        log.error('failed to update pipeline status', e)
+      }
     }
-    if (execution?.pipelineConfigId) {
+  }
+
+  void processPipelines(Pipeline execution) {
+    log.info("marking pipeline finished ${execution.id}")
+    startTracker.markAsFinished(execution.pipelineConfigId, execution.id)
+    if (execution.pipelineConfigId) {
       List<String> queuedPipelines = startTracker.getQueuedPipelines(execution.pipelineConfigId)
       if (!queuedPipelines.empty) {
         String toStartPipeline = queuedPipelines.first()
         queuedPipelines.each { id ->
           def queuedExecution = executionRepository.retrievePipeline(id)
           if (id == toStartPipeline) {
+            log.info("starting pipeline ${toStartPipeline} due to ${execution.id} ending")
             pipelineStarter.startExecution(queuedExecution)
           } else {
             queuedExecution.canceled = true
+            log.info("marking pipeline ${toStartPipeline} as canceled due to ${execution.id} ending")
             executionRepository.store(queuedExecution)
           }
           startTracker.removeFromQueue(execution.pipelineConfigId, id)
@@ -64,14 +85,4 @@ class PipelineStarterListener implements JobExecutionListener {
       }
     }
   }
-
-  protected final Execution currentExecution(JobExecution jobExecution) {
-    if (jobExecution.jobParameters.parameters.containsKey("pipeline")) {
-      String id = jobExecution.jobParameters.getString("pipeline")
-      executionRepository.retrievePipeline(id)
-    } else {
-      null
-    }
-  }
-
 }
