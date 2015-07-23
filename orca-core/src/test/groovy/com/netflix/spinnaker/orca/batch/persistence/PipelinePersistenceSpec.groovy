@@ -102,10 +102,10 @@ class PipelinePersistenceSpec extends Specification {
 
     and:
     def pipeline = pipelineStarter.create(mapper.readValue(pipelineConfigFor("test"), Map))
-    pipeline.stages[0].tasks << new DefaultTask(id: 1, name: "task1", status: SUCCEEDED,
+    pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "task1", status: SUCCEEDED,
                                                 startTime: System.currentTimeMillis(),
                                                 endTime: System.currentTimeMillis())
-    pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "task2", status: RUNNING,
+    pipeline.stages[0].tasks << new DefaultTask(id: 3, name: "task2", status: RUNNING,
                                                 startTime: System.currentTimeMillis())
     repository.store(pipeline)
 
