@@ -40,7 +40,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
 
   @Override
   FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-    List<Step> steps = buildSteps(stage)
+    List<Step> steps = ( [buildStep(stage, 'stageStart', StageDetailsTask)] + buildSteps(stage) + [buildStep(stage, 'stageEnd', StageDetailsTask)] ) as List<Step>
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*
      * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
