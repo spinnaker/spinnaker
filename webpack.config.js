@@ -13,7 +13,7 @@ module.exports = {
   entry: './app/scripts/app.js',
   devtool: 'eval',
   output: {
-    path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV),
+    path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV || ''),
     filename: 'bundle.js',
 
   },

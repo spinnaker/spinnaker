@@ -46,7 +46,7 @@ require('./modules/confirmationModal/confirmationModal.less');
 
 require('../fonts/spinnaker/icons.css');
 
-require('select2');
+require('Select2');
 
 let angular = require('angular');
 

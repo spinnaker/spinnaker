@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.enableAsg', [
   require('./enableAsgStage.js'),
-  require('./enableasgExecutionDetails.controller.js'),
+  require('./enableAsgExecutionDetails.controller.js'),
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
