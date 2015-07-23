@@ -42,7 +42,7 @@ jar {
 }
 
 release {
-  requireBranch: 'webpack'
+  requireBranch = 'webpack'
 }
 
 node {
