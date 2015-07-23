@@ -26,5 +26,6 @@ class AmazonVpc implements Vpc {
   String name
   String region
   String account
+  boolean deprecated
 
 }

@@ -34,6 +34,7 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.VPCS
 class AmazonVpcProvider implements VpcProvider<AmazonVpc> {
 
   private static final String NAME_TAG_KEY = 'Name'
+  private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
@@ -53,11 +54,13 @@ class AmazonVpcProvider implements VpcProvider<AmazonVpc> {
     def parts = Keys.parse(cacheData.id)
     def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
     def tag = vpc.tags.find { it.key == NAME_TAG_KEY }
+    def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value
     String name = tag?.value
     new AmazonVpc(id: vpc.vpcId,
       name: name,
       account: parts.account,
-      region: parts.region
+      region: parts.region,
+      deprecated: new Boolean(isDeprecated)
     )
   }
 }
