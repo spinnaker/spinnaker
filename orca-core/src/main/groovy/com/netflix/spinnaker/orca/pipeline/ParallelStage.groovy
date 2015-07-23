@@ -47,7 +47,19 @@ abstract class ParallelStage extends StageBuilder {
     stage.name = parallelStageName(stage, flows.size() > 1)
 
     if (stage.execution.parallel) {
-      jobBuilder = jobBuilder.from(buildStep(stage, "beginParallel", beginParallel()))
+      def isFirst = {
+        if (stage.parentStageId == null) {
+          return true
+        }
+        def allStages = stage.execution.stages
+        def siblings = stage.execution.stages.findAll { it.id == stage.parentStageId || (it.parentStageId == stage.parentStageId && it.id != stage.id) }
+        return siblings.every { allStages.indexOf(it) > allStages.indexOf(stage) }
+      }
+      if (isFirst()) {
+        jobBuilder = jobBuilder.from(buildStep(stage, "beginParallel", beginParallel()))
+      } else {
+        jobBuilder.next(buildStep(stage, "beginParallel", beginParallel()))
+      }
     } else {
       if (stage.execution.stages.indexOf(stage) == 0) {
         jobBuilder = jobBuilder.start(buildStep(stage, "beginParallel", beginParallel()))
