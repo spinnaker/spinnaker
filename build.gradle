@@ -65,7 +65,7 @@ task webpackPrestaging(type: Exec) {
 
 task webpackProd(type: Exec) {
   workingDir '.'
-  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
+  commandLine 'node', 'node_modules/webpack/bin/webpack.js', '--display-error-details'
   environment = [
     "GATE_HOST": "spinnaker-api.prod.netflix.net",
     "SPINNAKER_ENV": "main"

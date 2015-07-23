@@ -22,4 +22,5 @@ module.exports =  angular.module('spinnaker.pipelines.stage.executionWindows.tra
     this.transform = function(application, execution) {
       transformRunningExecutionWindows(execution);
     };
-  }).name;
+  })
+  .name;
