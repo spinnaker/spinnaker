@@ -1,9 +1,13 @@
 package com.netflix.spinnaker.orca.batch.pipeline
 
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.JobParameter
@@ -24,16 +28,14 @@ class PipelineStarterListenerSpec extends Specification {
     listener.pipelineStarter = Mock(PipelineStarter)
   }
 
-  def "should do nothing if there is no queued pipeline"() {
+  def "should do nothing if there is no started pipelines"() {
     when:
     listener.afterJob(jobExecution)
 
     then:
-    1 * listener.startTracker.getQueuedPipelines(_) >> []
+    1 * listener.startTracker.getAllStartedExecutions() >> []
 
     and:
-    1 * listener.startTracker.getAllStartedExecutions() >> []
-    1 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123', pipelineConfigId: 'abc')
     0 * _._
   }
 
@@ -42,11 +44,12 @@ class PipelineStarterListenerSpec extends Specification {
     listener.afterJob(jobExecution)
 
     then:
+    1 * listener.startTracker.getAllStartedExecutions() >> ['123']
     1 * listener.startTracker.getQueuedPipelines(_) >> ['123']
 
     and:
-    1 * listener.startTracker.getAllStartedExecutions() >> []
-    2 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123', pipelineConfigId: 'abc')
+    1 * listener.startTracker.markAsFinished('abc', '123')
+    2 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123', pipelineConfigId: 'abc', canceled: true)
     1 * listener.pipelineStarter.startExecution(_)
     1 * listener.startTracker.removeFromQueue('abc', '123')
     0 * _._
@@ -67,8 +70,9 @@ class PipelineStarterListenerSpec extends Specification {
     }
 
     and:
-    1 * listener.startTracker.getAllStartedExecutions() >> []
-    1 * listener.executionRepository.retrievePipeline('something') >> new Pipeline(id: '122', pipelineConfigId: 'abc')
+    1 * listener.startTracker.getAllStartedExecutions() >> ['121']
+    1 * listener.startTracker.markAsFinished('abc', '121')
+    1 * listener.executionRepository.retrievePipeline('121') >> new Pipeline(id: '121', pipelineConfigId: 'abc', canceled: true)
     1 * listener.executionRepository.retrievePipeline('123') >> new Pipeline(id: '123', pipelineConfigId: 'abc')
     1 * listener.executionRepository.retrievePipeline('124') >> new Pipeline(id: '124', pipelineConfigId: 'abc')
     1 * listener.executionRepository.retrievePipeline('125') >> new Pipeline(id: '125', pipelineConfigId: 'abc')
@@ -87,8 +91,33 @@ class PipelineStarterListenerSpec extends Specification {
 
     then:
     1 * listener.startTracker.getAllStartedExecutions() >> ['123']
-    1 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123')
+    1 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123', canceled:true)
     1 * listener.startTracker.markAsFinished(null, '123')
+    0 * _._
+  }
+
+  def "should process all pipelines in a completed state"() {
+    when:
+    listener.afterJob(jobExecution)
+
+    then:
+    1 * listener.startTracker.getAllStartedExecutions() >> ['123', '124', '125', '126']
+    1 * listener.executionRepository.retrievePipeline('123') >> new Pipeline(id: '123')
+    1 * listener.executionRepository.retrievePipeline('124') >> new Pipeline(id: '124', canceled:true)
+    1 * listener.executionRepository.retrievePipeline('125') >> new Pipeline(id: '125')
+    1 * listener.executionRepository.retrievePipeline('126') >> new Pipeline(id: '126', canceled:true)
+    1 * listener.startTracker.markAsFinished(null, '124')
+    1 * listener.startTracker.markAsFinished(null, '126')
+    0 * _._
+  }
+
+  def "should skip pipelines that are not started"() {
+    when:
+    listener.afterJob(jobExecution)
+
+    then:
+    1 * listener.startTracker.getAllStartedExecutions() >> ['123']
+    1 * listener.executionRepository.retrievePipeline(_) >> new Pipeline(id: '123')
     0 * _._
   }
 
