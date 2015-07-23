@@ -6,8 +6,12 @@ angular.module('spinnaker.caches.infrastructure.config', [])
       version: 2,
       authEnabled: true,
     },
-    vpcs: {},
-    subnets: {},
+    vpcs: {
+      version: 2,
+    },
+    subnets: {
+      version: 2,
+    },
     applications: {
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days - it gets refreshed every time the user goes to the application list, anyway
     },

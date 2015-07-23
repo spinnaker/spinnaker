@@ -7,7 +7,17 @@ angular
     function listSubnets() {
       return Restangular.all('subnets')
         .withHttpConfig({cache: infrastructureCaches.subnets})
-        .getList();
+        .getList()
+        .then(function(subnets) {
+          return subnets.map(function(subnet) {
+            subnet.label = subnet.purpose;
+            subnet.deprecated = !!subnet.deprecated;
+            if (subnet.deprecated) {
+              subnet.label += ' (deprecated)';
+            }
+            return subnet;
+          });
+        });
     }
 
     return {

@@ -34,11 +34,11 @@ describe('Controller: CreateSecurityGroup', function () {
 
       spyOn(this.vpcReader, 'listVpcs').and.returnValue(
         $q.when([
-          { id: 'vpc1-pe', name: 'vpc 1', account: 'prod', region: 'us-east-1' },
-          { id: 'vpc2-pw', name: 'vpc 2', account: 'prod', region: 'us-west-1' },
-          { id: 'vpc1-te', name: 'vpc 1', account: 'test', region: 'us-east-1' },
-          { id: 'vpc2-te', name: 'vpc 2', account: 'test', region: 'us-east-1' },
-          { id: 'vpc2-tw', name: 'vpc 2', account: 'test', region: 'us-west-1' },
+          { id: 'vpc1-pe', name: 'vpc 1', account: 'prod', region: 'us-east-1', deprecated: false, label: 'vpc 1' },
+          { id: 'vpc2-pw', name: 'vpc 2', account: 'prod', region: 'us-west-1', deprecated: false, label: 'vpc 2' },
+          { id: 'vpc1-te', name: 'vpc 1', account: 'test', region: 'us-east-1', deprecated: false, label: 'vpc 1' },
+          { id: 'vpc2-te', name: 'vpc 2', account: 'test', region: 'us-east-1', deprecated: false, label: 'vpc 2' },
+          { id: 'vpc2-tw', name: 'vpc 2', account: 'test', region: 'us-west-1', deprecated: false, label: 'vpc 2' },
         ])
       );
 
