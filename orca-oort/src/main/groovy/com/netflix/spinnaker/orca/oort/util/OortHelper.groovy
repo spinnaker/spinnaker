@@ -88,10 +88,10 @@ class OortHelper {
         hostName = instance.privateIpAddress
       }
 
-      int index = -1
+      String healthCheckUrl
       instance.health.eachWithIndex { health, idx ->
         if (health.healthCheckUrl != null && !health.healthCheckUrl.isEmpty()) {
-          index = idx
+          healthCheckUrl = health.healthCheckUrl
         }
       }
 
@@ -102,11 +102,10 @@ class OortHelper {
         }
       }?.status
 
-      if(failIfAnyInstancesUnhealthy && (index == -1 || !status || status != "UP")) {
+      if(failIfAnyInstancesUnhealthy && (!healthCheckUrl || !status || status != "UP")) {
         throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
       }
 
-      String healthCheckUrl = instance.health.get(index).healthCheckUrl
       Map instanceInfo = [hostName : hostName, healthCheckUrl : healthCheckUrl]
       instanceMap.put(instance.instanceId, instanceInfo)
     }

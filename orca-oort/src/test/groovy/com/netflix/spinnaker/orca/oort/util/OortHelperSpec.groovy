@@ -123,7 +123,8 @@ class OortHelperSpec extends Specification {
         "buildInfo": { "job": "foo-build", "buildNumber": 1 },
         "instances": [ { "instanceId": 1, "health" : [{"healthCheckUrl" : "http://foo/bar"}, {"status": "DOWN"}] },
                        { "instanceId": 2, "health" : [{"healthCheckUrl" : "http://foo2/bar2"}, {"status": "UP"}] },
-                       { "instanceId": 3, "health" : [{"healthCheckUrl" : "http://foo2/bar3"}] }
+                       { "instanceId": 3, "health" : [{"healthCheckUrl" : "http://foo2/bar3"}] },
+                       { "instanceId": 4, "health" : [] }
                      ]
       }]
     }
@@ -134,6 +135,6 @@ class OortHelperSpec extends Specification {
     def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, false)
 
     then:
-    result.size() == 3
+    result.size() == 4
   }
 }
