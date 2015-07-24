@@ -20,7 +20,9 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
   var service, $http, config, scope, timeout, task;
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(function() {
+    loadDeck({generateUrls: false, initializeCache: false, enableAuth: false,});
+  });
 
   beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout) {
     service = tasksApi;
@@ -29,6 +31,11 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     timeout = $timeout;
     scope = $rootScope.$new();
   }));
+
+  beforeEach(function() {
+    $http.verifyNoOutstandingExpectation();
+    $http.verifyNoOutstandingRequest();
+  });
 
   describe('task watch methods', function() {
 
@@ -43,7 +50,6 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     });
 
     it('resolves watchForTaskComplete immediately if task is complete', function() {
-
       $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
         id: 1,
         status: 'COMPLETED'
@@ -208,17 +214,30 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
       expect(result.status).toBe('RUNNING');
     });
 
-    it('rejects when force refresh step never occurs', function() {
+    it('ignores completed status when force refresh is running or not started', function() {
       var result = null,
         requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
 
-      requestHandler.respond(200, { id: 1, status: 'COMPLETED', steps: [] });
+      requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
 
-      task.watchForForceRefresh().then(angular.noop, function(updatedTask) { result = updatedTask; });
+      task.watchForForceRefresh().then(function(updatedTask) { result = updatedTask; }, angular.noop);
 
       // Step 1: No step found (retry)
-      scope.$digest();
+      cycle();
+
+      expect(result).toBe(null);
+
+      // Step 2: Still running (retry)
+      requestHandler.respond(200, { id: 1, status: 'COMPLETED', steps: [{name: 'forceCacheRefresh', status: 'RUNNING'}] });
+      cycle();
+
+      expect(result).toBe(null);
+
+      // Step 3: Complete
+      requestHandler.respond(200, { id: 1, status: 'COMPLETED', steps: [{name: 'forceCacheRefresh', status: 'COMPLETED'}] });
+      cycle();
+
       expect(result.status).toBe('COMPLETED');
     });
 
