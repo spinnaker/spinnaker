@@ -15,12 +15,11 @@ angular.module('spinnaker.vpc.tag.directive', [
           if (!scope.vpcId) {
             scope.vpcLabel = 'None (EC2 Classic)';
           } else {
-            vpcReader.listVpcs().then(function (vpcs) {
-              var vpc = _.find(vpcs, {id: scope.vpcId});
+            vpcReader.getVpcName(scope.vpcId).then(function (name) {
               scope.vpcLabel = '(' + scope.vpcId + ')';
 
-              if (vpc) {
-                scope.vpcLabel = vpc.name + ' ' + scope.vpcLabel;
+              if (name) {
+                scope.vpcLabel = name + ' ' + scope.vpcLabel;
               }
             });
           }

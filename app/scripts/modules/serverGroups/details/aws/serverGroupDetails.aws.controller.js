@@ -12,6 +12,7 @@ angular.module('spinnaker.serverGroup.details.aws.controller', [
   'spinnaker.aws.serverGroupCommandBuilder.service',
   'spinnaker.executionFilter.service',
   'spinnaker.vpc.tag.directive',
+  'spinnaker.migrator.directive',
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, application, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,

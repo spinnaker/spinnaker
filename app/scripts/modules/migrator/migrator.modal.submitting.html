@@ -1,0 +1,26 @@
+<div class="overlay overlay-modal" modal-page modal-overlay ng-if="viewState.executing || viewState.error">
+  <div class="modal-header">
+    <h3>Migrating {{component.name}} to VPC0</h3>
+  </div>
+  <div class="modal-body clearfix">
+    <div class="col-md-10 col-md-offset-1">
+      <ul class="task task-progress">
+        <li ng-repeat="entry in executor.lastResult.eventLog">
+          <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
+        </li>
+      </ul>
+      <ul class="task task-progress task-progress-running">
+        <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary"
+            ng-if="!viewState.error"
+            ng-click="ctrl.cancel()" auto-focus>Close</button>
+    <button class="btn btn-primary"
+            ng-if="viewState.error"
+            ng-click="viewState.error = null">Go back and try again
+    </button>
+  </div>
+</div>
