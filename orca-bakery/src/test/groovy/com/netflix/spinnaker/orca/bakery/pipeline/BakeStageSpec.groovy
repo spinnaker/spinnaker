@@ -71,9 +71,9 @@ class BakeStageSpec extends Specification {
   def "should include per-region stage contexts as global deployment details"() {
     given:
     def pipeline = Pipeline.builder()
-      .withStage(BakeStage.MAYO_CONFIG_TYPE, "Bake", ["ami": 1])
-      .withStage(BakeStage.MAYO_CONFIG_TYPE, "Bake", ["ami": 2])
-      .withStage(BakeStage.MAYO_CONFIG_TYPE, "Bake", ["ami": 3])
+      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 1])
+      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 2])
+      .withStage(BakeStage.PIPELINE_CONFIG_TYPE, "Bake", ["ami": 3])
       .build()
 
     def pipelineStage = new PipelineStage(pipeline, "bake")
@@ -123,7 +123,7 @@ class BakeStageSpec extends Specification {
 
   private static List<Map> expectedContexts(String amiSuffix, String... regions) {
     return regions.collect {
-      [amiSuffix: amiSuffix, type: BakeStage.MAYO_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
+      [amiSuffix: amiSuffix, type: BakeStage.PIPELINE_CONFIG_TYPE, "region": it, name: "Bake in ${it}"]
     }
   }
 }

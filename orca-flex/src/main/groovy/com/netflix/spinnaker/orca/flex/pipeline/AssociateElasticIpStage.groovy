@@ -26,10 +26,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class AssociateElasticIpStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "associateElasticIp"
+  public static final String PIPELINE_CONFIG_TYPE = "associateElasticIp"
 
   AssociateElasticIpStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

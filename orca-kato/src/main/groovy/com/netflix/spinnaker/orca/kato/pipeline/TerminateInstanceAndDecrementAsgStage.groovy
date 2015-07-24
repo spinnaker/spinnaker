@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @Component
 class TerminateInstanceAndDecrementAsgStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "terminateInstanceAndDecrementAsg"
+  public static final String PIPELINE_CONFIG_TYPE = "terminateInstanceAndDecrementAsg"
 
   TerminateInstanceAndDecrementAsgStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

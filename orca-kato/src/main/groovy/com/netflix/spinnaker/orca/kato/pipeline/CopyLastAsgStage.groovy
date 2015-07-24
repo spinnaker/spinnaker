@@ -33,13 +33,13 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class CopyLastAsgStage extends DeployStrategyStage {
 
-  public static final String MAYO_CONFIG_TYPE = "copyLastAsg"
+  public static final String PIPELINE_CONFIG_TYPE = "copyLastAsg"
 
   @Autowired(required = false)
   GetCommitsTask commitsTask
 
   CopyLastAsgStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

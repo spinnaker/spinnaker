@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DetermineTargetReferenceStage extends LinearStage {
 
-  static final String MAYO_CONFIG_TYPE = "determineTargetReference"
+  static final String PIPELINE_CONFIG_TYPE = "determineTargetReference"
 
   DetermineTargetReferenceStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

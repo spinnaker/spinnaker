@@ -33,10 +33,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DeployStage extends DeployStrategyStage {
-  public static final String MAYO_CONFIG_TYPE = "linearDeploy"
+  public static final String PIPELINE_CONFIG_TYPE = "linearDeploy"
 
   DeployStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Autowired(required = false)

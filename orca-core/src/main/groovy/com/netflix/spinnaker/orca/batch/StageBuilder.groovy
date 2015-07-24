@@ -150,7 +150,7 @@ abstract class StageBuilder implements ApplicationContextAware {
       }
       if (childStage.requisiteStageRefIds.size() > 1) {
         // multi parent child, insert an artificial join stage that will wait for all parents to complete
-        def waitForStageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE }
+        def waitForStageBuilder = stageBuilders.find { it.type == WaitForRequisiteCompletionStage.PIPELINE_CONFIG_TYPE }
         def waitForStage = newStage(
           childStage.execution,
           waitForStageBuilder.type,

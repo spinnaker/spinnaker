@@ -14,10 +14,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class UpsertAmazonLoadBalancerStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "upsertAmazonLoadBalancer"
+  public static final String PIPELINE_CONFIG_TYPE = "upsertAmazonLoadBalancer"
 
   UpsertAmazonLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

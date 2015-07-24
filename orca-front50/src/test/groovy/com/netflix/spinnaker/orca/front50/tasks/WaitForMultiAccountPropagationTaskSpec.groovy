@@ -56,7 +56,7 @@ class WaitForMultiAccountPropagationTaskSpec extends Specification {
 
     and:
     def pipeline = new Pipeline()
-    pipeline.stages = [new PipelineStage(pipeline, DeleteApplicationStage.MAYO_CONFIG_TYPE)]
+    pipeline.stages = [new PipelineStage(pipeline, DeleteApplicationStage.PIPELINE_CONFIG_TYPE)]
 
     when:
     def taskResult = task.execute(new PipelineStage(pipeline, "WaitForMultiAccountPropagation", config))
@@ -96,12 +96,12 @@ class WaitForMultiAccountPropagationTaskSpec extends Specification {
 
     where:
     stageType                               | testApplication   | globalApplication                 | expectedStatus
-    CreateApplicationStage.MAYO_CONFIG_TYPE | null              | null                              | ExecutionStatus.RUNNING
-    CreateApplicationStage.MAYO_CONFIG_TYPE | new Application() | new Application(accounts: "prod") | ExecutionStatus.RUNNING
-    CreateApplicationStage.MAYO_CONFIG_TYPE | new Application() | new Application(accounts: "test") | ExecutionStatus.SUCCEEDED
-    UpdateApplicationStage.MAYO_CONFIG_TYPE | null              | null                              | ExecutionStatus.RUNNING
-    UpdateApplicationStage.MAYO_CONFIG_TYPE | new Application() | new Application(accounts: "prod") | ExecutionStatus.RUNNING
-    UpdateApplicationStage.MAYO_CONFIG_TYPE | new Application() | new Application(accounts: "test") | ExecutionStatus.SUCCEEDED
+    CreateApplicationStage.PIPELINE_CONFIG_TYPE | null              | null                              | ExecutionStatus.RUNNING
+    CreateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "prod") | ExecutionStatus.RUNNING
+    CreateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "test") | ExecutionStatus.SUCCEEDED
+    UpdateApplicationStage.PIPELINE_CONFIG_TYPE | null              | null                              | ExecutionStatus.RUNNING
+    UpdateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "prod") | ExecutionStatus.RUNNING
+    UpdateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "test") | ExecutionStatus.SUCCEEDED
 
     exists = (expectedStatus == ExecutionStatus.RUNNING) ? "does not exist" : "exists"
   }

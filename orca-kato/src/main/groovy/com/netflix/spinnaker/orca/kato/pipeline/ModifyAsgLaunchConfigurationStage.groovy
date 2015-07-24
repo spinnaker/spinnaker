@@ -26,10 +26,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class ModifyAsgLaunchConfigurationStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "modifyAsgLaunchConfiguration"
+  public static final String PIPELINE_CONFIG_TYPE = "modifyAsgLaunchConfiguration"
 
   ModifyAsgLaunchConfigurationStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

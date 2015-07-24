@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DeleteLoadBalancerStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "deleteLoadBalancer"
+  public static final String PIPELINE_CONFIG_TYPE = "deleteLoadBalancer"
 
   DeleteLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   /**

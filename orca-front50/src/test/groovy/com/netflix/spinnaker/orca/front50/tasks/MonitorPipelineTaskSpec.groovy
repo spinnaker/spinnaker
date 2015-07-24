@@ -44,7 +44,7 @@ class MonitorPipelineTaskSpec extends Specification {
 
     given:
     def pipeline = new Pipeline().builder().withStage(
-      PipelineStage.MAYO_CONFIG_TYPE, "pipeline", [:]
+      com.netflix.spinnaker.orca.mayo.pipeline.PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
     ).build()
     pipeline.stages.each {
       it.status = providedStatus

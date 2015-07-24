@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class PipelineStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "pipeline"
+  public static final String PIPELINE_CONFIG_TYPE = "pipeline"
 
   PipelineStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

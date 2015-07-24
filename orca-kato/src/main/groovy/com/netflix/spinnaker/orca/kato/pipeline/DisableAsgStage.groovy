@@ -26,10 +26,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DisableAsgStage extends TargetReferenceLinearStageSupport {
-  static final String MAYO_CONFIG_TYPE = "disableAsg"
+  static final String PIPELINE_CONFIG_TYPE = "disableAsg"
 
   DisableAsgStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.batch.pipeline
 
+import java.util.concurrent.CountDownLatch
 import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -23,28 +24,33 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
-import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import org.springframework.batch.core.JobExecution
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
+import org.springframework.batch.core.listener.JobExecutionListenerSupport
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.support.AbstractApplicationContext
-import org.springframework.test.annotation.DirtiesContext
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.context.annotation.AnnotationConfigApplicationContext
+import spock.lang.AutoCleanup
 import spock.lang.Specification
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
 
-@ContextConfiguration(classes = [BatchTestConfiguration, EurekaComponents, JesqueConfiguration, EmbeddedRedisConfiguration, OrcaConfiguration])
-@DirtiesContext(classMode = AFTER_EACH_TEST_METHOD)
 class PipelineStatusSpec extends Specification {
 
-  @Autowired AbstractApplicationContext applicationContext
+  @AutoCleanup("destroy")
+  def applicationContext = new AnnotationConfigApplicationContext()
   @Autowired StepBuilderFactory steps
   @Autowired ExecutionRepository executionRepository
-  @Autowired PipelineJobBuilder pipelineJobBuilder
   @Autowired PipelineStarter pipelineStarter
+
+  def latch = new CountDownLatch(1)
+  def listener = new JobExecutionListenerSupport() {
+    @Override
+    void afterJob(JobExecution jobExecution) {
+      latch.countDown()
+    }
+  }
 
   static mapper = new OrcaObjectMapper()
 
@@ -53,14 +59,27 @@ class PipelineStatusSpec extends Specification {
   }
 
   def setup() {
-    applicationContext.beanFactory.with {
-      ["foo", "bar", "baz"].each { name ->
-        def stage = new TestStage(name, steps, executionRepository, fooTask)
-        stage.applicationContext = applicationContext
-        registerSingleton "${name}Stage", stage
+    applicationContext.with {
+      register BatchTestConfiguration,
+               EurekaComponents,
+               JesqueConfiguration,
+               EmbeddedRedisConfiguration,
+               OrcaConfiguration
+      beanFactory.registerSingleton "testJobListener", listener
+      def stages = ["foo", "bar", "baz"].collect { name ->
+        new TestStage(name, steps, executionRepository, fooTask)
       }
+      stages.each {
+        beanFactory.registerSingleton "${it.type}Stage", it
+      }
+
+      refresh()
+      stages.each {
+        it.applicationContext = applicationContext
+        beanFactory.autowireBean(it)
+      }
+      beanFactory.autowireBean this
     }
-    pipelineJobBuilder.initialize()
   }
 
   def "can get a list of stages from the pipeline"() {
@@ -85,6 +104,7 @@ class PipelineStatusSpec extends Specification {
   def "can get the status of each stage"() {
     given:
     def pipeline = pipelineStarter.start(configJson)
+    latch.await()
 
     expect:
     with(executionRepository.retrievePipeline(pipeline.id)) {

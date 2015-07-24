@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class UpdateApplicationStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "updateApplication"
+  public static final String PIPELINE_CONFIG_TYPE = "updateApplication"
 
   UpdateApplicationStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

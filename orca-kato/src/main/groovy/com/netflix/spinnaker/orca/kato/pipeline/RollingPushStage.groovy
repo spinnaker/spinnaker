@@ -41,13 +41,13 @@ import org.springframework.stereotype.Component
 
 @Component
 class RollingPushStage extends StageBuilder {
-  static final String MAYO_CONFIG_TYPE = "rollingPush"
+  static final String PIPELINE_CONFIG_TYPE = "rollingPush"
 
   @Autowired(required = false)
   SockService sockService
 
   RollingPushStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

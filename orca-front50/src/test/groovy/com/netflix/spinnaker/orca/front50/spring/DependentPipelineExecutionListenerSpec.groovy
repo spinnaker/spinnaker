@@ -50,7 +50,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
   ]
 
   def pipeline = new Pipeline().builder().withStage(
-    PipelineStage.MAYO_CONFIG_TYPE, "pipeline", [:]
+    PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
   ).build()
 
   @Subject

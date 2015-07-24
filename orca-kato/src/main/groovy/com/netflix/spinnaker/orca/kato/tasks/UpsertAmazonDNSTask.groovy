@@ -39,7 +39,7 @@ class UpsertAmazonDNSTask implements Task {
     def operation = [type       : stage.context.recordType, name: stage.context.name, hostedZoneName: stage.context.hostedZone,
                      credentials: stage.context.credentials]
 
-    def upsertElbStage = stage.preceding(UpsertAmazonLoadBalancerStage.MAYO_CONFIG_TYPE)
+    def upsertElbStage = stage.preceding(UpsertAmazonLoadBalancerStage.PIPELINE_CONFIG_TYPE)
     if (upsertElbStage) {
       operation.target = upsertElbStage.context.dnsName
     } else {

@@ -54,12 +54,12 @@ class QuickPatchStage extends LinearStage {
   @Autowired
   OortHelper oortHelper
 
-  public static final String MAYO_CONFIG_TYPE = "quickPatch"
+  public static final String PIPELINE_CONFIG_TYPE = "quickPatch"
 
   private static INSTANCE_VERSION_SLEEP = 10000
 
   QuickPatchStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

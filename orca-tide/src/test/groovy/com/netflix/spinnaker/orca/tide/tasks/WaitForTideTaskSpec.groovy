@@ -46,7 +46,7 @@ class WaitForTideTaskSpec extends Specification {
 
     and:
     def pipeline = new Pipeline()
-    pipeline.stages = [new PipelineStage(pipeline, DeepCopyServerGroupStage.MAYO_CONFIG_TYPE)]
+    pipeline.stages = [new PipelineStage(pipeline, DeepCopyServerGroupStage.PIPELINE_CONFIG_TYPE)]
 
     when:
     def taskResult = task.execute(new PipelineStage(pipeline, "DeepCopyServerGroup", config))
@@ -62,7 +62,7 @@ class WaitForTideTaskSpec extends Specification {
 
     and:
     def pipeline = new Pipeline()
-    pipeline.stages = [new PipelineStage(pipeline, DeepCopyServerGroupStage.MAYO_CONFIG_TYPE)]
+    pipeline.stages = [new PipelineStage(pipeline, DeepCopyServerGroupStage.PIPELINE_CONFIG_TYPE)]
 
     when:
     def taskResult = task.execute(new PipelineStage(pipeline, "DeepCopyServerGroup", config))
