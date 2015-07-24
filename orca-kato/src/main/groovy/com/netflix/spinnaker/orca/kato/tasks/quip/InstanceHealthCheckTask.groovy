@@ -5,6 +5,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -17,20 +18,28 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
   long backoffPeriod = 10000
   long timeout = 3600000 // 60min
 
+  @Autowired
+  OortHelper oortHelper
+
   @Override
   TaskResult execute(Stage stage) {
     Map stageOutputs = [:]
     def instances = stage.context?.instances
+
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     // verify instance list, package, and version are in the context
     if(instances) {
       // trigger patch on target server
-      instances.each { String key, Map valueMap ->
-        if(!valueMap.healthCheckUrl || valueMap.healthCheckUrl.isEmpty()) {
-          throw new RuntimeException("instances map is missing the  healthCheckUrl : ${instances}")
+      for (instanceEntry in instances) {
+        def instance = instanceEntry.value
+        if (!instance.healthCheckUrl || instance.healthCheckUrl.isEmpty()) {
+          // ask kato for a refreshed version of the instance info
+          instances = oortHelper.getInstancesForCluster(stage.context, null, true, false)
+          stageOutputs << [instances: instances]
+          return new DefaultTaskResult(ExecutionStatus.RUNNING, stageOutputs)
         }
 
-        URL healthCheckUrl = new URL(valueMap.healthCheckUrl)
+        URL healthCheckUrl = new URL(instance.healthCheckUrl)
         def instanceService = createInstanceService("http://${healthCheckUrl.host}:${healthCheckUrl.port}")
         try { // keep trying until we get a 200 or time out
           instanceService.healthCheck(healthCheckUrl.path.substring(1))
@@ -39,7 +48,7 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
         }
       }
     } else {
-      throw new RuntimeException("one or more required parameters are missing : instances (${instances})")
+      throw new RuntimeException("one or more required parameters are missing : instances")
     }
     return new DefaultTaskResult(executionStatus, stageOutputs)
   }

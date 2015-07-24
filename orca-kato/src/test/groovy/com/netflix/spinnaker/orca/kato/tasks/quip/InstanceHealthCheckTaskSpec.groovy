@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.InstanceService
+import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
@@ -33,6 +34,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
 
   @Subject task = Spy(InstanceHealthCheckTask)
   InstanceService instanceService = Mock(InstanceService)
+  def oortHelper = Mock(OortHelper)
 
   def setup() {
     task.objectMapper = new ObjectMapper()
@@ -79,7 +81,7 @@ class InstanceHealthCheckTaskSpec extends Specification {
   }
 
   @Unroll
-  def "missing instance healthCheckUrl"() {
+  def "missing instance healthCheckUrl returns running"() {
     given:
     def pipe = new Pipeline.Builder()
       .withApplication("foo")
@@ -88,10 +90,13 @@ class InstanceHealthCheckTaskSpec extends Specification {
     stage.context.instances = instances
 
     when:
-    task.execute(stage)
+    task.oortHelper = oortHelper
+    1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
+
+    def result = task.execute(stage)
 
     then:
-    thrown(RuntimeException)
+    result.status == ExecutionStatus.RUNNING
 
     where:
     instances | _
@@ -99,5 +104,30 @@ class InstanceHealthCheckTaskSpec extends Specification {
     ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"], "i-2345" : ["hostName" : "foo2.com" ] ] | _
     ["i-1234" : ["hostName" : "foo.com" ], "i-2345" : ["hostName" : "foo2.com", "healthCheckUrl" : "http://foo2.com:7001/healthCheck"]] | _
 
+  }
+
+  def "retry on missing instance healthCheckUrl"() {
+    given:
+    def pipe = new Pipeline.Builder()
+      .withApplication("foo")
+      .build()
+    def stage = new PipelineStage(pipe, 'instanceHealthCheck', [:])
+    stage.context.instances = instances
+    task.oortHelper = oortHelper
+    when:
+    1 * oortHelper.getInstancesForCluster(_, _, _, _) >> ["i-1234" : ["hostName" : "foo.com", "healthCheckUrl" : "http://foo.com:7001/healthCheck"]]
+    1 * instanceService.healthCheck("healthCheck") >> new Response('http://foo.com', 200, 'OK', [], new TypedString("Good"))
+    1 * task.createInstanceService(_) >> instanceService
+
+    def result = task.execute(stage)
+    stage.context << result.stageOutputs
+    result = task.execute(stage)
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+
+    where:
+    instances | _
+    ["i-1234" : ["hostName" : "foo.com" ] ] | _
   }
 }
