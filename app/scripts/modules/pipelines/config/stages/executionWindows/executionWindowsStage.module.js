@@ -6,7 +6,7 @@ require('./executionWindows.less');
 
 module.exports = angular.module('spinnaker.pipelines.stage.executionWindows', [
   require('./executionWindowsStage.js'),
-  require('./executionWindows.transformer.js'),
+  require('./executionWIndows.transform.js'),
   require('./executionWindows.directive.js'),
   require('../stage.module.js'),
   require('../core/stage.core.module.js'),
