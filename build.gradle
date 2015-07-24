@@ -50,18 +50,9 @@ node {
     download = true
 }
 
-//gulp_clean.dependsOn 'npmInstall'
-//gulp_clean.dependsOn 'installGulp'
-//installGulp.dependsOn 'npmInstall'
-//clean.dependsOn 'gulp_clean'
-//
-//gulp_build.dependsOn 'installGulp'
-//build.dependsOn 'gulp_build'
-//buildDeb.dependsOn 'build'
-//
-//gulp_e2e.dependsOn 'gulp_build'
 
 
+build.dependsOn 'buildDeb'
 buildDeb.dependsOn 'copyFilesToDist'
 
 task copyFilesToDist << {
@@ -78,6 +69,7 @@ task copyFilesToDist << {
     include '*.json'
     include '*.js'
     include '*.propertyies'
+    include '.eslint*'
   }
 }
 
