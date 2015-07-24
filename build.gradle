@@ -50,16 +50,37 @@ node {
     download = true
 }
 
-gulp_clean.dependsOn 'npmInstall'
-gulp_clean.dependsOn 'installGulp'
-installGulp.dependsOn 'npmInstall'
-clean.dependsOn 'gulp_clean'
+//gulp_clean.dependsOn 'npmInstall'
+//gulp_clean.dependsOn 'installGulp'
+//installGulp.dependsOn 'npmInstall'
+//clean.dependsOn 'gulp_clean'
+//
+//gulp_build.dependsOn 'installGulp'
+//build.dependsOn 'gulp_build'
+//buildDeb.dependsOn 'build'
+//
+//gulp_e2e.dependsOn 'gulp_build'
 
-gulp_build.dependsOn 'installGulp'
-build.dependsOn 'gulp_build'
-buildDeb.dependsOn 'build'
 
-gulp_e2e.dependsOn 'gulp_build'
+buildDeb.dependsOn 'copyFilesToDist'
+
+task copyFilesToDist << {
+  ['app', 'utils' ].each { dir ->
+    copy {
+      from dir
+      into "dist/${dir}"
+    }
+  }
+
+  copy {
+    from '.'
+    into 'dist'
+    include '*.json'
+    include '*.js'
+    include '*.propertyies'
+  }
+}
+
 
 ospackage {
   packageName = "deck"
