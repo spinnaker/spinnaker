@@ -83,9 +83,6 @@ class OortHelper {
     }
 
     searchAsg.instances.each { instance ->
-
-      println "instance: ${instance.dump()}"
-
       String hostName = instance.publicDnsName
       if(!hostName || hostName.isEmpty()) { // some instances dont have a public address, fall back to the private ip
         hostName = instance.privateIpAddress
@@ -103,7 +100,7 @@ class OortHelper {
           key, value ->
             key == "status"
         }
-      }.status
+      }?.status
 
       if(failIfAnyInstancesUnhealthy && (index == -1 || !status || status != "UP")) {
         throw new RuntimeException("at least one instance is DOWN or in the STARTING state, exiting")
