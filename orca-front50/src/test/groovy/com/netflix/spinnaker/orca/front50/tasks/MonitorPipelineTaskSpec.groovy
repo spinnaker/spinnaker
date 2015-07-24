@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.mayo.tasks
+package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -44,7 +44,7 @@ class MonitorPipelineTaskSpec extends Specification {
 
     given:
     def pipeline = new Pipeline().builder().withStage(
-      com.netflix.spinnaker.orca.mayo.pipeline.PipelineStage.MAYO_CONFIG_TYPE, "pipeline", [:]
+      PipelineStage.MAYO_CONFIG_TYPE, "pipeline", [:]
     ).build()
     pipeline.stages.each {
       it.status = providedStatus

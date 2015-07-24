@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.mayo.tasks
+package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.mayo.DependentPipelineStarter
-import com.netflix.spinnaker.orca.mayo.MayoService
+import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 class StartPipelineTask implements Task {
 
   @Autowired
-  MayoService mayoService
+  Front50Service front50Service
 
   @Autowired
   DependentPipelineStarter dependentPipelineStarter
@@ -41,7 +41,7 @@ class StartPipelineTask implements Task {
   TaskResult execute(Stage stage) {
 
     String application = stage.context.application
-    List pipelines = mayoService.getPipelines(application)
+    List pipelines = front50Service.getPipelines(application)
     Map pipelineConfig = pipelines.find { it.id == stage.context.pipeline }
 
     def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)

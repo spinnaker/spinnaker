@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.mayo.pipeline
+package com.netflix.spinnaker.orca.front50.pipeline
 
-import com.netflix.spinnaker.orca.mayo.tasks.MonitorPipelineTask
-import com.netflix.spinnaker.orca.mayo.tasks.StartPipelineTask
+import com.netflix.spinnaker.orca.front50.tasks.MonitorPipelineTask
+import com.netflix.spinnaker.orca.front50.tasks.StartPipelineTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic

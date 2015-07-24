@@ -16,11 +16,16 @@
 
 package com.netflix.spinnaker.orca.front50.config
 
+import static retrofit.Endpoints.newFixedEndpoint
+
+import com.google.gson.Gson
+import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.spring.DependentPipelineExecutionListener
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import groovy.transform.CompileStatic
-import com.google.gson.Gson
-import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -31,33 +36,45 @@ import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.client.Client
 import retrofit.converter.GsonConverter
-import static retrofit.Endpoints.newFixedEndpoint
 
 @Configuration
 @Import(RetrofitConfiguration)
 @ComponentScan([
-    "com.netflix.spinnaker.orca.front50.pipeline",
-    "com.netflix.spinnaker.orca.front50.tasks"
+  "com.netflix.spinnaker.orca.front50.pipeline",
+  "com.netflix.spinnaker.orca.front50.tasks"
 ])
 @CompileStatic
 class Front50Configuration {
 
-  @Autowired Client retrofitClient
-  @Autowired RestAdapter.LogLevel retrofitLogLevel
+  @Autowired
+  Client retrofitClient
+  @Autowired
+  RestAdapter.LogLevel retrofitLogLevel
 
-  @Bean Endpoint front50Endpoint(
-      @Value('${front50.baseUrl}') String front50BaseUrl) {
+  @Bean
+  Endpoint front50Endpoint(
+    @Value('${front50.baseUrl}') String front50BaseUrl) {
     newFixedEndpoint(front50BaseUrl)
   }
 
-  @Bean Front50Service front50Service(Endpoint front50Endpoint, Gson gson) {
+  @Bean
+  Front50Service front50Service(Endpoint front50Endpoint, Gson gson) {
     new RestAdapter.Builder()
-        .setEndpoint(front50Endpoint)
-        .setClient(retrofitClient)
-        .setLogLevel(retrofitLogLevel)
-        .setLog(new RetrofitSlf4jLog(Front50Service))
-        .setConverter(new GsonConverter(gson))
-        .build()
-        .create(Front50Service)
+      .setEndpoint(front50Endpoint)
+      .setClient(retrofitClient)
+      .setLogLevel(retrofitLogLevel)
+      .setLog(new RetrofitSlf4jLog(Front50Service))
+      .setConverter(new GsonConverter(gson))
+      .build()
+      .create(Front50Service)
+  }
+
+  @Bean
+  DependentPipelineExecutionListener dependentPipelineExecutionListener(
+    ExecutionRepository executionRepository,
+    Front50Service front50Service,
+    DependentPipelineStarter dependentPipelineStarter
+  ) {
+    new DependentPipelineExecutionListener(executionRepository, front50Service, dependentPipelineStarter)
   }
 }

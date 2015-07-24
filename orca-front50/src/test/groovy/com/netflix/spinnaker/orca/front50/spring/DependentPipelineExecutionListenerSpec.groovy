@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.mayo.spring
+package com.netflix.spinnaker.orca.front50.spring
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.echo.spring.DependentPipelineExecutionListener
-import com.netflix.spinnaker.orca.mayo.DependentPipelineStarter
-import com.netflix.spinnaker.orca.mayo.MayoService
-import com.netflix.spinnaker.orca.mayo.pipeline.PipelineStage
+import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -32,7 +31,7 @@ import spock.lang.Subject
 
 class DependentPipelineExecutionListenerSpec extends Specification {
 
-  def mayoService = Mock(MayoService)
+  def front50Service = Mock(Front50Service)
   def executionRepository = Mock(ExecutionRepository)
   def dependentPipelineStarter = Mock(DependentPipelineStarter)
   def jobExecution = new JobExecution(0L, new JobParameters([pipeline: new JobParameter('something')]))
@@ -55,7 +54,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
   ).build()
 
   @Subject
-  DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(executionRepository, mayoService, dependentPipelineStarter)
+  DependentPipelineExecutionListener listener = new DependentPipelineExecutionListener(executionRepository, front50Service, dependentPipelineStarter)
 
   def "should trigger downstream pipeline when status and pipelines match"() {
     given:
@@ -66,7 +65,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
     executionRepository.retrievePipeline(_) >> pipeline
-    mayoService.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
@@ -93,7 +92,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipelineConfig.triggers.first().status = ['successful']
 
-    mayoService.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
@@ -119,7 +118,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
     executionRepository.retrievePipeline(_) >> pipeline
-    mayoService.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> [
       pipelineConfig, pipelineConfig, pipelineConfig
     ]
 
@@ -130,7 +129,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     3 * dependentPipelineStarter._
   }
 
-  def "ignore disabled triggers"(){
+  def "ignore disabled triggers"() {
     given:
     pipeline.stages.each {
       it.status = ExecutionStatus.SUCCEEDED
@@ -142,7 +141,7 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
     pipeline.pipelineConfigId = "97c435a0-0faf-11e5-a62b-696d38c37faa"
     executionRepository.retrievePipeline(_) >> pipeline
-    mayoService.getAllPipelines() >> [
+    front50Service.getAllPipelines() >> [
       pipelineConfig
     ]
 
