@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.orca.batch.persistence
+package com.netflix.spinnaker.orca.restart
 
 import java.util.concurrent.CountDownLatch
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,12 +28,14 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.task.TaskExecutor
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
+import spock.lang.AutoCleanup
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 class PipelineRestartingSpec extends Specification {
 
+  @AutoCleanup("destroy")
   def applicationContext = new AnnotationConfigApplicationContext()
   @Autowired ThreadPoolTaskExecutor taskExecutor
   @Autowired PipelineStarter pipelineStarter
@@ -57,6 +59,10 @@ class PipelineRestartingSpec extends Specification {
       beanFactory.autowireBean(this)
     }
     testStage.applicationContext = applicationContext
+  }
+
+  def cleanup() {
+    applicationContext.destroy()
   }
 
   def "if a pipeline restarts it resumes from where it left off"() {
