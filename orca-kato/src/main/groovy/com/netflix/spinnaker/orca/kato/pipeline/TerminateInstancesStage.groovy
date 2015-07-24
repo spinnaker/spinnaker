@@ -29,10 +29,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class TerminateInstancesStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "terminateInstances"
+  public static final String PIPELINE_CONFIG_TYPE = "terminateInstances"
 
   TerminateInstancesStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

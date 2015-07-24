@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class UpsertGoogleLoadBalancerStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "upsertAmazonLoadBalancer_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "upsertAmazonLoadBalancer_gce"
 
   UpsertGoogleLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

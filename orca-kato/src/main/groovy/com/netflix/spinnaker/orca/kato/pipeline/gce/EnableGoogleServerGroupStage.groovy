@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class EnableGoogleServerGroupStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "enableAsg_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "enableAsg_gce"
 
   EnableGoogleServerGroupStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

@@ -23,10 +23,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class FindAmiFromClusterStage extends LinearStage {
-  static final String MAYO_CONFIG_TYPE = "findAmi"
+  static final String PIPELINE_CONFIG_TYPE = "findAmi"
 
   FindAmiFromClusterStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

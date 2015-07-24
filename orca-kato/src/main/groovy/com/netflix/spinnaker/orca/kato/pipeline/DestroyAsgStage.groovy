@@ -32,10 +32,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
-  static final String MAYO_CONFIG_TYPE = "destroyAsg"
+  static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
 
   DestroyAsgStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

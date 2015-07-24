@@ -29,16 +29,16 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DeleteSecurityGroupStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "deleteSecurityGroup"
+  public static final String PIPELINE_CONFIG_TYPE = "deleteSecurityGroup"
 
   DeleteSecurityGroupStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
     [
-      buildStep(stage, MAYO_CONFIG_TYPE, DeleteSecurityGroupTask),
+      buildStep(stage, PIPELINE_CONFIG_TYPE, DeleteSecurityGroupTask),
       buildStep(stage, "forceCacheRefresh", DeleteSecurityGroupForceRefreshTask),
       buildStep(stage, "monitorDelete", MonitorKatoTask),
     ]

@@ -65,9 +65,9 @@ class TargetReferenceSupport {
    */
   List<TargetReference> getTargetAsgReferences(Stage stage) {
     def config = stage.mapTo(TargetReferenceConfiguration)
-    if (isDynamicallyBound(stage) && stage.type != DetermineTargetReferenceStage.MAYO_CONFIG_TYPE) {
+    if (isDynamicallyBound(stage) && stage.type != DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE) {
       def target = stage.execution.stages.find {
-        it.type == DetermineTargetReferenceStage.MAYO_CONFIG_TYPE && (it.parentStageId == stage.parentStageId || it.parentStageId == stage.id)
+        it.type == DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE && (it.parentStageId == stage.parentStageId || it.parentStageId == stage.id)
       }
       if (target?.context?.targetReferences) {
         return target.context.targetReferences.collect {

@@ -26,10 +26,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 @Component
 class WaitStage extends LinearStage {
-  static final String MAYO_CONFIG_TYPE = "wait"
+  static final String PIPELINE_CONFIG_TYPE = "wait"
 
   WaitStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

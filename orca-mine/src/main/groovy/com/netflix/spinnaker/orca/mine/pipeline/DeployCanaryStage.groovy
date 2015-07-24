@@ -37,14 +37,14 @@ import org.springframework.stereotype.Component
 @Component
 class DeployCanaryStage extends ParallelDeployStage {
 
-  public static final String MAYO_CONFIG_TYPE = "deployCanary"
+  public static final String PIPELINE_CONFIG_TYPE = "deployCanary"
 
   @Autowired FindAmiFromClusterTask findAmi
 
   @Autowired(required = false) GetCommitsTask getCommits
 
   DeployCanaryStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
@@ -91,7 +91,7 @@ class DeployCanaryStage extends ParallelDeployStage {
       TaskResult execute(Stage stage) {
         def context = stage.context
         def allStages = stage.execution.stages
-        def deployStages = allStages.findAll { it.parentStageId == stage.id && it.type == ParallelDeployStage.MAYO_CONFIG_TYPE }
+        def deployStages = allStages.findAll { it.parentStageId == stage.id && it.type == ParallelDeployStage.PIPELINE_CONFIG_TYPE }
         def deployedClusterPairs = []
         for (Map pair in context.clusterPairs) {
           def resultPair = [canaryStage: context.canaryStageId]

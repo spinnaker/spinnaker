@@ -77,8 +77,8 @@ class PipelineJobBuilderSpec extends Specification {
 
   def setup() {
     applicationContext.beanFactory.with {
-      registerSingleton PipelineInitializationStage.MAYO_CONFIG_TYPE, pipelineInitializationStage
-      registerSingleton WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE, waitForRequisiteCompletionStage
+      registerSingleton PipelineInitializationStage.PIPELINE_CONFIG_TYPE, pipelineInitializationStage
+      registerSingleton WaitForRequisiteCompletionStage.PIPELINE_CONFIG_TYPE, waitForRequisiteCompletionStage
       registerSingleton "waitForRequisiteCompletionTask", new WaitForRequisiteCompletionTask()
       registerSingleton "pipelineInitializationTask", new PipelineInitializationTask()
       registerSingleton("stepExecutionListener", new StepExecutionListenerSupport())
@@ -104,7 +104,7 @@ class PipelineJobBuilderSpec extends Specification {
     def pipeline = new Pipeline()
     pipeline.id = "PIPELINE"
     pipeline.parallel = true
-    pipeline.stages << new PipelineStage(pipeline, WaitForRequisiteCompletionStage.MAYO_CONFIG_TYPE, [refId: "B"])
+    pipeline.stages << new PipelineStage(pipeline, WaitForRequisiteCompletionStage.PIPELINE_CONFIG_TYPE, [refId: "B"])
 
     and:
     def pipelineBuilder = Spy(PipelineJobBuilder, constructorArgs: []) {

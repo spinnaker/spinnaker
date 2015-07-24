@@ -243,7 +243,7 @@ class TargetReferenceSupportSpec extends Specification {
     def stage = new PipelineStage(pipeline, "test", config)
     stage.parentStageId = rootStage.id
 
-    def determineTargetStage = new PipelineStage(pipeline, DetermineTargetReferenceStage.MAYO_CONFIG_TYPE, upstreamTargets)
+    def determineTargetStage = new PipelineStage(pipeline, DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE, upstreamTargets)
     determineTargetStage.parentStageId = rootStage.id
 
     pipeline.stages = [rootStage, stage, determineTargetStage]

@@ -38,13 +38,13 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class ParallelDeployStage extends ParallelStage {
 
-  public static final String MAYO_CONFIG_TYPE = "deploy"
+  public static final String PIPELINE_CONFIG_TYPE = "deploy"
 
   @Autowired
   List<LinearStage> stageBuilders
 
   ParallelDeployStage() {
-    this(MAYO_CONFIG_TYPE)
+    this(PIPELINE_CONFIG_TYPE)
   }
 
   protected ParallelDeployStage(String name) {
@@ -57,7 +57,7 @@ class ParallelDeployStage extends ParallelStage {
       def nextStage = newStage(
         stage.execution, context.type as String, context.name as String, new HashMap(context), stage, Stage.SyntheticStageOwner.STAGE_AFTER
       )
-      ((AbstractStage) nextStage).type = MAYO_CONFIG_TYPE
+      ((AbstractStage) nextStage).type = PIPELINE_CONFIG_TYPE
       stage.execution.stages.add(nextStage)
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String).start(
@@ -75,7 +75,7 @@ class ParallelDeployStage extends ParallelStage {
   }
 
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
-    def type = DeployStage.MAYO_CONFIG_TYPE
+    def type = DeployStage.PIPELINE_CONFIG_TYPE
 
     if (cluster.providerType) {
       type += "_$cluster.providerType"

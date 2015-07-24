@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class ScriptStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "script"
+  public static final String PIPELINE_CONFIG_TYPE = "script"
 
   ScriptStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

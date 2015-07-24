@@ -23,5 +23,5 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DisableAsgTask extends AbstractAsgTask {
-  String asgAction = DisableAsgStage.MAYO_CONFIG_TYPE
+  String asgAction = DisableAsgStage.PIPELINE_CONFIG_TYPE
 }

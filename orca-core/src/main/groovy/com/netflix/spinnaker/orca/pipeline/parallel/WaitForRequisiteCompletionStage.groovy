@@ -25,10 +25,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 @Component
 class WaitForRequisiteCompletionStage extends LinearStage {
-  static final String MAYO_CONFIG_TYPE = "waitForRequisiteCompletion"
+  static final String PIPELINE_CONFIG_TYPE = "waitForRequisiteCompletion"
 
   WaitForRequisiteCompletionStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

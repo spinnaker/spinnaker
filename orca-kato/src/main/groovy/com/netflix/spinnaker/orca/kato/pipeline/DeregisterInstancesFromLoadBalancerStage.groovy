@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DeregisterInstancesFromLoadBalancerStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "deregisterInstancesFromLoadBalancer"
+  public static final String PIPELINE_CONFIG_TYPE = "deregisterInstancesFromLoadBalancer"
 
   @Autowired
   OortService oortService
@@ -41,7 +41,7 @@ class DeregisterInstancesFromLoadBalancerStage extends LinearStage {
   ObjectMapper objectMapper
 
   DeregisterInstancesFromLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

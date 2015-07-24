@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class RebootGoogleInstancesStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "rebootInstances_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "rebootInstances_gce"
 
   RebootGoogleInstancesStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

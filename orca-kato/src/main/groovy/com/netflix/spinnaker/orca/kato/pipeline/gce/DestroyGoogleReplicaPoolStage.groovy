@@ -30,12 +30,12 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class DestroyGoogleReplicaPoolStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "destroyAsg_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "destroyAsg_gce"
 
   @Autowired ResizeGoogleReplicaPoolStage resizeGoogleReplicaPoolStage
 
   DestroyGoogleReplicaPoolStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
