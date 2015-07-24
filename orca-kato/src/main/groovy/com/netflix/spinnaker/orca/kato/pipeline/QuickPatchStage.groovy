@@ -100,7 +100,7 @@ class QuickPatchStage extends LinearStage {
   }
 
   Map getInstancesForCluster(Stage stage) {
-    ConcurrentHashMap instances = new ConcurrentHashMap(oortHelper.getInstancesForCluster(stage.context, null, true, true))
+    ConcurrentHashMap instances = new ConcurrentHashMap(oortHelper.getInstancesForCluster(stage.context, null, true, false))
     ConcurrentHashMap skippedMap = new ConcurrentHashMap()
 
     if(stage.context.skipUpToDate) {

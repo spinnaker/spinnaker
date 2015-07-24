@@ -110,4 +110,30 @@ class OortHelperSpec extends Specification {
     result.get(1).healthCheckUrl == "http://foo/bar"
     result.get(2).healthCheckUrl == "http://foo2/bar2"
   }
+
+  def "getInstancesForCluster passes if any instances are down/starting and failIfAnyInstancesUnhealthy == false"() {
+    when:
+    def oortResponse = '''\
+    {
+      "serverGroups":[{
+        "name": "myapp-v002",
+        "region": "us-west-2",
+        "asg": { "createdTime": 12344, "suspendedProcesses": [{"processName": "AddToLoadBalancer"}] },
+        "image": { "imageId": "ami-012", "name": "ami-012" },
+        "buildInfo": { "job": "foo-build", "buildNumber": 1 },
+        "instances": [ { "instanceId": 1, "health" : [{"healthCheckUrl" : "http://foo/bar"}, {"status": "DOWN"}] },
+                       { "instanceId": 2, "health" : [{"healthCheckUrl" : "http://foo2/bar2"}, {"status": "UP"}] },
+                       { "instanceId": 3, "health" : [{"healthCheckUrl" : "http://foo2/bar3"}] }
+                     ]
+      }]
+    }
+    '''.stripIndent()
+    Response response = new Response('http://oort', 200, 'OK', [], new TypedString(oortResponse))
+    Map deployContext = ["region" : "us-west-2", "account" : "prod", "kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
+    1 * oortService.getCluster("myapp", "prod", "myapp", "aws") >> response
+    def result = oortHelper.getInstancesForCluster(deployContext, "myapp-v002", true, false)
+
+    then:
+    result.size() == 3
+  }
 }
