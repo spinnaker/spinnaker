@@ -24,13 +24,13 @@ import org.springframework.stereotype.Component
 
 @Component
 class CanaryStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "canary"
+  public static final String PIPELINE_CONFIG_TYPE = "canary"
 
   @Autowired DeployCanaryStage deployCanaryStage
   @Autowired MonitorCanaryStage monitorCanaryStage
 
   CanaryStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

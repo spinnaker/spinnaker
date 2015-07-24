@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class EnableInstancesInDiscoveryStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "enableInstancesInDiscovery"
+  public static final String PIPELINE_CONFIG_TYPE = "enableInstancesInDiscovery"
 
   @Autowired
   OortService oortService
@@ -41,7 +41,7 @@ class EnableInstancesInDiscoveryStage extends LinearStage {
   ObjectMapper objectMapper
 
   EnableInstancesInDiscoveryStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

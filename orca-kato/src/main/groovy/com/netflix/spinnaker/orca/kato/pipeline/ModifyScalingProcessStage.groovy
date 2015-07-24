@@ -30,10 +30,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
 
-  static final String MAYO_CONFIG_TYPE = "modifyScalingProcess"
+  static final String PIPELINE_CONFIG_TYPE = "modifyScalingProcess"
 
   ModifyScalingProcessStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

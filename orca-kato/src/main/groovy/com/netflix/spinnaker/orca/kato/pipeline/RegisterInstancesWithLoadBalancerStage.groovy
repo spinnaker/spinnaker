@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class RegisterInstancesWithLoadBalancerStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "registerInstancesWithLoadBalancer"
+  public static final String PIPELINE_CONFIG_TYPE = "registerInstancesWithLoadBalancer"
 
   @Autowired
   OortService oortService
@@ -41,7 +41,7 @@ class RegisterInstancesWithLoadBalancerStage extends LinearStage {
   ObjectMapper objectMapper
 
   RegisterInstancesWithLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

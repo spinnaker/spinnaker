@@ -37,7 +37,7 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
       region     : region,
       asgName    : asgName
     ]
-    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.MAYO_CONFIG_TYPE, taskConfig)
+    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.PIPELINE_CONFIG_TYPE, taskConfig)
 
     when:
     def result = task.execute(stage)
@@ -62,7 +62,7 @@ class ModifyAsgLaunchConfigurationTaskSpec extends Specification {
       ],
       amiName          : contextAmi
     ]
-    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.MAYO_CONFIG_TYPE, taskConfig)
+    def stage = new OrchestrationStage(new Orchestration(), ModifyAsgLaunchConfigurationStage.PIPELINE_CONFIG_TYPE, taskConfig)
 
     when:
     def result = task.execute(stage)

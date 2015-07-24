@@ -29,10 +29,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class CopyAmazonLoadBalancerStage extends LinearStage {
 
-  public static final String MAYO_CONFIG_TYPE = "copyAmazonLoadBalancer"
+  public static final String PIPELINE_CONFIG_TYPE = "copyAmazonLoadBalancer"
 
   CopyAmazonLoadBalancerStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

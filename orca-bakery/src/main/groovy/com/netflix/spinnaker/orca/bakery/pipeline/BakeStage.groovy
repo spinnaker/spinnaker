@@ -37,10 +37,10 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class BakeStage extends ParallelStage implements StepProvider {
 
-  public static final String MAYO_CONFIG_TYPE = "bake"
+  public static final String PIPELINE_CONFIG_TYPE = "bake"
 
   BakeStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
@@ -82,7 +82,7 @@ class BakeStage extends ParallelStage implements StepProvider {
     }
     return deployRegions.collect {
       stage.context - ["regions": stage.context.regions] + ([
-        type  : MAYO_CONFIG_TYPE,
+        type  : PIPELINE_CONFIG_TYPE,
         region: it,
         name  : "Bake in ${it}" as String
       ] as Map<String, Object>)
@@ -104,7 +104,7 @@ class BakeStage extends ParallelStage implements StepProvider {
 
         def globalContext = [
           deploymentDetails: stage.execution.stages.findAll {
-            it.type == MAYO_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && it.context.ami
+            it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && it.context.ami
           }.collect { Stage bakeStage ->
             def deploymentDetails = [:]
             ["ami", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType"].each {

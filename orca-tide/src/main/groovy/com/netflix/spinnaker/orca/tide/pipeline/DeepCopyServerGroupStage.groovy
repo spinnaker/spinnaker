@@ -27,10 +27,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DeepCopyServerGroupStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "deepCopyServerGroup"
+  public static final String PIPELINE_CONFIG_TYPE = "deepCopyServerGroup"
 
   DeepCopyServerGroupStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

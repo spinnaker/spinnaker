@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class ResizeAsgStage extends LinearStage {
-  static final String MAYO_CONFIG_TYPE = "resizeAsg"
+  static final String PIPELINE_CONFIG_TYPE = "resizeAsg"
 
   @Autowired
   TargetReferenceSupport targetReferenceSupport
@@ -46,7 +46,7 @@ class ResizeAsgStage extends LinearStage {
   DetermineTargetReferenceStage determineTargetReferenceStage
 
   ResizeAsgStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

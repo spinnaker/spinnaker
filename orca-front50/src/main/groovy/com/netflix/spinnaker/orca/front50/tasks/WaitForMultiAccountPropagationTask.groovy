@@ -57,16 +57,16 @@ class WaitForMultiAccountPropagationTask implements RetryableTask {
     def status = ExecutionStatus.SUCCEEDED
 
     def isCreate = stage.execution.stages.find {
-      it.type == CreateApplicationStage.MAYO_CONFIG_TYPE
+      it.type == CreateApplicationStage.PIPELINE_CONFIG_TYPE
     } != null
     def isUpdate = stage.execution.stages.find {
-      it.type == UpdateApplicationStage.MAYO_CONFIG_TYPE
+      it.type == UpdateApplicationStage.PIPELINE_CONFIG_TYPE
     } != null
     def isDelete = stage.execution.stages.find {
-      it.type == DeleteApplicationStage.MAYO_CONFIG_TYPE
+      it.type == DeleteApplicationStage.PIPELINE_CONFIG_TYPE
     } != null
     def isUpsert = stage.execution.stages.find {
-      it.type == UpsertApplicationStage.MAYO_CONFIG_TYPE
+      it.type == UpsertApplicationStage.PIPELINE_CONFIG_TYPE
     } != null
 
     if (isCreate || isUpdate || isUpsert) {

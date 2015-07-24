@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class UpsertGoogleServerGroupTagsStage extends LinearStage {
-  public static final String MAYO_CONFIG_TYPE = "upsertServerGroupTags_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "upsertServerGroupTags_gce"
 
   UpsertGoogleServerGroupTagsStage() {
-    super(MAYO_CONFIG_TYPE)
+    super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override

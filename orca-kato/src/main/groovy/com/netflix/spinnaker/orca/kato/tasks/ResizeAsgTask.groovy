@@ -67,8 +67,8 @@ class ResizeAsgTask implements Task {
         context = descriptors[0]
       }
     }
-    if (context.containsKey(ResizeAsgStage.MAYO_CONFIG_TYPE)) {
-      context = (Map) context[ResizeAsgStage.MAYO_CONFIG_TYPE]
+    if (context.containsKey(ResizeAsgStage.PIPELINE_CONFIG_TYPE)) {
+      context = (Map) context[ResizeAsgStage.PIPELINE_CONFIG_TYPE]
     }
     context
   }

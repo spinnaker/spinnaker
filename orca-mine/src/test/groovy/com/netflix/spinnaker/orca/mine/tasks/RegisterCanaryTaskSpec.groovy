@@ -36,7 +36,7 @@ class RegisterCanaryTaskSpec extends Specification {
     def pipeline = new Pipeline(application: 'foo')
 
     def canaryStageId = UUID.randomUUID().toString()
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.MAYO_CONFIG_TYPE, [
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [
       canaryStageId: canaryStageId,
       account     : 'test',
       canary: [

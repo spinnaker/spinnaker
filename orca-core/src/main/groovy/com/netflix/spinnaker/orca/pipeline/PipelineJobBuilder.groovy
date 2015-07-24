@@ -80,7 +80,7 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   private JobFlowBuilder buildFlowParallel(JobFlowBuilder jobBuilder, Pipeline pipeline) {
     def initializationStage = StageBuilder.newStage(
       pipeline,
-      PipelineInitializationStage.MAYO_CONFIG_TYPE,
+      PipelineInitializationStage.PIPELINE_CONFIG_TYPE,
       "Initialize",
       [:],
       null as Stage,
