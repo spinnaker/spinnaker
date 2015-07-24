@@ -52,7 +52,8 @@ angular.module('spinnaker.pipelines.create.controller', [
         function(response) {
           $log.warn(response);
           $scope.viewState.saveError = true;
-          $scope.viewState.errorMessage = response.message || 'No message provided';
+          var message = response && response.data && response.data.message ? response.data.message : 'No message provided';
+          $scope.viewState.errorMessage = message;
         }
       );
     };
