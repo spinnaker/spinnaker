@@ -1,39 +1,40 @@
 <ng-form name="basicSettings">
   <div class="form-group">
-    <div class="col-md-2 sm-label-left">
+    <div class="col-md-3 sm-label-left">
       Account
     </div>
     <div class="col-md-7">
       <account-select-field read-only="command.viewState.readOnlyFields.credentials" component="command" field="credentials" accounts="command.backingData.accounts" provider="'aws'"></account-select-field>
     </div>
   </div>
-  <region-select-field read-only="command.viewState.readOnlyFields.region" label-columns="2" component="command" field="region" account="command.credentials" provider="'aws'" regions="command.backingData.filtered.regions"></region-select-field>
-  <subnet-select-field read-only="command.viewState.readOnlyFields.subnet" label-columns="2" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
+  <region-select-field read-only="command.viewState.readOnlyFields.region" label-columns="3" component="command" field="region" account="command.credentials" provider="'aws'" regions="command.backingData.filtered.regions"></region-select-field>
+  <subnet-select-field read-only="command.viewState.readOnlyFields.subnet" label-columns="3" help-key="aws.serverGroup.subnet" component="command" field="subnetType" region="command.region" subnets="command.backingData.filtered.subnetPurposes"></subnet-select-field>
   <div class="form-group">
-    <div class="col-md-2 sm-label-left">
+    <div class="col-md-3 sm-label-left">
       Stack
       <help-field key="aws.serverGroup.stack"></help-field>
     </div>
-    <div class="col-md-3"><input type="text"
+    <div class="col-md-7"><input type="text"
                                  class="form-control input-sm"
                                  ng-pattern="basicSettingsCtrl.stackPattern"
                                  name="stack"
                                  ng-model="command.stack"/></div>
-
-    <div class="col-md-2 sm-label-right">
-      Detail
-      <help-field key="aws.serverGroup.detail"></help-field>
-    </div>
-    <div class="col-md-3"><input type="text"
-                                 class="form-control input-sm"
-                                 ng-pattern="basicSettingsCtrl.detailPattern"
-                                 name="details"
-                                 ng-model="command.freeFormDetails"/></div>
   </div>
   <div class="form-group row slide-in animated" ng-if="basicSettings.stack.$error.pattern">
     <div class="col-sm-9 col-sm-offset-2 error-message">
       <span>Only dot(.) and underscore(_) special characters are allowed in the Stack field.</span>
     </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-3 sm-label-left">
+      Detail
+      <help-field key="aws.serverGroup.detail"></help-field>
+    </div>
+    <div class="col-md-7"><input type="text"
+                                 class="form-control input-sm"
+                                 ng-pattern="basicSettingsCtrl.detailPattern"
+                                 name="details"
+                                 ng-model="command.freeFormDetails"/></div>
   </div>
   <div class="form-group row slide-in animated" ng-if="basicSettings.details.$error.pattern">
     <div class="col-sm-9 col-sm-offset-2 error-message">
@@ -41,11 +42,11 @@
     </div>
   </div>
   <div class="form-group" ng-if="!command.viewState.disableImageSelection">
-    <div class="col-md-2 sm-label-left">
+    <div class="col-md-3 sm-label-left">
       Image
       <help-field key="aws.serverGroup.imageName"></help-field>
     </div>
-    <div class="col-md-10" ng-if="command.viewState.useAllImageSelection">
+    <div class="col-md-9" ng-if="command.viewState.useAllImageSelection">
       <ui-select ng-model="command.viewState.allImageSelection"
                  class="form-control input-sm"
                  required>
@@ -64,7 +65,7 @@
             <help-field key="aws.serverGroup.filterImages"></help-field>
           </span>
     </div>
-    <div class="col-md-10" ng-if="!command.viewState.useAllImageSelection">
+    <div class="col-md-9" ng-if="!command.viewState.useAllImageSelection">
       <ui-select ng-model="command.amiName" class="form-control input-sm" required>
         <ui-select-match placeholder="Pick an image">{{$select.selected.imageName}}</ui-select-match>
         <ui-select-choices repeat="image.imageName as image in command.backingData.filtered.images | anyFieldFilter: {imageName: $select.search, ami: $select.search } | orderBy: '-imageName'">
@@ -77,7 +78,7 @@
   </div>
   <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
   <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
-    <div class="col-md-9 col-md-offset-2">
+    <div class="col-md-12">
       <div class="well-compact" ng-class="basicSettingsCtrl.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
         <h5 class="text-center">
           <p>Your server group will be in the cluster:</p>
@@ -87,7 +88,7 @@
               <span ng-if="basicSettingsCtrl.createsNewCluster()"> (new cluster)</span>
             </strong>
           </p>
-          <div ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+          <div class="text-left" ng-if="!basicSettingsCtrl.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
             <p>
               There is already a server group in this cluster. Do you want to clone it?
             </p>
