@@ -75,7 +75,6 @@ class TaskTasklet implements Tasklet {
       } else if (task.status.complete) {
         // no-op
         log.warn "Skipping task $task.name because its status is $task.status"
-        return RepeatStatus.FINISHED
       } else {
         def result = executeTask(stage, chunkContext)
         logResult(result, stage, chunkContext)
@@ -123,7 +122,7 @@ class TaskTasklet implements Tasklet {
     stage.status = ExecutionStatus.CANCELED
     stage.endTime = System.currentTimeMillis()
     stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
-    return RepeatStatus.FINISHED
+    return BatchStepStatus.mapResult(new DefaultTaskResult(ExecutionStatus.CANCELED)).repeatStatus
   }
 
   private void save(Stage stage) {

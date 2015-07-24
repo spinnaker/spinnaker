@@ -38,7 +38,7 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
   void beforeTask(Stage stage, StepExecution stepExecution) {
     def taskId = taskId(stepExecution)
     def task = stage.tasks.find { it.id == taskId }
-    if (!task.startTime) {
+    if (task.status != ExecutionStatus.RUNNING) {
       task = (DefaultTask) task
       task.startTime = System.currentTimeMillis()
       task.endTime = null
