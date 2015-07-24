@@ -32,7 +32,8 @@ angular.module('spinnaker.migrator.service', [
     function monitorTask(task) {
 
       if (task.execution.isFailed) {
-        var exception = task.execution.getValueFor('exception') || { message: 'No reason provided.'};
+        var exception = task.execution.getValueFor('exception'),
+            message = exception && exception.message ? exception.message : 'An internal server error occurred. Please try again later.';
         task.deferred.reject(exception.message);
         return;
       }
