@@ -32,7 +32,7 @@ import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
-class PipelinePersistenceSpec extends Specification {
+class PipelineRestartingSpec extends Specification {
 
   def applicationContext = new AnnotationConfigApplicationContext()
   @Autowired ThreadPoolTaskExecutor taskExecutor
