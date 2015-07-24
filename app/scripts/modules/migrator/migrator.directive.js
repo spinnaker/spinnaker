@@ -84,6 +84,7 @@ angular.module('spinnaker.migrator.directive', [
         $scope.preview = dryRun.executionPlan;
       },
       function (error) {
+        $scope.viewState.computing = false;
         $scope.viewState.error = error;
       }
     );
