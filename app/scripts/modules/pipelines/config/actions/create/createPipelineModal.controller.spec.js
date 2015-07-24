@@ -146,7 +146,7 @@ describe('Controller: createPipelineModal', function() {
       var $q = this.$q;
       this.initializeController({name:'the_app'});
       spyOn(this.pipelineConfigService, 'savePipeline').and.callFake(function () {
-        return $q.reject({message: 'something went wrong'});
+        return $q.reject({data: {message: 'something went wrong'}});
       });
 
       this.controller.createPipeline();
