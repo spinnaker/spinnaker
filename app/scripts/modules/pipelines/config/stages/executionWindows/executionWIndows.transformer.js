@@ -2,9 +2,8 @@
 let angular = require('angular');
 module.exports =  angular.module('spinnaker.pipelines.stage.executionWindows.transformer', [])
   .service('executionWindowsTransformer', function() {
-    /**
-     * Overrides "running" status, setting it to "suspended"
-     */
+
+    //Overrides "running" status, setting it to "suspended"
     function transformRunningExecutionWindows(execution) {
       execution.stages
         .filter(function (stage) {
