@@ -15,13 +15,12 @@
  */
 
 package com.netflix.spinnaker.gate.services
+
 import com.google.common.base.Preconditions
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
-import com.netflix.spinnaker.gate.filters.AuthenticatedRequest
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
-import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.security.AuthenticatedRequest
@@ -49,9 +48,6 @@ class ApplicationService {
 
   @Autowired
   OortService oortService
-
-  @Autowired(required = false)
-  MayoService mayoService
 
   @Autowired
   OrcaService orcaService
@@ -99,27 +95,27 @@ class ApplicationService {
   }
 
   List<Map> getPipelineConfigs(String app) {
-    if (!mayoService) {
+    if (!front50Service) {
       return []
     }
 
     HystrixFactory.newListCommand(GROUP, "getPipelineConfigsForApplication", true) {
-      mayoService.getPipelineConfigs(app)
+      front50Service.getPipelineConfigs(app)
     } execute()
   }
 
   Map getPipelineConfig(String app, String pipelineName) {
-    if (!mayoService) {
+    if (!front50Service) {
       return null
     }
     HystrixFactory.newMapCommand(GROUP, "getPipelineConfigForApplicationAndPipeline", true) {
-      mayoService.getPipelineConfigs(app).find { it.name == pipelineName }
+      front50Service.getPipelineConfigs(app).find { it.name == pipelineName }
     } execute()
   }
 
   Map bake(String application, String pkg, String baseOs, String baseLabel, String region) {
     orcaService.doOperation([application: application, description: "Bake (Gate)",
-                             job        : [[type  : "bake", "package": pkg, baseOs: baseOs, baseLabel: baseLabel,
+                             job        : [[type: "bake", "package": pkg, baseOs: baseOs, baseLabel: baseLabel,
                                             region: region, user: "gate"]]])
   }
 
@@ -137,7 +133,7 @@ class ApplicationService {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
     if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
-        [ new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService) ]
+        [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
       } as Collection<Callable<List<Map>>>
     }
 
@@ -151,16 +147,16 @@ class ApplicationService {
     if (globalAccounts) {
       return globalAccounts.collectMany { String globalAccount ->
         [
-            new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
-            new OortApplicationRetriever(applicationName, oortService)
+          new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
+          new OortApplicationRetriever(applicationName, oortService)
         ]
       } as Collection<Callable<Map>>
     }
 
     return (credentialsService.accounts.collectMany {
       [
-          new Front50ApplicationRetriever((String) it.name, applicationName, front50Service),
-          new OortApplicationRetriever(applicationName, oortService)
+        new Front50ApplicationRetriever((String) it.name, applicationName, front50Service),
+        new OortApplicationRetriever(applicationName, oortService)
       ]
     } as Collection<Callable<Map>>)
   }
@@ -214,7 +210,9 @@ class ApplicationService {
         mergedApp.attributes['name'] = mergedApp.name
       }
 
-      Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults { it.trim() ?: null } ?: null
+      Set<String> applicationFilter = applicationServiceConfig.config?.includedAccounts?.split(',')?.toList()?.findResults {
+        it.trim() ?: null
+      } ?: null
       return merged.values().toList().findAll { Map<String, Object> account ->
         if (applicationFilter == null) {
           return true

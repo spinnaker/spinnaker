@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.EchoService
-import com.netflix.spinnaker.gate.services.internal.MayoService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @Slf4j
 class PipelineService {
   @Autowired(required = false)
-  MayoService mayoService
+  Front50Service front50Service
 
   @Autowired(required = false)
   EchoService echoService
@@ -45,15 +45,15 @@ class PipelineService {
   ApplicationService applicationService
 
   void deleteForApplication(String applicationName, String pipelineName) {
-    mayoService.deletePipelineConfig(applicationName, pipelineName)
+    front50Service.deletePipelineConfig(applicationName, pipelineName)
   }
 
   void save(Map pipeline) {
-    mayoService.savePipelineConfig(pipeline)
+    front50Service.savePipelineConfig(pipeline)
   }
 
   void move(Map moveCommand) {
-    mayoService.move(moveCommand)
+    front50Service.movePipelineConfig(moveCommand)
   }
 
   Map trigger(String application, String pipelineName, Map trigger) {
@@ -65,7 +65,7 @@ class PipelineService {
     orcaService.startPipeline(pipelineConfig, trigger.user?.toString())
   }
 
-  Map startPipeline(Map pipelineConfig, String user){
+  Map startPipeline(Map pipelineConfig, String user) {
     orcaService.startPipeline(pipelineConfig, user)
   }
 
