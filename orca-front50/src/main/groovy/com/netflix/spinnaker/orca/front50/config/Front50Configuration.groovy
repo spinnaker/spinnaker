@@ -41,7 +41,8 @@ import retrofit.converter.GsonConverter
 @Import(RetrofitConfiguration)
 @ComponentScan([
   "com.netflix.spinnaker.orca.front50.pipeline",
-  "com.netflix.spinnaker.orca.front50.tasks"
+  "com.netflix.spinnaker.orca.front50.tasks",
+  "com.netflix.spinnaker.orca.front50"
 ])
 @CompileStatic
 class Front50Configuration {
