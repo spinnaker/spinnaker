@@ -5,7 +5,9 @@ angular.module('spinnaker.deploymentStrategy')
     return {
       restrict: 'E',
       scope: {
-        command: '='
+        command: '=',
+        labelColumns: '@',
+        fieldColumns: '@',
       },
       templateUrl: 'scripts/modules/deploymentStrategy/deploymentStrategySelector.html',
       controller: 'DeploymentStrategySelectorCtrl',

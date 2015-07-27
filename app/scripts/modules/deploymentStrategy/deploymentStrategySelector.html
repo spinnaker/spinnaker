@@ -1,9 +1,9 @@
 <div class="form-group" ng-if="deploymentStrategies.length">
-  <div class="col-md-2 sm-label-left" style="padding-left: 13px">
+  <div class="col-md-{{labelColumns || 2}} sm-label-left" style="padding-left: 13px">
     Strategy
     <help-field key="aws.serverGroup.strategy"></help-field>
   </div>
-  <div class="col-md-10">
+  <div class="col-md-{{fieldColumns || 10}}">
     <ui-select ng-model="command.strategy" class="form-control input-sm">
       <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
       <ui-select-choices repeat="strategy.key as strategy in deploymentStrategies | filter: $select.search">
