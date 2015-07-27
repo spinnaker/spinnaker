@@ -8,6 +8,11 @@
              required
           />
     </div>
+    <div class="col-md-4">
+      <strong>Format:</strong> 'Seconds&nbsp;&nbsp;Minutes&nbsp;&nbsp;Hour&nbsp;&nbsp;
+      DayOfMonth&nbsp;&nbsp;Month&nbsp;&nbsp;DayOfWeek&nbsp;&nbsp;(Year)' Year is optional.
+      <br/><strong>Ex:</strong> 0 0/30 * * * ? (Every 30 minutes)
+    </div>
   </div>
   <div class="form-group row slide-in animated" ng-if="cronForm.cronExpression.$error.pattern">
     <div class="col-sm-9 col-sm-offset-2 error-message">
