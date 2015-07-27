@@ -21,6 +21,8 @@
     "angulartics": "^0.18.0",
     "bootstrap": "3.2.0",
     "d3-tip": "^0.6.7",
+    "envify": "^1.2.1",
+    "envify-loader": "^0.1.0",
     "jquery": "2.1.4",
     "jquery-ui": "^1.10.5",
     "ng-infinite-scroll": "^1.2.0",
