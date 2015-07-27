@@ -14,9 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.config
+package com.netflix.spinnaker.gate.security
 
-import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer
+import com.netflix.spinnaker.gate.services.internal.KatoService
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
-class GateHttpSessionApplicationInitializer extends AbstractHttpSessionApplicationInitializer {
+@Component
+class AnonymousAccountsService {
+
+  private final KatoService katoService
+
+  @Autowired
+  AnonymousAccountsService(KatoService katoService) {
+    this.katoService = katoService
+  }
+
+  public Collection<String> getAllowedAccounts() {
+    return katoService.accounts.findAll { !it.requiredGroupMembership }*.name
+  }
 }

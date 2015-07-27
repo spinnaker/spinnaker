@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
@@ -306,7 +307,8 @@ class GateConfig {
   }
 
   @Bean
-  Filter simpleCORSFilter() {
+  FilterRegistrationBean simpleCORSFilter() {
+    def frb = new FilterRegistrationBean(
     new Filter() {
       public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
         throws IOException, ServletException {
@@ -325,7 +327,10 @@ class GateConfig {
       public void init(FilterConfig filterConfig) {}
 
       public void destroy() {}
-    }
+    })
+    frb.setOrder(Ordered.HIGHEST_PRECEDENCE)
+
+    return frb
   }
 
   @Bean
