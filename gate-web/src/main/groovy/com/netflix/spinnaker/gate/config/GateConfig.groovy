@@ -275,6 +275,13 @@ class GateConfig {
     createClient "mine", MineService
   }
 
+
+  @Bean
+  @ConditionalOnProperty('services.scheduler.enabled')
+  SchedulerService schedulerService() {
+    createClient "scheduler", SchedulerService
+  }
+
   private <T> T createClient(String serviceName, Class<T> type) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
