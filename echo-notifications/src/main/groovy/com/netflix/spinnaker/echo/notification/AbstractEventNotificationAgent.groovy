@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.echo.notification
 
 import com.netflix.spinnaker.echo.events.EchoEventListener
-import com.netflix.spinnaker.echo.mayo.MayoService
+import com.netflix.spinnaker.echo.front50.Front50Service
 import com.netflix.spinnaker.echo.model.Event
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Value
 abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
     @Autowired
-    MayoService mayoService
+    Front50Service front50Service
 
     @Value('${spinnaker.baseUrl}')
     String spinnakerUrl

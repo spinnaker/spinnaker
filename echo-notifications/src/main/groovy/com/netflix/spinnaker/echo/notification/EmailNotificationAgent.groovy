@@ -72,7 +72,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
 
     private String[] getEmailReceipients(String application, String type, String status) {
         List addresses = []
-        mayoService.getNotificationPreferences(application)?.email?.each { emailPreference ->
+        front50Service.getNotificationPreferences(application)?.email?.each { emailPreference ->
             if (emailPreference.when?.contains("$type.$status".toString())) {
                 addresses << emailPreference.address
             }

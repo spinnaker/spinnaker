@@ -40,7 +40,7 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
     @Override
     void sendNotifications(Event event, Map config, String status) {
         String application = event.details.application
-        mayoService.getNotificationPreferences(application)?.hipchat?.each { preference ->
+        front50Service.getNotificationPreferences(application)?.hipchat?.each { preference ->
             if (preference.when?.contains("$config.type.$status".toString())) {
                 try {
                     boolean notify = false

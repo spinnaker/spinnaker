@@ -42,7 +42,7 @@ class TwilioNotificationAgent extends AbstractEventNotificationAgent {
     void sendNotifications(Event event, Map config, String status) {
         String application = event.details.application
 
-        mayoService.getNotificationPreferences(application)?.sms?.each { preference ->
+        front50Service.getNotificationPreferences(application)?.sms?.each { preference ->
             if (preference.when?.contains("$config.type.$status".toString())) {
                 try {
                     String name = event.content?.execution?.name ?: event.content?.execution?.description
