@@ -10,46 +10,7 @@
 <div class="transition-overlay" ng-if="!authenticating && routing">
     <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
 </div>
-<div class="spinnaker-container">
-    <div class="spinnaker-header navbar navbar-inverse">
-        <div class="container">
-            <div class="row">
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle" ng-click="navbarExpanded = !navbarExpanded">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">SPINNAKER</a>
-                </div>
-                <div class="collapse navbar-collapse" collapse="!navbarExpanded">
-                    <ul class="nav navbar-nav">
-                        <li state-active="home.applications.**">
-                            <a ui-sref="home.applications">Applications</a>
-                        </li>
-                        <li state-active="home.infrastructure.**">
-                            <a ui-sref="home.infrastructure">Infrastructure</a>
-                        </li>
-                        <li ng-if="feature.fastProperty" state-active="home.data.**">
-                          <a ui-sref="home.data.properties">Data</a>
-                        </li>
-                    </ul>
-
-                    <whats-new></whats-new>
-                    <feedback></feedback>
-                    <ul class="nav navbar-nav navbar-right">
-                        <global-search></global-search>
-                    </ul>
-                </div>
-            </div>
-            <!--/.nav-collapse -->
-        </div>
-    </div>
-
-    <div class="spinnaker-content">
-        <div class="container" ui-view="main" ng-if="!authenticating"></div>
-    </div>
-</div>
+<spinnaker></spinnaker>
 
 <script>
     if (window.tracking && window.tracking.enabled && window.tracking.key) {

@@ -65,6 +65,7 @@ module.exports = angular.module('spinnaker', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('./filters/filters.module.js'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
+    require('./directives/applicationBootstrap.js'),
 
     require('exports?"angular.filter"!angular-filter'),
     require('./providers/states.js'),
