@@ -35,6 +35,9 @@ angular.module('spinnaker')
       'Content-Type': 'application/json;charset=utf-8'
     };
   })
+  .config(function($compileProvider) {
+    $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat):/);
+  })
   .config(function($provide) {
     $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
       return function (exception, cause) {
