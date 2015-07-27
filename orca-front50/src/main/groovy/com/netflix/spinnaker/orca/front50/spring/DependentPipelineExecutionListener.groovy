@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.echo.spring
+package com.netflix.spinnaker.orca.front50.spring
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.mayo.DependentPipelineStarter
-import com.netflix.spinnaker.orca.mayo.MayoService
+import com.netflix.spinnaker.orca.front50.DependentPipelineStarter
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileDynamic
@@ -31,12 +31,12 @@ import org.springframework.batch.core.JobExecutionListener
 class DependentPipelineExecutionListener implements JobExecutionListener {
 
   protected final ExecutionRepository executionRepository
-  private final MayoService mayoService
+  private final Front50Service front50Service
   private DependentPipelineStarter dependentPipelineStarter
 
-  DependentPipelineExecutionListener(ExecutionRepository executionRepository, MayoService mayoService, DependentPipelineStarter dependentPipelineStarter) {
+  DependentPipelineExecutionListener(ExecutionRepository executionRepository, Front50Service front50Service, DependentPipelineStarter dependentPipelineStarter) {
     this.executionRepository = executionRepository
-    this.mayoService = mayoService
+    this.front50Service = front50Service
     this.dependentPipelineStarter = dependentPipelineStarter
   }
 
@@ -48,7 +48,7 @@ class DependentPipelineExecutionListener implements JobExecutionListener {
   void afterJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
     if (execution) {
-      mayoService.getAllPipelines().each {
+      front50Service.getAllPipelines().each {
         it.triggers.each { trigger ->
           if (trigger.enabled &&
             trigger.type == 'pipeline' &&
