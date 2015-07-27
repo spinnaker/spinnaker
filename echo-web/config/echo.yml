@@ -7,7 +7,7 @@ spinnaker:
 echo:
   baseUrl: 'http://localhost:8080'
 
-mayo:
+front50:
   baseUrl: 'http://localhost:8081'
 
 search:

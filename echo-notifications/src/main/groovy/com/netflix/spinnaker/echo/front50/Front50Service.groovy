@@ -16,12 +16,12 @@
 
 
 
-package com.netflix.spinnaker.echo.mayo
+package com.netflix.spinnaker.echo.front50
 
 import retrofit.http.GET
 import retrofit.http.Path
 
-interface MayoService {
+interface Front50Service {
   @GET('/notifications/application/{application}/')
   Map getNotificationPreferences(@Path("application") String application)
 }

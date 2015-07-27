@@ -20,7 +20,7 @@ package com.netflix.spinnaker.echo.config
 
 import static retrofit.Endpoints.newFixedEndpoint
 
-import com.netflix.spinnaker.echo.mayo.MayoService
+import com.netflix.spinnaker.echo.front50.Front50Service
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
@@ -35,7 +35,7 @@ import retrofit.client.OkClient
 @Configuration
 @Slf4j
 @CompileStatic
-class MayoConfig {
+class Front50Config {
 
   @Bean
   Client retrofitClient() {
@@ -48,19 +48,19 @@ class MayoConfig {
   }
 
   @Bean
-  Endpoint mayoEndpoint(@Value('${mayo.baseUrl}') String mayoBaseUrl) {
-    newFixedEndpoint(mayoBaseUrl)
+  Endpoint front50Endpoint(@Value('${front50.baseUrl}') String front50BaseUrl) {
+    newFixedEndpoint(front50BaseUrl)
   }
 
   @Bean
-  MayoService mayoService(Endpoint mayoEndpoint, Client retrofitClient, LogLevel retrofitLogLevel) {
-    log.info('mayo service loaded')
+  Front50Service front50Service(Endpoint front50Endpoint, Client retrofitClient, LogLevel retrofitLogLevel) {
+    log.info('front50 service loaded')
     new RestAdapter.Builder()
-      .setEndpoint(mayoEndpoint)
+      .setEndpoint(front50Endpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
       .build()
-      .create(MayoService)
+      .create(Front50Service)
   }
 
 }
