@@ -22,7 +22,6 @@ import com.netflix.spinnaker.gate.services.*
 import com.netflix.spinnaker.gate.services.internal.FlapJackService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.gate.services.internal.MayoService
 import com.netflix.spinnaker.gate.services.internal.MortService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
@@ -56,7 +55,6 @@ class FunctionalSpec extends Specification {
   static OrcaService orcaService
   static TagService tagService
   static CredentialsService credentialsService
-  static MayoService mayoService
   static KatoService katoService
   static ServiceConfiguration serviceConfiguration
 
@@ -72,7 +70,6 @@ class FunctionalSpec extends Specification {
     mortService = Mock(MortService)
     tagService = Mock(TagService)
     credentialsService = Mock(CredentialsService)
-    mayoService = Mock(MayoService)
     katoService = Mock(KatoService)
     serviceConfiguration = new ServiceConfiguration()
 
@@ -202,11 +199,6 @@ class FunctionalSpec extends Specification {
     @Bean
     CredentialsService credentialsService() {
       credentialsService
-    }
-
-    @Bean
-    MayoService mayoService() {
-      mayoService
     }
 
     @Bean

@@ -147,12 +147,6 @@ class GateConfig {
   }
 
   @Bean
-  @ConditionalOnProperty('services.mayo.enabled')
-  MayoService mayoService() {
-    createClient "mayo", MayoService
-  }
-
-  @Bean
   @ConditionalOnProperty('services.igor.enabled')
   IgorService igorService() {
     createClient "igor", IgorService

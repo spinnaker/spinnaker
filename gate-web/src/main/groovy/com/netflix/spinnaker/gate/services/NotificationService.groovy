@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.internal.MayoService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,17 +28,17 @@ import org.springframework.stereotype.Component
 @Slf4j
 class NotificationService {
   @Autowired(required = false)
-  MayoService mayoService
+  Front50Service front50Service
 
   Map getNotificationConfigs(String type, String app) {
-    mayoService.getNotificationConfigs(type, app)
+    front50Service.getNotificationConfigs(type, app)
   }
 
   void saveNotificationConfig(String type, String app, Map notification) {
-    mayoService.saveNotificationConfig(type, app, notification)
+    front50Service.saveNotificationConfig(type, app, notification)
   }
 
   void deleteNotificationConfig(String type, String app) {
-    mayoService.deleteNotificationConfig(type, app)
+    front50Service.deleteNotificationConfig(type, app)
   }
 }

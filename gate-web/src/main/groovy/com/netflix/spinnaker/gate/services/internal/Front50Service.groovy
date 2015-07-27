@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import retrofit.client.Response
 import retrofit.http.*
 
 interface Front50Service {
@@ -33,4 +34,29 @@ interface Front50Service {
 
   @POST('/{account}/applications/name/{name}')
   Map create(@Path('account') String account, @Path('name') String name, @Body Map<String, String> app)
+
+  @GET('/pipelines/{app}')
+  List<Map> getPipelineConfigs(@Path("app") String app)
+
+  @GET('/pipelines/{app}/{name}')
+  Map getPipelineConfig(@Path("app") String app, @Path("name") String name)
+
+  @DELETE('/pipelines/{app}/{name}')
+  Response deletePipelineConfig(@Path("app") String app, @Path("name") String name)
+
+  @POST('/pipelines')
+  Response savePipelineConfig(@Body Map pipelineConfig)
+
+  @POST('/pipelines/move')
+  Response movePipelineConfig(@Body Map moveCommand)
+
+  @GET('/notifications/{type}/{app}')
+  Map getNotificationConfigs(@Path('type') String type, @Path('app') String app)
+
+  @DELETE('/notifications/{type}/{app}')
+  Response deleteNotificationConfig(@Path('type') String type, @Path('app') String app)
+
+  @POST('/notifications/{type}/{app}')
+  Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
+
 }

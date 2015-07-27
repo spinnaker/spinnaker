@@ -15,8 +15,6 @@ services:
 #optional services:
   echo:
     enabled: false
-  mayo:
-    enabled: false
   flapjack:
     enabled: false
   igor:
