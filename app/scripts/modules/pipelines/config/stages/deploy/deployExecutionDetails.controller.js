@@ -57,6 +57,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
 
     this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
+    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
+
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize, true);

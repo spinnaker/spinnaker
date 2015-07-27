@@ -57,4 +57,22 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common.instance
       }
     });
 
+    this.getInstanceTypeRefreshTime = function() {
+      return infrastructureCaches.instanceTypes.getStats().ageMax;
+    };
+
+    this.refreshInstanceTypes = function() {
+      controller.refreshing = true;
+      serverGroupConfigurationService.refreshInstanceTypes($scope.command.selectedProvider, $scope.command).then(function() {
+        controller.refreshing = false;
+      });
+    };
+
+    // if there are no instance types in the cache, try to reload them
+    instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(results) {
+      if (!results || !Object.keys(results).length) {
+        controller.refreshInstanceTypes();
+      }
+    });
+
   }).name;

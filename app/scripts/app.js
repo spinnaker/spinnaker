@@ -164,7 +164,7 @@ module.exports = angular.module('spinnaker', [
         this.subscribed.data = data;
       }.bind(this), function(err) {
         $exceptionHandler(err, 'Failed to load data into the view.');
-      });
+      }.bind(this));
     };
 
     $rootScope.$state = $state;
