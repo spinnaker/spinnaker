@@ -5,12 +5,32 @@
     <title ng-bind="pageTitle">Spinnaker</title>
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width">
+    <style>
+        @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+        .loading-placeholder {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            animation: fade-in 0.5s ease-in 1;
+        }
+        .loading-placeholder h1 {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 <div class="transition-overlay" ng-if="!authenticating && routing">
     <h1 us-spinner="{radius:30, width:8, length: 16}"></h1>
 </div>
-<spinnaker></spinnaker>
+<div ng-if="false" class="loading-placeholder">
+    <h1>
+        <img src="app/images/spinnaker.svg"/>
+    </h1>
+</div>
+<spinnaker>
+
+</spinnaker>
 
 <script>
     if (window.tracking && window.tracking.enabled && window.tracking.key) {
