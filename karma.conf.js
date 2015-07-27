@@ -55,6 +55,13 @@ module.exports = function(config) {
             test: /\.html$/,
             loader: 'ngtemplate?relativeTo=' + __dirname + '/!html'
           },
+        ],
+        postLoaders: [
+          {
+            test: /\.js$/,
+            exclude: /(test|node_modules|bower_components)\//,
+            loader: 'istanbul-instrumenter'
+          }
         ]
       },
       devtool: 'inline-source-map',
@@ -73,6 +80,7 @@ module.exports = function(config) {
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
       require('karma-sourcemap-loader'),
+      require('karma-coverage'),
     ],
 
     // list of files / patterns to exclude
@@ -101,11 +109,16 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'mocha'],
+    reporters: ['progress', 'mocha', 'coverage'],
 
     // the default configuration
     junitReporter: {
       outputFile: 'test-results.xml'
+    },
+
+    coverageReporter: {
+      type : 'html',
+      dir : 'coverage/'
     },
 
     client: {
