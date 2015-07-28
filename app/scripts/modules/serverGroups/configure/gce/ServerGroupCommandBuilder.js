@@ -190,8 +190,9 @@ angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
       return $q.when(command);
     }
 
-    function buildServerGroupCommandFromPipeline(application, pipelineCluster) {
+    function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
+      var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
       var commandOptions = { account: pipelineCluster.account, region: region };
