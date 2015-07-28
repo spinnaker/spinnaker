@@ -5,6 +5,7 @@ angular.module('spinnaker.settings', [])
   .constant('settings', {
     feedbackUrl: 'http://hootch.test.netflix.net/submit',
     gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',
+    authEndpoint: 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info',
     pollSchedule: 30000,
     providers: {
       aws: {
