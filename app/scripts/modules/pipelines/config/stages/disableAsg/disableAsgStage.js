@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
     var ctrl = this;
 
     $scope.stage = stage;
-    
+
     $scope.state = {
       accounts: false,
       regionsLoaded: false
