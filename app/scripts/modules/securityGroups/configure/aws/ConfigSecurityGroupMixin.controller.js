@@ -95,10 +95,10 @@ angular
     ctrl.regionUpdated = function() {
       var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
       vpcReader.listVpcs().then(function(vpcs) {
-        var vpcsByLabel = _.groupBy(vpcs, 'label');
+        var vpcsByName = _.groupBy(vpcs, 'name');
         $scope.allVpcs = vpcs;
         var available = [];
-        _.forOwn(vpcsByLabel, function(vpcsToTest, label) {
+        _.forOwn(vpcsByName, function(vpcsToTest, name) {
           var foundInAllRegions = true;
           _.forEach($scope.securityGroup.regions, function(region) {
             if (!_.some(vpcsToTest, { region: region, account: account })) {
@@ -108,7 +108,7 @@ angular
           if (foundInAllRegions) {
             available.push( {
               ids: _.pluck(vpcsToTest, 'id'),
-              label: label,
+              label: name,
               deprecated: vpcsToTest[0].deprecated,
             });
           }
