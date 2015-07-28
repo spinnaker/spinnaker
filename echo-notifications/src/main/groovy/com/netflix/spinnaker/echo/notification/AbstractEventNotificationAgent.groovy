@@ -38,6 +38,10 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
         'task'    : [
             type: 'task',
             link: 'tasks'
+        ],
+        'stage'   : [
+            type: 'stage',
+            link: 'stage'
         ]
     ]
 
@@ -49,6 +53,10 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
             Map<String, String> config = CONFIG[eventDetails[1]]
             String status = eventDetails[2]
+
+            if (!config || !config.type){
+                return
+            }
 
             if (config.type == 'task' && event.content.standalone == false) {
                 return
