@@ -59,7 +59,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleServerGroupTagsDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-b", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleServerGroupTagsDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {

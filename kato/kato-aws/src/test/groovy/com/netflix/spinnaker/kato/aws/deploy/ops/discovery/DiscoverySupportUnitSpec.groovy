@@ -31,6 +31,8 @@ import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskState
+import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.model.ServerGroup
 import retrofit.RetrofitError
 import retrofit.client.Response
 import spock.lang.Specification
@@ -42,6 +44,10 @@ class DiscoverySupportUnitSpec extends Specification {
 
   @Subject
   def discoverySupport = new DiscoverySupport() {
+    {
+      clusterProviders = []
+    }
+
     @Override
     protected long getDiscoveryRetryMs() {
       return 0
@@ -254,7 +260,6 @@ class DiscoverySupportUnitSpec extends Specification {
     appName = "kato"
   }
 
-
   void "should attempt to mark each instance in discovery even if some fail"() {
     given:
     def task = Mock(Task)
@@ -325,6 +330,53 @@ class DiscoverySupportUnitSpec extends Specification {
     bASG(null, "i-12345")    | ["i-12345"] || true
   }
 
+  @Unroll
+  void "should return Optional.empty() if target asg does not exist"() {
+    expect:
+    !DiscoverySupport.doesCachedClusterContainDiscoveryStatus(
+      clusterProviders, account, region, asgName, "UP"
+    ).present
+
+    where:
+    clusterProviders | account | region      | asgName
+    []               | null    | null        | null
+    [Mock(ClusterProvider) {
+      1 * getServerGroup("test", "us-west-1", "asg") >> null
+    }]               | "test"  | "us-west-1" | "asg"
+  }
+
+  @Unroll
+  void "should return true iff server group has at least one instance with desired discovery status"() {
+    expect:
+    DiscoverySupport.doesCachedClusterContainDiscoveryStatus(
+      clusterProviders, account, region, asgName, "UP"
+    ).get() == isPresent
+
+    where:
+    clusterProviders | account | region      | asgName | isPresent
+    [Mock(ClusterProvider) {
+      1 * getServerGroup("test", "us-west-1", "asg") >> buildServerGroup("UP", "OUT_OF_SERVICE")
+    }]               | "test"  | "us-west-1" | "asg"   | true
+    [Mock(ClusterProvider) {
+      1 * getServerGroup("test", "us-west-1", "asg") >> buildServerGroup("OUT_OF_SERVICE")
+    }]               | "test"  | "us-west-1" | "asg"   | false
+  }
+
+  private ServerGroup buildServerGroup(String ... discoveryStatuses) {
+    return new DefaultServerGroup(
+      instances: discoveryStatuses.collect { String discoveryStatus ->
+        Mock(com.netflix.spinnaker.oort.model.Instance) {
+          1 * getHealth() >> {
+            [
+                [discoveryStatus: discoveryStatus]
+            ]
+          }
+          0 * _
+        }
+      }
+    )
+  }
+
   private static RetrofitError httpError(int code) {
     RetrofitError.httpError('http://foo', response(code), null, Map)
   }
@@ -350,5 +402,23 @@ class DiscoverySupportUnitSpec extends Specification {
     autoScalingGroup = autoScalingGroup.withDesiredCapacity(capacity)
 
     return autoScalingGroup
+  }
+
+  private static class DefaultServerGroup implements ServerGroup {
+    String name
+    String type
+    String region
+    Boolean disabled
+    Long createdTime
+    Set<String> zones
+    Set<com.netflix.spinnaker.oort.model.Instance> instances
+    Set<String> loadBalancers
+    Set<String> securityGroups
+    Map<String, Object> launchConfig
+    ServerGroup.InstanceCounts instanceCounts
+
+    Boolean isDisabled() {
+      return disabled
+    }
   }
 }

@@ -31,12 +31,13 @@ import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryApplication
 import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryApplications
 import com.netflix.spinnaker.oort.aws.model.discovery.DiscoveryInstance
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
-
+import groovy.util.logging.Slf4j
 import java.util.regex.Pattern
 
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
+@Slf4j
 class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
   private final List<NetflixAmazonCredentials> accounts
   private final String region
@@ -70,7 +71,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-
+    log.info("Describing items in ${agentType}")
     DiscoveryApplications disco = discoveryApi.loadDiscoveryApplications()
 
     Collection<CacheData> discoveryCacheData = new LinkedList<CacheData>()
@@ -90,7 +91,7 @@ class DiscoveryCachingAgent implements HealthProvidingCachingAgent {
         }
       }
     }
-
+    log.info("Caching ${discoveryCacheData.size()} items in ${agentType}")
     new DefaultCacheResult(
       (INSTANCES.ns): instanceCacheData,
       (HEALTH.ns): discoveryCacheData)

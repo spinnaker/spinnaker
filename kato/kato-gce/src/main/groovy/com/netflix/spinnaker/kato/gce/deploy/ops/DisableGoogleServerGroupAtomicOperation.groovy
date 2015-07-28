@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**
- * curl -X POST -H "Content-Type: application/json" -d '[ { "disableGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+ * curl -X POST -H "Content-Type: application/json" -d '[ { "disableGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
  */
 class DisableGoogleServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
   final String phaseName = "DISABLE_REPLICA_POOL"

@@ -32,6 +32,9 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.KEY_PAIRS
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class AmazonKeyPairCachingAgent implements CachingAgent {
 
   final AmazonClientProvider amazonClientProvider
@@ -65,6 +68,7 @@ class AmazonKeyPairCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     def keyPairs = ec2.describeKeyPairs().keyPairs
 
@@ -74,6 +78,7 @@ class AmazonKeyPairCachingAgent implements CachingAgent {
         keyFingerprint: keyPair.keyFingerprint
       ], [:])
     }
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(KEY_PAIRS.ns): data])
   }
 }

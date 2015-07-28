@@ -18,13 +18,34 @@
 package com.netflix.spinnaker.kato.aws.deploy.description
 
 class ResizeAsgDescription extends AbstractAmazonCredentialsDescription {
+  List<AsgDescription> asgs = []
+
+  @Deprecated
   String asgName
-  List<String> regions
+
+  @Deprecated
+  List<String> regions = []
   Capacity capacity = new Capacity()
 
   static class Capacity {
     int min
     int max
     int desired
+
+    @Override
+    String toString() {
+      return "min: $min, max: $max, desired: $desired"
+    }
+  }
+
+  static class AsgDescription {
+    String region
+    String asgName
+    Capacity capacity
+
+    @Override
+    String toString() {
+      "region: $region, asgName: $asgName, capacity: $capacity"
+    }
   }
 }

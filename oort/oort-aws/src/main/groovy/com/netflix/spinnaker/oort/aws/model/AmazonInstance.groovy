@@ -26,7 +26,6 @@ class AmazonInstance implements Instance, Serializable {
   static final long START_TIME_DRIFT = 180000
 
   String name
-  boolean healthy
   Long launchTime
   List<Map<String, Object>> health = []
 

@@ -176,6 +176,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
     def request = new DescribeLoadBalancersRequest()
@@ -241,7 +242,8 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
         }
       }
     }
-
+    log.info("Caching ${instances.size()} instances in ${agentType}")
+    log.info("Caching ${loadBalancers.size()} load balancers in ${agentType}")
     new DefaultCacheResult(
       (INSTANCES.ns): instances.values(),
       (LOAD_BALANCERS.ns):  loadBalancers.values())

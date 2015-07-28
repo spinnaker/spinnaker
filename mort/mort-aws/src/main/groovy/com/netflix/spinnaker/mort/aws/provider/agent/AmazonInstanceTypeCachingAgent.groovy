@@ -28,26 +28,44 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
+
+import java.util.concurrent.TimeUnit
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
 
-class AmazonInstanceTypeCachingAgent implements CachingAgent {
+import groovy.util.logging.Slf4j
+
+@Slf4j
+class AmazonInstanceTypeCachingAgent implements CustomScheduledAgent {
+
+  public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(2)
+  public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(15)
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
+
+  final long pollIntervalMillis
+  final long timeoutMillis
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(INSTANCE_TYPES.ns)
   ] as Set)
 
   AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region) {
+    this(amazonClientProvider, account, region, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS)
+  }
+
+  AmazonInstanceTypeCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, long pollIntervalMillis, long timeoutMillis) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
+    this.pollIntervalMillis = pollIntervalMillis
+    this.timeoutMillis = timeoutMillis
   }
 
   @Override
@@ -67,21 +85,28 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     List<CacheData> data = []
     def request = new DescribeReservedInstancesOfferingsRequest()
     while (true) {
       def offerings = ec2.describeReservedInstancesOfferings(request)
-      data.addAll(offerings.reservedInstancesOfferings.collect { ReservedInstancesOffering offering ->
-        new DefaultCacheData(Keys.getInstanceTypeKey(offering.reservedInstancesOfferingId, region, account.name), [
-          account : account.name,
-          region: region,
-          name: offering.instanceType,
-          availabilityZone: offering.availabilityZone,
-          productDescription:  offering.productDescription,
-          durationSeconds: offering.duration
-        ],
-        [:])
+      Set<String> allIdentifiers = []
+      data.addAll(offerings.reservedInstancesOfferings.findResults { ReservedInstancesOffering offering ->
+        String key = Keys.getInstanceTypeKey(offering.instanceType, region, account.name)
+        if (allIdentifiers.add(key)) {
+          new DefaultCacheData(Keys.getInstanceTypeKey(offering.instanceType, region, account.name), [
+            account           : account.name,
+            region            : region,
+            name              : offering.instanceType,
+            availabilityZone  : null,
+            productDescription: null,
+            durationSeconds   : null
+          ],
+            [:])
+        } else {
+          null
+        }
       })
 
       if (offerings.nextToken) {
@@ -90,7 +115,7 @@ class AmazonInstanceTypeCachingAgent implements CachingAgent {
         break
       }
     }
-
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(INSTANCE_TYPES.ns): data])
   }
 }

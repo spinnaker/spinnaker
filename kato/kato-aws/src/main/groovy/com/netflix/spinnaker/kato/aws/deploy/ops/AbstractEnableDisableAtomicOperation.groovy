@@ -20,6 +20,7 @@ import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.discovery.DiscoverySupport
@@ -57,78 +58,92 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   @Override
   Void operate(List priorOutputs) {
     String verb = disable ? 'Disable' : 'Enable'
-    String presentParticipling = disable ? 'Disabling' : 'Enabling'
-    task.updateStatus phaseName, "Initializing ${verb} ASG operation for '$description.asgName'..."
-    boolean failures = false
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus phaseName, "Initializing ${verb} ASG operation for $descriptor..."
+    boolean allSucceeded = true
     for (region in description.regions) {
-      try {
-        def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
-        def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
-
-        def asgService = regionScopedProvider.asgService
-        def asg = asgService.getAutoScalingGroup(description.asgName)
-        if (!asg) {
-          task.updateStatus phaseName, "No ASG named '$description.asgName' found in $region"
-          continue
-        }
-
-        if (asg.status) {
-          // a non-null status indicates that a DeleteAutoScalingGroup action is in progress
-          task.updateStatus phaseName, "ASG '$description.asgName' is currently being destroyed and cannot be modified (status: ${asg.status})"
-          continue
-        }
-
-        task.updateStatus phaseName, "${presentParticipling} ASG '$description.asgName' in $region..."
-        if (disable) {
-          asgService.suspendProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
-        } else {
-          asgService.resumeProcesses(description.asgName, AutoScalingProcessType.getDisableProcesses())
-        }
-
-        if (disable) {
-          task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
-          changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
-            try {
-              loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
-            } catch (LoadBalancerNotFoundException e) {
-              task.updateStatus phaseName, "Unable to deregister instances, ${loadBalancerName} does not exist (${e.message})"
-            }
-          }
-        } else {
-          task.updateStatus phaseName, "Registering instances with Load Balancers..."
-          changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
-            loadBalancing.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(loadBalancerName, instances))
-          }
-        }
-
-        if (description.credentials.discoveryEnabled) {
-          def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
-          task.updateStatus phaseName, "Marking ASG $description.asgName as $status with Discovery"
-
-          def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
-            credentials: description.credentials,
-            region: region,
-            asgName: description.asgName,
-            instanceIds: asg.instances*.instanceId
-          )
-          discoverySupport.updateDiscoveryStatusForInstances(
-            enableDisableInstanceDiscoveryDescription, task, phaseName, status, asg.instances*.instanceId
-          )
-        }
-        task.updateStatus phaseName, "Finished ${presentParticipling} ASG $description.asgName."
-      } catch (e) {
-        def errorMessage = "Could not ${verb} ASG '$description.asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
-        log.error(errorMessage, e)
-        if (task.status && (!task.status || !task.status.isFailed())) {
-          task.updateStatus phaseName, errorMessage
-        }
-        failures = true
-      }
+      def asgName = description.asgName
+      allSucceeded = allSucceeded && operateOnAsg(asgName, region)
     }
-    if (failures && (!task.status || !task.status.isFailed())) {
+
+    for (asg in description.asgs) {
+      allSucceeded = allSucceeded && operateOnAsg(asg.asgName, asg.region)
+    }
+
+    if (!allSucceeded && (!task.status || !task.status.isFailed())) {
       task.fail()
     }
-    null
+    task.updateStatus phaseName, "Finished ${verb} ASG operation for $descriptor."
+  }
+
+  private boolean operateOnAsg(String asgName, String region) {
+    String presentParticipling = disable ? 'Disabling' : 'Enabling'
+    String verb = disable ? 'Disable' : 'Enable'
+    def credentials = description.credentials
+    try {
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(credentials, region)
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(credentials, region, true)
+
+      def asgService = regionScopedProvider.asgService
+      def asg = asgService.getAutoScalingGroup(asgName)
+      if (!asg) {
+        task.updateStatus phaseName, "No ASG named '$asgName' found in $region"
+        return true
+      }
+
+      if (asg.status) {
+        // a non-null status indicates that a DeleteAutoScalingGroup action is in progress
+        task.updateStatus phaseName, "ASG '$asgName' is currently being destroyed and cannot be modified (status: ${asg.status})"
+        return true
+      }
+
+      task.updateStatus phaseName, "${presentParticipling} ASG '$asgName' in $region..."
+      if (disable) {
+        asgService.suspendProcesses(asgName, AutoScalingProcessType.getDisableProcesses())
+      } else {
+        asgService.resumeProcesses(asgName, AutoScalingProcessType.getDisableProcesses())
+      }
+
+      if (disable) {
+        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
+          try {
+            task.updateStatus phaseName, "Deregistering instances from Load Balancers..."
+            loadBalancing.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(loadBalancerName, instances))
+          } catch (LoadBalancerNotFoundException e) {
+            task.updateStatus phaseName, "Unable to deregister instances, ${loadBalancerName} does not exist (${e.message})"
+          }
+        }
+      } else {
+        changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, asg.instances*.instanceId) { String loadBalancerName, List<Instance> instances ->
+          task.updateStatus phaseName, "Registering instances with Load Balancers..."
+          loadBalancing.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(loadBalancerName, instances))
+        }
+      }
+
+      if (credentials.discoveryEnabled && asg.instances) {
+        def status = disable ? DiscoverySupport.DiscoveryStatus.Disable : DiscoverySupport.DiscoveryStatus.Enable
+        task.updateStatus phaseName, "Marking ASG $asgName as $status with Discovery"
+
+        def enableDisableInstanceDiscoveryDescription = new EnableDisableInstanceDiscoveryDescription(
+            credentials: credentials,
+            region: region,
+            asgName: asgName,
+            instanceIds: asg.instances*.instanceId
+        )
+        discoverySupport.updateDiscoveryStatusForInstances(
+            enableDisableInstanceDiscoveryDescription, task, phaseName, status, asg.instances*.instanceId
+        )
+      }
+      task.updateStatus phaseName, "Finished ${presentParticipling} ASG $asgName."
+      return true
+    } catch (e) {
+      def errorMessage = "Could not ${verb} ASG '$asgName' in region $region! Failure Type: ${e.class.simpleName}; Message: ${e.message}"
+      log.error(errorMessage, e)
+      if (task.status && (!task.status || !task.status.isFailed())) {
+        task.updateStatus phaseName, errorMessage
+      }
+      return false
+    }
   }
 
   private static void changeRegistrationOfInstancesWithLoadBalancer(Collection<String> loadBalancerNames, Collection<String> instanceIds, Closure actOnInstancesAndLoadBalancer) {

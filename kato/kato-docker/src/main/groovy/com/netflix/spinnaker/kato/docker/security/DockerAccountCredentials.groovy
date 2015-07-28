@@ -33,4 +33,9 @@ class DockerAccountCredentials implements AccountCredentials<Docker> {
   String getProvider() {
     PROVIDER
   }
+
+  @Override
+  List<String> getRequiredGroupMembership() {
+    []
+  }
 }

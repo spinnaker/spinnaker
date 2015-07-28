@@ -437,9 +437,6 @@ class GoogleResourceRetriever {
 
           newGoogleInstance.setProperty("health", newHealthStates)
         }
-
-        // Calculate the instance's health based on the new GCE health state and any migrated load balancer health states.
-        newGoogleInstance.setProperty("healthy", InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance))
       }
     }
   }

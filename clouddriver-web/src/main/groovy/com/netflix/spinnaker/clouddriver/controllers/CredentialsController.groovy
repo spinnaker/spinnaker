@@ -33,10 +33,13 @@ class CredentialsController {
 
   @RequestMapping(method = RequestMethod.GET)
   List<Map> list() {
-    accountCredentialsProvider.all.collect {[
-      name: it.name,
-      type: it.provider
-    ]}
+    accountCredentialsProvider.all.collect {
+      return [
+        name                   : it.name,
+        type                   : it.provider,
+        requiredGroupMembership: it.requiredGroupMembership
+      ]
+    }
   }
 
   @RequestMapping(value = "/{name}", method = RequestMethod.GET)

@@ -34,6 +34,9 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.VPCS
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class AmazonVpcCachingAgent implements CachingAgent {
 
   final AmazonClientProvider amazonClientProvider
@@ -69,6 +72,7 @@ class AmazonVpcCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
     def vpcs = ec2.describeVpcs().vpcs
 
@@ -78,6 +82,7 @@ class AmazonVpcCachingAgent implements CachingAgent {
         attributes,
         [:])
     }
+    log.info("Caching ${data.size()} items in ${agentType}")
     new DefaultCacheResult([(VPCS.ns): data])
   }
 }

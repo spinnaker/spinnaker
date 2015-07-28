@@ -56,10 +56,10 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for 'asg1'...",
-      "Resuming ASG processes (Launch, Terminate) for 'asg1' in us-west-1...",
-      "Resuming ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done resuming ASG processes for 'asg1'."
+      "Initializing Resume ASG Processes operation for asg1...",
+      "Resuming ASG processes (Launch, Terminate) for asg1 in us-west-1...",
+      "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Resume ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }
@@ -79,10 +79,10 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for 'asg1'...",
+      "Initializing Resume ASG Processes operation for asg1...",
       "No ASG named 'asg1' found in us-west-1.",
-      "Resuming ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done resuming ASG processes for 'asg1'."
+      "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Resume ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }
@@ -105,11 +105,11 @@ class ResumeAsgProcessesAtomicOperationSpec extends Specification {
     and:
     task.history*.status == [
       "Creating task 1",
-      "Initializing Resume ASG Processes operation for 'asg1'...",
-      "Resuming ASG processes (Launch, Terminate) for 'asg1' in us-west-1...",
+      "Initializing Resume ASG Processes operation for asg1...",
+      "Resuming ASG processes (Launch, Terminate) for asg1 in us-west-1...",
       "Could not resume processes for ASG 'asg1' in region us-west-1! Reason: Uh oh!",
-      "Resuming ASG processes (Launch, Terminate) for 'asg1' in us-east-1...",
-      "Done resuming ASG processes for 'asg1'."
+      "Resuming ASG processes (Launch, Terminate) for asg1 in us-east-1...",
+      "Finished Resume ASG Processes operation for asg1."
     ]
     0 * mockAsgService._
   }

@@ -84,8 +84,8 @@ class Keys {
       "${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 
-  static String getInstanceTypeKey(String instanceOfferingId, String region, String account) {
-      "${Namespace.INSTANCE_TYPES}:${instanceOfferingId}:${account}:${region}"
+  static String getInstanceTypeKey(String instanceType, String region, String account) {
+      "${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
   }
 
   static String getElasticIpKey(String ipAddress, String region, String account) {

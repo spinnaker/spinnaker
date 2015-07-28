@@ -32,6 +32,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -39,11 +40,10 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LAUNCH_CONFIGS
 
+@Slf4j
 class LaunchConfigCachingAgent implements CachingAgent {
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(LAUNCH_CONFIGS.ns)
@@ -78,6 +78,7 @@ class LaunchConfigCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     Long start = null
@@ -106,6 +107,7 @@ class LaunchConfigCachingAgent implements CachingAgent {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
     }
+    log.info("Caching ${launchConfigData.size()} items in ${agentType}")
     new DefaultCacheResult((LAUNCH_CONFIGS.ns): launchConfigData)
   }
 }

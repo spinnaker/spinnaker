@@ -34,8 +34,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import com.netflix.spinnaker.oort.model.HealthState
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -44,11 +43,10 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.SERVER_GROUPS
 
+@Slf4j
 class InstanceCachingAgent implements CachingAgent {
 
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(INSTANCES.ns),
@@ -95,6 +93,7 @@ class InstanceCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
 
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
@@ -113,7 +112,7 @@ class InstanceCachingAgent implements CachingAgent {
         break
       }
     }
-
+    log.info("Caching ${awsInstances.size()} items in ${agentType}")
 
     Closure<Map<String, CacheData>> cache = {
       [:].withDefault { String id -> new MutableCacheData(id) }

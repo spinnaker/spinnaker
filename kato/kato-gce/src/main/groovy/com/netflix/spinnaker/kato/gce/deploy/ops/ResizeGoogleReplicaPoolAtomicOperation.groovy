@@ -41,7 +41,7 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "numReplicas": 2, "zone": "us-central1-b", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "resizeGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "numReplicas": 2, "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {

@@ -41,25 +41,34 @@ class ResumeAsgProcessesAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Resume ASG Processes operation for '$description.asgName'..."
-    def processTypes = description.processes.collect { AutoScalingProcessType.parse(it) }
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus BASE_PHASE, "Initializing Resume ASG Processes operation for $descriptor..."
+
     for (region in description.regions) {
-      try {
-        def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
-        def asgService = regionScopedProvider.asgService
-        def asg = asgService.getAutoScalingGroup(description.asgName)
-        if (!asg) {
-          task.updateStatus BASE_PHASE, "No ASG named '$description.asgName' found in $region."
-          continue
-        }
-        task.updateStatus BASE_PHASE, "Resuming ASG processes (${processTypes*.name().join(", ")}) for '$description.asgName' in $region..."
-        asgService.resumeProcesses(description.asgName, processTypes)
-      } catch (e) {
-        task.updateStatus BASE_PHASE, "Could not resume processes for ASG '$description.asgName' in region $region! Reason: $e.message"
-      }
+      resumeProcess(description.asgName, region)
     }
-    task.updateStatus BASE_PHASE, "Done resuming ASG processes for '$description.asgName'."
+    for (asg in description.asgs) {
+      resumeProcess(asg.asgName, asg.region)
+    }
+    task.updateStatus BASE_PHASE, "Finished Resume ASG Processes operation for $descriptor."
     null
+  }
+
+  private void resumeProcess(String asgName, String region) {
+    try {
+      def processTypes = description.processes.collect { AutoScalingProcessType.parse(it) }
+      def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
+      def asgService = regionScopedProvider.asgService
+      def asg = asgService.getAutoScalingGroup(asgName)
+      if (!asg) {
+        task.updateStatus BASE_PHASE, "No ASG named '$asgName' found in $region."
+        return
+      }
+      task.updateStatus BASE_PHASE, "Resuming ASG processes (${processTypes*.name().join(", ")}) for $asgName in $region..."
+      asgService.resumeProcesses(asgName, processTypes)
+    } catch (e) {
+      task.updateStatus BASE_PHASE, "Could not resume processes for ASG '$asgName' in region $region! Reason: $e.message"
+    }
   }
 
 }

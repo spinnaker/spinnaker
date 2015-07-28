@@ -39,4 +39,9 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   String getProvider() {
     PROVIDER
   }
+
+  @Override
+  List<String> getRequiredGroupMembership() {
+    []
+  }
 }

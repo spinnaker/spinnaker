@@ -43,16 +43,25 @@ class DeleteAsgAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Delete ASG Operation..."
+    String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
+    task.updateStatus BASE_PHASE, "Initializing Delete ASG operation for $descriptor..."
     for (region in description.regions) {
-      def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
-
-      task.updateStatus BASE_PHASE, "Removing ASG -> ${description.asgName} in $region"
-      def request = new DeleteAutoScalingGroupRequest().withAutoScalingGroupName(description.asgName)
-        .withForceDelete(description.forceDelete)
-      autoScaling.deleteAutoScalingGroup(request)
-      task.updateStatus BASE_PHASE, "Deleted ASG -> ${description.asgName} in $region"
+      deleteAsg(description.asgName, region)
     }
-    task.updateStatus BASE_PHASE, "Finished Deleting ASG."
+    for (asg in description.asgs) {
+      deleteAsg(asg.asgName, asg.region)
+    }
+    task.updateStatus BASE_PHASE, "Finished Delete ASG operation for $descriptor."
+    null
+  }
+
+  private void deleteAsg(String asgName, String region) {
+    def autoScaling = amazonClientProvider.getAutoScaling(description.credentials, region, true)
+
+    task.updateStatus BASE_PHASE, "Removing ASG -> ${asgName} in $region"
+    def request = new DeleteAutoScalingGroupRequest().withAutoScalingGroupName(asgName)
+        .withForceDelete(description.forceDelete)
+    autoScaling.deleteAutoScalingGroup(request)
+    task.updateStatus BASE_PHASE, "Deleted ASG -> ${asgName} in $region"
   }
 }

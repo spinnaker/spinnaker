@@ -52,7 +52,7 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
   void "should add to cache"() {
     when:
     def result = agent.loadData(providerCache)
-    def expected = Keys.getInstanceTypeKey('1', region, account)
+    def expected = Keys.getInstanceTypeKey('m1', region, account)
 
     then:
     1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
@@ -66,6 +66,26 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
     }
     0 * _
   }
+
+  void "should dedupe instance types"() {
+    when:
+    def result = agent.loadData(providerCache)
+    def expected = Keys.getInstanceTypeKey('m1', region, account)
+
+    then:
+    1 * ec2.describeReservedInstancesOfferings(new DescribeReservedInstancesOfferingsRequest()) >> new DescribeReservedInstancesOfferingsResult(
+      reservedInstancesOfferings: [
+        new ReservedInstancesOffering(reservedInstancesOfferingId: '1', instanceType: 'm1'),
+        new ReservedInstancesOffering(reservedInstancesOfferingId: '2', instanceType: 'm1'),
+      ]
+    )
+    with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
+      cd.size() == 1
+      cd.find { it.id == expected }
+    }
+    0 * _
+  }
+
 
   void "should add all from paged results"() {
     when:
@@ -88,9 +108,9 @@ class AmazonInstanceTypeCachingAgentSpec extends Specification {
 
     with (result.cacheResults.get(Keys.Namespace.INSTANCE_TYPES.ns)) { List<CacheData> cd ->
       cd.size() == 3
-      cd.find { it.id == Keys.getInstanceTypeKey('1', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey('2', region, account) }
-      cd.find { it.id == Keys.getInstanceTypeKey('3', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m1', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m2', region, account) }
+      cd.find { it.id == Keys.getInstanceTypeKey('m3', region, account) }
     }
     0 * _
   }

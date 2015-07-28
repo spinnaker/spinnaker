@@ -24,7 +24,6 @@ import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
-import groovy.json.JsonBuilder
 import org.apache.log4j.Logger
 
 class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<InstanceTemplate> {
@@ -74,10 +73,6 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
       def metadataMap = Utils.buildMapFromMetadata(instanceMetadata)
 
       if (metadataMap) {
-        def base64EncodedMap = new JsonBuilder(metadataMap).toString().bytes.encodeBase64().toString()
-
-        googleServerGroup.launchConfig.userData = base64EncodedMap
-
         if (metadataMap[LOAD_BALANCER_NAMES]) {
           def loadBalancerNameList = metadataMap[LOAD_BALANCER_NAMES].split(",")
 

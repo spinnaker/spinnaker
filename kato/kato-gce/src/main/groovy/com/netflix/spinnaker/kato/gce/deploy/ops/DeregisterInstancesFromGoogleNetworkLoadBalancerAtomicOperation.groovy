@@ -44,7 +44,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperation implements
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deregisterInstancesFromGoogleNetworkLoadBalancerDescription": { "networkLoadBalancerNames": ["myapp-loadbalancer"], "instanceIds": ["myapp-dev-v000-abcd"], "region": "us-central1", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {

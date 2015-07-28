@@ -57,7 +57,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleHttpLoadBalancerDescription": {"credentials": "my-account-name", "loadBalancerName": "spin-lb"}} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleHttpLoadBalancerDescription": {"credentials": "my-account-name", "loadBalancerName": "spin-lb"}} ]' localhost:7002/ops
    *
    * @param description
    * @param priorOutputs

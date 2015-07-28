@@ -42,46 +42,35 @@ class AmazonInstanceTypeProviderSpec extends Specification {
         account: 'test',
         region: 'us-east-1',
         name: 'm1.large',
-        availabilityZone: 'us-east-1a',
-        productDescription: 'sweet instance',
-        durationSeconds: 9001
       ),
       new AmazonInstanceType(
         account: 'prod',
         region: 'us-west-1',
         name: 'm1.medium',
-        availabilityZone: 'us-west-1b',
-        productDescription: 'sweet instance',
-        durationSeconds: 9001
       )
     ] as Set
 
     and:
     1 * cache.getAll(Keys.Namespace.INSTANCE_TYPES.ns, _ as CacheFilter) >> [
-      itData('1', [
+      itData('m1.large', [
         account         : 'test',
         region          : 'us-east-1',
-        name            : 'm1.large',
-        availabilityZone: 'us-east-1a']),
-      itData('2', [
+        name            : 'm1.large']),
+      itData('m1.medium', [
         account         : 'prod',
         region          : 'us-west-1',
-        name            : 'm1.medium',
-        availabilityZone: 'us-west-1b'])
+        name            : 'm1.medium']),
     ]
   }
 
-  private CacheData itData(String offeringId, Map params) {
+  private CacheData itData(String instanceType, Map params) {
     def defaults = [
       account           : 'prod',
       region            : 'us-east-1',
       name              : 'm1.xlarge',
-      availabilityZone  : 'us-east-1a',
-      productDescription: 'sweet instance',
-      durationSeconds   : 9001
     ]
 
     def attributes = defaults + params
-    new DefaultCacheData(Keys.getInstanceTypeKey(offeringId, attributes.region, attributes.account), attributes, [:])
+    new DefaultCacheData(Keys.getInstanceTypeKey(instanceType, attributes.region, attributes.account), attributes, [:])
   }
 }

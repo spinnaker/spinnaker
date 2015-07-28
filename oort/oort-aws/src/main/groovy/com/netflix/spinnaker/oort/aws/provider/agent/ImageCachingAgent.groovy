@@ -31,6 +31,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -39,11 +40,9 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.NAMED_IMAGES
 
-
+@Slf4j
 class ImageCachingAgent implements CachingAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
-  private static final Logger log = LoggerFactory.getLogger(ClusterCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(IMAGES.ns),
@@ -79,6 +78,7 @@ class ImageCachingAgent implements CachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     def amazonEC2 = amazonClientProvider.getAmazonEC2(account, region)
 
     List<Image> images = amazonEC2.describeImages().images
@@ -97,6 +97,7 @@ class ImageCachingAgent implements CachingAgent {
 
     long drift = new Date().time - start
     log.info("${agentType}/drift - $drift milliseconds")
+    log.info("Caching ${imageCacheData.size()} items in ${agentType}")
     new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
   }
 

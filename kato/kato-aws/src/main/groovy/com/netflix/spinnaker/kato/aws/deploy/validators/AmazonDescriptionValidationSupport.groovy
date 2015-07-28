@@ -27,8 +27,14 @@ public  abstract class AmazonDescriptionValidationSupport<T extends AbstractAmaz
 
 
   void validateAsgNameAndRegions(T description, Errors errors) {
-    validateAsgName description, errors
-    validateRegions description, errors
+    if (!description.asgs) {
+      validateAsgName description, errors
+      validateRegions description, errors
+    } else {
+      if (!description.asgs.size()) {
+        errors.rejectValue("asgs", "${description.getClass().simpleName}.empty")
+      }
+    }
 
   }
 

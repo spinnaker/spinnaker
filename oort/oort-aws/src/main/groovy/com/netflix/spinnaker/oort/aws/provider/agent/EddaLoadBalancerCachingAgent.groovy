@@ -34,6 +34,9 @@ import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 
+import groovy.util.logging.Slf4j
+
+@Slf4j
 class EddaLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
   private final EddaApi eddaApi
   private final NetflixAmazonCredentials account
@@ -65,6 +68,7 @@ class EddaLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
     List<LoadBalancerInstanceState> balancerInstances = eddaApi.loadBalancerInstances()
 
     List<InstanceLoadBalancers> ilbs = InstanceLoadBalancers.fromLoadBalancerInstanceState(balancerInstances)
@@ -79,6 +83,8 @@ class EddaLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
       lbHealths.add(new DefaultCacheData(healthId, attributes, relationships))
       instances.add(new DefaultCacheData(instanceId, [:], [(HEALTH.ns): [healthId]]))
     }
+    log.info("Caching ${instances.size()} items in ${agentType}")
+
     new DefaultCacheResult(
       (HEALTH.ns): lbHealths,
       (INSTANCES.ns): instances)

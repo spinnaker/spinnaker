@@ -49,8 +49,8 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-b", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:8501/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-b", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 4, "instanceType": "g1-small", "zone": "us-central1-a", "credentials": "my-account-name" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 4, "instanceType": "g1-small", "zone": "us-central1-a", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {

@@ -68,7 +68,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleHttpLoadBalancerDescription": { "credentials": "my-account-name", "loadBalancerName": "spin-lb" }} ]' localhost:8501/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteGoogleHttpLoadBalancerDescription": { "credentials": "my-account-name", "loadBalancerName": "spin-lb" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {

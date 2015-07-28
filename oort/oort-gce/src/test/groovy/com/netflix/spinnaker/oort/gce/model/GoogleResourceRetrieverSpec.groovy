@@ -208,20 +208,9 @@ class GoogleResourceRetrieverSpec extends Specification {
       newGoogleServerGroup.instances << newGoogleInstance
 
     when:
-      def isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
-
-    then:
-      // As there are no Up health states, the instance should be considered unhealthy.
-      !isHealthy
-
-    when:
       googleResourceRetriever.migrateInstanceLoadBalancerHealthStates(newGoogleServerGroup, "account-1", "testapp", "testapp-dev")
-      isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
 
     then:
-      // As there is now an Up load balancer health states, the instance should be considered healthy.
-      isHealthy
-
       // Retrieve the instance from the server group to ensure the correct instance was updated.
       def googleInstance = newGoogleServerGroup.instances.find { googleInstance ->
         googleInstance.name == "testapp-dev-v000-abcd"
@@ -260,19 +249,9 @@ class GoogleResourceRetrieverSpec extends Specification {
       newGoogleServerGroup.instances << newGoogleInstance
 
     when:
-      def isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
-
-    then:
-      // As there are no Up health states, the instance should be considered unhealthy.
-      !isHealthy
-
-    when:
       googleResourceRetriever.migrateInstanceLoadBalancerHealthStates(newGoogleServerGroup, "account-1", "testapp", "testapp-dev")
-      isHealthy = InstanceAggregatedListCallback.calculateIsHealthy(newGoogleInstance)
 
     then:
-      // As there are still no Up health states, the instance should still be considered unhealthy.
-      !isHealthy
 
       // Retrieve the instance from the server group.
       def googleInstance = newGoogleServerGroup.instances.find { googleInstance ->
