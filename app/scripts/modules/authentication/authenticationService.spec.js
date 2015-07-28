@@ -52,7 +52,6 @@ describe('authenticationService', function() {
   describe('authentication', function () {
 
     it('fires events and sets user', function () {
-      $http.expectGET(settings.gateUrl + '/auth/info').respond(200, {email: 'foo@bar.com'});
       var firedEvents = 0;
       this.authenticationService.onAuthentication(function() {
         firedEvents++;
@@ -60,10 +59,7 @@ describe('authenticationService', function() {
       this.authenticationService.onAuthentication(function() {
         firedEvents++;
       });
-      this.authenticationService.authenticateUser();
-
-
-      $http.flush();
+      this.authenticationService.setAuthenticatedUser('foo@bar.com');
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('foo@bar.com');
       expect(firedEvents).toBe(2);
     });

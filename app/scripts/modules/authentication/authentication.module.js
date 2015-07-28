@@ -3,15 +3,17 @@
 angular.module('spinnaker.authentication', [
   'ui.bootstrap',
   'spinnaker.authentication.service',
+  'spinnaker.authentication.interceptor.service',
+  'spinnaker.authentication.initializer.service',
   'spinnaker.authentication.directive',
   'spinnaker.settings',
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
   })
-  .run(function (authenticationService, settings) {
+  .run(function (authenticationInitializer, settings) {
     if(settings.authEnabled) {
-      authenticationService.authenticateUser();
+      authenticationInitializer.authenticateUser();
     }
   })
   .factory('gateRequestInterceptor', function (settings) {
