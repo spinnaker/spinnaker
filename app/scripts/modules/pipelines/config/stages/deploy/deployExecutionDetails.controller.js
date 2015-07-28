@@ -10,7 +10,16 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
 
-    $scope.configSections = ['deploymentConfig', 'taskStatus', 'codeChanges', 'JARChanges'];
+    $scope.configSections = ['deploymentConfig', 'taskStatus'];
+
+    if ($scope.stage.context) {
+      if ($scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
+        $scope.configSections.push('codeChanges');
+      }
+      if (!_.isEmpty($scope.stage.context.jarDiffs)) {
+        $scope.configSections.push('JARChanges');
+      }
+    }
 
     function initialize() {
 
