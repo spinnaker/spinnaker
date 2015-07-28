@@ -8,7 +8,17 @@ angular
     function listVpcs() {
       return Restangular.all('vpcs')
         .withHttpConfig({cache: infrastructureCaches.vpcs})
-        .getList();
+        .getList()
+        .then(function(vpcs) {
+          return vpcs.map(function(vpc) {
+            vpc.label = vpc.name;
+            vpc.deprecated = !!vpc.deprecated;
+            if (vpc.deprecated) {
+              vpc.label += ' (deprecated)';
+            }
+            return vpc;
+          });
+        });
     }
 
     function getVpcName(id) {
