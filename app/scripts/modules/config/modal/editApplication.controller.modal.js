@@ -2,21 +2,19 @@
 
 angular
   .module('spinnaker.editApplication.modal.controller',[
-    'spinnaker.applications.write.service'
+    'spinnaker.applications.write.service',
+    'ui.router',
+    'spinnaker.utils.lodash',
   ])
-  .controller('EditApplicationController', function ($window, $state, application, applicationWriter) {
+  .controller('EditApplicationController', function ($window, $state, application, $modalInstance, applicationWriter, _) {
     var vm = this;
     vm.submitting = false;
     vm.errorMsgs = [];
     vm.application = application;
-    vm.applicationAttributes = application.attributes;
+    vm.applicationAttributes = _.cloneDeep(application.attributes);
 
-    function routeToApplication() {
-      $state.go(
-        'home.applications.application', {
-          application: vm.application.name,
-        }
-      );
+    function closeModal() {
+      $modalInstance.close(vm.applicationAttributes);
     }
 
     function extractErrorMsg(error) {
@@ -45,15 +43,9 @@ angular
       vm.submitting = false;
     }
 
-
-
     function submitting() {
       vm.submitting = true;
     }
-
-
-
-
 
     vm.clearEmailMsg = function() {
       vm.emailErrorMsg = '';
@@ -62,13 +54,13 @@ angular
     vm.submit = function () {
       submitting();
 
-      applicationWriter.updateApplication(application.attributes)
+      applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
           function(taskResponseList) {
             _.first(taskResponseList)
               .watchForTaskComplete()
               .then(
-                routeToApplication,
+                closeModal,
                 extractErrorMsg
               );
           },

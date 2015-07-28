@@ -7,6 +7,7 @@ angular
     'spinnaker.confirmationModal.service',
     'spinnaker.caches.initializer',
     'spinnaker.caches.infrastructure',
+    'spinnaker.config.notification.service',
   ])
   .controller('ConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, application, notificationService) {
@@ -26,7 +27,9 @@ angular
             return application;
           }
         }
-      });
+      }).result.then(function(newAttributes) {
+          application.attributes = newAttributes;
+        });
     };
 
     vm.deleteApplication = function () {
