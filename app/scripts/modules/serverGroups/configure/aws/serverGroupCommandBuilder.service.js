@@ -66,8 +66,9 @@ angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
         });
     }
 
-    function buildServerGroupCommandFromPipeline(application, pipelineCluster) {
+    function buildServerGroupCommandFromPipeline(application, originalCluster) {
 
+      var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', pipelineCluster.instanceType);
       var commandOptions = { account: pipelineCluster.account, region: region };
