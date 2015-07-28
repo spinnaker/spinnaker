@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 @CompileStatic
@@ -29,6 +30,15 @@ class CronService {
   SchedulerService schedulerService
 
   Map validateCronExpression(String cronExpression) {
-    schedulerService.validateCronExpression(cronExpression)
+    try {
+      schedulerService.validateCronExpression(cronExpression)
+      return [ valid: true ]
+    } catch (RetrofitError e) {
+      if (e.response.status == 400) {
+        Map responseBody = e.getBodyAs(Map) as Map
+        return [ valid: false, message: responseBody.message ]
+      }
+      throw e
+    }
   }
 }
