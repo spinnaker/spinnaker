@@ -169,19 +169,23 @@ class JedisExecutionRepository implements ExecutionRepository {
   @CompileDynamic
   private <T extends Execution> T sortStages(Jedis jedis, T execution, Class<T> type) {
     List<Stage<T>> reorderedStages = []
+
+    def childStagesByParentStageId = execution.stages.findAll { it.parentStageId != null }.groupBy { it.parentStageId }
     execution.stages.findAll { it.parentStageId == null }.each { Stage<T> parentStage ->
       reorderedStages << parentStage
 
-      def children = new LinkedList<Stage<T>>(execution.stages.findAll { it.parentStageId == parentStage.id })
+      def children = childStagesByParentStageId[parentStage.id] ?: []
       while (!children.isEmpty()) {
         def child = children.remove(0)
-        children.addAll(0, execution.stages.findAll { it.parentStageId == child.id })
+        children.addAll(0, childStagesByParentStageId[child.id] ?: [])
         reorderedStages << child
       }
     }
+
     List<Stage<T>> retrievedStages = retrieveStages(jedis, type, reorderedStages.collect { it.id })
+    def retrievedStagesById = retrievedStages.findAll { it?.id }.groupBy { it.id } as Map<String, Stage>
     execution.stages = reorderedStages.collect {
-      def explicitStage = retrievedStages.find { stage -> stage?.id == it.id } ?: it
+      def explicitStage = retrievedStagesById[it.id] ? retrievedStagesById[it.id][0] : it
       explicitStage.execution = execution
       return explicitStage
     }
@@ -241,7 +245,7 @@ class JedisExecutionRepository implements ExecutionRepository {
             log.info("Execution (${executionId}) does not exist")
             jedis.srem(lookupKey, executionId)
           } catch (Exception e) {
-            log.error("Failed to retrieve execution '${executionId}', message: ${e.message}")
+            log.error("Failed to retrieve execution '${executionId}', message: ${e.message}", e)
           }
           return Observable.empty()
         }
