@@ -11,6 +11,9 @@
       <h5 ng-switch-when="pipeline">
         Pipeline
       </h5>
+      <h5 ng-switch-when="cron">
+        Cron<br/>{{ execution.trigger.cronExpression }}
+      </h5>
       <h5 ng-switch-default>
         {{ execution.trigger.type }}
       </h5>
