@@ -34,7 +34,7 @@ class CronController {
   CronService cronService
 
   @RequestMapping(value = "/validate", method = RequestMethod.GET)
-  Map getJobsForBuildMaster(@RequestParam("expression") String expression) {
+  Map validateCronExpression(@RequestParam("expression") String expression) {
     cronService.validateCronExpression(expression)
   }
 
