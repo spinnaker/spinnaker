@@ -61,6 +61,8 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     @Autowired
     JenkinsMasters jenkinsMasters
 
+    def lastPoll
+
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.build.pollInterval:60}')
     int pollInterval
@@ -115,7 +117,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
         List<Map> results = []
 
         try {
-
+            lastPoll = System.currentTimeMillis()
             List<String> cachedBuilds = cache.getJobNames(master)
             List<Project> builds = jenkinsMasters.map[master].projects?.list
             List<String> buildNames = builds*.name

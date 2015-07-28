@@ -29,7 +29,7 @@ import org.springframework.context.annotation.Configuration
  */
 @Configuration
 @EnableAutoConfiguration(exclude = [GroovyTemplateAutoConfiguration])
-@ComponentScan(['com.netflix.spinnaker.igor', 'com.netflix.spinnaker.config'])
+@ComponentScan(['com.netflix.spinnaker.igor', 'com.netflix.spinnaker.config', 'com.netflix.spinnaker.igor.health'])
 class Main extends SpringBootServletInitializer {
 
     static final Map<String, String> DEFAULT_PROPS = [
