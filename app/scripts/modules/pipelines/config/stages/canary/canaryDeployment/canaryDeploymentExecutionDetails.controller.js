@@ -15,7 +15,11 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
                                                                 clusterFilterService) {
 
     function initialize() {
-      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory', 'codeChanges'];
+      $scope.configSections = ['canaryDeployment', 'canaryAnalysisHistory'];
+
+      if ($scope.stage.context && $scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
+        $scope.configSections.push('codeChanges');
+      }
 
       $scope.deployment = $scope.stage.context;
       $scope.viewState = {
@@ -51,17 +55,17 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
       }
     }
 
-    $scope.loadHistory = function() {
+    $scope.loadHistory = function () {
       if ($scope.deployment.canaryDeploymentId) {
         $scope.viewState.loadingHistory = true;
         $scope.viewState.loadingHistoryError = false;
 
         canaryDeploymentHistoryService.getAnalysisHistory($scope.deployment.canaryDeploymentId).then(
-          function(results) {
+          function (results) {
             $scope.analysisHistory = results;
             $scope.viewState.loadingHistory = false;
           },
-          function() {
+          function () {
             $scope.viewState.loadingHistory = false;
             $scope.viewState.loadingHistoryError = true;
           }
@@ -77,7 +81,9 @@ angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.contro
     initialize();
 
     $scope.$on('$stateChangeSuccess',
-      function() { $timeout(initialize); },
-    true);
+      function () {
+        $timeout(initialize);
+      },
+      true);
 
   });
