@@ -14,3 +14,5 @@ jenkins:
 spinnaker:
   build:
     pollInterval: 30
+    
+endpoints.health.sensitive: false
