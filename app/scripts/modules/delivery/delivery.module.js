@@ -10,7 +10,6 @@ angular.module('spinnaker.delivery', [
   'spinnaker.delivery.executionStatus.controller',
 
   'spinnaker.delivery.executionGroups.filter',
-  'spinnaker.delivery.stages.filter',
   'spinnaker.delivery.statusNames.filter',
   'spinnaker.delivery.executions.filter',
   'spinnaker.delivery.buildDisplayName.filter',
