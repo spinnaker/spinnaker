@@ -160,6 +160,12 @@ class JedisExecutionRepository implements ExecutionRepository {
     if (jedis.exists(key)) {
       def json = jedis.hget(key, "config")
       def execution = mapper.readValue(json, type)
+      // PATCH to handle https://jira.netflix.com/browse/SPIN-784
+      def originalStageCount = execution.stages.size()
+      execution.stages = execution.stages.unique( { it.id })
+      if (execution.stages.size() != originalStageCount) {
+        log.warn("Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
+      }
       return sortStages(jedis, execution, type)
     } else {
       throw new ExecutionNotFoundException("No ${type.simpleName} found for $id")
