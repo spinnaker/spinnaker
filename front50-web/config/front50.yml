@@ -6,11 +6,11 @@ aws:
   simpleDBEnabled: false
 
 google:
-  enabled: ${GOOGLE_ENABLED:false}
+  enabled: false
 
 spinnaker:
   cassandra:
-    enabled: ${SPINNAKER_CASSANDRA_ENABLED:true}
+    enabled: true
     cluster: CASS_SPINNAKER
     keyspace: front50
     name: default
