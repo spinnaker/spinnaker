@@ -19,9 +19,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.titanclient.RegionScopedTitanClient
 import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.model.TitanClientObjectMapper
+import com.netflix.titanclient.test.MockedRegionScopedTitanClient
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -65,7 +65,8 @@ class TitanConfig {
     List<TitanClientProvider.TitanClientHolder> titanClientHolders = []
     credentialsList.each { credentials ->
       credentials.regions.each { region ->
-        titanClientHolders << new TitanClientProvider.TitanClientHolder(credentials.name, region.name, new RegionScopedTitanClient(region, objectMapper))
+        titanClientHolders << new TitanClientProvider.TitanClientHolder(credentials.name, region.name, new MockedRegionScopedTitanClient(region,
+          objectMapper))
       }
     }
     new TitanClientProvider(titanClientHolders)

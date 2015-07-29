@@ -32,7 +32,9 @@ class TitanClientProvider {
 
   TitanClient getTitanClient(NetflixTitanCredentials account, String region) {
     TitanClientHolder titanClientHolder = titanClientHolders.find { it.account == account.name && it.region == region }
-    if (!titanClientHolder) throw new IllegalArgumentException("No titan client registered for account ${account.name} and region ${region}")
+    if (!titanClientHolder) {
+      throw new IllegalArgumentException("No titan client registered for account ${account.name} and region ${region}")
+    }
     titanClientHolder.titanClient
   }
 

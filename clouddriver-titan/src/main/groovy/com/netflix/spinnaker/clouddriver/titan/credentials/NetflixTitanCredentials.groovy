@@ -49,7 +49,10 @@ class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
   }
 
   List<TitanRegion> getRegions() {
-    return regions
+    regions
   }
 
+  List<String> getRequiredGroupMembership() {
+    []
+  }
 }
