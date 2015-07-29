@@ -18,26 +18,26 @@ package com.netflix.spinnaker.orca.rush.pipeline
 
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.rush.tasks.MonitorScriptTask
-import com.netflix.spinnaker.orca.rush.tasks.RunScriptTask
+import com.netflix.spinnaker.orca.rush.tasks.MonitorDockerTask
+import com.netflix.spinnaker.orca.rush.tasks.RunDockerTask
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ScriptStage extends LinearStage {
+class DockerStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "script"
+  public static final String PIPELINE_CONFIG_TYPE = "docker"
 
-  ScriptStage() {
+  DockerStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "runScript", RunScriptTask)
-    def step2 = buildStep(stage, "monitorScript", MonitorScriptTask)
+    def step1 = buildStep(stage, "runDocker", RunDockerTask)
+    def step2 = buildStep(stage, "monitorDocker", MonitorDockerTask)
     [step1, step2]
   }
 }

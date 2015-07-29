@@ -1,3 +1,3 @@
 # orca-rush
 
-Contains task definitions for running Script tasks with Orca.
+Contains task definitions for running Docker tasks with Orca.

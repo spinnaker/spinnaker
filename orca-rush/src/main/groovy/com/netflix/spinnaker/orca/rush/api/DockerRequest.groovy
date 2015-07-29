@@ -26,7 +26,7 @@ import groovy.transform.Immutable
  */
 @Immutable(copyWith = true)
 @CompileStatic
-class ScriptRequest {
+class DockerRequest {
   String command
   String image
   String credentials
