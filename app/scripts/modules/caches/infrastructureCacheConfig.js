@@ -4,7 +4,6 @@ angular.module('spinnaker.caches.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
     credentials: {
       version: 2,
-      authEnabled: true,
     },
     vpcs: {
       version: 2,

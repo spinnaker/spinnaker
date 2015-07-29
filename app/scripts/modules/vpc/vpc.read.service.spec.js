@@ -2,16 +2,15 @@
 
 describe('vpcReader', function() {
 
-  var service, $http, $scope, settings;
+  var service, $http, $scope;
 
   beforeEach(
     module('spinnaker.vpc.read.service')
   );
 
-  beforeEach(inject(function (_settings_, $httpBackend, $rootScope, _vpcReader_) {
+  beforeEach(inject(function ($httpBackend, $rootScope, _vpcReader_) {
     service = _vpcReader_;
     $http = $httpBackend;
-    settings = _settings_;
     $scope = $rootScope.$new();
   }));
 
