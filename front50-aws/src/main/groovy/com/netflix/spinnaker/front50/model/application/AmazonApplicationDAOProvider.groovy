@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
 
-@ConditionalOnExpression('${aws.enabled:true}')
+@ConditionalOnExpression('${aws.simpleDBEnabled:true}')
 @Component
 class AmazonApplicationDAOProvider implements ApplicationDAOProvider<AmazonCredentials> {
 

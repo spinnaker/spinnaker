@@ -42,7 +42,7 @@ import static com.amazonaws.regions.Regions.*
 /**
  * Created by aglover on 4/23/14.
  */
-@ConditionalOnExpression('${aws.enabled:true}')
+@ConditionalOnExpression('${aws.simpleDBEnabled:true}')
 @Configuration
 class AmazonConfig {
 
