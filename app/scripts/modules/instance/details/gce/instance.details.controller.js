@@ -120,6 +120,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           $scope.instance.internalDnsName = $scope.instance.instanceId;
           $scope.instance.internalIpAddress = $scope.instance.networkInterfaces[0].networkIP;
           $scope.instance.externalIpAddress = $scope.instance.networkInterfaces[0].accessConfigs[0].natIP;
+          $scope.instance.network = getNetwork();
 
           $scope.instance.sshLink =
             $scope.instance.selfLink.replace('www.googleapis.com/compute/v1', 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
@@ -134,6 +135,15 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       if (!instanceSummary) {
         $state.go('^');
       }
+    }
+
+    function getNetwork() {
+      if ($scope.instance.networkInterfaces[0].network) {
+        var networkUrl = $scope.instance.networkInterfaces[0].network;
+
+        return _.last(networkUrl.split('/'));
+      }
+      return null;
     }
 
     this.canRegisterWithLoadBalancer = function() {

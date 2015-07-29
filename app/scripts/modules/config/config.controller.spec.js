@@ -1,67 +1,59 @@
 'use strict';
 
-xdescribe('Controller: Config', function () {
+describe('Controller: Config', function () {
 
   var $controller;
   var configController;
-  var applicationWriter;
-  var $state;
+  var notificationService;
   var $rootScope;
-  var $q;
+  var $modal;
+  var application;
 
   beforeEach(window.module(
     'spinnaker.config.controller'
   ));
 
   beforeEach(
-    window.inject(function (_$rootScope_, _$controller_, _$q_, _applicationWriter_, _$state_) {
+    inject(function (_$rootScope_, _$controller_, _$modal_, _notificationService_) {
       $rootScope = _$rootScope_;
       $controller = _$controller_;
-      applicationWriter = _applicationWriter_;
-      $state = _$state_;
-      $q = _$q_;
+      $modal = _$modal_;
+      notificationService = _notificationService_;
     })
   );
 
+  beforeEach(function() {
+    spyOn(notificationService, 'getNotificationsForApplication').and.returnValue({then: angular.noop});
+  });
 
-  describe('delete an application ', function () {
+  describe('edit application ', function () {
     beforeEach( function() {
+        application = {
+          serverGroups:[],
+          name: 'test-app',
+          accounts: 'test'
+        };
+
         configController = $controller('ConfigController', {
-          applicationWriter: applicationWriter,
-          application: {
-            serverGroups:[],
-            name: 'test-app',
-            accounts: 'test'
-          }
+          application: application,
+          $modal: $modal,
+          notificationService: notificationService,
         });
       }
     );
 
-    it('should delete the app and route to the applications list page', function () {
-      var deferred = $q.defer();
+    it('should copy attributes when edit application is successful', function() {
+      var newAttributes = { foo: 'bar' };
+      spyOn($modal, 'open').and.returnValue({
+        result: {
+          then: function(method) {
+            method(newAttributes);
+          }
+        }
+      });
 
-      spyOn(applicationWriter, 'deleteApplication').and.returnValue(deferred.promise);
-      spyOn($state, 'go');
-
-      configController.deleteApplication();
-      deferred.resolve('all good');
-      $rootScope.$apply();
-
-      expect(applicationWriter.deleteApplication).toHaveBeenCalled();
-      expect($state.go).toHaveBeenCalledWith('home.applications');
-    });
-
-    it('should show an error if the delete fails', function () {
-      var deferred = $q.defer();
-
-      spyOn(applicationWriter, 'deleteApplication').and.returnValue(deferred.promise);
-      configController.deleteApplication();
-
-      deferred.reject(new Error('failed'));
-      $rootScope.$apply();
-
-      expect(applicationWriter.deleteApplication).toHaveBeenCalled();
-      expect(configController.error).toBe('failed');
+      configController.editApplication();
+      expect(application.attributes).toBe(newAttributes);
     });
   });
 

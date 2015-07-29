@@ -14,11 +14,31 @@ module.exports = angular
     function listVpcs() {
       return Restangular.all('vpcs')
         .withHttpConfig({cache: infrastructureCaches.vpcs})
-        .getList();
+        .getList()
+        .then(function(vpcs) {
+          return vpcs.map(function(vpc) {
+            vpc.label = vpc.name;
+            vpc.deprecated = !!vpc.deprecated;
+            if (vpc.deprecated) {
+              vpc.label += ' (deprecated)';
+            }
+            return vpc;
+          });
+        });
+    }
+
+    function getVpcName(id) {
+      return listVpcs().then(function(vpcs) {
+        var matches = vpcs.filter(function(test) {
+          return test.id === id;
+        });
+        return matches.length ? matches[0].name : null;
+      });
     }
 
     return {
-      listVpcs: listVpcs
+      listVpcs: listVpcs,
+      getVpcName: getVpcName,
     };
 
   }).name;

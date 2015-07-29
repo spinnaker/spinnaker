@@ -90,6 +90,15 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
             });
           }
 
+          if (details.image && details.image.description) {
+            var tags = details.image.description.split(', ');
+            tags.forEach(function(tag) {
+              var keyVal = tag.split('=');
+              if (keyVal.length === 2 && keyVal[0] === 'ancestor_name') {
+                details.image.baseImage = keyVal[1];
+              }
+            });
+          }
 
           if (details.launchConfig && details.launchConfig.securityGroups) {
             $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {

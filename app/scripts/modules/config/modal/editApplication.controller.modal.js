@@ -12,14 +12,10 @@ module.exports = angular
     vm.submitting = false;
     vm.errorMsgs = [];
     vm.application = application;
-    vm.applicationAttributes = application.attributes;
+    vm.applicationAttributes = _.cloneDeep(application.attributes);
 
-    function routeToApplication() {
-      $state.go(
-        'home.applications.application', {
-          application: vm.application.name,
-        }
-      );
+    function closeModal() {
+      $modalInstance.close(vm.applicationAttributes);
     }
 
     function extractErrorMsg(error) {
@@ -48,15 +44,9 @@ module.exports = angular
       vm.submitting = false;
     }
 
-
-
     function submitting() {
       vm.submitting = true;
     }
-
-
-
-
 
     vm.clearEmailMsg = function() {
       vm.emailErrorMsg = '';
@@ -65,13 +55,13 @@ module.exports = angular
     vm.submit = function () {
       submitting();
 
-      applicationWriter.updateApplication(application.attributes)
+      applicationWriter.updateApplication(vm.applicationAttributes)
         .then(
           function(taskResponseList) {
             _.first(taskResponseList)
               .watchForTaskComplete()
               .then(
-                routeToApplication,
+                closeModal,
                 extractErrorMsg
               );
           },

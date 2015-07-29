@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.feedback.directive', [
 ])
-  .directive('feedback', function() {
+  .directive('feedback', function($location) {
     return {
       restrict: 'E',
       templateUrl: require('./feedback.html'),
@@ -17,6 +17,10 @@ module.exports = angular.module('spinnaker.feedback.directive', [
 
         $scope.toggleMenu = function() {
           $scope.state.showMenu = !$scope.state.showMenu;
+        };
+
+        $scope.getCurrentUrlMessage = function() {
+          return encodeURIComponent('(via ' + $location.absUrl() + ')\n');
         };
 
         $scope.openFeedback = function() {

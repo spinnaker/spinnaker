@@ -155,9 +155,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         .filter({account: command.credentials, region: command.region})
         .reject({target: 'elb'})
         .reject({purpose: null})
-        .pluck('purpose')
-        .uniq()
-        .map(function(purpose) { return { purpose: purpose, label: purpose }; })
+        .uniq('purpose')
         .valueOf();
 
       if (!_(filteredData.subnetPurposes).some({purpose: command.subnetType})) {

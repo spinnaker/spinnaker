@@ -1,0 +1,76 @@
+<div modal-page class="migrator-modal">
+  <div ng-include="'scripts/modules/migrator/migrator.modal.submitting.html'"></div>
+  <form role="form" name="form">
+    <modal-close></modal-close>
+    <div class="modal-header">
+      <h3>Migrate {{component.name}} to VPC0</h3>
+    </div>
+    <div class="modal-body">
+
+      <div class="row" ng-if="viewState.computing">
+        <div class="col-md-10 col-md-offset-1">
+          <h3 class="text-center">
+            <span class="small glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+            Calculating execution plan...
+          </h3>
+        </div>
+      </div>
+
+      <div class="row preview" ng-if="!viewState.computing && preview && !viewState.executing && !viewState.migrationComplete">
+        <div class="col-md-10 col-md-offset-1">
+          <p>This will migrate <strong>{{source.asgName}}</strong> in {{source.region}} <account-tag account="source.account"></account-tag> to VPC0.</p>
+          <p>As part of this migration, the following items will be created:</p>
+          <div ng-if="preview.securityGroups.length">
+            <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
+            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.awsReference.identity.groupName}}</div>
+          </div>
+          <div ng-if="preview.loadBalancers.length">
+            <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
+            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.awsReference.identity.loadBalancerName}}</div>
+            <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
+              you will need to set that up in the AWS console.
+            </p>
+          </div>
+          <div ng-if="preview.serverGroups.length">
+            <h4><span class="small glyphicon glyphicon-th"></span> Server Groups</h4>
+            <div ng-repeat="serverGroup in preview.serverGroups" class="preview-entry">{{serverGroup.awsReference.identity.autoScalingGroupName}}</div>
+            <p class="note">Note: server groups will be started in a disabled state with zero instances.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-if="viewState.error">
+      <div class="col-md-10 col-md-offset-1">
+        We could not calculate an execution plan for {{component.name}} at this time.
+        <p>Reason: {{viewState.error}}</p>
+      </div>
+    </div>
+
+    <div class="row task-progress" ng-if="viewState.migrationComplete">
+      <div class="col-md-10 col-md-offset-1">
+        <p>The following operations have been successfully completed:</p>
+
+        <ul class="task task-progress">
+          <li ng-repeat="mutation in preview.mutations | orderBy: 'objectName'">
+            <span class="glyphicon glyphicon-ok-circle"></span> {{mutation.message}} <strong>{{mutation.objectName}}</strong>
+          </li>
+        </ul>
+
+      </div>
+    </div>
+    <div class="modal-footer" ng-if="viewState.error">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">Close</button>
+    </div>
+
+    <div class="modal-footer" ng-if="!viewState.error && !viewState.executing">
+      <button class="btn btn-default" ng-click="ctrl.cancel()">{{viewState.migrationComplete ? 'Close' : 'Cancel'}}</button>
+      <button class="btn btn-primary"
+              ng-if="!viewState.executing && !viewState.computing && !viewState.migrationComplete"
+              ng-click="ctrl.submit()">
+        Migrate {{component.name}} to VPC0
+      </button>
+    </div>
+
+  </form>
+</div>

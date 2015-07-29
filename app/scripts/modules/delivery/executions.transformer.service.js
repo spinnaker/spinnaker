@@ -60,6 +60,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       stageSummaries.forEach(transformStageSummary);
       execution.stageSummaries = stageSummaries;
       execution.currentStages = getCurrentStages(execution);
+      addStageWidths(execution);
 
     }
 
@@ -200,11 +201,38 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       }
     }
 
+    var colorMapping = {
+      completed: '#769D3E',
+      failed: '#b82525',
+      running: '#2275b8',
+      'not_started': '#cccccc',
+      canceled: '#cccccc',
+      suspended: '#cccccc',
+      unknown: '#cccccc',
+    };
+
+    function addStageWidths(execution) {
+      execution.stageWidth = 100 / execution.stageSummaries.length + '%';
+    }
+
+    function styleStage(stage) {
+      var stageConfig = pipelineConfig.getStageConfig(stage.type);
+      var status = stage.status || 'UNKNOWN';
+      stage.color = colorMapping[status.toLowerCase()] || '#cccccc';
+      if (stageConfig) {
+        if (stageConfig.executionBarColorProvider && stageConfig.executionBarColorProvider(stage)) {
+          stage.color = stageConfig.executionBarColorProvider(stage);
+        }
+        stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || 'scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
+      }
+    }
+
     function transformStageSummary(summary) {
       summary.stages = flattenAndFilter(summary);
       summary.stages.forEach(transformStage);
       summary.masterStageIndex = summary.stages.indexOf(summary.masterStage) === -1 ? 0 : summary.stages.indexOf(summary.masterStage);
       transformStage(summary);
+      styleStage(summary);
       orchestratedItem.defineProperties(summary);
     }
 

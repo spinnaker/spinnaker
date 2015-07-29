@@ -2,7 +2,7 @@
 
 describe('spinnaker.caches.infrastructure', function() {
 
-  var infrastructureCaches, deckCacheFactory, authenticationService, settings;
+  var infrastructureCaches, deckCacheFactory;
 
   beforeEach(
     window.module(
@@ -13,8 +13,6 @@ describe('spinnaker.caches.infrastructure', function() {
   beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_, _authenticationService_, _settings_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;
-    authenticationService = _authenticationService_;
-    settings = _settings_;
   }));
 
   describe('injected values', function () {
@@ -110,32 +108,5 @@ describe('spinnaker.caches.infrastructure', function() {
       expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
     });
 
-    it('should set disabled flag and register event when authEnabled', function () {
-      var originalAuthEnabled = settings.authEnabled;
-      settings.authEnabled = true;
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({authenticated: false});
-      spyOn(authenticationService, 'onAuthentication');
-      infrastructureCaches.createCache('authCache', {
-        cacheFactory: this.cacheFactory,
-        authEnabled: true,
-      });
-      expect(this.cacheInstantiations[3].config.disabled).toBe(true);
-      expect(authenticationService.onAuthentication.calls.count()).toBe(1);
-      settings.authEnabled = originalAuthEnabled;
-    });
-
-    it('should ignore authEnabled flag when settings disable auth', function () {
-      var originalAuthEnabled = settings.authEnabled;
-      settings.authEnabled = false;
-      spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({authenticated: false});
-      spyOn(authenticationService, 'onAuthentication');
-      infrastructureCaches.createCache('authCache', {
-        cacheFactory: this.cacheFactory,
-        authEnabled: true,
-      });
-      expect(this.cacheInstantiations[3].config.disabled).toBe(false);
-      expect(authenticationService.onAuthentication.calls.count()).toBe(0);
-      settings.authEnabled = originalAuthEnabled;
-    });
   });
 });

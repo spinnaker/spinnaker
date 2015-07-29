@@ -9,7 +9,12 @@ module.exports = angular
   .factory('tasksReader', function(tasksApi) {
 
     function listAllTasksForApplication(applicationName) {
-      return tasksApi.one('applications', applicationName).all('tasks').getList();
+      return tasksApi.one('applications', applicationName).all('tasks').getList()
+        .then(function(tasks) {
+          return tasks.filter(function(task) {
+            return !task.getValueFor('dryRun');
+          });
+        });
     }
 
 

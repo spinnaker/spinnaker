@@ -156,7 +156,7 @@ module.exports = angular.module('spinnaker.tasks.api', [
         }
         if (task.isCompleted || task.isRunning) {
           var forceRefreshStep = task.steps.filter(function(step) { return step.name === 'forceCacheRefresh'; });
-          if (forceRefreshStep.length && forceRefreshStep[0].status !== 'RUNNING' && forceRefreshStep[0].status !== 'NOT_STARTED') {
+          if (forceRefreshStep.length && (forceRefreshStep[0].status === 'COMPLETED' || forceRefreshStep[0].status === 'FAILED')) {
             var forceRefreshStatus = forceRefreshStep[0].status;
             if (forceRefreshStatus === 'COMPLETED') {
               deferred.resolve(task);
@@ -165,7 +165,9 @@ module.exports = angular.module('spinnaker.tasks.api', [
               deferred.reject(task);
             }
           } else {
-            if (task.isCompleted) {
+            // HACK: If the task is completed, the steps should be completed, but sometimes Orca does not return the latest
+            // status of the steps. So we'll just band-aid over that.
+            if (task.isCompleted && forceRefreshStep.length && forceRefreshStep[0].status !== 'NOT_STARTED' && forceRefreshStep[0].status !== 'RUNNING') {
               deferred.reject(task);
             } else {
               if (!deferred.promise.cancelled) {

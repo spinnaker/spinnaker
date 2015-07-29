@@ -2,15 +2,15 @@
   <div class="col-md-12">
     <div ng-repeat="stage in execution.stageSummaries"
          class="execution-stage"
-         ng-click="ctrl.toggleDetails(execution.id, $index); $event.stopPropagation()"
-         style="width: {{ctrl.getStageWidth()}}">
+         ng-style="{width: execution.stageWidth}"
+         ng-click="ctrl.toggleDetails(execution.id, $index); $event.stopPropagation()">
       <div class="execution-stage-bar"
+           style="background-color: {{stage.color}}; opacity: 0.8"
            ng-class="{glowing: stage.isRunning }"
-           ng-style="ctrl.styleStage(stage)"
         ></div>
       <div class="execution-stage-label"
-           ng-class="{'active': ctrl.showingDetails(stage) }">
-        <span ng-include="ctrl.getLabelTemplate(stage)"></span>
+           ng-class="{'active': stage.showingDetails }">
+        <span ng-include="stage.labelTemplateUrl"></span>
       </div>
     </div>
   </div>

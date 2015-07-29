@@ -30,7 +30,9 @@ module.exports = angular
             return application;
           }
         }
-      });
+      }).result.then(function(newAttributes) {
+          application.attributes = newAttributes;
+        });
     };
 
     vm.deleteApplication = function () {

@@ -66,17 +66,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       });
     }
 
-    function initializeController() {
-      if (loadBalancer) {
-        $scope.loadBalancer = gceLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
-        initializeEditMode();
-      } else {
-        $scope.loadBalancer = gceLoadBalancerTransformer.constructNewLoadBalancerTemplate();
-        initializeLoadBalancerNames();
-        initializeCreateMode();
-      }
-    }
-
     function initializeLoadBalancerNames() {
       searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
         searchResults.results.forEach(function(result) {
@@ -135,7 +124,15 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       $scope.existingSecurityGroupNames = [];
     }
 
-    initializeController();
+    // initialize controller
+    if (loadBalancer) {
+      $scope.loadBalancer = gceLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
+      initializeEditMode();
+    } else {
+      $scope.loadBalancer = gceLoadBalancerTransformer.constructNewLoadBalancerTemplate();
+      initializeLoadBalancerNames();
+      initializeCreateMode();
+    }
 
     // Controller API
 
@@ -159,14 +156,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     this.regionUpdated = function() {
       updateLoadBalancerNames();
       ctrl.updateName();
-    };
-
-    this.removeListener = function(index) {
-      $scope.loadBalancer.listeners.splice(index, 1);
-    };
-
-    this.addListener = function() {
-      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP'});
     };
 
     this.setVisibilityHealthCheckTab = function() {

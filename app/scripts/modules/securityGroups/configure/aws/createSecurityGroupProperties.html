@@ -49,9 +49,11 @@
         <div class="col-md-8">
           <select class="form-control input-sm" ng-model="securityGroup.vpcId"
                   ng-change="ctrl.vpcUpdated()"
-                  ng-options="vpc.ids[0] as vpc.label for vpc in vpcs"
                   ng-if="securityGroup.regions.length">
-            <option value="">None (Classic)</option>
+            <option value="">None (EC2 Classic)</option>
+            <option ng-repeat="vpc in activeVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>
+            <option ng-if="activeVpcs.length && deprecatedVpcs.length" disabled>---------------</option>
+            <option ng-repeat="vpc in deprecatedVpcs | orderBy: 'label'" value="{{vpc.ids[0]}}" ng-selected="securityGroup.vpcId === vpc.ids[0]">{{vpc.label}}</option>
           </select>
           <p class="form-control-static" ng-if="!securityGroup.credentials">(Select an account)</p>
           <p class="form-control-static" ng-if="securityGroup.credentials && !securityGroup.regions.length">(Select at least one region)</p>

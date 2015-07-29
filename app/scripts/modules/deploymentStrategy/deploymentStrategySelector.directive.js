@@ -8,7 +8,9 @@ module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategy
     return {
       restrict: 'E',
       scope: {
-        command: '='
+        command: '=',
+        labelColumns: '@',
+        fieldColumns: '@',
       },
       templateUrl: require('./deploymentStrategySelector.html'),
       controller: 'DeploymentStrategySelectorCtrl',

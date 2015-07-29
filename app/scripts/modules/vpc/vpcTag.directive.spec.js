@@ -1,6 +1,8 @@
 'use strict';
 
 describe('Directives: vpcTag', function () {
+  
+  var $q, vpcReader;
 
   beforeEach(
     window.module(
@@ -12,9 +14,8 @@ describe('Directives: vpcTag', function () {
   beforeEach(window.inject(function ($rootScope, $compile, $q, vpcReader) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
-    spyOn(vpcReader, 'listVpcs').and.callFake(function() {
-      return $q.when([{id: 'vpc-1', name: 'Main VPC'}]);
-    });
+    $q = _$q_;
+    vpcReader = _vpcReader_;
   }));
 
   describe('vpc tag rendering - no VPC provided', function () {
@@ -42,6 +43,9 @@ describe('Directives: vpcTag', function () {
   describe('vpc tag rendering - VPC provided', function () {
 
     it('displays vpc name when found', function() {
+      spyOn(vpcReader, 'getVpcName').and.callFake(function() {
+        return $q.when('Main VPC');
+      });
       this.scope.vpcId = 'vpc-1';
       var domNode = this.compile('<vpc-tag vpc-id="vpcId"></vpc-tag>')(this.scope);
       this.scope.$digest();
@@ -49,6 +53,9 @@ describe('Directives: vpcTag', function () {
     });
 
     it('displays vpc id when not found', function() {
+      spyOn(vpcReader, 'getVpcName').and.callFake(function() {
+        return $q.when(null);
+      });
       this.scope.vpcId = 'vpc-2';
       var domNode = this.compile('<vpc-tag vpc-id="vpcId"></vpc-tag>')(this.scope);
       this.scope.$digest();

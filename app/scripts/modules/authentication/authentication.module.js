@@ -6,13 +6,15 @@ module.exports = angular.module('spinnaker.authentication', [
   require('../authentication/authenticationService.js'),
   require('../authentication/authenticatedUserDirective.js'),
   require('../../settings/settings.js'),
+  'spinnaker.authentication.interceptor.service',
+  'spinnaker.authentication.initializer.service',
 ])
   .config(function ($httpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
   })
-  .run(function (authenticationService, settings) {
+  .run(function (authenticationInitializer, settings) {
     if(settings.authEnabled) {
-      authenticationService.authenticateUser();
+      authenticationInitializer.authenticateUser();
     }
   })
   .factory('gateRequestInterceptor', function (settings) {

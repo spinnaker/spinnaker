@@ -73,8 +73,6 @@ module.exports = angular
       return inCluster.length ? inCluster.pop() : null;
     };
 
-    this.getLatestServerGroup();
-
     this.showPreviewAsWarning = function() {
       var mode = $scope.command.viewState.mode,
         createsNewCluster = this.createsNewCluster();

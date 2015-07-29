@@ -9,42 +9,12 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
     var controller = this;
 
-    controller.getStageWidth = function() {
-      return 100 / $scope.execution.stageSummaries.length + '%';
-    };
-
-    controller.getStageColor = function(stage) {
-      var stageConfig = pipelineConfig.getStageConfig(stage.type);
-      if (stageConfig && stageConfig.executionBarColorProvider && stageConfig.executionBarColorProvider(stage)) {
-        return stageConfig.executionBarColorProvider(stage);
-      }
-
-      return $scope.scale[$scope.filter.stage.colorOverlay](
-        stage[$scope.filter.stage.colorOverlay].toLowerCase()
-      );
-    };
-
-    controller.getStageOpacity = function(stage) {
-      if (!!$scope.filter.stage.solo.facet &&
-        stage[$scope.filter.stage.solo.facet].toLowerCase() !==
-        $scope.filter.stage.solo.value) {
-        return 0.5;
-      } else {
-        return 0.8;
-      }
-    };
-
-    controller.showingDetails = function(stage) {
-      var param = $stateParams.stage ? parseInt($stateParams.stage) : 0;
-      return $scope.execution.id === $stateParams.executionId && $scope.execution.stageSummaries.indexOf(stage) === param;
-    };
-
-    controller.styleStage = function(stage) {
-      return {
-        'background-color': controller.getStageColor(stage),
-        opacity: controller.getStageOpacity(stage),
-      };
-    };
+    function updateDetails(params) {
+      var param = params.stage ? parseInt(params.stage) : 0;
+      $scope.execution.stageSummaries.forEach(function(stage) {
+        stage.showingDetails = $scope.execution.id === params.executionId && $scope.execution.stageSummaries.indexOf(stage) === param;
+      });
+    }
 
     controller.toggleDetails = function(executionId, stageIndex) {
       var stageSummary = $scope.execution.stageSummaries[stageIndex],
@@ -60,14 +30,11 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
       }
     };
 
-    controller.getLabelTemplate = function(stage) {
-      var target = stage.masterStage || stage;
-      var config = pipelineConfig.getStageConfig(target.type);
-      if (config && config.executionLabelTemplateUrl) {
-        return config.executionLabelTemplateUrl;
-      } else {
-        return 'app/scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
-      }
-    };
+    // initialization needed for deep links
+    updateDetails($stateParams);
+
+    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
+      updateDetails(toParams);
+    });
 
   }).name;
