@@ -12,8 +12,6 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
                                              pipelineConfigService, scrollToService, executionsService,
                                              viewStateCache, collapsibleSectionStateCache) {
 
-    var controller = this;
-
     var executionsViewStateCache = viewStateCache.executions || viewStateCache.createCache('executions', { version: 1 });
 
     function cacheViewState() {
@@ -43,23 +41,6 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
         groupBy: 'name',
         sortBy: 'startTime',
       },
-      stage: {
-        max: 0,
-        name: {},
-        solo: {
-          facet: false,
-          value: false,
-        },
-        status: {
-          running: true,
-          completed: true,
-          failed: true,
-          'not_started': true,
-          suspended: true,
-        },
-        scale: 'fixed',
-        colorOverlay: 'status',
-      },
     };
 
     $scope.statusDisplayNames = {
@@ -69,44 +50,6 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
       completed: 'Completed',
       canceled: 'Canceled',
       suspended: 'Suspended',
-    };
-
-    $scope.scale = {
-      name: d3Service
-        .scale
-        .category10(),
-      status: d3Service
-        .scale
-        .ordinal()
-        .domain(['completed', 'failed', 'running', 'not_started', 'canceled', 'suspended', 'unknown'])
-        .range(['#769D3E', '#b82525','#2275b8', '#cccccc', '#cccccc', '#cccccc', '#cccccc']),
-    };
-
-    controller.solo = function(facet, value) {
-      $scope.filter.stage.solo.facet = facet;
-      $scope.filter.stage.solo.value = value;
-    };
-
-    controller.endSolo = function() {
-      $scope.filter.stage.solo.facet = false;
-      $scope.filter.stage.solo.value = false;
-    };
-
-    controller.updateLegend = function() {
-      var stageNames = Object.keys($scope.executions.reduce(function(acc, cur) {
-        cur.stageSummaries.forEach(function(stage) {
-          acc[stage.name] = true;
-        });
-        return acc;
-      }, {}));
-
-      $scope.scale.name(stageNames);
-
-      stageNames.forEach(function(name) {
-        if ($scope.filter.stage.name[name] === undefined) {
-          $scope.filter.stage.name[name] = true;
-        }
-      });
     };
 
     function normalizeExecutionNames(executions) {
@@ -126,11 +69,7 @@ angular.module('spinnaker.delivery.pipelineExecutions.controller', [
     function updateExecutions() {
       var executions = $scope.application.executions || [];
       normalizeExecutionNames(executions);
-      $scope.filter.stage.max = executions.reduce(function(acc, execution) {
-        return execution.stageSummaries.length > acc ? execution.stageSummaries.length : acc;
-      }, 0);
       $scope.executions = executions;
-      controller.updateLegend();
     }
 
     // The executionId will not be available in the $stateParams that would be passed into this controller

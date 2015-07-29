@@ -15,6 +15,7 @@ describe('Controller: executionBar', function () {
   beforeEach(
     inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
+      scope.execution = { stageSummaries: [] };
       controller = $controller('executionBar', {
         $scope: scope
       });
