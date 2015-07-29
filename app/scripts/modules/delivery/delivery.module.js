@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./executionStatus.controller.js'),
 
   require('./executionGroups.filter.js'),
-  require('./stages.filter.js'),
   require('./statusNames.filter.js'),
   require('./executions.filter.js'),
   require('./buildDisplayName.filter.js'),

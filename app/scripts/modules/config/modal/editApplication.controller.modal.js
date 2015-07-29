@@ -7,7 +7,7 @@ module.exports = angular
     require('../../applications/applications.write.service.js'),
     require('utils/lodash.js'),
   ])
-  .controller('EditApplicationController', function ($window, $state, application, applicationWriter, _) {
+  .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter, _) {
     var vm = this;
     vm.submitting = false;
     vm.errorMsgs = [];

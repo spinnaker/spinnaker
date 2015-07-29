@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 /* jshint newcap: false */
-angular.module('spinnaker.caches.infrastructure', [
-  'spinnaker.caches.core',
+module.exports = angular.module('spinnaker.caches.infrastructure', [
+  require('./deckCacheFactory.js')
 ])
   .factory('infrastructureCaches', function(deckCacheFactory) {
 

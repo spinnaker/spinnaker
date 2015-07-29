@@ -4,12 +4,13 @@ let angular = require('angular');
 
 let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
 let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
+let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
 
 module.exports = angular.module('spinnaker.settings', [])
   .constant('settings', {
     feedbackUrl: feedbackUrl,
     gateUrl: `https://${gateHost}`,
-    authEndpoint: 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info',
+    authEndpoint: `https://${authEndpoint}`,
     pollSchedule: 30000,
     providers: {
       aws: {
@@ -18,7 +19,7 @@ module.exports = angular.module('spinnaker.settings', [])
           region: 'us-east-1'
         },
         primaryAccounts: ['prod', 'test'],
-        primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2'],
+        primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
         challengeDestructiveActions: ['mgmt', 'prod', 'mceprod', 'cpl'],
         preferredZonesByAccount: {
           prod: {

@@ -10,7 +10,7 @@ describe('spinnaker.caches.infrastructure', function() {
     )
   );
   
-  beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_, _authenticationService_, _settings_) {
+  beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;
   }));

@@ -1,7 +1,7 @@
 'use strict';
 
 describe('Directives: vpcTag', function () {
-  
+
   var $q, vpcReader;
 
   beforeEach(
@@ -11,7 +11,7 @@ describe('Directives: vpcTag', function () {
     )
   );
 
-  beforeEach(window.inject(function ($rootScope, $compile, $q, vpcReader) {
+  beforeEach(window.inject(function ($rootScope, $compile, _$q_, _vpcReader_) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     $q = _$q_;

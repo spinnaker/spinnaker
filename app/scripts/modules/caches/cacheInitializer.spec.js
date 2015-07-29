@@ -8,7 +8,7 @@ describe('Service: cacheInitializer', function () {
 
   beforeEach(
     window.module(
-      require('./cacheInitializer')
+      require('./cacheInitializer.js')
     )
   );
 

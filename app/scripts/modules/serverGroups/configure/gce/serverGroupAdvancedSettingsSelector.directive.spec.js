@@ -1,11 +1,17 @@
 'use strict';
 
+let angular = require('angular');
+require('./serverGroupAdvancedSettingsDirective.html')
+
 describe('Directive: GCE Group Advanced Settings Selector', function() {
 
-  beforeEach(module('spinnaker.serverGroup.configure.gce'));
-  beforeEach(module('spinnaker.templates'));
+  beforeEach(
+    window.module(
+      require('./serverGroupAdvancedSettingsSelector.directive.js')
+    )
+  );
 
-  beforeEach(inject(function($rootScope, $compile) {
+  beforeEach(window.inject(function($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.scope.command = {instanceMetadata: [], tags: []};
     this.elem = angular.element('<gce-server-group-advanced-settings-selector command="command" />');
@@ -33,7 +39,7 @@ describe('Directive: GCE Group Advanced Settings Selector', function() {
 
   it('should correctly remove a metadata key/value from the command', function() {
     this.scope.command.instanceMetadata.push({'key': 'myKey1', 'value': 'myVal1'},
-                                             {'key': 'myKey2', 'value': 'myVal2'});
+      {'key': 'myKey2', 'value': 'myVal2'});
     this.scope.$apply();
 
     var removeLinks = this.elem.find('table.metadata a');

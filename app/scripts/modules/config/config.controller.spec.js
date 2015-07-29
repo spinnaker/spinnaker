@@ -10,11 +10,12 @@ describe('Controller: Config', function () {
   var application;
 
   beforeEach(window.module(
-    'spinnaker.config.controller'
+    require('./config.controller.js'),
+    require('./notification.service.js')
   ));
 
   beforeEach(
-    inject(function (_$rootScope_, _$controller_, _$modal_, _notificationService_) {
+    window.inject(function (_$rootScope_, _$controller_, _$modal_, _notificationService_) {
       $rootScope = _$rootScope_;
       $controller = _$controller_;
       $modal = _$modal_;
@@ -35,7 +36,7 @@ describe('Controller: Config', function () {
         };
 
         configController = $controller('ConfigController', {
-          application: application,
+          app: application,
           $modal: $modal,
           notificationService: notificationService,
         });

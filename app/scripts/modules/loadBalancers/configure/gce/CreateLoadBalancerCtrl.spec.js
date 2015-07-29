@@ -13,7 +13,7 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   );
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope) {
+  beforeEach(window.inject(function ($controller, $rootScope, _modalWizardService_) {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,
