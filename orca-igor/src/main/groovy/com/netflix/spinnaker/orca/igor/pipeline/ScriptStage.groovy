@@ -38,7 +38,7 @@ class ScriptStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     [
       buildStep(stage, "startScript", StartScriptTask),
-      buildStep(stage, "waitForScript Start", MonitorQueuedJenkinsJobTask),
+      buildStep(stage, "waitForScriptStart", MonitorQueuedJenkinsJobTask),
       buildStep(stage, "monitorScript", MonitorJenkinsJobTask)
     ]
   }
