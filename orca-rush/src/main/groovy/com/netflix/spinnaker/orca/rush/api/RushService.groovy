@@ -25,9 +25,9 @@ import rx.Observable
 interface RushService {
 
   @POST("/ops")
-  Observable<ScriptId> runScript(@Body ScriptRequest scriptRequest)
+  Observable<DockerId> runDocker(@Body DockerRequest dockerRequest)
 
-  @GET("/tasks/{scriptId}")
-  Observable<ScriptExecution> scriptDetails(@Path("scriptId") String scriptId)
+  @GET("/tasks/{dockerId}")
+  Observable<DockerExecution> dockerDetails(@Path("dockerId") String dockerId)
 
 }

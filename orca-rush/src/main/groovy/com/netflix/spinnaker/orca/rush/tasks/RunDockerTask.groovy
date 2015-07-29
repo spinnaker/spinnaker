@@ -17,42 +17,35 @@
 package com.netflix.spinnaker.orca.rush.tasks
 
 import groovy.transform.CompileStatic
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.rush.api.RushService
-import com.netflix.spinnaker.orca.rush.api.ScriptExecution
-import com.netflix.spinnaker.orca.rush.api.ScriptId
+import com.netflix.spinnaker.orca.rush.api.DockerRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class MonitorScriptTask implements RetryableTask {
-
-  long backoffPeriod = 1000
-  long timeout = 3600000
+class RunDockerTask implements Task {
 
   @Autowired
   RushService rushService
+  @Autowired
+  ObjectMapper mapper
 
   @Override
   TaskResult execute(Stage stage) {
-    ScriptId task = stage.context."rush.task.id" as ScriptId
-    ScriptExecution execution = rushService.scriptDetails(task.id).toBlocking().single()
-    new DefaultTaskResult(rushStatusToTaskStatus(execution), [execution: execution])
+    def docker = mapper.convertValue(stage.context, DockerRequest)
+
+    def dockerId = rushService.runDocker(docker).toBlocking().single()
+
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+        "rush.task.id": dockerId
+    ])
   }
 
-  private
-  static ExecutionStatus rushStatusToTaskStatus(ScriptExecution execution) {
-    if (execution.status == 'SUCCESSFUL') {
-      return ExecutionStatus.SUCCEEDED
-    } else if (execution.status == 'FAILURE') {
-      return ExecutionStatus.FAILED
-    } else {
-      return ExecutionStatus.RUNNING
-    }
-  }
 }

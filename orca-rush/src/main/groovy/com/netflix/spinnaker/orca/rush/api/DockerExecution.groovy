@@ -14,10 +14,30 @@
  * limitations under the License.
  */
 
+
 package com.netflix.spinnaker.orca.rush.api
 
-class ScriptId {
+import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 
+/**
+ * The details of a completed bake.
+ *
+ * @see RushService#lookupBake
+ */
+@CompileStatic
+@EqualsAndHashCode(includes = "id")
+@ToString(includeNames = true)
+class DockerExecution {
   String id
-
+  String status
+  String command
+  String image
+  String credentials
+  String container
+  String statusCode
+  String logs
+  Date created
+  Date lastUpdate
 }
