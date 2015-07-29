@@ -3,10 +3,8 @@
 /* jshint newcap: false */
 angular.module('spinnaker.caches.infrastructure', [
   'spinnaker.caches.core',
-  'spinnaker.authentication.service',
-  'spinnaker.settings',
 ])
-  .factory('infrastructureCaches', function(deckCacheFactory, authenticationService, settings) {
+  .factory('infrastructureCaches', function(deckCacheFactory) {
 
     var caches = Object.create(null);
 
@@ -23,19 +21,8 @@ angular.module('spinnaker.caches.infrastructure', [
     }
 
     function createCache(key, cacheConfig) {
-      var shouldDisable = false;
-      if (settings.authEnabled && cacheConfig.authEnabled && !authenticationService.getAuthenticatedUser().authenticated) {
-        shouldDisable = true;
-      }
-      cacheConfig.disabled = shouldDisable;
       deckCacheFactory.createCache(namespace, key, cacheConfig);
-      var cache = deckCacheFactory.getCache(namespace, key);
-      if (shouldDisable) {
-        authenticationService.onAuthentication(function() {
-          cache.enable();
-        });
-      }
-      caches[key] = cache;
+      caches[key] = deckCacheFactory.getCache(namespace, key);
     }
 
     caches.clearCaches = clearCaches;
