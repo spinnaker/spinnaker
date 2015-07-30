@@ -131,6 +131,11 @@ module.exports = angular
             return clusterNames.indexOf(serverGroup.cluster) !== -1;
           }
 
+          if(filter.indexOf('vpc:') !== -1) {
+            var vpcName = /vpc:([\w-]*)/.exec(filter);
+            return serverGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+          }
+
           if(filter.indexOf('cluster:') !== -1) {
               var clusterName = /cluster:([\w-]*)/.exec(filter);
               return serverGroup.cluster === clusterName[1];

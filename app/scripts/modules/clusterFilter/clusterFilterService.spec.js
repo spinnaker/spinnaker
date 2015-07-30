@@ -245,6 +245,19 @@ describe('Service: clusterFilterService', function () {
 
     });
 
+    describe('filter by vpc', function () {
+      it('should filter by vpc name as an exact match', function () {
+        ClusterFilterModel.sortFilter.filter = 'vpc:main';
+        var expected = _.filter(groupedJSON, {subgroups: [{heading: 'in-us-west-1-only' }]});
+        expect(service.updateClusterGroups(applicationJSON)).toEqual(expected);
+      });
+
+      it('should not match on partial vpc name', function () {
+        ClusterFilterModel.sortFilter.filter = 'vpc:main-old';
+        expect(service.updateClusterGroups(applicationJSON)).toEqual([]);
+      });
+    });
+
     describe('filter by clusters', function () {
       it('should filter by cluster names as an exact match', function () {
         ClusterFilterModel.sortFilter.filter = 'clusters:in-us-west-1-only';
