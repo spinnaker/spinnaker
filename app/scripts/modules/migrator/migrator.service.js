@@ -1,8 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.migrator.service', [
-  'spinnaker.utils.lodash',
-  'spinnaker.taskExecutor.service',
+let angular = require('angular');
+
+module.exports = angular
+
+  .module('spinnaker.migrator.service', [
+    require('utils/lodash.js'),
+    require('../../services/taskExecutor.js'),
   ])
   .factory('migratorService', function($timeout, $q, _, taskExecutor) {
 
@@ -90,4 +94,4 @@ angular.module('spinnaker.migrator.service', [
     };
 
   })
-;
+.name;

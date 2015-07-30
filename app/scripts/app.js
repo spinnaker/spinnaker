@@ -43,6 +43,7 @@ require('../../utils/stickyHeader/stickyHeader.less');
 require('../styles/imports/commonImports.less');
 require('./modules/search/global/globalSearch.less');
 require('./modules/confirmationModal/confirmationModal.less');
+require('./modules/migrator/migrator.less');
 
 require('../fonts/spinnaker/icons.css');
 

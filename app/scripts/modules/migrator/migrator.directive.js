@@ -1,11 +1,16 @@
 'use strict';
 
-angular.module('spinnaker.migrator.directive', [
-  'ui.bootstrap',
-  'spinnaker.vpc.read.service',
-  'spinnaker.settings',
-  'spinnaker.migrator.service',
-])
+let angular = require('angular');
+
+require('./migrator.modal.submitting.html');
+
+module.exports = angular
+  .module('spinnaker.migrator.directive', [
+    require('exports?"ui.bootstrap"!angular-bootstrap'),
+    require('../vpc/vpc.read.service.js'),
+    require('../../settings/settings.js'),
+    require('./migrator.service.js'),
+  ])
   .directive('migrator', function () {
     return {
       restrict: 'E',
@@ -15,9 +20,9 @@ angular.module('spinnaker.migrator.directive', [
         component: '=',
         type: '@',
       },
-      templateUrl: 'scripts/modules/migrator/migrator.directive.html',
+      templateUrl: require('./migrator.directive.html'),
       controller: 'MigratorActionCtrl',
-      controllerAs: 'migratorActionCtrl'
+      controllerAs: 'migratorActionCtrl',
     };
   })
   .controller('MigratorActionCtrl', function ($scope, $modal, vpcReader, settings) {
@@ -28,7 +33,7 @@ angular.module('spinnaker.migrator.directive', [
 
     this.previewMigration = function () {
       $modal.open({
-        templateUrl: 'scripts/modules/migrator/migrator.modal.html',
+        templateUrl: require('./migrator.modal.html'),
         controller: 'MigratorCtrl as ctrl',
         resolve: {
           component: function () {
@@ -118,4 +123,5 @@ angular.module('spinnaker.migrator.directive', [
       $scope.executor = executor;
     };
 
-  });
+  })
+.name;
