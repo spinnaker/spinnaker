@@ -53,22 +53,16 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
     // favor using configured target capacity whenever available (rather than in-progress asg's desiredCapacity)
-    CapacityConfig capacityConfig = stage.context.capacity ? stage.mapTo("/capacity", CapacityConfig) : null
-    Map source = stage.context.source as Map
-    Boolean useSourceCapacity = source?.useSourceCapacity as Boolean
     Map asg = (Map) serverGroup?.asg ?: [:]
     Integer targetDesiredSize = asg.desiredCapacity as Integer
 
-    if (capacityConfig?.desired != null && !useSourceCapacity) {
-      targetDesiredSize = capacityConfig.desired
-    } else {
-      if (stage.context.capacitySnapshot) {
-        Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
-        // if the ASG is being actively scaled down, this operation might never complete,
-        // so take the min of the latest capacity from the ASG and the snapshot
-        targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
-      }
+    if (stage.context.capacitySnapshot) {
+      Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
+      // if the ASG is being actively scaled down, this operation might never complete,
+      // so take the min of the latest capacity from the ASG and the snapshot
+      targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
     }
+
     if (stage.context.targetHealthyDeployPercentage != null) {
       Integer percentage = (Integer) stage.context.targetHealthyDeployPercentage
       if (percentage < 0 || percentage > 100) {
@@ -84,10 +78,4 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     allInstancesMatch(stage, serverGroup, instances, interestingHealthProviderNames)
   }
 
-  @Immutable
-  static class CapacityConfig {
-    Integer min
-    Integer max
-    Integer desired
-  }
 }

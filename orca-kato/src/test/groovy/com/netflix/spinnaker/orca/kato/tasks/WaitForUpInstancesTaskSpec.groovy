@@ -111,12 +111,16 @@ class WaitForUpInstancesTaskSpec extends Specification {
     (1..healthy).each {
       instances << [ health: [ [state: 'Up'] ] ]
     }
+    def serverGroup = [
+        asg: [
+            desiredCapacity: total
+        ]
+    ]
     hasSucceeded == task.hasSucceeded(
       new PipelineStage(new Pipeline(), "", "", [
-        capacity: [desired: total],
         targetHealthyDeployPercentage: percent
       ]
-      ), null, instances, null
+      ), serverGroup, instances, null
     )
 
     where:
@@ -204,8 +208,8 @@ class WaitForUpInstancesTaskSpec extends Specification {
     true   || true      | 3       | 4          | 4        | 3   | 'using source capacity of 4, snapshot ignored because it is larger than actual desired capacity'
     true   || false     | 2       | null       | null     | 2   | 'source not specified, falling back to ASG desired size of 2'
     false  || false     | 2       | null       | null     | 3   | 'source not specified, falling back to ASG desired size of 3'
-    false  || false     | 2       | 3          | null     | 2   | 'not using source, using configured size of 3, ignoring ASG desired size of 2'
-    true   || false     | 2       | 2          | null     | 3   | 'not using source, using configured size of 2, ignoring ASG desired size of 3'
+    false  || false     | 2       | 2          | null     | 3   | 'not using source, using configured size of 3, ignoring source size of 2'
+    true   || false     | 3       | 2          | null     | 3   | 'not using source, using configured size of 2, ignoring source size of 3'
   }
 
   @Unroll
@@ -228,9 +232,6 @@ class WaitForUpInstancesTaskSpec extends Specification {
   @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
-    hasSucceeded == task.hasSucceeded(
-      new PipelineStage(new Pipeline(), "", "", [capacity: [desired: desiredCapacity]]), null, instances, healthProviderNames
-    )
     hasSucceeded == task.hasSucceeded(
       new PipelineStage(new Pipeline(), "", "", [:]), [asg: [desiredCapacity: desiredCapacity]], instances, healthProviderNames
     )
