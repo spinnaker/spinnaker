@@ -7,8 +7,14 @@ describe('Service: InstanceType', function () {
     )
   );
 
-  beforeEach(window.inject(function (_clusterService_) {
-    this.clusterService = _clusterService_;
+  var clusterService, $http, vpcReader, $q, $scope;
+
+  beforeEach(window.inject(function (_clusterService_, $httpBackend, _vpcReader_, _$q_, $rootScope) {
+    clusterService = _clusterService_;
+    $http = $httpBackend;
+    vpcReader = _vpcReader_;
+    $q = _$q_;
+    $scope = $rootScope.$new();
 
     this.buildTask = function(config) {
       return {
@@ -31,6 +37,35 @@ describe('Service: InstanceType', function () {
 
   }));
 
+  describe('loading server groups', function() {
+    it ('adds vpc name', function () {
+      var instanceCounts = {
+        total: 0, up: 0, down: 0, unknown: 0, starting: 0, outOfService: 0,
+      };
+
+      $http.whenGET('/applications/app/serverGroups').respond(200, [
+        {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1',
+          instances: [], instanceCounts: instanceCounts, vpcId: 'vpc-1' },
+        {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1',
+          instances: [], instanceCounts: instanceCounts, vpcId: 'vpc-not-found' },
+        {cluster: 'cluster-a', name: 'cluster-a-v002', account: 'test', region: 'us-west-1',
+          instances: [], instanceCounts: instanceCounts },
+      ]);
+      spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([{id: 'vpc-1', name: 'Main'}]));
+
+      var results = null;
+      clusterService.loadServerGroups('app').then(function(result) { console.warn('DONE'); results = result; });
+      $http.flush();
+      $scope.$digest();
+
+      expect(results.length).toBe(3);
+      expect(results[0].vpcName).toBe('Main');
+      expect(results[1].vpcName).toBe('');
+      expect(results[2].vpcName).toBe('');
+
+    });
+  });
+
   describe('health count rollups', function() {
     it('aggregates health counts from server groups', function() {
       var application = {
@@ -43,7 +78,7 @@ describe('Service: InstanceType', function () {
         ]
       };
 
-      var clusters = this.clusterService.createServerGroupClusters(application.serverGroups);
+      var clusters = clusterService.createServerGroupClusters(application.serverGroups);
 
       expect(clusters.length).toBe(2);
       expect(clusters[0].totalCount).toBe(3);
@@ -77,7 +112,7 @@ describe('Service: InstanceType', function () {
           ]})
         ];
 
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         expect(app.serverGroups[0].runningTasks.length).toBe(0);
         expect(app.serverGroups[1].runningTasks.length).toBe(0);
         expect(app.serverGroups[2].runningTasks.length).toBe(1);
@@ -97,7 +132,7 @@ describe('Service: InstanceType', function () {
           ]})
         ];
 
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         expect(app.serverGroups[0].runningTasks.length).toBe(0);
         expect(app.serverGroups[1].runningTasks.length).toBe(0);
         expect(app.serverGroups[2].runningTasks.length).toBe(0);
@@ -117,7 +152,7 @@ describe('Service: InstanceType', function () {
           ]})
         ];
 
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         expect(app.serverGroups[0].runningTasks.length).toBe(0);
         expect(app.serverGroups[1].runningTasks.length).toBe(0);
         expect(app.serverGroups[2].runningTasks.length).toBe(1);
@@ -135,7 +170,7 @@ describe('Service: InstanceType', function () {
           ]})
         ];
 
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         expect(app.serverGroups[0].runningTasks.length).toBe(0);
         expect(app.serverGroups[1].runningTasks.length).toBe(0);
         expect(app.serverGroups[2].runningTasks.length).toBe(0);
@@ -170,7 +205,7 @@ describe('Service: InstanceType', function () {
               ]})
             ];
 
-            this.clusterService.addTasksToServerGroups(app);
+            clusterService.addTasksToServerGroups(app);
             expect(app.serverGroups[0].runningTasks.length).toBe(0);
             expect(app.serverGroups[1].runningTasks.length).toBe(0);
             expect(app.serverGroups[2].runningTasks.length).toBe(1);
@@ -185,7 +220,7 @@ describe('Service: InstanceType', function () {
       beforeEach(function() {
         this.validateTaskAttached = function() {
           var app = this.application;
-          this.clusterService.addTasksToServerGroups(app);
+          clusterService.addTasksToServerGroups(app);
           expect(app.serverGroups[0].runningTasks.length).toBe(0);
           expect(app.serverGroups[1].runningTasks.length).toBe(0);
           expect(app.serverGroups[2].runningTasks.length).toBe(1);
@@ -229,7 +264,7 @@ describe('Service: InstanceType', function () {
         var app = this.application;
         this.buildCommonTask('resizeasg');
         app.tasks[0].status = 'COMPLETED';
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         app.serverGroups.forEach(function(serverGroup) {
           expect(serverGroup.runningTasks.length).toBe(0);
         });
@@ -238,7 +273,7 @@ describe('Service: InstanceType', function () {
       it('some unknown task', function() {
         var app = this.application;
         this.buildCommonTask('someuknownthing');
-        this.clusterService.addTasksToServerGroups(app);
+        clusterService.addTasksToServerGroups(app);
         app.serverGroups.forEach(function(serverGroup) {
           expect(serverGroup.runningTasks.length).toBe(0);
         });
@@ -256,7 +291,7 @@ describe('Service: InstanceType', function () {
           }
         };
 
-        var result = this.clusterService.extractRegionFromContext(context);
+        var result = clusterService.extractRegionFromContext(context);
         expect(result).toBe('us-west-1');
 
       });
@@ -265,7 +300,7 @@ describe('Service: InstanceType', function () {
       it('should return "undefined" if nothing is extracted', function () {
         var context = {};
 
-        var result = this.clusterService.extractRegionFromContext(context);
+        var result = clusterService.extractRegionFromContext(context);
 
         expect(result).toBeUndefined();
       });
@@ -304,7 +339,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(1);
       });
@@ -328,7 +363,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(0);
       });
@@ -352,7 +387,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(0);
       });
@@ -389,7 +424,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(1);
       });
@@ -412,7 +447,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(0);
       });
@@ -435,7 +470,7 @@ describe('Service: InstanceType', function () {
         ];
 
         application.executions = executions;
-        var result = this.clusterService.addExecutionsToServerGroups(application);
+        var result = clusterService.addExecutionsToServerGroups(application);
 
         expect(result.serverGroups[0].executions.length).toBe(0);
       });
