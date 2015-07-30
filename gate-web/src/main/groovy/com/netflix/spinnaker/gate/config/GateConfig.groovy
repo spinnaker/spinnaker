@@ -24,10 +24,7 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
-import com.squareup.okhttp.CipherSuite
-import com.squareup.okhttp.ConnectionSpec
 import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.TlsVersion
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -112,18 +109,10 @@ class GateConfig {
   @Autowired
   OkHttpClientConfiguration okHttpClientConfig
 
-  @Bean OkHttpClient okHttpClient() {
-    def okHttpClient = okHttpClientConfig.create()
-    okHttpClient.setConnectionSpecs([
-      new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
-        .tlsVersions(TlsVersion.TLS_1_2)
-        .cipherSuites(
-        CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-      )
-        .build()
-    ])
-
-    return okHttpClient
+  @Bean
+  @groovy.transform.CompileDynamic
+  OkHttpClient okHttpClient() {
+    return okHttpClientConfig.create()
   }
 
   @Bean
@@ -328,25 +317,25 @@ class GateConfig {
   @Bean
   FilterRegistrationBean simpleCORSFilter() {
     def frb = new FilterRegistrationBean(
-    new Filter() {
-      public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-        throws IOException, ServletException {
-        HttpServletResponse response = (HttpServletResponse) res;
-        HttpServletRequest request = (HttpServletRequest) req;
-        String origin = request.getHeader("Origin") ?: "*"
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Origin", origin);
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH");
-        response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
-        response.setHeader("Access-Control-Expose-Headers", [AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
-        chain.doFilter(req, res);
-      }
+      new Filter() {
+        public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+          throws IOException, ServletException {
+          HttpServletResponse response = (HttpServletResponse) res;
+          HttpServletRequest request = (HttpServletRequest) req;
+          String origin = request.getHeader("Origin") ?: "*"
+          response.setHeader("Access-Control-Allow-Credentials", "true");
+          response.setHeader("Access-Control-Allow-Origin", origin);
+          response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH");
+          response.setHeader("Access-Control-Max-Age", "3600");
+          response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
+          response.setHeader("Access-Control-Expose-Headers", [AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
+          chain.doFilter(req, res);
+        }
 
-      public void init(FilterConfig filterConfig) {}
+        public void init(FilterConfig filterConfig) {}
 
-      public void destroy() {}
-    })
+        public void destroy() {}
+      })
     frb.setOrder(Ordered.HIGHEST_PRECEDENCE)
 
     return frb
