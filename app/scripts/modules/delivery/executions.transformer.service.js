@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+let executionBarLabelTemplate =  require('../pipelines/config/stages/core/executionBarLabel.html');
+
 module.exports = angular.module('spinnaker.delivery.executionTransformer.service', [
   require('../../services/orchestratedItem.js'),
   require('utils/lodash.js'),
@@ -223,7 +225,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
         if (stageConfig.executionBarColorProvider && stageConfig.executionBarColorProvider(stage)) {
           stage.color = stageConfig.executionBarColorProvider(stage);
         }
-        stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || 'scripts/modules/pipelines/config/stages/core/executionBarLabel.html';
+        stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || executionBarLabelTemplate;
       }
     }
 
