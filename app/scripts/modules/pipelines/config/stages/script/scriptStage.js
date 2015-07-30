@@ -6,7 +6,6 @@ require('./scriptStage.html');
 require('./scriptExecutionDetails.html');
 
 module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [
-  require('./script.service.js')
 ])
     .config(function(pipelineConfigProvider) {
       pipelineConfigProvider.registerStage({
