@@ -12,7 +12,7 @@ angular.module('spinnaker.pipelines.stage.script')
       executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
     });
   })
-  .controller('ScriptStageCtrl', function($scope, stage, scriptService, $q, authenticationService) {
+  .controller('ScriptStageCtrl', function($scope, stage, authenticationService) {
     $scope.stage = stage;
 
     if (!$scope.stage.user) {
@@ -20,13 +20,7 @@ angular.module('spinnaker.pipelines.stage.script')
     }
 
     $scope.viewState = {
-      loading: true
+      loading: false
     };
 
-    $q.all({
-      credentials: scriptService.getCredentials()
-    }).then(function(results) {
-      $scope.credentials = results.credentials;
-      $scope.viewState.loading = false;
-    });
   });

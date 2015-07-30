@@ -5,24 +5,23 @@
 </div>
 <div class="form-horizontal" ng-if="!viewState.loading">
   <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Command</label>
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Script Path</b>
+      <help-field key="pipeline.config.script.path"></help-field>
+    </div>
+    <div class="col-md-6">
+      <input type="text" class="form-control input-sm"
+             ng-model="stage.scriptPath"/>
+    </div>
+  </div>
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      <b>Command</b>
+      <help-field key="pipeline.config.script.command"></help-field>
+    </div>
     <div class="col-md-6">
       <input type="text" class="form-control input-sm"
              ng-model="stage.command"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Image</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.image"/>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-md-2 col-md-offset-1 sm-label-left">Credentials</label>
-    <div class="col-md-6">
-      <input type="text" class="form-control input-sm"
-             ng-model="stage.credentials"/>
     </div>
   </div>
 </div>
