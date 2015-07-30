@@ -35,7 +35,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             application: application.name,
             credentials: defaultCredentials,
             region: defaultRegion,
-            strategy: 'redblack',
+            strategy: '',
             capacity: {
               min: 1,
               max: 1,
