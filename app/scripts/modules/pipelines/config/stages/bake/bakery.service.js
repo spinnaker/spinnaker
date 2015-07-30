@@ -1,7 +1,9 @@
 'use strict';
 
+let angular = require('angular');
+
 // TODO: Move everything in here to config
-angular.module('spinnaker.pipelines.stage.bake')
+module.exports = angular.module('spinnaker.pipelines.stage.bake.service', [])
   .factory('bakeryService', function($q) {
 
     function getRegions(provider) {
@@ -36,4 +38,4 @@ angular.module('spinnaker.pipelines.stage.bake')
       getBaseLabelOptions: getBaseLabelOptions,
       getStoreTypes: getStoreTypes,
     };
-  });
+  }).name;

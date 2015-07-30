@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.caches.scheduled', ['spinnaker.scheduler'])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.scheduled', [
+  require('../../modules/scheduler/scheduler.service'),
+])
   .factory('scheduledCache', function($cacheFactory, $http, scheduler) {
     // returns a cache that is cleared according to the scheduler
     var that = {};
@@ -29,7 +33,7 @@ angular.module('spinnaker.caches.scheduled', ['spinnaker.scheduler'])
         $http.get(k, { cache: that.cache })
           .success(angular.noop);
       });
-      return that.cache.put(k,v);
+      return that.cache.put(k, v);
     };
 
     that.get = function(k) {
@@ -56,5 +60,6 @@ angular.module('spinnaker.caches.scheduled', ['spinnaker.scheduler'])
     };
 
     return that;
-  });
+  })
+  .name;
 

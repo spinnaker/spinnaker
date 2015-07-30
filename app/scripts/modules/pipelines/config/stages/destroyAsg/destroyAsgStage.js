@@ -1,6 +1,17 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.destroyAsg')
+let angular = require('angular');
+
+//BEN_TODO: where is this defined?
+
+require('./destroyAsgStage.html');
+require('./destroyAsgExecutionDetails.html');
+require('./destroyAsgStepLabel.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
+  require('utils/lodash.js'),
+  require('../stageConstants.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Destroy Server Group',
@@ -8,9 +19,9 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
       key: 'destroyAsg',
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/destroyAsg/destroyAsgStepLabel.html',
+      templateUrl: require('./destroyAsgStage.html'),
+      executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',
@@ -18,7 +29,7 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
         },
       ],
     });
-  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('DestroyAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;
 
     $scope.stage = stage;
@@ -45,14 +56,14 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
     $scope.targets = stageConstants.targetList;
 
     stage.regions = stage.regions || [];
-    
+
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;
     }
     if (!stage.regions.length && $scope.application.defaultRegion) {
       stage.regions.push($scope.application.defaultRegion);
     }
-    
+
     if (stage.credentials) {
       ctrl.accountUpdated();
     }
@@ -60,5 +71,6 @@ angular.module('spinnaker.pipelines.stage.destroyAsg')
       stage.target = $scope.targets[0].val;
     }
 
-  });
+  })
+  .name;
 

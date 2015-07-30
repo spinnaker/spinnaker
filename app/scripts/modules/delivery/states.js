@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.delivery.states', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.states', [])
   .constant('deliveryStates', {
     executions: {
       name: 'executions',
       url: '/executions',
       views: {
         'insight': {
-          templateUrl: 'scripts/modules/delivery/pipelineExecutions.html',
+          templateUrl: require('./pipelineExecutions.html'),
           controller: 'pipelineExecutions as ctrl',
         },
       },
@@ -43,7 +45,7 @@ angular.module('spinnaker.delivery.states', [])
       url: '/pipelines',
       views: {
         'insight': {
-          templateUrl: 'scripts/modules/pipelines/config/pipelineConfig.html',
+          templateUrl: require('../pipelines/config/pipelineConfig.html'),
           controller: 'PipelineConfigCtrl as pipelineConfigCtrl'
         },
       },
@@ -53,4 +55,5 @@ angular.module('spinnaker.delivery.states', [])
         }
       }
     }
-  });
+  })
+  .name;

@@ -18,22 +18,29 @@
 
 describe('Directives: regionSelectField', function () {
 
+  const angular = require('angular');
+
+  require('../../views/directives/regionSelectField.html');
+
   beforeEach(function() {
-    module('spinnaker', function($provide) {
-      $provide.decorator('cacheInitializer', function() {
-        return {
-          initialize: angular.noop
-        };
-      });
-      $provide.constant('settings', {
-        providers: { aws: { primaryRegions: ['us-east-1', 'us-east-2','us-west-1'] } }
+    window.module(
+      require('./directives.module.js'),
+      require('../modules/caches/cacheInitializer.js'),
+      function($provide) {
+        $provide.decorator('cacheInitializer', function() {
+          return {
+            initialize: angular.noop
+          };
+        });
+        $provide.constant('settings', {
+          providers: { aws: { primaryRegions: ['us-east-1', 'us-east-2', 'us-west-1'] } }
       });
     });
   });
 
 
 
-  beforeEach(inject(function ($rootScope, $compile, $) {
+  beforeEach(window.inject(function ($rootScope, $compile, $) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.divider = '---------------';
@@ -52,7 +59,7 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
-    var expected = ['us-east-1',this.divider,'eu-west-1','sa-east-1'];
+    var expected = ['us-east-1', this.divider, 'eu-west-1', 'sa-east-1'];
 
     expect(options.length).toBe(4);
     options.each(function(idx, option) {
@@ -75,7 +82,7 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
-    var expected = ['us-east-1','us-east-2'];
+    var expected = ['us-east-1', 'us-east-2'];
 
     expect(options.length).toBe(2);
     options.each(function(idx, option) {
@@ -101,7 +108,7 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
-    var expected = ['us-east-1','us-west-1'];
+    var expected = ['us-east-1', 'us-west-1'];
 
     expect(options.length).toBe(2);
     options.each(function(idx, option) {

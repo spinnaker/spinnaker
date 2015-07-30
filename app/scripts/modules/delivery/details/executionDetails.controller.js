@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.executionDetails.controller', [
-  'ui.router',
-  'spinnaker.pipelines.config'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.executionDetails.controller', [
+  require('angular-ui-router'),
+  require('../../pipelines/config/pipelineConfigProvider.js')
 ])
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
@@ -82,7 +84,8 @@ angular.module('spinnaker.executionDetails.controller', [
           }
         }
       }
-      return 'scripts/modules/pipelines/config/stages/core/executionSummary.html';
+      // BEN_TODO
+      return 'app/scripts/modules/pipelines/config/stages/core/executionSummary.html';
 
     };
 
@@ -91,8 +94,8 @@ angular.module('spinnaker.executionDetails.controller', [
       if (stageConfig && stageConfig.executionStepLabelUrl) {
         return stageConfig.executionStepLabelUrl;
       } else {
-        return 'scripts/modules/pipelines/config/stages/core/stepLabel.html';
+        return 'app/scripts/modules/pipelines/config/stages/core/stepLabel.html';
       }
     };
 
-  });
+  }).name;

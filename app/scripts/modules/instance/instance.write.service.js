@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.instance.write.service', [
-    'spinnaker.taskExecutor.service'
+    require('../../services/taskExecutor.js')
   ])
   .factory('instanceWriter', function (taskExecutor) {
 
@@ -117,4 +119,4 @@ angular
       disableInstanceInDiscovery: disableInstanceInDiscovery
     };
 
-  });
+  }).name;

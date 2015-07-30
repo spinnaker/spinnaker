@@ -1,18 +1,20 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.tasks.main', [
-  'spinnaker.utils.lodash',
-  'spinnaker.tasks.progressBar.directive',
-  'spinnaker.caches.viewStateCache',
-  'spinnaker.tasks.write.service',
-  'spinnaker.confirmationModal.service',
-  'spinnaker.pipelines.stages.core.displayableTasks.filter',
-  'ui.router',
-  'spinnaker.settings',
+module.exports = angular.module('spinnaker.tasks.main', [
+  require('utils/lodash.js'),
+  require('./taskProgressBar.directive.js'),
+  require('../caches/viewStateCache.js'),
+  require('../tasks/tasks.write.service.js'),
+  require('../confirmationModal/confirmationModal.service.js'),
+  require('../pipelines/config/stages/core/displayableTasks.filter.js'),
+  require('angular-ui-router'),
+  require('../caches/deckCacheFactory.js'),
 ])
-  .controller('TasksCtrl', function ($scope, $state, settings, application, _, viewStateCache, tasksWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, tasksWriter, confirmationModalService) {
     var controller = this;
+    const application = app;
 
     var tasksViewStateCache = viewStateCache.tasks || viewStateCache.createCache('tasks', { version: 1 });
 
@@ -28,7 +30,7 @@ angular.module('spinnaker.tasks.main', [
     }
 
     $scope.tasksUrl = [settings.gateUrl, 'applications', application.name, 'tasks/'].join('/');
-    $scope.filterCountOptions = [10,20,30,50,100,200];
+    $scope.filterCountOptions = [10, 20, 30, 50, 100, 200];
 
     function initializeViewState() {
       var viewState = tasksViewStateCache.get(application.name) || {
@@ -247,4 +249,4 @@ angular.module('spinnaker.tasks.main', [
     initializeViewState();
 
   }
-);
+).name;

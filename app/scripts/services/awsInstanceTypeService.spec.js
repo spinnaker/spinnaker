@@ -19,12 +19,14 @@
 describe('Service: InstanceType', function () {
 
   beforeEach(function() {
-      module('spinnaker.instanceType.service');
-      module('spinnaker.caches.initializer');
+      window.module(
+        require('./instanceTypeService'),
+        require('./awsInstanceTypeService')
+      );
   });
 
 
-  beforeEach(inject(function (_instanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches, cacheInitializer) {
+  beforeEach(window.inject(function (_instanceTypeService_, _$httpBackend_, _settings_, infrastructureCaches) {
 
     this.instanceTypeService = _instanceTypeService_;
     this.$httpBackend = _$httpBackend_;

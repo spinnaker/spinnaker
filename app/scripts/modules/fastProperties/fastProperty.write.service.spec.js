@@ -4,9 +4,13 @@ describe('FastProperty Write Service:', function () {
 
   var service;
 
-  beforeEach(module('spinnaker.fastProperty.write.service'));
+  beforeEach(
+    window.module(
+      require('./fastProperty.write.service')
+    )
+  );
 
-  beforeEach(inject(function (_fastPropertyWriter_) {
+  beforeEach(window.inject(function (_fastPropertyWriter_) {
     service = _fastPropertyWriter_;
   }));
 

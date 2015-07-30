@@ -16,65 +16,66 @@
 
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker')
-  .directive('checklist', function() {
-    return {
-      restrict: 'E',
-      templateUrl: 'views/directives/checklist.html',
-      scope: {
-        items: '=',
-        model: '=',
-        onChange: '&',
-        inline: '=',
-        includeSelectAllButton: '=',
-      },
-      link: function(scope) {
+//BEN_TODO
 
-        function initializeModelHolder() {
-          scope.model = scope.model || [];
-          scope.modelHolder = {};
-          scope.model.forEach(function (val) {
-            scope.modelHolder[val] = true;
-          });
-        }
-
-        function updateModel() {
-          var updatedModel = [];
-          scope.items.forEach(function (testKey) {
-            if (scope.modelHolder[testKey]) {
-              updatedModel.push(testKey);
-            }
-          });
-
-          angular.copy(updatedModel, scope.model);
-
-          if (scope.onChange) {
-            scope.$evalAsync(scope.onChange);
-          }
-        }
-
-        scope.selectAll = function () {
-          scope.items.forEach(function (key) {
-            scope.modelHolder[key] = true;
-          });
-          updateModel();
-        };
-
-        scope.updateModel = updateModel;
-
-        scope.$watch('model', initializeModelHolder);
-
-        scope.$watch('items', function(newOptions, oldOptions) {
-          if (oldOptions && oldOptions !== newOptions) {
-            oldOptions.forEach(function(oldOption) {
-              if (newOptions.indexOf(oldOption) === -1) {
-                delete scope.modelHolder[oldOption];
-              }
-            });
-            updateModel();
-          }
+module.exports = function() {
+  return {
+    restrict: 'E',
+    templateUrl: require('../../views/directives/checklist.html'),
+    scope: {
+      items: '=',
+      model: '=',
+      onChange: '&',
+      inline: '=',
+      includeSelectAllButton: '=',
+    },
+    link: function(scope) {
+      function initializeModelHolder() {
+        scope.model = scope.model || [];
+        scope.modelHolder = {};
+        scope.model.forEach(function (val) {
+          scope.modelHolder[val] = true;
         });
       }
-    };
-  });
+
+      function updateModel() {
+        var updatedModel = [];
+        scope.items.forEach(function (testKey) {
+          if (scope.modelHolder[testKey]) {
+            updatedModel.push(testKey);
+          }
+        });
+
+        angular.copy(updatedModel, scope.model);
+
+        if (scope.onChange) {
+          scope.$evalAsync(scope.onChange);
+        }
+      }
+
+      scope.selectAll = function () {
+        scope.items.forEach(function (key) {
+          scope.modelHolder[key] = true;
+        });
+        updateModel();
+      };
+
+      scope.updateModel = updateModel;
+
+      scope.$watch('model', initializeModelHolder);
+
+      scope.$watch('items', function(newOptions, oldOptions) {
+        if (oldOptions && oldOptions !== newOptions) {
+          oldOptions.forEach(function(oldOption) {
+            if (newOptions.indexOf(oldOption) === -1) {
+              delete scope.modelHolder[oldOption];
+            }
+          });
+          updateModel();
+        }
+      });
+    }
+  };
+};

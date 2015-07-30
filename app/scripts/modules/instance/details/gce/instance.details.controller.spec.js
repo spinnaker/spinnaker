@@ -2,17 +2,20 @@
 
 describe('Controller: gceInstanceDetailsCtrl', function () {
 
+  const angular = require('angular');
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
 
   beforeEach(
-    module('spinnaker.instance.detail.gce.controller')
+    window.module(
+      require('./instance.details.controller.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('gceInstanceDetailsCtrl', {
         $scope: scope,

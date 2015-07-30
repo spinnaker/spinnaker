@@ -1,18 +1,23 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('clusters.all', [
-  'cluster.filter.service',
-  'cluster.filter.model',
-  'spinnaker.cluster.pod',
-  'spinnaker.account',
-  'spinnaker.providerSelection',
-  'spinnaker.providerSelection.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.serverGroup.configure.common.service',
-  'spinnaker.utils.waypoints.container.directive',
+require('../../modules/serverGroups/configure/aws/wizard/serverGroupWizard.html');
+require('../../modules/serverGroups/configure/gce/wizard/serverGroupWizard.html');
+
+module.exports = angular.module('clusters.all', [
+  require('../clusterFilter/clusterFilterService.js'),
+  require('../clusterFilter/clusterFilterModel.js'),
+  require('./clusterPod.directive.js'),
+  require('../account/account.module.js'),
+  require('../providerSelection/providerSelection.module.js'),
+  require('../providerSelection/providerSelection.service.js'),
+  require('../securityGroups/securityGroup.read.service.js'),
+  require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('utils/waypoints/waypointContainer.directive.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
 ])
-  .controller('AllClustersCtrl', function($scope, application, $modal, $location,
+  .controller('AllClustersCtrl', function($scope, app, $modal, $location,
                                           securityGroupReader, accountService, providerSelectionService,
                                           _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
 
@@ -30,7 +35,7 @@ angular.module('clusters.all', [
     });
 
     function addSearchFields() {
-      application.serverGroups.forEach(function(serverGroup) {
+      app.serverGroups.forEach(function(serverGroup) {
         var buildInfo = '';
         if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins) {
           buildInfo = [
@@ -54,7 +59,7 @@ angular.module('clusters.all', [
     function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
       $scope.$evalAsync(function() {
-          clusterFilterService.updateClusterGroups(application);
+          clusterFilterService.updateClusterGroups(app);
         }
       );
 
@@ -69,15 +74,16 @@ angular.module('clusters.all', [
     };
 
     this.createServerGroup = function createServerGroup() {
+      // BEN_TODO: figure out interpolated values with webpack
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
-          templateUrl: 'scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          templateUrl: 'app/scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function() { return 'Create New Server Group'; },
-            application: function() { return application; },
+            application: function() { return app; },
             serverGroup: function() { return null; },
-            serverGroupCommand: function() { return serverGroupCommandBuilder.buildNewServerGroupCommand(application, selectedProvider); },
+            serverGroupCommand: function() { return serverGroupCommandBuilder.buildNewServerGroupCommand(app, selectedProvider); },
             provider: function() { return selectedProvider; }
           }
         });
@@ -93,6 +99,6 @@ angular.module('clusters.all', [
 
     autoRefreshHandler();
 
-    application.registerAutoRefreshHandler(autoRefreshHandler, $scope);
-  }
-);
+    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
+  })
+  .name;

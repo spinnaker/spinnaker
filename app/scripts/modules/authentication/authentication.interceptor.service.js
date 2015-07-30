@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.authentication.interceptor.service', [
-  'spinnaker.settings',
-  'spinnaker.authentication.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.authentication.interceptor.service', [
+  require('../../settings/settings.js'),
+  require('./authenticationService.js')
 ])
   .factory('authenticationInterceptor', function ($q, settings, authenticationService) {
 
@@ -29,4 +31,5 @@ angular.module('spinnaker.authentication.interceptor.service', [
     if (settings.authEnabled) {
       $httpProvider.interceptors.push('authenticationInterceptor');
     }
-  });
+  })
+  .name;

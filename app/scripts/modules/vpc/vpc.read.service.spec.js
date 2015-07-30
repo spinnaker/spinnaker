@@ -5,10 +5,12 @@ describe('vpcReader', function() {
   var service, $http, $scope;
 
   beforeEach(
-    module('spinnaker.vpc.read.service')
+    window.module(
+      require('./vpc.read.service.js')
+    )
   );
 
-  beforeEach(inject(function ($httpBackend, $rootScope, _vpcReader_) {
+  beforeEach(window.inject(function ($httpBackend, $rootScope, _vpcReader_) {
     service = _vpcReader_;
     $http = $httpBackend;
     $scope = $rootScope.$new();

@@ -7,22 +7,22 @@
   </div>
   <modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
     <wizard-page key="location" label="Basic Settings">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/basicSettings.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/basicSettings.html'"></ng-include>
     </wizard-page>
     <wizard-page key="load-balancers" label="Load Balancers">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/loadBalancers.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/loadBalancers.html'"></ng-include>
     </wizard-page>
     <wizard-page key="instance-profile" label="Instance Profile">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/instanceArchetype.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/instanceArchetype.html'"></ng-include>
     </wizard-page>
     <wizard-page key="instance-type" label="Instance Type" render="false">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/instanceType.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/instanceType.html'"></ng-include>
     </wizard-page>
     <wizard-page key="capacity" label="Capacity">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/capacity.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/capacity.html'"></ng-include>
     </wizard-page>
     <wizard-page key="advanced" label="Advanced Settings" mandatory="false">
-      <ng-include src="'scripts/modules/serverGroups/configure/gce/wizard/advancedSettings.html'"></ng-include>
+      <ng-include src="'app/scripts/modules/serverGroups/configure/gce/wizard/advancedSettings.html'"></ng-include>
     </wizard-page>
   </modal-wizard>
 

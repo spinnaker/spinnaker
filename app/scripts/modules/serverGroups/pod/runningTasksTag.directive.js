@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.display.tasks.tag', [
-  'spinnaker.executionFilter.service'
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.display.tasks.tag', [
+  require('../configure/common/runningExecutions.service.js'),
 ])
   .directive('runningTasksTag', function() {
     return {
@@ -11,7 +13,7 @@ angular.module('spinnaker.serverGroup.display.tasks.tag', [
         tasks: '=',
         executions: '='
       },
-      templateUrl: 'scripts/modules/serverGroups/pod/runningTasksTag.html',
+      templateUrl: require('./runningTasksTag.html'),
       controller: 'RunningTaskTagController',
     };
   })
@@ -21,4 +23,4 @@ angular.module('spinnaker.serverGroup.display.tasks.tag', [
       return executionFilterService.filterRunningExecutions($scope.executions);
     };
 
-  });
+  }).name;

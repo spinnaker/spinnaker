@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceTypeSelector', [])
   .directive('instanceTypeSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/common/instanceTypeDirective.html',
+      templateUrl: require('./instanceTypeDirective.html'),
       controller: 'InstanceTypeSelectorCtrl as instanceTypeCtrl',
     };
   })
@@ -28,4 +30,4 @@ angular.module('spinnaker.serverGroup.configure.common')
       $scope.command.instanceType = type;
     };
 
-  });
+  }).name;

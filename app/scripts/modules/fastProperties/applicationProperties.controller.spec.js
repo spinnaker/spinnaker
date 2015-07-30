@@ -3,12 +3,16 @@
 describe('Application Property Controller:', function () {
   var controller;
 
-  beforeEach(module('spinnaker.applicationProperties.controller'));
+  beforeEach(
+    window.module(
+      require('./applicationProperties.controller.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope){
-    controller = $controller('ApplicationPropertiesController',{
+  beforeEach(window.inject(function($controller, $rootScope){
+    controller = $controller('ApplicationPropertiesController', {
       '$scope': $rootScope.$new(),
-      'application': {
+      'app': {
         registerAutoRefreshHandler: function() {}
       }
     });

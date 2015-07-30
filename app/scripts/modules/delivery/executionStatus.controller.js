@@ -1,7 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionStatus.controller', [])
-  .controller('executionStatus', function() {
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionStatus.controller', [
+  require('utils/lodash.js'),
+])
+  .controller('executionStatus', function(_) {
     var controller = this;
 
     controller.getFailedStage = function(execution) {
@@ -43,4 +47,4 @@ angular.module('spinnaker.delivery.executionStatus.controller', [])
       return 'Unknown';
     };
 
-  });
+  }).name;

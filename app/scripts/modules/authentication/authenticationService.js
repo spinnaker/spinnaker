@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.authentication.service', [
-  'ui.bootstrap',
-  'spinnaker.settings',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.authentication.service', [
+  require('../../settings/settings.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap')
 ])
   .factory('authenticationService', function () {
     var user = {
@@ -35,4 +37,5 @@ angular.module('spinnaker.authentication.service', [
       getAuthenticatedUser: getAuthenticatedUser,
       onAuthentication: onAuthentication,
     };
-  });
+  })
+  .name;

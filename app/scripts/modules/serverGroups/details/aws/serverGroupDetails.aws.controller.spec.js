@@ -1,20 +1,23 @@
 'use strict';
 
 describe('Controller: AWS ServerGroupDetailsCtrl', function () {
+  const angular = require('angular');
 
   var controller;
   var $scope;
 
   beforeEach(
-    module('spinnaker.serverGroup.details.aws.controller')
+    window.module(
+      require('./serverGroupDetails.aws.controller')
+    )
   );
 
   beforeEach(
-    inject( function($controller, $rootScope) {
+    window.inject( function($controller, $rootScope) {
       $scope = $rootScope.$new();
-      controller = $controller('awsServerGroupDetailsCtrl',{
+      controller = $controller('awsServerGroupDetailsCtrl', {
         $scope: $scope,
-        application: {
+        app: {
           serverGroups: [],
           loadBalancers: [],
           registerAutoRefreshHandler: angular.noop

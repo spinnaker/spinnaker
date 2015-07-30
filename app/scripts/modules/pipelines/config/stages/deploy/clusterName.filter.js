@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.pipelines')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.clusterName.filter', [])
   .filter('clusterName', function(namingService) {
     return function(input) {
       if (!input) {
@@ -8,4 +10,4 @@ angular.module('spinnaker.pipelines')
       }
       return namingService.getClusterName(input.application, input.stack, input.freeFormDetails);
     };
-  });
+  }).name;

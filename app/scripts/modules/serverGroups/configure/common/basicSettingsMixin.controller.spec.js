@@ -3,9 +3,13 @@
 describe('Basic Settings Mixin Controller:', function () {
   var controller, $scope;
 
-  beforeEach(module('spinnaker.serverGroups.basicSettings.controller'));
+  beforeEach(
+    window.module(
+      require('./basicSettingsMixin.controller.js')
+    )
+  );
 
-  beforeEach(inject(function($controller, $rootScope, RxService, namingService) {
+  beforeEach(window.inject(function($controller, $rootScope, RxService, namingService) {
     $scope = $rootScope.$new();
     $scope.application = { name: 'app', serverGroups: [] };
     $scope.command = { viewState: { }};

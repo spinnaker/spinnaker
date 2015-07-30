@@ -4,11 +4,13 @@ describe('Filter: ipSort', function() {
   var filter;
 
   beforeEach(
-    module('spinnaker.networking.ip.sort.filter')
+    window.module(
+      require('./ip.sort.filter')
+    )
   );
 
   beforeEach(
-    inject(
+    window.inject(
       function($filter) {
         filter = $filter('ipSorter');
       }
@@ -24,12 +26,12 @@ describe('Filter: ipSort', function() {
       f = { address: '1.0.0.0' },
       g = { address: '2.0.0.0' };
 
-    var original = [a,b,c,d,e,f,g];
+    var original = [a, b, c, d, e, f, g];
 
     var sorted = filter(original);
 
-    expect(sorted).toEqual([f,e,d,c,b,a,g]);
-    expect(original).toEqual([a,b,c,d,e,f,g]);
+    expect(sorted).toEqual([f, e, d, c, b, a, g]);
+    expect(original).toEqual([a, b, c, d, e, f, g]);
 
   });
 

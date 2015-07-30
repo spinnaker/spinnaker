@@ -1,10 +1,16 @@
 'use strict';
 
 describe('Controller: renamePipelineModal', function() {
+  const angular = require('angular');
 
-  beforeEach(module('spinnaker.pipelines.editJson'));
 
-  beforeEach(inject(function ($controller, $rootScope, _) {
+  beforeEach(
+    window.module(
+      require('./editPipelineJson.module.js')
+    )
+  );
+
+  beforeEach(window.inject(function ($controller, $rootScope, _) {
     this.initializeController = function (pipeline) {
       this.$scope = $rootScope.$new();
       this.$modalInstance = { close: angular.noop };

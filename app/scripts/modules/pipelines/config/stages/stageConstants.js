@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.stage.constants', [])
   .constant('stageConstants', {
     targetList: [
@@ -32,4 +34,5 @@ angular
           'to the state of the cluster caused by upstream stages.'
       }
     ]
-  });
+  })
+  .name;

@@ -1,8 +1,13 @@
 'use strict';
 
+/* eslint consistent-return:0 */
 
-angular.module('spinnaker.search.global')
-  .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, clusterFilterService) {
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.search.global.controller', [
+  require('utils/jQuery.js')
+])
+  .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, $, clusterFilterService) {
     var ctrl = this;
     var search = infrastructureSearchService();
 
@@ -71,14 +76,18 @@ angular.module('spinnaker.search.global')
       try {
         event.preventDefault();
         $element.find('ul.dropdown-menu').find('a').first().focus();
-      } catch (e) {}
+      } catch (e) {
+        console.log(e);
+      }
     };
 
     this.focusLastSearchResult = function focusLastSearchResult(event) {
       try {
         event.preventDefault();
         $element.find('ul.dropdown-menu').find('a').last().focus();
-      } catch (e) {}
+      } catch (e) {
+        console.log(e);
+      }
     };
 
     this.showSearchResults = function() {
@@ -140,4 +149,4 @@ angular.module('spinnaker.search.global')
         }
       }
     };
-  });
+  }).name;

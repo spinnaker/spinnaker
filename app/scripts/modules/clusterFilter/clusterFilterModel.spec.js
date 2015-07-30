@@ -5,12 +5,12 @@ describe('Cluster Filter Model', function () {
 
   var ClusterFilterModel;
 
-  beforeEach(module(
-    'cluster.filter.model'
+  beforeEach(window.module(
+    require('./clusterFilterModel')
   ));
 
   beforeEach(
-    inject(function(_ClusterFilterModel_){
+    window.inject(function(_ClusterFilterModel_){
       ClusterFilterModel = _ClusterFilterModel_;
     })
   );

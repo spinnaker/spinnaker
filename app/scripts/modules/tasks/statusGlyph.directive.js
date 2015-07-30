@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.statusGlyph.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.statusGlyph.directive', [])
   .directive('statusGlyph', function() {
     return {
       restrict: 'E',
@@ -8,7 +10,7 @@ angular.module('spinnaker.statusGlyph.directive', [])
       scope: {
         item: '=',
       },
-      templateUrl: 'scripts/modules/tasks/statusGlyph.html',
+      templateUrl: require('./statusGlyph.html'),
     };
 
-  });
+  }).name;

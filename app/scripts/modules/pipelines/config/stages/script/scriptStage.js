@@ -1,26 +1,33 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.script')
-  .config(function(pipelineConfigProvider) {
-    pipelineConfigProvider.registerStage({
-      label: 'Script',
-      description: 'Runs a script',
-      key: 'script',
-      controller: 'ScriptStageCtrl',
-      controllerAs: 'scriptStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/script/scriptStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
-    });
-  })
-  .controller('ScriptStageCtrl', function($scope, stage, authenticationService) {
-    $scope.stage = stage;
+let angular = require('angular');
 
-    if (!$scope.stage.user) {
-      $scope.stage.user = authenticationService.getAuthenticatedUser().name;
-    }
+require('./scriptStage.html');
+require('./scriptExecutionDetails.html');
 
-    $scope.viewState = {
-      loading: false
-    };
+module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [
+  require('./script.service.js')
+])
+    .config(function(pipelineConfigProvider) {
+      pipelineConfigProvider.registerStage({
+        label: 'Script',
+        description: 'Runs a script',
+        key: 'script',
+        controller: 'ScriptStageCtrl',
+        controllerAs: 'scriptStageCtrl',
+        templateUrl: require('./scriptStage.html'),
+        executionDetailsUrl: require('./scriptExecutionDetails.html'),
+      });
+    })
+    .controller('ScriptStageCtrl', function($scope, stage, scriptService, $q, authenticationService) {
+      $scope.stage = stage;
 
-  });
+      if (!$scope.stage.user) {
+        $scope.stage.user = authenticationService.getAuthenticatedUser().name;
+      }
+
+      $scope.viewState = {
+        loading: false
+      };
+    })
+    .name;

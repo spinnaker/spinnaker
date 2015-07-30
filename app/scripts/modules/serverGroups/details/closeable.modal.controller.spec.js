@@ -8,11 +8,13 @@ describe('Controller: CloseableModalCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.closable.modal.controller')
+    window.module(
+      require('./closeable.modal.controller.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('CloseableModalCtrl', {
         $scope: scope,

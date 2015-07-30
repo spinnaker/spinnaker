@@ -1,8 +1,8 @@
 <modal-wizard heading="Edit {{loadBalancer.name}}: {{loadBalancer.region}}: {{loadBalancer.credentials}}">
   <wizard-page key="Listener" label="Listener" done="true">
-    <ng-include src="'scripts/modules/loadBalancers/configure/gce/listeners.html'"></ng-include>
+    <ng-include src="'app/scripts/modules/loadBalancers/configure/gce/listeners.html'"></ng-include>
   </wizard-page>
   <wizard-page key="Health Check" label="Health Check" done="true" render="loadBalancer.listeners[0].healthCheck" hide-subheading="true">
-    <ng-include src="'scripts/modules/loadBalancers/configure/gce/healthCheck.html'"></ng-include>
+    <ng-include src="'app/scripts/modules/loadBalancers/configure/gce/healthCheck.html'"></ng-include>
   </wizard-page>
 </modal-wizard>

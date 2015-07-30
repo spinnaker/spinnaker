@@ -1,7 +1,8 @@
 'use strict';
+let angular = require('angular');
 
-angular
+module.exports = angular
   .module('spinnaker.feedback', [
-    'spinnaker.feedback.modal.controller',
-    'spinnaker.feedback.directive'
-  ]);
+    require('./feedback.modal.controller.js'),
+    require('./feedback.directive.js')
+  ]).name;

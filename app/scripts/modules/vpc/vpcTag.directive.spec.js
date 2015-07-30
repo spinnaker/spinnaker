@@ -1,12 +1,17 @@
 'use strict';
 
-describe('Directives: healthCounts', function () {
+describe('Directives: vpcTag', function () {
 
   var $q, vpcReader;
 
-  beforeEach(module('spinnaker.vpc.tag.directive'));
+  beforeEach(
+    window.module(
+      require('./vpcTag.directive.js'),
+      require('./vpc.read.service.js')
+    )
+  );
 
-  beforeEach(inject(function ($rootScope, $compile, _$q_, _vpcReader_) {
+  beforeEach(window.inject(function ($rootScope, $compile, _$q_, _vpcReader_) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     $q = _$q_;

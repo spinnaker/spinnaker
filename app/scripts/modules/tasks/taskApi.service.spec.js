@@ -19,15 +19,19 @@
 'use strict';
 
 describe('Service: Pond - task complete, task force refresh', function() {
+  const TasksFixture = require('./tasks.fixture.js');
 
   var application = 'deck';
   var service, $http, config, scope, timeout, task, lodash;
 
   beforeEach(
-    module('spinnaker.tasks.api')
+    window.module(
+      require('./tasks.api.config.js'),
+      require('../../settings/settings.js')
+    )
   );
 
-  beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {
+  beforeEach(window.inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {
 
     service = tasksApi;
     config = settings;

@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
 function selectScopeDirective() {
   return {
     restrict: 'E',
     controller: 'ScopeSelectController',
     controllerAs: 'ss',
-    templateUrl: 'scripts/modules/fastProperties/scopeSelect.directive.html',
+    templateUrl: require('./scopeSelect.directive.html'),
     scope: {
       clusters: '=',
       modal: '=',
@@ -15,14 +16,14 @@ function selectScopeDirective() {
   };
 }
 
-
-angular
+module.exports = angular
   .module('spinnaker.fastPropertyScope.selection.directive', [
-    'spinnaker.fastPropertyScope.service',
-    'spinnaker.fastProperty.read.service'
+    require('./fastPropertyScope.service.js'),
+    require('./fastProperty.read.service.js'),
+    require('utils/lodash.js'),
   ])
   .directive('scopeSelect', selectScopeDirective)
-  .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader) {
+  .controller('ScopeSelectController', function ($scope, FastPropertyScopeService, fastPropertyReader, _) {
     var vm = this;
 
     vm.clusters = $scope.clusters;
@@ -86,9 +87,8 @@ angular
     };
 
     return vm;
-
-
   }
-);
+)
+.name;
 
 

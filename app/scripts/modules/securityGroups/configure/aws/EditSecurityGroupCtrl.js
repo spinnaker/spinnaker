@@ -1,14 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.aws.edit.controller', [
-  'ui.router',
-  'spinnaker.account.service',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.caches.initializer',
-  'spinnaker.tasks.monitor.service',
-  'spinnaker.securityGroup.write.service',
-  'spinnaker.vpc.read.service',
+module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
+  require('angular-ui-router'),
+  require('../../../account/accountService.js'),
+  require('../../../caches/infrastructureCaches.js'),
+  require('../../../caches/cacheInitializer.js'),
+  require('../../../tasks/monitor/taskMonitorService.js'),
+  require('../../securityGroup.write.service.js'),
+  require('../../../vpc/vpc.read.service.js'),
 ])
   .controller('EditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                 accountService,  securityGroupReader,
@@ -110,4 +111,4 @@ angular.module('spinnaker.securityGroup.aws.edit.controller', [
     };
 
     initializeSecurityGroups();
-  });
+  }).name;

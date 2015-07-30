@@ -4,11 +4,23 @@ describe('spinnaker.caches.infrastructure', function() {
 
   var infrastructureCaches, deckCacheFactory;
 
-  beforeEach(module('spinnaker.caches.infrastructure'));
-  beforeEach(inject(function(_infrastructureCaches_, _deckCacheFactory_) {
+  beforeEach(
+    window.module(
+      require('./infrastructureCaches.js')
+    )
+  );
+  
+  beforeEach(window.inject(function(_infrastructureCaches_, _deckCacheFactory_) {
     infrastructureCaches = _infrastructureCaches_;
     deckCacheFactory = _deckCacheFactory_;
   }));
+
+  describe('injected values', function () {
+    it('should be valid instances', function () {
+      expect(infrastructureCaches).toBeDefined();
+      expect(deckCacheFactory).toBeDefined();
+    });
+  });
 
   describe('cache initialization', function() {
 
@@ -17,6 +29,10 @@ describe('spinnaker.caches.infrastructure', function() {
       var removalCalls = [];
 
       var cacheFactory = function(cacheId, config) {
+        cacheInstantiations.push({cacheId: cacheId, config: config});
+      };
+
+      cacheFactory.createCache = function(cacheId, config) {
         cacheInstantiations.push({cacheId: cacheId, config: config});
       };
 
@@ -68,6 +84,17 @@ describe('spinnaker.caches.infrastructure', function() {
       expect(this.cacheInstantiations[3].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
       expect(this.removalCalls.length).toBe(3);
       expect(this.removalCalls).toEqual(['myCache', 'myCache', 'infrastructure:myCache']);
+    });
+
+    it('should remove all keys when clearCache called', function() {
+      infrastructureCaches.createCache('someBadCache', {
+        cacheFactory: this.cacheFactory,
+        version: 0,
+      });
+
+      var removalCallsAfterInitialization = this.removalCalls.length;
+      infrastructureCaches.clearCache('someBadCache');
+      expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
     });
 
     it('should remove all keys when clearCache called', function() {

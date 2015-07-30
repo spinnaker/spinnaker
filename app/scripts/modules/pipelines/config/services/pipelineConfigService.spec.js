@@ -1,9 +1,15 @@
 'use strict';
 
 describe('pipelineConfigService', function () {
-  beforeEach(module('spinnaker.pipelines'));
+  beforeEach(
+    window.module(
+      require('./pipelineConfigService'),
+      require('utils/lodash.js')
+    )
+  );
 
-  beforeEach(inject(function (pipelineConfigService, settings, $httpBackend, $rootScope) {
+  beforeEach(window.inject(function (pipelineConfigService, settings, $httpBackend, $rootScope, ___) {
+    this._ = ___;
     this.service = pipelineConfigService;
     this.settings = settings;
     this.$http = $httpBackend;

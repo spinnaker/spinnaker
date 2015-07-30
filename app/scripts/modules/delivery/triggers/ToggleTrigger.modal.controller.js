@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.execution.triggers.toggle.modal.controller', [
-  'spinnaker.pipelines.config.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.execution.triggers.toggle.modal.controller', [
+  require('../../pipelines/config/services/pipelineConfigService.js'),
 ])
   .controller('ToggleTriggerModalCtrl', function($scope, pipeline, trigger, $modalInstance, pipelineConfig, pipelineConfigService) {
 
@@ -19,4 +21,4 @@ angular.module('spinnaker.delivery.execution.triggers.toggle.modal.controller', 
       pipelineConfigService.savePipeline(pipeline).then($modalInstance.close);
     };
 
-  });
+  }).name;

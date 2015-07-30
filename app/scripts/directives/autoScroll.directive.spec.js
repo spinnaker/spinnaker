@@ -18,7 +18,11 @@
 
 describe('Directives: auto-scroll', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(window.module(
+    require('utils/jQuery.js'),
+    require('./directives.module.js')
+  ));
+
 
   function buildContainer(height) {
     return '<div style="overflow:auto; height: ' + height + 'px"></div>';
@@ -49,10 +53,10 @@ describe('Directives: auto-scroll', function () {
     return container;
   }
 
-  beforeEach(inject(function ($rootScope, $compile, $, $timeout) {
+  beforeEach(window.inject(function ($rootScope, $compile, $, _$timeout_) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
-    this.timeout = $timeout;
+    this.timeout = _$timeout_;
     this.$ = $;
   }));
 

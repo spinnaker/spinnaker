@@ -1,13 +1,15 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.fastproperties', [
-    'spinnaker.fastProperties.controller',
-    'spinnaker.applicationProperties.controller',
-    'spinnaker.fastPropertyScope.selection.directive',
-    'spinnaker.deleteFastProperty.controller',
-    'spinnaker.fastProperties.rollouts.controller',
-    'spinnaker.fastProperties.data.controller',
-    'spinnaker.fastProperty.progressBar.directive',
-    'spinnaker.fastProperty.constraints.directive',
-  ]);
+    require('./fastProperties.controller.js'),
+    require('./applicationProperties.controller.js'),
+    require('./scopeSelect.directive.js'),
+    require('./modal/deleteFastProperty.controller.js'),
+    require('./fastPropertyRollouts.controller.js'),
+    require('./fastProperties.data.controller.js'),
+    require('./fastPropertyProgressBar.directive.js'),
+    require('./modal/fastPropertyConstraint.directive.js'),
+  ]).name;

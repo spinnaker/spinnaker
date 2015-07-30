@@ -1,12 +1,13 @@
 'use strict';
 
-angular
-  .module('spinnaker.editApplication.modal.controller',[
-    'spinnaker.applications.write.service',
-    'ui.router',
-    'spinnaker.utils.lodash',
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.editApplication.modal.controller', [
+    require('../../applications/applications.write.service.js'),
+    require('utils/lodash.js'),
   ])
-  .controller('EditApplicationController', function ($window, $state, application, $modalInstance, applicationWriter, _) {
+  .controller('EditApplicationController', function ($window, $state, $modalInstance, application, applicationWriter, _) {
     var vm = this;
     vm.submitting = false;
     vm.errorMsgs = [];
@@ -71,5 +72,6 @@ angular
     };
 
     return vm;
-  });
+  })
+  .name;
 

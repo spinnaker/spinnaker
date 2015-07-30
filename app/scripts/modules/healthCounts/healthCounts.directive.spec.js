@@ -2,10 +2,15 @@
 
 describe('Directives: healthCounts', function () {
 
-  beforeEach(module('spinnaker.healthCounts.directive'));
-  beforeEach(module('spinnaker.templates'));
+  require('./healthCounts.html');
 
-  beforeEach(inject(function ($rootScope, $compile) {
+  beforeEach(
+    window.module(
+      require('./healthCounts.directive.js')
+    )
+  );
+
+  beforeEach(window.inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.scope.container = {};
     this.compile = $compile;

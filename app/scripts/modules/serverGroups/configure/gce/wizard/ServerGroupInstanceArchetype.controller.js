@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.instanceArchetypeCtrl', [])
   .controller('gceInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     var wizard = modalWizardService.getWizard();
@@ -23,4 +24,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       }
     });
 
-  });
+  }).name;

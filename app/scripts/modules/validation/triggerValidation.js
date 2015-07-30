@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.validation')
+module.exports = angular.module('spinnaker.validation.trigger', [])
   .directive('triggerValidation', function () {
     return {
       restrict: 'A',
@@ -18,4 +19,4 @@ angular.module('spinnaker.validation')
       }
     };
   }
-);
+).name;

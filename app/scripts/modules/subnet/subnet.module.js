@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.subnet', [
-    'spinnaker.subnet.read.service'
-  ]);
+    require('./subnet.read.service.js')
+  ]).name;

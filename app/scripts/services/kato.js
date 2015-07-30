@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.kato.service', [
-  'restangular',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings'
+module.exports = angular.module('spinnaker.kato.service', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('utils/lodash.js'),
+  require('../modules/caches/deckCacheFactory.js'),
 ])
   .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 
@@ -91,4 +92,4 @@ angular.module('spinnaker.kato.service', [
       }
     };
 
-  });
+  }).name;

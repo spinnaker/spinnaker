@@ -1,11 +1,14 @@
 'use strict';
 
+let angular = require('angular');
+
 // newFP
-angular
+module.exports = angular
   .module('spinnaker.newFastProperty.controller', [
-    'spinnaker.fastProperty.write.service'
+    require('../fastProperty.write.service.js'),
+    require('utils/lodash.js'),
   ])
-  .controller('CreateFastPropertyModalController', function($modalInstance, clusters, appName, fastProperty, fastPropertyWriter, isEditing ){
+  .controller('CreateFastPropertyModalController', function($modalInstance, clusters, appName, fastProperty, fastPropertyWriter, isEditing, _) {
     var vm = this;
 
     vm.isEditing = isEditing || false;
@@ -37,6 +40,4 @@ angular
     };
 
     return vm;
-
-
-  });
+  }).name;

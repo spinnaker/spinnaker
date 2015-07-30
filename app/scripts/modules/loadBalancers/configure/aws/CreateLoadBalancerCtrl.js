@@ -1,17 +1,18 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.aws.create.controller', [
-  'spinnaker.loadBalancer.write.service',
-  'spinnaker.account.service',
-  'spinnaker.aws.loadBalancer.transformer.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.modalWizard',
-  'spinnaker.tasks.monitor.service',
-  'spinnaker.subnet.read.service',
-  'spinnaker.caches.initializer',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.naming',
+module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
+  require('../../loadBalancer.write.service.js'),
+  require('../../../account/accountService.js'),
+  require('./loadBalancer.transformer.service.js'),
+  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../../directives/modalWizard.js'),
+  require('../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../subnet/subnet.read.service.js'),
+  require('../../../caches/cacheInitializer.js'),
+  require('../../../caches/infrastructureCaches.js'),
+  require('../../../naming/naming.service.js'),
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
@@ -316,4 +317,4 @@ angular.module('spinnaker.loadBalancer.aws.create.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

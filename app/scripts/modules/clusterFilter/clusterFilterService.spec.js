@@ -1,17 +1,29 @@
 'use strict';
 
+
 describe('Service: clusterFilterService', function () {
+
 
   var service;
   var $location;
   var ClusterFilterModel;
   var applicationJSON;
   var groupedJSON;
+  var _;
 
-  beforeEach(module('cluster.filter.service', 'cluster.test.data'));
   beforeEach(
-    inject(
-      function (_$location_, clusterFilterService, _ClusterFilterModel_) {
+    window.module(
+      require('utils/lodash.js'),
+      require('./clusterFilterService.js'),
+      require('./clusterFilterModel.js'),
+      require('../../../../test/mock/mockApplicationData.js')
+    )
+  );
+
+  beforeEach(
+    window.inject(
+      function (_$location_, clusterFilterService, _ClusterFilterModel_, ___) {
+        _ = ___;
         service = clusterFilterService;
         $location = _$location_;
         ClusterFilterModel = _ClusterFilterModel_;
@@ -20,7 +32,7 @@ describe('Service: clusterFilterService', function () {
   );
 
   beforeEach(
-    inject(
+    window.inject(
       function (_applicationJSON_, _groupedJSON_) {
         applicationJSON = _applicationJSON_;
         groupedJSON = _groupedJSON_;
@@ -89,7 +101,7 @@ describe('Service: clusterFilterService', function () {
 
       it('0 regions: should add nothing to the query params', function () {
         service.updateQueryParams();
-        expect($location.search().reg).toBeUndefined()
+        expect($location.search().reg).toBeUndefined();
       });
 
       it('1 region: should add the region name to the reg query string', function () {
@@ -146,7 +158,7 @@ describe('Service: clusterFilterService', function () {
         it('should not add types to the query string if de-selected', function () {
           ClusterFilterModel.sortFilter.providerType = {aws: false, gce: false};
           service.updateQueryParams();
-          expect($location.search().providerType).toBeUndefined()
+          expect($location.search().providerType).toBeUndefined();
         });
       });
     });

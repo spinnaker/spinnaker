@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce', [
-  'spinnaker.account',
-  'spinnaker.serverGroup.configure.gce.deployInitialization.controller',
-  'spinnaker.serverGroups.basicSettings.controller',
-  'spinnaker.gce.serverGroup.configure.service',
-]);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
+  require('../../../account/account.module.js'),
+  require('./wizard/deployInitializer.controller.js'),
+  require('../common/serverGroupConfiguration.service.js')
+])
+.name;

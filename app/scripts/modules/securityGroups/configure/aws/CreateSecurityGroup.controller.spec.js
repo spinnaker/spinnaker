@@ -3,16 +3,17 @@
 describe('Controller: CreateSecurityGroup', function () {
 
   beforeEach(
-    module(
-      'spinnaker.securityGroup.aws.create.controller',
-      'spinnaker.securityGroup.baseConfig.controller'
+    window.module(
+      require('utils/lodash.js'),
+      require('./CreateSecurityGroupCtrl.js'),
+      require('./ConfigSecurityGroupMixin.controller.js')
     )
   );
 
   describe('filtering', function() {
 
     // Initialize the controller and a mock scope
-    beforeEach(inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
+    beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, securityGroupReader, modalWizardService,
                                 taskMonitorService, securityGroupWriter, vpcReader) {
 
       this.$scope = $rootScope.$new();

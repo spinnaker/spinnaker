@@ -1,6 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.manualJudgment')
+let angular = require('angular');
+
+require('./manualJudgmentStage.html');
+require('./manualJudgmentExecutionDetails.html');
+require('./modal/editNotification.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.manualJudgmentStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Manual Judgment',
@@ -8,8 +14,8 @@ angular.module('spinnaker.pipelines.stage.manualJudgment')
       key: 'manualJudgment',
       controller: 'ManualJudgmentStageCtrl',
       controllerAs: 'manualJudgmentStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/manualJudgment/manualJudgmentStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/manualJudgment/manualJudgmentExecutionDetails.html',
+      templateUrl: require('./manualJudgmentStage.html'),
+      executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
       executionBarColorProvider: function (stageSummary) {
         if (stageSummary.status === 'RUNNING') {
           return '#F0AD4E';
@@ -25,7 +31,7 @@ angular.module('spinnaker.pipelines.stage.manualJudgment')
 
     this.addNotification = function() {
       $modal.open({
-        templateUrl: 'scripts/modules/pipelines/config/stages/manualJudgment/modal/editNotification.html',
+        templateUrl: require('./modal/editNotification.html'),
         controller: 'ManualJudgmentEditNotificationController',
         controllerAs: 'editNotification',
         resolve: {
@@ -42,4 +48,5 @@ angular.module('spinnaker.pipelines.stage.manualJudgment')
       $scope.stage.notifications.splice(idx, 1);
     };
 
-  });
+  })
+  .name;

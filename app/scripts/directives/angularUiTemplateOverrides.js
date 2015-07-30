@@ -16,6 +16,8 @@
 
 'use strict';
 
+let angular = require('angular');
+
 /**
  * Customizations to Angular UI templates
  */
@@ -24,7 +26,9 @@
  * Allows us to use HTML in popover content. The only change is:
  *   ng-bind="content" => ng-bind-html="content"
  */
-angular.module('spinnaker')
+
+//BEN_TODO
+module.exports = angular.module('spinnaker')
   .run(function($templateCache) {
     $templateCache.put('template/popover/popover.html',
         '<div class="popover {{placement}}" ng-class="{ in: isOpen(), fade: animation() }">\n' +

@@ -1,11 +1,25 @@
 'use strict';
 
 describe('serverGroupCommandBuilder', function() {
-  beforeEach(function() {
-    loadDeckWithoutCacheInitializer();
-  });
+  //const helper = require('../../../../../../test/helpers/loadDeck');
+  const AccountServiceFixture = require('../../../../../../test/fixture/AccountServiceFixtures');
 
-  beforeEach(inject(function(serverGroupCommandBuilder, accountService,$q, $rootScope, subnetReader, instanceTypeService) {
+  beforeEach(
+    window.module(
+      require('./serverGroupCommandBuilder.js'),
+      require('../../../account/accountService'),
+      require('../../../subnet/subnet.read.service.js'),
+      require('../../../../services/instanceTypeService.js'),
+      require('../../configure/aws/serverGroupCommandBuilder.service.js')
+    )
+  );
+
+  //beforeEach(function() {
+    //helper.loadDeckWithoutCacheInitializer();
+
+  //});
+
+  beforeEach(window.inject(function(serverGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
     this.serverGroupCommandBuilder = serverGroupCommandBuilder;
     this.$scope = $rootScope;
     this.instanceTypeService = instanceTypeService;

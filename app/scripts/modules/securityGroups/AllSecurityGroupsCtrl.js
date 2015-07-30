@@ -1,13 +1,17 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.all.controller', [
-  'ui.bootstrap',
-  'spinnaker.utils.lodash',
-  'spinnaker.providerSelection.service',
-  'spinnaker.settings',
+require('./filters.html');
+require('./groupings.html');
+
+module.exports = angular.module('spinnaker.securityGroup.all.controller', [
+  require('utils/lodash.js'),
+  require('../providerSelection/providerSelection.service.js'),
+  require('../../settings/settings.js')
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, application, settings) {
+  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, app, settings) {
+    const application = app;
     $scope.application = application;
 
     $scope.sortFilter = {
@@ -57,7 +61,7 @@ angular.module('spinnaker.securityGroup.all.controller', [
         var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
             defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
         $modal.open({
-          templateUrl: 'scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
+          templateUrl: './configure/' + provider + '/createSecurityGroup.html',
           controller: 'CreateSecurityGroupCtrl as ctrl',
           resolve: {
             securityGroup: function () {
@@ -117,4 +121,4 @@ angular.module('spinnaker.securityGroup.all.controller', [
     updateSecurityGroups();
 
   }
-);
+).name;

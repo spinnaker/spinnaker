@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.transformer.service', [
-  'spinnaker.settings',
-  'spinnaker.utils.lodash',
-  'spinnaker.delegation',
+module.exports = angular.module('spinnaker.loadBalancer.transformer.service', [
+  require('../caches/deckCacheFactory.js'),
+  require('utils/lodash.js'),
+  require('../delegation/serviceDelegate.service.js'),
 ])
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {
 
@@ -17,4 +18,5 @@ angular.module('spinnaker.loadBalancer.transformer.service', [
       normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
     };
 
-  });
+  })
+  .name;

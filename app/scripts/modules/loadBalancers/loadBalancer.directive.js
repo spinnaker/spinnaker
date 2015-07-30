@@ -1,11 +1,14 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.directive', [])
-  .directive('loadBalancer', function ($rootScope, $timeout) {
+module.exports = angular.module('spinnaker.loadBalancer.directive', [
+  require('utils/lodash.js'),
+])
+  .directive('loadBalancer', function ($rootScope, $timeout, _) {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancer.html',
+      templateUrl: require('./loadBalancer/loadBalancer.html'),
       scope: {
         loadBalancer: '=',
         displayOptions: '='
@@ -42,4 +45,4 @@ angular.module('spinnaker.loadBalancer.directive', [])
         };
       }
     };
-  });
+  }).name;

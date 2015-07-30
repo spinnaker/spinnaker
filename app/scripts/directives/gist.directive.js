@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.gist.directive', [])
   .directive('gist', function ($http) {
     return {
@@ -25,4 +27,4 @@ angular
       }
     };
   })
-;
+.name;

@@ -1,8 +1,12 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.navigation.controller', [])
-  .controller('SecurityGroupsNavCtrl', function ($scope, application, _) {
+module.exports = angular.module('spinnaker.securityGroup.navigation.controller', [
+  require('utils/lodash.js'),
+])
+  .controller('SecurityGroupsNavCtrl', function ($scope, app, _) {
+    const application = app;
 
     $scope.application = application;
 
@@ -42,4 +46,4 @@ angular.module('spinnaker.securityGroup.navigation.controller', [])
       return securityGroup[labelFields[0].key];
     };
   }
-);
+).name;

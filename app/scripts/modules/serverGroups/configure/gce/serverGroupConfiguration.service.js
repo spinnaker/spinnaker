@@ -1,15 +1,18 @@
 'use strict';
 
-angular.module('spinnaker.gce.serverGroup.configure.service', [
-  'spinnaker.image.service',
-  'spinnaker.account.service',
-  'spinnaker.instanceType.service',
-  'spinnaker.caches.initializer',
-  'spinnaker.loadBalancer.read.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
+  require('../../../account/accountService'),
+  require('../../../securityGroups/securityGroup.read.service.js'),
+  require('../../../caches/cacheInitializer.js'),
+  require('../../../loadBalancers/loadBalancer.read.service.js'),
+  require('../../../../services/imageService.js'),
+  require('../../../../services/instanceTypeService.js'),
 ])
-  .factory('gceServerGroupConfigurationService', function(imageService, accountService,
+  .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,
-                                                          $q, loadBalancerReader) {
+                                                          $q, loadBalancerReader, _) {
 
 
     function configureCommand(command) {
@@ -169,4 +172,4 @@ angular.module('spinnaker.gce.serverGroup.configure.service', [
     };
 
 
-  });
+  }).name;

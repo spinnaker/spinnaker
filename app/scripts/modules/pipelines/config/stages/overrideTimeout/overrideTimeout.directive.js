@@ -1,8 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.overrideTimeout', [
-  'spinnaker.pipelines.config',
-  'spinnaker.help',
+let angular = require('angular');
+
+
+
+module.exports =  angular.module('spinnaker.pipelines.stage.overrideTimeout', [
+  require('../../config.module.js'),
+  require('../../../../help/help.module.js')
 ])
   .directive('overrideTimeout', function() {
     return {
@@ -10,7 +14,7 @@ angular.module('spinnaker.pipelines.stage.overrideTimeout', [
       scope: {
         stage: '=',
       },
-      templateUrl: 'scripts/modules/pipelines/config/stages/overrideTimeout/overrideTimeout.directive.html',
+      templateUrl: require('./overrideTimeout.directive.html'),
       controller: 'OverrideTimeoutCtrl',
       controllerAs: 'overrideTimeoutCtrl',
     };
@@ -63,4 +67,5 @@ angular.module('spinnaker.pipelines.stage.overrideTimeout', [
 
     $scope.$watch('stage', this.setOverrideValues, true);
 
-  });
+  })
+  .name;

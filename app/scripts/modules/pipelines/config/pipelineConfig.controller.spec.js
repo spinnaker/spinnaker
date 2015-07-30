@@ -1,7 +1,5 @@
 'use strict';
 
-'use strict';
-
 describe('Controller: PipelineConfigCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
@@ -10,11 +8,13 @@ describe('Controller: PipelineConfigCtrl', function () {
   var scope;
 
   beforeEach(
-    module('spinnaker.pipelines.config.controller')
+    window.module(
+      require('./pipelineConfig.controller.js')
+    )
   );
 
   beforeEach(
-    inject(function ($rootScope, $controller) {
+    window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
       controller = $controller('PipelineConfigCtrl', {
         $scope: scope

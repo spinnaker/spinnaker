@@ -1,14 +1,22 @@
 'use strict';
 
 describe('serverGroupWriter', function () {
+  const angular = require('angular');
 
   var serverGroupWriter,
     $httpBackend,
     settings;
 
+  beforeEach(
+    window.module(
+      require('./serverGroup.write.service.js'),
+      require('./configure/aws/serverGroup.transformer.service.js'),
+      require('../../settings/settings.js')
+    )
+  );
+
   beforeEach(function () {
-    loadDeckWithoutCacheInitializer();
-    inject(function (_serverGroupWriter_, _$httpBackend_, _settings_) {
+    window.inject(function (_serverGroupWriter_, _$httpBackend_, _settings_) {
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
       settings = _settings_;
@@ -19,12 +27,12 @@ describe('serverGroupWriter', function () {
 
     function postTask(command) {
       var submitted = null;
-      $httpBackend.expectPOST(settings.gateUrl + '/applications/appName/tasks', function (bodyString) {
+      $httpBackend.expectPOST('/applications/appName/tasks', function (bodyString) {
         submitted = angular.fromJson(bodyString);
         return true;
       }).respond(200, {ref: '/1'});
 
-      $httpBackend.expectGET(settings.gateUrl + '/applications/appName/tasks/1').respond({});
+      $httpBackend.expectGET('/applications/appName/tasks/1').respond({});
 
       serverGroupWriter.cloneServerGroup(command, { name: 'appName', reloadTasks: angular.noop });
       $httpBackend.flush();

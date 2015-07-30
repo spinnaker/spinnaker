@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.gce')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.loadBalancerSelector', [])
   .directive('gceServerGroupLoadBalancersSelector', function(gceServerGroupConfigurationService, infrastructureCaches) {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/gce/serverGroupLoadBalancersDirective.html',
+      templateUrl: require('./serverGroupLoadBalancersDirective.html'),
       link: function(scope) {
 
         scope.getLoadBalancerRefreshTime = function() {
@@ -22,4 +24,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
         };
       }
     };
-  });
+  }).name;

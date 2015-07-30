@@ -6,14 +6,17 @@
  existence.
  */
 describe('Controller: awsCloneServerGroup', function () {
+  const AccountServiceFixture = require('../../../../../../../test/fixture/AccountServiceFixtures.js');
+  const securityGroupReaderFixture = require('../../../../../../../test/fixture/SecurityGroupServiceFixtures.js');
 
   beforeEach(
-    module('spinnaker.aws.cloneServerGroup.controller')
+    window.module(
+      require('./CloneServerGroup.aws.controller.js')
+    )
   );
 
-
   beforeEach(function() {
-    inject(function ($controller, $rootScope, accountService, serverGroupWriter, imageService, settings,
+    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, imageService, settings,
                      searchService, instanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
@@ -53,7 +56,7 @@ describe('Controller: awsCloneServerGroup', function () {
       return {
         credentials: 'prod',
         region: 'us-west-1',
-        availabilityZones: ['g','h','i'],
+        availabilityZones: ['g', 'h', 'i'],
         instanceMonitoring: true,
         securityGroups: [],
         selectedProvider: 'aws',
@@ -72,7 +75,7 @@ describe('Controller: awsCloneServerGroup', function () {
       return {
         credentials: 'test',
         region: 'us-east-1',
-        availabilityZones: AccountServiceFixture.regionsKeyedByAccount['test'].regions[0].availabilityZones,
+        availabilityZones: AccountServiceFixture.regionsKeyedByAccount.test.regions[0].availabilityZones,
         securityGroups: [],
         selectedProvider: 'aws',
         instanceMonitoring: true,
@@ -86,7 +89,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   describe('preferred zone handling', function() {
     function initController(serverGroupCommand) {
-      inject(function ($controller) {
+      window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,
@@ -129,7 +132,9 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      initController(this.buildBaseNew());
+      var serverGroupCommand = this.buildBaseNew();
+      console.log('buildNew', serverGroupCommand);
+      initController(serverGroupCommand);
 
       $scope.$digest();
 
@@ -163,14 +168,14 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.command.availabilityZones).toEqual(['a','b','c']);
+      expect($scope.command.availabilityZones).toEqual(['a', 'b', 'c']);
 
       $scope.command.region = 'us-west-1';
       $scope.command.viewState.usePreferredZones = false;
       $scope.$digest();
 
       expect($scope.command.viewState.usePreferredZones).toBe(false);
-      expect($scope.command.availabilityZones).toEqual(['b','c']);
+      expect($scope.command.availabilityZones).toEqual(['b', 'c']);
       expect(this.wizard.markDirty.calls.count()).toBe(1);
     });
 
@@ -182,13 +187,13 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.command.availabilityZones).toEqual(['a','b','c']);
+      expect($scope.command.availabilityZones).toEqual(['a', 'b', 'c']);
       expect($scope.command.viewState.usePreferredZones).toBe(true);
 
       $scope.command.viewState.usePreferredZones = false;
       $scope.$digest();
 
-      expect($scope.command.availabilityZones).toEqual(['a','b','c']);
+      expect($scope.command.availabilityZones).toEqual(['a', 'b', 'c']);
       expect($scope.command.viewState.usePreferredZones).toBe(false);
 
       $scope.command.availabilityZones = [];
@@ -196,14 +201,14 @@ describe('Controller: awsCloneServerGroup', function () {
 
       $scope.$digest();
 
-      expect($scope.command.availabilityZones).toEqual(['a','b','c']);
+      expect($scope.command.availabilityZones).toEqual(['a', 'b', 'c']);
       expect($scope.command.viewState.usePreferredZones).toBe(true);
     });
   });
 
   describe('image loading', function() {
     function initController(serverGroupCommand) {
-      inject(function ($controller) {
+      window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,
@@ -358,7 +363,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   describe('command submit', function() {
     function initController(serverGroup) {
-      inject(function ($controller) {
+      window.inject(function ($controller) {
         this.ctrl = $controller('awsCloneServerGroupCtrl', {
           $scope: this.$scope,
           settings: this.settings,

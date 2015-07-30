@@ -1,20 +1,22 @@
 'use strict';
 
-angular.module('spinnaker.caches.initializer', [
-  'spinnaker.subnet.read.service',
-  'spinnaker.loadBalancer.read.service',
-  'spinnaker.account',
-  'spinnaker.account.service',
-  'spinnaker.instanceType.service',
-  'spinnaker.securityGroup.read.service',
-  'spinnaker.subnet.read.service',
-  'spinnaker.vpc.read.service',
-  'spinnaker.keyPairs.read.service',
-  'spinnaker.loadBalancer.read.service',
-  'spinnaker.applications.read.service',
-  'spinnaker.pipelines.trigger.jenkins.service',
-  'spinnaker.caches.infrastructure',
-  'spinnaker.caches.infrastructure.config',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches.initializer', [
+  require('../subnet/subnet.read.service.js'),
+  require('../loadBalancers/loadBalancer.read.service.js'),
+  //require('../account/account.module.js'),
+  require('../account/accountService.js'),
+  require('../../services/instanceTypeService.js'),
+  require('../securityGroups/securityGroup.read.service.js'),
+  require('../subnet/subnet.read.service.js'),
+  require('../vpc/vpc.read.service.js'),
+  require('../keyPairs/keyParis.read.service.js'),
+  require('../loadBalancers/loadBalancer.read.service.js'),
+  require('../applications/applications.read.service.js'),
+  require('../jenkins/index.js'),
+  require('./infrastructureCaches.js'),
+  require('./infrastructureCacheConfig.js'),
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, instanceTypeService, securityGroupReader,
@@ -71,4 +73,5 @@ angular.module('spinnaker.caches.initializer', [
       refreshCaches: refreshCaches,
       refreshCache: refreshCache,
     };
-  });
+  })
+  .name;

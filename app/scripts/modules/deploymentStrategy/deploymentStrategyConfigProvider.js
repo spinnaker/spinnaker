@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategyConfigProvider', [
+])
   .provider('deploymentStrategyConfig', function() {
 
     var strategies = [];
@@ -22,4 +25,4 @@ angular.module('spinnaker.deploymentStrategy')
     };
 
   }
-);
+).name;

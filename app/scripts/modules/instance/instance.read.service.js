@@ -1,7 +1,9 @@
 'use strict';
 
-angular
-  .module('spinnaker.instance.read.service', ['restangular'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.instance.read.service', [require('exports?"restangular"!imports?_=lodash!restangular')])
   .factory('instanceReader', function (Restangular) {
 
     function getInstanceDetails(account, region, id) {
@@ -12,4 +14,4 @@ angular
       getInstanceDetails: getInstanceDetails
     };
 
-  });
+  }).name;

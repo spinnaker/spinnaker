@@ -241,3 +241,5 @@ TasksFixture.runningKatoTask = {
     status: 'Initializing Orchestration Task...'
   }]
 };
+
+module.exports = TasksFixture;

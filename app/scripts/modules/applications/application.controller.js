@@ -1,24 +1,25 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.application.controller', [])
-  .controller('ApplicationCtrl', function($scope, application) {
-    $scope.application = application;
-    $scope.insightTarget = application;
-    if (application.notFound) {
+module.exports = angular.module('spinnaker.application.controller', [])
+  .controller('ApplicationCtrl', function($scope, app) {
+    $scope.application = app;
+    $scope.insightTarget = app;
+    if (app.notFound) {
       return;
     }
 
     this.toggleRefresh = function() {
-      if (application.autoRefreshEnabled) {
-        application.disableAutoRefresh();
+      if (app.autoRefreshEnabled) {
+        app.disableAutoRefresh();
       } else {
-        application.resumeAutoRefresh();
-        application.refreshImmediately();
+        app.resumeAutoRefresh();
+        app.refreshImmediately();
       }
     };
 
-    application.enableAutoRefresh($scope);
+    app.enableAutoRefresh($scope);
   }
-);
+).name;
 
