@@ -1,8 +1,10 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.networking', [
-    'spinnaker.networking.controller',
-    'spinnaker.elasticIp.read.service',
-    'spinnaker.elasticIp.write.service'
-  ]);
+    require('./networking.controller.js'),
+    require('./elasticIp.read.service.js'),
+    require('./elasticIp.write.service.js')
+  ]).name;

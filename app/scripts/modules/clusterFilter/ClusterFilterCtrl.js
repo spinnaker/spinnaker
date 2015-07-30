@@ -1,11 +1,17 @@
 'use strict';
 
+let angular = require('angular');
+
 // controllerAs: clustersFilters
 
-angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'spinnaker.utils.lodash'])
-  .controller('ClusterFilterCtr', function ($scope, application, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
+module.exports = angular.module('cluster', [
+  require('./clusterFilterService.js'),
+  require('./clusterFilterModel.js'),
+  require('utils/lodash.js'),
+])
+  .controller('ClusterFilterCtr', function ($scope, app, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
 
-    $scope.application = application;
+    $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
     var ctrl = this;
@@ -38,17 +44,17 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'sp
     this.updateClusterGroups = _.debounce(function updateClusterGroups() {
       clusterFilterService.updateQueryParams();
       $scope.$evalAsync(
-        clusterFilterService.updateClusterGroups(application)
+        clusterFilterService.updateClusterGroups(app)
       );
     }, 300);
 
     function getHeadingsForOption(option) {
-      var allValues = application.serverGroups.map(option.getDisplayValue);
+      var allValues = app.serverGroups.map(option.getDisplayValue);
       return _.compact(_.unique(_.flatten(allValues))).sort();
     }
 
     function getAvailabilityZones() {
-      return _(application.serverGroups)
+      return _(app.serverGroups)
         .pluck('instances')
         .flatten()
         .pluck('availabilityZone')
@@ -58,7 +64,7 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'sp
 
     function clearFilters() {
       clusterFilterService.clearFilters();
-      clusterFilterService.updateClusterGroups(application);
+      clusterFilterService.updateClusterGroups(app);
     }
 
     this.initialize = function() {
@@ -68,13 +74,14 @@ angular.module('cluster', ['cluster.filter.service', 'cluster.filter.model', 'sp
       ctrl.providerTypeHeadings = getHeadingsForOption(providerType);
       ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.clearFilters = clearFilters;
-      $scope.clusters = application.clusters;
+      $scope.clusters = app.clusters;
     };
 
     this.initialize();
 
-    application.registerAutoRefreshHandler(this.initialize, $scope);
+    app.registerAutoRefreshHandler(this.initialize, $scope);
 
   }
-);
+)
+.name;
 

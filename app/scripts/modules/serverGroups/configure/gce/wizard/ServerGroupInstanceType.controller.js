@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.instanceType.controller', [])
   .controller('gceInstanceTypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('instance-type');
@@ -21,4 +22,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       $scope.command.instanceType = type;
     };
 
-  });
+  }).name;

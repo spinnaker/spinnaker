@@ -2,10 +2,12 @@
 
 describe('namingService', function() {
   beforeEach(function() {
-    module('spinnaker.naming')
+    window.module(
+      require('./naming.service')
+    )
   });
 
-  beforeEach(inject(function(namingService) {
+  beforeEach(window.inject(function(namingService) {
     this.namingService = namingService;
   }));
 

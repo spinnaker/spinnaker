@@ -7,11 +7,13 @@ describe('Service: timeBoundaries', function () {
   var timeBoundaries;
 
   beforeEach(
-    module('spinnaker.timeBoundaries.service')
+    window.module(
+      require('./timeBoundaries.service')
+    )
   );
 
   beforeEach(
-    inject(function (_timeBoundaries_) {
+    window.inject(function (_timeBoundaries_) {
       timeBoundaries = _timeBoundaries_;
     })
   );

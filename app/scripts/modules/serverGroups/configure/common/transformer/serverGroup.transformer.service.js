@@ -1,7 +1,11 @@
 'use strict';
 
-angular
-  .module('spinnaker.serverGroup.transformer.service')
+var angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.serverGroup.transformer.service', [
+    require('../../../../delegation/serviceDelegate.service.js'),
+  ])
   .factory('serverGroupTransformer', function (serviceDelegate) {
 
     function convertServerGroupCommandToDeployConfiguration(base) {
@@ -13,4 +17,4 @@ angular
       convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration
     };
 
-  });
+  }).name;

@@ -5,10 +5,12 @@ describe('subnetReader', function() {
   var service, $http, $scope;
 
   beforeEach(
-    module('spinnaker.subnet.read.service')
+    window.module(
+      require('./subnet.read.service.js')
+    )
   );
 
-  beforeEach(inject(function ($httpBackend, $rootScope, _subnetReader_) {
+  beforeEach(window.inject(function ($httpBackend, $rootScope, _subnetReader_) {
     service = _subnetReader_;
     $http = $httpBackend;
     $scope = $rootScope.$new();

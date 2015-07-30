@@ -1,11 +1,16 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.settings', [])
+let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
+let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
+let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
+
+module.exports = angular.module('spinnaker.settings', [])
   .constant('settings', {
-    feedbackUrl: 'http://hootch.test.netflix.net/submit',
-    gateUrl: 'https://spinnaker-api-prestaging.prod.netflix.net',
-    authEndpoint: 'https://spinnaker-api-prestaging.prod.netflix.net/auth/info',
+    feedbackUrl: feedbackUrl,
+    gateUrl: `https://${gateHost}`,
+    authEndpoint: `https://${authEndpoint}`,
     pollSchedule: 30000,
     providers: {
       aws: {
@@ -14,7 +19,7 @@ angular.module('spinnaker.settings', [])
           region: 'us-east-1'
         },
         primaryAccounts: ['prod', 'test'],
-        primaryRegions: ['eu-west-1','us-east-1','us-west-1','us-west-2'],
+        primaryRegions: ['eu-west-1', 'us-east-1', 'us-west-1', 'us-west-2'],
         challengeDestructiveActions: ['mgmt', 'prod', 'mceprod', 'cpl'],
         preferredZonesByAccount: {
           prod: {
@@ -94,17 +99,18 @@ angular.module('spinnaker.settings', [])
       gistId: '32526cd608db3d811b38',
       fileName: 'news.md',
     },
-    authEnabled: false,
+    authEnabled: process.env.AUTH === 'enabled',
     feature: {
       notifications: false,
-      canary: true,
+      canary: process.env.CANARY !== 'disabled',
       parallelPipelines: true,
       fastProperty: true,
       vpcMigrator: true,
     },
 
 
-});
+})
+.name;
 
 window.tracking = {
   enabled: false, // set to true to enable GA tracking

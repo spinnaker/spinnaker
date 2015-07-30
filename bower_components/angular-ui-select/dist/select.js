@@ -6,7 +6,7 @@
  */
 
 
-(function () {
+(function () { 
 "use strict";
 
 var KEY = {
@@ -280,7 +280,7 @@ uis.controller('uiSelectCtrl',
   if (ctrl.searchInput.length !== 1) {
     throw uiSelectMinErr('searchInput', "Expected 1 input.ui-select-search but got '{0}'.", ctrl.searchInput.length);
   }
-
+  
   ctrl.isEmpty = function() {
     return angular.isUndefined(ctrl.selected) || ctrl.selected === null || ctrl.selected === '';
   };
@@ -329,7 +329,7 @@ uis.controller('uiSelectCtrl',
       $timeout(function() {
         ctrl.search = initSearchValue || ctrl.search;
         ctrl.searchInput[0].focus();
-      }, 50);
+      });
     }
   };
 
@@ -782,7 +782,11 @@ uis.controller('uiSelectCtrl',
             else
               tElement.append("<ui-select-single/>");
 
-            return function(scope, element, attrs, ctrls, transcludeFn) {
+      //Multiple or Single depending if multiple attribute presence
+      if (angular.isDefined(tAttrs.multiple))
+        tElement.append("<ui-select-multiple/>").removeAttr('multiple');
+      else
+        tElement.append("<ui-select-single/>");       
 
               var $select = ctrls[0];
               var ngModel = ctrls[1];
@@ -803,12 +807,11 @@ uis.controller('uiSelectCtrl',
               $select.onSelectCallback = $parse(attrs.onSelect);
               $select.onRemoveCallback = $parse(attrs.onRemove);
 
-              //Set reference to ngModel from uiSelectCtrl
-              $select.ngModel = ngModel;
-
-              $select.choiceGrouped = function(group){
-                return $select.isGrouped && group && group.name;
-              };
+        $select.onSelectCallback = $parse(attrs.onSelect);
+        $select.onRemoveCallback = $parse(attrs.onRemove);
+        
+        //Set reference to ngModel from uiSelectCtrl
+        $select.ngModel = ngModel;
 
               if(attrs.tabindex){
                 attrs.$observe('tabindex', function(value) {
@@ -1108,7 +1111,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
           $select = $scope.$select,
           ngModel;
 
-      //Wait for link fn to inject it
+      //Wait for link fn to inject it 
       $scope.$evalAsync(function(){ ngModel = $scope.ngModel; });
 
       ctrl.activeMatchIndex = -1;
@@ -1120,7 +1123,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
 
       ctrl.refreshComponent = function(){
         //Remove already selected items
-        //e.g. When user clicks on a selection, the selected array changes and
+        //e.g. When user clicks on a selection, the selected array changes and 
         //the dropdown should remove that item
         $select.refreshItems();
         $select.sizeSearchInput();
@@ -1219,7 +1222,7 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
         };
         if (!inputValue) return resultMultiple; //If ngModel was undefined
         for (var k = inputValue.length - 1; k >= 0; k--) {
-          //Check model array of currently selected items
+          //Check model array of currently selected items 
           if (!checkFnMultiple($select.selected, inputValue[k])){
             //Check model array of all items available
             if (!checkFnMultiple(data, inputValue[k])){
@@ -1230,8 +1233,8 @@ uis.directive('uiSelectMultiple', ['uiSelectMinErr','$timeout', function(uiSelec
         }
         return resultMultiple;
       });
-
-      //Watch for external model changes
+      
+      //Watch for external model changes 
       scope.$watchCollection(function(){ return ngModel.$modelValue; }, function(newValue, oldValue) {
         if (oldValue != newValue){
           ngModel.$modelValue = null; //Force scope model value and ngModel value to be out of sync to re-run formatters

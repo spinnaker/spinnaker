@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.securityGroup.rollup', [])
+module.exports = angular.module('spinnaker.securityGroup.rollup', [])
   .directive('securityGroup', function ($rootScope, $timeout) {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'scripts/modules/securityGroups/securityGroup.html',
+      templateUrl: require('./securityGroup.html'),
       scope: {
         securityGroup: '=',
         displayOptions: '='
@@ -38,4 +39,4 @@ angular.module('spinnaker.securityGroup.rollup', [])
       }
     };
   }
-);
+).name;

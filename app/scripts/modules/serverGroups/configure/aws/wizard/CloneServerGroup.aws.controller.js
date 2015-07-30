@@ -1,14 +1,15 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.aws.cloneServerGroup.controller', [
-  'ui.router',
-  'spinnaker.utils.lodash',
-  'spinnaker.image.service',
-  'spinnaker.aws.serverGroup.configure.service',
-  'spinnaker.serverGroup.write.service',
-  'spinnaker.modalWizard',
-  'spinnaker.tasks.monitor.service',
+module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
+  require('angular-ui-router'),
+  require('utils/lodash.js'),
+  require('../serverGroupConfiguration.service.js'),
+  require('../../../serverGroup.write.service.js'),
+  require('../../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../../../services/imageService.js'),
+  require('../../../../../directives/modalWizard.js'),
 
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
@@ -175,4 +176,4 @@ angular.module('spinnaker.aws.cloneServerGroup.controller', [
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
-  });
+  }).name;

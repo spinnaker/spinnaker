@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.networking.ip.sort.filter', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.networking.ip.sort.filter', [])
   .filter('ipSorter', function() {
 
     return function(input) {
@@ -22,4 +24,4 @@ angular.module('spinnaker.networking.ip.sort.filter', [])
         return result;
       }
     };
-  });
+  }).name;

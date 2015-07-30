@@ -1,12 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
-  'spinnaker.utils.lodash',
-  'ui.router',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
-  'spinnaker.urlBuilder',
-  'cluster.filter.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
+  require('utils/lodash.js'),
+  require('angular-ui-router'),
+  require('../../../../clusterFilter/clusterFilterService.js'),
+  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
 
@@ -65,8 +66,10 @@ angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
 
     this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
 
+    this.overrideFiltersForUrl = clusterFilterService.overrideFiltersForUrl;
+
     initialize();
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

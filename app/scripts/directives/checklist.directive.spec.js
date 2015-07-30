@@ -18,9 +18,15 @@
 
 describe('Directives: checklist', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  require('../../views/directives/checklist.html');
 
-  beforeEach(inject(function ($rootScope, $compile, $) {
+  beforeEach(
+    window.module(
+      require('./directives.module')
+    )
+  );
+
+  beforeEach(window.inject(function ($rootScope, $compile, $) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.$ = $;
@@ -31,10 +37,10 @@ describe('Directives: checklist', function () {
         compile = this.compile;
 
     scope.model = {
-      selections: ['a','b','c']
+      selections: ['a', 'b', 'c']
     };
 
-    scope.items = ['a','b','c','d'];
+    scope.items = ['a', 'b', 'c', 'd'];
 
     var checklist = compile('<checklist model="model.selections" items="items"></checklist>')(scope);
 
@@ -50,10 +56,10 @@ describe('Directives: checklist', function () {
       compile = this.compile;
 
     scope.model = {
-      selections: ['a','b','c']
+      selections: ['a', 'b', 'c']
     };
 
-    scope.items = ['a','b','c','d'];
+    scope.items = ['a', 'b', 'c', 'd'];
 
     var checklist = compile('<checklist model="model.selections" items="items" inline="true"></checklist>')(scope);
 
@@ -69,7 +75,7 @@ describe('Directives: checklist', function () {
     expect(checklist.find('input').size()).toBe(4);
     expect(checklist.find('input:checked').size()).toBe(2);
 
-    scope.items = ['a','b','c'];
+    scope.items = ['a', 'b', 'c'];
 
     scope.$digest();
 

@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.serverGroup.configure.gce')
+module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [])
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
                                                   gceServerGroupCommandBuilder, gceServerGroupConfigurationService,
@@ -146,4 +147,4 @@ angular.module('spinnaker.serverGroup.configure.gce')
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
     });
-  });
+  }).name;

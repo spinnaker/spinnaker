@@ -1,10 +1,17 @@
-'use strict'
+'use strict';
 
 describe('Controller: Instance Archetype Selector', function() {
 
-  beforeEach(module('spinnaker.serverGroup.configure.common'));
+  beforeEach(
+    window.module(
+      require('./instanceArchetypeSelector.js'),
+      require('../../../caches/infrastructureCaches.js'),
+      require('../../../../services/instanceTypeService.js'),
+      require('../../../serverGroups/configure/common/serverGroupConfiguration.service.js')
+    )
+  );
 
-  beforeEach(inject(function ($controller, $rootScope, instanceTypeService, infrastructureCaches,
+  beforeEach(window.inject(function ($controller, $rootScope, instanceTypeService, infrastructureCaches,
                               serverGroupConfigurationService) {
     this.$scope = $rootScope.$new();
     this.$scope.command = {viewState: {instanceProfile: null}};

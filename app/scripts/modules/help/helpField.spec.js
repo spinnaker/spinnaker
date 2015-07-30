@@ -18,13 +18,17 @@
 
 describe('Directives: helpField', function () {
 
+  require('./helpField.html');
+
   beforeEach(function() {
-    module('spinnaker.help', function($provide) {
-      $provide.constant('helpContents', {'aws.serverGroup.stack': 'expected stack help'});
-    });
+    window.module(
+      require('./helpField.directive.js'),
+      function($provide) {
+        $provide.constant('helpContents', {'aws.serverGroup.stack': 'expected stack help'});
+      });
   });
 
-  beforeEach(inject(function ($rootScope, $compile) {
+  beforeEach(window.inject(function ($rootScope, $compile) {
     this.executeTest = function executeTest(htmlString, expected, attr) {
       attr = attr || 'popover';
       var $scope = $rootScope.$new();

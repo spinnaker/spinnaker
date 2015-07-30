@@ -1,28 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines', [
-  'spinnaker.pipelines.config',
-  'spinnaker.pipelines.config.controller',
-  'spinnaker.pipelines.create.controller',
-  'spinnaker.pipelines.config.validator.directive',
-  'spinnaker.pipelines.dirtyTracker.service',
-  'spinnaker.caches.viewStateCache',
+let angular = require('angular');
 
-  'restangular',
-  'spinnaker.pipelines.stage',
-  'spinnaker.pipelines.trigger',
-  'spinnaker.pipelines.parameters',
-  'spinnaker.pipelines.create',
-  'spinnaker.pipelines.delete',
-  'spinnaker.pipelines.enableParallel',
-  'spinnaker.pipelines.disableParallel',
-  'spinnaker.pipelines.rename',
-  'spinnaker.pipelines.editJson',
-  'spinnaker.authentication',
-  'spinnaker.utils.lodash',
-  'spinnaker.settings',
-  'ui.sortable',
-
-  'spinnaker.pipelines.graph.directive',
-  'spinnaker.pipeline.targetSelect.directive',
-]);
+module.exports = angular.module('spinnaker.pipelines', [
+  require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('exports?"ui.sortable"!angular-ui-sortable'),
+  require('utils/lodash.js'),
+  require('./config/config.module.js'),
+  require('../caches/viewStateCache.js'),
+  require('../authentication/authentication.module.js'),
+  require('../caches/deckCacheFactory.js'),
+]).name;

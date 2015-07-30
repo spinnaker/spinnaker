@@ -1,13 +1,19 @@
 'use strict';
 
+let angular = require('angular');
+
 /* jshint newcap: false */
-angular.module('spinnaker.caches.viewStateCache', [
-  'spinnaker.caches.core',
+module.exports = angular.module('spinnaker.caches.viewStateCache', [
+  require('./deckCacheFactory.js'),
 
 ]).factory('viewStateCache', function(deckCacheFactory) {
 
   // TODO: Remove the next line any time after 5/1/15 - just a legacy bit to clear out old, pre-versioned LS
-  deckCacheFactory.createCache(null, 'pipelineViewStateCache', {});
+  try {
+    deckCacheFactory.createCache(null, 'pipelineViewStateCache', {});
+  } catch (e) {
+    // trying to create a cache multiple times throws and Error
+  }
 
 
   var caches = Object.create(null);
@@ -36,4 +42,4 @@ angular.module('spinnaker.caches.viewStateCache', [
   caches.createCache = createCache;
 
   return caches;
-});
+}).name;

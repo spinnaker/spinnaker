@@ -7,11 +7,13 @@ describe('Service: applicationReader', function () {
   var applicationReader;
 
   beforeEach(
-    module('spinnaker.applications.read.service')
+    window.module(
+      require('./applications.read.service')
+    )
   );
 
   beforeEach(
-    inject(function (_applicationReader_) {
+    window.inject(function (_applicationReader_) {
       applicationReader = _applicationReader_;
     })
   );

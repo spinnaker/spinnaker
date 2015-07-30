@@ -1,13 +1,19 @@
 'use strict';
 
+
 describe('Controller: gceCreateLoadBalancerCtrl', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  const angular = require('angular');
+
   // load the controller's module
-  beforeEach(module('spinnaker.loadBalancer.gce.create.controller'));
+  beforeEach(
+    window.module(
+      require('./CreateLoadBalancerCtrl')
+    )
+  );
 
   // Initialize the controller and a mock scope
-  beforeEach(inject(function ($controller, $rootScope, _modalWizardService_) {
+  beforeEach(window.inject(function ($controller, $rootScope, _modalWizardService_) {
     this.$scope = $rootScope.$new();
     this.ctrl = $controller('gceCreateLoadBalancerCtrl', {
       $scope: this.$scope,

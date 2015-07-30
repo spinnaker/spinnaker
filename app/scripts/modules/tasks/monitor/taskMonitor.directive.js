@@ -1,15 +1,16 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.tasks.monitor.directive', [])
+module.exports = angular.module('spinnaker.tasks.monitor.directive', [])
   .directive('taskMonitor', function () {
     return {
       restrict: 'E',
       replace: true,
-      templateUrl: 'scripts/modules/tasks/monitor/taskMonitor.html',
+      templateUrl: require('./taskMonitor.html'),
       scope: {
         taskMonitor: '=monitor'
       }
     };
   }
-);
+).name;

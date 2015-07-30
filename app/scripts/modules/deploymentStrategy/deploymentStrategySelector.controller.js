@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.deploymentStrategy')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategySelectorController', [
+  require('./services/deploymentStrategyService.js')
+])
   .controller('DeploymentStrategySelectorCtrl', function($scope, deploymentStrategyService) {
 
     function selectStrategy(newStrategyKey, oldStrategyKey) {
@@ -40,4 +44,4 @@ angular.module('spinnaker.deploymentStrategy')
 
     $scope.$watch('command.strategy', selectStrategy);
 
-  });
+  }).name;

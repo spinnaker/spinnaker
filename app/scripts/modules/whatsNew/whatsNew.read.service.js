@@ -1,8 +1,11 @@
 'use strict';
 
 /*jshint camelcase: false */
-angular.module('spinnaker.whatsNew.read.service', [
-  'spinnaker.settings',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.whatsNew.read.service', [
+  require('../caches/deckCacheFactory.js'),
+  require('../../settings/settings.js')
 ])
   .factory('whatsNewReader', function ($http, settings, $log) {
     function extractFileContent(data) {
@@ -33,4 +36,4 @@ angular.module('spinnaker.whatsNew.read.service', [
     return {
       getWhatsNewContents: getWhatsNewContents,
     };
-  });
+  }).name;

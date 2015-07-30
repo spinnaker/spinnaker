@@ -1,9 +1,12 @@
 'use strict';
 
-angular.module('spinnaker.vpc.tag.directive', [
-  'spinnaker.vpc.read.service',
+let angular = require('angular');
+
+module.exports =  angular.module('spinnaker.vpc.tag.directive', [
+  require('./vpc.read.service.js'),
+  require('utils/lodash.js'),
 ])
-  .directive('vpcTag', function(vpcReader) {
+  .directive('vpcTag', function(vpcReader, _) {
     return {
       restrict: 'E',
       scope: {
@@ -28,4 +31,5 @@ angular.module('spinnaker.vpc.tag.directive', [
         scope.$watch('vpcId', applyLabel, true);
       }
     };
-  });
+  })
+  .name;

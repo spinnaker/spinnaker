@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.naming', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.naming', [])
   .factory('namingService', function() {
     var versionPattern = /(v\d{3})/;
 
@@ -78,4 +80,4 @@ angular.module('spinnaker.naming', [])
       getClusterName: getClusterName,
       getSequence: getSequence,
     };
-  });
+  }).name;

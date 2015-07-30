@@ -1,7 +1,8 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.providerSelection')
+module.exports = angular.module('spinnaker.providerSelection')
   .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings, providerOptions) {
 
     $scope.command = {
@@ -16,4 +17,4 @@ angular.module('spinnaker.providerSelection')
 
     this.cancel = $modalInstance.dismiss;
 
-  });
+  }).name;

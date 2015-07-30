@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
-  'spinnaker.utils.lodash',
-  'spinnaker.pipelines.trigger.jenkins',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
+  require('utils/lodash.js'),
+  require('../pipelines/config/triggers/jenkins/jenkinsTrigger.module.js'),
 ])
   .controller('ManualPipelineExecutionCtrl', function($scope, $filter, _, igorService, $modalInstance, pipeline, currentlyRunningExecutions) {
 
@@ -80,4 +82,4 @@ angular.module('spinnaker.delivery.manualPipelineExecution.controller', [
 
     $scope.triggerUpdated();
 
-  });
+  }).name;

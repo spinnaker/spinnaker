@@ -1,13 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.loadBalancer.directive', [])
   .directive('awsServerGroupLoadBalancersSelector', function(awsServerGroupConfigurationService, infrastructureCaches) {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/aws/serverGroupLoadBalancersDirective.html',
+      templateUrl: require('./serverGroupLoadBalancersDirective.html'),
       link: function(scope) {
 
         scope.getLoadBalancerRefreshTime = function() {
@@ -22,4 +24,4 @@ angular.module('spinnaker.serverGroup.configure.aws')
         };
       }
     };
-  });
+  }).name;

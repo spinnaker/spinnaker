@@ -1,11 +1,13 @@
 'use strict';
 
-angular
-  .module('spinnaker.caches', [
-    'spinnaker.caches.core',
-    'spinnaker.caches.initializer',
-    'spinnaker.caches.applicationLevelScheduled',
-    'spinnaker.caches.collapsibleSectionState',
-    'spinnaker.caches.infrastructure',
-    'spinnaker.caches.scheduled'
-  ]);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.caches', [
+    require('./deckCacheFactory.js'),
+    require('./cacheInitializer.js'),
+    require('./applicationLevelScheduledCache.js'),
+    require('./collapsibleSectionStateCache.js'),
+    require('./infrastructureCaches.js'),
+    require('../caches/scheduledCache.js')
+  ])
+  .name;

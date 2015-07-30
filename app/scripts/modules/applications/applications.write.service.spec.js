@@ -5,13 +5,13 @@ describe('Servcie: applicationWriter', function () {
   var taskExecutor;
 
   beforeEach(
-    module(
-      'spinnaker.applications.write.service'
+    window.module(
+      require('./applications.write.service')
     )
   );
 
   beforeEach(
-    inject(function(_applicationWriter_, _taskExecutor_) {
+    window.inject(function(_applicationWriter_, _taskExecutor_) {
       applicationWriter = _applicationWriter_;
       taskExecutor = _taskExecutor_;
     })

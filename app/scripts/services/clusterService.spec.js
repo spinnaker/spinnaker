@@ -1,10 +1,13 @@
 'use strict';
 
 describe('Service: InstanceType', function () {
+  beforeEach(
+    window.module(
+      require('./clusterService.js')
+    )
+  );
 
-  beforeEach(loadDeckWithoutCacheInitializer);
-
-  beforeEach(inject(function (_clusterService_) {
+  beforeEach(window.inject(function (_clusterService_) {
     this.clusterService = _clusterService_;
 
     this.buildTask = function(config) {
@@ -307,7 +310,7 @@ describe('Service: InstanceType', function () {
       });
 
 
-      it('should NOT add a execution to a server group if the region does not match' , function () {
+      it('should NOT add a execution to a server group if the region does not match', function () {
         var executions = [
           {
             stages: [
@@ -331,7 +334,7 @@ describe('Service: InstanceType', function () {
       });
 
 
-      it('should NOT add a execution to a server group if the account does not match' , function () {
+      it('should NOT add a execution to a server group if the account does not match', function () {
         var executions = [
           {
             stages: [
@@ -392,7 +395,7 @@ describe('Service: InstanceType', function () {
       });
 
 
-      it('should NOT add a execution to a server group if the region does not match' , function () {
+      it('should NOT add a execution to a server group if the region does not match', function () {
         var executions = [
           {
             stages: [
@@ -415,7 +418,7 @@ describe('Service: InstanceType', function () {
       });
 
 
-      it('should NOT add a execution to a server group if the account does not match' , function () {
+      it('should NOT add a execution to a server group if the account does not match', function () {
         var executions = [
           {
             stages: [

@@ -1,14 +1,18 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionStatus.directive', [])
-  .directive('executionStatus', function() {
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionStatus.directive', [
+  require('utils/lodash.js'),
+])
+  .directive('executionStatus', function(_) {
     return {
       restrict: 'E',
       scope: {
         execution: '=',
         filter: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionStatus.html',
+      templateUrl: require('./executionStatus.html'),
       controller: 'executionStatus as ctrl',
       link: function(scope) {
 
@@ -29,4 +33,4 @@ angular.module('spinnaker.delivery.executionStatus.directive', [])
 
       }
     };
-  });
+  }).name;

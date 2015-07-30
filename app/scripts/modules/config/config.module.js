@@ -1,11 +1,14 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.config', [
-    'spinnaker.editApplication.modal.controller',
-    'spinnaker.editNotification.modal.controller',
-    'spinnaker.config.controller',
-    'spinnaker.config.notification.service',
-    'spinnaker.config.notification.details.filter'
-  ]);
+    require('./modal/editApplication.controller.modal.js'),
+    require('./modal/editNotification.controller.modal.js'),
+    require('./config.controller.js'),
+    require('./notification.service.js'),
+    require('./notification.details.filter.js')
+  ])
+  .name;
 

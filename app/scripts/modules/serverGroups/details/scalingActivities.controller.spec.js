@@ -3,13 +3,13 @@
 describe('Controller: ScalingActivitiesCtrl', function () {
 
   beforeEach(
-    module('spinnaker.scalingActivities.controller')
+    window.module(
+      require('./scalingActivities.controller')
+    )
   );
 
-  beforeEach(loadDeckWithoutCacheInitializer);
-
   beforeEach(function () {
-    inject(function ($controller, $rootScope, serverGroupReader, $q) {
+    window.inject(function ($controller, $rootScope, serverGroupReader, $q) {
       var spec = this;
 
       this.$scope = $rootScope.$new();

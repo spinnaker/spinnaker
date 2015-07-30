@@ -1,12 +1,13 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.loadBalancer.tag', [])
+module.exports = angular.module('spinnaker.loadBalancer.tag', [])
   .directive('loadBalancersTag', function () {
     return {
       restrict: 'E',
       replace: false,
-      templateUrl: 'scripts/modules/loadBalancers/loadBalancer/loadBalancersTag.html',
+      templateUrl: require('./loadBalancer/loadBalancersTag.html'),
       scope: {
         serverGroup: '=',
         maxDisplay: '='
@@ -16,4 +17,4 @@ angular.module('spinnaker.loadBalancer.tag', [])
       }
     };
   }
-);
+).name;

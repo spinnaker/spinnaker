@@ -4,9 +4,13 @@ describe('authenticationInterceptor', function() {
 
   var interceptor, $q, settings, authenticationService, $rootScope;
 
-  beforeEach(module('spinnaker.authentication.interceptor.service'));
+  beforeEach(
+    window.module(
+      require('./authentication.interceptor.service.js')
+    )
+  );
 
-  beforeEach(inject(function(authenticationInterceptor, _$q_, _settings_, _authenticationService_, _$rootScope_) {
+  beforeEach(window.inject(function(authenticationInterceptor, _$q_, _settings_, _authenticationService_, _$rootScope_) {
     interceptor = authenticationInterceptor;
     $q = _$q_;
     settings = _settings_;

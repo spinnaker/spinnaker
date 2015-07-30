@@ -1,15 +1,12 @@
 'use strict';
 
-
-angular.module('spinnaker')
-  .directive('katoError', function () {
-    return {
-      restrict: 'E',
-      templateUrl: 'views/directives/katoError.html',
-      scope: {
-        taskStatus: '=',
-        title: '@'
-      }
-    };
-  }
-);
+module.exports = function () {
+  return {
+    restrict: 'E',
+    templateUrl: require('../../views/directives/katoError.html'),
+    scope: {
+      taskStatus: '=',
+      title: '@'
+    }
+  };
+};

@@ -1,6 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.search')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.infrastructure.search.service', [
+  require('utils/rx.js'),
+])
   .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
     return function() {
       var deferred;
@@ -91,4 +95,4 @@ angular.module('spinnaker.search')
         },
       };
     };
-  });
+  }).name;

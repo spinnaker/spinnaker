@@ -1,9 +1,13 @@
 'use strict';
 
-describe('applicationLevelScheduledCache', function() {
-  beforeEach(loadDeckWithoutCacheInitializer);
 
-  beforeEach(inject(function(applicationLevelScheduledCache, $rootScope, $stateParams) {
+describe('applicationLevelScheduledCache', function() {
+
+  beforeEach(window.module(
+    require('./applicationLevelScheduledCache.js')
+  ));
+
+  beforeEach(window.inject(function(applicationLevelScheduledCache, $rootScope, $stateParams) {
     this.applicationLevelScheduledCache = applicationLevelScheduledCache;
     this.$rootScope = $rootScope;
     this.$stateParams = $stateParams;

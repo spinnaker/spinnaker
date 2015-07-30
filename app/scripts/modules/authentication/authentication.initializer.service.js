@@ -1,6 +1,8 @@
 'use strict';
 
-angular.module('spinnaker.authentication.initializer.service', [
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.authentication.initializer.service', [
   'spinnaker.settings',
   'spinnaker.authentication.service',
   'ui.bootstrap',
@@ -45,4 +47,5 @@ angular.module('spinnaker.authentication.initializer.service', [
         $window.location.href = url;
       }
     };
-  });
+  })
+  .name;

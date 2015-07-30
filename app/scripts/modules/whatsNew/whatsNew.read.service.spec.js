@@ -3,10 +3,13 @@
 describe('Service: whatsNew reader ', function () {
 
   beforeEach(
-    module('spinnaker.whatsNew.read.service')
+    window.module(
+      require('./whatsNew.read.service'),
+      require('../../settings/settings.js')
+    )
   );
 
-  beforeEach(inject(function(whatsNewReader, $httpBackend, settings) {
+  beforeEach(window.inject(function(whatsNewReader, $httpBackend, settings) {
     this.reader = whatsNewReader;
     this.$http = $httpBackend;
     this.settings = settings;

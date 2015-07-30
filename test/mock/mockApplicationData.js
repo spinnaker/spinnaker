@@ -1,4 +1,7 @@
-angular
+
+let angular = require('angular');
+
+module.exports = angular
   .module('cluster.test.data', [])
   .value('applicationJSON', {
       clusters: [
@@ -61,4 +64,5 @@ angular
           } ]
         } ]
       } ] } ]
-  );
+  )
+  .name;

@@ -1,12 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.executionDetails.section.nav.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.executionDetails.section.nav.directive', [
+])
   .directive('executionDetailsSectionNav', function() {
     return {
       restrict: 'E',
-      templateUrl: 'scripts/modules/delivery/details/executionDetailsSectionNav.html',
+      templateUrl: require('./executionDetailsSectionNav.html'),
       scope: {
         sections: '=',
       }
     };
-  });
+  }).name;

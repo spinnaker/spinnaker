@@ -18,9 +18,14 @@
 
 describe('Service: awsServerGroup', function () {
 
-  beforeEach(loadDeckWithoutCacheInitializer);
+  beforeEach(
+    window.module(
+      require('./serverGroupCommandBuilder.service.js')
+    )
+  );
 
-  beforeEach(inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
+  beforeEach(
+    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
     this.$httpBackend = _$httpBackend_;
     this.service = awsServerGroupCommandBuilder;
     this.accountService = _accountService_;
@@ -37,7 +42,7 @@ describe('Service: awsServerGroup', function () {
         loadBalancers: ['elb-1'],
         account: 'prod',
         availabilityZones: {
-          'us-west-1': ['d','g']
+          'us-west-1': ['d', 'g']
         },
         capacity: {
           min: 1,
@@ -54,24 +59,24 @@ describe('Service: awsServerGroup', function () {
           'us-east-1': ['d', 'e'],
         },
         prod: {
-          'us-west-1': ['d','g'],
-          'us-east-1': ['d','e'],
-          'eu-west-1': ['a','m']
+          'us-west-1': ['d', 'g'],
+          'us-east-1': ['d', 'e'],
+          'eu-west-1': ['a', 'm']
         },
         default: {
-          'us-west-1': ['a','c'],
-          'us-east-1': ['d','e'],
-          'eu-west-1': ['a','m']
+          'us-west-1': ['a', 'c'],
+          'us-east-1': ['d', 'e'],
+          'eu-west-1': ['a', 'm']
         }
       };
 
       spyOn(this.accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(
-        this.$q.when(['d','g'])
+        this.$q.when(['d', 'g'])
       );
 
       spyOn(this.accountService, 'getRegionsKeyedByAccount').and.returnValue(
         this.$q.when({
-          test: ['us-east-1','us-west-1'],
+          test: ['us-east-1', 'us-west-1'],
           prod: ['us-west-1', 'eu-west-1']
         })
       );

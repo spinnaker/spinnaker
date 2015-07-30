@@ -1,6 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.delivery.executionGroup.directive', [])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.delivery.executionGroup.directive', [
+])
   .directive('executionGroup', function() {
     return {
       restrict: 'E',
@@ -12,7 +15,7 @@ angular.module('spinnaker.delivery.executionGroup.directive', [])
         filter: '=',
         application: '=',
       },
-      templateUrl: 'scripts/modules/delivery/executionGroup.html',
+      templateUrl: require('./executionGroup.html'),
       controller: 'executionGroup as ctrl',
     };
-  });
+  }).name;

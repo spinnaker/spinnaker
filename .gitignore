@@ -1,6 +1,4 @@
 node_modules
-.tmp
-.sass-cache
 /dist
 /xmloutput
 test-results.xml
@@ -14,4 +12,5 @@ deck.iml
 build
 *.swp
 *.DS_Store
+coverage/
 

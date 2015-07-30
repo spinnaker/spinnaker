@@ -1,11 +1,14 @@
+'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.tasks', [
-    'spinnaker.tasks.api',
-    'spinnaker.tasks.main',
-    'spinnaker.tasks.detail.controller',
-    'spinnaker.tasks.monitor',
-    'spinnaker.tasks.read.service',
-    'spinnaker.tasks.write.service',
-    'spinnaker.statusGlyph.directive',
-  ]);
+    require('./monitor/taskMonitor.module.js'),
+    require('./tasks.api.config.js'),
+    require('./tasks.controller.js'),
+    require('./taskDetails.controller.js'),
+    require('../tasks/tasks.read.service.js'),
+    require('../tasks/tasks.write.service.js'),
+    require('./statusGlyph.directive.js'),
+  ]).name;

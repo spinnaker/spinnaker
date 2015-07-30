@@ -1,11 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.resizeServerGroup.controller', [
-  'ui.bootstrap',
-  'spinnaker.account.service',
-  'spinnaker.serverGroup.write.service',
-  'spinnaker.tasks.monitor.service'
+module.exports = angular.module('spinnaker.resizeServerGroup.controller', [
+  require('../../account/accountService.js'),
+  require('../serverGroup.write.service.js'),
+  require('../../tasks/monitor/taskMonitorService.js')
 ])
   .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
@@ -62,4 +62,4 @@ angular.module('spinnaker.resizeServerGroup.controller', [
     this.cancel = function () {
       $modalInstance.dismiss();
     };
-  });
+  }).name;

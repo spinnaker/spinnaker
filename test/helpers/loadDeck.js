@@ -3,9 +3,9 @@
 
 'use strict';
 
-var loadDeck = function(config) {
+function loadDeck(config) {
   config = config || {};
-  return module('spinnaker', function($provide, $injector) {
+  return window.module('spinnaker', function($provide, $injector) {
     if (!config.initializeCache) {
       $provide.decorator('cacheInitializer', function() {
         return {
@@ -42,7 +42,7 @@ var loadDeck = function(config) {
   });
 };
 
-var loadDeckWithoutCacheInitializer = function() {
+function loadDeckWithoutCacheInitializer() {
   return loadDeck({
     initializeCache: false,
     generateUrls: true,
@@ -50,3 +50,8 @@ var loadDeckWithoutCacheInitializer = function() {
     enableAuth: false,
   });
 };
+
+module.exports = {
+  loadDeckWithoutCacheInitializer: loadDeckWithoutCacheInitializer,
+  loadDeck: loadDeck
+}

@@ -1,7 +1,10 @@
 'use strict';
 
+require('./capacity.html');
 
-angular.module('spinnaker.serverGroup.configure.aws')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.serverGroupCapacityCtrl', [])
   .controller('awsServerGroupCapacityCtrl', function($scope, modalWizardService) {
 
     modalWizardService.getWizard().markComplete('capacity');
@@ -15,4 +18,4 @@ angular.module('spinnaker.serverGroup.configure.aws')
       }
     });
 
-  });
+  }).name;

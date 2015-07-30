@@ -1,6 +1,13 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.script')
+let angular = require('angular');
+
+require('./scriptStage.html');
+require('./scriptExecutionDetails.html');
+
+module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [
+  require('./script.service.js')
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Script',
@@ -8,8 +15,8 @@ angular.module('spinnaker.pipelines.stage.script')
       key: 'script',
       controller: 'ScriptStageCtrl',
       controllerAs: 'scriptStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/script/scriptStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/script/scriptExecutionDetails.html',
+      templateUrl: require('./scriptStage.html'),
+      executionDetailsUrl: require('./scriptExecutionDetails.html'),
     });
   })
   .controller('ScriptStageCtrl', function($scope, stage, scriptService, $q, authenticationService) {
@@ -29,4 +36,5 @@ angular.module('spinnaker.pipelines.stage.script')
       $scope.credentials = results.credentials;
       $scope.viewState.loading = false;
     });
-  });
+  })
+  .name;

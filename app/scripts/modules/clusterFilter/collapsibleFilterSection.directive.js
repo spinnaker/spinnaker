@@ -1,6 +1,8 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('cluster.filter.collapse', [])
   .directive('filterSection', function ($timeout) {
     return {
@@ -11,7 +13,7 @@ angular
         expanded: '@?',
         helpKey: '@?'
       },
-      templateUrl: 'scripts/modules/clusterFilter/collapsibleFilterSection.html',
+      templateUrl: require('./collapsibleFilterSection.html'),
       link:  function (scope, elem) {
         var expanded = (scope.expanded === 'true');
         scope.state = {expanded: expanded};
@@ -68,4 +70,4 @@ angular
         $scope.clearAll = clearAll;
       }
     };
-  });
+  }).name;

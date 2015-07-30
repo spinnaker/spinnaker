@@ -1,9 +1,11 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.quickPatchAsg.executionDetails.controller', [
-  'ui.router',
-  'spinnaker.executionDetails.section.service',
-  'spinnaker.executionDetails.section.nav.directive',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg.executionDetails.controller', [
+  require('angular-ui-router'),
+  require('../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('QuickPatchAsgExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
@@ -18,4 +20,4 @@ angular.module('spinnaker.pipelines.stage.quickPatchAsg.executionDetails.control
 
     $scope.$on('$stateChangeSuccess', initialize, true);
 
-  });
+  }).name;

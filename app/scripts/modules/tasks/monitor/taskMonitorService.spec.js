@@ -7,11 +7,11 @@ describe('Service: taskMonitorService', function () {
   var taskMonitorService;
 
   beforeEach(
-    module('spinnaker.tasks.monitor.service')
+    window.module('spinnaker.tasks.monitor.service')
   );
 
   beforeEach(
-    inject(function (_taskMonitorService_) {
+    window.inject(function (_taskMonitorService_) {
       taskMonitorService = _taskMonitorService_;
     })
   );

@@ -1,7 +1,11 @@
 'use strict';
 
-angular
-  .module('spinnaker.tasks.write.service', ['restangular'])
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.tasks.write.service', [
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+  ])
   .factory('tasksWriter', function(Restangular) {
 
     var endpoint = Restangular.all('applications');
@@ -28,4 +32,4 @@ angular
       deleteTask: deleteTask,
     };
 
-  });
+  }).name;

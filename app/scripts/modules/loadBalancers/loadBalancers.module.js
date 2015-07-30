@@ -1,14 +1,16 @@
 'use strict';
 
-angular
+let angular = require('angular');
+
+module.exports = angular
   .module('spinnaker.loadBalancer', [
-    'spinnaker.loadBalancer.controller',
-    'spinnaker.loadBalancer.serverGroup',
-    'spinnaker.loadBalancer.tag',
-    'spinnaker.loadBalancer.aws.details.controller',
-    'spinnaker.loadBalancer.gce.details.controller',
-    'spinnaker.loadBalancer.aws.create.controller',
-    'spinnaker.loadBalancer.gce.create.controller',
-    'spinnaker.loadBalancer.nav.controller',
-    'spinnaker.loadBalancer.directive',
-  ]);
+    require('./AllLoadBalancersCtrl.js'),
+    require('./loadBalancerServerGroup.directive.js'),
+    require('./loadBalancersTag.directive.js'),
+    require('./details/aws/LoadBalancerDetailsCtrl.js'),
+    require('./details/gce/LoadBalancerDetailsCtrl.js'),
+    require('./configure/aws/CreateLoadBalancerCtrl.js'),
+    require('./configure/gce/CreateLoadBalancerCtrl.js'),
+    require('./LoadBalancersNavCtrl.js'),
+    require('./loadBalancer.directive.js'),
+  ]).name;

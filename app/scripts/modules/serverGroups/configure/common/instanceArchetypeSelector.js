@@ -1,13 +1,17 @@
 'use strict';
 
-angular.module('spinnaker.serverGroup.configure.common')
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [
+  require('./costFactor.js')
+])
   .directive('instanceArchetypeSelector', function() {
     return {
       restrict: 'E',
       scope: {
         command: '=',
       },
-      templateUrl: 'scripts/modules/serverGroups/configure/common/instanceArchetypeDirective.html',
+      templateUrl: require('./instanceArchetypeDirective.html'),
       controller: 'InstanceArchetypeSelectorCtrl',
       controllerAs: 'instanceArchetypeCtrl'
     };
@@ -54,4 +58,22 @@ angular.module('spinnaker.serverGroup.configure.common')
       }
     });
 
-  });
+    this.getInstanceTypeRefreshTime = function() {
+      return infrastructureCaches.instanceTypes.getStats().ageMax;
+    };
+
+    this.refreshInstanceTypes = function() {
+      controller.refreshing = true;
+      serverGroupConfigurationService.refreshInstanceTypes($scope.command.selectedProvider, $scope.command).then(function() {
+        controller.refreshing = false;
+      });
+    };
+
+    // if there are no instance types in the cache, try to reload them
+    instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(results) {
+      if (!results || !Object.keys(results).length) {
+        controller.refreshInstanceTypes();
+      }
+    });
+
+  }).name;

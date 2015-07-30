@@ -1,10 +1,11 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.applications.controller', [
-  'ui.bootstrap',
-  'spinnaker.applications.read.service',
-  'spinnaker.account.service'
+module.exports = angular.module('spinnaker.applications.controller', [
+  require('./applications.read.service.js'),
+  require('../account/accountService.js'),
+  require('../../filters/filters.module.js')
 ])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
                                            $state, applicationReader) {
@@ -33,7 +34,7 @@ angular.module('spinnaker.applications.controller', [
         action: function() {
           $modal.open({
             scope: $scope,
-            templateUrl: 'scripts/modules/applications/modal/newapplication.html',
+            templateUrl: require('./modal/newapplication.html'),
             controller: 'CreateApplicationModalCtrl',
             controllerAs: 'newAppModal'
           }).result.then(routeToApplication);
@@ -98,4 +99,4 @@ angular.module('spinnaker.applications.controller', [
     });
 
   }
-);
+).name;

@@ -7,9 +7,13 @@ describe('FastPropertyScopeService', function () {
   var appId = 'mahe';
 
 
-  beforeEach(module('spinnaker.fastPropertyScope.service'));
+  beforeEach(
+    window.module(
+      require('./fastPropertyScope.service')
+    )
+  );
 
-  beforeEach(inject(function (_$q_, _$rootScope_, _FastPropertyScopeService_) {
+  beforeEach(window.inject(function (_$q_, _$rootScope_, _FastPropertyScopeService_) {
     $rootScope = _$rootScope_;
     $q = _$q_;
     service = _FastPropertyScopeService_;
@@ -21,7 +25,7 @@ describe('FastPropertyScopeService', function () {
 
       it('should return and empty list: ' + scope, function () {
         var resultList;
-        service.getResultsForScope(appId, clusters, scope).then(function(result){resultList = result});
+        service.getResultsForScope(appId, clusters, scope).then(function(result){resultList = result; });
 
         $rootScope.$apply();
 
@@ -50,7 +54,7 @@ describe('FastPropertyScopeService', function () {
       it('should return one result for region', function () {
 
         var resultList;
-        service.getResultsForScope(appId, clusters, 'region').then(function(result) {resultList = result});
+        service.getResultsForScope(appId, clusters, 'region').then(function(result) {resultList = result; });
         $rootScope.$apply();
 
         expect(resultList.length).toBe(1);
@@ -80,7 +84,7 @@ describe('FastPropertyScopeService', function () {
 
       it('should return 2 results for the 2 unique regions', function () {
         var resultList;
-        service.getResultsForScope(appId, clusters, 'region').then(function(result) {resultList = result});
+        service.getResultsForScope(appId, clusters, 'region').then(function(result) {resultList = result; });
         $rootScope.$apply();
 
         expect(resultList.length).toBe(2);
@@ -119,7 +123,7 @@ describe('FastPropertyScopeService', function () {
 
         var resultList;
         service.getResultsForScope(appId, clusters, 'stack').then(function (result) {
-          resultList = result
+          resultList = result;
         });
         $rootScope.$apply();
 
@@ -150,7 +154,7 @@ describe('FastPropertyScopeService', function () {
       it('should return a list of 2 scopes, 1 for each stack', function () {
         var resultList;
         service.getResultsForScope(appId, clusters, 'stack').then(function (result) {
-          resultList = result
+          resultList = result;
         });
         $rootScope.$apply();
 

@@ -1,8 +1,14 @@
 'use strict';
 
-angular
-  .module('spinnaker.fastProperty.transformer.service', [])
-  .factory('fastPropertyTransformer', function() {
+// BEN_TODO this file is spelled incorrectly
+
+let angular = require('angular');
+
+module.exports = angular
+  .module('spinnaker.fastProperty.transformer.service', [
+    require('utils/lodash.js'),
+  ])
+  .factory('fastPropertyTransformer', function(_) {
 
     function sortRunningPromotionsFirst(promotions) {
       var sorted = _(promotions).transform(function(result, promotion) {
@@ -21,4 +27,4 @@ angular
       sortRunningPromotionsFirst: sortRunningPromotionsFirst,
     };
 
-  });
+  }).name;

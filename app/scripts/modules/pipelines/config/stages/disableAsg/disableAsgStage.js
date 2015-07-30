@@ -1,6 +1,15 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.stage.disableAsg')
+let angular = require('angular');
+
+require('./disableAsgStage.html');
+require('./disableAsgExecutionDetails.html');
+require('./disableAsgStepLabel.html');
+
+//BEN_TODO lodash
+module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
+  require('utils/lodash.js'),
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Disable Server Group',
@@ -8,9 +17,9 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
       key: 'disableAsg',
       controller: 'DisableAsgStageCtrl',
       controllerAs: 'disableAsgStageCtrl',
-      templateUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStage.html',
-      executionDetailsUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgExecutionDetails.html',
-      executionStepLabelUrl: 'scripts/modules/pipelines/config/stages/disableAsg/disableAsgStepLabel.html',
+      templateUrl: require('./disableAsgStage.html'),
+      executionDetailsUrl: require('./disableAsgExecutionDetails.html'),
+      executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {
           type: 'targetImpedance',
@@ -18,11 +27,11 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
         },
       ],
     });
-  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService, stageConstants) {
+  }).controller('DisableAsgStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     var ctrl = this;
 
     $scope.stage = stage;
-    
+
     $scope.state = {
       accounts: false,
       regionsLoaded: false
@@ -60,5 +69,6 @@ angular.module('spinnaker.pipelines.stage.disableAsg')
       stage.target = $scope.targets[0].val;
     }
 
-  });
+  })
+  .name;
 

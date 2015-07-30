@@ -17,14 +17,19 @@
 'use strict';
 
 describe('Service: tasksApi - task complete, task force refresh', function() {
+  const angular = require('angular');
 
   var service, $http, config, scope, timeout, task;
 
-  beforeEach(function() {
-    loadDeck({generateUrls: false, initializeCache: false, enableAuth: false,});
-  });
+  beforeEach(
+    window.module(
+      require('./tasks.api.config.js'),
+      require('../../settings/settings.js')
+    )
+  );
 
-  beforeEach(inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout) {
+
+  beforeEach(window.inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout) {
     service = tasksApi;
     config = settings;
     $http = $httpBackend;
@@ -50,7 +55,8 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     });
 
     it('resolves watchForTaskComplete immediately if task is complete', function() {
-      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+
+      $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 1,
         status: 'COMPLETED'
       });
@@ -72,7 +78,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     it('polls task when watchForTaskComplete is called until task completes', function() {
 
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       // Step 1: running
       requestHandler.respond(200, { id: 1, status: 'STARTED' });
@@ -99,7 +105,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     it('polls task, failing when task fails or stops', function() {
 
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       // Scenario 1: FAILED
       // Step 1: running
@@ -137,7 +143,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
     it('waits for force refresh step to complete, then resolves', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
@@ -177,7 +183,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
     it('rejects when force refresh step fails', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
@@ -216,7 +222,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
     it('ignores completed status when force refresh is running or not started', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
@@ -243,7 +249,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
 
     it('cancels pending requests', function() {
       var result = null,
-        requestHandler = $http.whenGET(config.gateUrl + '/applications/deck/tasks/1');
+        requestHandler = $http.whenGET('/applications/deck/tasks/1');
 
       requestHandler.respond(200, { id: 1, status: 'RUNNING', steps: [] });
       $http.flush();
@@ -282,7 +288,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
         }
       };
 
-      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+      $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 1,
         status: 'STARTED',
         steps: [],
@@ -304,7 +310,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
       var katoTask2 = {
         id: 4,
         asOrcaKatoTask: function() {
-          return {id: 4, history: []}
+          return {id: 4, history: []};
         }
       };
 
@@ -326,7 +332,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     }
 
     it('uses start time to calculate running time if endTime is zero', function() {
-      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+      $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: new Date(),
@@ -339,7 +345,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     });
 
     it('uses start time to calculate running time if endTime is not present', function() {
-      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+      $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: new Date()
@@ -353,7 +359,7 @@ describe('Service: tasksApi - task complete, task force refresh', function() {
     it('calculates running time based on start and end times', function() {
       var start = new Date().getTime(),
           end = start + 120*1000;
-      $http.whenGET(config.gateUrl + '/applications/deck/tasks/1').respond(200, {
+      $http.whenGET('/applications/deck/tasks/1').respond(200, {
         id: 2,
         status: 'COMPLETED',
         startTime: start,

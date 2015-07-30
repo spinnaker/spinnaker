@@ -2,19 +2,17 @@
 
 describe('authenticationProvider: application startup', function() {
 
-  beforeEach(function() {
-    loadDeck({
-      initializeCache: false,
-      generateUrls: true,
-      enableAuth: true,
-    });
-  });
+  beforeEach(
+    window.module(
+      require('./authentication.module.js')
+    )
+  );
 
   afterEach(function() {
     this.settings.authEnabled = false;
   });
 
-  beforeEach(inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {
+  beforeEach(window.inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {
     this.authenticationService = authenticationService;
     this.$timeout = $timeout;
     this.$http = $httpBackend;

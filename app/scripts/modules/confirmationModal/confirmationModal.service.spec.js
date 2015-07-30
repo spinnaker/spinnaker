@@ -7,11 +7,13 @@ describe('Service: confirmationModalService', function () {
   var confirmationModalService;
 
   beforeEach(
-    module('spinnaker.confirmationModal.service')
+    window.module(
+      require('./confirmationModal.service.js')
+    )
   );
 
   beforeEach(
-    inject(function (_confirmationModalService_) {
+    window.inject(function (_confirmationModalService_) {
       confirmationModalService = _confirmationModalService_;
     })
   );

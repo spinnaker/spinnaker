@@ -1,14 +1,17 @@
 'use strict';
 
+let angular = require('angular');
 
-angular.module('spinnaker.search.global')
+module.exports = angular.module('spinnaker.search.global.directive', [
+  require('./globalSearch.controller.js')
+])
   .directive('globalSearch', function($window, $) {
     return {
       restrict: 'E',
       replace: true,
       scope: {
       },
-      templateUrl: 'views/globalsearch.html',
+      templateUrl: require('../../../../views/globalsearch.html'),
       controller: 'GlobalSearchCtrl as ctrl',
       link: function(scope, element) {
         var window = $($window);
@@ -35,4 +38,4 @@ angular.module('spinnaker.search.global')
         });
       }
     };
-  });
+  }).name;

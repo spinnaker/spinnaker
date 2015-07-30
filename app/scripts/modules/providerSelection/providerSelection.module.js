@@ -1,6 +1,7 @@
 'use strict';
 
-angular.module('spinnaker.providerSelection', [
-  'ui.bootstrap',
-  'spinnaker.settings',
-]);
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.providerSelection', [
+  require('../caches/deckCacheFactory.js'),
+]).name;
