@@ -7,6 +7,4 @@ module.exports = angular.module('spinnaker.account', [
   require('../caches/caches.module.js'),
   require('../../settings/settings.js'),
 ])
-.directive('providerToggles', require('./providerToggles.directive.js'))
-.directive('ifSingleProvider', require('./ifSingleProvider.directive.js'))
 .name;
