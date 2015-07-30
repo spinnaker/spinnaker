@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.squareup.okhttp.ConnectionSpec
 import com.squareup.okhttp.OkHttpClient
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -52,6 +54,22 @@ class OkHttpClientConfiguration {
   String trustStorePassword = 'changeit'
 
   String secureRandomInstanceType = "NativePRNGNonBlocking"
+
+  List<String> tlsVersions = ["TLSv1.2", "TLSv1.1", "TLSv1"]
+  List<String> cipherSuites = [
+    "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
+    "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+    "TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+    "TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+  ]
 
   /**
    * @return RequestInterceptor that will propagate Spinnaker headers if <code>propagateSpinnakerHeaders</code> is true
@@ -113,6 +131,19 @@ class OkHttpClientConfiguration {
     sslContext.init(keyManagerFactory.keyManagers, trustManagerFactory.trustManagers, secureRandom)
     okHttpClient.setSslSocketFactory(sslContext.socketFactory)
 
-    return okHttpClient
+    return applyConnectionSpecs(okHttpClient)
+  }
+
+  @CompileDynamic
+  private OkHttpClient applyConnectionSpecs(OkHttpClient okHttpClient) {
+    def cipherSuites = (cipherSuites ?: ConnectionSpec.MODERN_TLS.cipherSuites()*.javaName) as String[]
+    def tlsVersions = (tlsVersions ?: ConnectionSpec.MODERN_TLS.tlsVersions()*.javaName) as String[]
+
+    def connectionSpec = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+      .cipherSuites(cipherSuites)
+      .tlsVersions(tlsVersions)
+      .build()
+
+    return okHttpClient.setConnectionSpecs([connectionSpec] as List<ConnectionSpec>)
   }
 }
