@@ -24,7 +24,10 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
+import com.squareup.okhttp.CipherSuite
+import com.squareup.okhttp.ConnectionSpec
 import com.squareup.okhttp.OkHttpClient
+import com.squareup.okhttp.TlsVersion
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -110,7 +113,17 @@ class GateConfig {
   OkHttpClientConfiguration okHttpClientConfig
 
   @Bean OkHttpClient okHttpClient() {
-    okHttpClientConfig.create()
+    def okHttpClient = okHttpClientConfig.create()
+    okHttpClient.setConnectionSpecs([
+      new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+        .tlsVersions(TlsVersion.TLS_1_2)
+        .cipherSuites(
+        CipherSuite.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+      )
+        .build()
+    ])
+
+    return okHttpClient
   }
 
   @Bean
