@@ -24,6 +24,7 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
+import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -108,54 +109,58 @@ class GateConfig {
   @Autowired
   OkHttpClientConfiguration okHttpClientConfig
 
-  @Bean
-  OortService oortDeployService() {
-    createClient "oort", OortService
+  @Bean OkHttpClient okHttpClient() {
+    okHttpClientConfig.create()
   }
 
   @Bean
-  OrcaService orcaService() {
-    createClient "orca", OrcaService
+  OortService oortDeployService(OkHttpClient okHttpClient) {
+    createClient "oort", OortService, okHttpClient
   }
 
   @Bean
-  Front50Service front50Service() {
-    createClient "front50", Front50Service
+  OrcaService orcaService(OkHttpClient okHttpClient) {
+    createClient "orca", OrcaService, okHttpClient
   }
 
   @Bean
-  MortService mortService() {
-    createClient "mort", MortService
+  Front50Service front50Service(OkHttpClient okHttpClient) {
+    createClient "front50", Front50Service, okHttpClient
   }
 
   @Bean
-  KatoService katoService() {
-    createClient "kato", KatoService
+  MortService mortService(OkHttpClient okHttpClient) {
+    createClient "mort", MortService, okHttpClient
+  }
+
+  @Bean
+  KatoService katoService(OkHttpClient okHttpClient) {
+    createClient "kato", KatoService, okHttpClient
   }
 
   //---- optional backend components:
   @Bean
   @ConditionalOnProperty('services.echo.enabled')
-  EchoService echoService() {
-    createClient "echo", EchoService
+  EchoService echoService(OkHttpClient okHttpClient) {
+    createClient "echo", EchoService, okHttpClient
   }
 
   @Bean
   @ConditionalOnProperty('services.flapjack.enabled')
-  FlapJackService flapJackService() {
-    createClient "flapjack", FlapJackService
+  FlapJackService flapJackService(OkHttpClient okHttpClient) {
+    createClient "flapjack", FlapJackService, okHttpClient
   }
 
   @Bean
   @ConditionalOnProperty('services.igor.enabled')
-  IgorService igorService() {
-    createClient "igor", IgorService
+  IgorService igorService(OkHttpClient okHttpClient) {
+    createClient "igor", IgorService, okHttpClient
   }
 
   @Bean
   @ConditionalOnProperty('services.mahe.enabled')
-  MaheService maheService() {
-    createClient "mahe", MaheService
+  MaheService maheService(OkHttpClient okHttpClient) {
+    createClient "mahe", MaheService, okHttpClient
   }
 
   @Bean
@@ -232,8 +237,8 @@ class GateConfig {
 
   @Bean
   @ConditionalOnProperty('services.flex.enabled')
-  FlexService flexService() {
-    createClient "flex", FlexService
+  FlexService flexService(OkHttpClient okHttpClient) {
+    createClient "flex", FlexService, okHttpClient
   }
 
 
@@ -271,18 +276,18 @@ class GateConfig {
 
   @Bean
   @ConditionalOnProperty('services.mine.enabled')
-  MineService mineService() {
-    createClient "mine", MineService
+  MineService mineService(OkHttpClient okHttpClient) {
+    createClient "mine", MineService, okHttpClient
   }
 
 
   @Bean
   @ConditionalOnProperty('services.scheduler.enabled')
-  SchedulerService schedulerService() {
-    createClient "scheduler", SchedulerService
+  SchedulerService schedulerService(OkHttpClient okHttpClient) {
+    createClient "scheduler", SchedulerService, okHttpClient
   }
 
-  private <T> T createClient(String serviceName, Class<T> type) {
+  private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
       throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
@@ -294,7 +299,7 @@ class GateConfig {
       newFixedEndpoint("niws://${service.vipAddress}")
       : newFixedEndpoint(service.baseUrl)
 
-    def client = new EurekaOkClient(okHttpClientConfig.create(), extendedRegistry, serviceName, eurekaLookupService)
+    def client = new EurekaOkClient(okHttpClient, extendedRegistry, serviceName, eurekaLookupService)
 
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
