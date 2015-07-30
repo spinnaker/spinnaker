@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
       additionalFields: ['termination.totalRelaunches', 'termination.concurrentRelaunches', 'termination.order', 'termination.relaunchAllInstances'],
       additionalFieldsTemplateUrl: 'app/scripts/modules/deploymentStrategy/strategies/rollingPush/additionalFields.html',
       initializationMethod: function(command) {
-        command.termination = {
+        command.termination = command.termination || {
           order: 'oldest',
           relaunchAllInstances: true,
           concurrentRelaunches: 1,

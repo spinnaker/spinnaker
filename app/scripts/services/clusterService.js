@@ -5,17 +5,29 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
+  'spinnaker.vpc.read.service',
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),
 ])
-  .factory('clusterService', function ($q, Restangular, _) {
+  .factory('clusterService', function ($q, Restangular, _, vpcReader) {
 
     function loadServerGroups(applicationName) {
-      return Restangular.one('applications', applicationName).one('serverGroups').getList()
-        .then(function (serverGroups) {
-          serverGroups.forEach(addHealthyCountsToServerGroup);
-          return serverGroups;
+      var serverGroupLoader = Restangular.one('applications', applicationName).all('serverGroups').getList();
+      var vpcLoader = vpcReader.listVpcs();
+      return $q.all({ serverGroups: serverGroupLoader, vpcs: vpcLoader}).then(function(results) {
+        results.serverGroups.forEach(addHealthyCountsToServerGroup);
+        results.serverGroups.forEach(addVpcNameToServerGroup(results.vpcs));
+        return results.serverGroups;
+      });
+    }
+
+    function addVpcNameToServerGroup(vpcs) {
+      return function(serverGroup) {
+        var matches = vpcs.filter(function(test) {
+          return test.id === serverGroup.vpcId;
         });
+        serverGroup.vpcName = matches.length ? matches[0].name : '';
+      };
     }
 
     function addHealthStatusCheck(serverGroup) {

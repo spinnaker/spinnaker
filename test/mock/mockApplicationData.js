@@ -1,4 +1,3 @@
-
 let angular = require('angular');
 
 module.exports = angular
@@ -11,10 +10,10 @@ module.exports = angular
       serverGroups: [
         {cluster: 'in-us-west-1-only', 'account': 'test', region: 'us-west-1', instances: [ {} ],
           totalCount: 1, upCount: 0, downCount: 1, unknownCount: 0, startingCount: 0, outOfServiceCount: 0,
-          isDisabled: false, type: 'aws', instanceType: 'm3.large'},
+          isDisabled: false, type: 'aws', instanceType: 'm3.large', vpcName: 'Main',},
         {cluster: 'in-eu-east-2-only', 'account': 'prod', region: 'eu-east-2', instances: [],
           totalCount: 0, upCount: 0, downCount: 0, unknownCount: 0, startingCount: 0, outOfServiceCount: 0,
-          isDisabled: true, type:'gce', instanceType: 'm3.medium'}
+          isDisabled: true, type:'gce', instanceType: 'm3.medium', vpcName: ''}
       ]
     }
   )
@@ -38,7 +37,8 @@ module.exports = angular
             outOfServiceCount: 0,
             isDisabled: false,
             type: 'aws',
-            instanceType: 'm3.large'
+            instanceType: 'm3.large',
+            vpcName: 'Main',
           } ]
         } ]
       } ] }, {
@@ -60,7 +60,8 @@ module.exports = angular
             outOfServiceCount: 0,
             isDisabled: true,
             type: 'gce',
-            instanceType: 'm3.medium'
+            instanceType: 'm3.medium',
+            vpcName: ''
           } ]
         } ]
       } ] } ]
