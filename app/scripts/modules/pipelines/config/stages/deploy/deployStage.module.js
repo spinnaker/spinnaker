@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy', [
   require('../../../../deploymentStrategy/deploymentStrategy.module.js'),
   require('../../../../serverGroups/serverGroup.read.service.js'),
   require('../../../../serverGroups/configure/aws/serverGroupCommandBuilder.service.js'),
+  require('../../../../account/providerToggles.directive.js'),
 ])
   .run(function(pipelineConfig, deployStageTransformer) {
     pipelineConfig.registerTransformer(deployStageTransformer);
