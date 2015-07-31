@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./authenticating.html');
+
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   'spinnaker.settings',
   'spinnaker.authentication.service',
@@ -22,7 +24,7 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
           var redirect = headers('X-AUTH-REDIRECT-URL');
           if (status === 401 && redirect) {
             $modal.open({
-              templateUrl: 'scripts/modules/authentication/authenticating.html',
+              templateUrl: require('./authenticating.html'),
               windowClass: 'modal no-animate',
               backdropClass: 'modal-backdrop-no-animate',
               backdrop: 'static',
