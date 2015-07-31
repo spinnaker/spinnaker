@@ -6,7 +6,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', [
   require('utils/lodash.js'),
 ])
-  .service('canaryStageTransformer', function(_) {
+  .service('canaryStageTransformer', function($log, _) {
 
     // adds "canary" or "baseline" to the deploy stage name when converting it to a task
     function getDeployTaskName(stage) {
@@ -210,7 +210,9 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', 
             deployment.canaryResult = deployment.canaryAnalysisResult || {};
             deployment.canaryCluster = deployment.canaryCluster || {};
 
-            var foundTask = _.find(stage.tasks, function(task){ return task.region === deployment.baselineCluster.region && task.commits !== undefined && task.commits.length > 0;});
+            var foundTask = _.find(stage.tasks, function(task) {
+              return task.region === deployment.baselineCluster.region && task.commits !== undefined && task.commits.length > 0;
+            });
             if(foundTask !== undefined && foundTask.commits !== undefined) {
               deployment.commits = foundTask.commits;
             }

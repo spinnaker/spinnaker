@@ -7,7 +7,7 @@ require('./canaryExecutionDetails.html');
 require('./canaryExecutionSummary.html');
 require('./canaryExecutionLabel.html');
 
-module.exports = angular.module('spinnaker.pipelines.stage.canary')
+module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
         pipelineConfigProvider.registerStage({
@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary')
         });
     }
   })
-  .controller('CanaryStageCtrl', function ($scope, $modal, stage,
+  .controller('CanaryStageCtrl', function ($scope, $modal, stage, _,
                                            namingService, providerSelectionService,
                                            authenticationService,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
@@ -100,7 +100,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary')
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider().then(function(selectedProvider) {
         $modal.open({
-          template: '../../../../serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
+          templateUrl: 'app/scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
           controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
           resolve: {
             title: function () {
@@ -139,7 +139,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary')
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || 'aws';
       return $modal.open({
-        templateUrl: '../../../../serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
+        templateUrl: 'app/scripts/modules/serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
         controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function () {
