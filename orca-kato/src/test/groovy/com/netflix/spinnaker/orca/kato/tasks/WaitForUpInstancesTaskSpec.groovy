@@ -105,6 +105,19 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   @Unroll
+  void 'should return false for hasSucceeded when server group is #serverGroup'() {
+    setup:
+    def instances = [ [ health: [ [state: 'Up'] ] ] ]
+
+    expect:
+    !task.hasSucceeded(new PipelineStage(new Pipeline(), "", "", [:]), serverGroup, instances, null)
+    
+    where:
+    serverGroup << [null, [:], [asg: [] ]]
+
+  }
+
+  @Unroll
   void 'should return #hasSucceeded for hasSucceeded when targetHealthyDeployPercentage is #percent and #healthy/#total instances are healthy'() {
     expect:
     def instances = []
@@ -219,7 +232,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       new PipelineStage(new Pipeline(), "", "", [
         targetHealthyDeployPercentage: percent
       ]
-      ), null, [], null
+      ), [asg: [desiredCapacity: 2]], [], null
     )
 
     then:
