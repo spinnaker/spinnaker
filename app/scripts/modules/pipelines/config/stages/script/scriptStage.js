@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [
         executionDetailsUrl: require('./scriptExecutionDetails.html'),
       });
     })
-    .controller('ScriptStageCtrl', function($scope, stage, scriptService, $q, authenticationService) {
+    .controller('ScriptStageCtrl', function($scope, stage, authenticationService) {
       $scope.stage = stage;
 
       if (!$scope.stage.user) {

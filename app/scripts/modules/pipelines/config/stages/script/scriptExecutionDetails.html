@@ -2,13 +2,15 @@
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'scriptConfig'">
     <div class="row">
-      <div class="col-md-6">
+      <div class="col-md-9">
         <h5>Script Stage Configuration</h5>
         <dl class="dl-narrow dl-horizontal">
           <dt>Script Path</dt>
           <dd>{{stage.context.scriptPath}}</dd>
           <dt>Command</dt>
           <dd>{{stage.context.command}}</dd>
+          <dt ng-if="stage.context.propertyFile">Properties</dt>
+          <dd ng-if="stage.context.propertyFile">{{stage.context.propertyFile}}</dd>
         </dl>
       </div>
     </div>
