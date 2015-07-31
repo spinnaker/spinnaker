@@ -30,15 +30,11 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class CronController {
 
-  @Autowired(required = false)
+  @Autowired
   CronService cronService
 
   @RequestMapping(value = "/validate", method = RequestMethod.GET)
   Map validateCronExpression(@RequestParam("expression") String expression) {
-    if (!cronService) {
-      return [ valid: false, message: 'No CronService available' ]
-    }
-
     return cronService.validateCronExpression(expression)
   }
 
