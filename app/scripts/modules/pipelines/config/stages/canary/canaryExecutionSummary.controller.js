@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+reequire('./actions/generateScore.modal.html');
+require('./actions/endCanary.modal.html');
+
 module.exports = angular.module('spinnaker.pipelines.stage.canary.summary.controller', [
   require('angular-ui-router'),
   require('utils/lodash.js'),

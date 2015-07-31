@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../views/directives/katoProgress.html');
+
 module.exports = function () {
   return {
     restrict: 'E',

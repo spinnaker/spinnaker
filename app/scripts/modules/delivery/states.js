@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./pipelineExecutions.html');
+
 module.exports = angular.module('spinnaker.delivery.states', [])
   .constant('deliveryStates', {
     executions: {

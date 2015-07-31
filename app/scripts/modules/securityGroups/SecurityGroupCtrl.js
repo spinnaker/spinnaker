@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./configure/aws/editSecurityGroup.html');
+
 module.exports = angular.module('spinnaker.securityGroup.single.controller', [
   require('angular-ui-router'),
   require('./securityGroup.read.service.js'),

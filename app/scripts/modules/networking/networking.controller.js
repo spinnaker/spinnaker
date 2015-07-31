@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./details/aws/associateElasticIp.html');
+require('./details/aws/disassociateElasticIp.html');
+
 module.exports = angular.module('spinnaker.networking.controller', [
   require('../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),

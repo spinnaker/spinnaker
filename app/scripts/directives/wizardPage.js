@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+
 'use strict';
+
+require('../../views/modal/wizardPage.html');
 
 /**
  * Wizard page directive

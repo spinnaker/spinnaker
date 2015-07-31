@@ -1,5 +1,7 @@
 'use strict';
 
+require('./instanceArchetypeDirective.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.common.instanceArchetypeSelector', [

@@ -1,6 +1,6 @@
 'use strict';
 
-//BEN_TODO
+require('../../views/directives/regionSelectField.html');
 
 module.exports = function (settings, _) {
   return {

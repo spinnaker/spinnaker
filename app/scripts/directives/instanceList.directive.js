@@ -1,5 +1,7 @@
 'use strict';
 
+require('../modules/instance/instanceList.html');
+
 module.exports = function(clusterFilterService) {
   return {
     restrict: 'E',

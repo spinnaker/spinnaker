@@ -4,6 +4,7 @@ let angular = require('angular');
 
 require('../../modules/serverGroups/configure/aws/wizard/serverGroupWizard.html');
 require('../../modules/serverGroups/configure/gce/wizard/serverGroupWizard.html');
+require('./groupings.html');
 
 module.exports = angular.module('clusters.all', [
   require('../clusterFilter/clusterFilterService.js'),

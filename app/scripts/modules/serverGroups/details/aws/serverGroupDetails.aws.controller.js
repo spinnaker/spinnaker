@@ -6,6 +6,10 @@ require('../../configure/aws/wizard/loadBalancers.html');
 
 require('../../configure/gce/wizard/serverGroupWizard.html');
 require('../../configure/aws/serverGroup.configure.aws.module.js');
+require('./modifyScalingProcesses.html');
+require('../resizeServerGroup.html');
+require('../scalingActivities.html');
+require('../../../../../views/application/modal/serverGroup/userData.html');
 
 let angular = require('angular');
 

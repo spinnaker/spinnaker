@@ -1,5 +1,7 @@
 'use strict';
 
+require('./serverGroupSecurityGroupsDirective.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.securityGroupSelector.directive', [])

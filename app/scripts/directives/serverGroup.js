@@ -1,5 +1,7 @@
 'use strict';
 
+require('../modules/cluster/serverGroup.html');
+
 module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService) {
   return {
     restrict: 'E',

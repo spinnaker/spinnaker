@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./pipelineConfigErrors.html');
+
 module.exports = angular.module('spinnaker.pipelines.config.validator.directive', [
   require('./pipelineConfigValidation.service.js'),
 ])

@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./deploymentStrategySelector.html');
+
 module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategySelector', [
 ])
   .directive('deploymentStrategySelector', function() {

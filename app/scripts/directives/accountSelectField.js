@@ -2,6 +2,8 @@
 
 //BEN_TODO
 
+require('../../views/directives/accountSelectField.html');
+
 module.exports = function(settings, _) {
   return {
     restrict: 'E',

@@ -1,5 +1,6 @@
 'use strict';
 
+require('../../configure/aws/editSecurityGroup.html');
 
 let angular = require('angular');
 
