@@ -7,9 +7,8 @@ require('./authenticating.html');
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   'spinnaker.settings',
   'spinnaker.authentication.service',
-  'ui.bootstrap',
 ])
-  .factory('authenticationInitializer', function ($http, $rootScope, $modal, redirectService, authenticationService, settings, $location) {
+  .factory('authenticationInitializer', function ($http, $rootScope, redirectService, authenticationService, settings, $location) {
 
     function authenticateUser() {
       $rootScope.authenticating = true;
@@ -23,13 +22,6 @@ module.exports = angular.module('spinnaker.authentication.initializer.service', 
         .error(function (data, status, headers) {
           var redirect = headers('X-AUTH-REDIRECT-URL');
           if (status === 401 && redirect) {
-            $modal.open({
-              templateUrl: require('./authenticating.html'),
-              windowClass: 'modal no-animate',
-              backdropClass: 'modal-backdrop-no-animate',
-              backdrop: 'static',
-              keyboard: false
-            });
             var callback = encodeURIComponent($location.absUrl());
             redirectService.redirect(settings.gateUrl + redirect + '?callback=' + callback);
           } else {

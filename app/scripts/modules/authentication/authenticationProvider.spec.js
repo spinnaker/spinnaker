@@ -12,7 +12,7 @@ describe('authenticationProvider: application startup', function() {
     this.settings.authEnabled = false;
   });
 
-  beforeEach(window.inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $modal, $rootScope) {
+  beforeEach(window.inject(function(authenticationService, $timeout, $httpBackend, settings, redirectService, $window, $location, $rootScope) {
     this.authenticationService = authenticationService;
     this.$timeout = $timeout;
     this.$http = $httpBackend;
@@ -20,11 +20,7 @@ describe('authenticationProvider: application startup', function() {
     this.redirectService = redirectService;
     this.$window = $window;
     this.$location = $location;
-    this.$modal = $modal;
     this.$rootScope = $rootScope;
-    this.modal = jasmine.createSpyObj('modal', ['dismiss']);
-    spyOn(this.$modal, 'open').and.returnValue(this.modal);
-
   }));
 
   describe('authenticateUser', function() {
@@ -37,7 +33,6 @@ describe('authenticationProvider: application startup', function() {
       expect(this.$rootScope.authenticating).toBe(false);
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('joe!');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(true);
-      expect(this.$modal.open.calls.count()).toBe(0);
     });
 
     it('requests authentication from gate, then opens modal and redirects on 401', function() {
@@ -56,8 +51,6 @@ describe('authenticationProvider: application startup', function() {
       expect(this.authenticationService.getAuthenticatedUser().name).toBe('[anonymous]');
       expect(this.authenticationService.getAuthenticatedUser().authenticated).toBe(false);
       expect(redirectUrl).toBe(this.settings.gateUrl + '/authUp?callback=' + callback);
-      expect(this.$modal.open.calls.count()).toBe(1);
-      expect(this.modal.dismiss.calls.count()).toBe(0);
     });
   });
 
