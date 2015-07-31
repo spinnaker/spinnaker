@@ -2,6 +2,10 @@
 
 let angular = require('angular');
 
+require('./createSecurityGroupProperties.html');
+require('./createSecurityGroupIngress.html');
+
+
 module.exports = angular.module('spinnaker.securityGroup.aws.create.controller', [
   require('angular-ui-router'),
   require('../../../account/accountService.js'),
