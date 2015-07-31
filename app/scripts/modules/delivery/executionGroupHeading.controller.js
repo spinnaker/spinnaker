@@ -41,6 +41,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
     $scope.configuration = configuration;
 
     controller.canTriggerPipelineManually = $scope.filter.execution.groupBy === 'name' && configuration;
+    controller.isRetired = $scope.filter.execution.groupBy === 'name' && !configuration;
 
     function startPipeline(trigger) {
       $scope.viewState.triggeringExecution = true;

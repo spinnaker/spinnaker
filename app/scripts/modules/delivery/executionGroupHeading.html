@@ -1,6 +1,6 @@
 <div class="col-md-12">
   <div class="row clickable" sticky-header added-offset-height="-6" ng-click="ctrl.toggle()">
-    <div class="col-md-12 execution-group-heading" ng-class="ctrl.canTriggerPipelineManually ? 'active' : 'inactive'">
+    <div class="col-md-12 execution-group-heading" ng-class="ctrl.isRetired ? 'inactive' : 'active'">
       <div class="row">
         <div class="col-md-10">
           <h4>
@@ -29,7 +29,7 @@
           </a>
           </h4>
         </div>
-        <div class="col-md-2 text-right" ng-if="!ctrl.canTriggerPipelineManually">
+        <div class="col-md-2 text-right" ng-if="ctrl.isRetired">
           <h4><span class="label-retired" tooltip="The configuration for this pipeline has been renamed or deleted.">RETIRED</span></h4>
         </div>
       </div>
