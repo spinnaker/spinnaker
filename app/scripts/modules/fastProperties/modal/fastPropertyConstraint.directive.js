@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./fastPropertyConstraint.directive.html');
+
 module.exports = angular
   .module('spinnaker.fastProperty.constraints.directive', [])
   .directive('fastPropertyConstraints', function() {

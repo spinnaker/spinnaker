@@ -1,5 +1,7 @@
 'use strict';
 
+require('./serverGroupBasicSettingsDirective.html');
+
 let angular = require('angular');
 
 module.exports = angular

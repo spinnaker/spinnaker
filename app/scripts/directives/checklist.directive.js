@@ -18,7 +18,7 @@
 
 let angular = require('angular');
 
-//BEN_TODO
+require('../../views/directives/checklist.html');
 
 module.exports = function() {
   return {

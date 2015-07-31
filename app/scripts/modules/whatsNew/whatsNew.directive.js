@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./whatsNew.directive.html');
+require('./whatsNew.directive.modal.html');
+
 module.exports = angular
   .module('spinnaker.whatsNew.directive', [
     require('angular-marked'),

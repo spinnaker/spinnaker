@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./stageFailureMessage.html');
+
 module.exports = angular.module('spinnaker.delivery.executionDetails.stageFailureMessage.directive', [])
   .directive('stageFailureMessage', function () {
     return {

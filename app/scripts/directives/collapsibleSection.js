@@ -1,5 +1,7 @@
 'use strict';
 
+require('../../views/collapsibleSection.html');
+
 module.exports = function(collapsibleSectionStateCache) {
   return {
     restrict: 'E',

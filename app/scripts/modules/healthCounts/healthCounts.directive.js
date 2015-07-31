@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 require('./healthLegend.html');
+require('./healthCounts.html');
 
 module.exports = angular.module('spinnaker.healthCounts.directive', [
 ])

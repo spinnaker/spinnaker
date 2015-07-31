@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./loadBalancer/loadBalancer.html');
+
 module.exports = angular.module('spinnaker.loadBalancer.directive', [
   require('utils/lodash.js'),
 ])

@@ -14,6 +14,30 @@ require('../modules/loadBalancers/details/gce/loadBalancerDetails.html');
 
 require('../modules/securityGroups/details/aws/securityGroupDetails.html');
 
+require('../modules/applications/applications.html');
+require('../../views/404.html');
+require('../modules/securityGroups/all.html');
+require('../modules/securityGroups/navigation.html');
+require('../modules/securityGroups/single.html');
+require('../modules/cluster/all.html');
+require('../modules/loadBalancers/navigation.html');
+require('../modules/loadBalancers/loadBalancer/single.html');
+require('../modules/clusterFilter/filterNav.html');
+require('../../views/infrastructure.html');
+
+require('../modules/fastProperties/applicationProperties.html');
+require('../modules/fastProperties/fastPropertyRollouts.html');
+require('../modules/config/config.html');
+
+require('../modules/fastProperties/main.html');
+require('../modules/fastProperties/properties.html');
+require('../modules/insight/insight.html');
+require('../modules/loadBalancers/all.html');
+
+require('../modules/tasks/tasks.html');
+require('../modules/applications/application.html');
+require('../modules/instance/standalone.html');
+
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
   require('./statehelper.js'),

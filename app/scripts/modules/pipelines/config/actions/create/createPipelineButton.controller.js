@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./createPipelineModal.html');
+
 module.exports = angular.module('spinnaker.pipelines.config.actions.create.CreatePipelineButtonCtrl', [
 ])
   .controller('CreatePipelineButtonCtrl', function($scope, $modal) {

@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./createPipelineButton.html');
+
 module.exports = angular.module('spinnaker.pipelines.config.actions.create.createPipelineButtonDirective', [
 ])
   .directive('createPipelineButton', function() {

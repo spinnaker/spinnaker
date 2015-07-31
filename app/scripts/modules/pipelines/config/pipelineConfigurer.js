@@ -2,6 +2,13 @@
 
 let angular = require('angular');
 
+require('./pipelineConfigurer.html');
+require('./actions/enableParallel/enableParallel.html');
+require('./actions/disableParallel/disableParallel.html');
+require('./actions/delete/deletePipelineModal.html');
+require('./actions/rename/renamePipelineModal.html');
+require('./actions/json/editPipelineJsonModal.html');
+
 module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer', [
 ])
   .directive('pipelineConfigurer', function() {

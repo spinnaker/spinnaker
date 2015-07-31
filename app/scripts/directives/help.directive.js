@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./help.directive.html');
+require('./help.directive.modal.html');
+
 module.exports = angular
   .module('spinnaker.help.directive', [
     //require('exports?"ui-bootstrap"!angular-bootstrap'),

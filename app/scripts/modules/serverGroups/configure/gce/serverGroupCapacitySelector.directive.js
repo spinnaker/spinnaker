@@ -1,5 +1,7 @@
 'use strict';
 
+require('./serverGroupCapacityDirective.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.capacity.selector.directive', [])

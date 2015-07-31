@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./modal/editApplication.html');
+require('./modal/editNotification.html');
+
 module.exports = angular
   .module('spinnaker.config.controller', [
     require('../applications/applications.write.service.js'),

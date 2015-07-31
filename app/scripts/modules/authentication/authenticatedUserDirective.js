@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./authenticatedUser.html');
+
 module.exports = angular.module('spinnaker.authentication.directive', [
   require('./authenticationService.js'),
 ])

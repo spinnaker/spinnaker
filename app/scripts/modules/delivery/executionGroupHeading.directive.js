@@ -1,6 +1,8 @@
 'use strict';
 let angular = require('angular');
 
+require('./executionGroupHeading.html');
+
 module.exports = angular.module('spinnaker.delivery.executionGroupHeading.directive', [
   require('./triggers/triggersTag.directive.js'),
 ])

@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./groupings.html');
+require('./filters.html');
+
 module.exports = angular
   .module('spinnaker.loadBalancer', [
     require('./AllLoadBalancersCtrl.js'),

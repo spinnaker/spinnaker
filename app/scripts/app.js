@@ -55,6 +55,8 @@ require('bootstrap/dist/js/bootstrap.js');
 require('angulartics');
 
 
+
+
 module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),
     require('utils/timeFormatters.js'),

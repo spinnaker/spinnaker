@@ -22,14 +22,6 @@ module.exports = {
     //noParse: [
     //  /\.spec\.js$/,
     //],
-
-    preLoaders: [
-      {
-        test: /\.js$/,
-        loader: 'baggage?[file].html&[file].css!eslint'
-      }
-
-    ],
     loaders: [
       {
         test: /jquery\.js$/,
@@ -41,7 +33,7 @@ module.exports = {
       },
       {
         test: /\.js$/,
-        loader: 'ng-annotate!babel!envify',
+        loader: 'ng-annotate!babel!envify!eslint',
         exclude: /node_modules/,
       },
       {

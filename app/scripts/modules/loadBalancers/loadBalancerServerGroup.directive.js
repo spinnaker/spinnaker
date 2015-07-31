@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./loadBalancer/loadBalancerServerGroup.html');
+
 module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [])
   .directive('loadBalancerServerGroup', function ($rootScope) {
     return {

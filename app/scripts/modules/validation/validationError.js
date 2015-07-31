@@ -1,5 +1,7 @@
 'use strict';
 
+require('./validationError.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.validation.error', [])

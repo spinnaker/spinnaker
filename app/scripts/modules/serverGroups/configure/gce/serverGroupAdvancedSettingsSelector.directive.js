@@ -1,5 +1,7 @@
 'use strict';
 
+require('./serverGroupAdvancedSettingsDirective.html');
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.advancedSettingSelector', [])
