@@ -3,28 +3,29 @@
   <div class="step-section-details" ng-if="detailsSection === 'scriptConfig'">
     <div class="row">
       <div class="col-md-9">
+        <h5>Script Stage Configuration</h5>
         <dl class="dl-narrow dl-horizontal">
-          <dt>Credentials</dt>
-          <dd>{{stage.context.credentials}}</dd>
-          <dt>Image</dt>
-          <dd>{{stage.context.image}}</dd>
+          <dt>Script Path</dt>
+          <dd>{{stage.context.scriptPath}}</dd>
           <dt>Command</dt>
           <dd>{{stage.context.command}}</dd>
+          <dt ng-if="stage.context.propertyFile">Properties</dt>
+          <dd ng-if="stage.context.propertyFile">{{stage.context.propertyFile}}</dd>
         </dl>
       </div>
     </div>
-    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
 
-    <div class="row" ng-if="stage.context.execution.logs">
+    <div class="row ng-scope" ng-if="stage.context.buildInfo.url">
       <div class="col-md-12">
         <div class="well alert alert-info">
-          <!-- TODO: Move this to config -->
-          <a target="_blank" href="{{stage.context.execution.logs}}">
-            View Execution Logs
-          </a>
+          <a ng-if="stage.context.buildInfo.url"
+             href="{{stage.context.buildInfo.url}}consoleText"
+             target="_blank">Script Results</a>
         </div>
       </div>
     </div>
+
+    <stage-failure-message is-failed="stage.isFailed" message="failureMessage"></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
@@ -32,4 +33,5 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
+
 </div>
