@@ -11,7 +11,6 @@ var bowerModulePath = path.join(__dirname, 'bower_components');
 module.exports = {
   debug: true,
   entry: './app/scripts/app.js',
-  devtool: 'eval',
   output: {
     path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV || ''),
     filename: 'bundle.js',
