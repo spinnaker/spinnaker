@@ -3,6 +3,8 @@
 let angular = require('angular');
 
 require('./migrator.modal.submitting.html');
+require('./migrator.directive.html');
+require('./migrator.modal.html');
 
 module.exports = angular
   .module('spinnaker.migrator.directive', [
