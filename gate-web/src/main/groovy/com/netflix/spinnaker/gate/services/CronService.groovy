@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.stereotype.Component
@@ -26,6 +27,7 @@ import retrofit.RetrofitError
 @Component
 @CompileStatic
 @ConditionalOnBean(SchedulerService)
+@Slf4j
 class CronService {
 
   @Autowired
@@ -36,6 +38,7 @@ class CronService {
       schedulerService.validateCronExpression(cronExpression)
       return [ valid: true ]
     } catch (RetrofitError e) {
+      log.error("Unable to validate cron expression", e)
       if (e.response.status == 400) {
         Map responseBody = e.getBodyAs(Map) as Map
         return [ valid: false, message: responseBody.message ]

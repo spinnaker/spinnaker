@@ -110,7 +110,6 @@ class GateConfig {
   OkHttpClientConfiguration okHttpClientConfig
 
   @Bean
-  @groovy.transform.CompileDynamic
   OkHttpClient okHttpClient() {
     return okHttpClientConfig.create()
   }
@@ -281,7 +280,6 @@ class GateConfig {
   MineService mineService(OkHttpClient okHttpClient) {
     createClient "mine", MineService, okHttpClient
   }
-
 
   @Bean
   @ConditionalOnProperty('services.scheduler.enabled')
