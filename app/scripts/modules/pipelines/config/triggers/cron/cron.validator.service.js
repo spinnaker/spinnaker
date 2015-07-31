@@ -1,8 +1,10 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.cron.validation.service', [
-  'restangular',
-])
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.cron.validation.service', [
+    require('exports?"restangular"!imports?_=lodash!restangular'),
+  ])
   .factory('cronValidationService', function(Restangular) {
 
     function validate(expression) {
@@ -12,4 +14,6 @@ angular.module('spinnaker.pipelines.trigger.cron.validation.service', [
     return {
       validate: validate,
     };
-  });
+  })
+.name;
+

@@ -1,8 +1,10 @@
 'use strict';
 
+let angular = require('angular');
+
 // Source: https://github.com/daniellmb/angular-uuid-service/blob/master/angular-uuid-service.js
-angular.module('spinnaker.utils.uuid.service', [])
-.factory('uuidService', function() {
+module.exports = angular.module('spinnaker.utils.uuid.service', [])
+  .factory('uuidService', function() {
     function getRandom(max) {
       return Math.random() * max;
     }
@@ -32,4 +34,5 @@ angular.module('spinnaker.utils.uuid.service', [])
     return {
       generateUuid: v4,
     };
-  });
+  })
+.name;

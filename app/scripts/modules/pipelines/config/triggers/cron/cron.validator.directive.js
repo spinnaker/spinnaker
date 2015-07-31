@@ -1,7 +1,9 @@
 'use strict';
 
-angular.module('spinnaker.pipelines.trigger.cron.validator.directive', [
-  'spinnaker.pipelines.trigger.cron.validation.service',
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.pipelines.trigger.cron.validator.directive', [
+  require('./cron.validator.service.js'),
 ])
 .directive('cronValidator', function($q, cronValidationService) {
     return {
@@ -40,4 +42,5 @@ angular.module('spinnaker.pipelines.trigger.cron.validator.directive', [
         };
       }
     };
-  });
+  })
+.name;
