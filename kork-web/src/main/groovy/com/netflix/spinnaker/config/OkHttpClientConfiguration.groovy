@@ -144,6 +144,6 @@ class OkHttpClientConfiguration {
       .tlsVersions(tlsVersions)
       .build()
 
-    return okHttpClient.setConnectionSpecs([connectionSpec] as List<ConnectionSpec>)
+    return okHttpClient.setConnectionSpecs([connectionSpec, ConnectionSpec.CLEARTEXT] as List<ConnectionSpec>)
   }
 }
