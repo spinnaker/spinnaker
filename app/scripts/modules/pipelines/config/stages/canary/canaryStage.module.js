@@ -22,4 +22,5 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary', [
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {
     pipelineConfig.registerTransformer(canaryStageTransformer);
-  }).name;
+  })
+  .name;

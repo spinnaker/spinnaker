@@ -115,6 +115,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/delivery/delivery.module.js'),
     require('./modules/pipelines/pipelines.module.js'),
     require('./modules/pipelines/config/stages/bake/bakeStage.module.js'),
+    require('./modules/pipelines/config/stages/canary/canaryStage.module.js'),
     require('./modules/pipelines/config/stages/core/stage.core.module.js'),
     require('./modules/pipelines/config/stages/deploy/deployStage.module.js'),
     require('./modules/pipelines/config/stages/destroyAsg/destroyAsgStage.module.js'),
