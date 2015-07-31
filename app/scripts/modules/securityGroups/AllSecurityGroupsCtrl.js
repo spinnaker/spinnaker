@@ -5,6 +5,8 @@ let angular = require('angular');
 require('./filters.html');
 require('./groupings.html');
 
+require('./configure/aws/createSecurityGroup.html');
+
 module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   require('utils/lodash.js'),
   require('../providerSelection/providerSelection.service.js'),
@@ -61,7 +63,7 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
         var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
             defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
         $modal.open({
-          templateUrl: './configure/' + provider + '/createSecurityGroup.html',
+          templateUrl: 'app/scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
           controller: 'CreateSecurityGroupCtrl as ctrl',
           resolve: {
             securityGroup: function () {
