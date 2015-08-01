@@ -35,7 +35,9 @@ class TitanCachingProviderConfig {
 
   @Bean
   @DependsOn('netflixTitanCredentials')
-  TitanCachingProvider titanCachingProvider(AccountCredentialsRepository accountCredentialsRepository, TitanClientProvider titanClientProvider, ObjectMapper objectMapper) {
+  TitanCachingProvider titanCachingProvider(AccountCredentialsRepository accountCredentialsRepository,
+                                            TitanClientProvider titanClientProvider,
+                                            ObjectMapper objectMapper) {
     List<CachingAgent> agents = []
     def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitanCredentials } as Collection<NetflixTitanCredentials>
     allAccounts.each { NetflixTitanCredentials account ->

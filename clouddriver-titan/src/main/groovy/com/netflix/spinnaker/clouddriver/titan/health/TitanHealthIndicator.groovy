@@ -16,13 +16,13 @@
 
 
 package com.netflix.spinnaker.clouddriver.titan.health
+
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanRegion
 import com.netflix.titanclient.model.HealthStatus
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.actuate.health.Status
@@ -34,14 +34,13 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 class TitanHealthIndicator implements HealthIndicator {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TitanHealthIndicator)
-
   private final List<NetflixTitanCredentials> credentialsList
   private final TitanClientProvider titanClientProvider
   private AtomicReference<Health> health = new AtomicReference<>(new Health.Builder().up().build())
 
   @Autowired
-  TitanHealthIndicator(List<NetflixTitanCredentials> credentialsList, TitanClientProvider titanClientProvider) {
+  TitanHealthIndicator(@Value('#{netflixTitanCredentials}') List<NetflixTitanCredentials> credentialsList,
+                       TitanClientProvider titanClientProvider) {
     this.credentialsList = credentialsList
     this.titanClientProvider = titanClientProvider
   }

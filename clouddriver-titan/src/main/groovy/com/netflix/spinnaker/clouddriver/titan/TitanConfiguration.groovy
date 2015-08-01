@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws
-import com.fasterxml.jackson.databind.ObjectMapper
+package com.netflix.spinnaker.clouddriver.titan
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanRegion
-import com.netflix.titanclient.model.TitanClientObjectMapper
 import com.netflix.titanclient.test.MockedRegionScopedTitanClient
+import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -30,15 +29,18 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
 
+import javax.annotation.PostConstruct
+
 @Configuration
 @ConditionalOnProperty('titan.enabled')
 @EnableConfigurationProperties
-@ComponentScan(['com.netflix.spinnaker.kato.titan', 'com.netflix.spinnaker.oort.titan'])
-class TitanConfig {
+@ComponentScan('com.netflix.spinnaker.clouddriver.titan')
+@Slf4j
+class TitanConfiguration {
 
-  @Bean
-  ObjectMapper objectMapper() {
-    new TitanClientObjectMapper()
+  @PostConstruct
+  void init() {
+    log.info("TitanConfiguration is enabled")
   }
 
   @Bean
@@ -47,26 +49,28 @@ class TitanConfig {
     new TitanCredentialsConfig()
   }
 
-  @Bean
-  List<NetflixTitanCredentials> netflixTitanCredentials(TitanCredentialsConfig titanCredentialsConfig, AccountCredentialsRepository repository) {
-    List<NetflixTitanCredentials> accounts = []
+  @Bean(name = "netflixTitanCredentials")
+  List<NetflixTitanCredentials> netflixTitanCredentials(TitanCredentialsConfig titanCredentialsConfig,
+                                                        AccountCredentialsRepository repository) {
+    List<NetflixTitanCredentials> accounts = new ArrayList<>()
     for (TitanCredentialsConfig.Account account in titanCredentialsConfig.accounts) {
       List<TitanRegion> regions = account.regions.collect { new TitanRegion(it.name, account.name, it.endpoint) }
-      def credentials = new NetflixTitanCredentials(account.name, regions)
+      NetflixTitanCredentials credentials = new NetflixTitanCredentials(account.name, regions)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
-    accounts
+    return accounts
   }
 
   @Bean
   @DependsOn("netflixTitanCredentials")
-  TitanClientProvider titanClientProvider(List<NetflixTitanCredentials> credentialsList, ObjectMapper objectMapper) {
+  TitanClientProvider titanClientProvider(@Value('#{netflixTitanCredentials}') List<NetflixTitanCredentials> netflixTitanCredentials) {
     List<TitanClientProvider.TitanClientHolder> titanClientHolders = []
-    credentialsList.each { credentials ->
+    netflixTitanCredentials.each { credentials ->
       credentials.regions.each { region ->
-        titanClientHolders << new TitanClientProvider.TitanClientHolder(credentials.name, region.name, new MockedRegionScopedTitanClient(region,
-          objectMapper))
+        titanClientHolders << new TitanClientProvider.TitanClientHolder(
+          credentials.name, region.name, new MockedRegionScopedTitanClient(region)
+        )
       }
     }
     new TitanClientProvider(titanClientHolders)
@@ -74,12 +78,10 @@ class TitanConfig {
 
   static class TitanCredentialsConfig {
     List<Account> accounts
-
     static class Account {
       String name
       List<Region> regions
     }
-
     static class Region {
       String name
       String endpoint

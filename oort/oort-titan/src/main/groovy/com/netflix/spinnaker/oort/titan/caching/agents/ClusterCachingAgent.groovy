@@ -69,7 +69,7 @@ class ClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
 
   @Override
   String getAgentType() {
-    ClusterCachingAgent.simpleName
+    "${account.name}/${region}/${ClusterCachingAgent.simpleName}"
   }
 
   @Override

@@ -61,12 +61,12 @@ class ImageCachingAgent implements CachingAgent {
 
   @Override
   String getProviderName() {
-    return TitanCachingProvider.PROVIDER_NAME
+    TitanCachingProvider.PROVIDER_NAME
   }
 
   @Override
   String getAgentType() {
-    return ImageCachingAgent.simpleName
+    "${account.name}/${region}/${ImageCachingAgent.simpleName}"
   }
 
   @Override

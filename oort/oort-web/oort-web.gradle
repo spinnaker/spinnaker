@@ -6,6 +6,7 @@ dependencies {
   compile project(":oort:oort-core")
   compile project(":oort:oort-aws")
   compile project(":oort:oort-gce")
+  compile project(":oort:oort-titan")
 
   runtime spinnaker.dependency("kork")
   compile spinnaker.dependency("korkWeb")

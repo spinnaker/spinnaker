@@ -15,14 +15,10 @@
  */
 
 package com.netflix.spinnaker.clouddriver
-
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.controllers.CacheController
-import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
-import com.netflix.spinnaker.clouddriver.core.RedisConfig
-import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfig
+import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -31,7 +27,6 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -45,11 +40,13 @@ import java.security.Security
   CloudDriverConfig,
   AwsConfiguration,
   GoogleConfig,
+  TitanConfiguration,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
-  com.netflix.spinnaker.oort.Main,
+  com.netflix.spinnaker.oort.Main
 ])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
+@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
+ManagementSecurityAutoConfiguration])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 
