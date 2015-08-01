@@ -37,4 +37,10 @@ interface TideService {
       @Query("dryRun") Boolean dryRun,
       @Body Map target)
 
+  @POST("/resource/pipeline/{id}/deepCopy")
+  String deepCopyPipeline(
+      @Path("id") String pipelineId,
+      @Query("dryRun") Boolean dryRun,
+      @Body Map pipelineVpcMigrateDefinition
+  )
 }

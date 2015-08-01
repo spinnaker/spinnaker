@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.tide.TideService
 import com.netflix.spinnaker.orca.tide.model.TideTask
+import com.netflix.spinnaker.orca.tide.pipeline.DeepCopyPipelineStage
 import com.netflix.spinnaker.orca.tide.pipeline.DeepCopyServerGroupStage
 import spock.lang.Specification
 import spock.lang.Subject
@@ -62,7 +63,7 @@ class WaitForTideTaskSpec extends Specification {
 
     and:
     def pipeline = new Pipeline()
-    pipeline.stages = [new PipelineStage(pipeline, DeepCopyServerGroupStage.PIPELINE_CONFIG_TYPE)]
+    pipeline.stages = [new PipelineStage(pipeline, DeepCopyPipelineStage.PIPELINE_CONFIG_TYPE)]
 
     when:
     def taskResult = task.execute(new PipelineStage(pipeline, "DeepCopyServerGroup", config))
