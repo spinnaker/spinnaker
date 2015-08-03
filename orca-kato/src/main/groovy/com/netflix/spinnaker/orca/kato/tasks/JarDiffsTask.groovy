@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiff
@@ -27,18 +27,31 @@ import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.oort.util.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
 import retrofit.RestAdapter
+import retrofit.client.Client
 
+import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 
 @Slf4j
 @Component
+@Import(RetrofitConfiguration)
 @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
-class JarDiffsTask implements Task {
+class JarDiffsTask implements RetryableTask {
+  @Autowired Client retrofitClient
+
+  private static final int MAX_RETRIES = 18
+
+  long backoffPeriod = 10000
+
+  long timeout = TimeUnit.MINUTES.toMillis(5) // always set this higher than retries * backoffPeriod would take
+
   @Autowired
   ObjectMapper objectMapper
 
@@ -51,6 +64,12 @@ class JarDiffsTask implements Task {
   int platformPort = 8077
 
   @Override public TaskResult execute(Stage stage) {
+    def retriesRemaining = stage.context.jarDiffsRetriesRemaining != null ? stage.context.jarDiffsRetriesRemaining : MAX_RETRIES
+    if (retriesRemaining <= 0) {
+      log.info("retries exceeded")
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffsRetriesRemaining: retriesRemaining])
+    }
+
     try {
       String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
       // figure out source + target asgs
@@ -72,15 +91,16 @@ class JarDiffsTask implements Task {
       // add the diffs to the context
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: jarDiffs])
     } catch (Exception e) {
-      println "exception : ${e.dump()}"
       // return success so we don't break pipelines
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: [:]])
+      log.error("error while fetching jar diffs, retrying", e)
+      return new DefaultTaskResult(ExecutionStatus.RUNNING, [jarDiffsRetriesRemaining: --retriesRemaining])
     }
   }
 
   InstanceService createInstanceService(String address) {
     RestAdapter restAdapter = new RestAdapter.Builder()
       .setEndpoint(address)
+      .setClient(retrofitClient)
       .build()
     return restAdapter.create(InstanceService.class)
   }
@@ -88,15 +108,18 @@ class JarDiffsTask implements Task {
   List getJarList(Map instances) {
     List jarList = []
     Map jarMap = [:]
-    instances.each { String key, Map valueMap ->
+    instances.find { String key, Map valueMap ->
       String hostName = valueMap.hostName
+      log.info("attempting to get a jar list from : ${key}")
       def instanceService = createInstanceService("http://${hostName}:${platformPort}")
       try {
         def instanceResponse = instanceService.getJars()
         jarMap = objectMapper.readValue(instanceResponse.body.in().text, Map)
         return true
       } catch(Exception e) {
+        log.error("could not get a jar list from : ${key}", e)
         // swallow it so we can try the next instance
+        return false
       }
     }
 
