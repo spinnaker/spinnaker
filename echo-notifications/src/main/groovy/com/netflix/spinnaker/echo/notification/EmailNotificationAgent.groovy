@@ -40,10 +40,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     VelocityEngine engine
 
     @Override
-    void sendNotifications(Event event, Map config, String status) {
-        String application = event.details.application
-        String[] addresses = getEmailReceipients(application, config.type, status)
-
+    void sendNotifications(Map preference, String application, Event event, Map config, String status) {
         String buildInfo = ''
 
         if (config.type == 'pipeline') {
@@ -52,32 +49,24 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
             }
         }
 
-        if (addresses.length > 0) {
-            log.info("Send Email: ${addresses} for ${application} ${config.type} ${status} ${event.content?.executionId}")
-            sendMessage(
-                addresses,
-                event,
-                """[Spinnaker] ${config.type} for ${
-                    event.content?.execution?.name ?: event.content?.execution?.description
-                } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
-                    status == 'complete' ? 'completed successfully' : status
-                } for application ${application}""",
-                config.type,
-                status,
-                config.link
-
-            )
-        }
+        log.info("Send Email: ${} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+        sendMessage(
+            preference.address,
+            event,
+            """[Spinnaker] ${config.type} for ${
+                event.content?.execution?.name ?: event.content?.execution?.description
+            } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
+                status == 'complete' ? 'completed successfully' : status
+            } for application ${application}""",
+            config.type,
+            status,
+            config.link
+        )
     }
 
-    private String[] getEmailReceipients(String application, String type, String status) {
-        List addresses = []
-        front50Service.getNotificationPreferences(application)?.email?.each { emailPreference ->
-            if (emailPreference.when?.contains("$type.$status".toString())) {
-                addresses << emailPreference.address
-            }
-        }
-        addresses.toArray()
+    @Override
+    String getNotificationType(){
+        'email'
     }
 
     private void sendMessage(String[] email, Event event, String title, String type, String status, String link) {
@@ -89,17 +78,16 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
                 'email.vm',
                 "UTF-8",
                 [
-                    event: prettyPrint(toJson(event.content)),
-                    url: spinnakerUrl,
+                    event      : prettyPrint(toJson(event.content)),
+                    url        : spinnakerUrl,
                     application: event.details?.application,
                     executionId: event.content?.execution?.id,
-                    type: type,
-                    status: status,
-                    link: link,
-                    name: event.content?.execution?.name ?: event.content?.execution?.description
+                    type       : type,
+                    status     : status,
+                    link       : link,
+                    name       : event.content?.execution?.name ?: event.content?.execution?.description
                 ]
             )
         )
     }
-
 }

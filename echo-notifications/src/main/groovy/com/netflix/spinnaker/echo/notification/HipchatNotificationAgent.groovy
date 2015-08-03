@@ -38,61 +38,62 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
     String token
 
     @Override
-    void sendNotifications(Event event, Map config, String status) {
-        String application = event.details.application
-        front50Service.getNotificationPreferences(application)?.hipchat?.each { preference ->
-            if (preference.when?.contains("$config.type.$status".toString())) {
-                try {
-                    boolean notify = false
-                    if (status == 'failed') {
-                        notify = true
-                    }
+    void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+        try {
+            boolean notify = false
+            if (status == 'failed') {
+                notify = true
+            }
 
-                    String color = 'gray'
+            String color = 'gray'
 
-                    if (status == 'failed') {
-                        color = 'red'
-                    }
+            if (status == 'failed') {
+                color = 'red'
+            }
 
-                    if (status == 'complete') {
-                        color = 'green'
-                    }
+            if (status == 'complete') {
+                color = 'green'
+            }
 
-                    String buildInfo = ''
+            String buildInfo = ''
 
-                    if (config.type == 'pipeline') {
-                        if (event.content?.execution?.trigger?.buildInfo?.url) {
-                            buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
-                                event.content.execution.trigger.buildInfo.number as Integer
-                            }</a> """
-                        }
-                    }
-
-                    log.info("Send Hipchat message to" +
-                        " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.executionId}")
-
-                    hipchatService.sendMessage(
-                        token,
-                        preference.address,
-                        new HipchatMessage(
-                            message: """${WordUtils.capitalize(application)}'s <a href="${
-                                spinnakerUrl
-                            }/#/applications/${application}/${
-                                config.link
-                            }/${event.content?.execution?.id}">${
-                                event.content?.execution?.name ?: event.content?.execution?.description
-                            }</a> ${buildInfo} ${config.type} ${status == 'starting' ? 'is' : 'has'} ${
-                                status == 'complete' ? 'completed successfully' : status
-                            }""",
-                            color: color,
-                            notify: notify
-                        )
-                    )
-                } catch (Exception e) {
-                    log.error('failed to send hipchat message ', e)
+            if (config.type == 'pipeline') {
+                if (event.content?.execution?.trigger?.buildInfo?.url) {
+                    buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
+                        event.content.execution.trigger.buildInfo.number as Integer
+                    }</a> """
                 }
             }
+
+            log.info("Send Hipchat message to" +
+                " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+
+            hipchatService.sendMessage(
+                token,
+                preference.address,
+                new HipchatMessage(
+                    message: """${WordUtils.capitalize(application)}'s <a href="${
+                        spinnakerUrl
+                    }/#/applications/${application}/${
+                        config.link
+                    }/${event.content?.execution?.id}">${
+                        event.content?.execution?.name ?: event.content?.execution?.description
+                    }</a> ${buildInfo} ${config.type} ${status == 'starting' ? 'is' : 'has'} ${
+                        status == 'complete' ? 'completed successfully' : status
+                    }""",
+                    color: color,
+                    notify: notify
+                )
+            )
+        } catch (Exception e) {
+            log.error('failed to send hipchat message ', e)
         }
     }
+
+    @Override
+    String getNotificationType(){
+        'hipchat'
+    }
+
 }
 

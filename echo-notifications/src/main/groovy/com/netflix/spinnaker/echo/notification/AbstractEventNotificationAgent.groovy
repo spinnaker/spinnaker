@@ -47,6 +47,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
     @Override
     void processEvent(Event event) {
+
         if (event.details.type.startsWith("orca:")) {
 
             List eventDetails = event.details.type.split(':')
@@ -54,7 +55,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
             Map<String, String> config = CONFIG[eventDetails[1]]
             String status = eventDetails[2]
 
-            if (!config || !config.type){
+            if (!config || !config.type) {
                 return
             }
 
@@ -70,10 +71,35 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
                 return
             }
 
-            sendNotifications(event, config, status)
+            // send application level notification
+
+            String application = event.details.application
+
+            def preferenceList = front50Service.getNotificationPreferences(application)
+            def preferences = []
+
+            if (preferenceList) {
+                preferences = preferenceList[getNotificationType()]
+            }
+
+            preferences.each { preference ->
+                if (preference.when?.contains("$config.type.$status".toString())) {
+                    sendNotifications(preference, application, event, config, status)
+                }
+            }
+
+            if (config.type == 'pipeline' || config.type == 'stage') {
+                event.details?.notifications?.each { notification ->
+                    if (notification[config.type] && notification[config.type][getNotificationType()]) {
+                        sendNotifications(notification[config.type][getNotificationType()], application, event, config, status)
+                    }
+                }
+            }
         }
     }
 
-    abstract void sendNotifications(Event event, Map config, String status)
+    abstract String getNotificationType()
+
+    abstract void sendNotifications(Map preference, String application, Event event, Map config, String status)
 
 }
