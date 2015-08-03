@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
+import com.netflix.spinnaker.orca.kato.tasks.JarDiffsTask
 import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
@@ -38,6 +39,9 @@ class CopyLastAsgStage extends DeployStrategyStage {
   @Autowired(required = false)
   GetCommitsTask commitsTask
 
+  @Autowired(required = false)
+  JarDiffsTask jarDiffsTask
+
   CopyLastAsgStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
@@ -54,7 +58,9 @@ class CopyLastAsgStage extends DeployStrategyStage {
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-
+    if(jarDiffsTask) {
+      steps << buildStep(stage, "jarDiffs", JarDiffsTask)
+    }
     return steps
   }
 }
