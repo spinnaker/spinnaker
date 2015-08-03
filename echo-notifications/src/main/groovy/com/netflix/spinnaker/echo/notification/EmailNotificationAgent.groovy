@@ -49,9 +49,9 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
             }
         }
 
-        log.info("Send Email: ${} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+        log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
         sendMessage(
-            preference.address,
+            [preference.address] as String[],
             event,
             """[Spinnaker] ${config.type} for ${
                 event.content?.execution?.name ?: event.content?.execution?.description

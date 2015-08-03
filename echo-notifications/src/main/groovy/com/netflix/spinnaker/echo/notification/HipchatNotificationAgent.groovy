@@ -66,7 +66,7 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
             }
 
             log.info("Send Hipchat message to" +
-                " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.executionId}")
+                " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
 
             hipchatService.sendMessage(
                 token,

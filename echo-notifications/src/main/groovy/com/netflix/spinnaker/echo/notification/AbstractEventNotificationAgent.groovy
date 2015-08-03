@@ -75,6 +75,9 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
             String application = event.details.application
 
+            def sendRequests = []
+
+            // application level
             def preferenceList = front50Service.getNotificationPreferences(application)
             def preferences = []
 
@@ -84,17 +87,34 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
             preferences.each { preference ->
                 if (preference.when?.contains("$config.type.$status".toString())) {
-                    sendNotifications(preference, application, event, config, status)
+                    sendRequests << preference
                 }
             }
 
-            if (config.type == 'pipeline' || config.type == 'stage') {
-                event.details?.notifications?.each { notification ->
-                    if (notification[config.type] && notification[config.type][getNotificationType()]) {
-                        sendNotifications(notification[config.type][getNotificationType()], application, event, config, status)
+            // pipeline level
+
+            if (config.type == 'pipeline') {
+                event.content?.notifications?.each { notification ->
+                    String key = "${getNotificationType()}"
+                    if (notification[key]?.when?.contains("$config.type.$status".toString())) {
+                        sendRequests << notification[key]
                     }
                 }
             }
+
+            if (config.type == 'stage') {
+                event.content?.context?.notifications?.each { notification ->
+                    String key = "${getNotificationType()}"
+                    if (notification[key]?.when?.contains("$config.type.$status".toString())) {
+                        sendRequests << notification[key]
+                    }
+                }
+            }
+
+            sendRequests.each{
+                sendNotifications(it, application, event, config, status)
+            }
+
         }
     }
 
