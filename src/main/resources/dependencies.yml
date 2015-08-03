@@ -13,7 +13,7 @@ versions:
   batch: "3.0.4.RELEASE"
   cglib: "3.1"
   eddaClient: "1.9.16.2"
-  eureka: "1.1.147"
+  eureka: "1.1.159"
   frigga: "0.13"
   googleHttp: "1.18.0-rc"
   googleCompute: "v1-rev40-1.19.0"
