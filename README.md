@@ -12,7 +12,7 @@ Run the following commands (in the deck directory) to get all dependencies insta
   * ```npm install```
   * ```npm start```
 
-The app will start up on localhost:8080.
+The app will start up on localhost:9000.
 
 Environment variables
 ---------------------
