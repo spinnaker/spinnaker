@@ -37,7 +37,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     }
 
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
-      log.info("Empty health providers supplied for ${serverGroup.name}; considering it healthy")
+      log.info("${serverGroup.name}: Empty health providers supplied; considering it healthy")
       return true
     }
 
@@ -53,7 +53,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       boolean noneAreDown = !healths.any { Map health -> health.state == 'Down' }
       someAreUp && noneAreDown
     }
-    log.info("Instances up check for ${serverGroup.name} - healthy: $healthyCount, target: $targetDesiredSize")
+    log.info("${serverGroup.name}: Instances up check - healthy: $healthyCount, target: $targetDesiredSize")
     return healthyCount >= targetDesiredSize
   }
 
@@ -66,7 +66,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer
       // if the ASG is being actively scaled down, this operation might never complete,
       // so take the min of the latest capacity from the ASG and the snapshot
-      log.info("Calculating target desired size from snapshot (${snapshotCapacity}) and ASG (${targetDesiredSize})")
+      log.info("${serverGroup.name}: Calculating target desired size from snapshot (${snapshotCapacity}) and ASG (${targetDesiredSize})")
       targetDesiredSize = Math.min(targetDesiredSize, snapshotCapacity)
     }
 
@@ -76,9 +76,9 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
         throw new NumberFormatException("targetHealthyDeployPercentage must be an integer between 0 and 100")
       }
       targetDesiredSize = Math.ceil(percentage * targetDesiredSize / 100D) as Integer
-      log.info("Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
+      log.info("${serverGroup.name}: Calculating target desired size based on configured percentage (${percentage}) as ${targetDesiredSize} instances")
     }
-    log.info("Target desired size for ${serverGroup.name} is ${targetDesiredSize}")
+    log.info("${serverGroup.name}: Target desired size is ${targetDesiredSize}")
     targetDesiredSize
   }
 
