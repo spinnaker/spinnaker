@@ -3,13 +3,12 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.common.configure.service', [
-  require('../aws/serverGroupConfiguration.service.js'),
-  require('../gce/serverGroupConfiguration.service.js')
+  require('../../../delegation/serviceDelegate.service.js'),
 ])
-.factory('serverGroupConfigurationService', function(awsServerGroupConfigurationService, gceServerGroupConfigurationService) {
+.factory('serverGroupConfigurationService', function(serviceDelegate) {
 
   function getDelegate(provider) {
-    return (!provider || provider === 'aws') ? awsServerGroupConfigurationService : gceServerGroupConfigurationService;
+    return serviceDelegate.getDelegate(provider, 'ServerGroupConfigurationService');
   }
 
   function refreshInstanceTypes(provider, command) {
