@@ -35,14 +35,3 @@ To run the tests within the application, run ```npm test```.
 Building & Deploying
 --------------------
 To build the application, run ```npm run build```. The built application lives in ```dist/```.
-
-e2e tests
----------
-To run e2e tests, first make sure protractor is installed and webdriver is running:
-
-  * ```npm install -g protractor```
-  * ```webdriver-manager update```
-  * ```webdriver-manager start```
-
-Then, run the test suite via ```gulp test:e2e```.
-
