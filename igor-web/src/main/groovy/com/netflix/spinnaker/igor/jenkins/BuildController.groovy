@@ -83,7 +83,7 @@ class BuildController {
         masters.map[master].getBuilds(job).list
     }
 
-    @RequestMapping(value = '/masters/{name}/jobs/{job:.+}}', method = RequestMethod.PUT)
+    @RequestMapping(value = '/masters/{name}/jobs/{job:.+}', method = RequestMethod.PUT)
     String build(
         @PathVariable("name") String master,
         @PathVariable String job, @RequestParam Map<String, String> requestParams) {
