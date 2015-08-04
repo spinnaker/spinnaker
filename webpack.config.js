@@ -2,6 +2,7 @@
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
+var webpack = require('webpack');
 var IgnorePlugin = require("webpack/lib/IgnorePlugin");
 var path = require('path');
 
@@ -10,7 +11,10 @@ var bowerModulePath = path.join(__dirname, 'bower_components');
 
 module.exports = {
   debug: true,
-  entry: './app/scripts/app.js',
+  entry: {
+    settings: './settings.js',
+    app: './app/scripts/app.js',
+  },
   output: {
     path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV || ''),
     filename: 'bundle.js',
@@ -64,6 +68,10 @@ module.exports = {
     //new IgnorePlugin(
     //  /\.spec/
     //),
+    new webpack.optimize.CommonsChunkPlugin(
+      /* chunkName= */"settings",
+      /* filename= */"settings.bundle.js"
+    ),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
       template: './app/index.html',
