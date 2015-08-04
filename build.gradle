@@ -33,9 +33,9 @@ node {
     download = true
 }
 
-task webpack(type: Exec) {
+task webpack(type: NodeTask) {
   workingDir '.'
-  commandLine 'node', 'node_modules/webpack/bin/webpack.js'
+  script = file('node_modules/webpack/bin/webpack.js')
   environment = [
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
   ]
