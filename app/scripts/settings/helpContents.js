@@ -110,6 +110,8 @@ module.exports = angular.module('spinnaker.help.contents', [])
     'pipeline.config.canary.scaleUpDelay': '<p>Minutes to delay before initiating canary scale up</p>',
     'pipeline.config.canary.baselineVersion': '<p>The Canary stage will inspect the specified cluster to determine which version to deploy as the baseline in each cluster pair.</p>',
 
+    'pipeline.config.cron.expression': '<strong>Format (Year is optional)</strong><p><samp>Seconds  Minutes  Hour  DayOfMonth  Month  DayOfWeek  (Year)</samp></p>' +
+    '<p><strong>Example: every 30 minutes</strong></p><samp>0 0/30 * * * ?</samp>',
 
     'serverGroup.description': '<p>A server group is a collection of instances managed together. </p>' +
       '<ul>' +
