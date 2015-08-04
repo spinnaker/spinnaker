@@ -52,7 +52,7 @@ class InfoController {
         masters.map[master].jobs.list.collect{it.name}
     }
 
-    @RequestMapping(value = '/jobs/{master}/{job}')
+    @RequestMapping(value = '/jobs/{master}/{job:.+}')
     JobConfig getJobConfig(@PathVariable String master, @PathVariable String job) {
         log.info('Getting the job config for {} at {}', job, master)
         masters.map[master].getJobConfig(job)
