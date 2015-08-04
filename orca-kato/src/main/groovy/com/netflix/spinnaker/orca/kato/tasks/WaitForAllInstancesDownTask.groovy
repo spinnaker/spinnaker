@@ -19,14 +19,19 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.TimeUnit
+
 @Component
 class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
-
   @Override
   protected boolean hasSucceeded(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
+    def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
+
     if (interestingHealthProviderNames != null && interestingHealthProviderNames.isEmpty()) {
       return true
     }
+
+    def maximumNumberOfHealthProviders = (instances.health*.type).unique().size()
     instances.every {
       def healths = interestingHealthProviderNames ? it.health.findAll { health ->
         health.type in interestingHealthProviderNames
@@ -35,6 +40,13 @@ class WaitForAllInstancesDownTask extends AbstractWaitingForInstancesTask {
       if (!interestingHealthProviderNames && !healths) {
         // no health indications (and no specific providers to check), consider instance to be down
         return true
+      }
+
+      if (healths.size() == 1 && maximumNumberOfHealthProviders > 1) {
+        if (healths[0].type == "Amazon" && healths[0].state == "Unknown" && it.launchTime <= oneHourAgo) {
+          // Consider an instance down if it's > 1hr old and only has an Amazon health provider (and there are > 1 configured health providers)
+          return true
+        }
       }
 
       boolean someAreDown = healths.any { it.state == 'Down' || it.state == 'OutOfService' }
