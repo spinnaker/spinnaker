@@ -28,9 +28,13 @@ The following external resources can be specified with environment variables:
 
 For example, ```API_HOST=spinnaker.prod.netflix.net npm start``` will run service with ```spinnaker.prod.netflix.net``` as the API host.
 
+Testing
+-------
+To run the tests within the application, run ```npm test```. 
+
 Building & Deploying
 --------------------
-To build the application, use run ```npm run build```. The built application lives in ```dist/```.
+To build the application, run ```npm run build```. The built application lives in ```dist/```.
 
 e2e tests
 ---------
