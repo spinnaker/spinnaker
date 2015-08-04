@@ -15,20 +15,26 @@ module.exports = angular
       var task = { id: null, deferred: deferred, dryRun: config.dryRun };
       var taskStarter = taskExecutor.executeTask({
         application: config.application,
-        description: 'Migrate ' + config.source.asgName + ' to VPC0',
+        description: 'Migrate ' + config.name + ' to VPC0',
         job: [{
+          type: config.type,
           source: config.source,
-          type: 'deepCopyServerGroup',
           target: config.target,
           dryRun: config.dryRun,
         }]
       });
 
-      taskStarter.then(function(execution) {
-        task.id = execution.id;
-        task.execution = execution;
-        monitorTask(task);
-      });
+      taskStarter.then(
+        function(execution) {
+          task.id = execution.id;
+          task.execution = execution;
+          monitorTask(task);
+        },
+        function(error) {
+          var message = error.message || 'An internal server error occurred. Please try again later.';
+          task.deferred.reject(message);
+        }
+      );
 
       return task;
     }
@@ -82,6 +88,7 @@ module.exports = angular
         securityGroups: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'groupName'); }),
         loadBalancers: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'loadBalancerName'); }),
         serverGroups: tideTask.mutations.filter(function(mutation) { return mutationIs(mutation, 'autoScalingGroupName'); }),
+        pipelines: tideTask.mutations.filter(function(mutation) { return !!mutation.pipelineToCreate; }),
       };
     }
 

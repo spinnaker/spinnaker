@@ -1,9 +1,9 @@
-<div class="overlay overlay-modal" modal-page modal-overlay ng-if="viewState.executing || viewState.error">
+<div class="overlay overlay-modal" ng-if="executor && viewState.executing" modal-page modal-overlay>
   <div class="modal-header">
     <h3>Migrating {{component.name}} to VPC0</h3>
   </div>
   <div class="modal-body clearfix">
-    <div class="col-md-10 col-md-offset-1">
+    <div class="col-md-10 col-md-offset-1" auto-scroll="[executor.lastResult.eventLog]" >
       <ul class="task task-progress">
         <li ng-repeat="entry in executor.lastResult.eventLog">
           <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
@@ -15,12 +15,6 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button class="btn btn-primary"
-            ng-if="!viewState.error"
-            ng-click="ctrl.cancel()" auto-focus>Close</button>
-    <button class="btn btn-primary"
-            ng-if="viewState.error"
-            ng-click="viewState.error = null">Go back and try again
-    </button>
+    <button class="btn btn-primary" ng-click="ctrl.cancel()" auto-focus>Close</button>
   </div>
 </div>

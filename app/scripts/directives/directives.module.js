@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.directives', [
 //.directive('accountLabelColor', require('./accountLabelColor.directive.js'))
 .directive('accountSelectField', require('./accountSelectField.js'))
 .directive('accountTag', require('./accountTag.js'))
-.directive('autoScroll', require('./autoScroll.directive.js'))
 .directive('autoFocus', require('./autofocus.js'))
 .directive('availabilityZoneSelector', require('./availabilityZoneSelector.js'))
 .directive('checklist', require('./checklist.directive.js'))
