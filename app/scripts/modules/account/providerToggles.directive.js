@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = module.exports = angular
+module.exports = angular
   .module('spinnaker.account.providerToggle.directive', [
     require('./accountService.js')
   ])
