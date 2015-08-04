@@ -20,7 +20,7 @@ describe('Directives: auto-scroll', function () {
 
   beforeEach(window.module(
     require('utils/jQuery.js'),
-    require('./directives.module.js')
+    require('./autoScroll.directive.js')
   ));
 
 
