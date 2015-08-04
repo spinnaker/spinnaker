@@ -12,9 +12,18 @@ buildscript {
   }
 }
 
-apply plugin: 'com.moowork.node'
+group = "com.netflix.spinnaker.deck"
+
 apply plugin: 'spinnaker-gradle-project'
 apply plugin: 'spinnaker-debpublish'
+apply plugin: 'com.moowork.node'
+
+jar {
+  dependsOn('webpack')
+  from(fileTree("build/webpack")) {
+    into "META-INF/resources"
+  }
+}
 
 node {
     // Version of node to use.
@@ -25,25 +34,24 @@ node {
     download = true
 }
 
-task webpackPrestaging(type: Exec) {
+task webpack(type: Exec) {
   workingDir '.'
   commandLine 'node', 'node_modules/webpack/bin/webpack.js'
   environment = [
     "GATE_HOST": "spinnaker-api-prestaging.prod.netflix.net",
-    "SPINNAKER_ENV": "prestaging"
   ]
 }
 
-webpackPrestaging.dependsOn 'npmInstall'
-buildDeb.dependsOn 'webpackPrestaging'
+webpack.outputs.dir file('build/webpack')
+
+webpack.dependsOn 'npmInstall'
+buildDeb.dependsOn 'webpack'
 
 ospackage {
-  requires('nflx-cloudpassage')
-  requires('platform-sidecar')
-  from(project.file('dist')) {
-    into '/apps/apache/htdocs'
-  }
-
-  postInstall '/sbin/chkconfig nflx-tomcat off'
-  postInstall "sed -i -e 's/proxy_enabled=.*/proxy_enabled=false/' /etc/default/nflx-httpd"
+  packageName = "deck"
+  version = project.version.replaceAll("-SNAPSHOT", "")
+  release '3'
+  into "/var/www"
+  requires "apache2"
+  from "build/webpack"
 }

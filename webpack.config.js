@@ -16,7 +16,7 @@ module.exports = {
     app: './app/scripts/app.js',
   },
   output: {
-    path: path.join(__dirname, 'dist', process.env.SPINNAKER_ENV || ''),
+    path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
     filename: 'bundle.js',
 
   },
