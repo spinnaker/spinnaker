@@ -5,9 +5,6 @@ aws:
   defaultSimpleDBDomain: CLOUD_REGISTRY
   simpleDBEnabled: false
 
-google:
-  enabled: false
-
 spinnaker:
   cassandra:
     enabled: true
