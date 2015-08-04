@@ -22,14 +22,24 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedString
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+
+import java.util.concurrent.TimeUnit
+
 /**
  * Created by aglover on 7/10/14.
  */
 class WaitForAllInstancesDownTaskSpec extends Specification {
   @Subject task = new WaitForAllInstancesDownTask()
+
+  @Shared
+  def oneHourAgo = System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1)
+
+  @Shared
+  def oneMinuteAgo = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1)
 
   def mapper = new OrcaObjectMapper()
 
@@ -92,6 +102,8 @@ class WaitForAllInstancesDownTaskSpec extends Specification {
     false        || ['b']               | [ [ health: [ [ type: 'a', state : "Down"] ] ] ]
     false        || ['b']               | [ [ health: [ [ type: 'a', state : "Up"] ] ] ]
     true         || ['a']               | [ [ health: [ [ type: 'a', state: "OutOfService"] ] ] ]
+    true         || null                | [ [ launchTime: oneHourAgo, health: [ [ type: 'Amazon', state: "Unknown"] ] ], [ health: [ [ type: 'Amazon', state: 'Unknown'], [type: 'Discovery', state: 'Down'] ] ] ]
+    false        || null                | [ [ launchTime: oneMinuteAgo, health: [ [ type: 'Amazon', state: "Unknown"] ] ], [ health: [ [ type: 'Amazon', state: 'Unknown'], [type: 'Discovery', state: 'Down'] ] ] ]
 
     // multiple health providers
     false        || null                | [ [ health: [ [ type: 'a', state : "Up"], [ type: 'b', state : "Up"] ] ] ]
