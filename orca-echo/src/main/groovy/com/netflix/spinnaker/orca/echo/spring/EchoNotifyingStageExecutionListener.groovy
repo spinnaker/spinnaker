@@ -31,9 +31,6 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
     if (stepExecution.status == BatchStatus.STARTED) {
-      if ((stage.execution instanceof Pipeline) && (stepExecution.stepName.contains('.stageStart.'))) {
-        recordEvent('stage', 'starting', stage, stepExecution)
-      }
       recordEvent('task', 'starting', stage, stepExecution)
     }
   }
@@ -43,10 +40,13 @@ class EchoNotifyingStageExecutionListener extends StageExecutionListener {
       return
     }
     recordEvent('task', (wasSuccessful(stepExecution) ? "complete" : "failed"), stage, stepExecution)
-    if (stage.execution instanceof Pipeline){
-      if( wasSuccessful(stepExecution) ){
-        if (stepExecution.stepName.contains('.stageEnd.'))
+    if (stage.execution instanceof Pipeline) {
+      if (wasSuccessful(stepExecution)) {
+        if (stepExecution.stepName.contains('.stageEnd.')) {
           recordEvent('stage', 'complete', stage, stepExecution)
+        } else if (stepExecution.stepName.contains('.stageStart.')) {
+          recordEvent('stage', 'starting', stage, stepExecution)
+        }
       } else {
         recordEvent('stage', 'failed', stage, stepExecution)
       }
