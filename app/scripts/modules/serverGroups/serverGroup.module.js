@@ -10,12 +10,7 @@ module.exports = angular
 
     require('./serverGroup.write.service.js'),
     require('./configure/common/transformer/serverGroup.transformer.service.js'),
-    require('./configure/aws/serverGroup.configure.aws.module.js'),
-    require('./configure/gce/serverGroup.configure.gce.module.js'),
     require('./configure/common/serverGroup.configure.common.module.js'),
     require('./pod/runningTasksTag.directive.js'),
-    require('./details/aws/serverGroup.details.module.js'),
 
-    require('./details/gce/serverGroupDetails.gce.controller.js'),
-    require('./configure/aws/wizard/CloneServerGroup.aws.controller.js')
   ]).name;
