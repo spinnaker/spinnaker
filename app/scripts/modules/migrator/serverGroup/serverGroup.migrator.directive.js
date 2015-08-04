@@ -2,16 +2,17 @@
 
 let angular = require('angular');
 
-require('./migrator.modal.submitting.html');
-require('./migrator.directive.html');
-require('./migrator.modal.html');
+require('./../migrator.modal.submitting.html');
+require('./serverGroup.migrator.directive.html');
+require('./serverGroup.migrator.modal.html');
 
 module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
-    require('../vpc/vpc.read.service.js'),
-    require('../../settings/settings.js'),
-    require('./migrator.service.js'),
+    require('../../vpc/vpc.read.service.js'),
+    require('../../../settings/settings.js'),
+    require('../migrator.service.js'),
+    require('../../../directives/autoScroll.directive.js'),
   ])
   .directive('migrator', function () {
     return {
@@ -19,27 +20,26 @@ module.exports = angular
       replace: true,
       scope: {
         application: '=',
-        component: '=',
-        type: '@',
+        serverGroup: '=',
       },
-      templateUrl: require('./migrator.directive.html'),
+      templateUrl: require('./serverGroup.migrator.directive.html'),
       controller: 'MigratorActionCtrl',
       controllerAs: 'migratorActionCtrl',
     };
   })
   .controller('MigratorActionCtrl', function ($scope, $modal, vpcReader, settings) {
 
-    vpcReader.getVpcName($scope.component.vpcId).then(function (name) {
+    vpcReader.getVpcName($scope.serverGroup.vpcId).then(function (name) {
       $scope.showAction = name === 'Main' && settings.feature.vpcMigrator;
     });
 
     this.previewMigration = function () {
       $modal.open({
-        templateUrl: require('./migrator.modal.html'),
+        templateUrl: require('./serverGroup.migrator.modal.html'),
         controller: 'MigratorCtrl as ctrl',
         resolve: {
-          component: function () {
-            return $scope.component;
+          serverGroup: function () {
+            return $scope.serverGroup;
           },
           application: function () {
             return $scope.application;
@@ -51,39 +51,38 @@ module.exports = angular
       });
     };
   })
-  .controller('MigratorCtrl', function ($scope, component, application, type, $modalInstance, migratorService) {
-
-    var typeToField = {
-      serverGroup: 'asgName',
-      pipeline: 'pipelineId',
-    };
+  .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $modalInstance, migratorService) {
 
     $scope.application = application;
-    $scope.component = component;
+    $scope.serverGroup = serverGroup;
 
     $scope.viewState = {
       computing: true,
     };
 
     $scope.source = {
-      region: component.region,
-      account: component.account
+      region: serverGroup.region,
+      account: serverGroup.account
     };
 
-    $scope.source[typeToField[type]] = component.name;
+    $scope.source.asgName = serverGroup.name;
 
     var target = {
-      region: component.region,
-      account: component.account,
+      region: serverGroup.region,
+      account: serverGroup.account,
       vpcName: 'vpc0'
     };
 
-    var dryRun = migratorService.executeMigration({
+    var migrationConfig = {
+      application: application,
+      type: 'deepCopyServerGroup',
+      name: serverGroup.name,
       source: $scope.source,
       target: target,
       dryRun: true,
-      application: application
-    });
+    };
+
+    var dryRun = migratorService.executeMigration(migrationConfig);
 
     dryRun.deferred.promise.then(
       function () {
@@ -106,12 +105,8 @@ module.exports = angular
 
     this.submit = function () {
       $scope.viewState.executing = true;
-      var executor = migratorService.executeMigration({
-        source: $scope.source,
-        target: target,
-        dryRun: false,
-        application: application
-      });
+      migrationConfig.dryRun = false;
+      var executor = migratorService.executeMigration(migrationConfig);
       executor.deferred.promise.then(
         function () {
           $scope.viewState.executing = false;

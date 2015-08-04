@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./pipelineExecutions.executionFilter.html');
+
 module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controller', [
   require('./executionsService.js'),
   require('utils/d3.js'),

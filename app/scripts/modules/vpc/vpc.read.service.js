@@ -22,7 +22,7 @@ module.exports = angular
             if (vpc.deprecated) {
               vpc.label += ' (deprecated)';
             }
-            return vpc;
+            return vpc.plain();
           });
         });
     }

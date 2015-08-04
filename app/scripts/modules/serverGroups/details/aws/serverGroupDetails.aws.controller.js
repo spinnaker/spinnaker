@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../serverGroup.read.service.js'),
   require('../../configure/aws/serverGroupCommandBuilder.service.js'),
   require('../../configure/common/runningExecutions.service.js'),
-  require('../../../migrator/migrator.directive.js'),
+  require('../../../migrator/serverGroup/serverGroup.migrator.directive.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,

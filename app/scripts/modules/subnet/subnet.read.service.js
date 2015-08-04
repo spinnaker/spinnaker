@@ -20,7 +20,7 @@ module.exports = angular
             if (subnet.deprecated) {
               subnet.label += ' (deprecated)';
             }
-            return subnet;
+            return subnet.plain();
           });
         });
     }

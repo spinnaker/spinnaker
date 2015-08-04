@@ -1,7 +1,7 @@
 <accordion>
   <accordion-group is-open="viewState.expanded">
     <accordion-heading>
-      <h4 class="heading-pipeline-config">
+      <h4 class="heading-pipeline-config" id="pipeline-config-{{pipeline.id}}">
         <span class="glyphicon glyphicon-chevron-{{viewState.expanded ? 'down' : 'right'}}"></span> {{pipeline.name || '[Unnamed]'}} <span ng-if="pipeline.disabled" class="badge badge-disabled">disabled</span>
         <pipeline-config-errors pipeline="pipeline"></pipeline-config-errors>
       </h4>
@@ -17,6 +17,7 @@
           <li><a href ng-click="pipelineConfigurerCtrl.editPipelineJson()">Edit as JSON</a></li>
           <li ng-if="pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.disableParallel()">Disable parallel execution</a></li>
           <li ng-if="!pipeline.parallel"><a href ng-click="pipelineConfigurerCtrl.enableParallel()">Enable parallel execution</a></li>
+          <li><pipeline-migrator pipeline="pipeline" application="application"></pipeline-migrator></li>
         </ul>
       </div>
     </div>
