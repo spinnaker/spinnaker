@@ -27,15 +27,16 @@ class LibraryDiffTool {
   }
 
   LibraryDiffs calculateLibraryDiffs(List<Library> sourceLibs, List<Library> targetLibs) {
-    LibraryDiffs libraryDiffs = new LibraryDiffs()
-    libraryDiffs.unknown = []
-    libraryDiffs.unchanged = []
-    libraryDiffs.upgraded = []
-    libraryDiffs.downgraded = []
-    libraryDiffs.duplicates = []
-    libraryDiffs.removed = []
-    libraryDiffs.added = []
-    libraryDiffs.totalLibraries = targetLibs?.size()
+    LibraryDiffs libraryDiffs = new LibraryDiffs(
+      unknown: [],
+      unchanged: [],
+      upgraded: [],
+      downgraded: [],
+      duplicates: [],
+      removed: [],
+      added: [],
+      totalLibraries: targetLibs ? targetLibs.size() : 0
+    )
 
     try {
       if (targetLibs && sourceLibs) {
