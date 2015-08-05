@@ -77,7 +77,6 @@ class LibraryDiffTool {
             boolean valid = value.collect { it.version }.findAll { it != null }.groupBy { it }.keySet().size() > 1
             if (valid) {
               String displayDiff = "${currentLib.name}: ${value.collect { it.version }.join(", ")}"
-              displayDiff = displayDiff.substring(0, displayDiff.length()-1)
               libraryDiffs.duplicates << new Diff(library: currentLib, displayDiff: displayDiff)
             }
           }
