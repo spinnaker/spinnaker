@@ -38,16 +38,15 @@ class LibraryDiffSpec extends Specification {
     def target = [targetLib1, targetLib2, targetLib3, targetLib4, targetLib5, targetLib6]
 
     when:
-    LibraryDiff libraryDiff = new LibraryDiff(source, target)
-    def result = libraryDiff.diffJars()
-    println result.dump()
+    LibraryDiffs libraryDiffs = new LibraryDiffTool(new DefaultComparableLooseVersion()).calculateLibraryDiffs(source, target)
+    println libraryDiffs.dump()
 
     then:
-    result.downgraded[0].displayDiff == "tomcat-juli: 7.0.59 -> 7.0.55"
-    result.unknown[0].displayDiff == "IngrianLog4j"
-    result.duplicates[0].displayDiff =="DataModel: 119.54, 119.55"
-    result.upgraded[0].displayDiff == "IngrianNAE: 5.4.0 -> 5.5.0"
-    result.removed[0].displayDiff == "astyanax-entity-mapper: 3.6.0"
-    result.added[0].displayDiff == "aws-java-sdk-cognitosync: 1.9.3"
+    libraryDiffs.downgraded[0].displayDiff == "tomcat-juli: 7.0.59 -> 7.0.55"
+    libraryDiffs.unknown[0].displayDiff == "IngrianLog4j"
+    libraryDiffs.duplicates[0].displayDiff =="DataModel: 119.54, 119.55"
+    libraryDiffs.upgraded[0].displayDiff == "IngrianNAE: 5.4.0 -> 5.5.0"
+    libraryDiffs.removed[0].displayDiff == "astyanax-entity-mapper: 3.6.0"
+    libraryDiffs.added[0].displayDiff == "aws-java-sdk-cognitosync: 1.9.3"
   }
 }
