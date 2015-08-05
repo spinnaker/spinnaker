@@ -19,11 +19,13 @@ module.exports = function(config) {
       './node_modules/angular-mocks/angular-mocks.js',
       './node_modules/phantomjs-polyfill/bind-polyfill.js',
       //'app/**/*.spec.js',
+      'settings.js',
       'test/test_index.js'
     ],
 
     preprocessors: {
       //'app/**/*.spec.js': ['webpack'],
+      'settings.js': ['webpack'],
       'test/test_index.js': ['webpack', 'sourcemap'],
     },
 
