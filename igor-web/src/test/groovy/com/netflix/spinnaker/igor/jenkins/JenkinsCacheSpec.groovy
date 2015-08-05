@@ -47,7 +47,7 @@ class JenkinsCacheSpec extends Specification {
 
     void setupSpec() {
         System.setProperty('netflix.environment', 'test')
-        System.setProperty('spinnaker.echo.host', 'none')
+        System.setProperty('services.echo.baseUrl', 'none')
     }
 
     void cleanup() {

@@ -30,7 +30,7 @@ import retrofit.client.OkClient
 /**
  * history service configuration
  */
-@ConditionalOnProperty('spinnaker.echo.host')
+@ConditionalOnProperty('services.echo.baseUrl')
 @Configuration
 class EchoConfig {
     @Autowired
@@ -38,7 +38,7 @@ class EchoConfig {
 
     @Bean
     @SuppressWarnings('GStringExpressionWithinString')
-    EchoService echoService(@Value('${spinnaker.echo.host}') String address) {
+    EchoService echoService(@Value('${services.echo.baseUrl}') String address) {
         if (address == 'none') {
             return null
         }
@@ -46,6 +46,7 @@ class EchoConfig {
         new RestAdapter.Builder()
             .setEndpoint(Endpoints.newFixedEndpoint(address))
             .setClient(new OkClient(okHttpClientConfig.create()))
+            .setLogLevel(RestAdapter.LogLevel.BASIC)
             .build()
             .create(EchoService)
 
