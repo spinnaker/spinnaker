@@ -61,7 +61,6 @@ startScripts {
 dependencies {
   compile project(":front50-core")
   compile project(":front50-aws")
-  compile project(":front50-gce")
   compile project(":front50-cassandra")
   compile project(":front50-pipelines")
 
