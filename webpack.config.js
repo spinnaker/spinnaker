@@ -17,7 +17,7 @@ module.exports = {
   },
   output: {
     path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
-    filename: 'bundle.js',
+    filename: '[name].js',
 
   },
   module: {
@@ -69,8 +69,7 @@ module.exports = {
     //  /\.spec/
     //),
     new webpack.optimize.CommonsChunkPlugin(
-      /* chunkName= */"settings",
-      /* filename= */"settings.bundle.js"
+      /* filename= */"init.js"
     ),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
