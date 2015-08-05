@@ -17,6 +17,7 @@ module.exports = angular
     require('../../../directives/autoScroll.directive.js'),
     require('../../pipelines/config/services/pipelineConfigService.js'),
     require('utils/scrollTo/scrollTo.service.js'),
+    require('../../caches/cacheInitializer.js'),
   ])
   .directive('pipelineMigrator', function () {
     return {
@@ -103,7 +104,9 @@ module.exports = angular
       });
     };
   })
-  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, $modalInstance, migratorService, pipelineConfigService, scrollToService) {
+  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, $modalInstance,
+                                                migratorService, pipelineConfigService, scrollToService,
+                                                cacheInitializer) {
 
     $scope.application = application;
     $scope.pipeline = pipeline;
@@ -173,6 +176,12 @@ module.exports = angular
         });
         if (newPipelines && newPipelines.length) {
           scrollToService.scrollTo('pipeline-config-' + newPipelines[0].id, '.execution-groups', 180);
+        }
+        if ($scope.preview.securityGroups && $scope.preview.securityGroups.length) {
+          cacheInitializer.refreshCache('securityGroups');
+        }
+        if ($scope.preview.loadBalancers && $scope.preview.loadBalancers.length) {
+          cacheInitializer.refreshCache('loadBalancers');
         }
       });
     }
