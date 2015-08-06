@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./basicSettings.html');
+
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSttings.controller', [])
   .controller('gceServerGroupBasicSettingsCtrl', function($scope, modalWizardService) {
 

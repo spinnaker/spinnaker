@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./capacity.html');
+
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.capacity.controller', [])
   .controller('gceServerGroupCapacityCtrl', function($scope, modalWizardService) {
 
