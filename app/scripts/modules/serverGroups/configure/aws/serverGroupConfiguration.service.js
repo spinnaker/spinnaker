@@ -36,10 +36,30 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         packageImages: imageLoader,
         instanceTypes: instanceTypeService.getAllTypesByRegion(),
       }).then(function(loader) {
+        var loadBalancerReloader = $q.when(null);
+        var securityGroupReloader = $q.when(null);
         loader.accounts = _.keys(loader.regionsKeyedByAccount);
         loader.filtered = {};
         command.backingData = loader;
-        attachEventHandlers(command);
+        configureVpcId(command);
+
+        if (command.loadBalancers && command.loadBalancers.length) {
+          // verify all load balancers are accounted for; otherwise, try refreshing load balancers cache
+          var loadBalancerNames = getLoadBalancerNames(command);
+          if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
+            loadBalancerReloader = refreshLoadBalancers(command, true);
+          }
+        }
+        if (command.securityGroups && command.securityGroups.length) {
+          var regionalSecurityGroupIds = _.pluck(getRegionalSecurityGroups(command), 'id');
+          if (_.intersection(command.securityGroups, regionalSecurityGroupIds).length < command.securityGroups.length) {
+            securityGroupReloader = refreshSecurityGroups(command, true);
+          }
+        }
+
+        return $q.all([loadBalancerReloader, securityGroupReloader]).then(function() {
+          attachEventHandlers(command);
+        });
       });
     }
 
@@ -165,14 +185,18 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       return result;
     }
 
-    function configureSecurityGroupOptions(command) {
-      var results = { dirty: {} };
-      var currentOptions = command.backingData.filtered.securityGroups;
+    function getRegionalSecurityGroups(command) {
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { aws: {}};
-      var newRegionalSecurityGroups = _(newSecurityGroups.aws[command.region])
+      return _(newSecurityGroups.aws[command.region])
         .filter({vpcId: command.vpcId || null})
         .sortBy('name')
         .valueOf();
+    }
+
+    function configureSecurityGroupOptions(command) {
+      var results = { dirty: {} };
+      var currentOptions = command.backingData.filtered.securityGroups;
+      var newRegionalSecurityGroups = getRegionalSecurityGroups(command);
       if (currentOptions && command.securityGroups) {
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
@@ -201,11 +225,13 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       return results;
     }
 
-    function refreshSecurityGroups(command) {
+    function refreshSecurityGroups(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('securityGroups').then(function() {
         return securityGroupReader.getAllSecurityGroups().then(function(securityGroups) {
           command.backingData.securityGroups = securityGroups;
-          configureSecurityGroupOptions(command);
+          if (!skipCommandReconfiguration) {
+            configureSecurityGroupOptions(command);
+          }
         });
       });
     }
@@ -219,10 +245,8 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       });
     }
 
-    function configureLoadBalancerOptions(command) {
-      var results = { dirty: {} };
-      var current = command.loadBalancers;
-      var newLoadBalancers = _(command.backingData.loadBalancers)
+    function getLoadBalancerNames(command) {
+      return _(command.backingData.loadBalancers)
         .pluck('accounts')
         .flatten(true)
         .filter({name: command.credentials})
@@ -236,6 +260,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         .unique()
         .valueOf()
         .sort();
+    }
+
+    function configureLoadBalancerOptions(command) {
+      var results = { dirty: {} };
+      var current = command.loadBalancers;
+      var newLoadBalancers = getLoadBalancerNames(command);
 
       if (current && command.loadBalancers) {
         var matched = _.intersection(newLoadBalancers, command.loadBalancers);
@@ -249,11 +279,13 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       return results;
     }
 
-    function refreshLoadBalancers(command) {
+    function refreshLoadBalancers(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('loadBalancers').then(function() {
-        return loadBalancerReader.listAWSLoadBalancers().then(function(loadBalancers) {
+        return loadBalancerReader.listAWSLoadBalancers().then(function (loadBalancers) {
           command.backingData.loadBalancers = loadBalancers;
-          configureLoadBalancerOptions(command);
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancerOptions(command);
+          }
         });
       });
     }

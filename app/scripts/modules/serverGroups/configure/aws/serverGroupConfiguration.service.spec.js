@@ -18,6 +18,10 @@
 
 describe('Service: awsServerGroupConfiguration', function () {
 
+  var service, $q, imageService, accountService, securityGroupReader,
+    instanceTypeService, cacheInitializer,
+    subnetReader, keyPairsReader, loadBalancerReader, $scope;
+
   beforeEach(
     window.module(
       require('./serverGroupConfiguration.service.js')
@@ -25,55 +29,133 @@ describe('Service: awsServerGroupConfiguration', function () {
   );
 
 
-  beforeEach(window.inject(function (_awsServerGroupConfigurationService_) {
-    this.service = _awsServerGroupConfigurationService_;
+  beforeEach(window.inject(function (_awsServerGroupConfigurationService_, _$q_, _imageService_, _accountService_,
+                                     _securityGroupReader_, _instanceTypeService_, _cacheInitializer_,
+                                     _subnetReader_, _keyPairsReader_, _loadBalancerReader_, $rootScope) {
+    service = _awsServerGroupConfigurationService_;
+    $q = _$q_;
+    imageService = _imageService_;
+    accountService = _accountService_;
+    securityGroupReader = _securityGroupReader_;
+    instanceTypeService = _instanceTypeService_;
+    cacheInitializer = _cacheInitializer_;
+    subnetReader = _subnetReader_;
+    keyPairsReader = _keyPairsReader_;
+    loadBalancerReader = _loadBalancerReader_;
+    $scope = $rootScope.$new();
+
+    this.allLoadBalancers = [
+      {
+        name: 'elb-1',
+        accounts: [
+          {
+            name: 'test',
+            regions: [
+              {
+                name: 'us-east-1',
+                loadBalancers: [
+                  { region: 'us-east-1', vpcId: null, name: 'elb-1' },
+                  { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        name: 'elb-2',
+        accounts: [
+          {
+            name: 'test',
+            regions: [
+              {
+                name: 'us-east-1',
+                loadBalancers: [
+                  { region: 'us-east-1', vpcId: null, name: 'elb-2' },
+                  { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
+                ]
+              },
+              {
+                name: 'us-west-1',
+                loadBalancers: [
+                  { region: 'us-west-1', vpcId: null, name: 'elb-2' },
+                ]
+              }
+            ],
+          }
+        ]
+      }
+    ];
   }));
+
+  describe('configureCommand', function () {
+    it ('attempts to reload load balancers if some are not found on initialization, but does not set dirty flag', function () {
+      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
+      spyOn(loadBalancerReader, 'listAWSLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
+      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
+      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
+      spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
+
+      var command = {
+        credentials: 'test',
+        region: 'us-east-1',
+        loadBalancers: [ 'elb-1', 'elb-3' ],
+        vpcId: null,
+        viewState: {
+          disableImageSelection: true,
+        }
+      };
+
+      service.configureCommand({}, command);
+      $scope.$digest();
+      $scope.$digest();
+
+      expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('loadBalancers');
+      expect(cacheInitializer.refreshCache.calls.count()).toBe(1);
+      expect(loadBalancerReader.listAWSLoadBalancers.calls.count()).toBe(2);
+      expect(command.dirty).toBeUndefined();
+
+    });
+
+    it ('attempts to reload security groups if some are not found on initialization, but does not set dirty flag', function () {
+      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
+      spyOn(loadBalancerReader, 'listAWSLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
+      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
+      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
+      spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
+
+      var command = {
+        credentials: 'test',
+        region: 'us-east-1',
+        securityGroups: [ 'sg-1' ],
+        vpcId: null,
+        viewState: {
+          disableImageSelection: true,
+        }
+      };
+
+      service.configureCommand({}, command);
+      $scope.$digest();
+      $scope.$digest();
+
+      expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('securityGroups');
+      expect(cacheInitializer.refreshCache.calls.count()).toBe(1);
+      expect(securityGroupReader.getAllSecurityGroups.calls.count()).toBe(2);
+      expect(command.dirty).toBeUndefined();
+
+    });
+
+  });
 
   describe('configureLoadBalancerOptions', function () {
 
     beforeEach(function() {
-      this.allLoadBalancers = [
-        {
-          name: 'elb-1',
-          accounts: [
-            {
-              name: 'test',
-              regions: [
-                {
-                  name: 'us-east-1',
-                  loadBalancers: [
-                    { region: 'us-east-1', vpcId: null, name: 'elb-1' },
-                    { region: 'us-east-1', vpcId: 'vpc-1', name: 'elb-1' },
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          name: 'elb-2',
-          accounts: [
-            {
-              name: 'test',
-              regions: [
-                {
-                  name: 'us-east-1',
-                  loadBalancers: [
-                    { region: 'us-east-1', vpcId: null, name: 'elb-2' },
-                    { region: 'us-east-1', vpcId: 'vpc-2', name: 'elb-2' },
-                  ]
-                },
-                {
-                  name: 'us-west-1',
-                  loadBalancers: [
-                    { region: 'us-west-1', vpcId: null, name: 'elb-2' },
-                  ]
-                }
-              ],
-            }
-          ]
-        }
-      ];
 
       this.command = {
         backingData: {
@@ -90,7 +172,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     });
 
     it('matches existing load balancers based on name - no VPC', function () {
-      var result = this.service.configureLoadBalancerOptions(this.command);
+      var result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-1']);
       expect(result).toEqual({ dirty: { }});
@@ -98,7 +180,7 @@ describe('Service: awsServerGroupConfiguration', function () {
 
     it('matches existing load balancers based on name - VPC', function() {
       this.command.vpcId = 'vpc-1';
-      var result = this.service.configureLoadBalancerOptions(this.command);
+      var result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-1']);
       expect(result).toEqual({ dirty: { }});
@@ -107,7 +189,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('sets dirty all unmatched load balancers - no VPC', function () {
       this.command.region = 'us-west-1';
       this.command.loadBalancers = ['elb-1', 'elb-2'];
-      var result = this.service.configureLoadBalancerOptions(this.command);
+      var result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-2']);
       expect(result).toEqual({ dirty: { loadBalancers: ['elb-1']}});
@@ -116,13 +198,13 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('sets dirty all unmatched load balancers - VPC', function () {
       this.command.loadBalancers = ['elb-1', 'elb-2'];
       this.command.vpcId = 'vpc-1';
-      var result = this.service.configureLoadBalancerOptions(this.command);
+      var result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual(['elb-1']);
       expect(result).toEqual({ dirty: { loadBalancers: ['elb-2']}});
 
       this.command.vpcId = 'vpc-2';
-      result = this.service.configureLoadBalancerOptions(this.command);
+      result = service.configureLoadBalancerOptions(this.command);
 
       expect(this.command.loadBalancers).toEqual([]);
       expect(result).toEqual({ dirty: { loadBalancers: ['elb-1']}});
@@ -130,13 +212,13 @@ describe('Service: awsServerGroupConfiguration', function () {
 
     it('updates filteredData to new region - no VPC', function() {
       this.command.region = 'us-west-1';
-      this.service.configureLoadBalancerOptions(this.command);
+      service.configureLoadBalancerOptions(this.command);
       expect(this.command.backingData.filtered.loadBalancers).toEqual(['elb-2']);
     });
 
     it('updates filteredData to new VPC', function() {
       this.command.vpcId = 'vpc-1';
-      this.service.configureLoadBalancerOptions(this.command);
+      service.configureLoadBalancerOptions(this.command);
       expect(this.command.backingData.filtered.loadBalancers).toEqual(['elb-1']);
     });
   });
@@ -181,7 +263,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('matches existing security groups based on name - no VPC', function () {
       this.command.region = 'us-east-1';
 
-      var result = this.service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(this.command);
 
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
       expect(result).toEqual({ dirty: {} });
@@ -190,7 +272,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('matches existing security groups based on name - VPC', function() {
       this.command.vpcId = 'vpc-1';
 
-      var result = this.service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(this.command);
 
       expect(this.command.securityGroups).toEqual(['sg-1va', 'sg-2va']);
       expect(result).toEqual({ dirty: { }});
@@ -200,7 +282,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.securityGroups = ['sg1', 'sg-2a'];
       this.command.region = 'us-east-1';
 
-      var result = this.service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(this.command);
 
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
       expect(result).toEqual({ dirty: {}});
@@ -210,7 +292,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.securityGroups.push('sg-3a');
       this.command.region = 'us-east-1';
 
-      var result = this.service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(this.command);
 
       expect(this.command.securityGroups).toEqual(['sg-1c', 'sg-2c']);
       expect(result).toEqual({ dirty: { securityGroups: ['sg3'] }});
@@ -220,7 +302,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       this.command.securityGroups.push('sg-3a');
       this.command.vpcId = 'vpc-2';
 
-      var result = this.service.configureSecurityGroupOptions(this.command);
+      var result = service.configureSecurityGroupOptions(this.command);
 
       expect(this.command.securityGroups).toEqual(['sg-3va']);
       expect(result).toEqual({ dirty: { securityGroups: ['sg1', 'sg2'] }});
@@ -229,14 +311,14 @@ describe('Service: awsServerGroupConfiguration', function () {
     it('updates filteredData to new region - no VPC', function() {
       var expected = this.allSecurityGroups.test.aws['us-east-1'].slice(0, 2);
       this.command.region = 'us-east-1';
-      this.service.configureSecurityGroupOptions(this.command);
+      service.configureSecurityGroupOptions(this.command);
       expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
     });
 
     it('updates filteredData to new VPC', function() {
       var expected = this.allSecurityGroups.test.aws['us-west-1'].slice(3, 5);
       this.command.vpcId = 'vpc-1';
-      this.service.configureSecurityGroupOptions(this.command);
+      service.configureSecurityGroupOptions(this.command);
       expect(this.command.backingData.filtered.securityGroups).toEqual(expected);
     });
 
@@ -272,28 +354,28 @@ describe('Service: awsServerGroupConfiguration', function () {
 
     it('retains keyPair when found in new account', function() {
       this.command.credentials = 'prod';
-      this.service.configureKeyPairs(this.command);
+      service.configureKeyPairs(this.command);
       expect(this.command.keyPair).toBe('shared');
     });
 
     it('retains keyPair when found in new region', function() {
       this.command.region = 'us-east-1';
       this.command.keyPair = 'test-pair';
-      this.service.configureKeyPairs(this.command);
+      service.configureKeyPairs(this.command);
       expect(this.command.keyPair).toBe('test-pair');
     });
 
     it('marks dirty, sets to new default value when key pair not found in new account', function() {
       this.command.credentials = 'prod';
       this.command.keyPair = 'test-pair';
-      var result = this.service.configureKeyPairs(this.command);
+      var result = service.configureKeyPairs(this.command);
       expect(result.dirty.keyPair).toBe(true);
       expect(this.command.keyPair).toBe('prod-pair');
     });
 
     it('marks dirty, sets to default value when key pair not found in new region', function() {
       this.command.region = 'us-east-1';
-      var result = this.service.configureKeyPairs(this.command);
+      var result = service.configureKeyPairs(this.command);
       expect(result.dirty.keyPair).toBe(true);
       expect(this.command.keyPair).toBe('test-pair');
     });
