@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./additionalFields.html');
+
 module.exports = angular.module('spinnaker.deploymentStrategy.redblack', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
