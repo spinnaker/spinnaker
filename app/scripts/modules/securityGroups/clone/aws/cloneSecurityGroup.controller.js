@@ -1,5 +1,7 @@
 'use strict';
 
+require('./cloneSecurityGroupProperties.html');
+
 var angular = require('angular');
 
 module.exports = angular
