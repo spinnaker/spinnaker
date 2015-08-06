@@ -82,7 +82,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
     this.cloneLoadBalancer = function () {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: '../../configure/' + provider + '/createLoadBalancer.html',
+        templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return app; },
