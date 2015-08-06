@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('../../pipelines/config/stages/core/stepLabel.html');
+require('../../pipelines/config/stages/core/executionSummary.html');
+
 module.exports = angular.module('spinnaker.executionDetails.controller', [
   require('angular-ui-router'),
   require('../../pipelines/config/pipelineConfigProvider.js')
