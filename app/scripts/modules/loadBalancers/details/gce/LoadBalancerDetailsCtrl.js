@@ -1,6 +1,7 @@
 'use strict';
 
 require('./loadBalancerDetails.html');
+require('../../configure/gce/editLoadBalancer.html');
 
 let angular = require('angular');
 
@@ -58,7 +59,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     this.editLoadBalancer = function editLoadBalancer() {
       var provider = $scope.loadBalancer.provider;
       $modal.open({
-        template: '../../configure/' + provider + '/editLoadBalancer.html',
+        templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
         controller: provider + 'CreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
