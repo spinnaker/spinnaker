@@ -11,19 +11,19 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state,
                                                instanceWriter, confirmationModalService,
-                                               instanceReader, _, instance, application) {
+                                               instanceReader, _, instance, app) {
 
     // needed for standalone instances
     $scope.provider = 'gce';
 
     $scope.state = {
       loading: true,
-      standalone: application.isStandalone,
+      standalone: app.isStandalone,
     };
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
-      if (application.isStandalone) {
+      if (app.isStandalone) {
         instance.health = latest.health;
       }
 
@@ -49,14 +49,14 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     function retrieveInstance() {
       var instanceSummary, loadBalancers, account, region, vpcId;
-      if (!application.serverGroups) {
+      if (!app.serverGroups) {
         // standalone instance
         instanceSummary = {};
         loadBalancers = [];
         account = instance.account;
         region = instance.region;
       } else {
-        application.serverGroups.some(function (serverGroup) {
+        app.serverGroups.some(function (serverGroup) {
           return serverGroup.instances.some(function (possibleInstance) {
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
@@ -70,7 +70,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         });
         if (!instanceSummary) {
           // perhaps it is in a server group that is part of another application
-          application.loadBalancers.some(function (loadBalancer) {
+          app.loadBalancers.some(function (loadBalancer) {
             return loadBalancer.instances.some(function (possibleInstance) {
               if (possibleInstance.id === instance.instanceId) {
                 instanceSummary = possibleInstance;
@@ -84,7 +84,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           });
           if (!instanceSummary) {
             // perhaps it is in a disabled server group via a load balancer
-            application.loadBalancers.some(function (loadBalancer) {
+            app.loadBalancers.some(function (loadBalancer) {
               return loadBalancer.serverGroups.some(function (serverGroup) {
                 if (!serverGroup.isDisabled) {
                   return false;
@@ -183,7 +183,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var instance = $scope.instance;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Terminating ' + instance.instanceId,
         forceRefreshMessage: 'Refreshing application...',
         forceRefreshEnabled: true,
@@ -195,7 +195,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstance(instance, application);
+        return instanceWriter.terminateInstance(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -213,12 +213,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var instance = $scope.instance;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Rebooting ' + instance.instanceId
       };
 
       var submitMethod = function () {
-        return instanceWriter.rebootInstance(instance, application);
+        return instanceWriter.rebootInstance(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -237,12 +237,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Registering ' + instance.instanceId + ' with ' + loadBalancerNames
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, application);
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -260,12 +260,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var loadBalancerNames = instance.loadBalancers.join(' and ');
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Deregistering ' + instance.instanceId + ' from ' + loadBalancerNames
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, application);
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -283,12 +283,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var instance = $scope.instance;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Enabling ' + instance.instanceId + ' in discovery'
       };
 
       var submitMethod = function () {
-        return instanceWriter.enableInstanceInDiscovery(instance, application);
+        return instanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -305,12 +305,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       var instance = $scope.instance;
 
       var taskMonitor = {
-        application: application,
+        application: app,
         title: 'Disabling ' + instance.instanceId + ' in discovery'
       };
 
       var submitMethod = function () {
-        return instanceWriter.disableInstanceInDiscovery(instance, application);
+        return instanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -334,7 +334,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     retrieveInstance();
 
-    application.registerAutoRefreshHandler(retrieveInstance, $scope);
+    app.registerAutoRefreshHandler(retrieveInstance, $scope);
 
     $scope.account = instance.account;
 

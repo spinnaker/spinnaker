@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./instanceType.html');
+
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.instanceType.controller', [])
   .controller('gceInstanceTypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 

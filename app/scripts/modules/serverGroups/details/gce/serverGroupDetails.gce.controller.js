@@ -182,7 +182,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: '../../configure/' + serverGroup.type + '/wizard/serverGroupWizard.html',
+        templateUrl: 'app/scripts/modules/serverGroups/configure/gce/wizard/serverGroupWizard.html',
         controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
