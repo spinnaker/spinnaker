@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.sock.tasks
+package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -24,7 +24,7 @@ import com.netflix.spinnaker.orca.front50.model.Front50Credential
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import com.netflix.spinnaker.orca.sock.SockService
+import com.netflix.spinnaker.orca.igor.IgorService
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -38,16 +38,16 @@ class GetCommitsTaskSpec extends Specification {
   @Subject
   GetCommitsTask task = new GetCommitsTask()
 
-  SockService sockService = Mock(SockService)
+  IgorService igorService = Mock(IgorService)
   OortService oortService = Mock(OortService)
   Front50Service front50Service = Mock(Front50Service)
 
   @Shared
   Pipeline pipeline = new Pipeline()
 
-  def "sockService should be optional"() {
+  def "igorService should be optional"() {
     given:
-    task.sockService = null
+    task.igorService = null
 
     when:
     def result = task.execute(new PipelineStage(new Pipeline(), ""))
@@ -60,7 +60,7 @@ class GetCommitsTaskSpec extends Specification {
   def "global credential is preferred to the stage account for application lookup"() {
     given:
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account])//, "kato.tasks" : katoMap])
-    task.sockService = sockService
+    task.igorService = igorService
     task.front50Service = front50Service
 
     when:
@@ -203,7 +203,7 @@ class GetCommitsTaskSpec extends Specification {
   PipelineStage setupGetCommits(Map contextMap, String account, String app, String sourceImage, String targetImage, String region, String cluster, String serverGroup, int serverGroupCalls = 1, int oortCalls = 1) {
     def stage = new PipelineStage(pipeline, "stash", contextMap)//.asImmutable()
 
-    task.sockService = Stub(SockService) {
+    task.igorService = Stub(IgorService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                    [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -242,7 +242,7 @@ class GetCommitsTaskSpec extends Specification {
     return true
   }
 
-  def "returns running where there is an error talking to sock"() {
+  def "returns running where there is an error talking to igor"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
       "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
@@ -269,13 +269,13 @@ class GetCommitsTaskSpec extends Specification {
     1 * oortService.getByAmiId("aws", account, region, targetImage) >> targetResponse
 
     and:
-    task.sockService = sockService
+    task.igorService = igorService
 
     when:
     def result = task.execute(stage)
 
     then:
-    1 * sockService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
+    1 * igorService.compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
       throw new RetrofitError(null, null,
         new Response("http://stash.com", 500, "test reason", [], null), null, null, null, null)
     }
@@ -300,7 +300,7 @@ class GetCommitsTaskSpec extends Specification {
     def stage = new PipelineStage(pipeline, "stash", [application: app, account: account, source: [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]]]).asImmutable()
 
     and:
-    task.sockService = sockService
+    task.igorService = igorService
     task.front50Service = front50Service
     1 * front50Service.getCredentials() >> []
     1 * front50Service.get(account, app) >> new Application()
@@ -331,7 +331,7 @@ class GetCommitsTaskSpec extends Specification {
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
 
     and:
-    task.sockService = Stub(SockService) {
+    task.igorService = Stub(IgorService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                    [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -383,7 +383,7 @@ class GetCommitsTaskSpec extends Specification {
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
 
     and:
-    task.sockService = Stub(SockService) {
+    task.igorService = Stub(IgorService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> [[message: "my commit", displayId: "abcdab", id: "abcdabcdabcdabcd", authorDisplayName: "Joe Coder", timestamp: 1432081865000, commitUrl: "http://stash.com/abcdabcdabcdabcd"],
                                                                                                                    [message: "bug fix", displayId: "efghefgh", id: "efghefghefghefghefgh", authorDisplayName: "Jane Coder", timestamp: 1432081256000, commitUrl: "http://stash.com/efghefghefghefghefgh"]]
     }
@@ -440,7 +440,7 @@ class GetCommitsTaskSpec extends Specification {
     "myapp" | "myapp" | "myapp-v000" | false | true
   }
 
-  def "sock service 404 results in success"() {
+  def "igor service 404 results in success"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +
       "{\"ancestorServerGroupNameByRegion\": { \"${region}\":\"${serverGroup}\"}}," +
@@ -451,7 +451,7 @@ class GetCommitsTaskSpec extends Specification {
                                                       source     : [asgName: serverGroup, region: region, account: account], "deploy.server.groups": ["us-west-1": [targetServerGroup]], deploymentDetails: [[ami: "ami-foo", region: "us-east-1"], [ami: targetImage, region: region]], "kato.tasks" : katoMap]).asImmutable()
 
     and:
-    task.sockService = Stub(SockService) {
+    task.igorService = Stub(IgorService) {
       compareCommits("stash", "projectKey", "repositorySlug", ['to':'186605b', 'from':'a86305d', 'limit':100]) >> {
         throw new RetrofitError(null, null, new Response("http://stash.com", 404, "test reason", [], null), null, null, null, null)
       }

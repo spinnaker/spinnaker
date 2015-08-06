@@ -39,4 +39,8 @@ interface IgorService {
                                       @Path("job") String job,
                                       @Path("buildNumber") Integer buildNumber,
                                       @Path("fileName") String fileName)
+
+  @GET("/{repoType}/{projectKey}/{repositorySlug}/compareCommits")
+  List compareCommits(@Path("repoType") String repoType, @Path("projectKey") String projectKey, @Path("repositorySlug") String repositorySlug, @QueryMap Map<String, String> requestParams)
+
 }

@@ -33,7 +33,7 @@ import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCan
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.sock.SockService
+import com.netflix.spinnaker.orca.igor.IgorService
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,7 +44,7 @@ class RollingPushStage extends StageBuilder {
   static final String PIPELINE_CONFIG_TYPE = "rollingPush"
 
   @Autowired(required = false)
-  SockService sockService
+  IgorService igorService
 
   RollingPushStage() {
     super(PIPELINE_CONFIG_TYPE)

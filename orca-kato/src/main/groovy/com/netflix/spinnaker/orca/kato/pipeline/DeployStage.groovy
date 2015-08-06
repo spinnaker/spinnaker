@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
-import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
+import com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
