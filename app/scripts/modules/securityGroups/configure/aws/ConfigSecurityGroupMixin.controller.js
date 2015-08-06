@@ -36,6 +36,14 @@ module.exports = angular
       submitting: false,
       refreshingSecurityGroups: false,
       removedRules: [],
+      infiniteScroll: {
+        numToAdd: 20,
+        currentItems: 20,
+      },
+    };
+
+    ctrl.addMoreItems = function() {
+      $scope.state.infiniteScroll.currentItems += $scope.state.infiniteScroll.numToAdd;
     };
 
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({

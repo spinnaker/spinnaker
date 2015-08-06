@@ -39,7 +39,10 @@
               <td>
                 <ui-select ng-model="rule.name" class="form-control input-sm" style="width: 244px">
                   <ui-select-match>{{$select.selected}}</ui-select-match>
-                  <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search">
+                  <ui-select-choices repeat="securityGroup as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: state.infiniteScroll.currentItems"
+                                     infinite-scroll="ctrl.addMoreItems()"
+                                     infinite-scroll-container="'.ui-select-choices-content'"
+                                     infinite-scroll-distance="2">
                     <span ng-bind-html="securityGroup | highlight: $select.search"></span>
                   </ui-select-choices>
                 </ui-select>
