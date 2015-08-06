@@ -33,7 +33,6 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.step.AbstractStep
-
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class LinearStageSpec extends AbstractBatchLifecycleSpec {

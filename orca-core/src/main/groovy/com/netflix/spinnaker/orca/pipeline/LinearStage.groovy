@@ -17,16 +17,17 @@
 package com.netflix.spinnaker.orca.pipeline
 
 import com.google.common.annotations.VisibleForTesting
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
+import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.FlowBuilder
+import static com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner.STAGE_BEFORE
 
 /**
  * A base class for +Stage+ implementations that just need to wire a linear sequence of steps.
@@ -40,7 +41,9 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
 
   @Override
   FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
-    List<Step> steps = ( [buildStep(stage, 'stageStart', StageDetailsTask)] + buildSteps(stage) + [buildStep(stage, 'stageEnd', StageDetailsTask)] ) as List<Step>
+    List<Step> steps = ([buildStep(stage, 'stageStart', StageDetailsTask)] + buildSteps(stage) + [buildStep(stage,
+                                                                                                            'stageEnd',
+                                                                                                            StageDetailsTask)]) as List<Step>
     def stageIdx = stage.execution.stages.indexOf(stage)
     /*
      * {@code restrictExecutionDuringTimeWindow} flag tells the builder that this particular {@code Stage}
@@ -53,7 +56,8 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
     if (executionRestricted &&
       ((stage.syntheticStageOwner == null && stage.parentStageId == null) || parentStage?.initializationStage)
     ) {
-      injectBefore(stage, "restrictExecutionDuringTimeWindow", applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
+      injectBefore(stage, "restrictExecutionDuringTimeWindow",
+                   applicationContext.getBean(RestrictExecutionDuringTimeWindow), stage.context)
     }
 
     processBeforeStages(jobBuilder, stageIdx, stage)
@@ -75,10 +79,7 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
   private void processBeforeStages(FlowBuilder jobBuilder, int stageIdx, Stage stage) {
     if (stage.beforeStages) {
       for (beforeStage in stage.beforeStages.reverse()) {
-        def newStage = newStage(stage.execution, beforeStage.stageBuilder.type, beforeStage.name,
-          new HashMap(beforeStage.context), stage, SyntheticStageOwner.STAGE_BEFORE)
-        stage.execution.stages.add(stageIdx, newStage)
-        beforeStage.stageBuilder.build(jobBuilder, newStage)
+        processSyntheticStage(jobBuilder, stage, beforeStage, STAGE_BEFORE, stageIdx)
       }
     }
   }
@@ -86,12 +87,25 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
   private void processAfterStages(FlowBuilder jobBuilder, Stage stage) {
     if (stage.afterStages) {
       for (afterStage in stage.afterStages) {
-        def newStage = newStage(stage.execution, afterStage.stageBuilder.type, afterStage.name,
-          new HashMap(afterStage.context), stage, SyntheticStageOwner.STAGE_AFTER)
-        stage.execution.stages.add(newStage)
-        afterStage.stageBuilder.build(jobBuilder, newStage)
+        processSyntheticStage(jobBuilder, stage, afterStage, STAGE_AFTER)
       }
     }
+  }
+
+  private void processSyntheticStage(FlowBuilder jobBuilder, Stage parent, InjectedStageConfiguration stageConfig, SyntheticStageOwner stageOwner, int stageIdx = -1) {
+    def stage = parent.execution.stages.find {
+      it.name == stageConfig.name && it.syntheticStageOwner == stageOwner && it.parentStageId == parent.id
+    }
+    if (!stage) {
+      stage = newStage(parent.execution, stageConfig.stageBuilder.type, stageConfig.name,
+                       new HashMap(stageConfig.context), parent, stageOwner)
+      if (stageIdx == -1) {
+        parent.execution.stages.add(stage)
+      } else {
+        parent.execution.stages.add(stageIdx, stage)
+      }
+    }
+    stageConfig.stageBuilder.build(jobBuilder, stage)
   }
 
   @VisibleForTesting
