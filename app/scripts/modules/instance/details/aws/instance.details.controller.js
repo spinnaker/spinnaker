@@ -188,6 +188,34 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       });
     };
 
+    this.terminateInstanceAndShrinkServerGroup = function terminateInstanceAndShrinkServerGroup() {
+      var instance = $scope.instance;
+
+      var taskMonitor = {
+        application: app,
+        title: 'Terminating ' + instance.instanceId + ' and shrinking server group',
+        onApplicationRefresh: function() {
+          if ($state.includes('**.instanceDetails', {instanceId: instance.instanceId})) {
+            $state.go('^');
+          }
+        }
+      };
+
+      var submitMethod = function () {
+        return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup + '?',
+        buttonText: 'Terminate ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
+        destructive: true,
+        account: instance.account,
+        provider: 'aws',
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
     this.rebootInstance = function rebootInstance() {
       var instance = $scope.instance;
 
