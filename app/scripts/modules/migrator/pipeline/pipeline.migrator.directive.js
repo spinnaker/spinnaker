@@ -36,26 +36,31 @@ module.exports = angular
 
     $scope.showAction = false;
 
-    var subnets;
+    var subnets,
+        actionableDeployStages = [];
 
-    function testCluster(cluster) {
-      var region = cluster.availabilityZones ? Object.keys(cluster.availabilityZones)[0] : null;
-      var account = cluster.account;
-      var subnetType = cluster.subnetType;
-      if (subnetType) {
-        var subnetMatches = _(subnets)
-          .filter({account: account, region: region, purpose: subnetType})
-          .reject({target: 'elb'})
-          .valueOf();
-        if (subnetMatches.length) {
-          vpcReader.getVpcName(subnetMatches[0].vpcId).then(function(vpc) {
-            if (vpc === 'Main') {
-              $scope.showAction = true;
-            }
-          });
+    function testCluster(stage) {
+      return function(cluster) {
+        var region = cluster.availabilityZones ? Object.keys(cluster.availabilityZones)[0] : null;
+        var account = cluster.account;
+        var subnetType = cluster.subnetType;
+        if (subnetType) {
+          var subnetMatches = _(subnets)
+            .filter({account: account, region: region, purpose: subnetType})
+            .reject({target: 'elb'})
+            .valueOf();
+          if (subnetMatches.length) {
+            return vpcReader.getVpcName(subnetMatches[0].vpcId).then(function (vpc) {
+              if (vpc === 'Main') {
+                $scope.showAction = true;
+                if (cluster.strategy === 'highlander' || cluster.strategy === 'redblack') {
+                  actionableDeployStages.push({strategy: cluster.strategy, name: stage.name});
+                }
+              }
+            });
+          }
         }
-      }
-      return false;
+      };
     }
 
     if (settings.feature.vpcMigrator) {
@@ -65,21 +70,13 @@ module.exports = angular
         stages.forEach(function (stage) {
           if (stage.type === 'deploy') {
             var clusters = stage.clusters || [];
-            clusters.forEach(function (cluster) {
-              if (testCluster(cluster)) {
-                $scope.showAction = true;
-              }
-            });
+            clusters.forEach(testCluster(stage));
           }
           if (stage.type === 'canary') {
             var clusterPairs = stage.clusterPairs || [];
             clusterPairs.forEach(function (clusterPair) {
-              if (testCluster(clusterPair.baseline)) {
-                $scope.showAction = true;
-              }
-              if (testCluster(clusterPair.canary)) {
-                $scope.showAction = true;
-              }
+              testCluster(stage)(clusterPair.baseline);
+              testCluster(stage)(clusterPair.canary);
             });
           }
         });
@@ -100,16 +97,21 @@ module.exports = angular
           type: function() {
             return $scope.type;
           },
+          actionableDeployStages: function() {
+            return actionableDeployStages;
+          },
         }
       });
     };
   })
-  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, $modalInstance,
+  .controller('PipelineMigratorCtrl', function ($scope, pipeline, application, type, actionableDeployStages,
+                                                $modalInstance,
                                                 migratorService, pipelineConfigService, scrollToService,
                                                 cacheInitializer) {
 
     $scope.application = application;
     $scope.pipeline = pipeline;
+    $scope.actionableDeployStages = actionableDeployStages;
 
     $scope.viewState = {
       computing: true,
