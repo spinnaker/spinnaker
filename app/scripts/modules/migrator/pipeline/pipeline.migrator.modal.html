@@ -45,7 +45,11 @@
               you will need to set that up in the AWS console.
             </p>
           </div>
-          <div ng-if="actionableDeployStages.length" class="alert alert-warning">
+          <div ng-if="viewState.migrationComplete">
+            <p>The new pipeline named
+              <strong>{{preview.pipelines[0].pipelineToCreate.name}}</strong> is available for review.</p>
+          </div>
+          <div ng-if="actionableDeployStages.length && viewState.migrationComplete" class="alert alert-warning">
             <h4 style="margin-top:0;">Important</h4>
             <p>
               The following deployment stages use deployment strategies:
@@ -60,10 +64,6 @@
               Running this pipeline will clean up (i.e. disable or remove) the <em>current server groups</em> in VPC Main.
             </p>
             <p>If this is undesirable, you should switch the deployment strategies to "None" before running the new pipeline.</p>
-          </div>
-          <div ng-if="viewState.migrationComplete">
-            <p>The new pipeline named
-              <strong>{{preview.pipelines[0].pipelineToCreate.name}}</strong> is available for review.</p>
           </div>
         </div>
       </div>
