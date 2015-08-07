@@ -64,7 +64,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
         if (execution.name !== $scope.value) {
           return false;
         }
-        return execution.status === 'RUNNING' || execution.status === 'NOT_STARTED';
+        return execution.isActive;
       });
     }
 

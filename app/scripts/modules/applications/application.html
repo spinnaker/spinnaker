@@ -28,8 +28,8 @@
            analytics-on="click" analytics-category="Application View" analytics-label="Pipelines tab selected"
            ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
           Pipelines <span class="badge"
-                         ng-if="( application.executions | filter:{isRunning:'true'}).length > 0">
-            {{ (application.executions | filter:{isRunning:'true'}).length }}
+                         ng-if="( application.executions | filter:{isActive:true}).length > 0">
+            {{ (application.executions | filter:{isActive:true}).length }}
           </span>
         </a>
       </li>

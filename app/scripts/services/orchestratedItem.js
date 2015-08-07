@@ -32,6 +32,11 @@ module.exports = angular.module('spinnaker.orchestratedItem.service', [
             return item.status === 'FAILED';
           },
         },
+        isActive: {
+          get: function() {
+            return item.status === 'RUNNING' || item.status === 'SUSPENDED' || item.status === 'NOT_STARTED';
+          }
+        },
         hasNotStarted: {
           get: function() {
             return item.status === 'NOT_STARTED';
