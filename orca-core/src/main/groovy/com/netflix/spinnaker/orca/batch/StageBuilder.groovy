@@ -16,18 +16,18 @@
 
 package com.netflix.spinnaker.orca.batch
 
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
-import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
-import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
-import groovy.transform.PackageScope
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Function
 import com.google.common.base.Optional
 import com.google.common.collect.ImmutableList
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.*
+import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.transform.PackageScope
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.core.task.SimpleAsyncTaskExecutor
-
 import static java.util.Collections.EMPTY_LIST
 
 /**
@@ -216,8 +215,8 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param taskType The +Task+ implementation class.
    * @return a +Step+ that will execute an instance of the required +Task+.
    */
-  protected Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType) {
-    buildStep stage, taskName, applicationContext.getBean(taskType)
+  protected Step buildStep(Stage stage, String taskName, Class<? extends Task> taskType, StepExecutionListener... listeners) {
+    buildStep stage, taskName, applicationContext.getBean(taskType), listeners
   }
 
   /**
@@ -228,16 +227,17 @@ abstract class StageBuilder implements ApplicationContextAware {
    * @param task The +Task+ implementation.
    * @return a +Step+ that will execute the specified +Task+.
    */
-  protected Step buildStep(Stage stage, String taskName, Task task) {
-    createStepWithListeners(stage, taskName)
+  protected Step buildStep(Stage stage, String taskName, Task task, StepExecutionListener... listeners) {
+    createStepWithListeners(stage, taskName, listeners)
       .tasklet(taskTaskletAdapter.decorate(task))
       .build()
   }
 
   @CompileDynamic
-  private StepBuilder createStepWithListeners(Stage stage, String taskName) {
+  private StepBuilder createStepWithListeners(Stage stage, String taskName, StepExecutionListener... listeners) {
     def stepBuilder = steps.get(stepName(stage, taskName))
-    getTaskListeners().inject(stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
+    (getTaskListeners() + listeners.toList()).inject(
+      stepBuilder) { StepBuilder builder, StepExecutionListener listener ->
       builder.listener(listener)
     } as StepBuilder
   }

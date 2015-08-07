@@ -17,29 +17,30 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
-import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstanceHealthTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.kato.tasks.*
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.sock.SockService
+import groovy.transform.CompileStatic
 import org.slf4j.LoggerFactory
+import org.springframework.batch.core.ExitStatus
+import org.springframework.batch.core.StepExecution
+import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.job.builder.FlowBuilder
+import org.springframework.batch.core.listener.StepExecutionListenerSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
+import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 
 @Component
+@CompileStatic
 class RollingPushStage extends StageBuilder {
   static final String PIPELINE_CONFIG_TYPE = "rollingPush"
 
@@ -64,9 +65,10 @@ class RollingPushStage extends StageBuilder {
     jobBuilder.next(buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask))
     jobBuilder.next(buildStep(stage, "waitForNewInstances", WaitForNewInstanceLaunchTask))
     jobBuilder.next(buildStep(stage, "waitForUpInstances", WaitForUpInstanceHealthTask))
-    def endOfCycle = buildStep(stage, "checkForRemainingTerminations", CheckForRemainingTerminationsTask)
+    def endOfCycle = buildStep(stage, "checkForRemainingTerminations", CheckForRemainingTerminationsTask,
+                               redirectListener())
     jobBuilder.next(endOfCycle)
-    jobBuilder.on(ExecutionStatus.REDIRECT.name()).to(startOfCycle)
+    jobBuilder.on(REDIRECT.name()).to(startOfCycle)
     jobBuilder.from(endOfCycle).on('**').to(buildStep(stage, "pushComplete", pushComplete()))
   }
 
@@ -74,8 +76,29 @@ class RollingPushStage extends StageBuilder {
     return new Task() {
       @Override
       TaskResult execute(Stage stage) {
-        LoggerFactory.getLogger(RollingPushStage).info("Rolling Push completed for $stage.context.asgName in $stage.context.account / $stage.context.region")
+        LoggerFactory.getLogger(RollingPushStage).info(
+          "Rolling Push completed for $stage.context.asgName in $stage.context.account / $stage.context.region")
         return DefaultTaskResult.SUCCEEDED
+      }
+    }
+  }
+
+  /**
+   * @return a listener that resets the task status of everything in a loop so that it can be re-run without interfering
+   * with restart semantics.
+   */
+  StepExecutionListener redirectListener() {
+    new StepExecutionListenerSupport() {
+      @Override
+      ExitStatus afterStep(StepExecution stepExecution) {
+        if (stepExecution.exitStatus.exitCode == REDIRECT.name()) {
+          stage.tasks[1..10].each {
+            it.status = NOT_STARTED
+            it.endTime = null
+            repository.storeStage(it)
+          }
+        }
+        stepExecution.exitStatus
       }
     }
   }

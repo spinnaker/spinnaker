@@ -25,10 +25,8 @@ import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import org.springframework.batch.core.BatchStatus
-import org.springframework.batch.core.Job
-import org.springframework.batch.core.Step
-import org.springframework.batch.core.StepExecution
+import groovy.transform.CompileStatic
+import org.springframework.batch.core.*
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.builder.JobBuilder
@@ -36,15 +34,15 @@ import org.springframework.batch.core.step.AbstractStep
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
 
 class LinearStageSpec extends AbstractBatchLifecycleSpec {
-  def listeners = [new StageStatusPropagationListener(executionRepository)]
+  List<StepExecutionListener> listeners = [new StageStatusPropagationListener(executionRepository)]
 
-  def ctx1 = [a: 1]
-  def ctx2 = [b: 2]
+  Map<String, Object> ctx1 = [a: 1]
+  Map<String, Object> ctx2 = [b: 2]
 
-  def task1 = Mock(Task)
-  def task2 = Mock(Task)
-  def task3 = Mock(Task)
-  def detailsTask = Mock(Task){
+  Task task1 = Mock(Task)
+  Task task2 = Mock(Task)
+  Task task3 = Mock(Task)
+  Task detailsTask = Mock(Task) {
     execute(_) >> { new DefaultTaskResult(ExecutionStatus.SUCCEEDED) }
   }
 
@@ -57,7 +55,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
     then:
     1 * task1.execute(_) >> { Stage stage ->
-      assert ctx1.every{ stage.context[it.key] == it.value }
+      assert ctx1.every { stage.context[it.key] == it.value }
       pos << 1
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
@@ -66,7 +64,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
     1 * task3.execute(_) >> { Stage stage ->
-      assert ctx2.every{ stage.context[it.key] == it.value }
+      assert ctx2.every { stage.context[it.key] == it.value }
       pos << 3
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     }
@@ -160,6 +158,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
 
   class StandaloneStageBuilder extends LinearStage {
     private Task task
+
     StandaloneStageBuilder(String stageName, Task task) {
       super(stageName)
       setTaskListeners(listeners)
@@ -189,6 +188,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     }
   }
 
+  @CompileStatic
   class InjectStageBuilder extends LinearStage {
 
     StandaloneStageBuilder stageBuilder1 = new StandaloneStageBuilder("stage1", task1)
