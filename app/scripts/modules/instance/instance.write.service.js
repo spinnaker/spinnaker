@@ -4,9 +4,10 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.instance.write.service', [
-    require('../../services/taskExecutor.js')
+    require('../../services/taskExecutor.js'),
+    require('../serverGroups/serverGroup.read.service.js'),
   ])
-  .factory('instanceWriter', function (taskExecutor) {
+  .factory('instanceWriter', function (taskExecutor, serverGroupReader) {
 
     function terminateInstance(instance, application) {
       return taskExecutor.executeTask({
@@ -25,6 +26,29 @@ module.exports = angular
         application: application,
         description: 'Terminate instance: ' + instance.instanceId
       });
+    }
+
+    function terminateInstanceAndShrinkServerGroup(instance, application) {
+      return serverGroupReader.getServerGroup(application.name, instance.account, instance.region, instance.serverGroup).
+        then(function(serverGroup) {
+          var setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
+          return taskExecutor.executeTask({
+            job: [
+              {
+                type: 'terminateInstanceAndDecrementAsg',
+                instance: instance.instanceId,
+                asgName: instance.serverGroup,
+                region: instance.region,
+                credentials: instance.account,
+                providerType: instance.providerType,
+                adjustMinIfNecessary: true,
+                setMaxToNewDesired: setMaxToNewDesired,
+              }
+            ],
+            application: application,
+            description: 'Terminate instance ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
+          });
+        });
     }
 
     function rebootInstance(instance, application) {
@@ -116,7 +140,8 @@ module.exports = angular
       registerInstanceWithLoadBalancer: registerInstanceWithLoadBalancer,
       deregisterInstanceFromLoadBalancer: deregisterInstanceFromLoadBalancer,
       enableInstanceInDiscovery: enableInstanceInDiscovery,
-      disableInstanceInDiscovery: disableInstanceInDiscovery
+      disableInstanceInDiscovery: disableInstanceInDiscovery,
+      terminateInstanceAndShrinkServerGroup: terminateInstanceAndShrinkServerGroup,
     };
 
   }).name;
