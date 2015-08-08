@@ -12,7 +12,7 @@
               <span is-visible="command.provider === provider"
                     class="glyphicon glyphicon-ok-circle selected-indicator"></span>
             <div class="panel-heading">
-              <h4><img height="98px" width="150px" ng-src="app/images/providers/logo_{{provider}}.png" alt="{{provider}}"/></h4>
+              <h4><img height="98px" width="150px" ng-src="{{getImage(provider)}}" alt="{{provider}}"/></h4>
             </div>
           </button>
         </div>
