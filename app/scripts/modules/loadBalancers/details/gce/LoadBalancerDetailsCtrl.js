@@ -1,6 +1,7 @@
 'use strict';
 
 require('./loadBalancerDetails.html');
+require('../../configure/gce/createLoadBalancer.html');
 require('../../configure/gce/editLoadBalancer.html');
 
 let angular = require('angular');
