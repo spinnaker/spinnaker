@@ -259,24 +259,8 @@ module.exports = angular.module('spinnaker.tasks.api', [
       });
     }
 
-    function setTaskCollectionProperties(taskCollection) {
-      Object.defineProperties(taskCollection, {
-        runningCount: {
-          get: function() {
-            return taskCollection.reduce(function(acc, current) {
-              return ['NOT_STARTED', 'RUNNING'].indexOf(current.status) !== -1 ? acc + 1 : acc;
-            }, 0);
-          }
-        }
-      });
-    }
-
     function configureRestangular() {
       return Restangular.withConfig(function(RestangularConfigurer) {
-        RestangularConfigurer.addElementTransformer('tasks', true, function(taskCollection) {
-          setTaskCollectionProperties(taskCollection);
-          return taskCollection;
-        });
         RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
 
           orchestratedItem.defineProperties(task);

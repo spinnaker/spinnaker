@@ -65,9 +65,10 @@
         <a ui-sref=".tasks"
            analytics-on="click" analytics-category="Application View" analytics-label="Tasks tab selected"
            ng-class="{active: $state.includes('**.tasks.**')}">
-          Tasks <span class="badge" ng-if="application.tasks.runningCount">
-          {{ application.tasks.runningCount }}
-        </span>
+          Tasks <span class="badge"
+                      ng-if="( application.tasks | filter:{isActive:true}).length > 0">
+            {{ (application.tasks | filter:{isActive:true}).length }}
+          </span>
         </a>
       </li>
       <li>
