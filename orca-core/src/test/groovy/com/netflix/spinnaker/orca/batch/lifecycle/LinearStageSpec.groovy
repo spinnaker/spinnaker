@@ -153,6 +153,7 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
     def stage = pipeline.namedStage("stage2")
     def builder = jobBuilder.flow(initializationStep(steps, pipeline))
     def stageBuilder = new InjectStageBuilder(steps, new TaskTaskletAdapter(executionRepository, []))
+    stageBuilder.applicationContext = applicationContext
     stageBuilder.build(builder, stage).build().build()
   }
 
@@ -170,8 +171,9 @@ class LinearStageSpec extends AbstractBatchLifecycleSpec {
       return [buildStep(stage, "step", task)]
     }
 
-    protected Step buildStep(Stage stage, String taskName, Class task) {
-      buildStep(stage, taskName, detailsTask)
+    @Override
+    protected Step buildStep(Stage stage, String taskName, Class task, StepExecutionListener... listeners) {
+      buildStep(stage, taskName, detailsTask, listeners)
     }
   }
 

@@ -87,7 +87,7 @@ abstract class StageBuilder implements ApplicationContextAware {
 
       return buildLinear(jobBuilder, stage)
     } catch (Exception e) {
-      def exceptionHandler = exceptionHandlers.find { it.handles(e) }
+      def exceptionHandler = exceptionHandlers?.find { it.handles(e) }
       if (!exceptionHandler) {
         throw e
       }

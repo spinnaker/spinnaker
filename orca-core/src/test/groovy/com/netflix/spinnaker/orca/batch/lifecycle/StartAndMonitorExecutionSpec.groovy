@@ -88,15 +88,17 @@ class StartAndMonitorExecutionSpec extends AbstractBatchLifecycleSpec {
 
   @Override
   protected Job configureJob(JobBuilder jobBuilder) {
-    def builder = jobBuilder.flow(initializationStep(steps, pipeline))
-    new StartAndMonitorStage(
-        steps: steps,
-        startTask: startTask,
-        detailsTask: detailsTask,
-        monitorTask: monitorTask,
-        taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
-    ).build(builder, pipeline.namedStage("startAndMonitor"))
-     .build()
-     .build()
+    def flowBuilder = jobBuilder.flow(initializationStep(steps, pipeline))
+    def stageBuilder = new StartAndMonitorStage(
+      steps: steps,
+      startTask: startTask,
+      detailsTask: detailsTask,
+      monitorTask: monitorTask,
+      taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
+    )
+    stageBuilder.applicationContext = applicationContext
+    stageBuilder.build(flowBuilder, pipeline.namedStage("startAndMonitor"))
+                .build()
+                .build()
   }
 }
