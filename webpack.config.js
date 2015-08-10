@@ -78,4 +78,8 @@ module.exports = {
       inject: true,
     }),
   ],
+  devServer: {
+    port: process.env.DECK_PORT || 9000,
+    host: process.env.DECK_HOST || "localhost"
+  }
 };
