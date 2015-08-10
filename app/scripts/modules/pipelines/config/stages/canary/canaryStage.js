@@ -53,7 +53,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
     $scope.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours.join(',');
 
     this.splitNotificationHours = function() {
-      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map($scope.notificationHours.split(','), function(str) {
+      var hoursField = $scope.notificationHours || '';
+      $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = _.map(hoursField.split(','), function(str) {
         if (!parseInt(str.trim()).isNaN) {
           return parseInt(str.trim());
         }
