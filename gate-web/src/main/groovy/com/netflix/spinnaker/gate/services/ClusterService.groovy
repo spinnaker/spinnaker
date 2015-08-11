@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.gate.services
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.OortService
 import groovy.transform.CompileStatic
@@ -29,9 +28,6 @@ class ClusterService {
 
   @Autowired
   OortService oortService
-
-  @Autowired
-  TagService tagService
 
   Map getClusters(String app) {
     HystrixFactory.newMapCommand(GROUP, "getClustersForApplication", true) {
@@ -53,15 +49,6 @@ class ClusterService {
 
   List<Map> getClusterServerGroups(String app, String account, String clusterName) {
     getCluster(app, account, clusterName).serverGroups as List<Map>
-  }
-
-  List<String> getClusterTags(String clusterName) {
-    def names = Names.parseName(clusterName)
-    tagService.getTags(names.app).findAll() {
-      it.item == "cluster" && (it.name as String).toLowerCase() == clusterName.toLowerCase()
-    }.collect {
-      it.tags
-    }
   }
 
   List<Map> getScalingActivities(String app, String account, String clusterName, String serverGroupName, String provider, String region) {

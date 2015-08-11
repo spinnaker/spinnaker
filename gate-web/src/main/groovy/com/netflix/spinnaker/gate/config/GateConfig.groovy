@@ -24,16 +24,12 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
-import com.netflix.spinnaker.internal.services.internal.FlapJackService
-import com.netflix.spinnaker.internal.services.internal.FlexService
-import com.netflix.spinnaker.internal.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.actuate.metrics.repository.MetricRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.embedded.FilterRegistrationBean
@@ -50,8 +46,6 @@ import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
-import retrofit.http.Path
-import retrofit.http.Query
 
 import javax.servlet.*
 import javax.servlet.http.HttpServletRequest
@@ -144,12 +138,6 @@ class GateConfig {
   @ConditionalOnProperty('services.echo.enabled')
   EchoService echoService(OkHttpClient okHttpClient) {
     createClient "echo", EchoService, okHttpClient
-  }
-
-  @Bean
-  @ConditionalOnProperty('services.flapjack.enabled')
-  FlapJackService flapJackService(OkHttpClient okHttpClient) {
-    createClient "flapjack", FlapJackService, okHttpClient
   }
 
   @Bean

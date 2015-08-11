@@ -1,4 +1,4 @@
-package com.netflix.spinnaker.gate.controllers
+package com.netflix.spinnaker.internal.controllers
 
 import com.netflix.spinnaker.internal.services.FastPropertyService
 import groovy.transform.CompileStatic

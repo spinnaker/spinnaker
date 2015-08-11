@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.internal.services
+package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.InstanceService

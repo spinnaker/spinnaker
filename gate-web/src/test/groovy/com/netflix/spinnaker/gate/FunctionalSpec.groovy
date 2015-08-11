@@ -20,7 +20,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
-import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.internal.services.TagService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.internal.services.internal.FlapJackService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
@@ -49,14 +49,12 @@ class FunctionalSpec extends Specification {
   Api api
 
   static ApplicationService applicationService
-  static FlapJackService flapJackService
   static ExecutorService executorService
   static Front50Service front50Service
   static MortService mortService
   static TaskService taskService
   static OortService oortService
   static OrcaService orcaService
-  static TagService tagService
   static CredentialsService credentialsService
   static KatoService katoService
   static ServiceConfiguration serviceConfiguration
@@ -65,13 +63,11 @@ class FunctionalSpec extends Specification {
 
   void setup() {
     applicationService = Mock(ApplicationService)
-    flapJackService = Mock(FlapJackService)
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     oortService = Mock(OortService)
     orcaService = Mock(OrcaService)
     mortService = Mock(MortService)
-    tagService = Mock(TagService)
     credentialsService = Mock(CredentialsService)
     katoService = Mock(KatoService)
     serviceConfiguration = new ServiceConfiguration()
@@ -187,16 +183,6 @@ class FunctionalSpec extends Specification {
     @Bean
     ApplicationService applicationService() {
       applicationService
-    }
-
-    @Bean
-    TagService tagService() {
-      tagService
-    }
-
-    @Bean
-    FlapJackService flapJackService() {
-      flapJackService
     }
 
     @Bean

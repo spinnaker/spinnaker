@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.controllers
+package com.netflix.spinnaker.internal.controllers
 import com.netflix.spinnaker.internal.services.CanaryService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ClusterService
-import com.netflix.spinnaker.gate.services.ElasticIpService
 import com.netflix.spinnaker.gate.services.LoadBalancerService
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -34,9 +33,6 @@ class ClusterController {
 
   @Autowired
   LoadBalancerService loadBalancerService
-
-  @Autowired
-  ElasticIpService elasticIpService
 
   @RequestMapping(method = RequestMethod.GET)
   Map getClusters(@PathVariable("application") String app) {
@@ -89,25 +85,5 @@ class ClusterController {
     clusterService.getClusterServerGroups(app, account, clusterName).findAll {
       it.name == serverGroupName
     }
-  }
-
-  @RequestMapping(value = "/{account}/{clusterName}/tags", method = RequestMethod.GET)
-  List<String> getClusterTags(@PathVariable("clusterName") String clusterName) {
-    clusterService.getClusterTags(clusterName)
-  }
-
-  @RequestMapping(value = "/{account}/{clusterName}/elasticIps", method = RequestMethod.GET)
-  List<Map> getClusterElasticIps(@PathVariable("application") String application,
-                                 @PathVariable("account") String account,
-                                 @PathVariable("clusterName") String clusterName) {
-    elasticIpService.getForCluster(application, account, clusterName)
-  }
-
-  @RequestMapping(value = "/{account}/{clusterName}/elasticIps/{region}", method = RequestMethod.GET)
-  List<Map> getClusterElasticIpsForRegion(@PathVariable("application") String application,
-                                          @PathVariable("account") String account,
-                                          @PathVariable("clusterName") String clusterName,
-                                          @PathVariable("region") String region) {
-    elasticIpService.getForClusterAndRegion(application, account, clusterName, region)
   }
 }
