@@ -33,15 +33,13 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
-        for (var i = 0; i < metadataItems.length; i++) {
-          var metadataItem = metadataItems[i];
-
+        metadataItems.forEach(function(metadataItem) {
           // Don't show 'load-balancer-names' key/value pair in the wizard.
           if (metadataItem.key !== 'load-balancer-names') {
             // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
             command.instanceMetadata.push(metadataItem);
           }
-        }
+        });
       }
     }
 
