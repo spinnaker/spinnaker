@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.cluster.pod', [
       restrict: 'E',
       scope: {
         grouping: '=',
-        displayOptions: '=',
         sortFilter: '=',
         application: '=',
         parentHeading: '=',

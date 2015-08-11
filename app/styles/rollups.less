@@ -38,6 +38,10 @@
   border-radius: 3px;
   padding: 0;
   margin: 15px 0;
+  &:last-child {
+    background-color: #ffffff;
+    padding-bottom: 5px;
+  }
 
   &.disabled {
     opacity: 0.4;
@@ -51,14 +55,14 @@
     color: @healthy_green_icon;
   }
 
-  &.active, &:hover {
-    border-color: #121212;
-    box-shadow: 0 0 8px 0px #999999;
-  }
-
   &.unhealthy {
     border-style: dashed;
   }
+}
+
+.instance-list {
+  clear: both;
+  padding: 0 10px 0 23px;
 }
 
 .instances {
@@ -124,11 +128,6 @@
   display: table;
   width: 100%;
 
-  &:hover {
-    border-color: #121212;
-    border-bottom-width: 1px;
-    box-shadow: 0 0 8px 0px #999999;
-  }
   .tooltip {
     text-transform: none;
   }
@@ -327,6 +326,59 @@ load-balancers-tag {
   border-bottom-left-radius: 2px;
   border-bottom-right-radius: 2px;
 
+  .clickable-row {
+    background-color: #ffffff;
+    border: 2px solid transparent;
+    &.active {
+      background-color: @active_pod_blue;
+    }
+    &:hover {
+      border: 2px solid @glow-init;
+    }
+  }
+  .permalinks {
+    border-top: 1px solid @mid_light_grey;
+    padding: 5px 10px 0;
+    font-size: 80%;
+  }
+  .pod-subgroup {
+    h6 {
+      text-transform: uppercase;
+      margin: 0;
+      padding: 10px 10px 5px 10px;
+      &.heading-sticky {
+        background-color: #ffffff;
+      }
+    }
+    border: 2px solid transparent;
+    .rollup-pod-server-group {
+      .server-group-title {
+        background-color: #ffffff;
+      }
+      &.active {
+        background-color: @active_pod_blue;
+        .server-group-title {
+          background-color: @active_pod_blue;
+        }
+      }
+      &.disabled {
+        &:hover, &.active {
+          opacity: 0.7;
+        }
+      }
+    }
+    .table {
+      margin-top: -5px;
+      margin-bottom: 10px;
+      font-size: 90%;
+    }
+  }
+  h5, h6 {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 110%;
+  }
+
   .badge-disabled {
     .pull-right();
     font-weight: 700;
@@ -385,92 +437,28 @@ load-balancers-tag {
 }
 
 .row {
-  cluster-pod {
-    .rollup-summary {
-      &:hover {
-        box-shadow: none;
-      }
-    }
-    .rollup-entry {
-      &:hover {
-        box-shadow: none;
-        border-color: #c4c4c4;
-      }
-    }
-    .server-group-sequence {
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    .subgroup-title {
-      background-color: #ffffff;
-    }
-    .server-group-title, .subgroup-title {
-      padding: 5px 10px 2px;
-      border-bottom-width: 0;
-      &.clickable {
-        &:hover, &.active {
-          background-color: @lighter_grey;
-        }
-      }
-    }
-    .heading-sticky {
-      box-shadow: 0 8px 6px -6px #999999;
+  .rollup-summary {
+    &:hover {
+      box-shadow: none;
     }
   }
-}
-
-.cluster-pod-details {
-  .permalinks {
-    padding: 5px 10px;
-    font-size: 80%;
-  }
-  .pod-subgroup {
-    h6 {
-      text-transform: uppercase;
-      margin: 0;
-      padding: 10px 0 5px 10px;
-    }
-    border-bottom: 1px solid @mid_light_grey;
-    .cluster-pod-server-group {
-      background-color: #ffffff;
-      border: 2px solid transparent;
-      .server-group-title {
-        background-color: #ffffff;
-      }
-      &.active {
-        background-color: @active_pod_blue;
-        .server-group-title {
-          background-color: @active_pod_blue;
-        }
-      }
-      .active {
-        td {
-          background-color: @active_pod_blue;
-        }
-      }
-      &:hover {
-        border-color: @glow-init;
-      }
-      .instance-list {
-        clear: both;
-        padding: 0 10px 0 23px;
-
-      }
-      &.disabled {
-        &:hover, &.active {
-          opacity: 0.7;
-        }
-      }
-    }
-    .table {
-      margin-top: -5px;
-      margin-bottom: 10px;
-      font-size: 90%;
-    }
-  }
-  h5, h6 {
+  .server-group-sequence {
+    text-transform: uppercase;
     font-weight: 600;
-    margin-bottom: 5px;
-    font-size: 110%;
+  }
+  .subgroup-title {
+    background-color: #ffffff;
+  }
+  .server-group-title, .subgroup-title {
+    padding: 5px 10px 2px;
+    border-bottom-width: 0;
+    &.clickable {
+      &:hover, &.active {
+        background-color: @lighter_grey;
+      }
+    }
+  }
+  .heading-sticky {
+    box-shadow: 0 8px 6px -6px #999999;
   }
 }

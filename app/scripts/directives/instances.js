@@ -13,21 +13,24 @@ module.exports = function ($timeout, $, _) {
 
       var base = elem.parent().inheritedData('$uiView').state;
 
-      var instances = _.sortBy(scope.instances, 'launchTime');
-      elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
-        var id = instance.id,
-          activeClass = '';
-        var params = {instanceId: instance.id, provider: instance.provider };
-        if ($state.includes('**.instanceDetails', params)) {
-          activeClass = ' active';
-          scope.activeInstance = params;
-        }
+      function renderInstances() {
+        var instances = _.sortBy(scope.instances, 'launchTime');
+        elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
+            var id = instance.id,
+              activeClass = '';
+            var params = {instanceId: instance.id, provider: instance.provider };
+            if ($state.includes('**.instanceDetails', params)) {
+              activeClass = ' active';
+              scope.activeInstance = params;
+            }
 
-        return '<a title="' + id +
-          '" data-provider="' + instance.provider +
-          '" data-toggle="tooltip" data-instance-id="' + id +
-          '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
-      }).join('') + '</div>';
+            return '<a title="' + id +
+              '" data-provider="' + instance.provider +
+              '" data-toggle="tooltip" data-instance-id="' + id +
+              '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
+          }).join('') + '</div>';
+      }
+
       $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
 
       elem.click(function(event) {
@@ -66,6 +69,8 @@ module.exports = function ($timeout, $, _) {
         $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
         elem.unbind('click');
       });
+
+      scope.$watch('instances', renderInstances);
     }
   };
 };

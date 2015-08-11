@@ -1,13 +1,24 @@
-<div class="rollup-row load-balancer-server-group" ng-class="{disabled: serverGroup.isDisabled}">
-  <a
-    ui-sref=".serverGroup({region: loadBalancer.region, accountId: loadBalancer.account, serverGroup: serverGroup.name, provider: loadBalancer.type})"
-    ui-sref-active="active">
-    <span class="icon icon-server-group icon-{{loadBalancer.type}} small"></span> {{serverGroup.name}}
-  </a>
-  <span ng-if="!serverGroup.isDisabled">
-    <health-counts container="serverGroup.healthCounts"></health-counts>
-  </span>
-  <div ng-if="displayOptions.showInstances">
-    <instances instances="serverGroup.instances"></instances>
+<div class="cluster-container" ng-class="{disabled: serverGroup.isDisabled}">
+  <div class="server-group-title" sticky-header added-offset-height="69"
+       sticky-if="headerIsSticky()">
+    <div class="container-fluid no-padding">
+      <div class="row">
+        <div class="col-md-8">
+          <a
+              ui-sref=".serverGroup({region: loadBalancer.region, accountId: loadBalancer.account, serverGroup: serverGroup.name, provider: loadBalancer.type})"
+              ui-sref-active="active">
+            <span class="icon icon-server-group icon-{{loadBalancer.type}} small"></span> {{serverGroup.name}}
+          </a>
+        </div>
+        <div class="col-md-4 text-right">
+          <span ng-if="!serverGroup.isDisabled">
+            <health-counts container="serverGroup.healthCounts"></health-counts>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="instance-list" ng-if="sortFilter.showInstances">
+    <instances instances="viewModel.instances"></instances>
   </div>
 </div>

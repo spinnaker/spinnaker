@@ -1,4 +1,4 @@
-<div class="cluster-pod-server-group clickable"
+<div class="rollup-pod-server-group clickable clickable-row"
      waypoint="{{viewModel.waypoint}}"
      ng-click="loadDetails($event)"
      ng-class="{
@@ -33,11 +33,11 @@
         </div>
       </div>
     </div>
-    <div class="instance-list" ng-if="displayOptions.showInstances">
-      <div ng-if="!displayOptions.listInstances">
+    <div class="instance-list" ng-if="sortFilter.showAllInstances">
+      <div ng-if="!sortFilter.listInstances">
         <instances highlight="displayOptions.filter" instances="viewModel.instances"></instances>
       </div>
-      <div ng-if="displayOptions.listInstances">
+      <div ng-if="sortFilter.listInstances">
         <instance-list instances="viewModel.instances" sort-filter="sortFilter"></instance-list>
       </div>
     </div>

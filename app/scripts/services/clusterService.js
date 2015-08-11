@@ -5,7 +5,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
-  'spinnaker.vpc.read.service',
+  require('../modules/vpc/vpc.read.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),
 ])

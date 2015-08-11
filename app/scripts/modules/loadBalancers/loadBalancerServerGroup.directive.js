@@ -4,8 +4,11 @@ let angular = require('angular');
 
 require('./loadBalancer/loadBalancerServerGroup.html');
 
-module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [])
-  .directive('loadBalancerServerGroup', function ($rootScope) {
+module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [
+  require('./filter/loadBalancer.filter.service.js'),
+  require('./filter/loadBalancer.filter.model.js'),
+])
+  .directive('loadBalancerServerGroup', function ($rootScope, loadBalancerFilterService, LoadBalancerFilterModel) {
     return {
       restrict: 'E',
       replace: true,
@@ -13,10 +16,20 @@ module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [])
       scope: {
         loadBalancer: '=',
         serverGroup: '=',
-        displayOptions: '='
       },
       link: function (scope) {
         scope.$state = $rootScope.$state;
+        scope.sortFilter = LoadBalancerFilterModel.sortFilter;
+
+        function setInstances() {
+          scope.viewModel = {
+            instances: scope.serverGroup.instances.filter(loadBalancerFilterService.shouldShowInstance),
+          };
+        }
+
+        setInstances();
+
+        scope.$watch('sortFilter', setInstances, true);
       }
     };
   }

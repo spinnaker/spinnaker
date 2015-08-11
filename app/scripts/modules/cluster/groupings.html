@@ -2,7 +2,6 @@
   <div ng-repeat="group in groups" class="rollup">
     <cluster-pod ng-repeat="subgroup in group.subgroups"
                  grouping="subgroup"
-                 display-options="displayOptions"
                  sort-filter="sortFilter"
                  application="application"
                  parent-heading="group.heading"

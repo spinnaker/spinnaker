@@ -2,42 +2,45 @@
 
 require('../modules/cluster/serverGroup.html');
 
-module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService) {
+module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService, ClusterFilterModel) {
   return {
     restrict: 'E',
     templateUrl: require('../modules/cluster/serverGroup.html'),
     scope: {
       cluster: '=',
       serverGroup: '=',
-      displayOptions: '=',
-      sortFilter: '=',
       application: '=',
       parentHeading: '=',
     },
     link: function (scope, el) {
+
+      scope.sortFilter = ClusterFilterModel.sortFilter;
       // stolen from uiSref directive
       var base = el.parent().inheritedData('$uiView').state;
 
       scope.$state = $rootScope.$state;
-      var filteredInstances = scope.serverGroup.instances.filter(clusterFilterService.shouldShowInstance);
 
-      var serverGroup = scope.serverGroup;
+      function setViewModel() {
+        var filteredInstances = scope.serverGroup.instances.filter(clusterFilterService.shouldShowInstance);
 
-      scope.viewModel = {
-        waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
-        serverGroup: serverGroup,
-        serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
-        jenkins: null,
-        hasBuildInfo: !!serverGroup.buildInfo,
-        instances: filteredInstances,
-      };
+        var serverGroup = scope.serverGroup;
 
-      if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
-        var jenkins = serverGroup.buildInfo.jenkins;
-        scope.viewModel.jenkins = {
-          href: [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/'),
-          number: jenkins.number,
+        scope.viewModel = {
+          waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
+          serverGroup: serverGroup,
+          serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
+          jenkins: null,
+          hasBuildInfo: !!serverGroup.buildInfo,
+          instances: filteredInstances,
         };
+
+        if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
+          var jenkins = serverGroup.buildInfo.jenkins;
+          scope.viewModel.jenkins = {
+            href: [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/'),
+            number: jenkins.number,
+          };
+        }
       }
 
       scope.loadDetails = function(e) {
@@ -58,15 +61,19 @@ module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, 
         });
       };
 
+      setViewModel();
+
       scope.headerIsSticky = function() {
-        if (!scope.displayOptions.showInstances) {
+        if (!scope.sortFilter.showAllInstances) {
           return false;
         }
-        if (scope.displayOptions.listInstances) {
-          return filteredInstances.length > 1;
+        if (scope.sortFilter.listInstances) {
+          return scope.viewModel.instances.length > 1;
         }
-        return filteredInstances.length > 20;
+        return scope.viewModel.instances.length > 20;
       };
+
+      scope.$watch('sortFilter', setViewModel, true);
     }
   };
 };

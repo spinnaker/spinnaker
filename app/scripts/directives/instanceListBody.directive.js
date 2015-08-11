@@ -160,6 +160,8 @@ module.exports = function ($timeout, $filter, $rootScope, $state, $, _, scrollTr
         elem.unbind('click');
       });
 
+      scope.$watch('instances', renderInstances);
+
     }
   };
 };

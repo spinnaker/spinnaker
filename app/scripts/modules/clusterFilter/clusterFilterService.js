@@ -4,105 +4,25 @@ let angular = require('angular');
 
 module.exports = angular
   .module('cluster.filter.service', [
+    require('angular-ui-router'),
     require('./clusterFilterModel.js'),
     require('utils/lodash.js'),
     require('utils/waypoints/waypoint.service.js'),
+    require('../filterModel/filter.model.service.js'),
   ])
-  .factory('clusterFilterService', function ($location, ClusterFilterModel, _, waypointService, $log, $stateParams) {
+  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService) {
 
     var lastApplication = null;
 
-    function updateQueryParams() {
-      $location.search('q', ClusterFilterModel.sortFilter.filter || null);
-      $location.search('hideInstances', ClusterFilterModel.sortFilter.showAllInstances ? null : true);
-      $location.search('listInstances', ClusterFilterModel.sortFilter.listInstances ? true : null);
-      $location.search('instanceSort',
-          ClusterFilterModel.sortFilter.instanceSort.key !== 'launchTime' ? ClusterFilterModel.sortFilter.instanceSort.key : null);
+    /**
+     * Filtering logic
+     */
 
-      $location.search('acct', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.account).join() || null);
-      $location.search('reg', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.region).join() || null);
-      $location.search('status', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.status).join() || null);
-      $location.search('providerType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.providerType).join() || null);
-      $location.search('instanceType', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.instanceType).join() || null);
-      $location.search('zone', convertTrueModelValuesToArray(ClusterFilterModel.sortFilter.availabilityZone).join() || null);
-      $location.search('minInstances', coerceIntToString(ClusterFilterModel.sortFilter.minInstances));
-      $location.search('maxInstances', coerceIntToString(ClusterFilterModel.sortFilter.maxInstances));
-
-    }
-
-    function convertTrueModelValuesToArray(modelObject) {
-      var result = [];
-      _.forOwn(modelObject, function (value, key) {
-        if (value) {
-          result.push(key);
-        }
-      });
-      return result;
-    }
-
-    function coerceIntToString(val) {
-      if (val !== null && val !== undefined && !isNaN(val)) {
-        return val + '';
-      }
-      return null;
-    }
-
-    function isFilterable(sortFilterModel) {
-      return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
-    }
-
-    function getCheckValues(sortFilterModel) {
-      return  _.reduce(sortFilterModel, function(acc, val, key) {
-        if (val) {
-          acc.push(key);
-        }
-        return acc;
-      }, []);
-    }
-
-    function checkAccountFilters(serverGroup) {
-      if(isFilterable(ClusterFilterModel.sortFilter.account)) {
-        var checkedAccounts = getCheckValues(ClusterFilterModel.sortFilter.account);
-        return _.contains(checkedAccounts, serverGroup.account);
-      } else {
-        return true;
-      }
-    }
-
-    function checkRegionFilters(serverGroup) {
-      if(isFilterable(ClusterFilterModel.sortFilter.region)) {
-        var checkedRegions = getCheckValues(ClusterFilterModel.sortFilter.region);
-        return _.contains(checkedRegions, serverGroup.region);
-      } else {
-        return true;
-      }
-    }
-
-    function checkStatusFilters(serverGroup) {
-      if(isFilterable(ClusterFilterModel.sortFilter.status)) {
-        var checkedStatus = getCheckValues(ClusterFilterModel.sortFilter.status);
-        return _.contains(checkedStatus, 'Up') && serverGroup.downCount === 0 ||
-               _.contains(checkedStatus, 'Down') && serverGroup.downCount > 0 ||
-               _.contains(checkedStatus, 'OutOfService') && serverGroup.outOfServiceCount > 0 ||
-               _.contains(checkedStatus, 'Starting') && serverGroup.startingCount > 0 ||
-               _.contains(checkedStatus, 'Disabled') && serverGroup.isDisabled;
-      } else {
-        return true;
-      }
-    }
-
-    function providerTypeFilters(serverGroup) {
-      if(isFilterable(ClusterFilterModel.sortFilter.providerType)) {
-        var checkedProviderTypes = getCheckValues(ClusterFilterModel.sortFilter.providerType);
-        return _.contains(checkedProviderTypes, serverGroup.type);
-      } else {
-        return true;
-      }
-    }
+    var isFilterable = filterModelService.isFilterable;
 
     function instanceTypeFilters(serverGroup) {
       if(isFilterable(ClusterFilterModel.sortFilter.instanceType)) {
-        var checkedInstanceTypes = getCheckValues(ClusterFilterModel.sortFilter.instanceType);
+        var checkedInstanceTypes = filterModelService.getCheckValues(ClusterFilterModel.sortFilter.instanceType);
         return _.contains(checkedInstanceTypes, serverGroup.instanceType);
       } else {
         return true;
@@ -120,36 +40,39 @@ module.exports = angular
       return shouldInclude;
     }
 
-    function filterServerGroupsForDisplay(serverGroups, filter) {
+    function textFilter(serverGroup) {
+      var filter = ClusterFilterModel.sortFilter.filter.toLowerCase();
+      if (!filter) {
+        return true;
+      }
+      if (filter.indexOf('clusters:') !== -1) {
+        var clusterNames = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
+        return clusterNames.indexOf(serverGroup.cluster) !== -1;
+      }
+
+      if(filter.indexOf('vpc:') !== -1) {
+        var vpcName = /vpc:([\w-]*)/.exec(filter);
+        return serverGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+      }
+
+      if(filter.indexOf('cluster:') !== -1) {
+        var clusterName = /cluster:([\w-]*)/.exec(filter);
+        return serverGroup.cluster === clusterName[1];
+      } else {
+        return filter.split(' ').every(function(testWord) {
+          return serverGroup.searchField.indexOf(testWord) !== -1;
+        });
+      }
+    }
+
+    function filterServerGroupsForDisplay(serverGroups) {
       return  _.chain(serverGroups)
-        .filter(function(serverGroup) {
-          if (!filter) {
-            return true;
-          }
-          if (filter.indexOf('clusters:') !== -1) {
-            var clusterNames = filter.split('clusters:')[1].replace(/\s/g, '').split(',');
-            return clusterNames.indexOf(serverGroup.cluster) !== -1;
-          }
-
-          if(filter.indexOf('vpc:') !== -1) {
-            var vpcName = /vpc:([\w-]*)/.exec(filter);
-            return serverGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
-          }
-
-          if(filter.indexOf('cluster:') !== -1) {
-              var clusterName = /cluster:([\w-]*)/.exec(filter);
-              return serverGroup.cluster === clusterName[1];
-          } else {
-            return filter.split(' ').every(function(testWord) {
-              return serverGroup.searchField.indexOf(testWord) !== -1;
-            });
-          }
-        })
+        .filter(textFilter)
         .filter(instanceCountFilter)
-        .filter(checkAccountFilters)
-        .filter(checkRegionFilters)
-        .filter(checkStatusFilters)
-        .filter(providerTypeFilters)
+        .filter(filterModelService.checkAccountFilters(ClusterFilterModel))
+        .filter(filterModelService.checkRegionFilters(ClusterFilterModel))
+        .filter(filterModelService.checkStatusFilters(ClusterFilterModel))
+        .filter(filterModelService.checkProviderFilters(ClusterFilterModel))
         .filter(instanceTypeFilters)
         .filter(instanceFilters)
         .value();
@@ -166,13 +89,13 @@ module.exports = angular
 
     function shouldShowInstance(instance) {
       if(isFilterable(ClusterFilterModel.sortFilter.availabilityZone)) {
-        var checkedAvailabilityZones = getCheckValues(ClusterFilterModel.sortFilter.availabilityZone);
+        var checkedAvailabilityZones = filterModelService.getCheckValues(ClusterFilterModel.sortFilter.availabilityZone);
         if (checkedAvailabilityZones.indexOf(instance.availabilityZone) === -1) {
           return false;
         }
       }
       if(isFilterable(ClusterFilterModel.sortFilter.status)) {
-        var allCheckedValues = getCheckValues(ClusterFilterModel.sortFilter.status);
+        var allCheckedValues = filterModelService.getCheckValues(ClusterFilterModel.sortFilter.status);
         var checkedStatus = _.without(allCheckedValues, 'Disabled');
         if (!checkedStatus.length) {
           return true;
@@ -185,6 +108,11 @@ module.exports = angular
       }
       return true;
     }
+
+
+    /**
+     * Grouping logic
+     */
 
     function updateClusterGroups(application) {
       if (!application) {
@@ -220,9 +148,8 @@ module.exports = angular
       });
 
       sortGroupsByHeading(groups);
-      setDisplayOptions();
       waypointService.restoreToWaypoint(application.name);
-      addTags();
+      ClusterFilterModel.addTags();
       lastApplication = application;
       return groups;
     }
@@ -302,16 +229,10 @@ module.exports = angular
       });
     }
 
-    function setDisplayOptions() {
-      var newOptions =  {
-        showInstances: ClusterFilterModel.sortFilter.showAllInstances,
-        listInstances: ClusterFilterModel.sortFilter.listInstances,
-        hideHealthy: ClusterFilterModel.sortFilter.hideHealthy,
-        filter: ClusterFilterModel.sortFilter.filter,
-      };
-      angular.copy(newOptions, ClusterFilterModel.displayOptions);
-    }
 
+    /**
+     * Utility method used to navigate to a specific cluster by setting filters
+     */
     function overrideFiltersForUrl(result) {
       if (result.href.indexOf('/clusters') !== -1) {
         ClusterFilterModel.clearFilters();
@@ -335,92 +256,12 @@ module.exports = angular
 
     function clearFilters() {
       ClusterFilterModel.clearFilters();
-      updateQueryParams();
-    }
-
-    function addTagsForSection(key, label, translator) {
-      translator = translator || {};
-      var tags = ClusterFilterModel.sortFilter.tags;
-      if (ClusterFilterModel.sortFilter[key]) {
-        _.forOwn(ClusterFilterModel.sortFilter[key], function(isActive, value) {
-          if (isActive) {
-            tags.push({
-              key: key,
-              label: label,
-              value: translator[value] || value,
-              clear: function() {
-                delete ClusterFilterModel.sortFilter[key][value];
-                updateQueryParams();
-                updateClusterGroups();
-              }
-            });
-          }
-        });
-      }
-      return tags;
-    }
-
-    function addFilterTag() {
-      if (ClusterFilterModel.sortFilter.filter) {
-        ClusterFilterModel.sortFilter.tags.push({
-          key: 'filter',
-          label: 'search',
-          value: ClusterFilterModel.sortFilter.filter,
-          clear: function() {
-            ClusterFilterModel.sortFilter.filter = '';
-            updateQueryParams();
-            updateClusterGroups();
-          }
-        });
-      }
-    }
-
-    function addInstanceCountTags() {
-      if (ClusterFilterModel.sortFilter.minInstances !== null && !isNaN(ClusterFilterModel.sortFilter.minInstances)) {
-        ClusterFilterModel.sortFilter.tags.push({
-          key: 'minInstances',
-          label: 'instance count (min)',
-          value: ClusterFilterModel.sortFilter.minInstances,
-          clear: function() {
-            ClusterFilterModel.sortFilter.minInstances = undefined;
-            updateQueryParams();
-            updateClusterGroups();
-          }
-        });
-      }
-      if (ClusterFilterModel.sortFilter.maxInstances !== null && !isNaN(ClusterFilterModel.sortFilter.maxInstances)) {
-        ClusterFilterModel.sortFilter.tags.push({
-          key: 'maxInstances',
-          label: 'instance count (max)',
-          value: ClusterFilterModel.sortFilter.maxInstances,
-          clear: function() {
-            ClusterFilterModel.sortFilter.maxInstances = undefined;
-            updateQueryParams();
-            updateClusterGroups();
-          }
-        });
-      }
-    }
-
-    function addTags() {
-      var tags = ClusterFilterModel.sortFilter.tags;
-      tags.length = 0;
-      addFilterTag();
-      addInstanceCountTags();
-      addTagsForSection('account', 'account');
-      addTagsForSection('region', 'region');
-      addTagsForSection('status', 'status', {Up: 'Healthy', Down: 'Unhealthy', OutOfService: 'Out of Service'});
-      addTagsForSection('availabilityZone', 'zone');
-      addTagsForSection('instanceType', 'instance type');
-      addTagsForSection('providerType', 'provider');
+      ClusterFilterModel.applyParamsToUrl();
     }
 
     return {
-      sortFilter: ClusterFilterModel.sortFilter,
-      updateQueryParams: updateQueryParams,
       updateClusterGroups: updateClusterGroups,
       filterServerGroupsForDisplay: filterServerGroupsForDisplay,
-      setDisplayOptions: setDisplayOptions,
       sortGroupsByHeading: sortGroupsByHeading,
       clearFilters: clearFilters,
       shouldShowInstance: shouldShowInstance,

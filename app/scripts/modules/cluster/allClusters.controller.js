@@ -13,27 +13,15 @@ module.exports = angular.module('clusters.all', [
   require('../account/account.module.js'),
   require('../providerSelection/providerSelection.module.js'),
   require('../providerSelection/providerSelection.service.js'),
-  require('../securityGroups/securityGroup.read.service.js'),
   require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('../filterModel/filter.tags.directive.js'),
   require('utils/waypoints/waypointContainer.directive.js'),
   require('exports?"ui.bootstrap"!angular-bootstrap'),
 ])
-  .controller('AllClustersCtrl', function($scope, app, $modal, $location,
-                                          securityGroupReader, accountService, providerSelectionService,
-                                          _, $stateParams, settings, $q, $window, clusterFilterService, ClusterFilterModel, serverGroupCommandBuilder) {
+  .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,
+                                          ClusterFilterModel, serverGroupCommandBuilder) {
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
-
-    var searchCache = null;
-
-    $scope.$on('$stateChangeStart', function() {
-      searchCache = $location.search();
-    });
-    $scope.$on('$stateChangeSuccess', function() {
-      if (searchCache) {
-        $location.search(searchCache);
-      }
-    });
 
     function addSearchFields() {
       app.serverGroups.forEach(function(serverGroup) {
@@ -50,23 +38,22 @@ module.exports = angular.module('clusters.all', [
             serverGroup.name.toLowerCase(),
             serverGroup.account.toLowerCase(),
             buildInfo,
-            _.collect(serverGroup.loadBalancers, 'name').join(' '),
-            _.collect(serverGroup.instances, 'id').join(' ')
+            _.pluck(serverGroup.loadBalancers, 'name').join(' '),
+            _.pluck(serverGroup.instances, 'id').join(' ')
           ].join(' ');
         }
       });
     }
 
     function updateClusterGroups() {
-      clusterFilterService.updateQueryParams();
+      ClusterFilterModel.applyParamsToUrl();
       $scope.$evalAsync(function() {
           clusterFilterService.updateClusterGroups(app);
         }
       );
 
       $scope.groups = ClusterFilterModel.groups;
-      $scope.displayOptions = ClusterFilterModel.displayOptions;
-      $scope.tags = ClusterFilterModel.sortFilter.tags;
+      $scope.tags = ClusterFilterModel.tags;
     }
 
     this.clearFilters = function() {

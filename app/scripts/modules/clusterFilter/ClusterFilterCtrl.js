@@ -9,48 +9,22 @@ module.exports = angular.module('cluster', [
   require('./clusterFilterModel.js'),
   require('utils/lodash.js'),
 ])
-  .controller('ClusterFilterCtr', function ($scope, app, _, $stateParams, $log, clusterFilterService, ClusterFilterModel) {
+  .controller('ClusterFilterCtr', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel) {
 
     $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
     var ctrl = this;
 
-    var accountOption = {
-      getDisplayValue: function(serverGroup) {
-        return serverGroup.account || '';
-      },
-    };
-
-    var regionOption = {
-      getDisplayValue: function(serverGroup) {
-        return serverGroup.region || '';
-      },
-    };
-
-    var providerType = {
-      getDisplayValue: function (serverGroup) {
-        return serverGroup.type || '';
-      }
-    };
-
-    var instanceType = {
-      getDisplayValue: function (serverGroup) {
-        return serverGroup.instanceType || '';
-      }
-    };
-
-
-    this.updateClusterGroups = _.debounce(function updateClusterGroups() {
-      clusterFilterService.updateQueryParams();
+    this.updateClusterGroups = function () {
+      ClusterFilterModel.applyParamsToUrl();
       $scope.$evalAsync(
         clusterFilterService.updateClusterGroups(app)
       );
-    }, 300);
+    };
 
     function getHeadingsForOption(option) {
-      var allValues = app.serverGroups.map(option.getDisplayValue);
-      return _.compact(_.unique(_.flatten(allValues))).sort();
+      return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
     }
 
     function getAvailabilityZones() {
@@ -68,10 +42,10 @@ module.exports = angular.module('cluster', [
     }
 
     this.initialize = function() {
-      ctrl.accountHeadings = getHeadingsForOption(accountOption);
-      ctrl.regionHeadings = getHeadingsForOption(regionOption);
-      ctrl.instanceTypeHeadings = getHeadingsForOption(instanceType);
-      ctrl.providerTypeHeadings = getHeadingsForOption(providerType);
+      ctrl.accountHeadings = getHeadingsForOption('account');
+      ctrl.regionHeadings = getHeadingsForOption('region');
+      ctrl.instanceTypeHeadings = getHeadingsForOption('instanceType');
+      ctrl.providerTypeHeadings = getHeadingsForOption('type');
       ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.clearFilters = clearFilters;
       $scope.clusters = app.clusters;
@@ -84,4 +58,3 @@ module.exports = angular.module('cluster', [
   }
 )
 .name;
-
