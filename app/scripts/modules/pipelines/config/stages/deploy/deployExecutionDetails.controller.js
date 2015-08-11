@@ -61,6 +61,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
           }
         }
         $scope.deployed = results;
+        $scope.provider = $scope.stage.context.providerType || 'aws';
       });
     }
 
