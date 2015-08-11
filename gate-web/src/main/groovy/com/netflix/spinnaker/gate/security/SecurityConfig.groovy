@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security
+package com.netflix.spinnaker.gate.security
 
-import com.netflix.spinnaker.internal.security.WebSecurityAugmentor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -37,7 +36,7 @@ import javax.servlet.Filter
 @EnableWebSecurity
 @Configuration
 @Import(SecurityAutoConfiguration)
-class NetflixSecurityConfig extends WebSecurityConfigurerAdapter {
+class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired(required = false)
   Collection<WebSecurityAugmentor> webSecurityAugmentors = []
 

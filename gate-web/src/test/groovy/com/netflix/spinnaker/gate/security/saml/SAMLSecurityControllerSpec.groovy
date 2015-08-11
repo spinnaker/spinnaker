@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security.saml
+package com.netflix.spinnaker.gate.security.saml
 
 import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.internal.security.anonymous.AnonymousSecurityConfig
+import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
 
 import com.netflix.spinnaker.security.User
 import org.opensaml.DefaultBootstrap

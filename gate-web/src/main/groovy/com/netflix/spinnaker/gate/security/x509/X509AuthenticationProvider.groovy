@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security.x509
+package com.netflix.spinnaker.gate.security.x509
 
-import com.netflix.spinnaker.internal.security.AnonymousAccountsService
+import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.security.User
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.core.Authentication

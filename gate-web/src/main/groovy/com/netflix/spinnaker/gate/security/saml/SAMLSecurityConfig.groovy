@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security.saml
+package com.netflix.spinnaker.gate.security.saml
 
-import com.netflix.spinnaker.internal.security.WebSecurityAugmentor
+import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
 import groovy.util.logging.Slf4j
 import org.opensaml.DefaultBootstrap
 import org.springframework.beans.factory.annotation.Autowired

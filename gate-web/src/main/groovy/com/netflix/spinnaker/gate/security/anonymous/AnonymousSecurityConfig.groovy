@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security.anonymous
+package com.netflix.spinnaker.gate.security.anonymous
 
-import com.netflix.spinnaker.internal.security.AnonymousAccountsService
-import com.netflix.spinnaker.internal.security.WebSecurityAugmentor
+import com.netflix.spinnaker.gate.security.AnonymousAccountsService
+import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
 import com.netflix.spinnaker.security.User
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression

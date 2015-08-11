@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security
+package com.netflix.spinnaker.gate.security
 
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import org.springframework.beans.factory.annotation.Autowired

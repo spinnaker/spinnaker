@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.security.oauth2
+package com.netflix.spinnaker.gate.security.oauth2
 
 import com.netflix.spinnaker.gate.security.oauth2.IdentityResourceServerTokenServices
 import org.springframework.security.authentication.AuthenticationProvider
