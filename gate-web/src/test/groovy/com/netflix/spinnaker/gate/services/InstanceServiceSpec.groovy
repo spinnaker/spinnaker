@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
+import com.netflix.spinnaker.gate.services.InstanceService
 import com.netflix.spinnaker.gate.services.internal.OortService
 import spock.lang.Specification
 

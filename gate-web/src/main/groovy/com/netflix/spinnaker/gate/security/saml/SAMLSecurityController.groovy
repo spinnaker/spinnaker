@@ -1,10 +1,25 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.netflix.spinnaker.gate.security.saml
 
-import com.netflix.spinnaker.gate.config.GateConfig
-import com.netflix.spinnaker.gate.config.SAMLSecurityConfig
+import com.netflix.spinnaker.gate.config.Headers
+import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.security.AnonymousAccountsService
 import com.netflix.spinnaker.gate.security.anonymous.AnonymousSecurityConfig
-import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.opensaml.saml2.binding.encoding.HTTPRedirectDeflateEncoder
@@ -127,7 +142,7 @@ class SAMLSecurityController {
   User getUser(HttpServletRequest request, HttpServletResponse response) {
     Object whoami = SecurityContextHolder.context.authentication.principal
     if (!whoami || !(whoami instanceof User) || !(hasRequiredRole(anonymousSecurityConfig, samlSecurityConfigProperties, whoami))) {
-      response.addHeader GateConfig.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
+      response.addHeader Headers.AUTHENTICATION_REDIRECT_HEADER_NAME, "/auth"
       response.sendError 401
       null
     } else {

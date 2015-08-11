@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.PipelineService
+import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,9 +38,6 @@ class ApplicationController {
 
   @Autowired
   TaskService taskService
-
-  @Autowired(required = false)
-  TagService tagService
 
   @Autowired(required = false)
   PipelineService pipelineService
@@ -173,15 +172,6 @@ class ApplicationController {
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
   Map task(@PathVariable String name, @RequestBody Map map) {
     taskService.createAppTask(name, map)
-  }
-
-  @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
-  List<String> getTags(@PathVariable("name") String name) {
-    if (tagService) {
-      tagService.getTags(name)
-    } else {
-      []
-    }
   }
 
   static class BakeCommand {
