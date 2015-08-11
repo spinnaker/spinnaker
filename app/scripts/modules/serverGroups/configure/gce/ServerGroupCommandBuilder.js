@@ -31,18 +31,15 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       });
     }
 
-    function populateCustomMetadata(userData, command) {
-      if (userData) {
-        // userData is a base64-encoded json object.
-        var userDataObj = JSON.parse(window.atob(userData));
-
-        for (var key in userDataObj) {
+    function populateCustomMetadata(metadataItems, command) {
+      if (metadataItems) {
+        metadataItems.forEach(function(metadataItem) {
           // Don't show 'load-balancer-names' key/value pair in the wizard.
-          if (key !== 'load-balancer-names') {
+          if (metadataItem.key !== 'load-balancer-names') {
             // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-            command.instanceMetadata.push({key: key, value: userDataObj[key]});
+            command.instanceMetadata.push(metadataItem);
           }
-        }
+        });
       }
     }
 
@@ -183,7 +180,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
-          populateCustomMetadata(serverGroup.launchConfig.userData, command);
+          populateCustomMetadata(serverGroup.launchConfig.instanceTemplate.properties.metadata.items, command);
           populateTags(serverGroup.launchConfig.instanceTemplate.properties.tags, command);
           return command;
         });
