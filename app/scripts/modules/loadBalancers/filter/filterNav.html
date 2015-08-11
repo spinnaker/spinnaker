@@ -1,0 +1,83 @@
+<div class="heading">
+  <h3>
+    Filters <span class="btn btn-default btn-light pull-right"
+                  ng-click="loadBalancerFilters.clearFilters()">Clear All</span>
+  </h3>
+  <filter-section heading="Search" expanded="true" help-key="loadBalancer.search">
+    <form class="form-horizontal" role="form">
+      <div class="form-group nav-search">
+        <input type="search" class="form-control input-sm" ng-model="sortFilter.filter"
+               ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+               ng-change="loadBalancerFilters.updateLoadBalancerGroups()" style="width: 85%; display: inline-block">
+      </div>
+    </form>
+  </filter-section>
+</div>
+<div class="content">
+
+  <filter-section heading="Account" expanded="true">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.accountHeadings | orderBy:'toString()'  ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.account[heading]"
+               ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Region" expanded="true">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.regionHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Instance Status" expanded="true">
+    <div class="form">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.Up"
+                 ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>
+          Healthy
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.Down"
+                 ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>
+          Unhealthy
+        </label>
+      </div>
+      <div class="checkbox">
+        <label>
+          <input type="checkbox"
+                 ng-model="sortFilter.status.OutOfService"
+                 ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>
+          Out of Service
+        </label>
+      </div>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Provider" expanded="true" ng-if="loadBalancerFilters.providerTypeHeadings.length > 1">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.providerTypeHeadings | orderBy: 'toString()'">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
+               ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>
+        <span class="icon icon-server-group icon-{{heading}} small"></span>
+        {{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+  <filter-section heading="Availability Zones" expanded="true">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.availabilityZoneHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.availabilityZone[heading]" ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
+</div>

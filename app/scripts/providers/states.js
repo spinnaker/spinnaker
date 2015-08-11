@@ -20,8 +20,7 @@ require('../modules/securityGroups/all.html');
 require('../modules/securityGroups/navigation.html');
 require('../modules/securityGroups/single.html');
 require('../modules/cluster/all.html');
-require('../modules/loadBalancers/navigation.html');
-require('../modules/loadBalancers/loadBalancer/single.html');
+require('../modules/loadBalancers/filter/filterNav.html');
 require('../modules/clusterFilter/filterNav.html');
 require('../../views/infrastructure.html');
 
@@ -280,9 +279,9 @@ module.exports = angular.module('spinnaker.states', [
           name: 'loadBalancers',
           views: {
             'nav': {
-              templateUrl: require('../modules/loadBalancers/navigation.html'),
-              controller: 'LoadBalancersNavCtrl',
-              controllerAs: 'ctrl'
+              templateUrl: require('../modules/loadBalancers/filter/filterNav.html'),
+              controller: 'LoadBalancerFilterCtrl',
+              controllerAs: 'loadBalancerFilters'
             },
             'master': {
               templateUrl: require('../modules/loadBalancers/all.html'),
@@ -300,35 +299,6 @@ module.exports = angular.module('spinnaker.states', [
             serverGroupDetails,
             instanceDetails,
             securityGroupDetails,
-            {
-              url: '/:loadBalancerAccount/:loadBalancerRegion/:loadBalancer',
-              name: 'loadBalancer',
-              views: {
-                'master@home.applications.application.insight': {
-                  templateUrl: require('../modules/loadBalancers/loadBalancer/single.html'),
-                  controller: 'LoadBalancerCtrl',
-                  controllerAs: 'ctrl'
-                }
-              },
-              resolve: {
-                loadBalancer: ['$stateParams', function($stateParams) {
-                  return {
-                    name: $stateParams.loadBalancer,
-                    region: $stateParams.loadBalancerRegion,
-                    account: $stateParams.loadBalancerAccount
-                  };
-                }]
-              },
-              data: {
-                pageTitleMain: {
-                  title: 'Load Balancer',
-                  nameParam: 'loadBalancer',
-                  accountParam: 'loadBalancerAccount',
-                  regionParam: 'loadBalancerRegion'
-                }
-              },
-              children: [loadBalancerDetails, serverGroupDetails, instanceDetails],
-            }
           ],
         }, {
           url: '/connections',

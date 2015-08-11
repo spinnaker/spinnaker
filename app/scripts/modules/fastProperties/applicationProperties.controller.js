@@ -7,6 +7,7 @@ require('./modal/newFastProperty.html');
 
 module.exports = angular
   .module('spinnaker.applicationProperties.controller', [
+    require('angular-ui-router'),
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
     require('./modal/createNewFastProperty.controller.js'),

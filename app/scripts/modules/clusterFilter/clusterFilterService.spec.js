@@ -1,6 +1,6 @@
 'use strict';
 
-
+// Most of this logic has been moved to filter.model.service.js, so these act more as integration tests now
 describe('Service: clusterFilterService', function () {
 
 
@@ -44,7 +44,7 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(function() {
     this.verifyTags = function(expectedTags) {
-      var actual = ClusterFilterModel.sortFilter.tags;
+      var actual = ClusterFilterModel.tags;
       expect(actual.length).toBe(expectedTags.length);
       expectedTags.forEach(function(expected) {
         expect(actual.some(function(test) {
@@ -53,177 +53,6 @@ describe('Service: clusterFilterService', function () {
       });
     };
   });
-
-  it('should have the service injected in the test', function () {
-    expect(service).toBeDefined();
-    expect($location).toBeDefined();
-  });
-
-
-  describe('update query params', function () {
-
-    describe('Account Params:', function () {
-
-      beforeEach(function () {
-        ClusterFilterModel.sortFilter.account = undefined;
-      });
-
-      it('0 accounts: should add nothing to the query param if there is nothing on the model', function () {
-        service.updateQueryParams();
-        expect($location.search().acct).toBeUndefined();
-      });
-
-      it('1 accounts: should add the account name to the acct query string ', function () {
-        ClusterFilterModel.sortFilter.account = { prod: true };
-        service.updateQueryParams();
-        expect($location.search().acct).toEqual('prod');
-      });
-
-      it('N accounts: should add multiple account names to the acct query string ', function () {
-        ClusterFilterModel.sortFilter.account = { prod: true, test: true };
-        service.updateQueryParams();
-        expect($location.search().acct).toEqual('prod,test');
-      });
-
-      it('False accounts; should only add account names that are flagged as true to the query string', function () {
-        ClusterFilterModel.sortFilter.account = { prod: true, test: false};
-        service.updateQueryParams();
-        expect($location.search().acct).toEqual('prod');
-      });
-
-    });
-
-    describe('Region Params', function () {
-
-      beforeEach(function() {
-        ClusterFilterModel.sortFilter.region = undefined;
-      });
-
-      it('0 regions: should add nothing to the query params', function () {
-        service.updateQueryParams();
-        expect($location.search().reg).toBeUndefined();
-      });
-
-      it('1 region: should add the region name to the reg query string', function () {
-        ClusterFilterModel.sortFilter.region = {'us-west-1': true};
-        service.updateQueryParams();
-        expect($location.search().reg).toEqual('us-west-1');
-      });
-
-      it('N regions: should add the region names to the reg query string', function () {
-        ClusterFilterModel.sortFilter.region = {'us-west-1': true, 'eu-east-2': true};
-        service.updateQueryParams();
-        expect($location.search().reg).toEqual('us-west-1,eu-east-2');
-      });
-
-      it('False regions: should only add the region names flagged as true to the reg query string', function () {
-        ClusterFilterModel.sortFilter.region = {'us-west-1': true, 'eu-east-2': false};
-        service.updateQueryParams();
-        expect($location.search().reg).toEqual('us-west-1');
-      });
-    });
-
-    describe('Status Params:', function () {
-      beforeEach(function () {
-        ClusterFilterModel.sortFilter.status = undefined;
-      });
-
-      describe('Healthy', function () {
-        it('should add the "healthy" status to the query string if selected', function () {
-          ClusterFilterModel.sortFilter.status = {healthy: true};
-          service.updateQueryParams();
-          expect($location.search().status).toEqual('healthy');
-        });
-      });
-    });
-
-    describe('Provider Type Params', function () {
-      beforeEach(function () {
-        ClusterFilterModel.sortFilter.providerType = undefined;
-      });
-
-      describe('AWS', function () {
-        it('should add aws to the query string if selected', function () {
-          ClusterFilterModel.sortFilter.providerType = {aws: true};
-          service.updateQueryParams();
-          expect($location.search().providerType).toEqual('aws');
-        });
-
-        it('should add all types to the query string if multiple selected', function () {
-          ClusterFilterModel.sortFilter.providerType= {aws: true, gce: true};
-          service.updateQueryParams();
-          expect($location.search().providerType).toEqual('aws,gce');
-        });
-
-        it('should not add types to the query string if de-selected', function () {
-          ClusterFilterModel.sortFilter.providerType = {aws: false, gce: false};
-          service.updateQueryParams();
-          expect($location.search().providerType).toBeUndefined();
-        });
-      });
-    });
-
-    describe('Instance Type Params', function () {
-      beforeEach(function () {
-        ClusterFilterModel.sortFilter.instanceType = undefined;
-      });
-
-      describe('check instance type', function () {
-        it('should add the instance type to the query string', function () {
-          ClusterFilterModel.sortFilter.instanceType = {'m3.large': true};
-          service.updateQueryParams();
-          expect($location.search().instanceType).toEqual('m3.large');
-        });
-
-        it('should add multiple instance types to the query string if checked', function () {
-          ClusterFilterModel.sortFilter.instanceType = {'m3.large': true, 'm3.xlarge': true};
-          service.updateQueryParams();
-          expect($location.search().instanceType).toEqual('m3.large,m3.xlarge');
-        });
-
-        it('should remove instance types to the query string if unchecked', function () {
-          ClusterFilterModel.sortFilter.instanceType = {'m3.large': false, 'm3.xlarge': false};
-          service.updateQueryParams();
-          expect($location.search().instanceType).toBeUndefined();
-        });
-      });
-    });
-
-    describe('Instance Count Params', function () {
-      beforeEach(function () {
-        ClusterFilterModel.sortFilter.minInstances = undefined;
-        ClusterFilterModel.sortFilter.maxInstances = undefined;
-      });
-
-      describe('check instance count', function () {
-        it('should add instance count whenever it is numeric', function () {
-          ClusterFilterModel.sortFilter.minInstances = 3;
-          ClusterFilterModel.sortFilter.maxInstances = 4;
-          service.updateQueryParams();
-          expect($location.search().minInstances).toEqual('3');
-          expect($location.search().maxInstances).toEqual('4');
-        });
-
-        it('should include zero, even though it is falsy', function () {
-          ClusterFilterModel.sortFilter.minInstances = 0;
-          ClusterFilterModel.sortFilter.maxInstances = 0;
-          service.updateQueryParams();
-          expect($location.search().minInstances).toEqual('0');
-          expect($location.search().maxInstances).toEqual('0');
-        });
-
-        it('should not add non-numeric values', function () {
-          ClusterFilterModel.sortFilter.minInstances = 'nan';
-          ClusterFilterModel.sortFilter.maxInstances = 'also nan';
-          service.updateQueryParams();
-          expect($location.search().minInstances).toBeUndefined();
-          expect($location.search().maxInstances).toBeUndefined();
-        });
-      });
-    });
-
-  });
-
 
   describe('Updating the cluster group', function () {
 

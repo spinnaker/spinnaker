@@ -15,7 +15,7 @@
       </div>
     </div>
   </div>
-  <div class="rollup-details cluster-pod-details">
+  <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <h6 class="subgroup-title"
           sticky-header added-offset-height="39">{{subgroup.heading}}</h6>
@@ -24,8 +24,6 @@
         server-group="serverGroup"
         cluster="serverGroup.cluster"
         application="application"
-        display-options="displayOptions"
-        sort-filter="sortFilter"
         parent-heading="subgroup.heading"></server-group>
     </div>
     <div class="permalinks text-right">
