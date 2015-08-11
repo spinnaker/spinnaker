@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
       // When this is called from a stateChangeSuccess event, the stage in the scope is not updated in this digest cycle
       // so we need to wait until the next cycle to update the deployed artifacts
       $timeout(function () {
-        var context = $scope.stage.context,
+        var context = $scope.stage.context || {},
           results = [];
 
         function addDeployedArtifacts(key) {
@@ -40,11 +40,11 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
             _.forEach(deployedArtifacts[key], function (serverGroupName, region) {
               var result = {
                 type: 'serverGroups',
-                application: $scope.stage.context.application,
+                application: context.application,
                 serverGroup: serverGroupName,
-                account: $scope.stage.context.account,
+                account: context.account,
                 region: region,
-                provider: context.provider || 'aws'
+                provider: context.providerType || 'aws'
               };
               result.href = urlBuilder.buildFromMetadata(result);
               results.push(result);
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
           }
         }
         $scope.deployed = results;
-        $scope.provider = $scope.stage.context.providerType || 'aws';
+        $scope.provider = context.providerType || 'aws';
       });
     }
 
