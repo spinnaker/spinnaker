@@ -128,6 +128,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/pipelines/config/stages/modifyScalingProcess/modifyScalingProcess.module.js'),
     require('./modules/pipelines/config/stages/pipeline/pipelineStage.module.js'),
     require('./modules/pipelines/config/stages/quickPatchAsg/quickPatchAsgStage.module.js'),
+    require('./modules/pipelines/config/stages/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
     require('./modules/pipelines/config/stages/resizeAsg/resizeAsgStage.module.js'),
     require('./modules/pipelines/config/stages/script/scriptStage.module.js'),
     require('./modules/pipelines/config/stages/wait/waitStage.module.js'),
