@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.*
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.PipelineService
+import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
@@ -176,7 +179,7 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{name}/tags", method = RequestMethod.GET)
-  List<String> getTags(@PathVariable("name") String name) {
+  List<Map> getTags(@PathVariable("name") String name) {
     if (tagService) {
       tagService.getTags(name)
     } else {

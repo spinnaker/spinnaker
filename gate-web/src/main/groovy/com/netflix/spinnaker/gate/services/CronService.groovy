@@ -20,8 +20,6 @@ import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 

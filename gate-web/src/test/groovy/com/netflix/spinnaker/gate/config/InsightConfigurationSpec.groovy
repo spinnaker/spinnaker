@@ -1,5 +1,6 @@
-package com.netflix.spinnaker.gate.config
+package com.netflix.spinnaker.internal.config
 
+import com.netflix.spinnaker.gate.config.InsightConfiguration
 import spock.lang.Specification
 
 class InsightConfigurationSpec extends Specification {

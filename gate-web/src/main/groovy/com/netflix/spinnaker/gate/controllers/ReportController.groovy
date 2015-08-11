@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.ReportService
+import com.netflix.spinnaker.internal.services.ReportService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestMapping

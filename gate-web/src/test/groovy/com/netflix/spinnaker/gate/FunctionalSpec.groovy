@@ -18,8 +18,11 @@ package com.netflix.spinnaker.gate
 
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
-import com.netflix.spinnaker.gate.services.*
-import com.netflix.spinnaker.gate.services.internal.FlapJackService
+import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.TagService
+import com.netflix.spinnaker.gate.services.TaskService
+import com.netflix.spinnaker.internal.services.internal.FlapJackService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.gate.services.internal.MortService

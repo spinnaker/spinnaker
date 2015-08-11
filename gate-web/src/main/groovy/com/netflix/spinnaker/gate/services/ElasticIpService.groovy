@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.FlexService
+import com.netflix.spinnaker.internal.services.internal.FlexService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

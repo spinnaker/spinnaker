@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.config
 
-import com.netflix.spinnaker.gate.security.WebSecurityAugmentor
+import com.netflix.spinnaker.internal.security.WebSecurityAugmentor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression

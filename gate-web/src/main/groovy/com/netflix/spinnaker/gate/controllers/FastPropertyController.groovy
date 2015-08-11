@@ -1,6 +1,6 @@
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.FastPropertyService
+import com.netflix.spinnaker.internal.services.FastPropertyService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

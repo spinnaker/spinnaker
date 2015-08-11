@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.gate.controllers
-import com.netflix.spinnaker.gate.services.CanaryService
+import com.netflix.spinnaker.internal.services.CanaryService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus

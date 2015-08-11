@@ -1,5 +1,6 @@
-package com.netflix.spinnaker.gate.services
+package com.netflix.spinnaker.internal.services
 
+import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.KatoService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User

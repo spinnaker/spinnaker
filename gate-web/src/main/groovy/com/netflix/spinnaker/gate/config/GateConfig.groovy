@@ -24,6 +24,10 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
+import com.netflix.spinnaker.internal.services.internal.FlapJackService
+import com.netflix.spinnaker.internal.services.internal.FlexService
+import com.netflix.spinnaker.internal.services.internal.MineService
+import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -46,7 +50,6 @@ import retrofit.Endpoint
 import retrofit.RequestInterceptor
 import retrofit.RestAdapter
 import retrofit.converter.JacksonConverter
-import retrofit.http.Body
 import retrofit.http.Path
 import retrofit.http.Query
 
@@ -63,9 +66,6 @@ import static retrofit.Endpoints.newFixedEndpoint
 @Slf4j
 @Import(GateRedisHttpSessionConfiguration)
 class GateConfig {
-
-  public static final String AUTHENTICATION_REDIRECT_HEADER_NAME = "X-AUTH-REDIRECT-URL"
-
   @Value('${retrofit.logLevel:BASIC}')
   String retrofitLogLevel
 
@@ -159,129 +159,6 @@ class GateConfig {
   }
 
   @Bean
-  @ConditionalOnProperty('services.mahe.enabled')
-  MaheService maheService(OkHttpClient okHttpClient) {
-    createClient "mahe", MaheService, okHttpClient
-  }
-
-  @Bean
-  @ConditionalOnMissingBean(MaheService)
-  MaheService noopMaheService() {
-    new MaheService() {
-      @Override
-      Map getFastPropertiesByApplication(@Path("appName") String appName) {
-        return [:]
-      }
-
-      @Override
-      Map getAll() {
-        return [:]
-      }
-
-      @Override
-      Map getByKey(@Path("key") String key) {
-        return [:]
-      }
-
-      @Override
-      List<String> getAllKeys() {
-        return []
-      }
-
-      @Override
-      Map getImpact(@Body Map scope) {
-        return [:]
-      }
-
-      @Override
-      Map queryScope(@Body Map scope) {
-        return [:]
-      }
-
-      @Override
-      Map create(@Body Map fastProperty) {
-        return [:]
-      }
-
-      @Override
-      String promote(@Body Map fastProperty) {
-        return [:]
-      }
-
-      @Override
-      Map promotionStatus(@Path("promotionId") String promotionId) {
-        return [:]
-      }
-
-      @Override
-      Map passPromotion(@Path("promotionId") String promotionId, @Body Boolean pass) {
-        return [:]
-      }
-
-      @Override
-      List promotions() {
-        return []
-      }
-
-      @Override
-      List promotionsByApp(@Path("appId") String appId) {
-        return []
-      }
-
-      @Override
-      Map delete(@Query("propId") String propId, @Query("cmcTicket") String cmcTicket, @Query("env") String env) {
-        return [:]
-      }
-    }
-  }
-
-
-  @Bean
-  @ConditionalOnProperty('services.flex.enabled')
-  FlexService flexService(OkHttpClient okHttpClient) {
-    createClient "flex", FlexService, okHttpClient
-  }
-
-
-  @Bean
-  @ConditionalOnMissingBean(FlexService)
-  FlexService noopFlexService(ServiceConfiguration serviceConfiguration, MetricRepository metricRepository,
-                              EurekaLookupService eurekaLookupService) {
-    return new FlexService() {
-      @Override
-      List<Map> getForCluster(@Path("application") String application,
-                              @Path("account") String account,
-                              @Path("cluster") String cluster) {
-        return []
-      }
-
-      @Override
-      List<Map> getForClusterAndRegion(@Path("application") String application,
-                                       @Path("account") String account,
-                                       @Path("cluster") String cluster,
-                                       @Path("region") String region) {
-        return []
-      }
-
-      @Override
-      List<Map> getForAccount(@Path("account") String account) {
-        return []
-      }
-
-      @Override
-      List<Map> getForAccountAndRegion(@Path("account") String account, @Query("region") String region) {
-        return []
-      }
-    }
-  }
-
-  @Bean
-  @ConditionalOnProperty('services.mine.enabled')
-  MineService mineService(OkHttpClient okHttpClient) {
-    createClient "mine", MineService, okHttpClient
-  }
-
-  @Bean
   @ConditionalOnProperty('services.scheduler.enabled')
   SchedulerService schedulerService(OkHttpClient okHttpClient) {
     createClient "scheduler", SchedulerService, okHttpClient
@@ -326,7 +203,7 @@ class GateConfig {
           response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH");
           response.setHeader("Access-Control-Max-Age", "3600");
           response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type");
-          response.setHeader("Access-Control-Expose-Headers", [AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
+          response.setHeader("Access-Control-Expose-Headers", [Headers.AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
           chain.doFilter(req, res);
         }
 
