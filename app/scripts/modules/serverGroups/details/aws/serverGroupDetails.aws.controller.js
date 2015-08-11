@@ -10,7 +10,7 @@ require('./modifyScalingProcesses.html');
 require('../resizeServerGroup.html');
 require('../scalingActivities.html');
 require('../../../../../views/application/modal/serverGroup/userData.html');
-require('./deleteLastServerGroupWarning.html');
+require('../deleteLastServerGroupWarning.html');
 
 let angular = require('angular');
 
@@ -174,7 +174,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.getBodyTemplate = function(serverGroup, app) {
       if(this.isLastServerGroupInRegion(serverGroup, app)){
-        var template = $templateCache.get('app/scripts/modules/serverGroups/details/aws/deleteLastServerGroupWarning.html');
+        var template = $templateCache.get('app/scripts/modules/serverGroups/details/deleteLastServerGroupWarning.html');
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);
       }
