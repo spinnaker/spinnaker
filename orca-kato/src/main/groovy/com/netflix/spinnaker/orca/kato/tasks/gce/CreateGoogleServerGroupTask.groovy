@@ -76,6 +76,18 @@ class CreateGoogleServerGroupTask implements Task {
       operation.instanceMetadata = transformedInstanceMetadata
     }
 
+    // tags from a pipeline are sent as a list of maps, each containing one mapping: value=$tag.
+    if (operation?.tags?.get(0) instanceof Map) {
+      def transformedTags = []
+
+      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
+      operation.tags.each { tag ->
+        transformedTags << tag.value
+      }
+
+      operation.tags = transformedTags
+    }
+
     operation.initialNumReplicas = operation.capacity.desired
     operation.networkLoadBalancers = operation.loadBalancers
 
