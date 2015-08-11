@@ -4,6 +4,7 @@
 require('../resizeServerGroup.html');
 require('../scalingActivities.html');
 require('../../../../../views/application/modal/serverGroup/userData.html');
+require('../deleteLastServerGroupWarning.html');
 
 let angular = require('angular');
 
@@ -16,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../configure/common/runningExecutions.service.js'),
   require('utils/lodash.js'),
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
                                                      executionFilterService) {
 
@@ -108,6 +109,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         account: serverGroup.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod,
+        body: this.getBodyTemplate(serverGroup, application),
         onTaskComplete: function() {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');
@@ -119,6 +121,23 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           }
         }
       });
+    };
+
+    this.getBodyTemplate = function(serverGroup, application) {
+      if(this.isLastServerGroupInRegion(serverGroup, application)){
+        var template = $templateCache.get('app/scripts/modules/serverGroups/details/deleteLastServerGroupWarning.html');
+        $scope.deletingServerGroup = serverGroup;
+        return $compile(template)($scope);
+      }
+    };
+
+    this.isLastServerGroupInRegion = function (serverGroup, application ) {
+      try {
+        var cluster = _.find(application.clusters, {name: serverGroup.cluster, account:serverGroup.account});
+        return _.filter(cluster.serverGroups, {region: serverGroup.region}).length === 1;
+      } catch (error) {
+        return false;
+      }
     };
 
     this.disableServerGroup = function disableServerGroup() {
