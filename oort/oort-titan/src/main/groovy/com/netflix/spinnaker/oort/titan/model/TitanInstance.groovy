@@ -1,7 +1,7 @@
 /*
  * Copyright 2014 Netflix, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
+ * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -19,48 +19,65 @@ package com.netflix.spinnaker.oort.titan.model
 import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.titanclient.model.Task
+import com.netflix.titanclient.model.TaskState
 
 class TitanInstance implements Instance {
 
-  private String id
   private List<Map<String, String>> health  // TODO
   private boolean isHealthy
-  private Date submittedAt
 
+  private String id
   private String jobId
-  private String state
-  private String imageName
-  private String imageVersion
-  private String entryPoint
+  private TaskState state
+  private String applicationName
   private int cpu
   private int memory
   private int disk
   private Map<Integer, Integer> ports
   private Map env
+  private String version
+  private String entryPoint
+  private Long submittedAt
+  private Long finishedAt
   private String host
-  private String region
-  private String zone
-  private Date finishedAt
 
-  TitanInstance() {}
+  // Not in Titan API response
+  private String imageName
+  private String imageVersion
+  private String zone
+
+  // Not in Titan API response, but used by clouddriver
+  private String account
+  private String region
+  private String subnetId
+  private String jobName
+  private String application
 
   TitanInstance(Task task) {
     id = task.id
     jobId = task.jobId
     state = task.state
-    imageName = task.imageName
-    imageVersion = task.imageVersion
-    entryPoint = task.entryPoint
+    applicationName = task.applicationName
     cpu = task.cpu
     memory = task.memory
     disk = task.disk
     ports = task.ports
     env = task.env
+    version = task.version
+    entryPoint = task.entryPoint
+    submittedAt = task.submittedAt ? task.submittedAt.time : null
+    finishedAt = task.finishedAt ? task.finishedAt.time : null
     host = task.host
-    region = task.region  // TODO
-    zone = task.zone      // TODO
-    submittedAt = task.submittedAt
-    finishedAt = task.finishedAt
+
+    imageName = task.imageName
+    imageVersion = task.imageVersion
+
+    account = task.account
+    region = task.region
+    zone = task.zone
+    subnetId = task.subnetId
+    jobName = task.jobName
+    application = task.application
   }
 
   @Override
@@ -88,7 +105,7 @@ class TitanInstance implements Instance {
 
   @Override
   Long getLaunchTime() {
-    submittedAt ? submittedAt.time : null
+    submittedAt
   }
 
   @Override
@@ -233,19 +250,19 @@ class TitanInstance implements Instance {
     this.zone = zone
   }
 
-  Date getSubmittedAt() {
+  Long getSubmittedAt() {
     return submittedAt
   }
 
-  void setSubmittedAt(Date submittedAt) {
+  void setSubmittedAt(Long submittedAt) {
     this.submittedAt = submittedAt
   }
 
-  Date getFinishedAt() {
+  Long getFinishedAt() {
     return finishedAt
   }
 
-  void setFinishedAt(Date finishedAt) {
+  void setFinishedAt(Long finishedAt) {
     this.finishedAt = finishedAt
   }
 

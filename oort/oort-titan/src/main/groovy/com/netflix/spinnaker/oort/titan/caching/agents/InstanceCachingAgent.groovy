@@ -152,8 +152,8 @@ class InstanceCachingAgent implements CachingAgent {
     public InstanceData(Task task, String account, String region) {
       this.task = task
       this.instanceId = Keys.getInstanceKey(task.id, account, region)
-      this.serverGroup = task.jobId // TODO - change this to jobName
-      this.imageId = task.imageName + ":" + task.imageVersion
+      this.serverGroup = task.jobName
+      this.imageId = task.applicationName + ":" + task.version
       this.cache = !(task.state == TaskState.DEAD)
     }
   }

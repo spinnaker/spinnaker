@@ -27,10 +27,15 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   public static final String TYPE = "titan"
 
+  private Map<String, Object> image = Collections.emptyMap()
+  private Set<Instance> instances = Collections.emptySet()
+
   private String id
   private String name
+  private String applicationName
   private String imageName
   private String imageVersion
+  private String version
   private String entryPoint
   private int cpu
   private int memory
@@ -39,19 +44,21 @@ class TitanServerGroup implements ServerGroup, Serializable {
   private Map env
   private int retries
   private boolean restartOnSuccess
-  private Date submittedAt
+  private Long submittedAt
 
+  // Not in Titan API response, but used by clouddriver
+  private String application
   private String account
   private String region
   private String subnetId
-  private Map<String, Object> image = Collections.emptyMap()
-  private Set<Instance> instances = Collections.emptySet()
 
   TitanServerGroup(Job job) {
     id = job.id
     name = job.name
+    applicationName = job.applicationName
     imageName = job.imageName
     imageVersion = job.imageVersion
+    version = job.version
     entryPoint = job.entryPoint
     cpu = job.cpu
     memory = job.memory
@@ -59,10 +66,15 @@ class TitanServerGroup implements ServerGroup, Serializable {
     ports = job.ports
     env = job.env
     retries = job.retries
-    submittedAt = job.submittedAt
-    account = job.account      // TODO
-    region = job.region      // TODO
-    subnetId = job.subnetId      // TODO
+    restartOnSuccess = job.restartOnSuccess
+    submittedAt = job.submittedAt ? job.submittedAt.time : null
+
+    // Not in Titan API response, but used by clouddriver
+    application = job.application
+    account = job.account
+    region = job.region
+    subnetId = job.subnetId
+
     instances = job.tasks.findAll { it != null }.collect { new TitanInstance(it) } as Set
   }
 
@@ -88,7 +100,7 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   @Override
   Long getCreatedTime() {
-    return submittedAt ? submittedAt.time : null
+    return submittedAt
   }
 
   @Override
@@ -132,6 +144,18 @@ class TitanServerGroup implements ServerGroup, Serializable {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 
+  Map<String, Object> getImage() {
+    return image
+  }
+
+  void setImage(Map<String, Object> image) {
+    this.image = image
+  }
+
+  void setInstances(Set<Instance> instances) {
+    this.instances = instances
+  }
+
   String getId() {
     return id
   }
@@ -142,6 +166,14 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   void setName(String name) {
     this.name = name
+  }
+
+  String getApplicationName() {
+    return applicationName
+  }
+
+  void setApplicationName(String applicationName) {
+    this.applicationName = applicationName
   }
 
   String getImageName() {
@@ -158,6 +190,14 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   void setImageVersion(String imageVersion) {
     this.imageVersion = imageVersion
+  }
+
+  String getVersion() {
+    return version
+  }
+
+  void setVersion(String version) {
+    this.version = version
   }
 
   String getEntryPoint() {
@@ -224,28 +264,20 @@ class TitanServerGroup implements ServerGroup, Serializable {
     this.restartOnSuccess = restartOnSuccess
   }
 
-  Date getSubmittedAt() {
+  Long getSubmittedAt() {
     return submittedAt
   }
 
-  void setSubmittedAt(Date submittedAt) {
+  void setSubmittedAt(Long submittedAt) {
     this.submittedAt = submittedAt
   }
 
-  void setRegion(String region) {
-    this.region = region
+  String getApplication() {
+    return application
   }
 
-  Map<String, Object> getImage() {
-    return image
-  }
-
-  void setImage(Map<String, Object> image) {
-    this.image = image
-  }
-
-  void setInstances(Set<Instance> instances) {
-    this.instances = instances
+  void setApplication(String application) {
+    this.application = application
   }
 
   String getAccount() {
@@ -254,5 +286,17 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   void setAccount(String account) {
     this.account = account
+  }
+
+  void setRegion(String region) {
+    this.region = region
+  }
+
+  String getSubnetId() {
+    return subnetId
+  }
+
+  void setSubnetId(String subnetId) {
+    this.subnetId = subnetId
   }
 }

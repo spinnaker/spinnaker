@@ -19,5 +19,4 @@ dependencies {
   compile project(":kato:kato-core")
   compile spinnaker.dependency('bootActuator')
   spinnaker.group('retrofitDefault')
-  compile ("com.netflix:titan-client:0.12")
 }

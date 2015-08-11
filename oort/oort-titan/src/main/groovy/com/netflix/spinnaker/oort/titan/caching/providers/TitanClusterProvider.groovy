@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.providers
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
@@ -26,6 +28,7 @@ import com.netflix.spinnaker.oort.titan.model.TitanCluster
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
 import com.netflix.spinnaker.oort.titan.model.TitanServerGroup
 import com.netflix.titanclient.model.Job
+import com.netflix.titanclient.model.Task
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -40,6 +43,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
 
   private final Cache cacheView
   private final TitanCachingProvider titanCachingProvider
+  private final ObjectMapper objectMapper = new ObjectMapper()
 
   @Autowired
   TitanClusterProvider(Cache cacheView, TitanCachingProvider titanCachingProvider) {
@@ -92,7 +96,8 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
     if (serverGroupData == null) {
       return null
     }
-    Job job = serverGroupData.attributes.job
+    String json = objectMapper.writeValueAsString(serverGroupData.attributes.job)
+    Job job = objectMapper.readValue(json, Job)
     TitanServerGroup serverGroup = new TitanServerGroup(job)
     serverGroup.account = account
     serverGroup.instances = translateInstances(resolveRelationshipData(serverGroupData, INSTANCES.ns)).values()
@@ -119,7 +124,9 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
         cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.findResults { serverGroups.get(it) }
       } else {
         cluster.serverGroups = clusterDataEntry.relationships[SERVER_GROUPS.ns]?.collect { serverGroupKey ->
-          new TitanServerGroup(clusterDataEntry.attributes.job)
+          String json = objectMapper.writeValueAsString(clusterDataEntry.attributes.job)
+          Job job = objectMapper.readValue(json, Job)
+          new TitanServerGroup(job)
         }
       }
       cluster
@@ -140,8 +147,10 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
     Collection<CacheData> allInstances = resolveRelationshipDataForCollection(serverGroupData, INSTANCES.ns, RelationshipCacheFilter.none())
     Map<String, TitanInstance> instances = translateInstances(allInstances)
     Map<String, TitanServerGroup> serverGroups = serverGroupData.collectEntries { serverGroupEntry ->
-      def serverGroup = new TitanServerGroup(serverGroupEntry.attributes.job)
-      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) }
+      String json = objectMapper.writeValueAsString(serverGroupEntry.attributes.job)
+      Job job = objectMapper.readValue(json, Job)
+      TitanServerGroup serverGroup = new TitanServerGroup(job)
+      serverGroup.instances = serverGroupEntry.relationships[INSTANCES.ns]?.findResults { instances.get(it) } as Set
       [(serverGroupEntry.id) : serverGroup]
     }
     serverGroups
@@ -149,7 +158,9 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
 
   private Map<String, TitanInstance> translateInstances(Collection<CacheData> instanceData) {
     Map<String, TitanInstance> instances = instanceData.collectEntries { instanceEntry ->
-      TitanInstance instance = new TitanInstance(instanceEntry.attributes.task)
+      String json = objectMapper.writeValueAsString(instanceEntry.attributes.task)
+      Task task = objectMapper.readValue(json, Task)
+      TitanInstance instance = new TitanInstance(task)
       [(instanceEntry.id): instance]
     }
     addHealthToInstances(instanceData, instances)

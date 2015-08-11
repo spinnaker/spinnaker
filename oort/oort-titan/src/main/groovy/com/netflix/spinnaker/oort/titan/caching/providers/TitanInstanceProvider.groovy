@@ -15,11 +15,14 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.providers
+
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
+import com.netflix.titanclient.model.Task
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -30,6 +33,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
 
   private final Cache cacheView
+  private final ObjectMapper objectMapper
 
   @Autowired
   TitanInstanceProvider(Cache cacheView) {
@@ -42,7 +46,9 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
     if (!instanceEntry) {
       return null
     }
-    TitanInstance instance = new TitanInstance(instanceEntry.attributes.task)
+    String json = objectMapper.writeValueAsString(instanceEntry.attributes.task)
+    Task task = objectMapper.readValue(json, Task)
+    TitanInstance instance = new TitanInstance(task)
     if (instanceEntry.relationships[HEALTH.ns]) {
       instance.health = instance.health ?: []
       instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)

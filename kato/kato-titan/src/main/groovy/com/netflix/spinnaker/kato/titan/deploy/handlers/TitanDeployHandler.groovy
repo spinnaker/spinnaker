@@ -47,7 +47,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
   DeploymentResult handle(TitanDeployDescription description, List priorOutputs) {
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
-    TitanClient titanClient = titanClientProvider.getTitanClient(description.source.account, description.source.region)
+    TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, description.source.region)
     DeploymentResult deploymentResult = new DeploymentResult()
     String account = description.source.account
     String region = description.source.region
@@ -57,23 +57,22 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     DockerImage dockerImage = DockerImage.DockerImageResolver.resolveImage(description.dockerImage)
 
     TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient)
-    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.details)
+    String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(
+      description.application, description.stack, description.details, false)
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
       .withName(nextServerGroupName)
       .withApplication(description.application)
-      .withImageName(dockerImage.imageName)
-      .withImageName(dockerImage.imageVersion)
-      .withEntryPoint(description.entryPoint)
+      .withApplicationName(dockerImage.imageName) // This changes in V3: .withImageName(description.application)
+//      .withImageName(dockerImage.imageName)
+      .withImageVersion(dockerImage.imageVersion)
       .withInstances(description.capacity.desired)
       .withCpu(description.cpu)
       .withMemory(description.memory)
       .withDisk(description.disk)
       .withPorts(description.ports)
       .withEnv(description.env)
-      .withRetries(description.retries)
-      .withRestartOnSuccess(description.restartOnSuccess)
 
     task.updateStatus BASE_PHASE, "Submitting job request to Titan..."
     String jobUri = titanClient.submitJob(submitJobRequest)
@@ -82,7 +81,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
 
     deploymentResult.serverGroupNames = [nextServerGroupName]
     deploymentResult.serverGroupNameByRegion = [(description.source.region): nextServerGroupName]
-    deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}" }
+    deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
     return deploymentResult
   }

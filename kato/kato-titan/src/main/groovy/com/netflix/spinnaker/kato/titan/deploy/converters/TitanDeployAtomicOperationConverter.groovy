@@ -32,7 +32,7 @@ class TitanDeployAtomicOperationConverter extends AbstractAtomicOperationsCreden
     new DeployAtomicOperation(convertDescription(input))
   }
 
-  TitanDeployAtomicOperationConverter convertDescription(Map input) {
+  TitanDeployDescription convertDescription(Map input) {
     def converted = objectMapper.convertValue(input, TitanDeployDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted

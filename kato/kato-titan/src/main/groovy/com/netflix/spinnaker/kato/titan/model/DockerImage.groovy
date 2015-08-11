@@ -33,7 +33,7 @@ class DockerImage {
      * @return
      */
     static DockerImage resolveImage(String image) {
-      String imageNameParts = image.split(IMAGE_NAME_SEPARATOR)
+      String[] imageNameParts = image.split(IMAGE_NAME_SEPARATOR)
       return new DockerImage(
         imageName: imageNameParts[0],
         imageVersion: imageNameParts[1]

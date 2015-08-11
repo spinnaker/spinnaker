@@ -8,5 +8,4 @@ dependencies {
 
   compile spinnaker.dependency("frigga")
   compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
-  compile ("com.netflix:titan-client:0.12")
 }
