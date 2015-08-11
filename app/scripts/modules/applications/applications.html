@@ -43,7 +43,7 @@
       <tbody>
         <tr class="clickable" ng-repeat="application in ctrl.resultPage()" ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
           <td>
-            <a ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
+            <a href ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
               {{ application.name.toLowerCase() }}
             </a>
           </td>
