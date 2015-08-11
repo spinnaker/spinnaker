@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.kork.eureka.EurekaComponents
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -15,20 +15,22 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-import org.springframework.batch.core.Step
+import org.springframework.batch.core.ExitStatus
+import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.configuration.JobRegistry
 import org.springframework.batch.core.explore.JobExplorer
+import org.springframework.batch.core.job.builder.FlowBuilder
+import org.springframework.batch.core.listener.StepExecutionListenerSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import spock.lang.AutoCleanup
-import spock.lang.Ignore
 import spock.lang.Specification
-import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
-class PipelineRestartingSpec extends Specification {
+class RollingRestartSpec extends Specification {
 
   @AutoCleanup("destroy")
   def applicationContext = new AnnotationConfigApplicationContext()
@@ -44,7 +46,7 @@ class PipelineRestartingSpec extends Specification {
   def task2 = Mock(Task)
 
   def setup() {
-    def testStage = new AutowiredTestStage("test", task1, task2)
+    def testStage = new RedirectingTestStage("test", task1, task2)
     applicationContext.with {
       register(EmbeddedRedisConfiguration, JesqueConfiguration, EurekaComponents,
                BatchTestConfiguration, OrcaConfiguration, OrcaPersistenceConfiguration,
@@ -62,37 +64,13 @@ class PipelineRestartingSpec extends Specification {
     applicationContext.destroy()
   }
 
-  @Ignore
-  def "if a pipeline restarts it resumes from where it left off"() {
-    given:
-    task1.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    task2.execute(_) >> new DefaultTaskResult(RUNNING)
-
-    and:
-    def pipeline = pipelineStarter.start(pipelineConfigFor("test"))
-//    jobCompletionListener.await()
-
-    and:
-    taskExecutor.shutdown()
-    taskExecutor.initialize()
-
-    when:
-    jobCompletionListener.reset()
-    pipelineStarter.resume(pipeline)
-    jobCompletionListener.await()
-
-    then:
-    1 * task2.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    0 * task1.execute(_)
-  }
-
-  def "a previously run pipeline can be restarted and completed tasks are skipped"() {
+  def "a previously run rolling push pipeline can be restarted and redirects work"() {
     given:
     def pipeline = pipelineStarter.create(mapper.readValue(pipelineConfigFor("test"), Map))
-    pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "task1", status: SUCCEEDED,
+    pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "task1", status: REDIRECT,
                                                 startTime: System.currentTimeMillis(),
                                                 endTime: System.currentTimeMillis())
-    pipeline.stages[0].tasks << new DefaultTask(id: 3, name: "task2", status: RUNNING,
+    pipeline.stages[0].tasks << new DefaultTask(id: 3, name: "task2", status: NOT_STARTED,
                                                 startTime: System.currentTimeMillis())
     repository.store(pipeline)
 
@@ -104,7 +82,7 @@ class PipelineRestartingSpec extends Specification {
     repository.retrievePipeline(pipeline.id).status.toString() == SUCCEEDED.name()
 
     then:
-    0 * task1.execute(_)
+    2 * task1.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
     1 * task2.execute(_) >> new DefaultTaskResult(SUCCEEDED)
   }
 
@@ -118,21 +96,37 @@ class PipelineRestartingSpec extends Specification {
   }
 
   @CompileStatic
-  static class AutowiredTestStage extends LinearStage {
+  class RedirectingTestStage extends StageBuilder {
+    private final Task startTask
+    private final Task endTask
 
-    private final List<Task> tasks = []
-
-    AutowiredTestStage(String name, Task... tasks) {
+    RedirectingTestStage(String name, Task startTask, Task endTask) {
       super(name)
-      this.tasks.addAll tasks
+      this.startTask = startTask
+      this.endTask = endTask
     }
 
     @Override
-    public List<Step> buildSteps(Stage stage) {
-      def i = 1
-      tasks.collect { Task task ->
-        buildStep(stage, "task${i++}", task)
+    protected FlowBuilder buildInternal(FlowBuilder jobBuilder, Stage stage) {
+      def resetListener = new StepExecutionListenerSupport() {
+        @Override @CompileDynamic
+        ExitStatus afterStep(StepExecution stepExecution) {
+          if (stepExecution.exitStatus.exitCode == REDIRECT.name()) {
+            stage.tasks[0].with {
+              status = NOT_STARTED
+//              startTime = null
+              endTime = null
+            }
+            repository.storeStage(stage)
+          }
+          stepExecution.exitStatus
+        }
       }
+      def start = buildStep(stage, "redirecting", startTask, resetListener)
+      def end = buildStep(stage, "final", endTask)
+      jobBuilder.next(start)
+      jobBuilder.on(REDIRECT.name()).to(start)
+      jobBuilder.from(start).on("**").to(end)
     }
   }
 }

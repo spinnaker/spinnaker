@@ -67,6 +67,7 @@ class TideTask {
   static class Mutation {
     String taskId
     Map AwsReference
+    Map pipelineToCreate
     String operation
   }
 }

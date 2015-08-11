@@ -53,7 +53,6 @@ class CopyLastAsgStage extends DeployStrategyStage {
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-
     return steps
   }
 }

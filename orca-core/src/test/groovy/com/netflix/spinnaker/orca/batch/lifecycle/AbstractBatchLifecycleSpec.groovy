@@ -18,15 +18,18 @@ package com.netflix.spinnaker.orca.batch.lifecycle
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.StageDetailsTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.JobExecution
+import org.springframework.test.context.ContextConfiguration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
 
+@ContextConfiguration(classes = [StageDetailsTask])
 abstract class AbstractBatchLifecycleSpec extends BatchExecutionSpec {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis

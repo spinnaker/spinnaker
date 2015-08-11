@@ -32,6 +32,7 @@ import org.springframework.batch.core.launch.JobOperator
 import org.springframework.batch.core.repository.JobRepository
 import org.springframework.batch.test.JobLauncherTestUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.support.AbstractApplicationContext
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
@@ -44,6 +45,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 @DirtiesContext(classMode = AFTER_CLASS)
 abstract class BatchExecutionSpec extends Specification implements JobFactory {
 
+  @Autowired protected AbstractApplicationContext applicationContext
   @Autowired private JobBuilderFactory jobs
   @Autowired protected StepBuilderFactory steps
 

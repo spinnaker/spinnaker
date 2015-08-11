@@ -79,6 +79,15 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  void storeStage(Stage stage) {
+    if (stage instanceof OrchestrationStage) {
+      storeStage((OrchestrationStage) stage)
+    } else {
+      storeStage((PipelineStage) stage)
+    }
+  }
+
+  @Override
   void storeStage(OrchestrationStage stage) {
     withJedis { Jedis jedis ->
       storeStageInternal(jedis, Orchestration, stage)
@@ -162,9 +171,10 @@ class JedisExecutionRepository implements ExecutionRepository {
       def execution = mapper.readValue(json, type)
       // PATCH to handle https://jira.netflix.com/browse/SPIN-784
       def originalStageCount = execution.stages.size()
-      execution.stages = execution.stages.unique( { it.id })
+      execution.stages = execution.stages.unique({ it.id })
       if (execution.stages.size() != originalStageCount) {
-        log.warn("Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
+        log.warn(
+          "Pipeline ${id} has duplicate stages (original count: ${originalStageCount}, unique count: ${execution.stages.size()})")
       }
       return sortStages(jedis, execution, type)
     } else {

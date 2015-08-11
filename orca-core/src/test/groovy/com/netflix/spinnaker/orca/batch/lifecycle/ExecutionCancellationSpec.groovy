@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.lifecycle
 
-import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
-
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -76,6 +74,7 @@ class ExecutionCancellationSpec extends AbstractBatchLifecycleSpec {
       steps: steps,
       taskTaskletAdapter: new TaskTaskletAdapter(executionRepository, [])
     )
+    stageBuilder.applicationContext = applicationContext
     stageBuilder.build(builder, stage).build().build()
   }
 
