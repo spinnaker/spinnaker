@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.internal.config
+package com.netflix.spinnaker.internal.security.saml
 
 import com.netflix.spinnaker.internal.security.WebSecurityAugmentor
 import groovy.util.logging.Slf4j

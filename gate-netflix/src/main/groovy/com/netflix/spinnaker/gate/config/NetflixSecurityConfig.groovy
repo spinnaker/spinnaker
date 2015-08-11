@@ -17,11 +17,11 @@ import org.springframework.security.web.context.AbstractSecurityWebApplicationIn
 
 import javax.servlet.Filter
 
-@ConditionalOnExpression('${saml.enabled:false} || ${x509.enabled:false}')
+@ConditionalOnExpression('${saml.enabled:false} || ${x509.enabled:false} || ${oauth2.enabled:false}')
 @EnableWebSecurity
 @Configuration
 @Import(SecurityAutoConfiguration)
-class GateSecurityConfig extends WebSecurityConfigurerAdapter {
+class NetflixSecurityConfig extends WebSecurityConfigurerAdapter {
   @Autowired
   Collection<WebSecurityAugmentor> webSecurityAugmentors
 

@@ -2,7 +2,6 @@ package com.netflix.spinnaker.internal.security.saml
 
 import com.netflix.spinnaker.gate.config.Headers
 import com.netflix.spinnaker.gate.services.internal.KatoService
-import com.netflix.spinnaker.internal.config.SAMLSecurityConfig
 import com.netflix.spinnaker.internal.security.AnonymousAccountsService
 import com.netflix.spinnaker.internal.security.anonymous.AnonymousSecurityConfig
 import com.netflix.spinnaker.security.User

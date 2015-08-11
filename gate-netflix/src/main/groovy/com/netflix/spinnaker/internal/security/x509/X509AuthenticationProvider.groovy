@@ -31,6 +31,10 @@ class X509AuthenticationProvider implements AuthenticationProvider {
 
   @Override
   Authentication authenticate(Authentication authentication) throws AuthenticationException {
+    if (!(authentication.credentials instanceof X509Certificate)) {
+      return null
+    }
+
     def x509 = (X509Certificate) authentication.credentials
     def rfc822Name = x509.getSubjectAlternativeNames().find {
       it.find { it.toString() == RFC822_NAME_ID }
