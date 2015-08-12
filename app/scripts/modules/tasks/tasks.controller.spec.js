@@ -138,7 +138,7 @@ describe('Controller: tasks', function () {
       expect(result).toBeUndefined();
     });
 
-    it('should return the first deploy.server.group value from context if there are only one', function () {
+    it('should return the first deploy.server.group value from context on clone operations', function () {
       var task = {
         execution: {
           stages: [
@@ -159,6 +159,29 @@ describe('Controller: tasks', function () {
       var result = controller.getFirstDeployServerGroupName(task);
 
       expect(result).toBe('mahe-prod-v028');
+    });
+
+    it('should return the first deploy.server.group value from context on fresh deploys', function () {
+      var task = {
+        execution: {
+          stages: [
+            {
+              context: {
+                'deploy.server.groups': {
+                  'us-west-1': ['mahe-prod-v021']
+                }
+              },
+              tasks:[
+                {name: 'createDeploy'}
+              ]
+            }
+          ]
+        }
+      };
+
+      var result = controller.getFirstDeployServerGroupName(task);
+
+      expect(result).toBe('mahe-prod-v021');
     });
 
     it('should return the first deploy.server.group value from context if there are multiple', function () {

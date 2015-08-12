@@ -157,7 +157,7 @@ module.exports = angular.module('spinnaker.tasks.main', [
 
     controller.getFirstDeployServerGroupName = function(task) {
       if(task.execution && task.execution.stages) {
-        var stage = findStageWithTaskInExecution(task.execution, 'createCopyLastAsg');
+        var stage = findStageWithTaskInExecution(task.execution, ['createCopyLastAsg', 'createDeploy']);
         return _(stage)
           .chain()
           .get('context')
@@ -199,7 +199,9 @@ module.exports = angular.module('spinnaker.tasks.main', [
 
     function findStageWithTaskInExecution(execution, stageName) {
       return _(execution.stages).find(function(stage) {
-        return _.any(stage.tasks, {'name': stageName});
+        return _.any(stage.tasks, function(task) {
+          return stageName.indexOf(task.name) !== -1;
+        });
       });
     }
 
