@@ -48,13 +48,15 @@ class SourceResolver {
     }
 
     def targetRegion = stageData.availabilityZones.keySet()[0]
+    def regionalAsgs = existingAsgs.findAll { it.region == targetRegion && it.disabled == false } as List<Map>
+    if (!regionalAsgs) {
+      return null
+    }
 
-    def regionalAsgs = existingAsgs.findAll { it.region == targetRegion }
-    def latestAsg = regionalAsgs ? regionalAsgs.last() : null
-
-    return latestAsg ? new StageData.Source(
+    def latestAsg = stageData.useSourceCapacity ? regionalAsgs.sort { (it.instances as Collection).size() }.last() : regionalAsgs.last()
+    return new StageData.Source(
       account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
-    ) : null
+    )
   }
 
   List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {

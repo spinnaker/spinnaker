@@ -33,20 +33,27 @@ class SourceResolverSpec extends Specification {
     def exampleContexts = [
       empty               : [:],
       existingSource      : [source: [asgName: "test-v000", account: "test", region: "us-west-1"]],
-      specifiedEmptySource: [source: [:]]
+      specifiedEmptySource: [source: [:]],
+      useSourceCapacity   : [useSourceCapacity: true]
     ] as Map<String, Map>
 
     def exampleAsgs = [
       empty       : [],
       singleRegion: [
-        [name: "test-v000", region: "us-west-1"],
-        [name: "test-v001", region: "us-west-1"],
-        [name: "test-v003", region: "us-west-1"]
+        [name: "test-v000", region: "us-west-1", disabled: false, instances: [1, 2, 3]],
+        [name: "test-v001", region: "us-west-1", disabled: false, instances: [1, 2]],
+        [name: "test-v003", region: "us-west-1", disabled: false, instances: [1]],
+        [name: "test-v004", region: "us-west-1", disabled: true, instances: [1, 2, 3, 4]],
+        [name: "test-v004", region: "us-west-1", instances: [1, 2, 3, 4, 5]]
       ],
       mixedRegions: [
-        [name: "test-v000", region: "us-west-1"],
-        [name: "test-v001", region: "us-west-1"],
-        [name: "test-v003", region: "us-west-2"]
+        [name: "test-v000", region: "us-west-1", disabled: false],
+        [name: "test-v001", region: "us-west-1", disabled: false],
+        [name: "test-v003", region: "us-west-2", disabled: false]
+      ],
+      allDisabled : [
+        [name: "test-v000", region: "us-west-1", disabled: true],
+        [name: "test-v001", region: "us-west-1", disabled: true],
       ]
     ]
 
@@ -78,6 +85,8 @@ class SourceResolverSpec extends Specification {
     "existingSource"       | "empty"          || "test-v000"     || "test"          || "us-west-1"
     "empty"                | "singleRegion"   || "test-v003"     || "test"          || "us-west-1"
     "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
+    "useSourceCapacity"    | "singleRegion"   || "test-v000"     || "test"          || "us-west-1"
+    "useSourceCapacity"    | "allDisabled"    || null            || null            || null
   }
 
   void 'should sort oort server groups by createdTime'() {
