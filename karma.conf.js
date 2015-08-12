@@ -77,7 +77,7 @@ module.exports = function(config) {
       require('karma-webpack'),
       require('karma-jasmine'),
       require('karma-phantomjs-launcher'),
-      require('karma-chrome-launcher'),
+      //require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
       require('karma-coverage'),

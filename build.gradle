@@ -41,10 +41,16 @@ task webpack(type: NodeTask) {
   ]
 }
 
+task karma(type: NodeTask) {
+  script = file('node_modules/karma/bin/karma')
+  args = ["start", "--single-run"]
+}
+
 webpack.outputs.dir file('build/webpack')
 
 webpack.dependsOn 'npmInstall'
-buildDeb.dependsOn 'webpack'
+karma.dependsOn 'webpack'
+buildDeb.dependsOn 'karma'
 
 ospackage {
   packageName = "deck"
