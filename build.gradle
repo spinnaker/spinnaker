@@ -43,7 +43,7 @@ task webpack(type: NodeTask) {
 
 task karma(type: NodeTask) {
   script = file('node_modules/karma/bin/karma')
-  args = ["start", "--single-run"]
+  args = ["start", "--single-run", "--reporters", "progress,jenkins"]
 }
 
 webpack.outputs.dir file('build/webpack')
