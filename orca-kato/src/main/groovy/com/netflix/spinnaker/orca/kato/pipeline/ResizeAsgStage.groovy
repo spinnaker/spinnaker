@@ -165,12 +165,40 @@ class ResizeAsgStage extends LinearStage {
       if (newMin && newDesired && newMax) {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       } else {
-        description.capacity = stage.context.capacity
+        description.capacity = mergeConfiguredCapacityWithCurrent((Map<String, Integer>) stage.context.capacity, currentMin, currentDesired, currentMax)
       }
 
       descriptions[asg.name as String] = description
     }
     descriptions.values().flatten()
+  }
+
+  private static Map mergeConfiguredCapacityWithCurrent(Map<String, Integer> configured, int currentMin, int currentDesired, int currentMax) {
+    boolean minConfigured = configured.min != null;
+    boolean desiredConfigured = configured.desired != null;
+    boolean maxConfigured = configured.max != null;
+    Map result = [
+        min: minConfigured ? configured.min : currentMin,
+    ]
+    if (maxConfigured) {
+      result.max = configured.max
+      result.min = Math.min(result.min, configured.max)
+    } else {
+      result.max = Math.max(result.min, currentMax)
+    }
+    if (desiredConfigured) {
+      result.desired = configured.desired
+    } else {
+      result.desired = currentDesired
+      if (currentDesired < result.min) {
+        result.desired = result.min
+      }
+      if (currentDesired > result.max) {
+        result.desired = result.max
+      }
+    }
+
+    result
   }
 
   static enum ResizeAction {
