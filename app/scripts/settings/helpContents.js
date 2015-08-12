@@ -67,6 +67,17 @@ module.exports = angular.module('spinnaker.help.contents', [])
       '</ul>' +
       '<p>You can search for multiple words or word fragments. For instance, to find all load balancers in a prod stack with "canary" in the details' +
       ', enter <samp>prod canary</samp>.</p>',
+    'securityGroup.search': 'Quickly filter the displayed security groups by the following fields:' +
+      '<ul>' +
+      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+      '<li>Security Group Name</li>' +
+      '<li>Server Group Name</li>' +
+      '<li>Load Balancer Name</li>' +
+      '<li>Region</li>' +
+      '<li>Account</li>' +
+      '</ul>' +
+      '<p>You can search for multiple words or word fragments. For instance, to find all security groups in a prod stack with "canary" in the details' +
+      ', enter <samp>prod canary</samp>.</p>',
 
     'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',

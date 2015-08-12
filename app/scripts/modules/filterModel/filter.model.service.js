@@ -62,7 +62,7 @@ module.exports = angular
       return function(target) {
         if (isFilterable(model.sortFilter.providerType)) {
           var checkedProviderTypes = getCheckValues(model.sortFilter.providerType);
-          return _.contains(checkedProviderTypes, target.type);
+          return _.contains(checkedProviderTypes, target.type) || _.contains(checkedProviderTypes, target.provider);
         } else {
           return true;
         }

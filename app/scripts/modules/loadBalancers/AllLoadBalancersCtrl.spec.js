@@ -1,7 +1,7 @@
 'use strict';
 
 
-describe('Controller: AllLoadBalancerCtrl', function () {
+describe('Controller: AllLoadBalancersCtrl', function () {
 
   const angular = require('angular');
 

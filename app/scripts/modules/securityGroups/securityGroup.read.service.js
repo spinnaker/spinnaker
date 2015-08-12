@@ -9,8 +9,10 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('utils/lodash.js'),
   require('../caches/scheduledCache.js'),
   require('../caches/infrastructureCaches.js'),
+  require('../vpc/vpc.read.service.js'),
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, infrastructureCaches) {
+  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _,
+                                            infrastructureCaches, vpcReader) {
 
     function loadSecurityGroups(application) {
 
@@ -32,6 +34,23 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
 
       return $q.all(securityGroupPromises).then(_.flatten);
 
+    }
+
+    function addVpcNameToSecurityGroup(vpcs) {
+      return function(securityGroup) {
+        var matches = vpcs.filter(function(test) {
+          return test.id === securityGroup.vpcId;
+        });
+        securityGroup.vpcName = matches.length ? matches[0].name : '';
+      };
+    }
+
+    function addProviderToSecurityGroup(securityGroup) {
+      securityGroup.provider = securityGroup.provider || 'aws';
+    }
+
+    function addAccountToSecurityGroup(securityGroup) {
+      securityGroup.account = securityGroup.accountName;
     }
 
     function loadSecurityGroupsByApplicationName(applicationName) {
@@ -112,7 +131,11 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
         return clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
       } else {
         application.securityGroups = _.unique(applicationSecurityGroups);
-        return $q.when(null);
+        return vpcReader.listVpcs().then(function(vpcs) {
+          application.securityGroups.forEach(addVpcNameToSecurityGroup(vpcs));
+          application.securityGroups.forEach(addProviderToSecurityGroup);
+          application.securityGroups.forEach(addAccountToSecurityGroup);
+        });
       }
 
     }

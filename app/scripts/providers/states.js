@@ -16,9 +16,10 @@ require('../modules/securityGroups/details/aws/securityGroupDetails.html');
 
 require('../modules/applications/applications.html');
 require('../../views/404.html');
+
 require('../modules/securityGroups/all.html');
-require('../modules/securityGroups/navigation.html');
-require('../modules/securityGroups/single.html');
+require('../modules/securityGroups/filter/filterNav.html');
+
 require('../modules/cluster/all.html');
 require('../modules/loadBalancers/filter/filterNav.html');
 require('../modules/clusterFilter/filterNav.html');
@@ -53,10 +54,10 @@ module.exports = angular.module('spinnaker.states', [
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
 
-      // Handle legacy links to old instance details paths
+      // Handle legacy links to old security groups path
       $urlRouterProvider.when(
-        '/applications/{application}/clusters/instanceDetails?instanceId',
-        '/applications/{application}/clusters/instanceDetails/aws/{instanceId}'
+        '/applications/{application}/connections{path:.*}',
+        '/applications/{application}/securityGroups'
       );
 
       // Handle legacy links to old clusters paths
@@ -300,14 +301,15 @@ module.exports = angular.module('spinnaker.states', [
             instanceDetails,
             securityGroupDetails,
           ],
-        }, {
-          url: '/connections',
-          name: 'connections',
+        },
+        {
+          url: '/securityGroups',
+          name: 'securityGroups',
           views: {
             'nav': {
-              templateUrl: require('../modules/securityGroups/navigation.html'),
-              controller: 'SecurityGroupsNavCtrl',
-              controllerAs: 'ctrl'
+              templateUrl: require('../modules/securityGroups/filter/filterNav.html'),
+              controller: 'SecurityGroupFilterCtrl',
+              controllerAs: 'securityGroupFilters'
             },
             'master': {
               templateUrl: require('../modules/securityGroups/all.html'),
@@ -324,35 +326,6 @@ module.exports = angular.module('spinnaker.states', [
             loadBalancerDetails,
             serverGroupDetails,
             securityGroupDetails,
-            {
-              url: '/:securityGroupAccount/:securityGroupRegion/:securityGroup',
-              name: 'connection',
-              views: {
-                'master@home.applications.application.insight': {
-                  templateUrl: require('../modules/securityGroups/single.html'),
-                  controller: 'SecurityGroupCtrl',
-                  controllerAs: 'ctrl'
-                }
-              },
-              resolve: {
-                resolveSecurityGroup: ['$stateParams', function($stateParams) {
-                  return {
-                    account: $stateParams.securityGroupAccount,
-                    name: $stateParams.securityGroup,
-                    region: $stateParams.securityGroupRegion
-                  };
-                }]
-              },
-              data: {
-                pageTitleSection: {
-                  title: 'Security Group',
-                  nameParam: 'securityGroup',
-                  accountParam: 'securityGroupAccount',
-                  regionParam: 'securityGroupRegion'
-                }
-              },
-              children: [loadBalancerDetails, serverGroupDetails, securityGroupDetails]
-            }
           ]
         }
         ]

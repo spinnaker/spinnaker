@@ -1,0 +1,24 @@
+<div class="row rollup-entry sub-group">
+  <div sticky-header class="rollup-summary">
+    <div class="container-fluid no-padding">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="rollup-title-cell">
+            <h5>
+              <account-label-color account="{{parentHeading}}" provider="{{grouping.subgroups[0].securityGroup.provider || 'aws'}}"></account-label-color>
+              <span class="glyphicon glyphicon-transfer"></span>
+              {{grouping.heading}}
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="rollup-details">
+    <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
+      <security-group
+          security-group="subgroup.securityGroup"
+          sort-filter="sortFilter"></security-group>
+    </div>
+  </div>
+</div>
