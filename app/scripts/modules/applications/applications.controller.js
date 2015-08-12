@@ -7,14 +7,26 @@ require('./modal/newapplication.html');
 module.exports = angular.module('spinnaker.applications.controller', [
   require('./applications.read.service.js'),
   require('../account/accountService.js'),
-  require('../../filters/filters.module.js')
+  require('../../filters/filters.module.js'),
+  require('../caches/viewStateCache.js'),
 ])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
-                                           $state, applicationReader) {
+                                           $state, applicationReader, viewStateCache) {
+
+    var applicationsViewStateCache = viewStateCache.applications || viewStateCache.createCache('applications', { version: 1 });
+
+    function cacheViewState() {
+      applicationsViewStateCache.put('#global', $scope.viewState);
+    }
+
+    function initializeViewState() {
+      $scope.viewState = applicationsViewStateCache.get('#global') || {
+          sortModel: { key: 'name' },
+          applicationFilter: '',
+        };
+    }
 
     $scope.applicationsLoaded = false;
-
-    $scope.sortModel = { key: 'name' };
 
     $scope.applicationFilter = '';
 
@@ -45,8 +57,8 @@ module.exports = angular.module('spinnaker.applications.controller', [
     ];
 
     this.filterApplications = function filterApplications() {
-      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.applicationFilter, email: $scope.applicationFilter, accounts: $scope.applicationFilter}),
-        sorted = $filter('orderBy')(filtered, $scope.sortModel.key);
+      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.viewState.applicationFilter, email: $scope.viewState.applicationFilter, accounts: $scope.viewState.applicationFilter}),
+        sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
       $scope.filteredApplications = sorted;
       this.resetPaginator();
     };
@@ -99,6 +111,10 @@ module.exports = angular.module('spinnaker.applications.controller', [
       });
 
     });
+
+    $scope.$watch('viewState', cacheViewState, true);
+
+    initializeViewState();
 
   }
 ).name;

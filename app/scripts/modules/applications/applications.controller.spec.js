@@ -69,12 +69,12 @@ describe('Controller: Applications', function() {
       var $scope = this.$scope,
           ctrl = this.ctrl;
 
-      $scope.applicationFilter = 'a@netflix.com';
+      $scope.viewState.applicationFilter = 'a@netflix.com';
       $scope.$digest();
       expect($scope.applications).toBe(applicationList);
       expect($scope.filteredApplications).toEqual([deck]);
 
-      $scope.applicationFilter = 'ort';
+      $scope.viewState.applicationFilter = 'ort';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([mort, oort]);
     });
@@ -83,19 +83,19 @@ describe('Controller: Applications', function() {
       var $scope = this.$scope,
           ctrl = this.ctrl;
 
-      $scope.sortModel.key = '-name';
+      $scope.viewState.sortModel.key = '-name';
       $scope.$digest();
       expect($scope.filteredApplications).toEqual([oort, mort, deck]);
 
-      $scope.sortModel.key = '-createTs';
+      $scope.viewState.sortModel.key = '-createTs';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([oort, deck, mort]);
 
-      $scope.sortModel.key = 'createTs';
+      $scope.viewState.sortModel.key = 'createTs';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([mort, deck, oort]);
 
-      $scope.applicationFilter = 'ort';
+      $scope.viewState.applicationFilter = 'ort';
       ctrl.filterApplications();
       expect($scope.filteredApplications).toEqual([mort, oort]);
     });
