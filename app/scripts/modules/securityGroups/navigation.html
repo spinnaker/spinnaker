@@ -17,7 +17,7 @@
 <div class="content">
   <div class="sub-nav-item show-all-link">
     <a ui-sref="."
-       ng-class="{active: $state.includes('**.connections.**') && !$state.includes('**.connection.**')}"
+       ng-class="{active: $state.includes('**.securityGroup.**') && !$state.includes('**.connection.**')}"
       >Show All Security Groups</a>
   </div>
   <div class="sub-nav" ng-repeat="heading in ctrl.getHeadings() | orderBy:'toString()'">

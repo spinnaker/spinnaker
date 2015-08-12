@@ -5,19 +5,23 @@ let angular = require('angular');
 require('./securityGroup.html');
 
 module.exports = angular.module('spinnaker.securityGroup.rollup', [])
-  .directive('securityGroup', function ($rootScope, $timeout) {
+  .directive('securityGroup', function ($rootScope, $timeout, SecurityGroupFilterModel) {
     return {
       restrict: 'E',
       replace: true,
       templateUrl: require('./securityGroup.html'),
       scope: {
         securityGroup: '=',
-        displayOptions: '='
+        sortFilter: '='
       },
       link: function (scope, el) {
         var base = el.parent().inheritedData('$uiView').state;
+        var securityGroup = scope.securityGroup;
 
+        scope.sortFilter = SecurityGroupFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
+
+        scope.waypoint = [securityGroup.account, securityGroup.region, securityGroup.name].join(':');
 
         scope.loadDetails = function(e) {
           $timeout(function() {

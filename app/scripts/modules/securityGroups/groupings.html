@@ -1,14 +1,11 @@
-<div ng-repeat="group in groups" class="rollup">
-  <div ng-repeat="subgroup in group.subgroups">
-    <h4>{{group.heading}}: {{subgroup.heading}}</h4>
-    <div class="sub-group">
-      <security-group
-        ng-repeat="securityGroup in subgroup.securityGroups | orderBy:'name'"
-        security-group="securityGroup"
-        display-options="displayOptions"></security-group>
-    </div>
+<div>
+  <div ng-repeat="group in groups" class="rollup">
+    <security-group-pod ng-repeat="subgroup in group.subgroups"
+                        grouping="subgroup"
+                        application="application"
+                        parent-heading="group.heading"></security-group-pod>
   </div>
-</div>
-<div ng-if="groups.length === 0">
-  <h4 class="text-center">No security groups match the filters you've selected.</h4>
+  <div ng-if="groups.length === 0">
+    <h4 class="text-center">No security groups match the filters you've selected.</h4>
+  </div>
 </div>

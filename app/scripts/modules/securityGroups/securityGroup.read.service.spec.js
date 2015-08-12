@@ -16,15 +16,47 @@ describe('Service: securityGroupReader', function () {
   );
 
   beforeEach(
-    window.inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend, _settings_, _$exceptionHandler_, $rootScope) {
+    window.inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend, _settings_,
+                            _$exceptionHandler_, $rootScope, vpcReader, $q) {
       securityGroupReader = _securityGroupReader_;
       infrastructureCaches = _infrastructureCaches_;
       $http = $httpBackend;
       settings = _settings_;
       $exceptionHandler = _$exceptionHandler_;
       $scope = $rootScope.$new();
+      spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([ { id: 'vpc-1', name: 'main' }]));
     })
   );
+
+  it('attaches account, vpcName fields', function () {
+    var application = {
+      serverGroups: [],
+      loadBalancers: []
+    };
+
+    var securityGroups = [
+      { account: 'test',
+        securityGroups: {
+          'us-east-1': [
+            { name: 'in-vpc', id: 'sg-1', vpcId: 'vpc-1' },
+            { name: 'not-in-vpc', id: 'sg-2', vpcId: null },
+          ]
+        }
+      }
+    ];
+
+    var namedBasedGroups = [
+      { account: 'test', region: 'us-east-1', vpcId: 'vpc-1', id: 'sg-1'},
+      { account: 'test', region: 'us-east-1', vpcId: null, id: 'sg-2'}
+    ];
+
+    securityGroupReader.attachSecurityGroups(application, securityGroups, namedBasedGroups, false);
+    $scope.$digest();
+    expect(application.securityGroups[0].vpcName).toBe('main');
+    expect(application.securityGroups[0].account).toBe('test');
+    expect(application.securityGroups[1].vpcName).toBe('');
+    expect(application.securityGroups[1].account).toBe('test');
+  });
 
   it('attaches load balancer to security group usages', function() {
     var application = {
