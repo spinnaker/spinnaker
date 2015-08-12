@@ -49,6 +49,8 @@ describe('Controller: Applications', function() {
         $timeout: $timeout
       });
 
+      this.$scope.viewState.sortModel.key = 'name';
+
     }));
 
     it('sets applicationsLoaded flag when applications retrieved and added to scope', function () {

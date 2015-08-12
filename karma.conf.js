@@ -110,7 +110,7 @@ module.exports = function(config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'mocha'],
+    reporters: ['progress', 'mocha', 'coverage'],
 
     // the default configuration
     junitReporter: {
