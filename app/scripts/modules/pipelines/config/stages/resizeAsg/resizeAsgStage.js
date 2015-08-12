@@ -96,10 +96,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [])
       ctrl.accountUpdated();
     }
 
-    ctrl.updateCapacity = function() {
-      stage.capacity.desired = stage.capacity.max;
-    };
-
     ctrl.updateResizeType = function() {
       stage.capacity = {};
       delete stage.scalePct;
