@@ -58,20 +58,18 @@ abstract class Execution<T> implements Serializable {
 
   Long getEndTime() {
     if (stages && getStartTime()) {
-      def reverseStages = stages.reverse()
-      def lastStage = reverseStages.first()
-      if (lastStage.endTime) {
-        return lastStage.endTime
+      if (stages.every { it.endTime }) {
+        return stages.endTime.max()
       } else {
-        def lastFailed = reverseStages.find {
+        return stages.findAll {
           it.status.halt
-        }
-        if (lastFailed) {
-          return lastFailed.endTime
-        }
+        }.collect {
+          it.endTime
+        }.max()
       }
+    } else {
+      return null
     }
-    null
   }
 
   ExecutionStatus getStatus() {
@@ -171,7 +169,8 @@ abstract class Execution<T> implements Serializable {
       if (spinnakerUserOptional.present || spinnakerAccountsOptional.present) {
         return Optional.of(new AuthenticationDetails(
           user: spinnakerUserOptional.orElse(null),
-          allowedAccounts: spinnakerAccountsOptional.present ? spinnakerAccountsOptional.get().split(",") as Collection<String> : null
+          allowedAccounts: spinnakerAccountsOptional.present ? spinnakerAccountsOptional.get().split(
+            ",") as Collection<String> : null
         ))
       }
 
