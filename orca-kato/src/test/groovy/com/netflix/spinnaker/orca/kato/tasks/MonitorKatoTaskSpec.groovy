@@ -56,6 +56,47 @@ class MonitorKatoTaskSpec extends Specification {
     katoStatus = completed ? "completed" : "incomplete"
   }
 
+  @Unroll("result is #expectedResult if notification type is #notificationType and resultObject is #resultObjects")
+  def "result depends on Kato task status and result object size for create/upsert operations"() {
+    given:
+    task.kato = Stub(KatoService) {
+      lookupTask(taskId) >> Observable.from(new Task(taskId, new Task.Status(completed: true), resultObjects, []))
+    }
+
+    and:
+    def stage = new PipelineStage(new Pipeline(), "whatever", [
+        "kato.last.task.id": new TaskId(taskId),
+        "notification.type": notificationType,
+        "deploy.server.groups": [:]
+    ]).asImmutable()
+
+    expect:
+    task.execute(stage).status == expectedResult
+
+    where:
+    notificationType            | resultObjects || expectedResult
+    "createdeploy"              | null          || ExecutionStatus.RUNNING
+    "upsertamazonloadbalancer"  | null          || ExecutionStatus.RUNNING
+    "createcopylastasg"         | null          || ExecutionStatus.RUNNING
+    "upsertsecuritygroup"       | null          || ExecutionStatus.RUNNING
+
+    "createdeploy"              | []            || ExecutionStatus.RUNNING
+    "upsertamazonloadbalancer"  | []            || ExecutionStatus.RUNNING
+    "createcopylastasg"         | []            || ExecutionStatus.RUNNING
+    "upsertsecuritygroup"       | []            || ExecutionStatus.RUNNING
+    "somethingelse"             | []            || ExecutionStatus.SUCCEEDED
+
+    "createdeploy"              | [[a:1]]       || ExecutionStatus.SUCCEEDED
+    "upsertamazonloadbalancer"  | [[a:1]]       || ExecutionStatus.SUCCEEDED
+    "createcopylastasg"         | [[a:1]]       || ExecutionStatus.SUCCEEDED
+    "upsertsecuritygroup"       | [[a:1]]       || ExecutionStatus.SUCCEEDED
+    "somethingelse"             | [[a:1]]       || ExecutionStatus.SUCCEEDED
+
+    null                        | []            || ExecutionStatus.SUCCEEDED
+
+    taskId = "kato-task-id"
+  }
+
   @Unroll
   def "should automatically succeed if task id does not exist"() {
     given:
