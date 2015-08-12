@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./editNotification.html');
+
 module.exports = angular
   .module('spinnaker.editNotification.modal.controller', [
     require('utils/lodash.js'),
@@ -18,7 +20,6 @@ module.exports = angular
       'pipeline.complete',
       'pipeline.failed'
     ];
-
 
     vm.updateSelectedWhen = function(){
       var selected = false;
