@@ -11,7 +11,7 @@
                    placeholder="Search applications"
                    class="form-control input-md"
                    focus
-                   ng-model="applicationFilter"
+                   ng-model="viewState.applicationFilter"
                    ng-change="ctrl.filterApplications()"/>
           </div>
         </div>
@@ -33,17 +33,17 @@
     <table ng-if="applicationsLoaded" class="table table-hover">
       <thead>
         <tr>
-          <th width="20%" sort-toggle key="name" label="Name" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th width="25%" sort-toggle key="email" label="Owner" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
-          <th sort-toggle key="accounts" label="Account(s)" sort-model="sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+          <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+          <th sort-toggle key="accounts" label="Account(s)" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
         </tr>
       </thead>
       <tbody>
         <tr class="clickable" ng-repeat="application in ctrl.resultPage()" ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
           <td>
-            <a ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })" ng-click="$event.preventDefault()">
+            <a href ui-sref=".application.insight.clusters({ application: application.name.toLowerCase() })">
               {{ application.name.toLowerCase() }}
             </a>
           </td>

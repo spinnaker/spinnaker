@@ -54,7 +54,7 @@ describe('Service: InstanceType', function () {
       spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([{id: 'vpc-1', name: 'Main'}]));
 
       var results = null;
-      clusterService.loadServerGroups('app').then(function(result) { console.warn('DONE'); results = result; });
+      clusterService.loadServerGroups('app').then(function(result) { results = result; });
       $http.flush();
       $scope.$digest();
 

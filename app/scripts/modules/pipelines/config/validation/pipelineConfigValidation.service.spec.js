@@ -5,7 +5,7 @@ describe('pipelineConfigValidator', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigValidation.service'),
-      require('../config.module.js')
+      require('../pipelineConfig.module.js')
     )
   );
 

@@ -2,7 +2,7 @@
 
 require('../modules/instance/instanceList.html');
 
-module.exports = function(clusterFilterService) {
+module.exports = function(ClusterFilterModel) {
   return {
     restrict: 'E',
     templateUrl: require('../modules/instance/instanceList.html'),
@@ -11,7 +11,7 @@ module.exports = function(clusterFilterService) {
       sortFilter: '=',
     },
     link: function(scope) {
-      scope.updateQueryParams = clusterFilterService.updateQueryParams;
+      scope.applyParamsToUrl = ClusterFilterModel.applyParamsToUrl;
     }
   };
 };

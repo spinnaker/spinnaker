@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 require('./groupings.html');
-require('./filters.html');
 
 module.exports = angular
   .module('spinnaker.loadBalancer', [
@@ -14,6 +13,7 @@ module.exports = angular
     require('./details/gce/LoadBalancerDetailsCtrl.js'),
     require('./configure/aws/CreateLoadBalancerCtrl.js'),
     require('./configure/gce/CreateLoadBalancerCtrl.js'),
-    require('./LoadBalancersNavCtrl.js'),
+    require('./filter/LoadBalancerFilterCtrl.js'),
     require('./loadBalancer.directive.js'),
+    require('./loadBalancer/loadBalancer.pod.directive.js'),
   ]).name;

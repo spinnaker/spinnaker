@@ -1,13 +1,13 @@
 'use strict';
 
 
-describe('Controller: AllLoadBalancerCtrl', function () {
+describe('Controller: AllLoadBalancersCtrl', function () {
 
   const angular = require('angular');
-  //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
   var controller;
   var scope;
+  var autoRefresh;
 
   beforeEach(
     window.module(
@@ -21,13 +21,24 @@ describe('Controller: AllLoadBalancerCtrl', function () {
       controller = $controller('AllLoadBalancersCtrl', {
         $scope: scope,
         app: {
-          registerAutoRefreshHandler: angular.noop
+          registerAutoRefreshHandler: function(handler) { autoRefresh = handler; },
+          loadBalancers: [],
         }
       });
     })
   );
 
-  it('should instantiate the controller', function () {
-    expect(controller).toBeDefined();
+  it('should add search fields to each load balancer', function () {
+    scope.application.loadBalancers = [
+      { name: 'elb-1', region: 'us-east-1', account: 'prod',
+        serverGroups: [ { name: 'asg-1' }, { name: 'asg-2' } ],
+        instances: [ { id: 'i-1234' }, { id: 'i-2345' }]
+      }
+    ];
+
+    autoRefresh();
+
+    expect(scope.application.loadBalancers[0].searchField).toBe('elb-1 us-east-1 prod asg-1 asg-2 i-1234 i-2345');
+
   });
 });

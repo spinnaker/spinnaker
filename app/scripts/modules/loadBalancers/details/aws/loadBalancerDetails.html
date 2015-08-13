@@ -65,7 +65,7 @@
         <dt ng-if="loadBalancer.serverGroups">Server Groups:</dt>
         <dd ng-if="loadBalancer.serverGroups">
           <ul style="margin-left: 30px">
-            <li ng-repeat="serverGroup in loadBalancer.serverGroups">
+            <li ng-repeat="serverGroup in loadBalancer.serverGroups | orderBy: ['isDisabled', '-name']">
               <a ui-sref="^.serverGroup({region: serverGroup.region,
                                           accountId: serverGroup.account,
                                           serverGroup: serverGroup.name,

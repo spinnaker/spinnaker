@@ -133,7 +133,6 @@ describe('Controller: awsCloneServerGroup', function () {
       setupMocks.bind(this).call();
 
       var serverGroupCommand = this.buildBaseNew();
-      console.log('buildNew', serverGroupCommand);
       initController(serverGroupCommand);
 
       $scope.$digest();

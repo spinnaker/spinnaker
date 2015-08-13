@@ -16,8 +16,8 @@
       </div>
       <div class="col-md-6">
         <dl class="dl-narrow dl-horizontal">
-          <dt>VPC</dt>
-          <dd>{{stage.context.subnetType || '[none]'}}</dd>
+          <dt ng-if="provider === 'aws'">VPC</dt>
+          <dd ng-if="provider === 'aws'">{{stage.context.subnetType || '[none]'}}</dd>
           <dt>Strategy</dt>
           <dd>{{stage.context.strategy || '[none]'}}</dd>
           <dt>Capacity</dt>

@@ -2,34 +2,29 @@
 
 let angular = require('angular');
 
-require('./filters.html');
 require('./groupings.html');
 
 require('./configure/aws/createSecurityGroup.html');
 
 module.exports = angular.module('spinnaker.securityGroup.all.controller', [
+  require('./filter/securityGroup.filter.service.js'),
+  require('./filter/securityGroup.filter.model.js'),
   require('utils/lodash.js'),
   require('../providerSelection/providerSelection.service.js'),
-  require('../../settings/settings.js')
+  require('../../settings/settings.js'),
+  require('exports?"ui.bootstrap"!angular-bootstrap')
 ])
-  .controller('AllSecurityGroupsCtrl', function($scope, $modal, _, providerSelectionService, app, settings) {
-    const application = app;
-    $scope.application = application;
+  .controller('AllSecurityGroupsCtrl', function($scope, app, $modal, _, providerSelectionService, settings,
+                                                SecurityGroupFilterModel, securityGroupFilterService) {
 
-    $scope.sortFilter = {
-      sortPrimary: 'accountName',
-      filter: '',
-      showServerGroups: true,
-      showLoadBalancers: true
-    };
+    SecurityGroupFilterModel.activate();
 
-    $scope.sortOptions = [
-      { label: 'Account', key: 'accountName' },
-      { label: 'Region', key: 'region' }
-    ];
+    $scope.application = app;
 
-    function addSearchField(securityGroups) {
-      securityGroups.forEach(function(securityGroup) {
+    $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
+
+    function addSearchFields() {
+      app.securityGroups.forEach(function(securityGroup) {
         if (!securityGroup.searchField) {
           securityGroup.searchField = [
             securityGroup.name,
@@ -43,25 +38,24 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
       });
     }
 
-    function matchesFilter(filter, securityGroup) {
-      return filter.every(function (testWord) {
-        return securityGroup.searchField.indexOf(testWord) !== -1;
-      });
-    }
+    this.clearFilters = function() {
+      securityGroupFilterService.clearFilters();
+      updateSecurityGroups();
+    };
 
-    function filterSecurityGroupsForDisplay(securityGroups, filter) {
-      return securityGroups.filter(function (securityGroup) {
-        if (!filter.length) {
-          return true;
-        }
-        return matchesFilter(filter, securityGroup);
+    function updateSecurityGroups() {
+      SecurityGroupFilterModel.applyParamsToUrl();
+      $scope.$evalAsync(function () {
+        securityGroupFilterService.updateSecurityGroups(app);
+        $scope.groups = SecurityGroupFilterModel.groups;
+        $scope.tags = SecurityGroupFilterModel.tags;
       });
     }
 
     this.createSecurityGroup = function createSecurityGroup() {
       providerSelectionService.selectProvider().then(function(provider) {
-        var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
-            defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
+        var defaultCredentials = app.defaultCredentials || settings.providers.aws.defaults.account,
+            defaultRegion = app.defaultRegion || settings.providers.aws.defaults.region;
         $modal.open({
           templateUrl: 'app/scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
           controller: 'CreateSecurityGroupCtrl as ctrl',
@@ -76,51 +70,22 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
               };
             },
             application: function () {
-              return application;
+              return app;
             }
           }
         });
       });
     };
 
-    function updateSecurityGroups() {
-      $scope.$evalAsync(function() {
-        var securityGroups = application.securityGroups,
-          groups = [],
-          filter = $scope.sortFilter.filter ? $scope.sortFilter.filter.toLowerCase().split(' ') : [],
-          primarySort = $scope.sortFilter.sortPrimary,
-          secondarySort = $scope.sortOptions.filter(function(option) { return option.key !== primarySort; })[0].key;
-
-        addSearchField(securityGroups);
-
-        var filtered = filterSecurityGroupsForDisplay(securityGroups, filter);
-        var grouped = _.groupBy(filtered, primarySort);
-
-        _.forOwn(grouped, function(group, key) {
-          var subGroupings = _.groupBy(group, secondarySort),
-            subGroups = [];
-
-          _.forOwn(subGroupings, function(subGroup, subKey) {
-            subGroups.push( { heading: subKey, securityGroups: _.sortBy(subGroup, 'name') } );
-          });
-
-          groups.push( { heading: key, subgroups: _.sortBy(subGroups, 'heading') } );
-        });
-
-        $scope.groups = _.sortBy(groups, 'heading');
-
-        $scope.displayOptions = {
-          showServerGroups: $scope.sortFilter.showServerGroups,
-          showLoadBalancers: $scope.sortFilter.showLoadBalancers
-        };
-      });
-    }
-
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
 
-    application.registerAutoRefreshHandler(updateSecurityGroups, $scope);
+    function autoRefreshHandler() {
+      addSearchFields();
+      updateSecurityGroups();
+    }
 
-    updateSecurityGroups();
+    autoRefreshHandler();
 
+    app.registerAutoRefreshHandler(autoRefreshHandler, $scope);
   }
 ).name;

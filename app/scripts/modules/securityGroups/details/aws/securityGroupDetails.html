@@ -48,7 +48,7 @@
     <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
       <div ng-if="!securityGroup.ipRangeRules.length">None</div>
 
-      <dl ng-repeat="ipRangeRule in securityGroup.ipRangeRules">
+      <dl ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
         <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges:</dt>
@@ -60,7 +60,7 @@
     <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
       <div ng-if="!securityGroup.securityGroupRules.length">None</div>
 
-      <dl ng-repeat="rule in securityGroup.securityGroupRules">
+      <dl ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
           <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'aws'})">

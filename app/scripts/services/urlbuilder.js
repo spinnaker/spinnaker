@@ -70,7 +70,7 @@ module.exports = angular.module('spinnaker.urlBuilder', [
       },
       // url for a single load balancer
       'loadBalancers': function(input) {
-        return $state.href(
+        var href = $state.href(
           'home.applications.application.insight.loadBalancers.loadBalancerDetails',
           {
             application: input.application,
@@ -82,6 +82,7 @@ module.exports = angular.module('spinnaker.urlBuilder', [
           },
           { inherit: false }
         );
+        return buildUrl(href, {q: input.loadBalancer, reg: input.region, acct: input.account });
       },
       // url for application tasks
       'tasks': function(input) {

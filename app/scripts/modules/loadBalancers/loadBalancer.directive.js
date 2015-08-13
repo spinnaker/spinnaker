@@ -5,20 +5,23 @@ let angular = require('angular');
 require('./loadBalancer/loadBalancer.html');
 
 module.exports = angular.module('spinnaker.loadBalancer.directive', [
-  require('utils/lodash.js'),
 ])
-  .directive('loadBalancer', function ($rootScope, $timeout, _) {
+  .directive('loadBalancer', function ($rootScope, $timeout, LoadBalancerFilterModel) {
     return {
       restrict: 'E',
       templateUrl: require('./loadBalancer/loadBalancer.html'),
       scope: {
         loadBalancer: '=',
-        displayOptions: '='
+        serverGroups: '=',
       },
       link: function(scope, el) {
         var base = el.parent().inheritedData('$uiView').state;
+        var loadBalancer = scope.loadBalancer;
 
+        scope.sortFilter = LoadBalancerFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
+
+        scope.waypoint = [loadBalancer.account, loadBalancer.region, loadBalancer.name].join(':');
 
         scope.loadDetails = function(event) {
           $timeout(function() {
@@ -37,13 +40,6 @@ module.exports = angular.module('spinnaker.loadBalancer.directive', [
             // also stolen from uiSref directive
             scope.$state.go('.loadBalancerDetails', params, {relative: base, inherit: true});
           });
-        };
-
-        scope.displayServerGroup = function (serverGroup) {
-          if (scope.displayOptions.hideHealthy) {
-            return _.some(serverGroup.instances, {healthState: 'Down'});
-          }
-          return scope.displayOptions.showServerGroups;
         };
       }
     };

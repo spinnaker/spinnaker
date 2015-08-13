@@ -12,6 +12,7 @@ module.exports = function () {
       sortModel: '=',
     },
     restrict: 'A',
+    controllerAs: 'ctrl',
     controller: function($scope) {
       var ctrl = this;
 

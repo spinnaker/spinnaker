@@ -26,7 +26,7 @@ module.exports = function(config) {
     preprocessors: {
       //'app/**/*.spec.js': ['webpack'],
       'settings.js': ['webpack'],
-      'test/test_index.js': ['webpack', 'sourcemap'],
+      'test/test_index.js': ['webpack'],
     },
 
     webpack: {
@@ -66,7 +66,6 @@ module.exports = function(config) {
           }
         ]
       },
-      devtool: 'inline-source-map',
       watch: true,
     },
 
@@ -78,10 +77,10 @@ module.exports = function(config) {
       require('karma-webpack'),
       require('karma-jasmine'),
       require('karma-phantomjs-launcher'),
-      require('karma-chrome-launcher'),
+      //require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
-      require('karma-sourcemap-loader'),
+      require('karma-jenkins-reporter'),
       require('karma-coverage'),
     ],
 
@@ -121,6 +120,12 @@ module.exports = function(config) {
     coverageReporter: {
       type : 'html',
       dir : 'coverage/'
+    },
+
+    jenkinsReporter: {
+      outputFile: 'test-results.xml',
+      suite: 'com.netflix.spinnaker.deck',
+      classnameSuffix: 'ui-test'
     },
 
     client: {

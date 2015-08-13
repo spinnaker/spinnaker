@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "node ./node_modules/webpack/bin/webpack.js",
-    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
+    "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --devtool eval",
     "test": "./node_modules/karma/bin/karma start",
     "preinstall": "npm install -g bower@1.4.1"
   },
@@ -65,9 +65,10 @@
     "karma-chrome-launcher": "^0.2.0",
     "karma-coverage": "^0.4.2",
     "karma-jasmine": "^0.3.6",
+    "karma-jenkins-reporter": "0.0.2",
     "karma-junit-reporter": "^0.3.2",
     "karma-mocha-reporter": "^1.0.2",
-    "karma-phantomjs-launcher": "^0.2.0",
+    "karma-phantomjs-launcher": "^0.2.1",
     "karma-sourcemap-loader": "^0.3.5",
     "karma-webpack": "^1.5.1",
     "less": "^2.5.1",

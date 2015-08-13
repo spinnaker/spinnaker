@@ -78,8 +78,18 @@ module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [
       }).then(function(results) {
         if (!$scope.stage.cloudProviderType || $scope.stage.cloudProviderType === 'aws') {
           $scope.regions = results.regions;
+          $scope.vmTypes = results.vmTypes;
+          if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
+            $scope.stage.vmType = $scope.vmTypes[0];
+          }
+          $scope.storeTypes = results.storeTypes;
+          if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
+            $scope.stage.storeType = $scope.storeTypes[0];
+          }
         } else {
           $scope.regions  = ['global'];
+          delete $scope.stage.vmType;
+          delete $scope.stage.storeType;
         }
         if ($scope.regions.length === 1) {
           $scope.stage.region = $scope.regions[0];
@@ -93,21 +103,13 @@ module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [
           $scope.stage.regions.push($scope.application.defaultRegion);
         }
         $scope.baseOsOptions = results.baseOsOptions;
-        $scope.vmTypes = results.vmTypes;
         $scope.baseLabelOptions = results.baseLabelOptions;
-        $scope.storeTypes = results.storeTypes;
 
         if (!$scope.stage.baseOs && $scope.baseOsOptions && $scope.baseOsOptions.length) {
           $scope.stage.baseOs = $scope.baseOsOptions[0];
         }
         if (!$scope.stage.baseLabel && $scope.baseLabelOptions && $scope.baseLabelOptions.length) {
           $scope.stage.baseLabel = $scope.baseLabelOptions[0];
-        }
-        if (!$scope.stage.vmType && $scope.vmTypes && $scope.vmTypes.length) {
-          $scope.stage.vmType = $scope.vmTypes[0];
-        }
-        if (!$scope.stage.storeType && $scope.storeTypes && $scope.storeTypes.length) {
-          $scope.stage.storeType = $scope.storeTypes[0];
         }
         $scope.viewState.loading = false;
       });

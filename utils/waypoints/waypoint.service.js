@@ -57,6 +57,7 @@ module.exports = angular.module('spinnaker.utils.waypoints.service', [
       $timeout(function() {
         var registry = waypointRegistry[key];
         if (!registry || !registry.container) {
+          console.warn('nothing found, returning');
           return;
         }
 

@@ -56,6 +56,29 @@ module.exports = angular.module('spinnaker.help.contents', [])
       ', enter <samp>prod canary</samp>.</p>' +
       '<p>To find a particular instance, enter the instance ID. Only the containing server group will be displayed, and the instance ' +
       'will be highlighted for you.</p>',
+    'loadBalancer.search': 'Quickly filter the displayed load balancers by the following fields:' +
+      '<ul>' +
+      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+      '<li>Server Group Name</li>' +
+      '<li>Load Balancer Name</li>' +
+      '<li>Region</li>' +
+      '<li>Account</li>' +
+      '<li>Instance ID</li>' +
+      '</ul>' +
+      '<p>You can search for multiple words or word fragments. For instance, to find all load balancers in a prod stack with "canary" in the details' +
+      ', enter <samp>prod canary</samp>.</p>',
+    'securityGroup.search': 'Quickly filter the displayed security groups by the following fields:' +
+      '<ul>' +
+      '<li>VPC (prefixed, e.g. <samp>vpc:main</samp>)' +
+      '<li>Security Group Name</li>' +
+      '<li>Server Group Name</li>' +
+      '<li>Load Balancer Name</li>' +
+      '<li>Region</li>' +
+      '<li>Account</li>' +
+      '</ul>' +
+      '<p>You can search for multiple words or word fragments. For instance, to find all security groups in a prod stack with "canary" in the details' +
+      ', enter <samp>prod canary</samp>.</p>',
+
     'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the load balancer.</p><p>Default: <b>2</b></p>',

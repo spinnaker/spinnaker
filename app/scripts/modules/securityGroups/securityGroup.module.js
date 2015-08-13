@@ -7,6 +7,8 @@ require('./groupings.html');
 module.exports = angular
   .module('spinnaker.securityGroup', [
     require('./AllSecurityGroupsCtrl.js'),
+    require('./filter/SecurityGroupFilterCtrl.js'),
+    require('./securityGroup.pod.directive.js'),
     require('./SecurityGroupCtrl.js'),
     require('./securityGroup.directive.js'),
     require('./securityGroup.read.service.js'),
