@@ -243,6 +243,27 @@ class WaitForUpInstancesTaskSpec extends Specification {
   }
 
   @Unroll
+  void 'should not trust an ASG desired capacity of zero unless zero has been seen 12 times'() {
+    expect:
+    def context = [
+        zeroDesiredCapacityCount: counter,
+        capacitySnapshot: [
+            desiredCapacity: snapshotCapacity
+        ]
+    ]
+    def serverGroup = [asg: [desiredCapacity: 0]]
+    hasSucceeded == task.hasSucceeded(new PipelineStage(new Pipeline(), "", "", context), serverGroup, [], null)
+
+    where:
+    hasSucceeded || counter | snapshotCapacity
+    true         || 12      | 1
+    true         || 13      | 1
+    false        || 11      | 1
+    true         || 0       | 0
+    true         || 1       | 0
+  }
+
+  @Unroll
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
     hasSucceeded == task.hasSucceeded(

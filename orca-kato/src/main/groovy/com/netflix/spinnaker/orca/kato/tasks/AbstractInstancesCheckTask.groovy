@@ -92,12 +92,20 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
           Map targetCapacities = [:]
           if (seenServerGroup && !stage.context.capacitySnapshot) {
             targetCapacities = [
+              zeroDesiredCapacityCount: 0,
               capacitySnapshot: [
                 minSize: serverGroup.asg.minSize,
                 desiredCapacity: serverGroup.asg.desiredCapacity,
                 maxSize: serverGroup.asg.maxSize
               ]
             ]
+          }
+          if (seenServerGroup) {
+            if (serverGroup.asg.desiredCapacity == 0) {
+              targetCapacities.zeroDesiredCapacityCount = stage.context.zeroDesiredCapacityCount + 1
+            } else {
+              targetCapacities.zeroDesiredCapacityCount = 0
+            }
           }
           return new DefaultTaskResult(ExecutionStatus.RUNNING, targetCapacities)
         }
