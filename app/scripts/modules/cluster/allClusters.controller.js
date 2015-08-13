@@ -21,6 +21,8 @@ module.exports = angular.module('clusters.all', [
   .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,
                                           ClusterFilterModel, serverGroupCommandBuilder) {
 
+    ClusterFilterModel.activate();
+
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
     function addSearchFields() {

@@ -17,6 +17,8 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   .controller('AllSecurityGroupsCtrl', function($scope, app, $modal, _, providerSelectionService, settings,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 
+    SecurityGroupFilterModel.activate();
+
     $scope.application = app;
 
     $scope.sortFilter = SecurityGroupFilterModel.sortFilter;

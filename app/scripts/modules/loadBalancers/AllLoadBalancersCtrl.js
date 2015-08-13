@@ -14,6 +14,8 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
   .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
 
+    LoadBalancerFilterModel.activate();
+
     $scope.application = app;
 
     $scope.sortFilter = LoadBalancerFilterModel.sortFilter;
