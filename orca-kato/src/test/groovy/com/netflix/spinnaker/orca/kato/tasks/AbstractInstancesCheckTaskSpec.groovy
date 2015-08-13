@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedInput
+import spock.lang.Unroll
 
 class AbstractInstancesCheckTaskSpec extends Specification {
 
@@ -49,7 +50,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
   @Subject task = new TestInstancesCheckTask()
 
-  Closure<Response> contsructResponse = { int status, String body ->
+  Closure<Response> constructResponse = { int status, String body ->
     new Response("", status, "", [], new TypedInput() {
       @Override
       String mimeType() {
@@ -85,7 +86,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> contsructResponse(200, '''
+    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
 {
     "serverGroups": [
         {
@@ -106,5 +107,58 @@ class AbstractInstancesCheckTaskSpec extends Specification {
 
     and:
     1 * task.hasSucceededSpy.hasSucceeded(_, [['name':'i-12345678']], ['JustTrustMeBroItIsHealthy'])
+  }
+
+  @Unroll
+  void 'should reset zeroTargetDesiredSizesSeen when targetDesiredCapacity is not zero'() {
+    task.oortService = Mock(OortService)
+    task.objectMapper = new OrcaObjectMapper()
+    task.hasSucceededSpy = Mock(HasSucceededSpy)
+
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, "whatever", [
+        "account.name"                  : "test",
+        "targetop.asg.enableAsg.name"   : "front50-v000",
+        "targetop.asg.enableAsg.regions": ["us-west-1"],
+        zeroDesiredCapacityCount: 2,
+        capacitySnapshot: [
+            minSize: 1,
+            desiredCapacity: 1,
+            maxSize: 1
+        ]
+    ])
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    result.stageOutputs.zeroDesiredCapacityCount == expected
+    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
+{
+    "serverGroups": [
+        {
+            "name": "front50-v000",
+            "region": "us-west-1",
+            "asg": {
+                "minSize": 1,
+                "desiredCapacity": ''' + desiredCapacity + '''
+            },
+            "instances": [
+                {
+                    "name": "i-12345678"
+                }
+            ]
+        }
+    ]
+}
+''')
+
+    and:
+    1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
+
+    where:
+    desiredCapacity || expected
+    0               || 3
+    1               || 0
   }
 }

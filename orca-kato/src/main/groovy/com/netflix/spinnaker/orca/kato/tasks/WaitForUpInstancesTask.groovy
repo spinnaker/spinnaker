@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
-import groovy.transform.Immutable
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 
@@ -27,11 +26,23 @@ import org.springframework.stereotype.Component
 @Slf4j
 class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
+  static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
+
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
     if (!(serverGroup?.asg)) {
       return false
     }
     int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
+
+    if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
+      Map snapshot = stage.context.capacitySnapshot as Map
+      Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
+      if (snapshotDesiredCapacity != 0) {
+        Integer seenCount = stage.context.zeroDesiredCapacityCount as Integer
+        return seenCount >= MIN_ZERO_INSTANCE_RETRY_COUNT
+      }
+    }
+
     if (targetDesiredSize > instances.size()) {
       return false
     }
