@@ -60,7 +60,6 @@ module.exports = angular.module('spinnaker.utils.waypoints.service', [
           console.warn('nothing found, returning');
           return;
         }
-        console.warn('time to restore');
 
         var candidates = registry.lastWindow || [],
           container = registry.container,
