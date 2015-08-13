@@ -33,8 +33,6 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
 
-  final static List NOTIFICATION_TYPES_EXPECTING_RESULT_OBJECTS = ["createdeploy", "upsertamazonloadbalancer", "createcopylastasg", "upsertsecuritygroup"]
-
   long backoffPeriod = 1000
   long timeout = 3600000
 
@@ -49,7 +47,8 @@ class MonitorKatoTask implements RetryableTask {
     }
 
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
-    ExecutionStatus status = katoStatusToTaskStatus(katoTask, stage.context["notification.type"]?.toString())
+    def katoResultExpected = (stage.context["kato.result.expected"] as Boolean) ?: false
+    ExecutionStatus status = katoStatusToTaskStatus(katoTask, katoResultExpected)
 
     if (status != ExecutionStatus.TERMINAL && status != ExecutionStatus.SUCCEEDED) {
       status = ExecutionStatus.RUNNING
@@ -78,15 +77,13 @@ class MonitorKatoTask implements RetryableTask {
     new DefaultTaskResult(status, outputs)
   }
 
-  private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, String notificationType) {
+  private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, boolean katoResultExpected) {
     def katoStatus = katoTask.status
     if (katoStatus.failed) {
       return ExecutionStatus.TERMINAL
     } else if (katoStatus.completed) {
-      if (notificationType && NOTIFICATION_TYPES_EXPECTING_RESULT_OBJECTS.contains(notificationType)) {
-        if (!katoTask.resultObjects) {
-          return ExecutionStatus.RUNNING
-        }
+      if (katoResultExpected && !katoTask.resultObjects) {
+        return ExecutionStatus.RUNNING
       }
       return ExecutionStatus.SUCCEEDED
     } else {

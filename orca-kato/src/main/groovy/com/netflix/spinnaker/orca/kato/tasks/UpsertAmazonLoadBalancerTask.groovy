@@ -50,9 +50,10 @@ class UpsertAmazonLoadBalancerTask implements Task {
       .first()
 
     Map outputs = [
-      "notification.type": "upsertamazonloadbalancer",
-      "kato.last.task.id": taskId,
-      "targets"          : operations.collect {
+      "notification.type"   : "upsertamazonloadbalancer",
+      "kato.result.expected": true,
+      "kato.last.task.id"   : taskId,
+      "targets"             : operations.collect {
         [
           credentials      : it.upsertAmazonLoadBalancerDescription.credentials,
           availabilityZones: it.upsertAmazonLoadBalancerDescription.availabilityZones,
