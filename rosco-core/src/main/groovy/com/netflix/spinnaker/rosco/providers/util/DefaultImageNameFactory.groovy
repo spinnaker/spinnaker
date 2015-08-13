@@ -79,7 +79,7 @@ public class DefaultImageNameFactory implements ImageNameFactory {
     // TODO(duftler): Get architecture from OsPackageName.
     imageName += "all-$timestamp-$bakeRequest.base_os"
 
-    def packagesParameter = packageNameList.join(" ")
+    def packagesParameter = packageNameList ? packageNameList.join(" ") : ""
 
     [imageName, appVersionStr, packagesParameter]
   }
