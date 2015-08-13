@@ -136,7 +136,7 @@ class DeployCanaryStage extends ParallelDeployStage {
         log.info("Completed Canary Deploys")
         Map canary = stage.context.canary
         canary.canaryDeployments = deployedClusterPairs
-        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary], [canary: canary, deployedClusterPairs: deployedClusterPairs])
+        new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary, deployedClusterPairs: deployedClusterPairs])
       }
     }
   }
