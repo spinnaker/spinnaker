@@ -28,7 +28,6 @@ import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPha
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.sock.SockService
 import groovy.transform.CompileStatic
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.StepExecution
@@ -42,9 +41,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
 @CompileStatic
 class RollingPushStage extends StageBuilder {
   static final String PIPELINE_CONFIG_TYPE = "rollingPush"
-
-  @Autowired(required = false)
-  SockService sockService
 
   private final ExecutionRepository executionRepository
 

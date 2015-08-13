@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.sock.tasks
+package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.sock.SockService
+import com.netflix.spinnaker.orca.igor.IgorService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -49,7 +49,7 @@ class GetCommitsTask implements RetryableTask {
   ObjectMapper objectMapper
 
   @Autowired(required = false)
-  SockService sockService
+  IgorService igorService
 
   @Autowired
   Front50Service front50Service
@@ -57,9 +57,9 @@ class GetCommitsTask implements RetryableTask {
   @Override
   TaskResult execute(Stage stage) {
     def retriesRemaining = stage.context.getCommitsRetriesRemaining != null ? stage.context.getCommitsRetriesRemaining : MAX_RETRIES
-    // is sock not configured or have we exceeded configured retries
-    if (!sockService || retriesRemaining == 0) {
-      log.info("sock is not configured or retries exceeded : sockService : ${sockService}, retries : ${retriesRemaining}")
+    // is igor not configured or have we exceeded configured retries
+    if (!igorService || retriesRemaining == 0) {
+      log.info("igor is not configured or retries exceeded : igorService : ${igorService}, retries : ${retriesRemaining}")
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
     }
 
@@ -73,7 +73,7 @@ class GetCommitsTask implements RetryableTask {
       repoInfo = getRepoInfo(stage.context.account, stage.context.application)
 
       if(!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
-        log.info("not enough info to query sock for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
+        log.info("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
         return DefaultTaskResult.SUCCEEDED
       }
 
@@ -91,7 +91,7 @@ class GetCommitsTask implements RetryableTask {
       //figure out the new asg/ami/commit
       String targetAmi = getTargetAmi(stage.context, region)
 
-      //get commits from sock
+      //get commits from igor
       sourceCommit = resolveCommitFromAmi(ancestorAmi, account, region)
       targetCommit = resolveCommitFromAmi(targetAmi, account, region)
 
@@ -101,12 +101,12 @@ class GetCommitsTask implements RetryableTask {
       if (repoInfo?.repoType && repoInfo?.projectKey && repoInfo?.repositorySlug && sourceCommit && targetCommit) {
         commitsList = getCommitsList(repoInfo.repoType, repoInfo.projectKey, repoInfo.repositorySlug, sourceCommit, targetCommit)
       } else {
-        log.warn("not enough info to query sock for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
+        log.warn("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
       }
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
     } catch (RetrofitError e) {
         if(e.response?.status == 404) { // just give up on 404
-          log.error("got a 404 from sock for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
+          log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
           return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         } else { // retry on other status codes
           log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
@@ -123,7 +123,7 @@ class GetCommitsTask implements RetryableTask {
 
   List getCommitsList(String repoType, String projectKey, String repositorySlug, String sourceCommit, String targetCommit) {
     List commitsList = []
-    List commits = sockService.compareCommits(repoType, projectKey, repositorySlug, [to: sourceCommit, from: targetCommit, limit: 100])
+    List commits = igorService.compareCommits(repoType, projectKey, repositorySlug, [to: sourceCommit, from: targetCommit, limit: 100])
     commits.each {
       // add commits to the task output
       commitsList << [displayId: it.displayId, id: it.id, authorDisplayName: it.authorDisplayName,

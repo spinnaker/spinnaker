@@ -43,7 +43,6 @@ dependencies {
   compile project(":orca-mine")
   compile project(":orca-rush")
   compile project(":orca-igor")
-  compile project(":orca-sock")
   compile project(":orca-eureka")
   compile project(":orca-tide")
 

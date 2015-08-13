@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.TomcatConfiguration
-import com.netflix.spinnaker.kork.jedis.JedisConfig
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
@@ -37,7 +36,6 @@ import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.tide.config.TideConfiguration
-import com.netflix.spinnaker.orca.sock.config.SockConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing
 import org.springframework.boot.SpringApplication
@@ -71,7 +69,6 @@ import org.springframework.scheduling.annotation.EnableAsync
   OortConfiguration,
   RushConfiguration,
   IgorConfiguration,
-  SockConfiguration,
   DiscoveryPollingConfiguration,
   TomcatConfiguration,
   MineConfiguration,

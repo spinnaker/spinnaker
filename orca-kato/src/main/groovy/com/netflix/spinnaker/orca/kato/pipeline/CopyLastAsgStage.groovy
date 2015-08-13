@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.sock.tasks.GetCommitsTask
+import com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
