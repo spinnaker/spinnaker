@@ -76,7 +76,6 @@ class UpsertSecurityGroupTask implements Task {
 
     Map outputs = [
       "notification.type"   : "upsertsecuritygroup",
-      "kato.result.expected": true,
       "kato.last.task.id"   : taskId,
       "targets"             : operations.collect {
         [
