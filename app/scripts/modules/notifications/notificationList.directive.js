@@ -8,8 +8,9 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
             restrict: 'E',
             scope: {
                 application: '=',
-                level: '=',
+                level: '@',
                 notifications: '=',
+                parent: '='
             },
             templateUrl: require('./notificationList.directive.html'),
             controller: 'NotificationListCtrl',
@@ -38,7 +39,9 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
             });
         };
 
-        vm.revertNotificationChanges();
+        if($scope.level === 'application'){
+            vm.revertNotificationChanges();
+        }
 
         vm.saveNotifications = function () {
 
@@ -82,6 +85,9 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
         };
 
         vm.addNotification = function () {
+            if( $scope.parent && !$scope.parent.notifications){
+                $scope.parent.notifications = [];
+            }
             vm.editNotification(undefined);
         };
 

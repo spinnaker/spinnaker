@@ -30,8 +30,8 @@
             <tfoot>
             <tr>
                 <td colspan="7">
-                    <button class="btn btn-block btn-sm add-new" ng-click="notificationListCtrl.addNotification()">
-                        <span class="glyphicon glyphicon-plus-sign"></span> Add notification setting
+                    <button class="btn btn-block add-new" ng-click="notificationListCtrl.addNotification()">
+                        <span class="glyphicon glyphicon-plus-sign"></span> Add Notification Preference
                     </button>
                 </td>
             </tr>
@@ -39,7 +39,7 @@
         </table>
     </div>
 </div>
-<div class="row pipeline-footer ng-scope" if="level == 'application'">
+<div class="row pipeline-footer ng-scope" ng-if="level === 'application'">
     <div class="col-md-3">
         <button class="btn btn-default" ng-click="notificationListCtrl.revertNotificationChanges()"
                 ng-if="notificationListCtrl.isNotificationsDirty"
