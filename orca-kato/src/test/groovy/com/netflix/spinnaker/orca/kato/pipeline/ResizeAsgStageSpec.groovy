@@ -36,7 +36,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ResizeASgStageSpec extends Specification {
+class ResizeAsgStageSpec extends Specification {
 
   @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
 
