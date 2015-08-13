@@ -165,7 +165,8 @@ class ResizeAsgStage extends LinearStage {
       if (newMin && newDesired && newMax) {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       } else {
-        description.capacity = mergeConfiguredCapacityWithCurrent((Map<String, Integer>) stage.context.capacity, currentMin, currentDesired, currentMax)
+        def capacity = stage.mapTo("/capacity", Capacity)
+        description.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
       }
 
       descriptions[asg.name as String] = description
@@ -173,7 +174,7 @@ class ResizeAsgStage extends LinearStage {
     descriptions.values().flatten()
   }
 
-  private static Map mergeConfiguredCapacityWithCurrent(Map<String, Integer> configured, int currentMin, int currentDesired, int currentMax) {
+  private static Map mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {
     boolean minConfigured = configured.min != null;
     boolean desiredConfigured = configured.desired != null;
     boolean maxConfigured = configured.max != null;
@@ -209,5 +210,11 @@ class ResizeAsgStage extends LinearStage {
     ResizeAction action
     Integer scalePct
     Integer scaleNum
+  }
+
+  static class Capacity {
+    Integer max
+    Integer desired
+    Integer min
   }
 }

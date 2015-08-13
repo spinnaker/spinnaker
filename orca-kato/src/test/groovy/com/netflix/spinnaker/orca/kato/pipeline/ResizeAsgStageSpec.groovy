@@ -39,7 +39,9 @@ import spock.lang.Unroll
 
 class ResizeAsgStageSpec extends Specification {
 
-  @Shared @AutoCleanup("destroy") EmbeddedRedis embeddedRedis
+  @Shared
+  @AutoCleanup("destroy")
+  EmbeddedRedis embeddedRedis
 
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
@@ -171,7 +173,7 @@ class ResizeAsgStageSpec extends Specification {
     then:
     _ * targetReferenceSupport.isDynamicallyBound(_) >> true
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-east-1",
-                                                                                     cluster: "testapp-asg")]
+      cluster: "testapp-asg")]
 
     stage.afterStages.size() == 2
     stage.beforeStages.size() == 2
@@ -309,24 +311,26 @@ class ResizeAsgStageSpec extends Specification {
 
     then:
     1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [
-        new TargetReference(region: "us-west-1", asg: [
-            name  : "testapp-asg-v001",
-            region: "us-west-1",
-            asg   : current
-        ])
+      new TargetReference(region: "us-west-1", asg: [
+        name  : "testapp-asg-v001",
+        region: "us-west-1",
+        asg   : current
+      ])
     ]
 
     stage.afterStages[0].context.capacity == expected
 
     where:
-    configured         | current                                      || expected
-    [min: 0]           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 1, desired: 1]
-    [max: 0]           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 0, desired: 0]
-    [max: 1]           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 1, max: 1, desired: 1]
-    [min: 2]           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 2, max: 2, desired: 2]
-    [min: 2]           | [minSize: 1, maxSize: 3, desiredCapacity: 1] || [min: 2, max: 3, desired: 2]
-    [min: 0, max: 2]   | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 2, desired: 1]
-    [min: 0, max: 2]   | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
-
+    configured                         | current                                      || expected
+    [min: 0]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 1, desired: 1]
+    [max: 0]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 0, desired: 0]
+    [max: 1]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 1, max: 1, desired: 1]
+    [min: 2]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 2, max: 2, desired: 2]
+    [min: 2]                           | [minSize: 1, maxSize: 3, desiredCapacity: 1] || [min: 2, max: 3, desired: 2]
+    [min: 0, max: 2]                   | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 2, desired: 1]
+    [min: 0, max: 2]                   | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
+    [min: "0", max: "2"]               | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
+    [min: "0", max: "2", desired: "3"] | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 3]
+    [:]                                | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 1, max: 3, desired: 3]
   }
 }
