@@ -60,7 +60,7 @@ class CreateBakeTask implements RetryableTask {
 
       def stageOutputs = [
         status: bakeStatus,
-        bakePackageName: bake.packageName
+        bakePackageName: bake.packageName ?: ""
       ] as Map<String, ? extends Object>
 
       if (bake.buildHost) {
