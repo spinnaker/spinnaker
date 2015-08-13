@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mine.MineService
+import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -35,7 +36,9 @@ class RegisterCanaryTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     String app = stage.context.application ?: stage.execution.application
-    Map c = buildCanary(app, stage)
+    Stage deployStage = stage.execution.stages.find { it.parentStageId == stage.parentStageId && it.type == DeployCanaryStage.PIPELINE_CONFIG_TYPE }
+
+    Map c = buildCanary(app, deployStage)
     Response response = mineService.registerCanary(c)
     String canaryId
     if (response.status == 200 && response.body.mimeType().startsWith('text/plain')) {
@@ -44,7 +47,8 @@ class RegisterCanaryTask implements Task {
       throw new IllegalStateException("Unable to handle $response")
     }
     def outputs = [
-            canary: mineService.getCanary(canaryId)
+      canary: mineService.getCanary(canaryId),
+      deployedClusterPairs: deployStage.context.deployedClusterPairs
     ]
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }

@@ -39,7 +39,7 @@ class OortHelper {
     if(expectedAsgName) {
       app = expectedAsgName.substring(0, expectedAsgName.indexOf("-"))
       clusterName = expectedAsgName.substring(0, expectedAsgName.lastIndexOf("-"))
-    } else if(context?.clusterName.indexOf("-") > 0) {
+    } else if(context?.clusterName?.indexOf("-") > 0) {
       app = context.clusterName.substring(0, context.clusterName.indexOf("-"))
       clusterName = context.clusterName
     } else {

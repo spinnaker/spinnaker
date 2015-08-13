@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.mine.tasks
 
 import com.netflix.spinnaker.orca.mine.MineService
+import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.mine.pipeline.MonitorCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -36,7 +37,8 @@ class RegisterCanaryTaskSpec extends Specification {
     def pipeline = new Pipeline(application: 'foo')
 
     def canaryStageId = UUID.randomUUID().toString()
-    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [
+    def parentStageId = UUID.randomUUID().toString()
+    def deployCanaryStage = new PipelineStage(pipeline, DeployCanaryStage.PIPELINE_CONFIG_TYPE, [
       canaryStageId: canaryStageId,
       account     : 'test',
       canary: [
@@ -93,11 +95,16 @@ class RegisterCanaryTaskSpec extends Specification {
               ]
       ]]
     ])
+    deployCanaryStage.parentStageId = parentStageId
+    def monitorCanaryStage = new PipelineStage(pipeline, MonitorCanaryStage.PIPELINE_CONFIG_TYPE, [:])
+
+    pipeline.stages.addAll([deployCanaryStage, monitorCanaryStage])
+
 
     Map captured
 
     when:
-    def result = task.execute(monitorCanaryStage)
+    def result = task.execute(deployCanaryStage)
 
     then:
     1 * mineService.registerCanary(_) >> { Map c ->
