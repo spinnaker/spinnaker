@@ -80,6 +80,7 @@ class SyntheticStageRestartingSpec extends Specification {
     pipeline.stages[0].tasks << new DefaultTask(id: 2, name: "main", status: RUNNING,
                                                 startTime: currentTimeMillis())
     pipeline.stages << new PipelineStage(pipeline, "before", "before", [:])
+    pipeline.stages[1].id = pipeline.stages[0].id + "-1-before"
     pipeline.stages[1].syntheticStageOwner = STAGE_BEFORE
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
     pipeline.stages[1].status = SUCCEEDED
@@ -89,6 +90,7 @@ class SyntheticStageRestartingSpec extends Specification {
                                                 startTime: currentTimeMillis(),
                                                 endTime: currentTimeMillis())
     pipeline.stages << new PipelineStage(pipeline, "after", "after", [:])
+    pipeline.stages[2].id = pipeline.stages[0].id + "-2-after"
     pipeline.stages[2].parentStageId = pipeline.stages[0].id
     pipeline.stages[2].syntheticStageOwner = STAGE_AFTER
     pipeline.stages[2].status = NOT_STARTED

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipeline
 
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
@@ -93,8 +94,14 @@ abstract class LinearStage extends StageBuilder implements StepProvider {
   }
 
   private void processSyntheticStage(FlowBuilder jobBuilder, Stage parent, InjectedStageConfiguration stageConfig, SyntheticStageOwner stageOwner, int stageIdx = -1) {
+    // TODO: this is super dumb because we're about to work the id out in the
+    // call to newStage but there's no other sensible way to disambiguate > 1
+    // synthetic stage of the same type, for example if a resizeASG stage is
+    // running vs multiple regions – working on a better fix but this is urgent
+    def syntheticStageId = parent.id + "-" + (((AbstractStage) parent).stageCounter.get() + 1) + "-" + stageConfig.name?.replaceAll(
+      "[^A-Za-z0-9]", "")
     def stage = parent.execution.stages.find {
-      it.name == stageConfig.name && it.syntheticStageOwner == stageOwner && it.parentStageId == parent.id
+      it.id == syntheticStageId
     }
     if (!stage) {
       stage = newStage(parent.execution, stageConfig.stageBuilder.type, stageConfig.name,
