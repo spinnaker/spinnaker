@@ -68,7 +68,6 @@ module.exports = angular.module('spinnaker.utils.waypoints.service', [
         candidates.every(function(candidate) {
           var elem = $('[waypoint="' + candidate.elem + '"]', container);
           if (elem.length) {
-            console.warn('found something');
             container.scrollTop(containerScrollTop + elem.offset().top - candidate.top);
             container.trigger('scroll');
             return false;
