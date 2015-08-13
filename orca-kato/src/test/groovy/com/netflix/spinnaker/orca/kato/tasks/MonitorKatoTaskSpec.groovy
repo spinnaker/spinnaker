@@ -56,7 +56,7 @@ class MonitorKatoTaskSpec extends Specification {
     katoStatus = completed ? "completed" : "incomplete"
   }
 
-  @Unroll("result is #expectedResult if notification type is #notificationType and resultObject is #resultObjects")
+  @Unroll("result is #expectedResult if katoResultExpected is #katoResultExpected and resultObject is #resultObjects")
   def "result depends on Kato task status and result object size for create/upsert operations"() {
     given:
     task.kato = Stub(KatoService) {
@@ -76,22 +76,10 @@ class MonitorKatoTaskSpec extends Specification {
     where:
     katoResultExpected | resultObjects || expectedResult
     true               | null          || ExecutionStatus.RUNNING
-    true               | null          || ExecutionStatus.RUNNING
-    true               | null          || ExecutionStatus.RUNNING
-    true               | null          || ExecutionStatus.RUNNING
-
-    true               | []            || ExecutionStatus.RUNNING
-    true               | []            || ExecutionStatus.RUNNING
-    true               | []            || ExecutionStatus.RUNNING
     true               | []            || ExecutionStatus.RUNNING
     false              | []            || ExecutionStatus.SUCCEEDED
-
-    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
-    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
-    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
     true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
     false              | [[a: 1]]      || ExecutionStatus.SUCCEEDED
-
     null               | []            || ExecutionStatus.SUCCEEDED
 
     taskId = "kato-task-id"
