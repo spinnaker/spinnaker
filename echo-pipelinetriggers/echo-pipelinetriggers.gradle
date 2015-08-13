@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-elasticsearch', 'echo-kafka', 'echo-notifications', 'echo-pipelinetriggers'
+apply from: "$rootDir/gradle/groovy-module.gradle"
 
-rootProject.name = 'echo'
+dependencies {
+  spinnaker.group("lombok")
+  spinnaker.group("retrofitDefault")
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
-
-rootProject.children.each {
-    setBuildFile it
+  compile project(':echo-core')
+  compile spinnaker.dependency("bootWeb")
+  compile spinnaker.dependency("bootActuator")
+  compile spinnaker.dependency("rxJava")
+  compile spinnaker.dependency("guava")
+  compile spinnaker.dependency("okHttp")
+  compile spinnaker.dependency("eurekaClient")
+  compile spinnaker.dependency("kork")
 }

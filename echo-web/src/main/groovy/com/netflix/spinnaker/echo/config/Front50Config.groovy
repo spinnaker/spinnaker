@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import static retrofit.Endpoints.newFixedEndpoint
 
-import com.netflix.spinnaker.echo.front50.Front50Service
+import com.netflix.spinnaker.echo.services.Front50Service
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value

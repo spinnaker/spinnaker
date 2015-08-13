@@ -17,6 +17,8 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
+    spinnaker.group("retrofitDefault")
+
     compile project(":echo-model")
     compile commonDependencies.rxJava
     testCompile commonDependencies.spockSpring
