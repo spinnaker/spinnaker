@@ -50,9 +50,9 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
         def localZoneName = Utils.getLocalName(zone)
 
         instancesScopedList.instances.each { instance ->
-          long instanceTimestamp = instance.creationTimestamp
-                                   ? Utils.getTimeFromTimestamp(instance.creationTimestamp)
-                                   : Long.MAX_VALUE
+          long instanceTimestamp = instance.creationTimestamp ?
+                                   Utils.getTimeFromTimestamp(instance.creationTimestamp) :
+                                   Long.MAX_VALUE
           def googleInstance = new GoogleInstance(name: instance.name)
 
           // Set attributes that deck requires to render instance.
@@ -64,8 +64,9 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
 
           def healthStates = [buildGCEHealthState(instance.status)];
 
-          buildAndAddLoadBalancerStateIfNecessary(
-            instance.name, healthStates, instanceNameToLoadBalancerHealthStatusMap)
+          if (instanceNameToLoadBalancerHealthStatusMap) {
+            buildAndAddLoadBalancerState(instance.name, healthStates, instanceNameToLoadBalancerHealthStatusMap)
+          }
 
           googleInstance.setProperty("health", healthStates)
 
@@ -102,28 +103,25 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
   static HealthState deriveInstanceGCEHealthState(String instanceStatus) {
     instanceStatus == "PROVISIONING" ? HealthState.Starting :
       instanceStatus == "STAGING" ? HealthState.Starting :
-        instanceStatus == "RUNNING" ? HealthState.Unknown :
+        instanceStatus == "RUNNING" ? HealthState.Up :
           HealthState.Down
   }
 
-  static void buildAndAddLoadBalancerStateIfNecessary(
+  static void buildAndAddLoadBalancerState(
     String instanceName,
     List<Map> healthStates,
     Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap) {
 
-    if (instanceNameToLoadBalancerHealthStatusMap) {
-      def individualInstanceLoadBalancerStates =
-        deriveIndividualInstanceLoadBalancerStates(instanceName,
-          instanceNameToLoadBalancerHealthStatusMap[instanceName])
+    def individualInstanceLoadBalancerStates =
+      deriveIndividualInstanceLoadBalancerStates(instanceName, instanceNameToLoadBalancerHealthStatusMap[instanceName])
 
-      if (individualInstanceLoadBalancerStates) {
-        healthStates << [
-          type         : "LoadBalancer",
-          state        : deriveInstanceLoadBalancerHealthState(individualInstanceLoadBalancerStates),
-          loadBalancers: individualInstanceLoadBalancerStates,
-          instanceId   : instanceName
-        ];
-      }
+    if (individualInstanceLoadBalancerStates) {
+      healthStates << [
+        type         : "LoadBalancer",
+        state        : deriveInstanceLoadBalancerHealthState(individualInstanceLoadBalancerStates),
+        loadBalancers: individualInstanceLoadBalancerStates,
+        instanceId   : instanceName
+      ];
     }
   }
 
@@ -142,21 +140,17 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
       if (healthStatusList) {
         def healthStatus = healthStatusList[0]
 
-        // TODO(duftler): Reconsider whether we should artificially mark instances lacking a health check as
-        // 'InService'. This may be a better alternative than having them listed as 'OutOfService' but still
-        // receiving traffic (even though the health state returned from GCE would still be 'UNHEALTHY').
         def individualInstanceLoadBalancerState = [
           loadBalancerName: loadBalancerName,
           instanceId      : instanceName,
-          state           : healthStatus.healthState == "UNHEALTHY" ? "OutOfService" : "InService"
         ]
 
-        if (individualInstanceLoadBalancerState.state == "OutOfService") {
+        if (healthStatus.hasHttpHealthCheck && healthStatus.healthState == "UNHEALTHY") {
+          individualInstanceLoadBalancerState.state = "OutOfService"
           individualInstanceLoadBalancerState.description =
-            healthStatus.hasHttpHealthCheck
-              ? "Instance has failed at least the Unhealthy Threshold number of health checks consecutively."
-              : "No http health check defined. Traffic will still be sent to this instance.";
-
+            "Instance has failed at least the Unhealthy Threshold number of health checks consecutively."
+        } else {
+          individualInstanceLoadBalancerState.state = "InService"
         }
 
         loadBalancerStates << individualInstanceLoadBalancerState
