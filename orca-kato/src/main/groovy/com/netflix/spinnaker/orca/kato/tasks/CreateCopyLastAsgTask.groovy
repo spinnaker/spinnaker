@@ -45,13 +45,14 @@ class CreateCopyLastAsgTask implements Task {
     operation.putAll(stage.context)
     operation.amiName = operation.amiName ?: stage.preceding("bake")?.context?.amiName as String
     def taskId = kato.requestOperations(getDescriptions(operation))
-                     .toBlocking()
-                     .first()
+      .toBlocking()
+      .first()
 
     def outputs = [
-      "notification.type"  : "createcopylastasg",
-      "kato.last.task.id"  : taskId,
-      "deploy.account.name": operation.credentials,
+      "notification.type"   : "createcopylastasg",
+      "kato.result.expected": true,
+      "kato.last.task.id"   : taskId,
+      "deploy.account.name" : operation.credentials,
     ]
 
     def suspendedProcesses = stage.context.suspendedProcesses as Set<String>
@@ -67,12 +68,12 @@ class CreateCopyLastAsgTask implements Task {
     if (operation.credentials != defaultBakeAccount) {
       def allowLaunchDescriptions = operation.availabilityZones.collect { String region, List<String> azs ->
         [
-            allowLaunchDescription: [
-                account    : operation.credentials,
-                credentials: defaultBakeAccount,
-                region     : region,
-                amiName    : operation.amiName
-            ]
+          allowLaunchDescription: [
+            account    : operation.credentials,
+            credentials: defaultBakeAccount,
+            region     : region,
+            amiName    : operation.amiName
+          ]
         ]
       }
       descriptions.addAll(allowLaunchDescriptions)

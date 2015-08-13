@@ -66,7 +66,7 @@ class MonitorKatoTaskSpec extends Specification {
     and:
     def stage = new PipelineStage(new Pipeline(), "whatever", [
         "kato.last.task.id": new TaskId(taskId),
-        "notification.type": notificationType,
+        "kato.result.expected": katoResultExpected,
         "deploy.server.groups": [:]
     ]).asImmutable()
 
@@ -74,25 +74,25 @@ class MonitorKatoTaskSpec extends Specification {
     task.execute(stage).status == expectedResult
 
     where:
-    notificationType            | resultObjects || expectedResult
-    "createdeploy"              | null          || ExecutionStatus.RUNNING
-    "upsertamazonloadbalancer"  | null          || ExecutionStatus.RUNNING
-    "createcopylastasg"         | null          || ExecutionStatus.RUNNING
-    "upsertsecuritygroup"       | null          || ExecutionStatus.RUNNING
+    katoResultExpected | resultObjects || expectedResult
+    true               | null          || ExecutionStatus.RUNNING
+    true               | null          || ExecutionStatus.RUNNING
+    true               | null          || ExecutionStatus.RUNNING
+    true               | null          || ExecutionStatus.RUNNING
 
-    "createdeploy"              | []            || ExecutionStatus.RUNNING
-    "upsertamazonloadbalancer"  | []            || ExecutionStatus.RUNNING
-    "createcopylastasg"         | []            || ExecutionStatus.RUNNING
-    "upsertsecuritygroup"       | []            || ExecutionStatus.RUNNING
-    "somethingelse"             | []            || ExecutionStatus.SUCCEEDED
+    true               | []            || ExecutionStatus.RUNNING
+    true               | []            || ExecutionStatus.RUNNING
+    true               | []            || ExecutionStatus.RUNNING
+    true               | []            || ExecutionStatus.RUNNING
+    false              | []            || ExecutionStatus.SUCCEEDED
 
-    "createdeploy"              | [[a:1]]       || ExecutionStatus.SUCCEEDED
-    "upsertamazonloadbalancer"  | [[a:1]]       || ExecutionStatus.SUCCEEDED
-    "createcopylastasg"         | [[a:1]]       || ExecutionStatus.SUCCEEDED
-    "upsertsecuritygroup"       | [[a:1]]       || ExecutionStatus.SUCCEEDED
-    "somethingelse"             | [[a:1]]       || ExecutionStatus.SUCCEEDED
+    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
+    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
+    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
+    true               | [[a: 1]]      || ExecutionStatus.SUCCEEDED
+    false              | [[a: 1]]      || ExecutionStatus.SUCCEEDED
 
-    null                        | []            || ExecutionStatus.SUCCEEDED
+    null               | []            || ExecutionStatus.SUCCEEDED
 
     taskId = "kato-task-id"
   }

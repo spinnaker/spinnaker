@@ -36,10 +36,8 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class CreateDeployTask implements Task {
 
-  static
-  final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
-  static
-  final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
+  static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
+  static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
 
   @Autowired
   KatoService kato
@@ -63,6 +61,7 @@ class CreateDeployTask implements Task {
 
     def outputs = [
       "notification.type"  : "createdeploy",
+      "kato.result.expected": true,
       "kato.last.task.id"  : taskId,
       "deploy.account.name": deployOperations.credentials
     ]
