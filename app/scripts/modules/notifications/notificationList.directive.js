@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
             restrict: 'E',
             scope: {
                 application: '=',
-                type: '=',
+                level: '=',
                 notifications: '=',
             },
             templateUrl: require('./notificationList.directive.html'),
@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
             controllerAs: 'notificationListCtrl'
         };
     })
-    .controller('NotificationListCtrl', function ($scope, $modal, notificationService) {
+    .controller('NotificationListCtrl', function ($scope, $modal, notificationService, _) {
 
         var vm = this;
 
