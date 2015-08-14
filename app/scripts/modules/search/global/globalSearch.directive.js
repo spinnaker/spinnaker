@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.search.global.directive', [
           if (event.target === element.find('input').get(0)) {
             return;
           }
-          scope.$apply(function(scope) {
+          scope.$digest(function(scope) {
             scope.showSearchResults = false;
           });
         });
