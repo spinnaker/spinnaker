@@ -22,9 +22,9 @@ module.exports = angular.module('spinnaker.search.global.directive', [
           if (event.target === element.find('input').get(0)) {
             return;
           }
-          scope.$digest(function(scope) {
-            scope.showSearchResults = false;
-          });
+
+          scope.showSearchResults = false;
+          scope.$digest();
         });
 
         window.bind('keyup.globalsearch', function(event) {
