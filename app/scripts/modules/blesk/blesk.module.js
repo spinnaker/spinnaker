@@ -20,8 +20,9 @@ module.exports = angular.module('spinnaker.blesk', [
       initialize: initialize,
     };
   })
-  .run(function(settings, blesk) {
+  .run(function(settings, blesk, $timeout) {
     if (settings.feature && settings.feature.blesk) {
-      blesk.initialize();
+      // putting a delay on initialization so authentication can take place and dom can finish loading.
+      $timeout(blesk.initialize, 5000);
     }
   }).name;
