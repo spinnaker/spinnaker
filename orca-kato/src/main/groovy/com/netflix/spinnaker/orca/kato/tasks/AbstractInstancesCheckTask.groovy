@@ -89,9 +89,9 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
         }
         def isComplete = hasSucceeded(stage, serverGroup, instances, interestingHealthProviderNames)
         if (!isComplete) {
-          Map targetCapacities = [:]
+          Map newContext = [:]
           if (seenServerGroup && !stage.context.capacitySnapshot) {
-            targetCapacities = [
+            newContext = [
               zeroDesiredCapacityCount: 0,
               capacitySnapshot: [
                 minSize: serverGroup.asg.minSize,
@@ -102,12 +102,12 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
           }
           if (seenServerGroup) {
             if (serverGroup.asg.desiredCapacity == 0) {
-              targetCapacities.zeroDesiredCapacityCount = stage.context.zeroDesiredCapacityCount + 1
+              newContext.zeroDesiredCapacityCount = (stage.context.zeroDesiredCapacityCount ?: 0) + 1
             } else {
-              targetCapacities.zeroDesiredCapacityCount = 0
+              newContext.zeroDesiredCapacityCount = 0
             }
           }
-          return new DefaultTaskResult(ExecutionStatus.RUNNING, targetCapacities)
+          return new DefaultTaskResult(ExecutionStatus.RUNNING, newContext)
         }
       }
       if (seenServerGroup.values().contains(false)) {

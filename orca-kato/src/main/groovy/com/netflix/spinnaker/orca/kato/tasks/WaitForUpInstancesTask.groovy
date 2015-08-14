@@ -35,6 +35,8 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
     int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
 
     if (targetDesiredSize == 0 && stage.context.capacitySnapshot) {
+      // if we've seen a non-zero value before, but we are seeing a target size of zero now, assume
+      // it's a transient issue with edda unless we see it repeatedly
       Map snapshot = stage.context.capacitySnapshot as Map
       Integer snapshotDesiredCapacity = snapshot.desiredCapacity as Integer
       if (snapshotDesiredCapacity != 0) {

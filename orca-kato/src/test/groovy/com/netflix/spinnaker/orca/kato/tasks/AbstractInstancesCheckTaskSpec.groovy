@@ -110,7 +110,7 @@ class AbstractInstancesCheckTaskSpec extends Specification {
   }
 
   @Unroll
-  void 'should reset zeroTargetDesiredSizesSeen when targetDesiredCapacity is not zero'() {
+  void 'should reset zeroDesiredCapacityCount when targetDesiredCapacity is not zero, otherwise increment'() {
     task.oortService = Mock(OortService)
     task.objectMapper = new OrcaObjectMapper()
     task.hasSucceededSpy = Mock(HasSucceededSpy)
@@ -160,5 +160,46 @@ class AbstractInstancesCheckTaskSpec extends Specification {
     desiredCapacity || expected
     0               || 3
     1               || 0
+  }
+
+  void 'should set zeroDesiredCapacityCount when targetDesiredCapacity is zero and no zeroDesiredCapacityCount is not present on context'() {
+    task.oortService = Mock(OortService)
+    task.objectMapper = new OrcaObjectMapper()
+    task.hasSucceededSpy = Mock(HasSucceededSpy)
+
+    def pipeline = new Pipeline()
+    def stage = new PipelineStage(pipeline, "whatever", [
+        "account.name"                  : "test",
+        "targetop.asg.enableAsg.name"   : "front50-v000",
+        "targetop.asg.enableAsg.regions": ["us-west-1"],
+    ])
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    result.stageOutputs.zeroDesiredCapacityCount == 1
+    1 * task.oortService.getCluster("front50", "test", "front50", "aws") >> constructResponse(200, '''
+{
+    "serverGroups": [
+        {
+            "name": "front50-v000",
+            "region": "us-west-1",
+            "asg": {
+                "minSize": 1,
+                "desiredCapacity": 0
+            },
+            "instances": [
+                {
+                    "name": "i-12345678"
+                }
+            ]
+        }
+    ]
+}
+''')
+
+    and:
+    1 * task.hasSucceededSpy.hasSucceeded(_, _, _) >> false
   }
 }
