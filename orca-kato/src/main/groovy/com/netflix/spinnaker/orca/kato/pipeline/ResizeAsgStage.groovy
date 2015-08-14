@@ -135,7 +135,7 @@ class ResizeAsgStage extends LinearStage {
       def currentDesired = Integer.parseInt(asg.asg.desiredCapacity.toString())
       def currentMax = Integer.parseInt(asg.asg.maxSize.toString())
 
-      int newMin, newDesired, newMax
+      Integer newMin, newDesired, newMax
       if (optionalConfig.scalePct) {
         def factor = optionalConfig.scalePct / 100
         def minDiff = Math.ceil(currentMin * factor)
@@ -162,7 +162,7 @@ class ResizeAsgStage extends LinearStage {
         }
       }
 
-      if (newMin && newDesired && newMax) {
+      if (newMin != null && newDesired != null && newMax != null) {
         description.capacity = [min: newMin, desired: newDesired, max: newMax]
       } else {
         def capacity = stage.mapTo("/capacity", Capacity)
