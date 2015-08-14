@@ -29,8 +29,8 @@ allprojects {
     apply plugin: 'groovy'
     apply plugin: 'idea'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
 
     group = "com.netflix.spinnaker.igor"
 }
