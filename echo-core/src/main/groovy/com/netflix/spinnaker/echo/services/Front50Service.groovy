@@ -16,12 +16,19 @@
 
 
 
-package com.netflix.spinnaker.echo.front50
+package com.netflix.spinnaker.echo.services
 
+import com.netflix.spinnaker.echo.model.Pipeline
 import retrofit.http.GET
+import retrofit.http.Headers
 import retrofit.http.Path
+import rx.Observable
 
 interface Front50Service {
   @GET('/notifications/application/{application}/')
   Map getNotificationPreferences(@Path("application") String application)
+
+  @GET("/pipelines")
+  @Headers("Accept: application/json")
+  Observable<List<Pipeline>> getPipelines();
 }

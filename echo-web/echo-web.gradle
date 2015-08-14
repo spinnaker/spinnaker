@@ -46,6 +46,7 @@ dependencies {
     compile project(':echo-cassandra')
     compile project(':echo-elasticsearch')
     compile project(':echo-notifications')
+    compile project(':echo-pipelinetriggers')
     compile project(':echo-kafka')
     compile spinnaker.dependency('kork')
     compile spinnaker.dependency('korkWeb')
