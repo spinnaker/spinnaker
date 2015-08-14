@@ -107,14 +107,14 @@ class GoogleResourceRetriever {
           Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
           def regions = compute.regions().list(project).execute().getItems()
           def regionsCallback = new RegionsCallback(tempAppMap,
                                                     accountName,
                                                     project,
                                                     compute,
                                                     credentialBuilder,
-                                                    replicapool,
+                                                    replicaPool,
                                                     tempImageMap,
                                                     defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
@@ -321,7 +321,7 @@ class GoogleResourceRetriever {
           BatchRequest instancesBatch = buildBatchRequest(compute)
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
@@ -341,7 +341,7 @@ class GoogleResourceRetriever {
           InstanceGroupManager instanceGroupManager = null
 
           try {
-            instanceGroupManager = replicapool.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
+            instanceGroupManager = replicaPool.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
           } catch (GoogleJsonResponseException e) {
             // Nothing to do here except leave instanceGroupManager null. 404 can land us here.
           }

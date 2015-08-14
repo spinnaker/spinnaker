@@ -52,14 +52,14 @@ class InstanceAggregatedListCallbackSpec extends Specification {
       def healthStates = []
 
     when:
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
         "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
       healthStates == []
 
     when:
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
         "instance2", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
@@ -72,7 +72,8 @@ class InstanceAggregatedListCallbackSpec extends Specification {
         instance1: [
           testlb1: [
             [
-              healthState: "HEALTHY"
+              healthState: "HEALTHY",
+              hasHttpHealthCheck: true
             ]
           ]
         ]
@@ -80,7 +81,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
 
     when:
       def healthStates = []
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
         "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
@@ -106,12 +107,14 @@ class InstanceAggregatedListCallbackSpec extends Specification {
         instance1: [
           testlb1: [
             [
-              healthState: "HEALTHY"
+              healthState: "HEALTHY",
+              hasHttpHealthCheck: true
             ]
           ],
           testlb2: [
             [
-              healthState: "HEALTHY"
+              healthState: "HEALTHY",
+              hasHttpHealthCheck: true
             ]
           ]
         ]
@@ -119,7 +122,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
 
     when:
       def healthStates = []
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
         "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
@@ -150,12 +153,14 @@ class InstanceAggregatedListCallbackSpec extends Specification {
         instance1: [
           testlb1: [
             [
-              healthState: "HEALTHY"
+              healthState: "HEALTHY",
+              hasHttpHealthCheck: true
             ]
           ],
           testlb2: [
             [
-              healthState: "UNHEALTHY"
+              healthState: "UNHEALTHY",
+              hasHttpHealthCheck: true
             ]
           ]
         ]
@@ -163,7 +168,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
 
     when:
       def healthStates = []
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
         "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
@@ -181,7 +186,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
               loadBalancerName: "testlb2",
               instanceId: "instance1",
               state: "OutOfService",
-              description: "No http health check defined. Traffic will still be sent to this instance."
+              description: "Instance has failed at least the Unhealthy Threshold number of health checks consecutively."
             ]
           ],
           instanceId: "instance1"
@@ -189,19 +194,13 @@ class InstanceAggregatedListCallbackSpec extends Specification {
       ]
   }
 
-  def "should produce appropriate description depending on presence/absence of http health check"() {
+  def "should report up and in service if no health checks are defined on the load balancer"() {
     setup:
       def instanceNameToLoadBalancerHealthStatusMap = [
         instance1: [
           testlb1: [
             [
-              healthState: "UNHEALTHY",
-              hasHttpHealthCheck: true
-            ]
-          ],
-          testlb2: [
-            [
-              healthState: "UNHEALTHY",
+              healthState: "HEALTHY",
               hasHttpHealthCheck: false
             ]
           ]
@@ -210,26 +209,19 @@ class InstanceAggregatedListCallbackSpec extends Specification {
 
     when:
       def healthStates = []
-      InstanceAggregatedListCallback.buildAndAddLoadBalancerStateIfNecessary(
-        "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
+          "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
       healthStates == [
         [
           type: "LoadBalancer",
-          state: HealthState.Down,
+          state: HealthState.Up,
           loadBalancers: [
             [
               loadBalancerName: "testlb1",
               instanceId: "instance1",
-              state: "OutOfService",
-              description: "Instance has failed at least the Unhealthy Threshold number of health checks consecutively."
-            ],
-            [
-              loadBalancerName: "testlb2",
-              instanceId: "instance1",
-              state: "OutOfService",
-              description: "No http health check defined. Traffic will still be sent to this instance."
+              state: "InService"
             ]
           ],
           instanceId: "instance1"
