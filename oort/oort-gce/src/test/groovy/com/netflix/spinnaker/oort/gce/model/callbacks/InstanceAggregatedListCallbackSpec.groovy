@@ -36,7 +36,7 @@ class InstanceAggregatedListCallbackSpec extends Specification {
       instanceStatus | spinnakerHealthState
       "PROVISIONING" | HealthState.Starting
       "STAGING"      | HealthState.Starting
-      "RUNNING"      | HealthState.Up
+      "RUNNING"      | HealthState.Unknown
       "STOPPING"     | HealthState.Down
       "TERMINATING"  | HealthState.Down
   }
@@ -194,39 +194,39 @@ class InstanceAggregatedListCallbackSpec extends Specification {
       ]
   }
 
-  def "should report up and in service if no health checks are on the load balancer"() {
+  def "should report up and in service if no health checks are defined on the load balancer"() {
     setup:
-    def instanceNameToLoadBalancerHealthStatusMap = [
-            instance1: [
-                    testlb1: [
-                            [
-                                    healthState: "HEALTHY",
-                                    hasHttpHealthCheck: false
-                            ]
-                    ]
+      def instanceNameToLoadBalancerHealthStatusMap = [
+        instance1: [
+          testlb1: [
+            [
+              healthState: "HEALTHY",
+              hasHttpHealthCheck: false
             ]
-    ]
+          ]
+        ]
+      ]
 
     when:
-    def healthStates = []
-    InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
-            "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
+      def healthStates = []
+      InstanceAggregatedListCallback.buildAndAddLoadBalancerState(
+          "instance1", healthStates, instanceNameToLoadBalancerHealthStatusMap)
 
     then:
-    healthStates == [
+      healthStates == [
+        [
+          type: "LoadBalancer",
+          state: HealthState.Up,
+          loadBalancers: [
             [
-                    type: "LoadBalancer",
-                    state: HealthState.Up,
-                    loadBalancers: [
-                            [
-                                    loadBalancerName: "testlb1",
-                                    instanceId: "instance1",
-                                    state: "InService"
-                            ]
-                    ],
-                    instanceId: "instance1"
+              loadBalancerName: "testlb1",
+              instanceId: "instance1",
+              state: "InService"
             ]
-    ]
+          ],
+          instanceId: "instance1"
+        ]
+      ]
   }
 
   def "should report overall health state of up if one up vote"() {

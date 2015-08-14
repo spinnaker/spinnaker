@@ -103,7 +103,7 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
   static HealthState deriveInstanceGCEHealthState(String instanceStatus) {
     instanceStatus == "PROVISIONING" ? HealthState.Starting :
       instanceStatus == "STAGING" ? HealthState.Starting :
-        instanceStatus == "RUNNING" ? HealthState.Up :
+        instanceStatus == "RUNNING" ? HealthState.Unknown :
           HealthState.Down
   }
 
