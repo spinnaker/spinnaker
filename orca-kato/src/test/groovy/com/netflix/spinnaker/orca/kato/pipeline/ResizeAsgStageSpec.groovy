@@ -295,6 +295,7 @@ class ResizeAsgStageSpec extends Specification {
     action       | scalePct | scaleNum | capacity
     "scale_up"   | 50       | null     | [min: 8, max: 8, desired: 8]
     "scale_down" | 50       | null     | [min: 2, max: 2, desired: 2]
+    "scale_down" | 100      | null     | [min: 0, max: 0, desired: 0]
     "scale_up"   | null     | 2        | [min: 7, max: 7, desired: 7]
     "scale_down" | null     | 2        | [min: 3, max: 3, desired: 3]
   }
