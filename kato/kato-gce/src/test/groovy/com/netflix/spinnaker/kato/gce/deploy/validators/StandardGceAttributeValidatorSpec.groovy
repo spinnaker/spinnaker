@@ -302,6 +302,34 @@ class StandardGceAttributeValidatorSpec extends Specification {
       0 * errors._
   }
 
+  void "valid network name"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateNetwork("Unchecked")
+    then:
+      0 * errors._
+
+    when:
+      validator.validateNetwork(" ")
+    then:
+      0 * errors._
+  }
+
+  void "invalid network name"() {
+    setup:
+      def errors = Mock(Errors)
+      def validator = new StandardGceAttributeValidator(DECORATOR, errors)
+
+    when:
+      validator.validateNetwork("")
+    then:
+      1 * errors.rejectValue("network", "${DECORATOR}.network.empty")
+      0 * errors._
+  }
+
   void "valid image name"() {
     setup:
       def errors = Mock(Errors)
