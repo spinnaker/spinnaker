@@ -15,14 +15,15 @@
  */
 
 package com.netflix.spinnaker.orca.kato.tasks
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
-import com.netflix.spinnaker.orca.libdiffs.LibraryDiff
+import com.netflix.spinnaker.orca.libdiffs.LibraryDiffTool
+import com.netflix.spinnaker.orca.libdiffs.LibraryDiffs
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.oort.util.OortHelper
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Component
@@ -42,15 +44,20 @@ import java.util.regex.Matcher
 @Slf4j
 @Component
 @Import(RetrofitConfiguration)
+@ConditionalOnBean(ComparableLooseVersion)
 @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
 class JarDiffsTask implements RetryableTask {
-  @Autowired Client retrofitClient
 
   private static final int MAX_RETRIES = 18
 
   long backoffPeriod = 10000
-
   long timeout = TimeUnit.MINUTES.toMillis(5) // always set this higher than retries * backoffPeriod would take
+
+  @Autowired
+  ComparableLooseVersion comparableLooseVersion
+
+  @Autowired
+  Client retrofitClient
 
   @Autowired
   ObjectMapper objectMapper
@@ -63,7 +70,8 @@ class JarDiffsTask implements RetryableTask {
 
   int platformPort = 8077
 
-  @Override public TaskResult execute(Stage stage) {
+  @Override
+  public TaskResult execute(Stage stage) {
     def retriesRemaining = stage.context.jarDiffsRetriesRemaining != null ? stage.context.jarDiffsRetriesRemaining : MAX_RETRIES
     if (retriesRemaining <= 0) {
       log.info("retries exceeded")
@@ -85,8 +93,8 @@ class JarDiffsTask implements RetryableTask {
       List sourceJarList = getJarList(sourceInstances)
 
       // diff
-      LibraryDiff libDiff = new LibraryDiff(sourceJarList, targetJarList)
-      Map jarDiffs = libDiff.diffJars()
+      LibraryDiffTool libraryDiffTool = new LibraryDiffTool(comparableLooseVersion)
+      LibraryDiffs jarDiffs = libraryDiffTool.calculateLibraryDiffs(sourceJarList, targetJarList)
 
       // add the diffs to the context
       return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: jarDiffs])

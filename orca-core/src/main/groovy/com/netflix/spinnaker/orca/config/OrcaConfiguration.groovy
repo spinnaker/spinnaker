@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
+import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+
 import java.time.Clock
 import java.time.Duration
 import java.util.concurrent.ThreadPoolExecutor
@@ -166,4 +170,9 @@ class OrcaConfiguration {
     new PipelineStarterListener()
   }
 
+  @Bean
+  @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
+  ComparableLooseVersion comparableLooseVersion() {
+    new DefaultComparableLooseVersion()
+  }
 }
