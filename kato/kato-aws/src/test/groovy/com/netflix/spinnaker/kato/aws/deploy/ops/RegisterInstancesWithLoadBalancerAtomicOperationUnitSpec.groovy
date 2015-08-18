@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
 import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.data.task.Task
@@ -47,7 +48,7 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroups([description.asgName]) >> [asg]
+    1 * asgService.getAutoScalingGroup(description.asgName) >> asg
     1 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
       assert req.instances*.instanceId == description.instanceIds
       assert req.loadBalancerName == "lb1"
@@ -62,7 +63,6 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     })
 
     def asg = Mock(AutoScalingGroup) {
-      1 * getAutoScalingGroupName() >> "asg-123456"
       1 * getLoadBalancerNames() >> []
       1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
       0 * _._
@@ -72,7 +72,38 @@ class RegisterInstancesWithLoadBalancerAtomicOperationUnitSpec extends InstanceL
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroups([description.asgName]) >> [asg]
+    1 * asgService.getAutoScalingGroup(description.asgName) >> asg
+    0 * loadBalancing.registerInstancesWithLoadBalancer(_)
+  }
+
+  void 'should use supplied load balancer names if no ASG specified'() {
+    setup:
+    description.asgName = null
+    description.instanceIds = ['i-123456', 'i-234567']
+    description.loadBalancerNames = ['elb-1', 'elb-2']
+
+    when:
+    op.operate([])
+
+    then:
+    0 * asgService.getAutoScalingGroup(_)
+    2 * loadBalancing.registerInstancesWithLoadBalancer(_) >> { RegisterInstancesWithLoadBalancerRequest req ->
+      assert req.instances*.instanceId == description.instanceIds
+      assert description.loadBalancerNames.contains(req.loadBalancerName)
+    }
+  }
+
+  void 'should noop task if no load balancer names supplied and no ASG specified'() {
+    setup:
+    description.asgName = null
+    description.instanceIds = ['i-123456', 'i-234567']
+    description.loadBalancerNames = null
+
+    when:
+    op.operate([])
+
+    then:
+    0 * asgService.getAutoScalingGroup(_)
     0 * loadBalancing.registerInstancesWithLoadBalancer(_)
   }
 }
