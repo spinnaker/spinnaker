@@ -45,7 +45,6 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           }
         });
       }
-
       $scope.healthMetrics = displayableMetrics;
     }
 
@@ -117,6 +116,11 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
+          var discoveryMetric = _.find($scope.healthMetrics, function(metric){ return metric.type === 'Discovery'; });
+          if( discoveryMetric && discoveryMetric.vipAddress) {
+            var vipList = discoveryMetric.vipAddress;
+            $scope.instance.vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+          }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },
         function() {

@@ -120,6 +120,8 @@
         <dd ng-if="instance.privateIpAddress"><a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a></dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
         <dd ng-if="instance.publicIpAddress"><a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a></dd>
+        <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address:</dt>
+        <dd ng-repeat="address in instance.vipAddress"><a href="http://{{address}}" target="_blank">{{address}}</a></dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
