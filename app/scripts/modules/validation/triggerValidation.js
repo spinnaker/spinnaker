@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.validation.trigger', [])
         watches.forEach(function(watchValue) {
           scope.$watch(watchValue, function () {
             if (ctrl.$viewValue) {
-              ctrl.$setViewValue(ctrl.$viewValue);
+              ctrl.$validate();
             }
           });
         });

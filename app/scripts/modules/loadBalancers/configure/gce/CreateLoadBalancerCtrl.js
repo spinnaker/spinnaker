@@ -118,9 +118,9 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
         region = $scope.loadBalancer.region;
 
       if (allLoadBalancerNames[account] && allLoadBalancerNames[account][region]) {
-        $scope.usedLoadBalancerNames = allLoadBalancerNames[account][region];
+        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][region];
       } else {
-        $scope.usedLoadBalancerNames = [];
+        $scope.existingLoadBalancerNames = [];
       }
     }
 
@@ -146,8 +146,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     };
 
     this.updateName = function() {
+      $scope.loadBalancer.name = this.getName();
+    };
+
+    this.getName = function() {
       var elb = $scope.loadBalancer;
-      elb.name = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
+      return [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
     };
 
     this.accountUpdated = function() {
