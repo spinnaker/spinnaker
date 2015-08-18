@@ -6,20 +6,19 @@
     <div class="form-group">
       <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
         <strong>Your load balancer will be named:</strong>
-        <span>{{loadBalancer.name}}</span>
+        <span>{{ctrl.getName()}}</span>
           <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
         <input type="text"
                style="display: none"
                ng-maxlength="32"
                class="form-control input-sm"
                ng-model="loadBalancer.name"
-               validate-unique="usedLoadBalancerNames"
+               validate-unique="existingLoadBalancerNames"
                validate-ignore-case="true"
                name="loadBalancerName"/>
         <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
       </div>
     </div>
-    <kato-error error-wrapper="state" title="We could not create your load balancer."></kato-error>
     <div class="form-group">
       <div class="col-md-3 sm-label-left">Account</div>
       <div class="col-md-7">

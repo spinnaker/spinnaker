@@ -22,8 +22,6 @@ module.exports = angular.module('spinnaker.directives', [
 .directive('instanceList', require('./instanceList.directive.js'))
 .directive('instanceListBody', require('./instanceListBody.directive.js'))
 .directive('instances', require('./instances.js'))
-.directive('katoError', require('./katoError.js'))
-.directive('katoProgress', require('./katoProgress.js'))
 .directive('loadBalancerAvailabilityZoneSelector', require('./loadBalancerAvailabilityZoneSelector.js'))
 .directive('modalClose', require('./modalClose.js'))
 .directive('modalPage', require('./modalPage.js'))
