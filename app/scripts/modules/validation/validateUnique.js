@@ -10,9 +10,9 @@ module.exports = angular.module('spinnaker.validation.unique', [])
       link: function (scope, elem, attr, ctrl) {
         scope.$watch(attr.validateUnique, function (newVal, oldVal) {
           if (newVal !== oldVal && (ctrl.$viewValue || ctrl.$dirty)) {
-            ctrl.$setViewValue(ctrl.$viewValue);
+            ctrl.$validate();
           }
-        });
+        }, true);
         var uniqueValidator = function (value) {
           var options = scope.$eval(attr.validateUnique) || [],
               test = value;
@@ -20,12 +20,10 @@ module.exports = angular.module('spinnaker.validation.unique', [])
             options = options.map(function(option) { return option ? option.toLowerCase() : null; });
             test = value ? value.toLowerCase() : value;
           }
-          ctrl.$setValidity('validateUnique', options.indexOf(test) === -1);
-          return value;
+          return options.indexOf(test) === -1;
         };
 
-        ctrl.$parsers.push(uniqueValidator);
-        ctrl.$formatters.push(uniqueValidator);
+        ctrl.$validators.validateUnique = uniqueValidator;
       }
     };
   }

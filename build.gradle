@@ -50,7 +50,8 @@ webpack.outputs.dir file('build/webpack')
 
 webpack.dependsOn 'npmInstall'
 karma.dependsOn 'webpack'
-buildDeb.dependsOn 'karma'
+test.dependsOn 'karma'
+buildDeb.dependsOn 'test'
 
 ospackage {
   packageName = "deck"

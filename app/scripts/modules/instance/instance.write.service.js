@@ -74,7 +74,7 @@ module.exports = angular
           {
             type: 'deregisterInstancesFromLoadBalancer',
             instanceIds: [instance.instanceId],
-            loadBalancers: instance.loadBalancers,
+            loadBalancerNames: instance.loadBalancers,
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType
@@ -91,7 +91,7 @@ module.exports = angular
           {
             type: 'registerInstancesWithLoadBalancer',
             instanceIds: [instance.instanceId],
-            loadBalancers: instance.loadBalancers,
+            loadBalancerNames: instance.loadBalancers,
             region: instance.region,
             credentials: instance.account,
             providerType: instance.providerType
