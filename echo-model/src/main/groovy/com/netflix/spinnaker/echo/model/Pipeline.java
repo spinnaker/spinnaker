@@ -15,7 +15,7 @@ import lombok.experimental.Wither;
   @NonNull String application;
   @NonNull String name;
   @NonNull String id;
-  boolean parallel = false;
+  boolean parallel;
   List<Trigger> triggers;
   List<Map<String, Object>> stages;
   JenkinsTrigger trigger;

@@ -123,7 +123,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "keeps polling if Front50 returns an error"() {
     given:
-    def pipeline = new Pipeline("application", "Pipeline", "P1", [], [], null)
+    def pipeline = new Pipeline("application", "Pipeline", "P1", false, [], [], null)
     monitor.start()
 
     when:
