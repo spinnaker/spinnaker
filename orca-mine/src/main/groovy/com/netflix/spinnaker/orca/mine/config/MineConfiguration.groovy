@@ -46,7 +46,7 @@ class MineConfiguration {
     new RestAdapter.Builder()
       .setEndpoint(mineEndpoint)
       .setClient(retrofitClient)
-      .setLogLevel(RestAdapter.LogLevel.FULL)
+      .setLogLevel(retrofitLogLevel)
       .setLog(new RetrofitSlf4jLog(MineService))
       .setConverter(new JacksonConverter(objectMapper))
       .build()
