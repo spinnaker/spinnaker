@@ -18,5 +18,6 @@
 package com.netflix.spinnaker.kato.aws.deploy.description
 
 class InstanceLoadBalancerRegistrationDescription extends AbstractRegionAsgInstanceIdsDescription {
+  List<String> loadBalancerNames
 }
 
