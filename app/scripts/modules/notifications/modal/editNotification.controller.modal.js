@@ -8,18 +8,28 @@ module.exports = angular
   .module('spinnaker.editNotification.modal.controller', [
     require('utils/lodash.js'),
   ])
-  .controller('EditNotificationController', function ($scope, $modalInstance, notification, _) {
+  .controller('EditNotificationController', function ($scope, $modalInstance, notification, level, _) {
     var vm = this;
-    vm.notification = angular.copy(notification);
 
+    vm.notification = angular.copy(notification);
     vm.hasSelectedWhen = false;
     $scope.selectedWhenOptions = {};
+    $scope.level = level;
 
-    vm.whenOptions = [
-      'pipeline.starting',
-      'pipeline.complete',
-      'pipeline.failed'
-    ];
+    if(level === 'application' || level === 'pipeline') {
+      vm.whenOptions = [
+        'pipeline.starting',
+        'pipeline.complete',
+        'pipeline.failed'
+      ];
+    } else {
+      vm.whenOptions = [
+        'stage.starting',
+        'stage.complete',
+        'stage.failed'
+      ];
+    }
+
 
     vm.updateSelectedWhen = function(){
       var selected = false;

@@ -1,5 +1,15 @@
-<div class="row">
-    <div class="col-md-12">
+<div class="form-group" ng-if="level === 'stage' && parent.type !== 'manualJudgment'" >
+    <div class="col-md-9 col-md-offset-1">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" ng-model="parent.sendNotifications"/>
+                <strong>Send notifications for this stage</strong>
+            </label>
+        </div>
+    </div>
+</div>
+<div class="row" ng-if="level !== 'stage' || parent.sendNotifications">
+    <div ng-class="level === 'stage' ? 'col-md-11 col-md-offset-1' : 'col-md-12'">
         <table class="table table-condensed">
             <thead>
             <tr>
@@ -18,7 +28,7 @@
                     {{notification.address}}
                 </td>
                 <td>
-                    <div ng-repeat="when in notification.when">{{when|notificationWhen}}</div>
+                    <div ng-repeat="when in notification.when">{{when|notificationWhen:level}}</div>
                 </td>
                 <td>
                     <a class="btn btn-xs btn-link" href ng-click="notificationListCtrl.editNotification(notification)">Edit</a>
@@ -54,4 +64,3 @@
         <span ng-if="notificationListCtrl.isNotificationsDirty === false" class="btn btn-link disabled ng-scope"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
     </div>
 </div>
-

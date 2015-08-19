@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
             });
         };
 
-        if($scope.level === 'application'){
+        if ($scope.level === 'application') {
             vm.revertNotificationChanges();
         }
 
@@ -69,6 +69,9 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
                 resolve: {
                     notification: function () {
                         return notification;
+                    },
+                    level : function() {
+                        return $scope.level;
                     }
                 }
             });
@@ -85,7 +88,7 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
         };
 
         vm.addNotification = function () {
-            if( $scope.parent && !$scope.parent.notifications){
+            if ($scope.parent && !$scope.parent.notifications) {
                 $scope.parent.notifications = [];
             }
             vm.editNotification(undefined);
