@@ -69,7 +69,7 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
   String getConsoleOutput(String account, String region, String id) {
     def credentials = accountCredentialsProvider.getCredentials(account)
     if (!(credentials instanceof NetflixAmazonCredentials)) {
-      return new ResponseEntity([message: "bad credentials"], HttpStatus.BAD_REQUEST)
+      throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
     amazonClientProvider.getAmazonEC2(credentials, region).getConsoleOutput(new GetConsoleOutputRequest(id)).decodedOutput
   }

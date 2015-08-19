@@ -71,8 +71,14 @@ class InstanceController {
 
   @ExceptionHandler
   @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map applicationNotFoundExceptionHandler(InstanceNotFoundException ex) {
-    def message = messageSource.getMessage("instance.not.found", [ex.name] as String[], "instance.not.found", LocaleContextHolder.locale)
+  Map instanceNotFoundException(InstanceNotFoundException ex) {
+    def message = messageSource.getMessage("instance.not.found", [ex.name] as String[], "Instance not found", LocaleContextHolder.locale)
     [error: "instance.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map badRequestException(IllegalArgumentException ex) {
+    [error: 'invalid.request', message: ex.message, status: HttpStatus.BAD_REQUEST]
   }
 }
