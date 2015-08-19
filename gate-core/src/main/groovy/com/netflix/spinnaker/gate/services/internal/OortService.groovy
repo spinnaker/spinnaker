@@ -109,7 +109,14 @@ interface OortService {
   @GET("/instances/{account}/{region}/{instanceId}")
   Map getInstanceDetails(@Path("account") String account,
                          @Path("region") String region,
-                         @Path("instanceId") String instanceID)
+                         @Path("instanceId") String instanceId)
+
+  @Headers("Accept: application/json")
+  @GET("/instances/{account}/{region}/{instanceId}/console")
+  Map getConsoleOutput(@Path("account") String account,
+                          @Path("region") String region,
+                          @Path("instanceId") String instanceId,
+                          @Query("provider") String provider)
 
   @Headers("Accept: application/json")
   @GET("/{provider}/images/{account}/{region}/{imageId}")

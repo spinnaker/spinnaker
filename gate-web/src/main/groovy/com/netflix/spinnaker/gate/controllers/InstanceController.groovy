@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
@@ -37,5 +38,13 @@ class InstanceController {
                          @PathVariable(value = "region") String region,
                          @PathVariable(value = "instanceId") String instanceId) {
     instanceService.getForAccountAndRegion(account, region, instanceId)
+  }
+
+  @RequestMapping(value = "/{account}/{region}/{instanceId}/console", method = RequestMethod.GET)
+  Map getConsoleOutput(@PathVariable(value = "account") String account,
+                       @PathVariable(value = "region") String region,
+                       @PathVariable(value = "instanceId") String instanceId,
+                       @RequestParam(value = "provider", required = false, defaultValue = "aws") String provider) {
+    instanceService.getConsoleOutput(account, region, instanceId, provider)
   }
 }
