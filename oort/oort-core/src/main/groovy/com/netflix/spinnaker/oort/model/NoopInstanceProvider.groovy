@@ -17,8 +17,17 @@
 package com.netflix.spinnaker.oort.model
 
 class NoopInstanceProvider implements InstanceProvider<Instance> {
+
+  String platform = "none"
+
   @Override
   Instance getInstance(String account, String region, String id) {
     null
   }
+
+  @Override
+  String getConsoleOutput(String account, String region, String id) {
+    null
+  }
+
 }
