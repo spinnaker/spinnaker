@@ -76,7 +76,7 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
     def accountCredentials = accountCredentialsProvider.getCredentials(account)
 
     if (!(accountCredentials?.credentials instanceof GoogleCredentials)) {
-      return new ResponseEntity([message: "Bad credentials."], HttpStatus.BAD_REQUEST)
+      throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
 
     def credentials = accountCredentials.credentials
