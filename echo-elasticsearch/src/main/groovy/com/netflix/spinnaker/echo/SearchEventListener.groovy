@@ -32,7 +32,9 @@ class SearchEventListener implements EchoEventListener {
 
     @Override
     void processEvent(Event event) {
+      if( event.details.type == 'build' ) {
         searchIndex.addToIndex event
+      }
     }
 
 }
