@@ -23,7 +23,7 @@
       <p class="text-center">Please check your URL - we can't find any data for <em>{{application.name}}</em>.</p>
     </div>
     <ul class="nav nav-pills" ng-if="!application.notFound">
-      <li>
+      <li ng-if="feature.pipelines">
         <a ui-sref=".executions"
            analytics-on="click" analytics-category="Application View" analytics-label="Pipelines tab selected"
            ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
