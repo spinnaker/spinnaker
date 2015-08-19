@@ -33,6 +33,8 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
+  String platform = "gce"
+
   @Override
   GoogleInstance getInstance(String account, String region, String id) {
     // TODO(duftler): Create a unit test.
@@ -66,6 +68,11 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
     }
 
     return null
+  }
+  
+  @Override
+  String getConsoleOutput(String account, String region, String id) {
+    null // TODO: fill in
   }
 
   // Strip off the final segment of the instance id (the unique portion that is added onto the instance group name).
