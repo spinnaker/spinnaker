@@ -1,19 +1,18 @@
 package com.netflix.spinnaker.echo.pipelinetriggers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.echo.model.Event
+import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.services.Front50Service
+import com.netflix.spinnaker.echo.test.RetrofitStubs
+import rx.functions.Action1
+import rx.schedulers.Schedulers
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spectator.api.NoopRegistry
-
-import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.test.RetrofitStubs
-import rx.functions.Action1
-import rx.schedulers.Schedulers
 import static com.netflix.spinnaker.echo.model.BuildEvent.Result.*
 import static java.util.concurrent.TimeUnit.SECONDS
 import static rx.Observable.empty
@@ -123,7 +122,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "keeps polling if Front50 returns an error"() {
     given:
-    def pipeline = new Pipeline("application", "Pipeline", "P1", false, [], [], null)
+    def pipeline = new Pipeline("application", "Pipeline", "P1", false, false, [], [], [], null, null)
     monitor.start()
 
     when:
@@ -185,11 +184,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     event = createBuildEventWith(SUCCESS)
     pipelines = (1..2).collect {
       Pipeline.builder()
-        .application("application")
-        .name("pipeline$it")
-        .id("id")
-        .triggers([enabledJenkinsTrigger])
-        .build()
+              .application("application")
+              .name("pipeline$it")
+              .id("id")
+              .triggers([enabledJenkinsTrigger])
+              .build()
     }
   }
 
