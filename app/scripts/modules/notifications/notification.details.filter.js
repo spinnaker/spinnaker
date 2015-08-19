@@ -7,10 +7,11 @@ module.exports = angular.module('spinnaker.notification.details.filter', [])
     return function(input, level) {
 
       input = input.replace('.', ' ').replace('pipeline', ( level === 'application' ? 'Any ' : 'This ' ) + 'pipeline is');
-      input = input.replace('.', ' ').replace('stage', 'This stage is');
+      input = input.replace('.', ' ').replace('stage', 'This stage is ');
 
       if(input.indexOf('failed')>-1){
         input = input.replace('pipeline is', 'pipeline has');
+        input = input.replace('stage is', 'stage has');
       }
 
       return input;

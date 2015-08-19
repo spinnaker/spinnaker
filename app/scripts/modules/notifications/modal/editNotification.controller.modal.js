@@ -48,10 +48,9 @@ module.exports = angular
         }
       });
       vm.updateSelectedWhen();
-
     } else {
       vm.notification = {};
-      vm.notification.level = 'application';
+      vm.notification.level = $scope.level;
       vm.notification.when = [];
     }
 
