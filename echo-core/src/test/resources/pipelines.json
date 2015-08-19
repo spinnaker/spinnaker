@@ -1073,7 +1073,7 @@
         "selectionStrategy": "NEWEST",
         "onlyEnabled": true,
         "account": "prod",
-        "cluster": "mayo-prestaging",
+        "cluster": "front50-prestaging",
         "regions": ["us-west-1"]
       },
       {
@@ -1082,7 +1082,7 @@
         "name": "Deploy",
         "clusters": [
           {
-            "application": "mayo",
+            "application": "front50",
             "strategy": "redblack",
             "stack": "main",
             "freeFormDetails": "",
@@ -1090,7 +1090,7 @@
             "healthCheckGracePeriod": 600,
             "healthCheckType": "EC2",
             "terminationPolicies": ["Default"],
-            "loadBalancers": ["mayo-main-frontend"],
+            "loadBalancers": ["front50-main-frontend"],
             "capacity": {
               "min": 2,
               "max": 2,
@@ -1120,20 +1120,20 @@
       }
     ],
     "triggers": [],
-    "application": "mayo",
+    "application": "front50",
     "isNew": true,
     "index": 1,
     "appConfig": null
   },
   {
-    "application": "mayo",
+    "application": "front50",
     "name": "deploy to prestaging",
     "version": "1.0",
     "triggers": [
       {
         "type": "jenkins",
         "master": "spinnaker",
-        "job": "SPINNAKER-package-mayo",
+        "job": "SPINNAKER-package-front50",
         "enabled": true
       }
     ],
@@ -1142,7 +1142,7 @@
         "type": "bake",
         "region": "us-west-1",
         "user": "orca",
-        "package": "mayo",
+        "package": "front50",
         "baseOs": "ubuntu",
         "baseLabel": "release",
         "name": "bake",
@@ -1151,7 +1151,7 @@
       {
         "type": "deploy",
         "cluster": {
-          "application": "mayo",
+          "application": "front50",
           "capacity": {
             "min": 1,
             "max": 1,
@@ -1175,7 +1175,7 @@
             "sg-d2c3dfbe"
           ],
           "subnetType": "internal",
-          "loadBalancers": ["mayo-prestaging-frontend"]
+          "loadBalancers": ["front50-prestaging-frontend"]
         },
         "account": "prod",
         "name": "deploy"

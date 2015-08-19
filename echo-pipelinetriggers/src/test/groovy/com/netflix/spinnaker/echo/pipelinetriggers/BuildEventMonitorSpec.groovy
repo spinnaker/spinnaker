@@ -102,7 +102,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   }
 
   @Unroll
-  def "polls Mayo #ticks times in #delayTime seconds"() {
+  def "polls Front50 #ticks times in #delayTime seconds"() {
     given:
     monitor.start()
 
