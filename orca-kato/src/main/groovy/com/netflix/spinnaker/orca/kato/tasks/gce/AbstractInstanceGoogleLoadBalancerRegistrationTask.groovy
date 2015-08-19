@@ -53,7 +53,7 @@ abstract class AbstractInstanceGoogleLoadBalancerRegistrationTask implements Tas
   Map convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
-    operation.networkLoadBalancerNames = operation.loadBalancers
+    operation.networkLoadBalancerNames = operation.loadBalancerNames
 
     def katoOperationDescription = "${action}Description".toString()
     def katoRequest = [:]

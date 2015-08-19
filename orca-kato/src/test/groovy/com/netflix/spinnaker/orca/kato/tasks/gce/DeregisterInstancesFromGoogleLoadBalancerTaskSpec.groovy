@@ -30,10 +30,10 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deregisterInstancesFromLoadBalancerConfig = [
-    instanceIds   : ["some-instance-name"],
-    loadBalancers : ["flapjack-frontend"],
-    region        : "us-central1",
-    credentials   : "test-account-name"
+    instanceIds       : ["some-instance-name"],
+    loadBalancerNames : ["flapjack-frontend"],
+    region            : "us-central1",
+    credentials       : "test-account-name"
   ]
 
   def setup() {
@@ -58,7 +58,7 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
       with(operations[0].deregisterInstancesFromGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         instanceIds == this.deregisterInstancesFromLoadBalancerConfig.instanceIds
-        networkLoadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.loadBalancers
+        networkLoadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.loadBalancerNames
         region == this.deregisterInstancesFromLoadBalancerConfig.region
         credentials == this.deregisterInstancesFromLoadBalancerConfig.credentials
       }
