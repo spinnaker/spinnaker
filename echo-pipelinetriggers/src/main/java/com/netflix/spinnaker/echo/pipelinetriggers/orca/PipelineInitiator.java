@@ -2,6 +2,7 @@ package com.netflix.spinnaker.echo.pipelinetriggers.orca;
 
 import javax.annotation.PostConstruct;
 import com.netflix.spinnaker.echo.model.Pipeline;
+import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService;
 import com.netflix.spinnaker.echo.pipelinetriggers.orca.OrcaService.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
