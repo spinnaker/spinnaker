@@ -44,16 +44,15 @@ class MonitorPipelineTask implements RetryableTask {
     String pipelineId = stage.context.executionId
     Execution childPipeline = executionRepository.retrievePipeline(pipelineId)
 
-    switch (childPipeline.status) {
-      case ExecutionStatus.SUCCEEDED:
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status])
-        break
-      case [ExecutionStatus.NOT_STARTED, ExecutionStatus.RUNNING, ExecutionStatus.SUSPENDED]:
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
-        break
-      default:
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
-        break
+    if (childPipeline.status == ExecutionStatus.SUCCEEDED) {
+      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status])
     }
+
+    if (childPipeline.status.halt) {
+      // indicates a failure of some sort
+      return new DefaultTaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
+    }
+
+    return new DefaultTaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
   }
 }

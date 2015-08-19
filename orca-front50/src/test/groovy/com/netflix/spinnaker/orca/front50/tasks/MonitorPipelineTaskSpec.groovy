@@ -68,7 +68,6 @@ class MonitorPipelineTaskSpec extends Specification {
     ExecutionStatus.CANCELED    || ExecutionStatus.TERMINAL
     ExecutionStatus.TERMINAL    || ExecutionStatus.TERMINAL
     ExecutionStatus.FAILED      || ExecutionStatus.TERMINAL
-
+    ExecutionStatus.REDIRECT    || ExecutionStatus.RUNNING
   }
-
 }
