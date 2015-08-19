@@ -49,6 +49,12 @@ class InstanceService {
     } execute()
   }
 
+  Map getConsoleOutput(String account, String region, String instanceId, String provider) {
+    HystrixFactory.newMapCommand(GROUP, "getConsoleOutput", true) {
+      return  oortService.getConsoleOutput(account, region, instanceId, provider)
+    } execute()
+  }
+
   static Map<String, String> getContext(String account, String region, String instanceId) {
     return ["account": account, "region": region, "instanceId": instanceId]
   }
