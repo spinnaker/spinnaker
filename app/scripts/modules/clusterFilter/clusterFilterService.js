@@ -198,7 +198,7 @@ module.exports = angular
         } else {
           if (serverGroup.stringVal !== newServerGroup.stringVal) {
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
-            oldGroup.serverGroups.splice(idx, 1, newServerGroup);
+            oldGroup.serverGroups[idx] = newServerGroup;
           }
         }
       });
