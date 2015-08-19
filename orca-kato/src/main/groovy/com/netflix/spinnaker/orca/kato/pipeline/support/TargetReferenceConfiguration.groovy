@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import groovy.transform.ToString
+
+@ToString(includeNames = true)
 class TargetReferenceConfiguration {
   enum Target {
     current_asg, ancestor_asg, current_asg_dynamic, ancestor_asg_dynamic, oldest_asg_dynamic
@@ -26,5 +29,10 @@ class TargetReferenceConfiguration {
   String cluster
   String credentials
   List<String> regions
+  List<String> zones
   String providerType = "aws"
+
+  List<String> getLocations() {
+    !regions?.isEmpty()? regions : (!zones?.isEmpty() ? zones : [])
+  }
 }

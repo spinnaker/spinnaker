@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.node.TreeTraversingParser
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -33,6 +34,7 @@ import static ExecutionStatus.NOT_STARTED
 import static java.util.Collections.EMPTY_MAP
 
 @CompileStatic
+@ToString(includeNames = true)
 abstract class AbstractStage<T extends Execution> implements Stage<T>, Serializable {
   String id = UUID.randomUUID()
   String type

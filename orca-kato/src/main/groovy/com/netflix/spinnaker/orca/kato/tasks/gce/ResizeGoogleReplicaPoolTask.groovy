@@ -21,14 +21,24 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class ResizeGoogleReplicaPoolTask implements Task {
   @Autowired
   KatoService kato
+
+  @Autowired
+  TargetReferenceSupport targetReferenceSupport
+
+  @Autowired
+  ResizeSupport resizeSupport
 
   @Override
   TaskResult execute(Stage stage) {
@@ -37,17 +47,26 @@ class ResizeGoogleReplicaPoolTask implements Task {
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"   : "resizegooglereplicapool",
-        "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
-        "kato.last.task.id"   : taskId,
-        "kato.task.id"        : taskId, // TODO retire this.
-        "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
+      "notification.type"   : "resizegooglereplicapool",
+      "deploy.account.name" : resizeGoogleReplicaPoolOperation.credentials,
+      "kato.last.task.id"   : taskId,
+      "kato.task.id"        : taskId, // TODO retire this.
+      "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
     ])
   }
 
   Map convert(Stage stage) {
     def operation = [:]
     operation.putAll(stage.context)
+
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      def targetRefs = targetReferenceSupport.getTargetAsgReferences(stage)
+      def descriptors = resizeSupport.createResizeStageDescriptors(stage, targetRefs)
+      if (descriptors && !descriptors.isEmpty()) {
+        operation.putAll(descriptors[0])
+      }
+    }
+
     operation.replicaPoolName = operation.asgName
     operation.numReplicas = operation.capacity.desired
     operation.region = operation.regions ? operation.regions[0] : null

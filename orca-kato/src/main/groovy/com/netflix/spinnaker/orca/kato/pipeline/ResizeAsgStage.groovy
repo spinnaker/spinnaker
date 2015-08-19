@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
@@ -38,6 +39,9 @@ class ResizeAsgStage extends LinearStage {
 
   @Autowired
   TargetReferenceSupport targetReferenceSupport
+
+  @Autowired
+  ResizeSupport resizeSupport
 
   @Autowired
   ModifyScalingProcessStage modifyScalingProcessStage
@@ -75,7 +79,7 @@ class ResizeAsgStage extends LinearStage {
   private void configureTargets(Stage stage) {
     def targetReferences = targetReferenceSupport.getTargetAsgReferences(stage)
 
-    def descriptions = createResizeStageDescriptors(stage, targetReferences)
+    def descriptions = resizeSupport.createResizeStageDescriptors(stage, targetReferences)
 
     if (descriptions.size()) {
       for (description in descriptions) {
@@ -107,114 +111,5 @@ class ResizeAsgStage extends LinearStage {
         action: "suspend"
       ])
     }
-  }
-
-  @CompileDynamic
-  public List<Map<String, Object>> createResizeStageDescriptors(Stage stage, List<TargetReference> targetReferences) {
-    def optionalConfig = stage.mapTo(OptionalConfiguration)
-    Map<String, Map<String, Object>> descriptions = [:]
-
-    for (TargetReference target : targetReferences) {
-      def region = target.region
-      def asg = target.asg
-
-      def description = new HashMap(stage.context)
-
-      if (!asg && targetReferenceSupport.isDynamicallyBound(stage)) {
-        continue
-      }
-
-      if (descriptions.containsKey(asg.name)) {
-        descriptions[asg.name as String].regions.add(region)
-        continue
-      }
-      description.asgName = asg.name
-      description.regions = [asg.region]
-
-      def currentMin = Integer.parseInt(asg.asg.minSize.toString())
-      def currentDesired = Integer.parseInt(asg.asg.desiredCapacity.toString())
-      def currentMax = Integer.parseInt(asg.asg.maxSize.toString())
-
-      Integer newMin, newDesired, newMax
-      if (optionalConfig.scalePct) {
-        def factor = optionalConfig.scalePct / 100
-        def minDiff = Math.ceil(currentMin * factor)
-        def desiredDiff = Math.ceil(currentDesired * factor)
-        def maxDiff = Math.ceil(currentMax * factor)
-        newMin = currentMin + minDiff
-        newDesired = currentDesired + desiredDiff
-        newMax = currentMax + maxDiff
-
-        if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = currentMin - minDiff
-          newDesired = currentDesired - desiredDiff
-          newMax = currentMax - maxDiff
-        }
-      } else if (optionalConfig.scaleNum) {
-        newMin = currentMin + optionalConfig.scaleNum
-        newDesired = currentDesired + optionalConfig.scaleNum
-        newMax = currentMax + optionalConfig.scaleNum
-
-        if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = Math.max(currentMin - optionalConfig.scaleNum, 0)
-          newDesired = Math.max(currentDesired - optionalConfig.scaleNum, 0)
-          newMax = Math.max(currentMax - optionalConfig.scaleNum, 0)
-        }
-      }
-
-      if (newMin != null && newDesired != null && newMax != null) {
-        description.capacity = [min: newMin, desired: newDesired, max: newMax]
-      } else {
-        def capacity = stage.mapTo("/capacity", Capacity)
-        description.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
-      }
-
-      descriptions[asg.name as String] = description
-    }
-    descriptions.values().flatten()
-  }
-
-  private static Map mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {
-    boolean minConfigured = configured.min != null;
-    boolean desiredConfigured = configured.desired != null;
-    boolean maxConfigured = configured.max != null;
-    Map result = [
-        min: minConfigured ? configured.min : currentMin,
-    ]
-    if (maxConfigured) {
-      result.max = configured.max
-      result.min = Math.min(result.min, configured.max)
-    } else {
-      result.max = Math.max(result.min, currentMax)
-    }
-    if (desiredConfigured) {
-      result.desired = configured.desired
-    } else {
-      result.desired = currentDesired
-      if (currentDesired < result.min) {
-        result.desired = result.min
-      }
-      if (currentDesired > result.max) {
-        result.desired = result.max
-      }
-    }
-
-    result
-  }
-
-  static enum ResizeAction {
-    scale_up, scale_down
-  }
-
-  static class OptionalConfiguration {
-    ResizeAction action
-    Integer scalePct
-    Integer scaleNum
-  }
-
-  static class Capacity {
-    Integer max
-    Integer desired
-    Integer min
   }
 }

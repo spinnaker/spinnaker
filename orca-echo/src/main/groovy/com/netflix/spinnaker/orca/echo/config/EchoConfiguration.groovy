@@ -58,6 +58,7 @@ class EchoConfiguration {
       .setEndpoint(echoEndpoint)
       .setClient(retrofitClient)
       .setLogLevel(retrofitLogLevel)
+      .setLogLevel(RestAdapter.LogLevel.NONE)
       .setLog(new RetrofitSlf4jLog(EchoService))
       .setConverter(new JacksonConverter())
       .build()

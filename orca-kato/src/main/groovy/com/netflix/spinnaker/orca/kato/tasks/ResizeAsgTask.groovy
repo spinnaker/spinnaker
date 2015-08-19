@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,7 +38,7 @@ class ResizeAsgTask implements Task {
   TargetReferenceSupport targetReferenceSupport
 
   @Autowired
-  ResizeAsgStage resizeAsgStage
+  ResizeSupport resizeSupport
 
   @Override
   TaskResult execute(Stage stage) {
@@ -62,7 +63,7 @@ class ResizeAsgTask implements Task {
     Map context = stage.context
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-      def descriptors = resizeAsgStage.createResizeStageDescriptors(stage, [targetReference])
+      def descriptors = resizeSupport.createResizeStageDescriptors(stage, [targetReference])
       if (!descriptors.isEmpty()) {
         context = descriptors[0]
       }

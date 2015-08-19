@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 /**
  * A _stage_ of an Orca _pipeline_.
  */
 @CompileStatic
+@ToString(includeNames = true, includeSuper = true)
 class PipelineStage extends AbstractStage<Pipeline> {
   PipelineStage() {
 
