@@ -52,7 +52,7 @@ class InstanceController {
   }
 
   @RequestMapping(value = "{account}/{region}/{id}/console", method = RequestMethod.GET)
-  String getConsoleOutput(@RequestParam(value = "provider", required = false) String provider, @PathVariable String account, @PathVariable String region, @PathVariable String id) {
+  Map getConsoleOutput(@RequestParam(value = "provider", required = false) String provider, @PathVariable String account, @PathVariable String region, @PathVariable String id) {
     Collection<String> outputs = instanceProviders.findResults {
       if (!provider || it.platform == provider) {
         return it.getConsoleOutput(account, region, id)
@@ -62,7 +62,7 @@ class InstanceController {
     if (!outputs) {
       throw new InstanceNotFoundException(name: id)
     }
-    outputs.first()
+    [ output: outputs.first() ]
   }
 
   static class InstanceNotFoundException extends RuntimeException {

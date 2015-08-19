@@ -71,7 +71,7 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
     if (!(credentials instanceof NetflixAmazonCredentials)) {
       throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
     }
-    amazonClientProvider.getAmazonEC2(credentials, region).getConsoleOutput(new GetConsoleOutputRequest(id)).decodedOutput
+    amazonClientProvider.getAmazonEC2(credentials, region, true).getConsoleOutput(new GetConsoleOutputRequest(id)).decodedOutput
   }
 
 }
