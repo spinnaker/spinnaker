@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.oort.InstanceService
 import com.netflix.spinnaker.orca.oort.util.OortHelper
@@ -44,6 +45,7 @@ class JarDiffsTaskSpec extends Specification {
   def setup() {
     GroovyMock(OortHelper, global: true)
     task.objectMapper = new ObjectMapper()
+    task.comparableLooseVersion = new DefaultComparableLooseVersion()
   }
 
   Map deployContext = ["availabilityZones" : ["us-west-2": ["us-west-2a"]],"kato.tasks" : [[resultObjects : [[ancestorServerGroupNameByRegion: ["us-west-2" : "myapp-v000"]],[serverGroupNameByRegion : ["us-west-2" : "myapp-v002"]]]]]]
@@ -205,7 +207,14 @@ class JarDiffsTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    result.stageOutputs == [jarDiffs:[downgraded:[], duplicates:[], removed:[], upgraded:[], added:[], unknown:[]]]
+    with (result.stageOutputs.jarDiffs) {
+      downgraded == []
+      duplicates == []
+      removed    == []
+      upgraded   == []
+      added      == []
+      unknown    == []
+    }
 
     where:
     sourceExpectedInstances = ["i-1234" : [hostName : "foo.com", healthCheckUrl : "http://foo.com:7001/healthCheck"]]
