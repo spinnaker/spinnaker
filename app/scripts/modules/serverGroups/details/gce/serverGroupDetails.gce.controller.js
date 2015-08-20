@@ -66,6 +66,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
                 _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();
           }
+
+          var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
+          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+          $scope.serverGroup.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
         } else {
           $state.go('^');
         }

@@ -45,6 +45,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             });
           }
         });
+
+        accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+          $scope.loadBalancer.logsLink =
+            'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
+        });
       }
       if (!$scope.loadBalancer) {
         $state.go('^');

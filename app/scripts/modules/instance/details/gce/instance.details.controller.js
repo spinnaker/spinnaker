@@ -125,6 +125,11 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
           $scope.instance.sshLink =
             $scope.instance.selfLink.replace('www.googleapis.com/compute/v1', 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
+
+          var pathSegments = $scope.instance.selfLink.split('/');
+          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+          $scope.instance.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
         },
         function() {
           // When an instance is first starting up, we may not have the details cached in oort yet, but we still

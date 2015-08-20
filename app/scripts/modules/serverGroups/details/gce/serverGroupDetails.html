@@ -191,6 +191,11 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Logs">
+      <ul>
+        <li ng-if="serverGroup.logsLink">
+          <a href="{{serverGroup.logsLink}}" target="_blank">Developers Console Logs</a>
+        </li>
+      </ul>
     </collapsible-section>
   </div>
 </div>
