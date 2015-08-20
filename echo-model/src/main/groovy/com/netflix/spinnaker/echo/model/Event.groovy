@@ -19,7 +19,7 @@ package com.netflix.spinnaker.echo.model
 /**
  * Represents an event
  */
-class Event {
-    Metadata details
-    Map content
+public class Event {
+  Metadata details
+  Map content
 }

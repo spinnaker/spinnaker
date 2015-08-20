@@ -18,9 +18,13 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.config.OkHttpClientConfiguration
+import com.squareup.okhttp.OkHttpClient
+import org.springframework.beans.factory.annotation.Autowired
+
 import static retrofit.Endpoints.newFixedEndpoint
 
-import com.netflix.spinnaker.echo.front50.Front50Service
+import com.netflix.spinnaker.echo.services.Front50Service
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
@@ -29,22 +33,23 @@ import org.springframework.context.annotation.Configuration
 import retrofit.Endpoint
 import retrofit.RestAdapter
 import retrofit.RestAdapter.LogLevel
-import retrofit.client.Client
 import retrofit.client.OkClient
 
 @Configuration
 @Slf4j
 @CompileStatic
 class Front50Config {
+  @Autowired
+  OkHttpClientConfiguration okHttpClientConfig
 
   @Bean
-  Client retrofitClient() {
-    new OkClient()
+  OkHttpClient okHttpClient() {
+    return okHttpClientConfig.create()
   }
 
   @Bean
   LogLevel retrofitLogLevel() {
-    LogLevel.NONE
+    LogLevel.BASIC
   }
 
   @Bean
@@ -53,11 +58,11 @@ class Front50Config {
   }
 
   @Bean
-  Front50Service front50Service(Endpoint front50Endpoint, Client retrofitClient, LogLevel retrofitLogLevel) {
+  Front50Service front50Service(Endpoint front50Endpoint, OkHttpClient okHttpClient, LogLevel retrofitLogLevel) {
     log.info('front50 service loaded')
     new RestAdapter.Builder()
       .setEndpoint(front50Endpoint)
-      .setClient(retrofitClient)
+      .setClient(new OkClient(okHttpClient))
       .setLogLevel(retrofitLogLevel)
       .build()
       .create(Front50Service)
