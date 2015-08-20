@@ -32,7 +32,7 @@ class EventPropagator {
 
     List<EchoEventListener> listeners = []
 
-    Scheduler scheduler = Schedulers.computation()
+    Scheduler scheduler = Schedulers.io()
 
     void addListener(EchoEventListener listener) {
         listeners << listener
