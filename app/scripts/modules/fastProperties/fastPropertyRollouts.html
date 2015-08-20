@@ -25,7 +25,7 @@
     <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Running')" btn-radio="'Running'">
       <a href><status-glyph item="{isRunning: true}"></status-glyph> Running</a>
     </label>
-    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Completd')" btn-radio="'Successful'">
+    <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Successful')" btn-radio="'Successful'">
       <a href><status-glyph item="{isCompleted: true}"></status-glyph> Completed</a>
     </label>
     <label class="btn btn-sm btn-default" ng-model="rollout.promotionStateFilter" ng-click="rollout.updateStateFilter('Failed')" btn-radio="'Failed'">
@@ -33,6 +33,8 @@
     </label>
   </div>
 </div>
+
+<fast-property-promotion promotions="rollout.promotions" filtered-promotions="rollout.filteredPromotions" read-only="true">
 
 <div class="row">
   <div class="col-md-12">
@@ -50,8 +52,8 @@
       <tbody>
       <tr class="clickable" ng-repeat="promotion in rollout.filteredPromotions">
         <td>
-          <a ui-sref="home.applications.application.properties({ application: promotion.scopes.from.appId.toLowerCase() })">
-            {{ promotion.scopes.from.appId }}
+          <a ng-repeat="appId in promotion.scopes.from.appId.split(',')" ui-sref="home.applications.application.properties({ application: appId.toLowerCase() })">
+            {{ appId }} <span ng-if="!$last">, </span>
           </a>
         </td>
         <td>

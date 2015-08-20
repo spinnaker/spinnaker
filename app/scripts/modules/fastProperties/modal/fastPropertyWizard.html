@@ -1,0 +1,572 @@
+<modal-wizard heading="{{newFP.heading}}" hide-indicators="true" class="fastPropertyWizard">
+
+
+  <wizard-page key="Details" label="Step 1: Property details">
+
+      <form role="form" class="container-fluid" novalidate name="newFastPropertyForm">
+        <div class="modal-body">
+
+          <!--
+            ENVIRONMENT
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Environment</div>
+            <div class="col-sm-9">
+              <select autofocus class="form-control input-sm" ng-model="newFP.property.env" ng-disabled="newFP.isEditing" ng-options="env for env in ['test', 'prod']">
+              </select>
+            </div>
+          </div>
+
+          <!--
+            PROPERTY NAME
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Property name</div>
+            <div class="col-sm-9">
+              <input type="text"
+                     name="name"
+                     required
+                     ng-disabled="newFP.isEditing"
+                     ng-pattern="/^[a-zA-z_0-9.]*$/"
+                     class="form-control input-sm"
+                     data-purpose="fastProperty-key"
+                     ng-model="newFP.property.key"
+                     placeholder="Enter a fast property key" >
+              </input>
+            </div>
+          </div>
+
+          <!--
+            VALUE
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Value</div>
+            <div class="col-sm-9">
+              <input type="text"
+                     name="value"
+                     class="form-control input-sm "
+                     data-purpose="fastProperty-value"
+                     ng-model="newFP.property.value"
+                     placeholder="Enter a fast property value"
+                     required
+                     id="ownerEmail">
+              </input>
+            </div>
+          </div>
+
+
+          <!--
+            CONSTRAINTS
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Constraints <fast-property-constraints></fast-property-constraints></div>
+            <div class="col-sm-9">
+              <input type="text"
+                     name="constraints"
+                     class="form-control input-sm "
+                     data-purpose="fastProperty-constraints"
+                     ng-model="newFP.property.constraints"
+                     placeholder="Enter a constraint"
+                     required
+                     id="constraints">
+              </input>
+            </div>
+          </div>
+
+          <!--
+            DESCRIPTION
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Description</div>
+            <div class="col-sm-9">
+          <textarea
+            class="form-control input-sm"
+            ng-model="newFP.property.description"
+            placeholder="Enter description"
+            name="description">
+          </textarea>
+            </div>
+          </div>
+
+
+          <!--
+            NOTIFICATION EMAIL
+          -->
+          <div class="form-group row">
+            <div class="col-sm-3 sm-label-left">Notification email</div>
+            <div class="col-sm-9">
+              <input
+                type="email"
+                name="email"
+                required
+                class="form-control input-sm"
+                ng-model="newFP.property.email"
+                placeholder="Enter a notification email"
+                data-purpose="fastProperty-description">
+              </input>
+            </div>
+          </div>
+
+
+          <!--
+            CMC
+          -->
+          <div class="form-group row">
+            <div class="col-md-3 sm-label-left">CMC</div>
+            <div class="col-md-9">
+              <input
+                required
+                type="text"
+                name="cmcTicket"
+                class="form-control input-sm"
+                ng-model="newFP.property.cmcTicket"
+                placeholder="Enter a CMC"
+                data-purpose="fastProperty-cmc">
+              </input>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          ERROR MESSAGES
+        -->
+        <div class="form-group row slide-in animated" ng-if="newFastPropertyForm.$invalid">
+          <div class="col-sm-8 col-sm-offset-4 error-message">
+            <div ng-messages="newFastPropertyForm.name.$error" ng-if="newFastPropertyForm.name.$touched">
+              <p ng-message="required">Enter a property name</p>
+            </div>
+            <div ng-messages="newFastPropertyForm.value.$error" ng-if="newFastPropertyForm.value.$touched">
+              <p ng-message="required">Enter a value</p>
+            </div>
+            <div ng-messages="newFastPropertyForm.constraints.$error" ng-if="newFastPropertyForm.constraints.$touched">
+              <p ng-message="required">Enter a constraints</p>
+            </div>
+            <div ng-messages="newFastPropertyForm.email.$error" ng-if="newFastPropertyForm.email.$touched">
+              <p ng-message="required">Email is required</p>
+              <p ng-message="email">Enter a valid email</p>
+            </div>
+            <div ng-messages="newFastPropertyForm.cmcTicket.$error" ng-if="newFastPropertyForm.cmcTicket.$touched">
+              <p ng-message="required">CMC Ticket is required</p>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          FOOTER BUTTONS
+        -->
+        <div class="modal-footer">
+          <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+                  ng-click="$dismiss()">Cancel
+          </button>
+          <button class="btn btn-primary"
+                  ng-disabled="newFastPropertyForm.$invalid"
+                  ng-click="wizard.markComplete('Details'); wizard.nextPage()">
+            Next <span class="glyphicon glyphicon-chevron-right"></span>
+          </button>
+        </div>
+      </form>
+
+  </wizard-page>
+
+  <wizard-page key="Scope" label="Step 2: Select Scope">
+
+    <form role="form" novalidate name="fastPropertyScopeForm">
+      <div class="modal-body">
+        <div class="row">
+
+          <!--
+            LEFT COLUMN
+            Only rendered if the form is creating a new FP
+          -->
+          <div class="col-md-8" ng-if="!newFP.isEditing">
+
+            <div class="row">
+
+              <div class="col-md-12">
+                <div class="form-horizontal fp-scope-config-view">
+
+                  <div class="form-group">
+                    <div class="sm-label-left col-md-3">
+                      <b>Applications</b>
+                    </div>
+                    <div class="col-md-8">
+                      <ui-select
+                          name="applications"
+                          multiple
+                          required
+                          ng-model="newFP.propertyScope.applications"
+                          on-select="newFP.applicationSelected($item)"
+                          on-remove="newFP.applicationRemoved($item)"
+                          >
+                        <ui-select-match>
+                          {{$item}}
+                        </ui-select-match>
+
+                        <ui-select-choices
+                            repeat="app in newFP.applicationList | filter:$select.search"
+                            refresh="newFP.refreshAppList($select.search)"
+                            refresh-delay="0"
+                            >
+                          {{app}}
+                        </ui-select-choices>
+
+                      </ui-select>
+
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.region === 'skip'}">Region</b>
+                      <!--<span class="badge">{{newFP.regionList.length}}</span>-->
+                    </div>
+                    <div class="col-md-8">
+                      <select
+                          name="region"
+                          required
+                          placeholder="Select region..."
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.region"
+                          ng-change="newFP.regionChange()"
+                          >
+
+                        <option value=""></option>
+                        <option value="skip">
+                          Skip
+                        </option>
+                        <option
+                            ng-repeat="region in newFP.regionList"
+                            value="{{region}}"
+                            ng-selected="newFP.propertyScope.region === region">
+                          {{region}}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+
+                  <div class="form-group slide-in animated" ng-if="newFP.propertyScope.region">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.stack === 'skip'}">Stack</b>
+                      <!--<span class="badge">{{newFP.stackList.length}}</span>-->
+                    </div>
+
+                    <div class="col-md-8">
+                      <select
+                          name="stacks"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.stack"
+                          ng-change="newFP.stackChange()"
+                          >
+
+                        <option value=""></option>
+                        <option
+                            value="skip">
+                          Skip
+                        </option>
+                        <option
+                            ng-repeat="stack in newFP.stackList"
+                            value="{{stack}}"
+                            ng-selected="newFP.propertyScope.stack === stack"
+                            >
+                          {{stack}}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group slide-in animated" ng-if="newFP.propertyScope.stack">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.cluster === 'skip'}">Cluster</b>
+                    </div>
+
+                    <div class="col-md-8">
+                      <select
+                          name="stacks"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.cluster"
+                          ng-change="newFP.clusterChange()"
+                          ng-if="!newFP.freeFormClusterField"
+                          >
+
+                        <option value=""></option>
+                        <option
+                            value="skip"
+                            ng-selected="!new.propertyScope.cluster">
+                          Skip
+                        </option>
+                        <option
+                            ng-repeat="cluster in newFP.clusterList"
+                            value="{{cluster}}"
+                            ng-selected="newFP.propertyScope.cluster === cluster"
+                            >
+                          {{cluster}}
+                        </option>
+                      </select>
+
+                      <input
+                          type="text"
+                          ng-blur="newFP.clusterChange()"
+                          class="form-control input-sm"
+                          ng-if="newFP.freeFormClusterField"
+                          ng-model="newFP.propertyScope.cluster" />
+
+                    </div>
+
+                    <div class="col-md-8 col-md-offset-3">
+                      <a href ng-click="newFP.toggleFreeFormClusterField()" ng-if="!newFP.freeFormClusterField">Cluster not exist?</a>
+                      <a href ng-click="newFP.toggleFreeFormClusterField()" ng-if="newFP.freeFormClusterField">Select existing Cluster</a>
+                    </div>
+                  </div>
+
+
+
+                  <div class="form-group slide-in animated" ng-if="newFP.propertyScope.cluster">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.asg === 'skip'}">ASG</b>
+                      <!--<span class="badge">{{newFP.asgList.length}}</span>-->
+                    </div>
+                    <div class="col-md-8">
+                      <select
+                          name="asg"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.asg"
+                          ng-change="newFP.asgChange()"
+                          ng-if="!newFP.freeFormAsgField"
+                          >
+
+                        <option value=""></option>
+                        <option value="skip">Skip</option>
+                        <option ng-repeat="asg in newFP.asgList" value="{{asg}}">{{asg}}</option>
+                      </select>
+
+                      <input
+                          type="text"
+                          ng-blur="newFP.asgChange()"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.asg"
+                          ng-if="newFP.freeFormAsgField"/>
+
+                    </div>
+
+                    <div class="col-md-8 col-md-offset-3">
+                      <a href ng-click="newFP.toggleFreeFormAsgField()" ng-if="!newFP.freeFormAsgField">ASG not exist?</a>
+                      <a href ng-click="newFP.toggleFreeFormAsgField()" ng-if="newFP.freeFormAsgField">Select existing ASG</a>
+                    </div>
+
+                  </div>
+
+                  <div class="form-group slide-in animated" ng-if="newFP.propertyScope.asg">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.availabilityZone === 'skip'}">Zone</b>
+                      <!--<span class="badge">{{newFP.zoneList.length}}</span>-->
+                    </div>
+                    <div class="col-md-8">
+                      <select
+                          name="zone"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.availabilityZone"
+                          ng-change="newFP.availabilityZoneChange()"
+                          >
+
+                        <option value=""></option>
+                        <option value="skip">Skip</option>
+                        <option ng-repeat="zone in newFP.zoneList" value="{{zone}}">{{zone}}</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-group slide-in animated" ng-if="newFP.propertyScope.availabilityZone">
+                    <div class="sm-label-left col-md-3">
+                      <b ng-class="{strike: newFP.propertyScope.instance === 'skip'}">Instance</b>
+                      <!--<span class="badge">{{newFP.instanceList.length}}</span>-->
+                    </div>
+                    <div class="col-md-8">
+                      <select
+                          name="instances"
+                          class="form-control input-sm"
+                          ng-model="newFP.propertyScope.instance"
+                          ng-change="newFP.instanceChange()"
+                          >
+
+                        <option value=""></option>
+                        <option value="skip">Skip</option>
+                        <option ng-repeat="instance in newFP.instanceList" value="{{instance.id}}">{{instance.id}}
+                          ({{instance.serverGroup}} : {{instance.healthState}})
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!--
+           RIGHT COLUMN
+           -->
+          <div class="col-md-4">
+            <h4>Impact Count:
+              <span ng-if="!newFP.impactLoading" style="color:red;">{{newFP.impact}}</span>
+              <span ng-if="newFP.impactLoading" us-spinner="{radius:8, width:3, length: 5}"></span>
+            </h4>
+
+            <div>
+              <table class="table table-hover">
+                <tbody>
+                <tr ng-if="newFP.selectedScope.env">
+                  <td><b>Env</b></td>
+                  <td>{{newFP.selectedScope.env}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.appId">
+                  <td><b>Apps</b></td>
+                  <td>{{newFP.selectedScope.appId}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.region">
+                  <td><b>Region</b></td>
+                  <td>{{newFP.selectedScope.region}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.stack">
+                  <td><b>Stack</b></td>
+                  <td>{{newFP.selectedScope.stack}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.cluster">
+                  <td><b>Cluster</b></td>
+                  <td>{{newFP.selectedScope.cluster}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.asg">
+                  <td><b>ASG</b></td>
+                  <td>{{newFP.selectedScope.asg}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.zone">
+                  <td><b>Zone</b></td>
+                  <td>{{newFP.selectedScope.zone}}</td>
+                </tr>
+                <tr ng-if="newFP.selectedScope.serverId">
+                  <td><b>Instance</b></td>
+                  <td>{{newFP.selectedScope.serverId}}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <!--
+          ERROR MESSAGES
+        -->
+        <div class="form-group row slide-in animated" ng-if="fastPropertyScopeForm.$invalid">
+          <div class="col-sm-8 col-sm-offset-4 error-message">
+            <div ng-messages="fastPropertyScopeForm.region.$error" ng-if="fastPropertyScopeForm.region.$touched">
+              <p ng-message="required">Select region</p>
+            </div>
+          </div>
+        </div>
+
+        <!--
+          FOOTER BUTTONS
+        -->
+        <div class="modal-footer">
+          <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+                  ng-click="$dismiss()">Cancel
+          </button>
+
+          <button class="btn btn-default"
+                  ng-click="wizard.previousPage()">
+            <span class="glyphicon glyphicon-chevron-left"></span> Back
+          </button>
+
+          <button class="btn btn-primary"
+                  ng-disabled="fastPropertyScopeForm.$invalid"
+                  ng-click="newFP.setStrategy(); wizard.markComplete('Scope'); wizard.nextPage()">
+            Next <span class="glyphicon glyphicon-chevron-right"></span>
+          </button>
+        </div>
+
+      </div>
+    </form>
+
+  </wizard-page>
+
+  <wizard-page key="Strategy" label="Step 3: Select Strategy" render="true" lazy="true">
+
+    <form role="form" class="container-fluid" novalidate name="newFastPropertyForm" ng-init="newFP.setFormScope(this)">
+      <div class="modal-body">
+
+        <div class="form-group row">
+
+          <div class="col-sm-3 sm-label-left">
+            Strategy
+            <help-field key="fastProperty.strategy"></help-field>
+          </div>
+          <div class="col-sm-9">
+            <ui-select
+                autofocus="true"
+                required=""
+                class="form-control input-sm"
+                ng-model="newFP.selectedStrategy.selected"
+                on-select="newFP.setStrategy()"
+                >
+
+              <ui-select-match placeholder="Select Strategy..." >
+                <span>
+                  <strong>{{$select.selected.label}}</strong>
+                </span>
+              </ui-select-match>
+
+              <ui-select-choices repeat="strategy in newFP.strategies | filter: $select.search">
+                <div ng-bind-html="strategy.label | highlight: $select.search"></div>
+                <small>{{strategy.description}}</small>
+              </ui-select-choices>
+
+            </ui-select>
+
+          </div>
+
+        </div>
+
+        <div class="row">
+          <div class="col-sm-offset-3 col-sm-9">
+            {{newFP.selectedStrategy.selected.description}}
+          </div>
+        </div>
+
+        <div id="strategy-template"> </div>
+
+      </div>
+
+
+      <!--
+        FOOTER BUTTONS
+      -->
+      <div class="modal-footer">
+        <button ng-disabled="taskMonitor.submitting" class="btn btn-default pull-left"
+                ng-click="$dismiss()">Cancel
+        </button>
+        <button class="btn btn-default"
+                ng-click="wizard.previousPage()">
+          <span class="glyphicon glyphicon-chevron-left"></span> Back
+        </button>
+
+        <button class="btn btn-primary" ng-if="!newFP.isEditing"
+                ng-disabled="newFastPropertyForm.$invalid"
+                ng-click="newFP.submit()"> Create property
+        </button>
+
+        <button class="btn btn-primary" ng-if="newFP.isEditing"
+                ng-disabled="newFastPropertyForm.$invalid"
+                ng-click="newFP.update()"> Update property
+        </button>
+      </div>
+
+    </form>
+
+  </wizard-page>
+
+</modal-wizard>
+
+
+

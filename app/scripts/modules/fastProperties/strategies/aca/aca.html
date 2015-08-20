@@ -1,0 +1,185 @@
+<div class="modal-body">
+
+  <form action="" name="acaForm">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="fast-property-strategy">
+
+          <div ng-if="!strategy.clusterIsSet()" class="row error-message">
+             <div class="col-md-3 text-right"><i class="glyphicon glyphicon-exclamation-sign"></i></div>
+             <div class="col-md-9">Please select a Cluster in your scope. The cluster you select will be used for the ACA.</div>
+          </div>
+
+          <div class="form-horizontal fp-canary-config-view">
+            <h4>Canary Config</h4>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Name</b>
+              </div>
+              <div class="col-md-8">
+                <input
+                    type="text"
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.name"
+                    />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Canary Lifetime</b>
+              </div>
+              <div class="col-md-2">
+                <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.lifetimeHours"
+                    />
+              </div>
+              <div class="col-md-1">
+                hours
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Result Strategy</b>
+                <help-field key="pipeline.config.canary.combinedCanaryResultStrategy"></help-field>
+              </div>
+              <div class="col-md-8">
+                <select
+                  requried
+                  class="form-control input-sm"
+                  ng-model="strategy.aca.resultStrategy"
+                >
+                  <option value="LOWEST">lowest</option>
+                  <option value="AGGREGATE">aggregate</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+
+              <div class="indent col-md-4  sm-label-left">
+                <b>Successful Score</b>
+                <help-field key="pipeline.config.canary.canarySuccessCriteria.canaryResultScore"></help-field>
+              </div>
+              <div class="col-md-2">
+                <input
+                    min="0"
+                    max="100"
+                    type="number"
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.successfulScore"
+                    />
+              </div>
+
+              <div class="col-md-4  sm-label-left">
+                <b>Unhealthy Score</b>
+                <help-field key="pipeline.config.canary.canaryHealthCheckHandler.minimumCanaryResultScore"></help-field>
+              </div>
+              <div class="col-md-2">
+                <input
+                    min="0"
+                    max="100"
+                    type="number"
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.unhealthyScore"
+                    />
+              </div>
+
+            </div>
+
+            <h5>Analysis Config</h5>
+            <div class="horizontal-rule"></div>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Name</b>
+              </div>
+              <div class="col-md-8">
+                <input
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.canaryAnalysisConfig.name"
+                    type="text"/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Delay</b>
+              </div>
+              <div class="col-md-2">
+                <input
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.canaryAnalysisConfig.beginCanaryAnalysisAfterMins"
+                    type="text"/>
+              </div>
+              <div class="col-md-6">
+                minutes before starting analysis
+                <help-field key="pipeline.config.canary.delayBeforeAnalysis"></help-field>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="indent col-md-4 sm-label-left">
+                <b>Notification Hours</b>
+                <help-field key="pipeline.config.canary.notificationHours"></help-field>
+              </div>
+              <div class="col-md-8">
+                <input
+                    class="form-control input-sm"
+                    required
+                    ng-model="strategy.aca.canaryAnalysisConfig.notificationHours"
+                    type="text"/>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="indent col-md-4  sm-label-left">
+                <b>Score Frequency</b>
+                <help-field key="pipeline.config.canary.canaryInterval"></help-field>
+              </div>
+              <div class="col-md-8">
+                <input
+                    class="form-control input-sm"
+                    ng-model="strategy.aca.canaryAnalysisConfig.canaryAnalysisIntervalMins"
+                    required
+                    type="text"/>
+              </div>
+            </div>
+
+            <!--<h5>Owner</h5>-->
+            <!--<div class="horizontal-rule"></div>-->
+
+            <!--<div class="form-group">-->
+              <!--<div class="indent col-md-4  sm-label-left">-->
+                <!--<b>Owner</b>-->
+              <!--</div>-->
+              <!--<div class="col-md-8">-->
+                <!--<input-->
+                    <!--class="form-control input-sm"-->
+                    <!--ng-model="strategy.aca.owner"-->
+                    <!--required-->
+                    <!--type="email"/>-->
+              <!--</div>-->
+            <!--</div>-->
+
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>

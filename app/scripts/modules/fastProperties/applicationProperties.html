@@ -36,6 +36,7 @@
 
      <div class="row content">
        <div class="rollout">
+
          <div class="clickable" ng-click="fp.togglePromotionPane()">
            <span class="pull-left glyphicon glyphicon-chevron-{{fp.promotionPaneOpen ? 'down' : 'up'}}"></span>
 
@@ -45,6 +46,7 @@
             {{ (fp.promotions | filter:{state:'Running'}).length }}</span>
            </h3>
          </div>
+
          <div class="row" ng-show="fp.promotionPaneOpen && fp.promotions.length > 0">
            <div class="col-md-5 col-md-offset-4">
              <div class="btn-group">
@@ -65,65 +67,12 @@
                </label>
              </div>
            </div>
-         </div>
-         <div class="row" ng-show="fp.promotionPaneOpen">
-           <div class="col-md-12">
 
-             <table ng-if="fp.promotions" class="table table-hover">
-               <thead>
-               <tr>
-                 <th width="2%"><!-- arrow --></th>
-                 <th width="20%" key="property" label="Created" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Property</th>
-                 <th width="20%" key="rolloutStarted" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Rollout Started</th>
-                 <th width="50%" key="status" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Status</th>
-               </tr>
-               </thead>
-               <tbody>
-               <tr class="clickable"
-                   ng-click="fp.toggleRolloutDetails(promotion)"
-                   ng-repeat-start="promotion in fp.filteredPromotions">
-                 <td>
-                   <span class="pull-left glyphicon glyphicon-chevron-{{fp.isRolloutDetailsOpen(promotion.id) ? 'down' : 'up'}}"></span>
-                 </td>
-                 <td>
-                   {{ promotion.key }}
-                 </td>
-                 <td>
-                   {{ promotion.history[0].when | fastPropertyTime}}
-                 </td>
-                 <td>
-                   <div class="row">
-                     <div class="col-md-2">
-                       <div class="rollout-status pull-left">{{promotion.state}}</div>
-                     </div>
-                     <div class="col-md-7">
-                       <fast-property-progress-bar task="promotion"></fast-property-progress-bar>
-                       <div>{{fp.getLastMessage(promotion)}}</div>
-                     </div>
-                     <div class="col-md-3">
-                       <span class="icon" ng-if="promotion.isPromoting"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
-                       <!--<div ng-if="!promotion.isPromoting && promotion.state == 'Running'">-->
-                         <!--<div>Continue?</div>-->
-                       <!--<span>-->
-                         <button class="btn btn-primary btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.continue($event, promotion)" ng-disabled="promotion.isPromoting">continue</button>
-                         <button class="btn btn-danger btn-xs" ng-if="promotion.state == 'Running'" ng-click="fp.stop($event, promotion)" ng-disabled="promotion.isPromoting">rollback</button>
-                       </span>
-                     </div>
-                   </div>
-                 </td>
-               </tr>
-               <tr class="history" ng-repeat-end
-                   ng-repeat="history in promotion.history"
-                   ng-if="fp.isRolloutDetailsOpen(promotion.id)" >
-                 <td></td>
-                 <td></td>
-                 <td>{{history.when | fastPropertyTime}}</td>
-                 <td colspan="2">{{history.message}}</td>
-               </tr>
-               </tbody>
-             </table>
-           </div>
+           <fast-property-promotion promotions="fp.promotions" filtered-promotions="fp.filteredPromotions" application="fp.application"></fast-property-promotion>
          </div>
+
+
+
        </div>
 
 
@@ -141,6 +90,7 @@
                <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Stack</th>
                <th width="20%" label="Updated" skrt-model="fp.sortModel" on-change="ctrl.filterApplications()">Additional Scope</th>
                <th width="10%" label="Updated" sort-model="fp.sortModel" on-change="ctrl.filterApplications()">Expiration</th>
+               <th width="5%" label="edit"></th>
                <th width="5%" label="edit"></th>
              </tr>
              </thead>
@@ -168,17 +118,46 @@
                    <dt ng-if="property.env">Env:</dt>
                    <dd ng-if="property.env">{{property.env}}</dd>
 
-                   <dt ng-if="property.cluster">Cluster:</dt>
-                   <dd ng-if="property.cluster">{{property.cluster}}</dd>
+                   <dt ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">Cluster:</dt>
+                   <dd ng-if="property.cluster" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('cluster') > -1}">
+                     {{property.cluster}}
+                     <i
+                         class="error-message glyphicon glyphicon-exclamation-sign"
+                         ng-if="!property.isValid && property.errors.indexOf('cluster') > -1"
+                         style="display: inline; padding-left: 5px"
+                         tooltip="{{property.cluster}} is not in service"
+                         tooltip-placement="right">
+                     </i>
+                   </dd>
 
-                   <dt ng-if="property.asg">ASG:</dt>
-                   <dd ng-if="property.asg">{{property.asg}}</dd>
+                   <dt ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">ASG:</dt>
+                   <dd ng-if="property.asg" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('asg') > -1}">
+                     {{property.asg}}
+                     <i
+                         class="error-message glyphicon glyphicon-exclamation-sign"
+                         ng-if="!property.isValid && property.errors.indexOf('asg') > -1"
+                         style="display: inline; padding-left: 5px"
+                         tooltip="{{property.asg}} is not in service"
+                         tooltip-placement="right">
+                     </i>
+                   </dd>
 
                    <dt ng-if="property.zone">AZ:</dt>
-                   <dd ng-if="property.zone">{{property.zone}}</dd>
+                   <dd ng-if="property.zone">
+                     {{property.zone}}
+                   </dd>
 
-                   <dt ng-if="property.serverId">Instance:</dt>
-                   <dd ng-if="property.serverId">{{property.serverId}}</dd>
+                   <dt ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">Instance:</dt>
+                   <dd ng-if="property.serverId" ng-class="{'error-message': !property.isValid && property.errors && property.errors.indexOf('serverId') > -1 }">
+                     {{property.serverId}} {{property.errors.indexOf('serverId')}}
+                       <i
+                         class="error-message glyphicon glyphicon-exclamation-sign"
+                         ng-if="!property.isValid && property.errors.indexOf('serverId') > -1"
+                         style="display: inline; padding-left: 5px"
+                         tooltip="{{property.serverId}} is not in service"
+                         tooltip-placement="right">
+                       </i>
+                   </dd>
                  </dl>
                </td>
                <td>

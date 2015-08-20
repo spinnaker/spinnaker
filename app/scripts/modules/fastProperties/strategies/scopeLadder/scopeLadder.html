@@ -1,0 +1,66 @@
+
+
+
+<div class="row">
+  <div class="modal-body">
+    <div class="col-md-6">
+      <h4>Scope</h4>
+      <dl class="fastProperty-scope" ng-if="strategy.property.scope">
+        <dt>App Name:</dt>
+        <dd>{{strategy.property.scope.appId}}</dd>
+
+        <dt ng-if="strategy.property.scope.region">Region:</dt>
+        <dd ng-if="strategy.property.scope.region">{{strategy.property.scope.region}}</dd>
+
+        <dt ng-if="strategy.property.scope.stack">Stack:</dt>
+        <dd ng-if="strategy.property.scope.stack">{{strategy.property.scope.stack}}</dd>
+
+        <dt ng-if="strategy.property.scope.cluster">Cluster:</dt>
+        <dd ng-if="strategy.property.scope.cluster">{{strategy.property.scope.cluster}}</dd>
+
+        <dt ng-if="strategy.property.scope.asg">ASG:</dt>
+        <dd ng-if="strategy.property.scope.asg">{{strategy.property.scope.asg}}</dd>
+
+        <dt ng-if="strategy.property.scope.zone">AZ:</dt>
+        <dd ng-if="strategy.property.scope.zone">{{strategy.property.scope.zone}}</dd>
+
+        <dt ng-if="strategy.property.scope.serverId">Instance:</dt>
+        <dd ng-if="strategy.property.scope.serverId">{{strategy.property.scope.serverId}}</dd>
+
+      </dl>
+    </div>
+
+    <div class="col-md-6">
+      <h4>Fast Property</h4>
+      <dl class="fastProperty-list">
+
+        <dt ng-if="strategy.property.key"><b>Key:</b></dt>
+        <dd ng-if="strategy.property.key">{{strategy.property.key}}</dd>
+
+        <dt ng-if="strategy.property.value"><b>Value:</b></dt>
+        <dd ng-if="strategy.property.value">{{strategy.property.value}}</dd>
+
+        <dt ng-if="strategy.property.constraints"><b>Constraints:</b></dt>
+        <dd ng-if="strategy.property.constraints">{{strategy.property.constraints}}</dd>
+
+        <dt ng-if="strategy.property.env"><b>Environment:</b></dt>
+        <dd ng-if="strategy.property.env">{{strategy.property.env}}</dd>
+
+        <dt ng-if="strategy.property.email"><b>Email:</b></dt>
+        <dd ng-if="strategy.property.email">{{strategy.property.email}}</dd>
+
+        <dt ng-if="strategy.property.cmcTicket"><b>CMC Ticket:</b></dt>
+        <dd ng-if="strategy.property.cmcTicket">{{strategy.property.cmcTicket}}</dd>
+      </dl>
+    </div>
+
+    <!--<div class="col-md-4">-->
+      <!--<h3>You will affect</h3>-->
+
+      <!--<h2 style="margin-top: 10px; color: #ff0000">{{strategy.property.impactCount}}</h2>-->
+
+      <!--<h3>instances</h3>-->
+    <!--</div>-->
+
+  </div>
+</div>
