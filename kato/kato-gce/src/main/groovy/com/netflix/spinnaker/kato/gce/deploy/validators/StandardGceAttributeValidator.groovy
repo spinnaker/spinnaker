@@ -173,6 +173,10 @@ class StandardGceAttributeValidator {
     validateNotEmpty(zone, "zone")
   }
 
+  def validateNetwork(String network) {
+    validateNotEmpty(network, "network")
+  }
+
   def validateNonNegativeInt(int value, String attribute) {
     def result = true
     if (value < 0) {

@@ -33,6 +33,7 @@ import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleFirewallRuleDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
@@ -441,5 +442,38 @@ class GCEUtil {
           name: name
       )
     }
+  }
+
+  static Firewall buildFirewallRule(String projectName,
+                                    UpsertGoogleFirewallRuleDescription firewallRuleDescription,
+                                    Compute compute,
+                                    Task task,
+                                    String phase) {
+    def network = queryNetwork(projectName, firewallRuleDescription.network, compute, task, phase)
+    def firewall = new Firewall(
+        name: firewallRuleDescription.firewallRuleName,
+        network: network.selfLink
+    )
+    def allowed = firewallRuleDescription.allowed.collect {
+      new Firewall.Allowed(IPProtocol: it.ipProtocol, ports: it.portRanges)
+    }
+
+    if (allowed) {
+      firewall.allowed = allowed
+    }
+
+    if (firewallRuleDescription.sourceRanges) {
+      firewall.sourceRanges = firewallRuleDescription.sourceRanges
+    }
+
+    if (firewallRuleDescription.sourceTags) {
+      firewall.sourceTags = firewallRuleDescription.sourceTags
+    }
+
+    if (firewallRuleDescription.targetTags) {
+      firewall.targetTags = firewallRuleDescription.targetTags
+    }
+
+    return firewall
   }
 }
