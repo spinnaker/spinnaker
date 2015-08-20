@@ -142,26 +142,8 @@
         <dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Logs" ng-if="baseIpAddress">
+    <collapsible-section heading="Logs">
       <ul>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list?view=tomcat/catalina.out" target="_blank">catalina.out</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/list" target="_blank">Log File Archive</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminLogs/threaddumps" target="_blank">Thread Dumps</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminProxyInfo" target="_blank">Admin Proxy Info</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminProxyStatus" target="_blank">Admin Proxy Status</a>
-        </li>
-        <li>
-          <a href="http://{{baseIpAddress}}:7001/AdminGCViz/index" target="_blank">GC Visualization</a>
-        </li>
         <li>
           <a href ng-click="ctrl.showConsoleOutput()">Console Output (Raw)</a>
         </li>
