@@ -9,39 +9,41 @@ Build conventions for spinnaker Gradle projects
 
 To include, add the following to your build.gradle
 
-    buildscript {
-      repositories { jcenter() }
+```groovy
+buildscript {
+  repositories { 
+    maven { url 'https://dl.bintray.com/spinnaker/gradle/' }
+  }
 
-      dependencies {
-        classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.9.+'
-      }
-    }
+  dependencies {
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:latest.release'
+  }
+}
 
-    apply plugin: 'spinnaker-gradle-project'
-
-### Tasks Provided
-
-None
+apply plugin: 'spinnaker.project'
+```
 
 ### Extensions Provided
 
-**Dependencies**
+**spinnaker**
+
+The spinnaker extension exposes dependency resolution utilities. By default the artifact
+'com.netflix.spinnaker:spinnaker-dependencies:latest.release@yml' is resolved and used as
+common dependency configuration (this can be overridden by setting `dependenciesYaml` on the 
+spinnaker extension).
+
+The dependency yaml format supports three sections:
+* versions - a map of name to version string
+* dependencies - a map of name to Gradle dependency notation, supporting Groovy simple templating
+* groups - a map of name to a map of configuration name to a list of dependency names
+
+Usage looks like:
 
 ```groovy
 dependencies {
   spinnaker.group("bootWeb")
   compile spinnaker.dependency("bootActuator")
+  compile "org.springframework:spring-context:${spinnaker.version('spring')}"
 }
 ```
 
-spinnaker#group will resolve a group of dependencies as defined in src/main/resources/dependencies.yml
-spinnaker#dependency will resolve a specific named dependency as defined in src/main/resources/dependencies.yml
-
-**IDEA Config**
-
-```groovy
-ideaConfig {
-  mainClassName = 'com.netflix.spinnaker.myApp.Main'
-  codeStyleXml = file('gradle/codeStyle.xml')
-}
-```
