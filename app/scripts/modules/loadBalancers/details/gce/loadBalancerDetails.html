@@ -107,5 +107,12 @@
         <dd>{{loadBalancer.elb.healthCheck.healthyThreshold}}</dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Logs">
+      <ul>
+        <li ng-if="loadBalancer.logsLink">
+          <a href="{{loadBalancer.logsLink}}" target="_blank">Developers Console Logs</a>
+        </li>
+      </ul>
+    </collapsible-section>
   </div>
 </div>
