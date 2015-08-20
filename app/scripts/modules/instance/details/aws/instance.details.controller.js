@@ -4,13 +4,14 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
   require('utils/lodash.js'),
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../vpc/vpcTag.directive.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -332,6 +333,17 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
+      });
+    };
+
+    this.showConsoleOutput = function  () {
+      $modal.open({
+        templateUrl: require('../console/consoleOutput.modal.html'),
+        controller: 'ConsoleOutputCtrl as ctrl',
+        size: 'lg',
+        resolve: {
+          instance: function() { return $scope.instance; },
+        }
       });
     };
 

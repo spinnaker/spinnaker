@@ -4,12 +4,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-router'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state,
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -321,6 +322,17 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
+      });
+    };
+
+    this.showConsoleOutput = function  () {
+      $modal.open({
+        templateUrl: require('../console/consoleOutput.modal.html'),
+        controller: 'ConsoleOutputCtrl as ctrl',
+        size: 'lg',
+        resolve: {
+          instance: function() { return $scope.instance; },
+        }
       });
     };
 
