@@ -49,19 +49,11 @@ import java.util.concurrent.TimeUnit
 @ConditionalOnExpression('${scheduler.enabled:false}')
 @ComponentScan(["com.netflix.spinnaker.echo.scheduler", "com.netflix.scheduledactions"])
 class SchedulerConfiguration {
-
-    /*
-     * Dirty, make sure EmbeddedCass is loaded before our @Bean classes
-     */
+  /*
+    * Dirty, make sure EmbeddedCass is loaded before our @Bean classes
+    */
     @Autowired(required = false)
     AstyanaxComponents.EmbeddedCassandraRunner embeddedCassandra
-
-    @Bean
-    Keyspace keySpace(AstyanaxKeyspaceFactory factory,
-                      @Value('${spinnaker.cassandra.cluster:spinnaker}') String clusterName,
-                      @Value('${spinnaker.cassandra.keyspace:scheduler}') String keySpaceName) throws ConnectionException {
-        factory.getKeyspace(clusterName, keySpaceName)
-    }
 
     @Bean
     ActionInstanceDao actionInstanceDao(Keyspace keyspace) {
