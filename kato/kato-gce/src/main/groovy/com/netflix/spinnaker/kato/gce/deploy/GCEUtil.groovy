@@ -458,16 +458,16 @@ class GCEUtil {
       new Firewall.Allowed(IPProtocol: it.ipProtocol, ports: it.portRanges)
     }
 
+    if (allowed) {
+      firewall.allowed = allowed
+    }
+
     if (firewallRuleDescription.sourceRanges) {
       firewall.sourceRanges = firewallRuleDescription.sourceRanges
     }
 
     if (firewallRuleDescription.sourceTags) {
       firewall.sourceTags = firewallRuleDescription.sourceTags
-    }
-
-    if (allowed) {
-      firewall.allowed = allowed
     }
 
     if (firewallRuleDescription.targetTags) {
