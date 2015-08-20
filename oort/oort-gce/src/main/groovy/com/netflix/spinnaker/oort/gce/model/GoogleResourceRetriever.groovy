@@ -219,45 +219,47 @@ class GoogleResourceRetriever {
             it.name == loadBalancerName
           }
 
-          def instances = [] as Set
+          if (loadBalancer) {
+            def instances = [] as Set
 
-          serverGroup.instances.each { instance ->
-            def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
+            serverGroup.instances.each { instance ->
+              def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
 
-            // Only include the instances from the server group that are also registered with the load balancer.
-            if (instanceNames?.contains(instance.name)) {
-              // Only include the health returned by this load balancer.
-              def loadBalancerHealth = instance.health.find {
-                it.type == "LoadBalancer"
-              }?.loadBalancers?.find {
-                it.loadBalancerName == loadBalancerName
+              // Only include the instances from the server group that are also registered with the load balancer.
+              if (instanceNames?.contains(instance.name)) {
+                // Only include the health returned by this load balancer.
+                def loadBalancerHealth = instance.health.find {
+                  it.type == "LoadBalancer"
+                }?.loadBalancers?.find {
+                  it.loadBalancerName == loadBalancerName
+                }
+
+                def health = loadBalancerHealth ?
+                             [
+                               state      : loadBalancerHealth.state,
+                               description: loadBalancerHealth.description
+                             ] :
+                             [
+                               state      : "Unknown",
+                               description: "Unable to determine load balancer health."
+                             ]
+
+                instances << [
+                  id    : instance.name,
+                  zone  : Utils.getLocalName(instance.getZone()),
+                  health: health
+                ]
               }
-
-              def health = loadBalancerHealth ?
-                           [
-                             state      : loadBalancerHealth.state,
-                             description: loadBalancerHealth.description
-                           ] :
-                           [
-                             state      : "Unknown",
-                             description: "Unable to determine load balancer health."
-                           ]
-
-              instances << [
-                id    : instance.name,
-                zone  : Utils.getLocalName(instance.getZone()),
-                health: health
-              ]
             }
+
+            def serverGroupSummary = [
+              name      : serverGroup.name,
+              isDisabled: serverGroup.isDisabled(),
+              instances : instances
+            ]
+
+            loadBalancer.serverGroups << serverGroupSummary
           }
-
-          def serverGroupSummary = [
-            name      : serverGroup.name,
-            isDisabled: serverGroup.isDisabled(),
-            instances : instances
-          ]
-
-          loadBalancer?.serverGroups << serverGroupSummary
         }
       }
     }
