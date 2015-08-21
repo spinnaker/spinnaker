@@ -64,7 +64,7 @@ enum ExecutionStatus {
   /**
    * The step completed but is indicating that a decision path should be followed, not the default path.
    */
-    REDIRECT(true, false)
+    REDIRECT(false, false)
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).
