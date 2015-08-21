@@ -18,8 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson.Gson
-import com.netflix.spinnaker.gate.services.CronService
-import com.netflix.spinnaker.gate.services.internal.SchedulerService
+import com.netflix.spinnaker.gate.services.internal.EchoService
 import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.converter.GsonConverter
@@ -36,7 +35,7 @@ class CronServiceSpec extends Specification {
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
     def error = RetrofitError.httpError("", new Response("", 400, "", [], body), new GsonConverter(new Gson()), Map)
     def service = new CronService(
-        schedulerService: Mock(SchedulerService) {
+        echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
         }
     )
@@ -51,7 +50,7 @@ class CronServiceSpec extends Specification {
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([message: "Invalid Cron expression!!!"]))
     def error = RetrofitError.httpError("", new Response("", code, "", [], body), new GsonConverter(new Gson()), Map)
     def service = new CronService(
-        schedulerService: Mock(SchedulerService) {
+        echoService: Mock(EchoService) {
           1 * validateCronExpression("blah") >> { throw error }
         }
     )
@@ -74,7 +73,7 @@ class CronServiceSpec extends Specification {
             reality: "You will accept it because the service call did not throw an exception"
         ]
     def service = new CronService(
-        schedulerService: Mock(SchedulerService) {
+        echoService: Mock(EchoService) {
           1 * validateCronExpression("totally invalid cron expression") >> response
         }
     )

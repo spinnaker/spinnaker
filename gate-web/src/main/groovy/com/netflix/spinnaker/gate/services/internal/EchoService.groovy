@@ -38,6 +38,9 @@ interface EchoService {
   @POST("/")
   Response postEvent(@Body EventBuilder.Event event)
 
+  @GET("/validateCronExpression")
+  Map validateCronExpression(@Query("cronExpression") String cronExpression)
+
   static class EventBuilder {
 
     private Event event = new Event()

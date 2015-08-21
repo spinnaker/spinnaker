@@ -24,7 +24,6 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.*
-import com.netflix.spinnaker.gate.services.internal.SchedulerService
 import com.squareup.okhttp.OkHttpClient
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -144,12 +143,6 @@ class GateConfig {
   @ConditionalOnProperty('services.igor.enabled')
   IgorService igorService(OkHttpClient okHttpClient) {
     createClient "igor", IgorService, okHttpClient
-  }
-
-  @Bean
-  @ConditionalOnProperty('services.scheduler.enabled')
-  SchedulerService schedulerService(OkHttpClient okHttpClient) {
-    createClient "scheduler", SchedulerService, okHttpClient
   }
 
   private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient) {

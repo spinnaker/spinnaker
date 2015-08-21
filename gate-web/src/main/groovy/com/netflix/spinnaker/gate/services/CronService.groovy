@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.netflix.spinnaker.gate.services.internal.SchedulerService
+import com.netflix.spinnaker.gate.services.internal.EchoService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,16 +27,16 @@ import retrofit.RetrofitError
 @CompileStatic
 @Slf4j
 class CronService {
-  @Autowired(required = false)
-  SchedulerService schedulerService
+  @Autowired(required=false)
+  EchoService echoService
 
   Map validateCronExpression(String cronExpression) {
-    if (!schedulerService) {
-      return [ valid: false, message: 'No scheduler service available' ]
+    if (!echoService) {
+      return [ valid: false, message: 'No echo service available' ]
     }
 
     try {
-      schedulerService.validateCronExpression(cronExpression)
+      echoService.validateCronExpression(cronExpression)
       return [ valid: true ]
     } catch (RetrofitError e) {
       if (e.response.status == 400) {
