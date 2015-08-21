@@ -46,7 +46,6 @@ subprojects { project ->
 
 
   repositories {
-    mavenLocal()
     jcenter()
     maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
     maven { url 'http://repo.spring.io/repo' }
