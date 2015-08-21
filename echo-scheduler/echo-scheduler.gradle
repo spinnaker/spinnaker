@@ -27,7 +27,7 @@ dependencies {
   compile spinnaker.dependency('eurekaClient')
 
   testRuntime spinnaker.dependency('slf4jSimple')
-  compile ("com.netflix.scheduledactions:scheduled-actions-core:0.25")
-  compile ("com.netflix.scheduledactions:scheduled-actions-cassandra:0.25")
-  compile ("com.netflix.scheduledactions:scheduled-actions-web:0.25")
+  compile ("com.netflix.scheduledactions:scheduled-actions-core:0.32")
+  compile ("com.netflix.scheduledactions:scheduled-actions-cassandra:0.32")
+  compile ("com.netflix.scheduledactions:scheduled-actions-web:0.32")
 }
