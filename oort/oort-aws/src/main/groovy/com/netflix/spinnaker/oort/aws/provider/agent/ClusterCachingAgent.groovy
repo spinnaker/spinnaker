@@ -18,7 +18,11 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
+import com.amazonaws.services.autoscaling.model.DescribePoliciesRequest
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.autoscaling.model.ScalingPolicy
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest
+import com.amazonaws.services.cloudwatch.model.MetricAlarm
 import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.amazonaws.services.ec2.model.Subnet
 import com.fasterxml.jackson.annotation.JsonCreator
@@ -134,10 +138,14 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       return null
     }
 
+    String asgName = data.asgName.toString()
+
     def autoScaling = amazonClientProvider.getAutoScaling(account, region, true)
     List<AutoScalingGroup> asgs = autoScaling.describeAutoScalingGroups(
-      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(data.asgName as String)
+      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
     ).autoScalingGroups
+
+    Map<String, Collection<ScalingPolicyData>> policies = loadScalingPolicies(asgName)
 
     Map<String, String> subnetMap = [:]
     asgs.each {
@@ -146,9 +154,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       }
     }
 
-    def cacheResult = buildCacheResult(asgs, subnetMap, [:])
+    def cacheResult = buildCacheResult(asgs, policies, subnetMap, [:])
     def cacheData = new DefaultCacheData(
-      Keys.getServerGroupKey(data.asgName as String, account.name, region),
+      Keys.getServerGroupKey(asgName, account.name, region),
       60 * 60,
       [
         cacheTime   : new Date(),
@@ -166,7 +174,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     Map<String, Collection<String>> evictions = asgs ? [:] : [
       (SERVER_GROUPS.ns): [
-        Keys.getServerGroupKey(data.asgName as String, account.name, region)
+        Keys.getServerGroupKey(asgName, account.name, region)
       ]
     ]
 
@@ -197,10 +205,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     subnetMap
   }
 
-  @Override
-  CacheResult loadData(ProviderCache providerCache) {
-    log.info("Describing items in ${agentType}")
-
+  private AutoScalingGroupsResults loadAutoScalingGroups() {
+    log.info("Describing auto scaling groups in ${agentType}")
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     def request = new DescribeAutoScalingGroupsRequest()
@@ -220,6 +226,73 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       }
     }
 
+    new AutoScalingGroupsResults(start: start, asgs: asgs)
+  }
+
+  private Map<String, List<ScalingPolicyData>> loadScalingPolicies() {
+    loadScalingPolicies(null)
+  }
+
+  private Map<String, List<ScalingPolicyData>> loadScalingPolicies(String asgName) {
+    log.info("Describing scaling policies in ${agentType}")
+    def autoScaling = amazonClientProvider.getAutoScaling(account, region)
+
+    def request = new DescribePoliciesRequest()
+    if (asgName) {
+      request.withAutoScalingGroupName(asgName)
+    }
+    List<ScalingPolicy> policies = []
+    while (true) {
+      def resp = autoScaling.describePolicies(request)
+      policies.addAll(resp.scalingPolicies)
+      if (resp.nextToken) {
+        request.withNextToken(resp.nextToken)
+      } else {
+        break
+      }
+    }
+    def alarmNames = []
+    if (asgName) {
+      alarmNames = policies.findResults { it.alarms.findResults { it.alarmName }}.flatten().unique()
+    }
+    Map<String, MetricAlarm> alarms = loadAlarms(alarmNames)
+
+    policies
+        .findResults { new ScalingPolicyData(it, alarms) }
+        .groupBy { it.autoScalingGroupName }
+  }
+
+  private Map<String, MetricAlarm> loadAlarms(List alarmNames) {
+    log.info("Describing alarms in ${agentType}")
+    def cloudWatch = amazonClientProvider.getCloudWatch(account, region)
+
+    def request = new DescribeAlarmsRequest()
+    if (alarmNames.size()) {
+      request.withAlarmNames(alarmNames)
+    }
+    List<MetricAlarm> alarms = []
+    while (true) {
+      def resp = cloudWatch.describeAlarms(request)
+      alarms.addAll(resp.metricAlarms)
+      if (resp.nextToken) {
+        request.withNextToken(resp.nextToken)
+      } else {
+        break
+      }
+    }
+    alarms.collectEntries { [(it.alarmArn) : it ]}
+  }
+
+  @Override
+  CacheResult loadData(ProviderCache providerCache) {
+    log.info("Describing items in ${agentType}")
+
+    def autoScalingGroupsResult = loadAutoScalingGroups()
+    def policies = loadScalingPolicies()
+
+    Long start = autoScalingGroupsResult.start
+    List<AutoScalingGroup> asgs = autoScalingGroupsResult.asgs
+
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
     providerCache.getAll(ON_DEMAND.ns, asgs.collect { Keys.getServerGroupKey(it.autoScalingGroupName, account.name, region) }).each {
@@ -235,7 +308,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       providerCache.evictDeletedItems(ON_DEMAND.ns, evictableOnDemandCacheDatas*.id)
     }
 
-    CacheResult result = buildCacheResult(asgs, getSubnetToVpcIdMap(), usableOnDemandCacheDatas.collectEntries { [it.id, it] })
+    CacheResult result = buildCacheResult(asgs, policies, getSubnetToVpcIdMap(), usableOnDemandCacheDatas.collectEntries { [it.id, it] })
     if (start) {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
@@ -250,7 +323,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     result
   }
 
-  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, String> subnetMap, Map<String, CacheData> onDemandCacheDataByAsg) {
+  private CacheResult buildCacheResult(Collection<AutoScalingGroup> asgs, Map<String, Collection<ScalingPolicyData>> scalingPolicies, Map<String, String> subnetMap, Map<String, CacheData> onDemandCacheDataByAsg) {
     Map<String, CacheData> applications = cache()
     Map<String, CacheData> clusters = cache()
     Map<String, CacheData> serverGroups = cache()
@@ -272,7 +345,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         cache(cacheResults["instances"], instances)
       } else {
         try {
-          AsgData data = new AsgData(asg, account.name, region, subnetMap)
+          AsgData data = new AsgData(asg, scalingPolicies[asg.autoScalingGroupName], account.name, region, subnetMap)
           cacheApplication(data, applications)
           cacheCluster(data, clusters)
           cacheServerGroup(data, serverGroups)
@@ -335,6 +408,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       attributes.zones = data.asg.availabilityZones
       attributes.instances = data.asg.instances
       attributes.vpcId = data.vpcId
+      attributes.scalingPolicies = data.scalingPolicies
 
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
@@ -367,6 +441,31 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     }
   }
 
+  private static class ScalingPolicyData {
+    private String autoScalingGroupName
+    private String policyName
+    private String policyARN
+    private String scalingAdjustment
+    private String adjustmentType
+    private List alarms
+
+    public ScalingPolicyData(ScalingPolicy policy, Map<String, MetricAlarm> alarms) {
+      autoScalingGroupName = policy.autoScalingGroupName
+      policyName = policy.policyName
+      policyARN = policy.policyARN
+      scalingAdjustment = policy.scalingAdjustment
+      adjustmentType = policy.adjustmentType
+      this.alarms = policy.alarms.findResults {
+        alarms[it.alarmARN]
+      }
+    }
+  }
+
+  private static class AutoScalingGroupsResults {
+    Long start
+    List<AutoScalingGroup> asgs
+  }
+
   private static class AsgData {
     final AutoScalingGroup asg
     final Names name
@@ -377,9 +476,11 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     final String launchConfig
     final Set<String> loadBalancerNames
     final Set<String> instanceIds
+    final Set<ScalingPolicyData> scalingPolicies
 
-    public AsgData(AutoScalingGroup asg, String account, String region, Map<String, String> subnetMap) {
+    public AsgData(AutoScalingGroup asg, Collection<ScalingPolicyData> scalingPolicies, String account, String region, Map<String, String> subnetMap) {
       this.asg = asg
+      this.scalingPolicies = scalingPolicies ?: [] as Set
 
       name = Names.parseName(asg.autoScalingGroupName)
       appName = Keys.getApplicationKey(name.app)
