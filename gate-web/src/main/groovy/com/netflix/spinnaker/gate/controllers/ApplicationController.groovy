@@ -21,6 +21,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -31,6 +32,7 @@ import org.springframework.web.bind.annotation.*
 @CompileStatic
 @RequestMapping("/applications")
 @RestController
+@Slf4j
 class ApplicationController {
 
   @Autowired
@@ -56,6 +58,7 @@ class ApplicationController {
   Map show(@PathVariable("name") String name) {
     def result = applicationService.get(name)
     if (!result) {
+      log.warn("Application ${name} not found")
       throw new ApplicationNotFoundException("Application ${name} not found")
     } else if (!result.name) {
       // applicationService.get() doesn't set the name unless clusters are found. Deck requires the name.
