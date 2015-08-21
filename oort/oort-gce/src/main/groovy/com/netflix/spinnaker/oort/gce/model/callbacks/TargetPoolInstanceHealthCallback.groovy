@@ -53,11 +53,13 @@ class TargetPoolInstanceHealthCallback<TargetPoolInstanceHealth> extends JsonBat
 
     List<HealthStatus> healthStatusList = targetPoolInstanceHealth.healthStatus
 
-    healthStatusList.each { HealthStatus healthStatus ->
-      healthStatus.hasHttpHealthCheck = hasHttpHealthCheck
-    }
+    if (healthStatusList) {
+      healthStatusList.each { HealthStatus healthStatus ->
+        healthStatus.hasHttpHealthCheck = hasHttpHealthCheck
+      }
 
-    instanceNameToLoadBalancerHealthStatusMap[instanceName][forwardingRuleName].addAll(healthStatusList)
+      instanceNameToLoadBalancerHealthStatusMap[instanceName][forwardingRuleName].addAll(healthStatusList)
+    }
   }
 
   @Override
