@@ -60,10 +60,6 @@ class RollingRestartSpec extends Specification {
     testStage.applicationContext = applicationContext
   }
 
-  def cleanup() {
-    applicationContext.destroy()
-  }
-
   def "a previously run rolling push pipeline can be restarted and redirects work"() {
     given:
     def pipeline = pipelineStarter.create(mapper.readValue(pipelineConfigFor("test"), Map))

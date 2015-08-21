@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -27,16 +28,15 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import java.util.concurrent.TimeUnit
-
 @Component
 class WaitForNewInstanceLaunchTask implements RetryableTask {
 
   @Autowired OortService oortService
   @Autowired ObjectMapper objectMapper
 
-  final long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
-  final long timeout = TimeUnit.MINUTES.toMillis(10)
+  long getBackoffPeriod() { TimeUnit.SECONDS.toMillis(5) }
+
+  long getTimeout() { TimeUnit.MINUTES.toMillis(10) }
 
   @Override
   TaskResult execute(Stage stage) {

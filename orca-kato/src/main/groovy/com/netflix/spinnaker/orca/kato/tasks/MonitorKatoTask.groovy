@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
@@ -26,6 +24,8 @@ import com.netflix.spinnaker.orca.kato.api.KatoService
 import com.netflix.spinnaker.orca.kato.api.Task
 import com.netflix.spinnaker.orca.kato.api.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -33,8 +33,9 @@ import org.springframework.stereotype.Component
 @CompileStatic
 class MonitorKatoTask implements RetryableTask {
 
-  long backoffPeriod = 1000
-  long timeout = 3600000
+  long getBackoffPeriod() { 1000L }
+
+  long getTimeout() { 3600000L }
 
   @Autowired
   KatoService kato
