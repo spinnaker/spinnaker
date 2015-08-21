@@ -52,7 +52,8 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             type: stage.type,
             before: stage.before,
             after: stage.after,
-            status: stage.status
+            status: stage.status,
+            comments: stage.context ? stage.context.comments : null,
           });
         }
       });

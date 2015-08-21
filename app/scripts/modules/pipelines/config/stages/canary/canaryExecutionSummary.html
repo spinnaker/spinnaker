@@ -43,4 +43,8 @@
     </tr>
     </tbody>
   </table>
+  <div ng-if="stageSummary.comments">
+    <strong>Comments</strong>
+    <p ng-bind-html="stageSummary.comments"></p>
+  </div>
 </div>
