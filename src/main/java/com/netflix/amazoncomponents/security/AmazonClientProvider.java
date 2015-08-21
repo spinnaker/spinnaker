@@ -279,6 +279,24 @@ public class AmazonClientProvider {
       return classes.toArray(new Class[classes.size()]);
     }
 
+    public DescribeScheduledActionsResult describeScheduledActions() {
+      return describeScheduledActions(null);
+    }
+
+    public DescribeScheduledActionsResult describeScheduledActions(DescribeScheduledActionsRequest request) {
+      return new DescribeScheduledActionsResult().withScheduledUpdateGroupActions(describe(request, "scheduledActionNames", "scheduledActions", ScheduledUpdateGroupAction.class, new TypeReference<List<ScheduledUpdateGroupAction>>() {
+      }));
+    }
+
+    public DescribePoliciesResult describePolicies() {
+      return describePolicies(null);
+    }
+
+    public DescribePoliciesResult describePolicies(DescribePoliciesRequest request) {
+      return new DescribePoliciesResult().withScalingPolicies(describe(request, "policyNames", "scalingPolicies", ScalingPolicy.class, new TypeReference<List<ScalingPolicy>>() {
+      }));
+    }
+
     public DescribeLaunchConfigurationsResult describeLaunchConfigurations(DescribeLaunchConfigurationsRequest request) {
       return new DescribeLaunchConfigurationsResult().withLaunchConfigurations(describe(request, "launchConfigurationNames", "launchConfigurations", LaunchConfiguration.class, new TypeReference<List<LaunchConfiguration>>() {
       }));
@@ -375,11 +393,13 @@ public class AmazonClientProvider {
             if (collection != null && collection.size() > 0) {
               for (Object id : collection) {
                 if (id instanceof String) {
-                  results.add(objectMapper.readValue(getJson(object, (String) id), singleType));
+                  final byte[] json = getJson(object, (String) id);
+                  results.add(objectMapper.readValue(json, singleType));
                 }
               }
             } else {
-              results.addAll((Collection) objectMapper.readValue(getJson(object, null), collectionType));
+              final byte[] json = getJson(object, null);
+              results.addAll((Collection) objectMapper.readValue(json, collectionType));
             }
             return (T) results;
           } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
@@ -407,8 +427,7 @@ public class AmazonClientProvider {
     }
 
     private byte[] getJson(String objectName, String key) throws IOException {
-      String url = key != null ? edda + "/REST/v2/aws/" + objectName + "/" +
-        key : edda + "/REST/v2/aws/" + objectName + ";_expand";
+      String url = edda + "/REST/v2/aws/" + objectName + "/" + (key == null ? ";_expand" : key);
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
       Map<String, List<String>> headers = new HashMap<>();
