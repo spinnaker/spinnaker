@@ -25,6 +25,9 @@ import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.*;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
+import com.amazonaws.services.cloudwatch.model.DescribeAlarmsResult;
+import com.amazonaws.services.cloudwatch.model.MetricAlarm;
 import com.amazonaws.services.ec2.AmazonEC2;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
@@ -277,6 +280,15 @@ public class AmazonClientProvider {
         classes.add(object.getClass());
       }
       return classes.toArray(new Class[classes.size()]);
+    }
+
+    public DescribeAlarmsResult describeAlarms() {
+      return describeAlarms(null);
+    }
+
+    public DescribeAlarmsResult describeAlarms(DescribeAlarmsRequest request) {
+      return new DescribeAlarmsResult().withMetricAlarms(describe(request, "alarmNames", "alarms", MetricAlarm.class, new TypeReference<List<MetricAlarm>>() {
+      }));
     }
 
     public DescribeScheduledActionsResult describeScheduledActions() {
