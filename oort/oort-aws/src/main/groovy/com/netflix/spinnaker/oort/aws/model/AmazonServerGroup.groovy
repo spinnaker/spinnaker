@@ -34,6 +34,8 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   Map<String, Object> image
   Map<String, Object> launchConfig
   Map<String, Object> asg
+  List<Map> scalingPolicies
+  List<Map> scheduledActions
   Map buildInfo
   String vpcId
 
