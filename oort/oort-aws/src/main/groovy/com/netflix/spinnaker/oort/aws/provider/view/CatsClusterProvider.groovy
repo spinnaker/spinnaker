@@ -87,6 +87,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.image = imageConfigs ? imageConfigs.attributes : null
     serverGroup.asg = asg
     serverGroup.scalingPolicies = serverGroupData.attributes["scalingPolicies"]
+    serverGroup.scheduledActions = serverGroupData.attributes["scheduledActions"]
     Set<String> asgInstances = getAsgInstanceKeys(asg, account, region)
     Closure<Boolean> instanceFilter = { rel ->
       return (asgInstances == null || asgInstances.contains(rel))
