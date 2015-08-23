@@ -23,9 +23,6 @@ import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import spock.lang.Specification
 
-/**
- * Created by aglover on 4/20/14.
- */
 class ApplicationModelSpec extends Specification {
 
   void 'from is similar to clone'() {
@@ -91,7 +88,7 @@ class ApplicationModelSpec extends Specification {
     application.email = 'aglover@netflix.com'
 
     when:
-    application.update(["email": "cameron@netflix.com"])
+    application.update(new Application(email: "cameron@netflix.com"))
 
     then:
     notThrown(Exception)
@@ -108,7 +105,7 @@ class ApplicationModelSpec extends Specification {
     application.email = 'aglover@netflix.com'
 
     when:
-    application.update(["email": "cameron@netflix.com"])
+    application.update(new Application(email: "cameron@netflix.com"))
 
     then:
     thrown(Application.ValidationException)

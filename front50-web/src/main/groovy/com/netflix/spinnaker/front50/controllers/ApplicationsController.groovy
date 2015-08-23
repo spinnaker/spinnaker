@@ -78,7 +78,7 @@ public class ApplicationsController {
   Application put(@PathVariable String account, @RequestBody final Application app) {
     def application = getApplication(account)
     Application existingApplication = application.findByName(app.getName())
-    application.initialize(existingApplication).withName(app.getName()).update(app.allSetColumnProperties())
+    application.initialize(existingApplication).withName(app.getName()).update(app)
     return application
   }
 
