@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.internal.OortService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -43,7 +44,15 @@ class ClusterService {
 
   Map getCluster(String app, String account, String clusterName) {
     HystrixFactory.newMapCommand(GROUP, "getCluster", true) {
-      oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
+      try {
+        oortService.getCluster(app, account, clusterName)?.getAt(0) as Map
+      } catch (RetrofitError e) {
+        if (e.response.status == 404) {
+          return [:]
+        } else {
+          throw e
+        }
+      }
     } execute()
   }
 
