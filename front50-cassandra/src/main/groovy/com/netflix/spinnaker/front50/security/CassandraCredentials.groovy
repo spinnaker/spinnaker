@@ -19,9 +19,7 @@ package com.netflix.spinnaker.front50.security
 
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.front50.model.application.GlobalAccountCredentials
-import groovy.transform.Canonical
 
-@Canonical
 class CassandraCredentials implements AccountCredentials<Map>, GlobalAccountCredentials {
   static final String PROVIDER_TYPE = 'cassandra'
   String name
@@ -34,5 +32,10 @@ class CassandraCredentials implements AccountCredentials<Map>, GlobalAccountCred
   @Override
   String getProvider() {
     PROVIDER_TYPE
+  }
+
+  @Override
+  List<String> getRequiredGroupMembership() {
+    []
   }
 }

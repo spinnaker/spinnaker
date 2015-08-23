@@ -54,7 +54,7 @@ class CassandraConfig {
 
   @PostConstruct
   void init() {
-    accountCredentialsRepository.save(name, new CassandraCredentials(name))
+    accountCredentialsRepository.save(name, new CassandraCredentials(name: name))
   }
 
   @Bean

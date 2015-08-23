@@ -25,9 +25,6 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
     PipelineRepository repo
 
     @Shared
-    Keyspace keyspace
-
-    @Shared
     Map pipeline = [
         application: 'myapp',
         name       : 'my pipeline',
@@ -35,8 +32,7 @@ class PipelineRepositorySpec extends AbstractCassandraBackedSpec {
     ]
 
     void setupSpec() {
-        repo = new PipelineRepository()
-        repo.keyspace = keyspace
+        repo = new PipelineRepository(keyspace: keyspace)
         repo.onApplicationEvent(null)
     }
 
