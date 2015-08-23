@@ -51,8 +51,8 @@ module.exports = angular
       }
 
       if(filter.indexOf('vpc:') !== -1) {
-        var vpcName = /vpc:([\w-]*)/.exec(filter);
-        return serverGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+        let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
+        return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       if(filter.indexOf('cluster:') !== -1) {

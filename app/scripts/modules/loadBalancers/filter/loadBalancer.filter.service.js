@@ -24,8 +24,8 @@ module.exports = angular
       }
 
       if(filter.indexOf('vpc:') !== -1) {
-        var vpcName = /vpc:([\w-]*)/.exec(filter);
-        return loadBalancer.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+        let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
+        return loadBalancer.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       return filter.split(' ').every(function(testWord) {
