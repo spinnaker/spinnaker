@@ -122,7 +122,7 @@
         setMessage(messageIndex);
         window.sessionStorage.removeItem('greeting-message');
       } else {
-        if (Math.random() < 0.15) {
+        if (Math.random() < 0.05) {
           var idx = Math.floor(Math.random() * messageOptions.length);
           setMessage(idx);
           if (window.sessionStorage) {
