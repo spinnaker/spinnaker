@@ -121,7 +121,7 @@ class TargetReferenceSupport {
             // because of the groupBy above, there will be at least one - no need to check for zero
             if (asgCount == 1) {
               throw new TargetReferenceNotFoundException("Only one server group (${sortedServerGroups.get(0).name}) " +
-                "found for cluster ${config.cluster} in ${config.credentials}:${region} - no ancestor available")
+                "found for cluster ${config.cluster} in ${config.credentials}:${location} - no ancestor available")
             }
             targetReference.asg = sortedServerGroups.get(1)
             break
@@ -129,7 +129,7 @@ class TargetReferenceSupport {
             // because of the groupBy above, there will be at least one - no need to check for zero
             if (asgCount == 1) {
               throw new TargetReferenceNotFoundException("Only one server group (${sortedServerGroups.get(0).name}) " +
-                "found for cluster ${config.cluster} in ${config.credentials}:${region} - at least two expected")
+                "found for cluster ${config.cluster} in ${config.credentials}:${location} - at least two expected")
             }
             targetReference.asg = sortedServerGroups.last()
             break
@@ -158,15 +158,15 @@ class TargetReferenceSupport {
     target
   }
 
-  boolean isDTRStage(Stage stage) {
-    return stage.type != DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE
+  static boolean isDTRStage(Stage stage) {
+    return stage.type == DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE
   }
 
-  boolean sameParent(Stage a, Stage b) {
+  static boolean sameParent(Stage a, Stage b) {
     return a.parentStageId == b.parentStageId
   }
 
-  boolean isParentOf(Stage a, Stage b) {
+  static boolean isParentOf(Stage a, Stage b) {
     return a.id == b.parentStageId
   }
 
@@ -175,20 +175,6 @@ class TargetReferenceSupport {
       return existingServerGroups.groupBy { Map sg -> sg.zones[0] }
     }
     return existingServerGroups.groupBy { Map sg -> sg.region }
-  }
-
-  private static boolean isCurrentAsg(config) {
-    TargetReferenceConfiguration.Target.current_asg == config.target ||
-      TargetReferenceConfiguration.Target.current_asg_dynamic == config.target
-  }
-
-  private static boolean isAncestorAsg(config) {
-    TargetReferenceConfiguration.Target.ancestor_asg == config.target ||
-      TargetReferenceConfiguration.Target.ancestor_asg_dynamic == config.target
-  }
-
-  private static boolean isOldestAsg(config) {
-    TargetReferenceConfiguration.Target.oldest_asg_dynamic == config.target
   }
 
   boolean isDynamicallyBound(Stage stage) {

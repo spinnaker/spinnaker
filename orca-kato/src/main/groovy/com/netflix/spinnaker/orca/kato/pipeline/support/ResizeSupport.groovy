@@ -22,9 +22,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * Created by ttomsu on 8/19/15.
- */
 @Component
 @Slf4j
 class ResizeSupport {
@@ -51,9 +48,7 @@ class ResizeSupport {
         continue
       }
       description.asgName = asg.name
-      description.replicaPoolName = asg.name
       description.regions = [asg.region]
-      description.zones = asg.zones // GCE requirement.
 
       def currentMin = Integer.parseInt(asg.asg.minSize.toString())
       def currentDesired = Integer.parseInt(asg.asg.desiredCapacity.toString())
@@ -70,9 +65,9 @@ class ResizeSupport {
         newMax = currentMax + maxDiff
 
         if (optionalConfig.action == ResizeAction.scale_down) {
-          newMin = currentMin - minDiff
-          newDesired = currentDesired - desiredDiff
-          newMax = currentMax - maxDiff
+          newMin = Math.max(currentMin - minDiff, 0)
+          newDesired = Math.max(currentDesired - desiredDiff, 0)
+          newMax = Math.max(currentMax - maxDiff, 0)
         }
       } else if (optionalConfig.scaleNum) {
         newMin = currentMin + optionalConfig.scaleNum
@@ -92,8 +87,10 @@ class ResizeSupport {
         def capacity = stage.mapTo("/capacity", Capacity)
         description.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
       }
-      description.numReplicas = description.capacity.desired // GCE requirement.
 
+      if (description.provider == "gce") {
+        augmentDescriptionForGCE(description, target)
+      }
       descriptions[asg.name as String] = description
     }
     descriptions.values().flatten()
@@ -125,6 +122,16 @@ class ResizeSupport {
     }
 
     result
+  }
+
+  private augmentDescriptionForGCE(Map description, TargetReference target) {
+    description.zones = target.asg.zones
+
+    description.numReplicas = description.capacity.desired
+    description.remove("capacity")
+
+    description.replicaPoolName = description.asgName
+    description.remove("asgName")
   }
 
   static enum ResizeAction {

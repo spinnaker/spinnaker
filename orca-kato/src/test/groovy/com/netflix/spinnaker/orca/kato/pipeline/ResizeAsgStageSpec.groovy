@@ -20,6 +20,7 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -55,7 +56,8 @@ class ResizeAsgStageSpec extends Specification {
 
   def mapper = OrcaObjectMapper.DEFAULT
   def targetReferenceSupport = Mock(TargetReferenceSupport)
-  def stageBuilder = new ResizeAsgStage(targetReferenceSupport: targetReferenceSupport)
+  def resizeSupport = new ResizeSupport(targetReferenceSupport: targetReferenceSupport)
+  def stageBuilder = new ResizeAsgStage(targetReferenceSupport: targetReferenceSupport, resizeSupport: resizeSupport)
   def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
 
   def setup() {
@@ -70,8 +72,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [asgName    : "testapp-asg-v000", regions: ["us-west-1", "us-east-1"], capacity: [min: 0, max: 0, desired: 0],
                   credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
+    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
     stageBuilder.buildSteps(stage)
@@ -123,8 +124,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-west-1", "us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
+    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
     stageBuilder.buildSteps(stage)
@@ -164,8 +164,7 @@ class ResizeAsgStageSpec extends Specification {
     setup:
     def config = [cluster : "testapp-asg", target: target, regions: ["us-east-1"],
                   capacity: [min: 0, max: 0, desired: 0], credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
+    def stage = new PipelineStage(new Pipeline(), "resizeAsg", config)
 
     when:
     stageBuilder.buildSteps(stage)
@@ -184,154 +183,4 @@ class ResizeAsgStageSpec extends Specification {
     target << ['ancestor_asg_dynamic', 'current_asg_dynamic']
   }
 
-  void "should allow target capacity to be percentage based"() {
-    setup:
-    def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  scalePct: 50, credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
-
-    when:
-    stageBuilder.buildSteps(stage)
-
-    then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-west-1", asg: [
-      name  : "testapp-asg-v001",
-      region: "us-west-1",
-      asg   : [
-        minSize        : 10,
-        maxSize        : 10,
-        desiredCapacity: 10
-      ]
-    ])]
-
-    stage.afterStages.size() == 2
-    stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ["resumeScalingProcesses"]
-  }
-
-  void "should allow target capacity to be incrementally scaled"() {
-    setup:
-    def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  scaleNum: 5, credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
-
-    when:
-    stageBuilder.buildSteps(stage)
-
-    then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-west-1", asg: [
-      name  : "testapp-asg-v001",
-      region: "us-west-1",
-      asg   : [
-        minSize        : 10,
-        maxSize        : 10,
-        desiredCapacity: 10
-      ]
-    ])]
-
-    stage.afterStages.size() == 2
-    stage.afterStages[0].context.capacity == [min: 15, max: 15, desired: 15] as Map
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ["resumeScalingProcesses"]
-  }
-
-  void "should scale percentage factors up"() {
-    setup:
-    def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  scalePct: 50, credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
-
-    when:
-    stageBuilder.buildSteps(stage)
-
-    then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-west-1", asg: [
-      name  : "testapp-asg-v001",
-      region: "us-west-1",
-      asg   : [
-        minSize        : 5,
-        maxSize        : 5,
-        desiredCapacity: 5
-      ]
-    ])]
-
-    stage.afterStages.size() == 2
-    stage.afterStages[0].context.capacity == [min: 8, max: 8, desired: 8] as Map
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ["resumeScalingProcesses"]
-  }
-
-  void "should be able to derive scaling direction from inputs"() {
-    setup:
-    def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  scalePct: scalePct, scaleNum: scaleNum, credentials: "test", action: action]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
-
-    when:
-    stageBuilder.buildSteps(stage)
-
-    then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [new TargetReference(region: "us-west-1", asg: [
-      name  : "testapp-asg-v001",
-      region: "us-west-1",
-      asg   : [
-        minSize        : 5,
-        maxSize        : 5,
-        desiredCapacity: 5
-      ]
-    ])]
-
-    stage.afterStages.size() == 2
-    stage.afterStages[0].context.capacity == capacity
-    stage.afterStages*.name == ["resizeAsg", "suspendScalingProcesses"]
-    stage.beforeStages*.name == ["resumeScalingProcesses"]
-
-    where:
-    action       | scalePct | scaleNum | capacity
-    "scale_up"   | 50       | null     | [min: 8, max: 8, desired: 8]
-    "scale_down" | 50       | null     | [min: 2, max: 2, desired: 2]
-    "scale_down" | 100      | null     | [min: 0, max: 0, desired: 0]
-    "scale_up"   | null     | 2        | [min: 7, max: 7, desired: 7]
-    "scale_down" | null     | 2        | [min: 3, max: 3, desired: 3]
-  }
-
-  @Unroll
-  void "should derive capacity from ASG (#current) when partial values supplied in configuration (#configured)"() {
-    def config = [cluster : "testapp-asg", target: "current_asg", regions: ["us-west-1", "us-east-1"],
-                  capacity: configured, credentials: "test"]
-    def pipeline = new Pipeline()
-    def stage = new PipelineStage(pipeline, "resizeAsg", config)
-
-    when:
-    stageBuilder.buildSteps(stage)
-
-    then:
-    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> [
-      new TargetReference(region: "us-west-1", asg: [
-        name  : "testapp-asg-v001",
-        region: "us-west-1",
-        asg   : current
-      ])
-    ]
-
-    stage.afterStages[0].context.capacity == expected
-
-    where:
-    configured                         | current                                      || expected
-    [min: 0]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 1, desired: 1]
-    [max: 0]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 0, desired: 0]
-    [max: 1]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 1, max: 1, desired: 1]
-    [min: 2]                           | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 2, max: 2, desired: 2]
-    [min: 2]                           | [minSize: 1, maxSize: 3, desiredCapacity: 1] || [min: 2, max: 3, desired: 2]
-    [min: 0, max: 2]                   | [minSize: 1, maxSize: 1, desiredCapacity: 1] || [min: 0, max: 2, desired: 1]
-    [min: 0, max: 2]                   | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
-    [min: "0", max: "2"]               | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 2]
-    [min: "0", max: "2", desired: "3"] | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 0, max: 2, desired: 3]
-    [:]                                | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 1, max: 3, desired: 3]
-  }
 }

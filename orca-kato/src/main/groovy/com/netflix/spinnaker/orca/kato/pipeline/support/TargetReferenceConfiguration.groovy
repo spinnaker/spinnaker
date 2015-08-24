@@ -33,6 +33,12 @@ class TargetReferenceConfiguration {
   String providerType = "aws"
 
   List<String> getLocations() {
-    !regions?.isEmpty()? regions : (!zones?.isEmpty() ? zones : [])
+    if (regions && !regions.isEmpty()) {
+      return regions
+    } else if (zones && !zones.isEmpty()) {
+      return zones
+    } else {
+      return []
+    }
   }
 }
