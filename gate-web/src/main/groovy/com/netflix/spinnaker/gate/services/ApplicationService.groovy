@@ -75,16 +75,18 @@ class ApplicationService {
   Map get(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
 
-    try {
-      def futures = executorService.invokeAll(applicationRetrievers)
-      List<Map> applications = (List<Map>) futures.collect { it.get() }
+    HystrixFactory.newMapCommand(GROUP, "getAppByName", true) {
+      try {
+        def futures = executorService.invokeAll(applicationRetrievers)
+        List<Map> applications = (List<Map>) futures.collect { it.get() }
 
-      def mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
-      return mergedApps ? mergedApps[0] : null
-    } catch (Exception e) {
-      log.error("Unable to retrieve application '${name}'", e)
-      throw e
-    }
+        def mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
+        return mergedApps ? mergedApps[0] : null
+      } catch (Exception e) {
+        log.error("Unable to retrieve application '${name}'", e)
+        throw e
+      }
+    } execute()
   }
 
   List getTasks(String app) {
