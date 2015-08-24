@@ -186,8 +186,17 @@ module.exports = angular
       clusterService.addTasksToServerGroups(application);
     }
 
+    function determineExecutionsToAdd(application, executions) {
+      if ((!angular.isArray(executions) || _.isEmpty(executions) ) && application && application.executions) {
+        return application.executions;
+      } else if (angular.isArray(executions)) {
+        return executions;
+      }
+      return [];
+    }
+
     function addExecutionsToApplication(application, executions) {
-      application.executions = angular.isArray(executions) ? executions : [];
+      application.executions = determineExecutionsToAdd(application, executions);
       clusterService.addExecutionsToServerGroups(application);
     }
 
@@ -305,5 +314,6 @@ module.exports = angular
       listApplications: listApplications,
       getApplication: getApplication,
       getApplicationWithoutAppendages: getApplicationEndpoint,
+      addExecutionsToApplication: addExecutionsToApplication,
     };
   }).name;
