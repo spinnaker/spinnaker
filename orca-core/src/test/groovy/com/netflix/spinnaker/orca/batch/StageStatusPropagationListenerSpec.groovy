@@ -71,9 +71,11 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     when: "the listener is triggered"
     def exitStatus = listener.afterStep stepExecution
+    def currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
 
     then: "it updates the status of the stage to RUNNING because it is not the final task"
-    executionRepository.retrievePipeline(pipeline.id).stages.first().status == ExecutionStatus.RUNNING
+    currentStage.status == ExecutionStatus.RUNNING
+    currentStage.endTime == null
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
@@ -86,9 +88,11 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     and: "the listener is triggered"
     exitStatus = listener.afterStep stepExecution
+    currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
 
     then: "it updates the status of the stage to SUCCEEDED because it is the final task"
-    executionRepository.retrievePipeline(pipeline.id).stages.first().status == ExecutionStatus.SUCCEEDED
+    currentStage.status == ExecutionStatus.SUCCEEDED
+    currentStage.endTime != null
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
