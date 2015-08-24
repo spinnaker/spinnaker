@@ -20,15 +20,15 @@ interface SecurityGroupProvider<T extends SecurityGroup> {
 
   String getType()
 
-  Set<T> getAll()
+  Set<T> getAll(boolean includeRules)
 
-  Set<T> getAllByRegion(String region)
+  Set<T> getAllByRegion(boolean includeRules, String region)
 
-  Set<T> getAllByAccount(String account)
+  Set<T> getAllByAccount(boolean includeRules, String account)
 
-  Set<T> getAllByAccountAndName(String account, String name)
+  Set<T> getAllByAccountAndName(boolean includeRules, String account, String name)
 
-  Set<T> getAllByAccountAndRegion(String account, String region)
+  Set<T> getAllByAccountAndRegion(boolean includeRule, String account, String region)
 
   T get(String account, String region, String name, String vpcId)
 

@@ -23,32 +23,32 @@ class NoopSecurityGroupProvider implements SecurityGroupProvider {
     }
 
     @Override
-    Set<SecurityGroup> getAll() {
+    Set<SecurityGroup> getAll(boolean includeRules) {
         Collections.emptySet()
     }
 
     @Override
-    Set<SecurityGroup> getAllByRegion(String region) {
+    Set<SecurityGroup> getAllByRegion(boolean includeRules, String region) {
         Collections.emptySet()
     }
 
     @Override
-    Set<SecurityGroup> getAllByAccount(String account) {
+    Set<SecurityGroup> getAllByAccount(boolean includeRules, String account) {
         Collections.emptySet()
     }
 
     @Override
-    Set<SecurityGroup> getAllByAccountAndName(String account, String name) {
+    Set<SecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
         Collections.emptySet()
     }
 
     @Override
-    Set<SecurityGroup> getAllByAccountAndRegion(String account, String region) {
+    Set<SecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
         Collections.emptySet()
     }
 
     @Override
     SecurityGroup get(String account, String region, String name, String vpcId) {
-        Collections.emptySet()
+        null
     }
 }

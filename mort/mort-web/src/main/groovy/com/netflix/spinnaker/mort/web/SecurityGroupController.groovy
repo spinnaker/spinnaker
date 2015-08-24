@@ -17,8 +17,10 @@
 package com.netflix.spinnaker.mort.web
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupProvider
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
@@ -39,10 +41,8 @@ class SecurityGroupController {
 
   @RequestMapping(method = RequestMethod.GET)
   Map<String, Map<String, Map<String, Set<SecurityGroupSummary>>>> list() {
-    rx.Observable.from(accountCredentialsProvider.all).flatMap { acct ->
-      rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
-        rx.Observable.from(secGrpProv.getAllByAccount(acct.name))
-      }
+    rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
+      rx.Observable.from(secGrpProv.getAll(false))
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
@@ -55,7 +55,7 @@ class SecurityGroupController {
       if (!objs[obj.accountName][obj.type].containsKey(obj.region)) {
         objs[obj.accountName][obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.accountName][obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs[obj.accountName][obj.type][obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) doOnError {
       it.printStackTrace()
@@ -65,7 +65,7 @@ class SecurityGroupController {
   @RequestMapping(method = RequestMethod.GET, value = "/{account}")
   Map<String, Map<String, Set<SecurityGroupSummary>>> listByAccount(@PathVariable String account) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
-      rx.Observable.from(secGrpProv.getAllByAccount(account))
+      rx.Observable.from(secGrpProv.getAllByAccount(false, account))
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
@@ -75,7 +75,7 @@ class SecurityGroupController {
       if (!objs[obj.type].containsKey(obj.region)) {
         objs[obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.type][obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs[obj.type][obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) toBlocking() first()
   }
@@ -84,14 +84,14 @@ class SecurityGroupController {
   Map<String, Set<SecurityGroupSummary>> listByAccountAndRegion(@PathVariable String account,
                                                           @RequestParam("region") String region) {
     rx.Observable.from(securityGroupProviders).flatMap { secGrpProv ->
-      rx.Observable.from(secGrpProv.getAllByAccountAndRegion(account, region))
+      rx.Observable.from(secGrpProv.getAllByAccountAndRegion(false, account, region))
     } filter {
       it != null
     } reduce([:], { Map objs, SecurityGroup obj ->
       if (!objs.containsKey(obj.type)) {
         objs[obj.type] = sortedTreeSet
       }
-      objs[obj.type] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs[obj.type] << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) toBlocking() first()
   }
@@ -101,12 +101,12 @@ class SecurityGroupController {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
-      rx.Observable.from(it.getAllByAccount(account))
+      rx.Observable.from(it.getAllByAccount(false, account))
     } reduce([:], { Map objs, SecurityGroup obj ->
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs[obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) toBlocking() first()
   }
@@ -117,9 +117,9 @@ class SecurityGroupController {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
-      rx.Observable.from(it.getAllByAccountAndRegion(account, region))
+      rx.Observable.from(it.getAllByAccountAndRegion(false, account, region))
     } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
-      objs << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) toBlocking() first()
   }
@@ -130,12 +130,12 @@ class SecurityGroupController {
     rx.Observable.from(securityGroupProviders).filter { secGrpProv ->
       secGrpProv.type == type
     } flatMap {
-      rx.Observable.from(it.getAllByAccountAndName(account, securityGroupName))
+      rx.Observable.from(it.getAllByAccountAndName(false, account, securityGroupName))
     } reduce([:], { Map objs, SecurityGroup obj ->
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << new SecurityGroupSummary(obj.name, obj.id, obj.vpcId)
+      objs[obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
       objs
     }) toBlocking() first()
     }
@@ -158,9 +158,16 @@ class SecurityGroupController {
   }
 
   @Immutable
-  private static class SecurityGroupSummary {
+  @EqualsAndHashCode(includes = ['id', 'vpcId'], cache = true)
+  private static class SecurityGroupSummary  {
     String name
     String id
     String vpcId
+
+    static SecurityGroupSummary fromSecurityGroup(SecurityGroup sg) {
+      (sg instanceof AmazonSecurityGroup) ?
+        new SecurityGroupSummary(sg.name, sg.id, sg.vpcId) :
+        new SecurityGroupSummary(sg.name, sg.id, null)
+    }
   }
 }
