@@ -13,6 +13,8 @@ global.$ = global.jQuery = require('jquery'); //  deck is reliant on my jquery f
 
 global.Spinner = require('spin.js');
 
+require('../../node_modules/angular-hotkeys/build/hotkeys.css');
+
 require('jquery-ui');
 require('bootstrap/dist/css/bootstrap.css');
 require('select2-bootstrap-css/select2-bootstrap.css');
@@ -62,6 +64,7 @@ module.exports = angular.module('spinnaker', [
     require('utils/timeFormatters.js'),
     require('exports?"ui.select"!ui-select'),
     require('exports?"angulartics"!angulartics'),
+    require('exports?"cfp.hotkeys"!angular-hotkeys'),
     require('angular-animate'),
     require('angular-ui-router'),
     require('exports?"ui.bootstrap"!angular-bootstrap'),
@@ -305,6 +308,41 @@ module.exports = angular.module('spinnaker', [
       };
     });
   })
+  .config(function(hotkeysProvider) {
+    hotkeysProvider.template =
+                    `<div class="cfp-hotkeys-container fade" ng-class="{in: helpVisible}" style="display: none;"><div class="cfp-hotkeys">
+                      <h4 class="cfp-hotkeys-title" ng-if="!header">{{ title }}</h4>
+                      <div ng-bind-html="header" ng-if="header"></div>
+                      <div style="display:flex; flex-direction:row; align-items: flex-start; justify-content: center">
+                        <div>
+                           <table>
+                             <tbody>
+                              <tr ng-repeat="hotkey in hotkeys | filter:{ description: \'!$$undefined$$\', combo: \'+shift+\'}">
+                                <td class="cfp-hotkeys-keys">
+                                  <span ng-repeat="key in hotkey.format() track by $index" class="cfp-hotkeys-key">{{ key }}</span>
+                                </td>
+                                <td class="cfp-hotkeys-text">{{ hotkey.description }}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        <div>
+                          <table>
+                            <tbody>
+                              <tr ng-repeat="hotkey in hotkeys | filter:{ description: \'!$$undefined$$\', combo: \'+alt+\'}">
+                                <td class="cfp-hotkeys-keys">
+                                  <span ng-repeat="key in hotkey.format() track by $index" class="cfp-hotkeys-key">{{ key }}</span>
+                                </td>
+                                <td class="cfp-hotkeys-text">{{ hotkey.description }}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <div ng-bind-html="footer" ng-if="footer"></div>
+                      <div class="cfp-hotkeys-close" ng-click="toggleCheatSheet()">×</div>
+                    </div></div>`;
+  })
   .run(function($templateCache) {
     $templateCache.put('template/popover/popover.html',
         '<div class="popover {{placement}}" ng-class="{ in: isOpen(), fade: animation() }">\n' +
@@ -316,5 +354,67 @@ module.exports = angular.module('spinnaker', [
         '  </div>\n' +
         '</div>\n' +
         '');
-  });
+  }).run(function($state, hotkeys) {
+    let globalHotkeys = [
+      {
+        combo: 'ctrl+shift+a',
+        description: "Applications",
+        callback: () => $state.go('home.applications'),
+      },
+      {
+        combo: 'ctrl+shift+i',
+        description: "Infrastructure",
+        callback: () => $state.go('home.infrastructure'),
+      },
+      {
+        combo: 'ctrl+shift+d',
+        description: 'Data',
+        callback: () => $state.go('home.data'),
+      },
+      {
+        combo: 'ctrl+alt+0',
+        description: 'Pipeline Config',
+        callback: () => $state.go('home.applications.application.pipelineConfig'),
+      },
+      {
+        combo: 'ctrl+alt+1',
+        description: 'Pipelines',
+        callback: () => $state.go('home.applications.application.executions'),
+      },
+      {
+        combo: 'ctrl+alt+2',
+        description: 'Clusters',
+        callback: () => $state.go('home.applications.application.insight.clusters')
+      },
+      {
+        combo: 'ctrl+alt+3',
+        description: 'Load Balancer',
+        callback: () => $state.go('home.applications.application.insight.loadBalancers')
+      },
+      {
+        combo: 'ctrl+alt+4',
+        description: 'Security Groups',
+        callback: () => $state.go('home.applications.application.insight.securityGroups')
+      },
+      {
+        combo: 'ctrl+alt+5',
+        description: 'Properties',
+        callback: () => $state.go('home.applications.application.properties')
+      },
+      {
+        combo: 'ctrl+alt+6',
+        description: 'Tasks',
+        callback: () => $state.go('home.applications.application.tasks')
+      },
+      {
+        combo: 'ctrl+alt+7',
+        description: 'Config',
+        callback: () => $state.go('home.applications.application.config')
+      },
+
+    ];
+
+    globalHotkeys.forEach((hotkeyConfig) => hotkeys.add(hotkeyConfig));
+  })
+;
 

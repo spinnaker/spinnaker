@@ -16,6 +16,7 @@ module.exports = angular.module('spinnaker.search.global.directive', [
       templateUrl: require('../../../../views/globalsearch.html'),
       controller: 'GlobalSearchCtrl as ctrl',
       link: function(scope, element) {
+        const slashKey = 191;
         var window = $($window);
 
         window.bind('click.globalsearch', function(event) {
@@ -27,9 +28,13 @@ module.exports = angular.module('spinnaker.search.global.directive', [
           scope.$digest();
         });
 
+        var isQuestionMark = (event) => {
+          return event.which === slashKey && event.shiftKey;
+        };
+
         window.bind('keyup.globalsearch', function(event) {
           var $target = $(event.target);
-          if ($target.is('input, textarea') || event.which !== 191) {
+          if ($target.is('input, textarea') || isQuestionMark(event) || event.which !== slashKey) {
             return;
           }
           element.find('input').focus();
