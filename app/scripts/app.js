@@ -317,6 +317,12 @@ module.exports = angular.module('spinnaker', [
                         <div>
                            <table>
                              <tbody>
+                              <tr>
+                                <td class="cfp-hotkeys-keys">
+                                  <span class="cfp-hotkeys-key">/</span>
+                                </td>
+                                <td>Global Search</td>
+                              </tr>
                               <tr ng-repeat="hotkey in hotkeys | filter:{ description: \'!$$undefined$$\', combo: \'+shift+\'}">
                                 <td class="cfp-hotkeys-keys">
                                   <span ng-repeat="key in hotkey.format() track by $index" class="cfp-hotkeys-key">{{ key }}</span>
