@@ -18,6 +18,7 @@
 
 package com.netflix.spinnaker.front50.model.application
 
+import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
@@ -238,5 +239,40 @@ class ApplicationModelSpec extends Specification {
 
     expect:
     apps.isEmpty()
+  }
+
+  void 'should invoke rollback methods on exception'() {
+    given:
+    def application = new Application()
+    def preListener = Mock(ApplicationEventListener)
+    def postListener = Mock(ApplicationEventListener)
+    def failingPostListener = Mock(ApplicationEventListener)
+
+    def onSuccessInvoked = false
+    def onSuccess = { Application original, Application updated ->
+      onSuccessInvoked = true
+      return application
+    }
+
+    def onRollbackInvoked = false
+    def onRollback = { Application original, Application updated ->
+      onRollbackInvoked = true
+      return null
+    }
+
+    when:
+    application.perform([preListener], [postListener, failingPostListener], onSuccess, onRollback, application, application)
+
+    then:
+    thrown(RuntimeException)
+
+    1 * preListener.call(_, _) >> { return application }
+    1 * preListener.rollback(_)
+    onSuccessInvoked
+    onRollbackInvoked
+    1 * postListener.call(_, _)
+    1 * postListener.rollback(_)
+    1 * failingPostListener.call(_, _) >> { throw new IllegalStateException("Expected") }
+    0 * _
   }
 }
