@@ -66,7 +66,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   @Value('${pollers.topApplicationExecutionCleanup.intervalMs:3600000}')
   long pollingIntervalMs
 
-  @Value('${pollers.topApplicationExecutionCleanup.threshold:200}')
+  @Value('${pollers.topApplicationExecutionCleanup.threshold:125}')
   int threshold
 
   @PreDestroy
