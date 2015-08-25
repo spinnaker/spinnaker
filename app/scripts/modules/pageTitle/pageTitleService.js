@@ -71,8 +71,7 @@ module.exports = angular.module('spinnaker.pageTitle', [require('angular-ui-rout
       return main;
     }
 
-    function configurePageTitle(data) {
-      data = data || {};
+    function configurePageTitle(data={}) {
       return {
         main: configureMain(data.pageTitleMain),
         section: configureSection(data.pageTitleSection),

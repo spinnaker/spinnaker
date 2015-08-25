@@ -98,6 +98,7 @@ window.spinnakerSettings = {
   },
   authEnabled: process.env.AUTH === 'enabled',
   feature: {
+    pipelines: true,
     notifications: false,
     canary: process.env.CANARY !== 'disabled',
     parallelPipelines: true,

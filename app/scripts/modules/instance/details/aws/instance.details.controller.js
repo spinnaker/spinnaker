@@ -4,13 +4,15 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
   require('utils/lodash.js'),
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../vpc/vpcTag.directive.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -21,6 +23,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       loading: true,
       standalone: app.isStandalone,
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
@@ -45,7 +49,6 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           }
         });
       }
-
       $scope.healthMetrics = displayableMetrics;
     }
 
@@ -117,6 +120,11 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
+          var discoveryMetric = _.find($scope.healthMetrics, function(metric){ return metric.type === 'Discovery'; });
+          if( discoveryMetric && discoveryMetric.vipAddress) {
+            var vipList = discoveryMetric.vipAddress;
+            $scope.instance.vipAddress = vipList.contains(',') ? vipList.split(',') : [vipList];
+          }
           $scope.baseIpAddress = details.publicDnsName || details.privateIpAddress;
         },
         function() {
@@ -328,6 +336,17 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
+      });
+    };
+
+    this.showConsoleOutput = function  () {
+      $modal.open({
+        templateUrl: require('../console/consoleOutput.modal.html'),
+        controller: 'ConsoleOutputCtrl as ctrl',
+        size: 'lg',
+        resolve: {
+          instance: function() { return $scope.instance; },
+        }
       });
     };
 

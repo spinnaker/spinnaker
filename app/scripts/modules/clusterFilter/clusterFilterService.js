@@ -51,8 +51,8 @@ module.exports = angular
       }
 
       if(filter.indexOf('vpc:') !== -1) {
-        var vpcName = /vpc:([\w-]*)/.exec(filter);
-        return serverGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+        let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
+        return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       if(filter.indexOf('cluster:') !== -1) {
@@ -198,7 +198,7 @@ module.exports = angular
         } else {
           if (serverGroup.stringVal !== newServerGroup.stringVal) {
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
-            oldGroup.serverGroups.splice(idx, 1, newServerGroup);
+            oldGroup.serverGroups[idx] = newServerGroup;
           }
         }
       });

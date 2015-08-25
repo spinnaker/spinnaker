@@ -39,9 +39,6 @@ body {
 .container {
   @media(min-width: 1400px) {
     width: 1370px;
-    .details-panel {
-      width: 310px;
-    }
   }
 }
 
@@ -66,7 +63,8 @@ body {
 }
 
 .insight {
-  .nav, .nav-content, .details-panel {
+  .filters-content, .nav-content, .details-panel {
+    width: 100%;
     overflow-y: auto;
     overflow-x: hidden;
 
@@ -89,19 +87,91 @@ body {
   }
   .nav {
     margin-left: -15px;
+    width: 40px;
+    overflow-x: hidden;
+    transition: width 0.25s ease-in-out;
+    position: relative;
+    .pin-unpin {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+    }
+    .content, .heading {
+      margin-left: -260px;
+      width: 260px;
+      transition: all 0.25s ease-in-out;
+    }
+    .menu-toggle {
+      text-align: right;
+      margin: 10px;
+    }
+    &.filters-expanded {
+      .content, .heading {
+        margin-left: 0;
+        width: inherit;
+        display: block;
+      }
+      @media (min-width: 768px) and (max-width: 992px) {
+        width: 180px;
+      }
+
+      @media (min-width: 992px) {
+        width: 200px;
+      }
+      @media (min-width: 1200px) {
+        width: 230px;
+      }
+      @media (min-width: 1400px) {
+        width: 260px;
+      }
+      .filters-placeholder {
+        display: none;
+      }
+    }
+    .filters-placeholder {
+      margin-top: 20px;
+      font-size: 120%;
+    }
+  }
+  .detail-content {
+    overflow: visible;
+    margin: 0;
+    transition: width 0.25s ease-in-out;
+    @media (max-width:768px) {
+      top: 170px;
+      width: 95%;
+    }
+
     @media(min-width: 768px) and (max-width: 992px) {
-      width: 180px;
+      top: 190px;
+      width: 250px;
     }
 
     @media(min-width: 992px) {
-      width: 200px;
+      width: 330px;
     }
     @media(min-width: 1200px) {
-      width: 230px;
+      width: 390px;
     }
     @media(min-width: 1400px) {
-      width: 260px;
+      width: 540px;
     }
+
+    &.filters-expanded {
+      @media(min-width: 768px) and (max-width: 992px) {
+        width: 180px;
+      }
+      @media(min-width: 992px) {
+        width: 210px;
+      }
+      @media(min-width: 1200px) {
+        width: 240px;
+      }
+      @media(min-width: 1400px) {
+        width: 310px;
+      }
+    }
+
   }
   .nav-content {
     margin: 0 25px;
@@ -123,29 +193,7 @@ body {
       width: 750px;
     }
   }
-  .details-panel {
-    overflow-y: hidden;
-    margin: 0;
-    @media (max-width:768px) {
-      top: 170px;
-      width: 95%;
-    }
 
-    @media(min-width: 768px) and (max-width: 992px) {
-      top: 190px;
-      width: 210px;
-    }
-
-    @media(min-width: 992px) {
-      width: 220px;
-    }
-    @media(min-width: 1200px) {
-      width: 240px;
-    }
-    @media(min-width: 1400px) {
-      width: 310px;
-    }
-  }
 }
 
 .no-padding {
@@ -213,6 +261,14 @@ dl {
 }
 
 .dl-horizontal {
+  &.dl-wide {
+    dt {
+      width: 130px;
+    }
+    dd {
+      margin-left: 140px;
+    }
+  }
   &.dl-medium {
     dt {
       width: 100px;

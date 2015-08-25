@@ -10,9 +10,8 @@ module.exports = angular.module('spinnaker.account.service', [
 ])
   .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches) {
 
-    function getPreferredZonesByAccount(providerName) {
-      var _providerName = providerName || 'aws';
-      return $q.when(settings.providers[_providerName].preferredZonesByAccount);
+    function getPreferredZonesByAccount(providerName='aws') {
+      return $q.when(settings.providers[providerName].preferredZonesByAccount);
     }
 
     function getAvailabilityZonesForAccountAndRegion(providerName, accountName, regionName) {

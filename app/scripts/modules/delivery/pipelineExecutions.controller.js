@@ -111,15 +111,20 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
       $scope.viewState.initializationError = true;
     }
 
-    pipelineConfigService.getPipelinesForApplication($scope.application.name).then(function(configurations) {
-        $scope.configurations = configurations;
+    function setConfigurationsOnScope(configurations) {
+      $scope.configurations = configurations;
+    }
+
+    pipelineConfigService.getPipelinesForApplication($scope.application.name)
+      .then(setConfigurationsOnScope)
+      .then(() =>{
         if ($scope.application.executionsLoaded) {
           dataInitializationSuccess();
         } else {
           $scope.$on('executions-loaded', dataInitializationSuccess);
         }
-      },
-      dataInitializationFailure);
+      })
+      .catch(dataInitializationFailure);
 
     $scope.$on('executions-reloaded', updateExecutions);
     $scope.$watch('filter', cacheViewState, true);

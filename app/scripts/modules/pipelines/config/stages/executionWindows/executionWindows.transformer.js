@@ -21,9 +21,9 @@ module.exports =  angular.module('spinnaker.pipelines.stage.executionWindows.tra
         hasRunningStage = execution.stages.some(function (stage) {
           return stage.status === 'RUNNING';
         });
-      }
-      if (inRestrictedWindow && !hasRunningStage) {
-        execution.status = 'SUSPENDED';
+        if (!hasRunningStage) {
+          execution.status = 'SUSPENDED';
+        }
       }
     }
     this.transform = function(application, execution) {

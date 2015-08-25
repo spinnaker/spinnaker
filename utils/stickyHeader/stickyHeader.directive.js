@@ -104,6 +104,8 @@ module.exports = angular.module('spinnaker.utils.stickyHeader', [
               $scrollableContainer.bind('scroll.stickyHeader-' + id + ' resize.stickyHeader-' + id, positionHeader);
               $($window).bind('resize.stickyHeader-' + id, handleWindowResize);
 
+              scope.$on('page-reflow', handleWindowResize);
+
               scope.$on('$destroy', destroyStickyBindings);
             } else {
               destroyStickyBindings();

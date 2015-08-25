@@ -24,14 +24,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../configure/aws/serverGroupCommandBuilder.service.js'),
   require('../../configure/common/runningExecutions.service.js'),
   require('../../../migrator/serverGroup/serverGroup.migrator.directive.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
+  .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
                                                      subnetReader, autoScalingProcessService, executionFilterService) {
 
     $scope.state = {
       loading: true
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function applyAutoScalingProcesses() {
       $scope.autoScalingProcesses = [];

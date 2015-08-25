@@ -21,8 +21,8 @@ module.exports = angular
       }
 
       if(filter.indexOf('vpc:') !== -1) {
-        var vpcName = /vpc:([\w-]*)/.exec(filter);
-        return securityGroup.vpcName.toLowerCase() === vpcName[1].toLowerCase();
+        let [, vpcName] = /vpc:([\w-]*)/.exec(filter);
+        return securityGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
       return filter.split(' ').every(function(testWord) {
@@ -127,7 +127,7 @@ module.exports = angular
         } else {
           if (serverGroup.stringVal !== newServerGroup.stringVal) {
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
-            oldGroup.serverGroups.splice(idx, 1, newServerGroup);
+            oldGroup.serverGroups[idx] = newServerGroup;
           }
         }
       });

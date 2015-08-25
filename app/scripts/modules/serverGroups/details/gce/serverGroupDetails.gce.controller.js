@@ -16,8 +16,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../serverGroup.write.service.js'),
   require('../../configure/common/runningExecutions.service.js'),
   require('utils/lodash.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
+  .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
                                                      executionFilterService) {
 
@@ -26,6 +27,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     $scope.state = {
       loading: true
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractServerGroupSummary() {
       var summary = _.find(application.serverGroups, function (toCheck) {
@@ -66,6 +69,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
                 _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
             }).compact().value();
           }
+
+          var pathSegments = $scope.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
+          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+          $scope.serverGroup.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.serverGroup.name;
         } else {
           $state.go('^');
         }

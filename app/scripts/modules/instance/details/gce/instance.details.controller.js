@@ -4,12 +4,14 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-router'),
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state,
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -20,6 +22,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       loading: true,
       standalone: app.isStandalone,
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances
@@ -124,6 +128,11 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
           $scope.instance.sshLink =
             $scope.instance.selfLink.replace('www.googleapis.com/compute/v1', 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
+
+          var pathSegments = $scope.instance.selfLink.split('/');
+          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+          $scope.instance.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
         },
         function() {
           // When an instance is first starting up, we may not have the details cached in oort yet, but we still
@@ -321,6 +330,17 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         account: instance.account,
         taskMonitorConfig: taskMonitor,
         submitMethod: submitMethod
+      });
+    };
+
+    this.showConsoleOutput = function  () {
+      $modal.open({
+        templateUrl: require('../console/consoleOutput.modal.html'),
+        controller: 'ConsoleOutputCtrl as ctrl',
+        size: 'lg',
+        resolve: {
+          instance: function() { return $scope.instance; },
+        }
       });
     };
 

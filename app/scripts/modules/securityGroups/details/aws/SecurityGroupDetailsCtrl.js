@@ -11,8 +11,9 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../../securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
+  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $modal, _) {
 
@@ -22,6 +23,8 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
     $scope.state = {
       loading: true
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
       securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
