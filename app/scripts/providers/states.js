@@ -13,6 +13,7 @@ require('../modules/loadBalancers/details/aws/loadBalancerDetails.html');
 require('../modules/loadBalancers/details/gce/loadBalancerDetails.html');
 
 require('../modules/securityGroups/details/aws/securityGroupDetails.html');
+require('../modules/securityGroups/details/gce/securityGroupDetails.html');
 
 require('../modules/applications/applications.html');
 require('../../views/404.html');
@@ -199,6 +200,7 @@ module.exports = angular.module('spinnaker.states', [
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
+              provider: $stateParams.provider || 'aws',
               region: $stateParams.region,
               vpcId: $stateParams.vpcId,
             };

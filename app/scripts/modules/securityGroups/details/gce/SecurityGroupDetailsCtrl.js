@@ -1,3 +1,19 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 'use strict';
 
 require('../../configure/aws/editSecurityGroup.html');
@@ -5,14 +21,15 @@ require('../../clone/aws/cloneSecurityGroup.html');
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
+module.exports = angular.module('spinnaker.securityGroup.gce.details.controller', [
   require('angular-ui-router'),
+  require('../../../account/accountService.js'),
   require('../../securityGroup.read.service.js'),
   require('../../securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
 ])
-  .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
+  .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,
                                                     $modal, _) {
 
@@ -31,6 +48,11 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
           fourOhFour();
         } else {
           $scope.securityGroup = details;
+
+          accountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {
+            $scope.securityGroup.logsLink =
+              'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + securityGroup.name;
+          });
         }
       },
       function() {
@@ -94,7 +116,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
         header: 'Really delete ' + securityGroup.name + '?',
         buttonText: 'Delete ' + securityGroup.name,
         destructive: true,
-        provider: 'aws',
+        provider: 'gce',
         account: securityGroup.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
