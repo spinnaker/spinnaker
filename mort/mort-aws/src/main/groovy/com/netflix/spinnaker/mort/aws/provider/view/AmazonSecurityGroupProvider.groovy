@@ -53,62 +53,71 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAll() {
-    cacheView.getAll(SECURITY_GROUPS.ns, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
+  Set<AmazonSecurityGroup> getAll(boolean includeRules) {
+    def transform = this.&fromCacheData.curry(includeRules)
+    def cacheData = cacheView.getAll(SECURITY_GROUPS.ns, RelationshipCacheFilter.none())
+    def transformed = cacheData.collect(transform)
+
+    return transformed
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByRegion(String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'))
+  Set<AmazonSecurityGroup> getAllByRegion(boolean includeRules, String region) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccount(String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'))
+  Set<AmazonSecurityGroup> getAllByAccount(boolean includeRules, String account) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccountAndName(String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'))
+  Set<AmazonSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'), includeRules)
   }
 
   @Override
-  Set<AmazonSecurityGroup> getAllByAccountAndRegion(String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'))
+  Set<AmazonSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'), includeRules)
   }
 
   @Override
   AmazonSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId))[0]
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), true)[0]
   }
 
-  Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern) {
-    loadResults(cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
+  Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
+    loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
   }
 
-  Set<AmazonSecurityGroup> loadResults(Collection<String> identifiers) {
-    cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
+  Set<AmazonSecurityGroup> loadResults(boolean includeRules, Collection<String> identifiers) {
+    def transform = this.&fromCacheData.curry(includeRules)
+    def data = cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none())
+    def transformed = data.collect(transform)
+
+    return transformed
   }
 
-  AmazonSecurityGroup fromCacheData(CacheData cacheData) {
-    SecurityGroup securityGroup = objectMapper.convertValue(cacheData.attributes, SecurityGroup)
-    def parts = Keys.parse(cacheData.id)
-    return convertToAmazonSecurityGroup(securityGroup, parts.account, parts.region)
+  AmazonSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
+    Map<String, String> parts = Keys.parse(cacheData.id)
+    return convertToAmazonSecurityGroup(includeRules, cacheData.attributes, parts.account, parts.region)
   }
 
 
-  private AmazonSecurityGroup convertToAmazonSecurityGroup(SecurityGroup securityGroup, String account, String region) {
-    Map<GroupAndProtocol, Map> rules = [:]
-    Map<String, Map> ipRangeRules = [:]
-
-    securityGroup.ipPermissions.each { permission ->
-      addIpRangeRules(permission, ipRangeRules)
-      addSecurityGroupRules(permission, rules, account, region)
-    }
-
+  private AmazonSecurityGroup convertToAmazonSecurityGroup(boolean includeRules, Map<String, Object> securityGroup, String account, String region) {
     List<Rule> inboundRules = []
-    inboundRules.addAll buildSecurityGroupRules(rules)
-    inboundRules.addAll buildIpRangeRules(ipRangeRules)
+
+    if (includeRules) {
+      SecurityGroup amznSecurityGroup = objectMapper.convertValue(securityGroup, SecurityGroup)
+      Map<GroupAndProtocol, Map> rules = [:]
+      Map<String, Map> ipRangeRules = [:]
+      amznSecurityGroup.ipPermissions.each { permission ->
+        addIpRangeRules(permission, ipRangeRules)
+        addSecurityGroupRules(permission, rules, account, region)
+      }
+      inboundRules.addAll buildSecurityGroupRules(rules)
+      inboundRules.addAll buildIpRangeRules(ipRangeRules)
+    }
 
     new AmazonSecurityGroup(
       id: securityGroup.groupId,
