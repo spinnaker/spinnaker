@@ -51,18 +51,6 @@
                                    max="{{command.capacity.max}}"
                                    required/></div>
     </div>
-    <div class="form-group form-inline" style="margin-top: 20px">
-      <div class="col-md-12">
-        Consider deployment successful when
-        <input type="number"
-               min="0"
-               max="100"
-               ng-model="command.targetHealthyDeployPercentage"
-               class="form-control input-sm inline-number"
-               />
-        percent of instances are healthy.
-      </div>
-    </div>
   </div>
 
   <div ng-if="command.viewState.useSimpleCapacity">
@@ -80,6 +68,18 @@
                                    ng-model="command.capacity.desired"
                                    min="0"
                                    required/></div>
+    </div>
+  </div>
+  <div class="form-group form-inline" style="margin-top: 20px">
+    <div class="col-md-12">
+      Consider deployment successful when
+      <input type="number"
+             min="0"
+             max="100"
+             ng-model="command.targetHealthyDeployPercentage"
+             class="form-control input-sm inline-number"
+          />
+      percent of instances are healthy.
     </div>
   </div>
 </div>
