@@ -26,6 +26,7 @@ class Pipeline extends Execution<Pipeline> {
   String name
   String pipelineConfigId
   final Map<String, Object> trigger = [:]
+  final List<Map<String, Object>> notifications = []
   final Map<String, Serializable> initialConfig = [:]
 
   static Builder builder() {
@@ -40,6 +41,14 @@ class Pipeline extends Execution<Pipeline> {
       pipeline.trigger.clear()
       if (trigger) {
         pipeline.trigger.putAll(trigger)
+      }
+      return this
+    }
+
+    Builder withNotifications(List<Map<String, Object>> notifications = []) {
+      pipeline.notifications.clear()
+      if (notifications) {
+        pipeline.notifications.addAll(notifications)
       }
       return this
     }
