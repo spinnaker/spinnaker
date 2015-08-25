@@ -1,5 +1,21 @@
 <div class="row insight" ng-if="!insightTarget.notFound">
-  <div ui-view="nav" class="nav"></div>
+  <div class="nav"
+       ng-class="{'filters-expanded': InsightFilterStateModel.filtersExpanded}"
+       ng-mouseover="InsightFilterStateModel.hoverFilters()"
+       ng-mouseleave="InsightFilterStateModel.exitFilters()"
+      >
+    <h3 class="filters-placeholder">
+      <a href ng-click="InsightFilterStateModel.pinFilters(true)"><span class="glyphicon glyphicon-menu-hamburger"></span></a>
+    </h3>
+    <a href
+       class="btn btn-xs btn-default pull-right pin-unpin"
+       ng-click="InsightFilterStateModel.pinFilters(!InsightFilterStateModel.filtersPinned)"
+       ng-show="InsightFilterStateModel.filtersExpanded"
+        >
+      <span class="small glyphicon glyphicon-pushpin"></span> {{InsightFilterStateModel.filtersPinned ? 'Unpin' : 'Pin'}}
+    </a>
+    <div ui-view="nav" class="filters-content"></div>
+  </div>
   <div ui-view="master" class="nav-content" data-scroll-id="nav-content"></div>
-  <div ui-view="detail" class="detail-content"></div>
+  <div ui-view="detail" class="detail-content" ng-class="{'filters-expanded': InsightFilterStateModel.filtersExpanded}"></div>
 </div>

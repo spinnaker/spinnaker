@@ -55,7 +55,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Instance Information" expanded="true">
-      <dl class="dl-horizontal dl-narrow">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
         <dt>Launched:</dt>
         <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
         <dd ng-if="!instance.launchTime">(Unknown)</dd>
@@ -85,7 +85,7 @@
         <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
       </p>
 
-      <dl>
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
           <div ng-if="metric.type !== 'LoadBalancer'">
@@ -111,7 +111,7 @@
       </div>
     </div>
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
-      <dl>
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
         <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
         <dd ng-if="instance.privateDnsName"><a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a></dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>

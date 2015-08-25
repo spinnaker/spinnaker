@@ -20,7 +20,7 @@
     "angular-wizard": "^0.5.3",
     "angulartics": "^0.18.0",
     "baggage-loader": "^0.2.2",
-    "bootstrap": "3.2.0",
+    "bootstrap": "3.3.5",
     "d3-tip": "^0.6.7",
     "jquery": "2.1.4",
     "jquery-ui": "^1.10.5",

@@ -11,14 +11,17 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),
   require('utils/lodash.js'),
-  require('../../../confirmationModal/confirmationModal.service.js')
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app,
+  .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
 
     $scope.state = {
       loading: true
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
       if (!loadBalancer.vpcId) {
