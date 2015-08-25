@@ -19,6 +19,7 @@ package com.netflix.spinnaker.echo.notification
 import com.netflix.spinnaker.echo.model.Event
 import com.netflix.spinnaker.echo.twilio.TwilioService
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang.WordUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -29,50 +30,61 @@ import org.springframework.stereotype.Service
 @Service
 class TwilioNotificationAgent extends AbstractEventNotificationAgent {
 
-    @Autowired
-    TwilioService twilioService
+  @Autowired
+  TwilioService twilioService
 
-    @Value('${twilio.account}')
-    String account
+  @Value('${twilio.account}')
+  String account
 
-    @Value('${twilio.from}')
-    String from
+  @Value('${twilio.from}')
+  String from
 
-    @Override
-    void sendNotifications(Event event, Map config, String status) {
-        String application = event.details.application
+  @Override
+  void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+    try {
+      String name = event.content?.execution?.name ?: event.content?.execution?.description
+      String link = "${spinnakerUrl}/#/applications/${application}/${config.type == 'stage' ? 'pipeline' : config.link}/${event.content?.execution?.id}"
 
-        front50Service.getNotificationPreferences(application)?.sms?.each { preference ->
-            if (preference.when?.contains("$config.type.$status".toString())) {
-                try {
-                    String name = event.content?.execution?.name ?: event.content?.execution?.description
-                    String link = "${spinnakerUrl}/#/applications/${application}/${config.link}/${event.content?.execution?.id}"
+      String buildInfo = ''
 
-                    String buildInfo = ''
-
-                    if (config.type == 'pipeline') {
-                        if (event.content?.execution?.trigger?.buildInfo?.url) {
-                            buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
-                        }
-                    }
-
-                    log.info("Twilio: sms for ${preference.address} - ${link}")
-
-
-                    twilioService.sendMessage(
-                        account,
-                        from,
-                        preference.address,
-                        """The Spinnaker ${config.type} for ${
-                            event.content?.execution?.name ?: event.content?.execution?.description
-                        } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
-                            status == 'complete' ? 'completed successfully' : status
-                        } for application ${application} ${link}"""
-                    )
-                } catch (Exception e) {
-                    log.error('failed to send sms message ', e)
-                }
-            }
+      if (config.type == 'pipeline') {
+        if (event.content?.execution?.trigger?.buildInfo?.url) {
+          buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
         }
+      }
+
+      log.info("Twilio: sms for ${preference.address} - ${link}")
+
+      String message = ''
+
+      if (config.type == 'stage') {
+        message = """Stage ${event.content?.context?.stageDetails.name} for """
+      }
+
+      message +=
+        """${WordUtils.capitalize(application)}'s ${
+          event.content?.execution?.name ?: event.content?.execution?.description
+        } ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${buildInfo} ${
+          status == 'starting' ? 'is' : 'has'
+        } ${
+          status == 'complete' ? 'completed successfully' : status
+        } ${link}"""
+
+      twilioService.sendMessage(
+        account,
+        from,
+        preference.address,
+        message
+      )
+
+    } catch (Exception e) {
+      log.error('failed to send sms message ', e)
     }
+  }
+
+  @Override
+  String getNotificationType() {
+    'sms'
+  }
+
 }

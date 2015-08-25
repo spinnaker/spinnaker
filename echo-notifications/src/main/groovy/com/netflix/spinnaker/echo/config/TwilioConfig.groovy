@@ -60,9 +60,9 @@ class TwilioConfig {
                 String auth = "Basic " + Base64.encodeBase64String("${username}:${password}".getBytes())
                 request.addHeader("Authorization", auth)
             }
-        };
+        }
 
-        JacksonConverter converter = new JacksonConverter(new ObjectMapper());
+        JacksonConverter converter = new JacksonConverter(new ObjectMapper())
 
         new RestAdapter.Builder()
                 .setEndpoint(twilioEndpoint)

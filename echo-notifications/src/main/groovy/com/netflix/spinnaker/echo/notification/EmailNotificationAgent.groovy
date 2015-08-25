@@ -22,6 +22,7 @@ import static groovy.json.JsonOutput.toJson
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang.WordUtils
 import org.apache.velocity.app.VelocityEngine
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -40,44 +41,44 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     VelocityEngine engine
 
     @Override
-    void sendNotifications(Event event, Map config, String status) {
-        String application = event.details.application
-        String[] addresses = getEmailReceipients(application, config.type, status)
-
+    void sendNotifications(Map preference, String application, Event event, Map config, String status) {
         String buildInfo = ''
 
-        if (config.type == 'pipeline') {
+        if (config.type == 'pipeline' || config.type == 'stage') {
             if (event.content?.execution?.trigger?.buildInfo?.url) {
                 buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
             }
         }
 
-        if (addresses.length > 0) {
-            log.info("Send Email: ${addresses} for ${application} ${config.type} ${status} ${event.content?.executionId}")
-            sendMessage(
-                addresses,
-                event,
-                """[Spinnaker] ${config.type} for ${
-                    event.content?.execution?.name ?: event.content?.execution?.description
-                } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
-                    status == 'complete' ? 'completed successfully' : status
-                } for application ${application}""",
-                config.type,
-                status,
-                config.link
+        String subject = '[Spinnaker] '
 
-            )
+        if(config.type == 'stage'){
+          subject = """Stage ${event.content.context.stageDetails.name} for ${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
+        } else if ( config.type == 'pipeline'){
+          subject = """${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
+        } else {
+          subject = """${application}'s ${event.content?.execution?.id } task """
         }
+
+        subject += """${status == 'starting' ? 'is' : 'has'} ${
+          status == 'complete' ? 'completed successfully' : status
+        }"""
+
+        log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+
+        sendMessage(
+            [preference.address] as String[],
+            event,
+            subject,
+            config.type,
+            status,
+            config.link
+        )
     }
 
-    private String[] getEmailReceipients(String application, String type, String status) {
-        List addresses = []
-        front50Service.getNotificationPreferences(application)?.email?.each { emailPreference ->
-            if (emailPreference.when?.contains("$type.$status".toString())) {
-                addresses << emailPreference.address
-            }
-        }
-        addresses.toArray()
+    @Override
+    String getNotificationType(){
+        'email'
     }
 
     private void sendMessage(String[] email, Event event, String title, String type, String status, String link) {
@@ -86,20 +87,19 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
             title,
             VelocityEngineUtils.mergeTemplateIntoString(
                 engine,
-                'email.vm',
+                type == 'stage' ? 'stage.vm' : 'pipeline.vm',
                 "UTF-8",
                 [
-                    event: prettyPrint(toJson(event.content)),
-                    url: spinnakerUrl,
+                    event      : prettyPrint(toJson(event.content)),
+                    url        : spinnakerUrl,
                     application: event.details?.application,
                     executionId: event.content?.execution?.id,
-                    type: type,
-                    status: status,
-                    link: link,
-                    name: event.content?.execution?.name ?: event.content?.execution?.description
+                    type       : type,
+                    status     : status,
+                    link       : link,
+                    name       : event.content?.execution?.name ?: event.content?.execution?.description
                 ]
             )
         )
     }
-
 }
