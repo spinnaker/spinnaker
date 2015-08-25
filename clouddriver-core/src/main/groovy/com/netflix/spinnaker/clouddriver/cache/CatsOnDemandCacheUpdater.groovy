@@ -49,7 +49,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   void handle(String type, Map<String, ? extends Object> data) {
     Collection<OnDemandAgent> handleAgents = onDemandAgents.findAll { it.handles(type) }
     for (OnDemandAgent agent : handleAgents) {
-      def providerCache = catsModule.getProviderRegistry().getProviderCache(awsProvider.providerName)
+      def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
       OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
       if (result) {
         if (result.evictions) {
