@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.kork.eureka.EurekaStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.PackageScope
 import groovy.util.logging.Slf4j
@@ -52,7 +53,10 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   private Func1<Execution, Boolean> filter = {
     Execution execution -> execution.status.complete
   }
-  private Func1<Execution, Map> mapper = { Execution execution -> [id: execution.id, startTime: execution.startTime] }
+  private Func1<Execution, Map> mapper = { Execution execution ->
+    def pipelineConfigId = execution instanceof Pipeline ? ((Pipeline) execution).pipelineConfigId : null
+    [id: execution.id, startTime: execution.startTime, pipelineConfigId: pipelineConfigId]
+  }
 
   @Autowired
   ObjectMapper objectMapper
@@ -66,8 +70,11 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   @Value('${pollers.topApplicationExecutionCleanup.intervalMs:3600000}')
   long pollingIntervalMs
 
-  @Value('${pollers.topApplicationExecutionCleanup.threshold:200}')
+  @Value('${pollers.topApplicationExecutionCleanup.threshold:150}')
   int threshold
+
+  @Value('${pollers.topApplicationExecutionCleanup.minimumNumberOfExecutionsToKeepPerPipeline:5}')
+  int minimumNumberOfExecutionsToKeepPerPipeline
 
   @PreDestroy
   void stopPolling() {
@@ -126,10 +133,28 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   private void cleanup(Observable<Execution> observable, String application, String type) {
     def executions = observable.filter(filter).map(mapper).toList().toBlocking().single().sort { it.startTime }
     if (executions.size() > threshold) {
+      Set<String> executionIdsToKeep = []
+      if (type == "pipeline") {
+        /*
+         * Group by pipeline config id and keep the newest `minimumNumberOfExecutionsToKeepPerPipeline`
+         */
+        executions.groupBy { it.pipelineConfigId }.values().each { List<Map> executionsByPipelineConfigId ->
+          executionsByPipelineConfigId.reverse().eachWithIndex { Map entry, int index ->
+            if (index < minimumNumberOfExecutionsToKeepPerPipeline) {
+              executionIdsToKeep << entry.id
+            }
+          }
+        }
+      }
+
       executions[0..(executions.size() - threshold - 1)].each {
         def startTime = it.startTime ?: (it.buildTime ?: 0)
-        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application})")
+        if (executionIdsToKeep.contains(it.id)) {
+          log.info("Preserving ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application}, pipelineConfigId: ${it.pipelineConfigId})")
+          return
+        }
 
+        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application}, pipelineConfigId: ${it.pipelineConfigId})")
         switch (type) {
           case "pipeline":
             executionRepository.deletePipeline(it.id as String)

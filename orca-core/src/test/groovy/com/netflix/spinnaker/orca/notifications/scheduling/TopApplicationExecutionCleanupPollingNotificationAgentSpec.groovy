@@ -26,6 +26,8 @@ import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.Specification
 
+import java.util.concurrent.atomic.AtomicInteger
+
 class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specification {
   void "filter should only consider SUCCEEDED executions"() {
     given:
@@ -40,27 +42,29 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     }
   }
 
-  void "mapper should extract id and startTime"() {
+  void "mapper should extract id, startTime and pipelineConfigId"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "Named Stage")
     stage.startTime = 1000
 
     def pipeline = new Pipeline(stages: [stage])
     pipeline.id = "ID1"
+    pipeline.pipelineConfigId = "P1"
 
     and:
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper
 
     expect:
-    mapper.call(pipeline) == [id: "ID1", startTime: 1000]
+    mapper.call(pipeline) == [id: "ID1", startTime: 1000, pipelineConfigId: "P1"]
   }
 
   void "tick should cleanup each application with > threshold # of executions"() {
     given:
-    def orchestrations = buildExecutions(3)
-    def pipelines = buildExecutions(3)
+    def startTime = new AtomicInteger(0)
+    def orchestrations = buildExecutions(startTime, 3)
+    def pipelines = buildExecutions(startTime, 3, "P1") + buildExecutions(startTime, 5, "P2")
 
-    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2)
+    def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2, minimumNumberOfExecutionsToKeepPerPipeline: 2)
     agent.jedisPool = Mock(Pool) {
       1 * getResource() >> {
         return Mock(Jedis) {
@@ -83,17 +87,27 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     then:
     1 * agent.executionRepository.deleteOrchestration(orchestrations[0].id)
     1 * agent.executionRepository.deletePipeline(pipelines[0].id)
+// These executions should be preserved as they're the most recent `minimumNumberOfExecutionsToKeepPerPipeline`
+//    1 * agent.executionRepository.deletePipeline(pipelines[1].id)
+//    1 * agent.executionRepository.deletePipeline(pipelines[2].id)
+    1 * agent.executionRepository.deletePipeline(pipelines[3].id)
+    1 * agent.executionRepository.deletePipeline(pipelines[4].id)
+    1 * agent.executionRepository.deletePipeline(pipelines[5].id)
+// These executions should be preserved as they're the most recent `minimumNumberOfExecutionsToKeepPerPipeline`
+//    1 * agent.executionRepository.deletePipeline(pipelines[6].id)
+//    1 * agent.executionRepository.deletePipeline(pipelines[7].id)
   }
 
-  private static Collection<Execution> buildExecutions(int count) {
+  private static Collection<Execution> buildExecutions(AtomicInteger startTime, int count, String pipelineConfigId = null) {
     (1..count).collect {
       def stage = new PipelineStage(new Pipeline(), "")
-      stage.startTime = it
+      stage.startTime = startTime.incrementAndGet()
       stage.status = ExecutionStatus.SUCCEEDED
       stage.tasks = [new DefaultTask()]
 
       def execution = new Pipeline(stages: [stage])
-      execution.id = it.toString()
+      execution.id = stage.startTime as String
+      execution.pipelineConfigId = pipelineConfigId
 
       execution
     }
