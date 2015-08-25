@@ -1,5 +1,6 @@
 package com.netflix.spinnaker.echo.pipelinetriggers.orca
 
+
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.echo.model.Pipeline

@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/groovy-module.gradle"
 
-dependencies {
-  spinnaker.group("test")
-  spinnaker.group("lombok")
-  spinnaker.group("retrofitDefault")
+package com.netflix.spinnaker.echo.config
 
-  compile project(':echo-core')
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("rxJava")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("okHttp")
-  compile spinnaker.dependency("eurekaClient")
-  compile spinnaker.dependency("kork")
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+@ComponentScan(["com.netflix.scheduledactions.web.controllers"])
+class SchedulerWebConfiguration {
 }

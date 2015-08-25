@@ -20,122 +20,16 @@ import static rx.Observable.just
 
 class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   def objectMapper = new ObjectMapper()
-  def scheduler = Schedulers.test()
-  def front50 = Mock(Front50Service)
+  def pipelineCache = Mock(PipelineCache)
   def subscriber = Mock(Action1)
   def registry = new ExtendedRegistry(new NoopRegistry())
 
-  @Shared
-  def interval = 30
-
   @Subject
-  def monitor = new BuildEventMonitor(scheduler, interval, front50, subscriber, registry)
-
-  private waitForTicks(int n) {
-    scheduler.advanceTimeBy(n * interval, SECONDS)
-  }
-
-  def "doesn't poll until started"() {
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "doesn't poll after being stopped"() {
-    given:
-    monitor.start()
-    monitor.stop()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "tolerates stop before start"() {
-    when:
-    monitor.stop()
-
-    then:
-    notThrown Throwable
-  }
-
-  def "tolerates multiple stop calls"() {
-    given:
-    monitor.start()
-    monitor.stop()
-
-    when:
-    monitor.stop()
-
-    then:
-    notThrown Throwable
-  }
-
-  def "tolerates multiple start calls"() {
-    given:
-    monitor.start()
-    monitor.start()
-    monitor.stop()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    0 * _
-  }
-
-  def "can be restarted after shutting down"() {
-    given:
-    monitor.start()
-    monitor.stop()
-    monitor.start()
-
-    when:
-    waitForTicks(1)
-
-    then:
-    1 * front50.getPipelines() >> empty()
-  }
-
-  @Unroll
-  def "polls Front50 #ticks times in #delayTime seconds"() {
-    given:
-    monitor.start()
-
-    when:
-    waitForTicks(ticks)
-
-    then:
-    ticks * front50.getPipelines() >> empty()
-
-    where:
-    ticks | _
-    1     | _
-    2     | _
-
-    delayTime = ticks * interval
-  }
-
-  def "keeps polling if Front50 returns an error"() {
-    given:
-    def pipeline = new Pipeline("application", "Pipeline", "P1", false, false, [], [], [], null, null)
-    monitor.start()
-
-    when:
-    waitForTicks(3)
-
-    then:
-    front50.getPipelines() >> just([]) >> { throw unavailable() } >> just([pipeline])
-    monitor.pipelines.get() == [pipeline]
-  }
+  def monitor = new BuildEventMonitor(pipelineCache, subscriber, registry)
 
   def "triggers pipelines for successful builds"() {
     given:
-    monitor.pipelines.set([pipeline])
+    pipelineCache.getPipelines() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -152,7 +46,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "attaches the trigger to the pipeline"() {
     given:
-    monitor.pipelines.set([pipeline])
+    pipelineCache.getPipelines() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -172,7 +66,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
   def "an event can trigger multiple pipelines"() {
     given:
-    monitor.pipelines.set(pipelines)
+    pipelineCache.getPipelines() >> pipelines
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -195,7 +89,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger pipelines for #description builds"() {
     given:
-    monitor.pipelines.set([pipeline])
+    pipelineCache.getPipelines() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -218,7 +112,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger #description pipelines"() {
     given:
-    monitor.pipelines.set([pipeline])
+    pipelineCache.getPipelines() >> [pipeline]
 
     when:
     monitor.processEvent(objectMapper.convertValue(event, Event))
@@ -240,7 +134,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   @Unroll
   def "does not trigger a pipeline that has an enabled trigger with missing #field"() {
     given:
-    monitor.pipelines.set([badPipeline, goodPipeline])
+    pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
     println objectMapper.writeValueAsString(createBuildEventWith(SUCCESS))
 
     when:

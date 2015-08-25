@@ -17,16 +17,17 @@
 apply from: "$rootDir/gradle/groovy-module.gradle"
 
 dependencies {
-  spinnaker.group("test")
-  spinnaker.group("lombok")
-  spinnaker.group("retrofitDefault")
+  compile project(':echo-pipelinetriggers')
 
-  compile project(':echo-core')
-  compile spinnaker.dependency("bootWeb")
-  compile spinnaker.dependency("bootActuator")
-  compile spinnaker.dependency("rxJava")
-  compile spinnaker.dependency("guava")
-  compile spinnaker.dependency("okHttp")
-  compile spinnaker.dependency("eurekaClient")
-  compile spinnaker.dependency("kork")
+  spinnaker.group('spockBase')
+  spinnaker.group("retrofitDefault")
+  compile spinnaker.dependency('korkCassandra')
+  compile spinnaker.dependency('groovy')
+  compile spinnaker.dependency('slf4jApi')
+  compile spinnaker.dependency('eurekaClient')
+
+  testRuntime spinnaker.dependency('slf4jSimple')
+  compile ("com.netflix.scheduledactions:scheduled-actions-core:0.32")
+  compile ("com.netflix.scheduledactions:scheduled-actions-cassandra:0.32")
+  compile ("com.netflix.scheduledactions:scheduled-actions-web:0.32")
 }

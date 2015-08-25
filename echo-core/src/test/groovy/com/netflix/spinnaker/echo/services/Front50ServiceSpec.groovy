@@ -1,13 +1,13 @@
 package com.netflix.spinnaker.echo.services
 
 import groovy.json.JsonOutput
+import com.netflix.spinnaker.echo.model.Trigger
 import retrofit.Endpoints
 import retrofit.RestAdapter
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 import com.google.common.collect.ImmutableList
-import com.netflix.spinnaker.echo.model.Pipeline
 import retrofit.client.Client
 import retrofit.client.Header
 import retrofit.client.Response
@@ -85,7 +85,7 @@ class Front50ServiceSpec extends Specification {
     pipeline.triggers instanceof ImmutableList
 
     when:
-    pipeline.triggers << new Pipeline.Trigger(false, "foo", "bar", "baz")
+    pipeline.triggers << Trigger.builder().enabled(false).type('jenkins').master('foo').job('bar').propertyFile('baz').build()
 
     then:
     thrown UnsupportedOperationException

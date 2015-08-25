@@ -1,12 +1,12 @@
 package com.netflix.spinnaker.echo.test
 
 import com.netflix.spinnaker.echo.model.BuildEvent
+import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.BuildEventMonitor
 
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.netflix.spinnaker.echo.model.Pipeline
-import com.netflix.spinnaker.echo.model.Pipeline.Trigger
 import retrofit.RetrofitError
 import retrofit.client.Response
 import rx.Observable
@@ -18,15 +18,11 @@ import static rx.Observable.just
 trait RetrofitStubs {
 
   final String url = "http://echo"
-  final Trigger enabledJenkinsTrigger = new Trigger(true, "jenkins", "master", "job", null)
-  final Trigger disabledJenkinsTrigger = new Trigger(false, "jenkins", "master", "job", null)
-  final Trigger nonJenkinsTrigger = new Trigger(true, "not jenkins", "master", "job", null)
+  final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null)
+  final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null)
+  final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null)
 
   private nextId = new AtomicInteger(1)
-
-  Observable<List<BuildEvent>> echoResponse(BuildEvent... events) {
-    just events.toList()
-  }
 
   RetrofitError unavailable() {
     httpError(url, new Response(url, HTTP_UNAVAILABLE, "Unavailable", [], null), null, null)
@@ -41,11 +37,11 @@ trait RetrofitStubs {
   }
 
   Pipeline createPipelineWith(Trigger... triggers) {
-    Pipeline.builder().
-      application("application").
-      name("name").
-      id("${nextId.getAndIncrement()}").
-      triggers(triggers.toList()).
-      build()
+    Pipeline.builder()
+      .application("application")
+      .name("name")
+      .id("${nextId.getAndIncrement()}")
+      .triggers(triggers.toList())
+      .build()
   }
 }
