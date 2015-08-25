@@ -6,6 +6,10 @@
         <dl class="dl-narrow dl-horizontal">
           <dt ng-if="stage.context.judgmentStatus">Judgment</dt>
           <dd ng-if="stage.context.judgmentStatus">{{ stage.context.judgmentStatus | robotToHuman }}</dd>
+          <dt ng-if="stage.context.lastModifiedBy">Judged By</dt>
+          <dd ng-if="stage.context.lastModifiedBy">
+            <span ng-bind="stage.context.lastModifiedBy"></span> <br/> {{ stage.endTime | timestamp }}
+          </dd>
           <dt>Instructions</dt>
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
