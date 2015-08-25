@@ -124,6 +124,8 @@ class TaskTasklet implements Tasklet {
     stage.status = ExecutionStatus.CANCELED
     stage.endTime = System.currentTimeMillis()
     stage.tasks.findAll { !it.status.complete }.each { it.status = ExecutionStatus.CANCELED }
+
+    log.info("${stage.execution.class.simpleName} ${stage.execution.id} was canceled")
     return RepeatStatus.FINISHED
   }
 
