@@ -93,7 +93,8 @@
     <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#SVGID_2_)" d="M60.99,213.809c63.75,2.367,112.338-38.172,124.042-54.975
       c11.707-16.803-6.217-92.497-6.217-92.497C161.097,118.769,111.77,195.18,60.99,213.809L60.99,213.809z"/>
     </svg>
-    <h1 id="welcome-message">Hello.</h1>
+    <h1 id="welcome-message" ng-if="!authenticating">Hello!</h1>
+    <h1 style="display: none" ng-style="{display: authenticating ? '' : 'none'}">authenticating...</h1>
   </div>
   <spinnaker ng-if="!authenticating"></spinnaker>
 
@@ -112,26 +113,8 @@
 
       ];
 
-      var messageIndex = null;
-
-      if (window.sessionStorage) {
-        messageIndex = window.sessionStorage.getItem('greeting-message');
-      }
-
-      if (messageIndex !== null) {
-        setMessage(messageIndex);
-        window.sessionStorage.removeItem('greeting-message');
-      } else {
-        if (Math.random() < 0.05) {
-          var idx = Math.floor(Math.random() * messageOptions.length);
-          setMessage(idx);
-          if (window.sessionStorage) {
-            window.sessionStorage.setItem('greeting-message', idx);
-          }
-        }
-      }
-
-      function setMessage(idx) {
+      if (Math.random() < 0.03) {
+        var idx = Math.floor(Math.random() * messageOptions.length);
         document.querySelector('#welcome-message').innerHTML = messageOptions[idx];
       }
     })();
@@ -153,7 +136,7 @@
 
         ga('create', window.tracking.key, 'auto');
       }
-    }, 500);
+    }, 1000);
 
   </script>
 </body>
