@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.security.AuthenticatedRequest
+
 import java.time.Clock
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
@@ -112,6 +114,7 @@ class TaskController {
     def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
     if (stage) {
       stage.context.putAll(context)
+      stage.context["lastModifiedBy"] = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
       executionRepository.storeStage(stage)
     }
     pipeline

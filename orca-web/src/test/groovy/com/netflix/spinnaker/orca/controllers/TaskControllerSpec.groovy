@@ -232,11 +232,11 @@ class TaskControllerSpec extends Specification {
     }
     1 * executionRepository.storeStage({ stage ->
       stage.id == "s1" && stage.context == [
-        judgmentStatus: "stop", value: "1"
+        judgmentStatus: "stop", value: "1", lastModifiedBy: "anonymous"
       ]
                                        } as PipelineStage)
     objectMapper.readValue(response.contentAsString, Map).stages*.context == [
-      [value: "1", judgmentStatus: "stop"]
+      [value: "1", judgmentStatus: "stop", , lastModifiedBy: "anonymous"]
     ]
     0 * _
   }
