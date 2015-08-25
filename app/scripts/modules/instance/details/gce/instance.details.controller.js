@@ -9,8 +9,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../instance.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('utils/lodash.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal,
+  .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -21,6 +22,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       loading: true,
       standalone: app.isStandalone,
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

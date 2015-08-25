@@ -4,19 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.insight.controller', [
   require('angular-ui-router'),
+  require('./insightFilterState.model.js'),
 ])
-  .controller('InsightCtrl', function($scope, $state) {
-    var self = this;
-    $scope.sortFilter = {};
+  .controller('InsightCtrl', function($scope, InsightFilterStateModel) {
 
-    function isSideNavHideable() {
-      return  $state.is('home.applications.application.insight.clusters') &&
-        $scope.application.serverGroups &&
-        $scope.application.serverGroups.length === 0;
-    }
-
-    $scope.$on('$stateChangeSuccess', function() {
-      self.isSideNavHideable = isSideNavHideable();
-    });
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
   }).name;

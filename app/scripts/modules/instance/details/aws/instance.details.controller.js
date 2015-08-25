@@ -10,8 +10,9 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../instance.read.service.js'),
   require('../../../vpc/vpcTag.directive.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal,
+  .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService,
                                                instanceReader, _, instance, app) {
 
@@ -22,6 +23,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       loading: true,
       standalone: app.isStandalone,
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractHealthMetrics(instance, latest) {
       // do not backfill on standalone instances

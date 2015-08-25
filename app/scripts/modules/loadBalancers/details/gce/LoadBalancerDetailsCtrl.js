@@ -12,9 +12,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),
   require('utils/lodash.js'),
-  require('../../../confirmationModal/confirmationModal.service.js')
+  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../insight/insightFilterState.model.js'),
 ])
-  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app,
+  .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
                                                       _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
 
     let application = app;
@@ -22,6 +23,8 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     $scope.state = {
       loading: true
     };
+
+    $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractLoadBalancer() {
       $scope.loadBalancer = application.loadBalancers.filter(function (test) {
