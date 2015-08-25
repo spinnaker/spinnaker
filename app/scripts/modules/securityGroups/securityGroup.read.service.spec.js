@@ -107,7 +107,19 @@ describe('Service: securityGroupReader', function () {
       ]
     };
 
-    $http.expectGET('/securityGroups/test').respond(200, {
+    $http.expectGET('/credentials/test').respond(200, {
+      provider: 'aws',
+      regions: [
+        {
+          name: 'us-east-1',
+          availabilityZones: [
+            'us-east-1a',
+          ]
+        },
+      ]
+    });
+
+    $http.expectGET('/securityGroups/test?provider=aws').respond(200, {
       'us-east-1': [
         { name: 'not-cached', id: 'not-cached-id', vpcId: null }
       ]
