@@ -31,69 +31,79 @@ import org.springframework.stereotype.Service
 @Service
 class HipchatNotificationAgent extends AbstractEventNotificationAgent {
 
-    @Autowired
-    HipchatService hipchatService
+  @Autowired
+  HipchatService hipchatService
 
-    @Value('${hipchat.token}')
-    String token
+  @Value('${hipchat.token}')
+  String token
 
-    @Override
-    void sendNotifications(Map preference, String application, Event event, Map config, String status) {
-        try {
-            boolean notify = false
-            if (status == 'failed') {
-                notify = true
-            }
+  @Override
+  void sendNotifications(Map preference, String application, Event event, Map config, String status) {
+    try {
+      boolean notify = false
+      if (status == 'failed') {
+        notify = true
+      }
 
-            String color = 'gray'
+      String color = 'gray'
 
-            if (status == 'failed') {
-                color = 'red'
-            }
+      if (status == 'failed') {
+        color = 'red'
+      }
 
-            if (status == 'complete') {
-                color = 'green'
-            }
+      if (status == 'complete') {
+        color = 'green'
+      }
 
-            String buildInfo = ''
+      String buildInfo = ''
 
-            if (config.type == 'pipeline') {
-                if (event.content?.execution?.trigger?.buildInfo?.url) {
-                    buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
-                        event.content.execution.trigger.buildInfo.number as Integer
-                    }</a> """
-                }
-            }
-
-            log.info("Send Hipchat message to" +
-                " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
-
-            hipchatService.sendMessage(
-                token,
-                preference.address,
-                new HipchatMessage(
-                    message: """${WordUtils.capitalize(application)}'s <a href="${
-                        spinnakerUrl
-                    }/#/applications/${application}/${
-                        config.link
-                    }/${event.content?.execution?.id}">${
-                        event.content?.execution?.name ?: event.content?.execution?.description
-                    }</a> ${buildInfo} ${config.type} ${status == 'starting' ? 'is' : 'has'} ${
-                        status == 'complete' ? 'completed successfully' : status
-                    }""",
-                    color: color,
-                    notify: notify
-                )
-            )
-        } catch (Exception e) {
-            log.error('failed to send hipchat message ', e)
+      if (config.type == 'pipeline' || config.type == 'stage') {
+        if (event.content?.execution?.trigger?.buildInfo?.url) {
+          buildInfo = """build #<a href="${event.content.execution.trigger.buildInfo.url}">${
+            event.content.execution.trigger.buildInfo.number as Integer
+          }</a> """
         }
-    }
+      }
 
-    @Override
-    String getNotificationType(){
-        'hipchat'
+      log.info("Send Hipchat message to" +
+        " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+
+      String message = ''
+
+      if (config.type == 'stage') {
+        message = """Stage ${event.content?.context?.stageDetails.name} for """
+      }
+
+      message +=
+        """${WordUtils.capitalize(application)}'s <a href="${
+          spinnakerUrl
+        }/#/applications/${application}/${
+          config.type == 'stage' ? 'pipeline' : config.link
+        }/${event.content?.execution?.id}">${
+          event.content?.execution?.name ?: event.content?.execution?.description
+        }</a> ${buildInfo} ${config.type == 'task' ? 'task' : 'pipeline'} ${status == 'starting' ? 'is' : 'has'} ${
+          status == 'complete' ? 'completed successfully' : status
+        }"""
+
+      hipchatService.sendMessage(
+        token,
+        preference.address,
+        new HipchatMessage(
+          message: message,
+          color: color,
+          notify: notify
+        )
+      )
+
+    } catch (Exception e) {
+      log.error('failed to send hipchat message ', e)
     }
+  }
+
+  @Override
+  String getNotificationType() {
+    'hipchat'
+  }
 
 }
 

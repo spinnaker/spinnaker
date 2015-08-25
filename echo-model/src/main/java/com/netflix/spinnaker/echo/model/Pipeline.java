@@ -55,6 +55,9 @@ import java.util.Map;
   List<Map<String, Object>> stages;
 
   @JsonProperty
+  List<Map<String, llow>> notifications;
+
+  @JsonProperty
   List<Map<String, Object>> parameterConfig;
 
   @JsonProperty

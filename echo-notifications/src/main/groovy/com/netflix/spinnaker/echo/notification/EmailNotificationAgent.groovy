@@ -22,6 +22,7 @@ import static groovy.json.JsonOutput.toJson
 import com.netflix.spinnaker.echo.email.EmailNotificationService
 import com.netflix.spinnaker.echo.model.Event
 import groovy.util.logging.Slf4j
+import org.apache.commons.lang.WordUtils
 import org.apache.velocity.app.VelocityEngine
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -43,21 +44,32 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
     void sendNotifications(Map preference, String application, Event event, Map config, String status) {
         String buildInfo = ''
 
-        if (config.type == 'pipeline') {
+        if (config.type == 'pipeline' || config.type == 'stage') {
             if (event.content?.execution?.trigger?.buildInfo?.url) {
                 buildInfo = """build #${event.content.execution.trigger.buildInfo.number as Integer} """
             }
         }
 
+        String subject = '[Spinnaker] '
+
+        if(config.type == 'stage'){
+          subject = """Stage ${event.content.context.stageDetails.name} for ${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
+        } else if ( config.type == 'pipeline'){
+          subject = """${application}'s ${ event.content?.execution?.name } pipeline ${buildInfo}"""
+        } else {
+          subject = """${application}'s ${event.content?.execution?.id } task """
+        }
+
+        subject += """${status == 'starting' ? 'is' : 'has'} ${
+          status == 'complete' ? 'completed successfully' : status
+        }"""
+
         log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+
         sendMessage(
             [preference.address] as String[],
             event,
-            """[Spinnaker] ${config.type} for ${
-                event.content?.execution?.name ?: event.content?.execution?.description
-            } ${buildInfo}${status == 'starting' ? 'is' : 'has'} ${
-                status == 'complete' ? 'completed successfully' : status
-            } for application ${application}""",
+            subject,
             config.type,
             status,
             config.link
@@ -75,7 +87,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
             title,
             VelocityEngineUtils.mergeTemplateIntoString(
                 engine,
-                'email.vm',
+                type == 'stage' ? 'stage.vm' : 'pipeline.vm',
                 "UTF-8",
                 [
                     event      : prettyPrint(toJson(event.content)),
