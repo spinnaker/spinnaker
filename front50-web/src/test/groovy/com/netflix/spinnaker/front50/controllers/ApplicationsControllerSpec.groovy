@@ -84,7 +84,7 @@ class ApplicationsControllerSpec extends Specification {
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
     1 * dao.findByName(_) >> sampleApp
-    1 * dao.update("SAMPLEAPP", ["email": "web@netflix.com", "owner": "Andy McEntee"])
+    1 * dao.update("SAMPLEAPP", ["name": "SAMPLEAPP", "email": "web@netflix.com", "owner": "Andy McEntee"])
   }
 
   void 'a put should not update an application if no name is provided'() {

@@ -20,21 +20,23 @@ package com.netflix.spinnaker.front50.model.application
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.validator.ApplicationValidationErrors
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import groovy.transform.Canonical
 import groovy.transform.ToString
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
+import groovy.util.logging.Slf4j
 import org.springframework.validation.Errors
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
-/**
- * Created by aglover on 4/20/14.
- */
 @ToString
+@Slf4j
 class Application {
   String name
   String description
@@ -58,6 +60,9 @@ class Application {
 
   @JsonIgnore
   Collection<ApplicationValidator> validators
+
+  @JsonIgnore
+  Collection<ApplicationEventListener> applicationEventListeners
 
   Application() {} //forces Groovy to add LinkedHashMap constructor
 
@@ -98,23 +103,61 @@ class Application {
     this.repoType = repoType
   }
 
-  void update(Map<String, String> newAttributes) {
+  void update(Application updatedApplication) {
+    def newAttributes = updatedApplication.allSetColumnProperties()
     validate(new Application(allColumnProperties() << newAttributes))
 
-    ["name", "updateTs", "createTs"].each {
-      // remove attributes that should not be externally modifiable
-      newAttributes.remove(it)
-    }
-    newAttributes.each { String key, String value ->
+    updatedApplication = perform(
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_UPDATE) },
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_UPDATE) },
+        { Application originalApplication, Application modifiedApplication ->
+          // onSuccess
+          this.dao.update(originalApplication.name.toUpperCase(), modifiedApplication.allSetColumnProperties())
+          return modifiedApplication
+        },
+        { Application originalApplication, Application modifiedApplication ->
+          // onRollback
+          this.dao.update(originalApplication.name.toUpperCase(), originalApplication.allColumnProperties())
+        },
+        this,
+        updatedApplication
+    )
+
+    updatedApplication.allSetColumnProperties().each { String key, String value ->
       // apply updates locally (in addition to DAO persistence)
       this[key] = value
     }
-
-    this.dao.update(this.name.toUpperCase(), newAttributes)
   }
 
   void delete() {
-    this.dao.delete(findByName(this.name).name)
+    Application currentApplication = null
+    try {
+      currentApplication = findByName(this.name)
+    } catch (NotFoundException ignored) {
+      // do nothing
+    }
+
+    if (!currentApplication) {
+      log.warn("Application does not exist (name: ${name}), nothing to delete")
+      return
+    }
+
+    perform(
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_DELETE) },
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_DELETE) },
+        { Application originalApplication, Application modifiedApplication ->
+          // onSuccess
+          this.dao.delete(currentApplication.name)
+          return null
+        },
+        { Application originalApplication, Application modifiedApplication ->
+          // onRollback
+          this.dao.create(currentApplication.name, currentApplication.allColumnProperties())
+          return null
+        },
+        currentApplication,
+        null
+    )
   }
 
   Application clear() {
@@ -151,8 +194,21 @@ class Application {
       }
     } catch (NotFoundException ignored) {}
 
-    Map<String, String> values = allSetColumnProperties()
-    return dao.create(values['name'].toUpperCase(), values)
+    return perform(
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_CREATE) },
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_CREATE) },
+        { Application originalApplication, Application modifiedApplication ->
+          // onSuccess
+          return dao.create(modifiedApplication.name.toUpperCase(), modifiedApplication.allSetColumnProperties())
+        },
+        { Application originalApplication, Application modifiedApplication ->
+          // onRollback
+          this.dao.delete(modifiedApplication.name.toUpperCase())
+          return null
+        },
+        null,
+        this
+    )
   }
 
   Collection<Application> findAll() {
@@ -211,6 +267,56 @@ class Application {
     if (errors.hasErrors()) {
       throw new ValidationException(errors)
     }
+  }
+
+  static Application perform(List<ApplicationEventListener> preApplicationEventListeners,
+                             List<ApplicationEventListener> postApplicationEventListeners,
+                             @ClosureParams(value = SimpleType, options = [
+                                 'com.netflix.spinnaker.front50.model.application.Application',
+                                 'com.netflix.spinnaker.front50.model.application.Application'
+                             ]) Closure<Application> onSuccess,
+                             @ClosureParams(value = SimpleType, options = [
+                                 'com.netflix.spinnaker.front50.model.application.Application',
+                                 'com.netflix.spinnaker.front50.model.application.Application'
+                             ]) Closure<Void> onRollback,
+                             Application originalApplication,
+                             Application updatedApplication) {
+    def copyOfOriginalApplication = copy(originalApplication)
+
+    def invokedEventListeners = []
+    try {
+      preApplicationEventListeners.each {
+        updatedApplication = it.call(copy(copyOfOriginalApplication), copy(updatedApplication)) as Application
+        invokedEventListeners << it
+      }
+      onSuccess.call(copy(copyOfOriginalApplication), copy(updatedApplication))
+      postApplicationEventListeners.each {
+        it.call(copy(copyOfOriginalApplication), copy(updatedApplication))
+        invokedEventListeners << it
+      }
+
+      return updatedApplication
+    } catch (Exception e) {
+      invokedEventListeners.each {
+        try {
+          it.rollback(copy(copyOfOriginalApplication))
+        } catch (Exception rollbackException) {
+          log.error("Rollback failed (${it.class.simpleName})", rollbackException)
+        }
+      }
+      try {
+        onRollback.call(copy(copyOfOriginalApplication), copy(updatedApplication))
+      } catch (Exception rollbackException) {
+        log.error("Rollback failed (onRollback)", rollbackException)
+      }
+
+      log.error("Failed to perform action (name: ${originalApplication.name ?: updatedApplication.name})")
+      throw e
+    }
+  }
+
+  private static Application copy(Application source) {
+    return source ? new Application(source.allColumnProperties()) : null
   }
 
   private static boolean isColumnProperty(Field field) {

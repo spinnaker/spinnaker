@@ -18,14 +18,12 @@
 
 package com.netflix.spinnaker.front50.model.application
 
+import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import spock.lang.Specification
 
-/**
- * Created by aglover on 4/20/14.
- */
 class ApplicationModelSpec extends Specification {
 
   void 'from is similar to clone'() {
@@ -91,7 +89,7 @@ class ApplicationModelSpec extends Specification {
     application.email = 'aglover@netflix.com'
 
     when:
-    application.update(["email": "cameron@netflix.com"])
+    application.update(new Application(email: "cameron@netflix.com"))
 
     then:
     notThrown(Exception)
@@ -108,7 +106,7 @@ class ApplicationModelSpec extends Specification {
     application.email = 'aglover@netflix.com'
 
     when:
-    application.update(["email": "cameron@netflix.com"])
+    application.update(new Application(email: "cameron@netflix.com"))
 
     then:
     thrown(Application.ValidationException)
@@ -169,19 +167,7 @@ class ApplicationModelSpec extends Specification {
     1 * dao.findByName("TEST_APP") >> new Application(name: "TEST_APP")
   }
 
-  void 'cannot delete w/o a name'() {
-    def dao = Mock(ApplicationDAO)
-    def app = new Application()
-    app.dao = dao
-
-    when:
-    app.delete()
-
-    then:
-    thrown(NotFoundException)
-  }
-
-  void 'cannot delete an app that does not exist'() {
+  void 'deleting a non-existent application should no-op'() {
     def dao = Mock(ApplicationDAO)
     def app = new Application(name: "APP")
     app.dao = dao
@@ -191,7 +177,7 @@ class ApplicationModelSpec extends Specification {
 
     then:
     1 * dao.findByName("APP") >> { throw new NotFoundException() }
-    thrown(NotFoundException)
+    notThrown(NotFoundException)
   }
 
   void 'find apps by name'() {
@@ -241,5 +227,40 @@ class ApplicationModelSpec extends Specification {
 
     expect:
     apps.isEmpty()
+  }
+
+  void 'should invoke rollback methods on exception'() {
+    given:
+    def application = new Application()
+    def preListener = Mock(ApplicationEventListener)
+    def postListener = Mock(ApplicationEventListener)
+    def failingPostListener = Mock(ApplicationEventListener)
+
+    def onSuccessInvoked = false
+    def onSuccess = { Application original, Application updated ->
+      onSuccessInvoked = true
+      return application
+    }
+
+    def onRollbackInvoked = false
+    def onRollback = { Application original, Application updated ->
+      onRollbackInvoked = true
+      return null
+    }
+
+    when:
+    application.perform([preListener], [postListener, failingPostListener], onSuccess, onRollback, application, application)
+
+    then:
+    thrown(RuntimeException)
+
+    1 * preListener.call(_, _) >> { return application }
+    1 * preListener.rollback(_)
+    onSuccessInvoked
+    onRollbackInvoked
+    1 * postListener.call(_, _)
+    1 * postListener.rollback(_)
+    1 * failingPostListener.call(_, _) >> { throw new IllegalStateException("Expected") }
+    0 * _
   }
 }

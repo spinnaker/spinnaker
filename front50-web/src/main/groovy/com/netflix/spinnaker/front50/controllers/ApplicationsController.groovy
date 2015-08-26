@@ -20,6 +20,7 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
@@ -54,6 +55,9 @@ public class ApplicationsController {
   @Autowired
   List<ApplicationValidator> applicationValidators
 
+  @Autowired(required = false)
+  List<ApplicationEventListener> applicationEventListeners = []
+
   @Autowired
   ExtendedRegistry extendedRegistry
 
@@ -78,7 +82,7 @@ public class ApplicationsController {
   Application put(@PathVariable String account, @RequestBody final Application app) {
     def application = getApplication(account)
     Application existingApplication = application.findByName(app.getName())
-    application.initialize(existingApplication).withName(app.getName()).update(app.allSetColumnProperties())
+    application.initialize(existingApplication).withName(app.getName()).update(app)
     return application
   }
 
@@ -132,6 +136,6 @@ public class ApplicationsController {
       throw new NotFoundException("No account provider found")
     }
 
-    return new Application(dao: dao, validators: applicationValidators)
+    return new Application(dao: dao, validators: applicationValidators, applicationEventListeners: applicationEventListeners)
   }
 }
