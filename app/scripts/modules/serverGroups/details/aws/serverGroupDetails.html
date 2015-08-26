@@ -232,6 +232,14 @@
       <a href ng-click="associateElasticIp()">Associate Elastic IP</a>
       </div>
     </collapsible-section>
+    <collapsible-section heading="Scaling Policies" ng-if="serverGroup.scalingPolicies.length">
+      <p>Scaling Policies can be modified via the AWS Console.</p>
+      <scaling-policy ng-repeat="policy in serverGroup.scalingPolicies" policy="policy"></scaling-policy>
+    </collapsible-section>
+    <collapsible-section heading="Scheduled Actions" ng-if="serverGroup.scheduledActions.length">
+      <p>Scheduled Actions can be modified via the AWS CLI.</p>
+      <scheduled-action ng-repeat="action in serverGroup.scheduledActions" action="action"></scheduled-action>
+    </collapsible-section>
     <collapsible-section heading="Tags">
       <div ng-if="!serverGroup.asg.tags.length">No tags associated with this server group</div>
       <dl ng-if="serverGroup.asg.tags.length">
