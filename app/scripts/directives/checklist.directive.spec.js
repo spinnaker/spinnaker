@@ -22,7 +22,7 @@ describe('Directives: checklist', function () {
 
   beforeEach(
     window.module(
-      require('./directives.module')
+      require('./directives.module.js')
     )
   );
 

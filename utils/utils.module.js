@@ -8,11 +8,9 @@ module.exports = angular.module('spinnaker.utils', [
   require('./isEmpty.js'),
   require('./jQuery.js'),
   require('./lodash.js'),
-  require('./moment.js'),
   require('./scrollTriggerService.js'),
   require('./selectOnDblClick.directive.js'),
   require('./rx.js'),
   require('./stickyHeader/stickyHeader.directive.js'),
-  require('./timeFormatters.js'),
 ])
 .name;
