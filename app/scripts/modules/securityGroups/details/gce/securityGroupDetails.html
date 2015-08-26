@@ -1,19 +1,3 @@
-<!--
-  ~ Copyright 2015 Netflix, Inc.
-  ~
-  ~ Licensed under the Apache License, Version 2.0 (the "License");
-  ~ you may not use this file except in compliance with the License.
-  ~ You may obtain a copy of the License at
-  ~
-  ~    http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing, software
-  ~ distributed under the License is distributed on an "AS IS" BASIS,
-  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  ~ See the License for the specific language governing permissions and
-  ~ limitations under the License.
-  -->
-
 <div class="details-panel">
   <div class="header">
     <div class="close-button">
@@ -48,7 +32,7 @@
   </div>
   <div class="content" ng-if="!state.loading">
     <collapsible-section heading="Security Group Details" expanded="true">
-      <dl class="dl-horizontal dl-narrow">
+      <dl class="dl-horizontal dl-medium">
         <dt>ID:</dt>
         <dd>{{securityGroup.id}}</dd>
         <dt>Account:</dt>
@@ -62,10 +46,11 @@
     <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
       <div ng-if="!securityGroup.ipRangeRules.length">None</div>
 
-      <dl ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
-        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges:</dt>
+        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges</dt>
         <dd ng-repeat="portRange in ipRangeRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
           {{ipRangeRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
@@ -74,14 +59,15 @@
     <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
       <div ng-if="!securityGroup.securityGroupRules.length">None</div>
 
-      <dl ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
         <dt>Security Group</dt>
         <dd ng-if="rule.securityGroup.name">
           <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'gce'})">
             {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
           </a>
         </dd>
-        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges:</dt>
+        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges</dt>
         <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
           {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
