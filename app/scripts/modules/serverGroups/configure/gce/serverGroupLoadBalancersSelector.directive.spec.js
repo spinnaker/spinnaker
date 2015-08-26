@@ -27,8 +27,8 @@ describe('Directive: GCE Load Balancers Selector', function() {
     _infrastructureCaches_.loadBalancers = {
       getStats: function() {return {ageMax: t}}
     };
-    var m = _momentService_(t);
-    expectedTime = m.format('YYYY-MM-DD HH:mm:ss');
+    var m = _momentService_.tz(t, 'America/Los_Angeles');
+    expectedTime = m.format('YYYY-MM-DD HH:mm:ss z');
 
     selector = angular.element('<gce-server-group-load-balancers-selector command="command" />');
   }));
