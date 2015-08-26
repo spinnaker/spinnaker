@@ -51,6 +51,10 @@ module.exports = {
         test: /\.html$/,
         loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname))  + '/!html'
       },
+      {
+        test: /\.json$/,
+        loader: 'json-loader'
+      }
     ],
   },
   resolve: {
