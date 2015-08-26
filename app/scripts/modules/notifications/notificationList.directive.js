@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./notificationList.directive.html');
+require('./modal/editNotification.html');
+
 module.exports = angular.module('spinnaker.notifications.notificationList', [])
     .directive('notificationList', function () {
         return {
@@ -22,6 +25,21 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
         var vm = this;
 
         vm.revertNotificationChanges = function () {
+
+            /*
+                we currently store application level notifications in front50 as an map indexed by type
+                {
+                     "application": "ayuda",
+                     "hipchat": [ { ... } ],
+                     "email": [ { ... } ]
+                }
+                the code below unwraps it into a table friendly format and the saveNotifications code will
+                write it back into the right format.
+
+                We will change the format in front50 when we rewrite notifications to use CQL so this tranformation
+                is no longer needed
+             */
+
             notificationService.getNotificationsForApplication($scope.application).then(function (notifications) {
                 $scope.notifications = _.filter(_.flatten(_.map(['email', 'sms', 'hipchat'],
                     function (type) {
@@ -44,7 +62,6 @@ module.exports = angular.module('spinnaker.notifications.notificationList', [])
         }
 
         vm.saveNotifications = function () {
-
             var toSaveNotifications = {};
             toSaveNotifications.application = $scope.application;
 
