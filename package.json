@@ -26,6 +26,7 @@
     "jquery": "2.1.4",
     "jquery-ui": "^1.10.5",
     "loader-utils": "^0.2.11",
+    "moment-timezone": "^0.4.0",
     "ng-infinite-scroll": "^1.2.0",
     "restangular": "~1.4.0",
     "select2-bootstrap-css": "git://github.com/t0m/select2-bootstrap-css.git#v1.3.1",
