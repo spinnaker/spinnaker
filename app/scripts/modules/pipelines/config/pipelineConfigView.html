@@ -1,15 +1,21 @@
 <div class="row">
-  <div class="col-md-12">
-    <triggers ng-if="viewState.section === 'triggers'"
-              application="application"
-              pipeline="pipeline">
-    </triggers>
-    <pipeline-config-stage ng-if="viewState.section === 'stage'"
-                           application="application"
-                           view-state="viewState"
-                           pipeline="pipeline">
-    </pipeline-config-stage>
-    <parameters ng-if="viewState.section === 'parameters' || (viewState.section === 'triggers')" pipeline="pipeline">
-    </parameters>
-  </div>
+    <div class="col-md-12">
+        <triggers ng-if="viewState.section === 'triggers'"
+                  application="application"
+                  pipeline="pipeline">
+        </triggers>
+        <pipeline-config-stage ng-if="viewState.section === 'stage'"
+                               application="application"
+                               view-state="viewState"
+                               pipeline="pipeline">
+        </pipeline-config-stage>
+        <parameters ng-if="viewState.section === 'parameters' || viewState.section === 'triggers'"
+                    pipeline="pipeline">
+        </parameters>
+        <div class="form-horizontal" ng-if="viewState.section === 'parameters' || viewState.section === 'triggers'">
+            <h4>Notifications</h4>
+            <notification-list level="pipeline" notifications="pipeline.notifications" parent="pipeline">
+            </notification-list>
+        </div>
+    </div>
 </div>

@@ -2,22 +2,33 @@
 
 let angular = require('angular');
 
+require('./editNotification.html');
+
 module.exports = angular
   .module('spinnaker.editNotification.modal.controller', [
     require('utils/lodash.js'),
   ])
-  .controller('EditNotificationController', function ($scope, $modalInstance, notification, _) {
+  .controller('EditNotificationController', function ($scope, $modalInstance, notification, level, _) {
     var vm = this;
-    vm.notification = angular.copy(notification);
 
+    vm.notification = angular.copy(notification);
     vm.hasSelectedWhen = false;
     $scope.selectedWhenOptions = {};
+    $scope.level = level;
 
-    vm.whenOptions = [
-      'pipeline.starting',
-      'pipeline.complete',
-      'pipeline.failed'
-    ];
+    if(level === 'application' || level === 'pipeline') {
+      vm.whenOptions = [
+        'pipeline.starting',
+        'pipeline.complete',
+        'pipeline.failed'
+      ];
+    } else {
+      vm.whenOptions = [
+        'stage.starting',
+        'stage.complete',
+        'stage.failed'
+      ];
+    }
 
 
     vm.updateSelectedWhen = function(){
@@ -37,10 +48,9 @@ module.exports = angular
         }
       });
       vm.updateSelectedWhen();
-
     } else {
       vm.notification = {};
-      vm.notification.level = 'application';
+      vm.notification.level = $scope.level;
       vm.notification.when = [];
     }
 
