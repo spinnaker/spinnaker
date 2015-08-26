@@ -264,6 +264,24 @@
         <dd><a target=_blank href="{{ctrl.buildJenkinsLink()}}">{{ctrl.buildJenkinsLink()}}</a></dd>
       </dl>
     </collapsible-section>
+    <collapsible-section heading="Advanced Settings">
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
+        <dt>Cooldown</dt>
+        <dd>{{serverGroup.asg.defaultCooldown}} seconds</dd>
+        <dt>Health Check Type</dt>
+        <dd>{{serverGroup.asg.healthCheckType}}</dd>
+        <dt>Grace Period</dt>
+        <dd>{{serverGroup.asg.healthCheckGracePeriod}} seconds</dd>
+        <dt>Termination Policies</dt>
+        <dd>{{serverGroup.asg.terminationPolicies.join(',')}}</dd>
+        <dt>Availability Zones</dt>
+        <dd>
+          <ul>
+            <li ng-repeat="zone in serverGroup.asg.availabilityZones">{{zone}}</li>
+          </ul>
+        </dd>
+      </dl>
+    </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
         <li>
