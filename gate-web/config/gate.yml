@@ -5,7 +5,7 @@ services:
   oort:
     baseUrl: http://localhost:8081
   orca:
-    baseUrl: http://pond-${netflix.stack}.${netflix.environment}.netflix.net
+    baseUrl: http://orca-${netflix.stack}.${netflix.environment}.netflix.net
   front50:
     baseUrl: http://front50-${netflix.stack}.${netflix.environment}.netflix.net
   mort:
