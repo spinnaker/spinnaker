@@ -57,6 +57,10 @@ module.exports = function(config) {
             test: /\.html$/,
             loader: 'ngtemplate?relativeTo=' + __dirname + '/!html'
           },
+          {
+            test: /\.json$/,
+            loader: 'json-loader'
+          },
         ],
         postLoaders: [
           {
