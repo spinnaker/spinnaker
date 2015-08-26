@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
+  require('../account/accountService.js'),
   require('../caches/deckCacheFactory.js'),
   require('../search/search.service.js'),
   require('utils/lodash.js'),
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('../vpc/vpc.read.service.js'),
 ])
   .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _,
-                                            infrastructureCaches, vpcReader) {
+                                            accountService, infrastructureCaches, vpcReader) {
 
     function loadSecurityGroups(application) {
 
@@ -20,15 +21,23 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
 
       application.accounts.forEach(function(account) {
         securityGroupPromises.push(
-          Restangular.all('securityGroups')
-            .one(account)
-            .withHttpConfig({cache: infrastructureCaches.securityGroups})
-            .get()
-            .then(
-              function(groups) {
-                return { account: account, securityGroups: groups.plain() };
-              }
-            )
+            accountService.getAccountDetails(account).then(function(accountDetails) {
+              return accountDetails.provider;
+            }).then(function(provider) {
+              return Restangular.all('securityGroups')
+                  .one(account)
+                  .withHttpConfig({cache: infrastructureCaches.securityGroups})
+                  .get({provider: provider})
+                  .then(function(groups) {
+                    var groupsPlain = groups.plain();
+                    _.forOwn(groupsPlain, function(groupSummaries) {
+                      groupSummaries.forEach(function(groupSummary) {
+                        groupSummary.provider = provider;
+                      });
+                    });
+                    return {account: account, securityGroups: groupsPlain};
+                  });
+            })
         );
       });
 
@@ -161,8 +170,8 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
       return securityGroupIndex;
     }
 
-    function getSecurityGroupDetails(application, account, region, vpcId, id) {
-      return Restangular.one('securityGroups', account).one(region).one(id).get({vpcId: vpcId}).then(function(details) {
+    function getSecurityGroupDetails(application, account, provider, region, vpcId, id) {
+      return Restangular.one('securityGroups', account).one(region).one(id).get({provider: provider, vpcId: vpcId}).then(function(details) {
         if (details && details.inboundRules) {
           details.ipRangeRules = details.inboundRules.filter(function(rule) {
             return rule.range;
