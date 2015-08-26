@@ -11,7 +11,7 @@ describe('Controller: Config', function () {
 
   beforeEach(window.module(
     require('./config.controller.js'),
-    require('./notification.service.js')
+    require('../notifications/notification.service.js')
   ));
 
   beforeEach(
