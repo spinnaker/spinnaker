@@ -9,6 +9,7 @@ require('./securityGroups.html');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('../../loadBalancer.write.service.js'),
+  require('../../loadBalancer.read.service.js'),
   require('../../../account/accountService.js'),
   require('./loadBalancer.transformer.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
@@ -21,7 +22,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, _,
                                                     accountService, awsLoadBalancerTransformer, securityGroupReader,
-                                                    cacheInitializer, infrastructureCaches, searchService,
+                                                    cacheInitializer, infrastructureCaches, loadBalancerReader,
                                                     modalWizardService, loadBalancerWriter, taskMonitorService,
                                                     subnetReader, namingService,
                                                     application, loadBalancer, isNew) {
@@ -93,19 +94,23 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function initializeLoadBalancerNames() {
-      searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
-        searchResults.results.forEach(function(result) {
-          if (!allLoadBalancerNames[result.account]) {
-            allLoadBalancerNames[result.account] = {};
-          }
-          if (!allLoadBalancerNames[result.account][result.region]) {
-            allLoadBalancerNames[result.account][result.region] = [];
-          }
-          if (result.loadBalancer) {
-            allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
-          }
-          updateLoadBalancerNames();
+      loadBalancerReader.listAWSLoadBalancers().then(function(loadBalancers) {
+        loadBalancers.forEach((loadBalancer) => {
+          loadBalancer.accounts.forEach((account) => {
+            var accountName = account.name;
+            account.regions.forEach((region) => {
+              var regionName = region.name;
+              if (!allLoadBalancerNames[accountName]) {
+                allLoadBalancerNames[accountName] = {};
+              }
+              if (!allLoadBalancerNames[accountName][regionName]) {
+                allLoadBalancerNames[accountName][regionName] = [];
+              }
+              allLoadBalancerNames[accountName][regionName].push(loadBalancer.name);
+            });
+          });
         });
+        updateLoadBalancerNames();
         $scope.state.loadBalancerNamesLoaded = true;
       });
     }
