@@ -70,7 +70,7 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
    */
   @Override
   public List<Step> buildSteps(Stage stage) {
-    if (isOriginalResizePipelineStage(stage)) {
+    if (isDynamic(stage) && isOriginalResizePipelineStage(stage)) {
       return expandOriginalResizePipeline(stage)
     }
 
@@ -81,6 +81,9 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
     [step1, step2, step3, step4]
   }
 
+  private boolean isDynamic(Stage stage) {
+    return targetReferenceSupport.isDynamicallyBound(stage)
+  }
   /**
    * @return true iff this stage has no parent or has a parent that is not a ResizeAsg stage
    */
@@ -90,9 +93,7 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
 
   private List<Step> expandOriginalResizePipeline(Stage stage) {
     configureTargets(stage)
-    if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, stage.context)
-    }
+    injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, stage.context)
     stage.initializationStage = true
 
     // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
