@@ -167,19 +167,7 @@ class ApplicationModelSpec extends Specification {
     1 * dao.findByName("TEST_APP") >> new Application(name: "TEST_APP")
   }
 
-  void 'cannot delete w/o a name'() {
-    def dao = Mock(ApplicationDAO)
-    def app = new Application()
-    app.dao = dao
-
-    when:
-    app.delete()
-
-    then:
-    thrown(NotFoundException)
-  }
-
-  void 'cannot delete an app that does not exist'() {
+  void 'deleting a non-existent application should no-op'() {
     def dao = Mock(ApplicationDAO)
     def app = new Application(name: "APP")
     app.dao = dao
@@ -189,7 +177,7 @@ class ApplicationModelSpec extends Specification {
 
     then:
     1 * dao.findByName("APP") >> { throw new NotFoundException() }
-    thrown(NotFoundException)
+    notThrown(NotFoundException)
   }
 
   void 'find apps by name'() {

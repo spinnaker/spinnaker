@@ -130,7 +130,34 @@ class Application {
   }
 
   void delete() {
-    this.dao.delete(findByName(this.name).name)
+    Application currentApplication = null
+    try {
+      currentApplication = findByName(this.name)
+    } catch (NotFoundException ignored) {
+      // do nothing
+    }
+
+    if (!currentApplication) {
+      log.warn("Application does not exist (name: ${name}), nothing to delete")
+      return
+    }
+
+    perform(
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_DELETE) },
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_DELETE) },
+        { Application originalApplication, Application modifiedApplication ->
+          // onSuccess
+          this.dao.delete(currentApplication.name)
+          return null
+        },
+        { Application originalApplication, Application modifiedApplication ->
+          // onRollback
+          this.dao.create(currentApplication.name, currentApplication.allColumnProperties())
+          return null
+        },
+        currentApplication,
+        null
+    )
   }
 
   Application clear() {
@@ -167,8 +194,21 @@ class Application {
       }
     } catch (NotFoundException ignored) {}
 
-    Map<String, String> values = allSetColumnProperties()
-    return dao.create(values['name'].toUpperCase(), values)
+    return perform(
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.PRE_CREATE) },
+        applicationEventListeners.findAll { it.supports(ApplicationEventListener.Type.POST_CREATE) },
+        { Application originalApplication, Application modifiedApplication ->
+          // onSuccess
+          return dao.create(modifiedApplication.name.toUpperCase(), modifiedApplication.allSetColumnProperties())
+        },
+        { Application originalApplication, Application modifiedApplication ->
+          // onRollback
+          this.dao.delete(modifiedApplication.name.toUpperCase())
+          return null
+        },
+        null,
+        this
+    )
   }
 
   Collection<Application> findAll() {
@@ -241,26 +281,17 @@ class Application {
                              ]) Closure<Void> onRollback,
                              Application originalApplication,
                              Application updatedApplication) {
-    def copyOfOriginalApplication = new Application(originalApplication.allColumnProperties())
+    def copyOfOriginalApplication = copy(originalApplication)
 
     def invokedEventListeners = []
     try {
       preApplicationEventListeners.each {
-        updatedApplication = it.call(
-            new Application(copyOfOriginalApplication.allColumnProperties()),
-            new Application(updatedApplication.allColumnProperties())
-        ) as Application
+        updatedApplication = it.call(copy(copyOfOriginalApplication), copy(updatedApplication)) as Application
         invokedEventListeners << it
       }
-      onSuccess.call(
-          new Application(copyOfOriginalApplication.allColumnProperties()),
-          new Application(updatedApplication.allColumnProperties())
-      )
+      onSuccess.call(copy(copyOfOriginalApplication), copy(updatedApplication))
       postApplicationEventListeners.each {
-        it.call(
-            new Application(copyOfOriginalApplication.allColumnProperties()),
-            new Application(updatedApplication.allColumnProperties())
-        )
+        it.call(copy(copyOfOriginalApplication), copy(updatedApplication))
         invokedEventListeners << it
       }
 
@@ -268,22 +299,24 @@ class Application {
     } catch (Exception e) {
       invokedEventListeners.each {
         try {
-          it.rollback(new Application(copyOfOriginalApplication.allColumnProperties()))
+          it.rollback(copy(copyOfOriginalApplication))
         } catch (Exception rollbackException) {
           log.error("Rollback failed (${it.class.simpleName})", rollbackException)
         }
       }
       try {
-        onRollback.call(
-            new Application(copyOfOriginalApplication.allColumnProperties()),
-            new Application(updatedApplication.allColumnProperties())
-        )
+        onRollback.call(copy(copyOfOriginalApplication), copy(updatedApplication))
       } catch (Exception rollbackException) {
         log.error("Rollback failed (onRollback)", rollbackException)
       }
 
-      throw new RuntimeException("Failed to perform action (name: ${originalApplication.name ?: updatedApplication.name})", e)
+      log.error("Failed to perform action (name: ${originalApplication.name ?: updatedApplication.name})")
+      throw e
     }
+  }
+
+  private static Application copy(Application source) {
+    return source ? new Application(source.allColumnProperties()) : null
   }
 
   private static boolean isColumnProperty(Field field) {
