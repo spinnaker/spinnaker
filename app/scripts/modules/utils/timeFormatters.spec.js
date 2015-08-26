@@ -1,7 +1,6 @@
 'use strict';
 
 describe('Filter: timeFormatters', function() {
-  var $filter;
 
   beforeEach(
     window.module('spinnaker.utils.timeFormatters')
