@@ -9,6 +9,7 @@ window.spinnakerSettings = {
   gateUrl: `https://${gateHost}`,
   authEndpoint: `https://${authEndpoint}`,
   pollSchedule: 30000,
+  defaultTimeZone: 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
     aws: {
       defaults: {
