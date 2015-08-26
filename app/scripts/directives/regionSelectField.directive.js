@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../views/directives/regionSelectField.html');
-
 module.exports = function (settings, _) {
   return {
     restrict: 'E',

@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./deployStage.html');
-require('./deployExecutionDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

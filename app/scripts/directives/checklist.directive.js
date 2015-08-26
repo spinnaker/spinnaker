@@ -18,8 +18,6 @@
 
 let angular = require('angular');
 
-require('../../views/directives/checklist.html');
-
 module.exports = function() {
   return {
     restrict: 'E',

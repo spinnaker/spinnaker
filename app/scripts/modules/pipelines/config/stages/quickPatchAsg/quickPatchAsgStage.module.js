@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./quickPatchAsgExecutionDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsg', [
   require('./quickPatchAsgStage.js'),
   require('../stage.module.js'),

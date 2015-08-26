@@ -2,11 +2,6 @@
 
 let angular = require('angular');
 
-require('./createLoadBalancerProperties.html');
-require('./healthCheck.html');
-require('./listeners.html');
-require('./securityGroups.html');
-
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
   require('../../loadBalancer.write.service.js'),
   require('../../../account/accountService.js'),

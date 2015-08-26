@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./scheduledAction.directive.html');
-
 module.exports = angular.module('spinnaker.aws.instance.details.scheduledAction.directive', [
   require('../../../../insight/insightFilterState.model.js'),
 ])

@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../views/directives/subnetSelectField.html');
-
 module.exports = function () {
   return {
     restrict: 'E',

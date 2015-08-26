@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./feedback.html');
-require('./feedback.modal.html');
-
 module.exports = angular.module('spinnaker.feedback.directive', [
 ])
   .directive('feedback', function($location) {

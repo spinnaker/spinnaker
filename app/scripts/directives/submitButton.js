@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../views/application/modal/submitButton.html');
-
 module.exports = function () {
   return {
     restrict: 'E',

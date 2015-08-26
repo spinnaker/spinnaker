@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./costFactor.html');
-
 module.exports = angular.module('spinnaker.serverGroup.configure.common.costFactor', [])
   .directive('costFactor', function() {
     return {

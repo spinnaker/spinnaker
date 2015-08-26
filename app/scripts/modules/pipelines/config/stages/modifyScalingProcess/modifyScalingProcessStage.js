@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./modifyScalingProcessExecutionDetails.html');
-require('./modifyScalingProcessStage.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

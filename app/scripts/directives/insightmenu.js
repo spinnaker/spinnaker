@@ -7,8 +7,6 @@
  * # insightMenu
  */
 
-require('../modules/insight/insightmenu.html');
-
 module.exports = function () {
   return {
     templateUrl: require('../modules/insight/insightmenu.html'),

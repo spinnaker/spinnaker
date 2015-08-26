@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./statusGlyph.html');
-
 module.exports = angular.module('spinnaker.statusGlyph.directive', [])
   .directive('statusGlyph', function() {
     return {

@@ -2,11 +2,6 @@
 
 let angular = require('angular');
 
-require('./createLoadBalancerProperties.html');
-require('./healthCheck.html');
-require('./listeners.html');
-require('./securityGroups.html');
-
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('../../loadBalancer.write.service.js'),
   require('../../loadBalancer.read.service.js'),

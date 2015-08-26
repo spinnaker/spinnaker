@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./scopeSelect.directive.html');
-
 function selectScopeDirective() {
   return {
     restrict: 'E',

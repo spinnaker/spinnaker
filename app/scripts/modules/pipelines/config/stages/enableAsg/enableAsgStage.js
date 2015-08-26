@@ -4,10 +4,6 @@
 
 let angular = require('angular');
 
-require('./enableAsgStage.html');
-require('./enableAsgExecutionDetails.html');
-require('./enableAsgStepLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.enableAsgStage', [
 ])
   .config(function(pipelineConfigProvider) {

@@ -1,7 +1,5 @@
 'use strict';
 
-require('./advancedSettings.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.advancedSetting.controller', [])

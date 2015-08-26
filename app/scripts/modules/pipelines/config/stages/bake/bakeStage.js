@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./bakeExecutionDetails.html');
-require('./bakeStage.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.bakeStage', [
   require('utils/lodash.js'),
   require('../../pipelineConfigProvider.js'),

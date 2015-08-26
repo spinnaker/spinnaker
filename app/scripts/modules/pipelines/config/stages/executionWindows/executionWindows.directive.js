@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionWindows.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.executionWindows.directive', [
   require('./executionWindows.controller.js'),
 ])

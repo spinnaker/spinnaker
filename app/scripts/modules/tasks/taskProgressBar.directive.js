@@ -1,7 +1,5 @@
 'use strict';
 
-require('./taskProgressBar.directive.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.progressBar.directive', [])

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionBar.html');
-
 module.exports = angular.module('spinnaker.delivery.executionBar.directive', [
 ])
   .directive('executionBar', function() {

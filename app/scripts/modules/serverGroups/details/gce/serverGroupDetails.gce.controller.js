@@ -1,11 +1,6 @@
 'use strict';
 /* jshint camelcase:false */
 
-require('../resizeServerGroup.html');
-require('../scalingActivities.html');
-require('../../../../../views/application/modal/serverGroup/userData.html');
-require('../deleteLastServerGroupWarning.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [

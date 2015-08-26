@@ -1,8 +1,6 @@
 'use strict';
 
 let angular = require('angular');
-require('./pipelineStage.html');
-require('./pipelineExecutionDetails.html');
 
 module.exports = angular.module('spinnaker.pipelines.stage.pipelineStage', [])
   .config(function(pipelineConfigProvider) {

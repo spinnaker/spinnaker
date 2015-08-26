@@ -2,11 +2,6 @@
 
 let angular = require('angular');
 
-require('./canaryStage.html');
-require('./canaryExecutionDetails.html');
-require('./canaryExecutionSummary.html');
-require('./canaryExecutionLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {

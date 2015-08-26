@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionWindowsDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.executionWindowsStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

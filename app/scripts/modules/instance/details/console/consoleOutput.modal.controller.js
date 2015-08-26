@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./consoleOutput.modal.html');
-
 module.exports = angular.module('spinnaker.core.instance.details.console.controller', [
   require('../../instance.read.service.js'),
 ])

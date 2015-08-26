@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../../views/directives/gce/regionSelectField.html');
-
 module.exports = function () {
   return {
     restrict: 'E',

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./stage.html');
-
 module.exports = angular.module('spinnaker.pipelines.config.stage', [
   require('utils/lodash.js'),
   require('../pipelineConfigProvider.js'),

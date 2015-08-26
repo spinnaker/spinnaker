@@ -1,8 +1,5 @@
 'use strict';
 
-require('../../configure/aws/editSecurityGroup.html');
-require('../../clone/aws/cloneSecurityGroup.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [

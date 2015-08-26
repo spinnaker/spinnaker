@@ -18,8 +18,6 @@
 
 let angular = require('angular');
 
-require('./helpField.html');
-
 module.exports = angular.module('spinnaker.help.helpField', [
   require('../../settings/helpContents.js')
 ])

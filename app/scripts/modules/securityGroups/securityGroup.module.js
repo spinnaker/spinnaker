@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./groupings.html');
-
 module.exports = angular
   .module('spinnaker.securityGroup', [
     require('./AllSecurityGroupsCtrl.js'),

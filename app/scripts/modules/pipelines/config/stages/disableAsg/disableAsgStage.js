@@ -2,10 +2,6 @@
 
 let angular = require('angular');
 
-require('./disableAsgStage.html');
-require('./disableAsgExecutionDetails.html');
-require('./disableAsgStepLabel.html');
-
 //BEN_TODO lodash
 module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
   require('utils/lodash.js'),

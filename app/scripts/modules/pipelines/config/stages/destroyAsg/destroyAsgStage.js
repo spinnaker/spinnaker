@@ -4,10 +4,6 @@ let angular = require('angular');
 
 //BEN_TODO: where is this defined?
 
-require('./destroyAsgStage.html');
-require('./destroyAsgExecutionDetails.html');
-require('./destroyAsgStepLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
   require('utils/lodash.js'),
   require('../stageConstants.js'),

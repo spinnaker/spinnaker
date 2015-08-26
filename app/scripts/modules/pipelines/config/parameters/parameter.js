@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./parameter.html');
-
 module.exports = angular.module('spinnaker.pipelines.parameters.parameter', [
 ])
   .directive('parameter', function() {

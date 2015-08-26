@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./jenkinsTrigger.html');
-require('./jenkinsPopoverLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
   require('../trigger.directive.js'),
   require('../../../../jenkins/index.js'), //igorService BEN_TODO

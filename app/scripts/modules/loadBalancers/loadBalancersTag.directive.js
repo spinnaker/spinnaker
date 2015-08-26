@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./loadBalancer/loadBalancersTag.html');
-
 module.exports = angular.module('spinnaker.loadBalancer.tag', [])
   .directive('loadBalancersTag', function () {
     return {

@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./modal/deleteFastProperty.html');
-require('./modal/newFastProperty.html');
-
 module.exports = angular
   .module('spinnaker.applicationProperties.controller', [
     require('angular-ui-router'),

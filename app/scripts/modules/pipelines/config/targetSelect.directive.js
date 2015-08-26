@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./targetSelect.html');
-
 module.exports = angular
   .module('spinnaker.pipeline.targetSelect.directive', [
   ])
