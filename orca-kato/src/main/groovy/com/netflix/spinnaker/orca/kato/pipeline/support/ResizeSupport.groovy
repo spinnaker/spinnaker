@@ -126,12 +126,8 @@ class ResizeSupport {
 
   private augmentDescriptionForGCE(Map description, TargetReference target) {
     description.zones = target.asg.zones
-
     description.numReplicas = description.capacity.desired
-    description.remove("capacity")
-
     description.replicaPoolName = description.asgName
-    description.remove("asgName")
   }
 
   static enum ResizeAction {

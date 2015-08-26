@@ -52,6 +52,8 @@ class ResizeGoogleReplicaPoolTask implements Task {
       "kato.last.task.id"   : taskId,
       "kato.task.id"        : taskId, // TODO retire this.
       "deploy.server.groups": [(resizeGoogleReplicaPoolOperation.region): [resizeGoogleReplicaPoolOperation.replicaPoolName]],
+      "asgName"             : resizeGoogleReplicaPoolOperation.replicaPoolName,
+      "numReplicas"         : resizeGoogleReplicaPoolOperation.numReplicas,
     ])
   }
 
