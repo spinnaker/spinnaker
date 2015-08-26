@@ -1,0 +1,28 @@
+<dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-narrow'" ng-repeat="alarm in policy.alarms" style="margin-bottom: 20px">
+  <dt>When</dt>
+  <dd>
+    {{alarm.metricName}} {{alarm.comparator}} {{alarm.threshold}}
+  </dd>
+  <dt>For</dt>
+  <dd>
+    {{alarm.evaluationPeriods}} consecutive periods of {{alarm.period}} seconds
+  </dd>
+  <dt>Then</dt>
+  <dd>
+    {{policy.operator}} capacity
+    <span ng-if="policy.adjustmentType === 'PercentChangeInCapacity'">
+      by {{policy.absAdjustment}}%
+    </span>
+    <span ng-if="policy.adjustmentType === 'ChangeInCapacity'">
+      by {{policy.absAdjustment}} instance<span ng-if="policy.absAdjustment > 1">s</span>
+    </span>
+    <span ng-if="policy.adjustmentType === 'ExactCapacity'">
+      to {{policy.absAdjustment}} instance<span ng-if="policy.absAdjustment > 1">s</span>
+    </span>
+    in increments of at least {{policy.minAdjustmentStep}} instance<span ng-if="policy.minAdjustmentStep > 1">s</span>
+  </dd>
+  <dt>And</dt>
+  <dd>
+    wait {{policy.cooldown}} seconds before allowing another scaling activity.
+  </dd>
+</dl>
