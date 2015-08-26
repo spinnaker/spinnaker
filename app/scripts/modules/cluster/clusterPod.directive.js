@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./clusterPod.html');
-
 module.exports = angular.module('spinnaker.cluster.pod', [
   require('./serverGroup.sequence.filter.js'),
   require('../../services/urlbuilder.js'),

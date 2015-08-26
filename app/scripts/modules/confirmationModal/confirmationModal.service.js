@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./confirm.html');
-
 module.exports = angular.module('spinnaker.confirmationModal.service', [
   require('../tasks/monitor/taskMonitor.module.js'),
   require('../account/account.module.js'),

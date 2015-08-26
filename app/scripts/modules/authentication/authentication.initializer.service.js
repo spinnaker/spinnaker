@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./authenticating.html');
-
 module.exports = angular.module('spinnaker.authentication.initializer.service', [
   'spinnaker.settings',
   'spinnaker.authentication.service',

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./collapsibleFilterSection.html');
-
 module.exports = angular
   .module('cluster.filter.collapse', [])
   .directive('filterSection', function ($timeout) {

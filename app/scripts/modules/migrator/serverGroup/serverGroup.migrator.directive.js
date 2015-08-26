@@ -2,10 +2,6 @@
 
 let angular = require('angular');
 
-require('./../migrator.modal.submitting.html');
-require('./serverGroup.migrator.directive.html');
-require('./serverGroup.migrator.modal.html');
-
 module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),

@@ -1,7 +1,5 @@
 'use strict';
 
-require('./instanceType.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.instanceType.controller', [])

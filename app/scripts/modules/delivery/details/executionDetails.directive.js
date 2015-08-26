@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionDetails.html');
-
 module.exports = angular.module('spinnaker.delivery.executionDetails.directive', [
 ])
   .directive('executionDetails', function() {

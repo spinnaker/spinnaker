@@ -4,10 +4,6 @@
 
 let angular = require('angular');
 
-require('./resizeAsgStage.html');
-require('./resizeAsgExecutionDetails.html');
-require('./resizeAsgStepLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

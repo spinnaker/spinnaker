@@ -3,10 +3,6 @@
 let angular = require('angular');
 
 
-require('./jenkinsStage.html');
-require('./jenkinsExecutionDetails.html');
-require('./jenkinsExecutionLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

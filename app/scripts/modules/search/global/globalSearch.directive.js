@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('../../../../views/globalsearch.html');
-
 module.exports = angular.module('spinnaker.search.global.directive', [
   require('./globalSearch.controller.js')
 ])
@@ -13,7 +11,7 @@ module.exports = angular.module('spinnaker.search.global.directive', [
       replace: true,
       scope: {
       },
-      templateUrl: require('../../../../views/globalsearch.html'),
+      templateUrl: require('./globalSearch.directive.html'),
       controller: 'GlobalSearchCtrl as ctrl',
       link: function(scope, element) {
         const slashKey = 191;

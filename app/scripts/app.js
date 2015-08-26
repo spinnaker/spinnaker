@@ -56,8 +56,11 @@ let angular = require('angular');
 require('bootstrap/dist/js/bootstrap.js');
 require('angulartics');
 
-
-
+// load all templates into the $templateCache
+var templates = require.context('../', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
 
 module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),

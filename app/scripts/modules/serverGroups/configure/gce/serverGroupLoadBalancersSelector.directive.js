@@ -1,7 +1,5 @@
 'use strict';
 
-require('./serverGroupLoadBalancersDirective.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.loadBalancerSelector', [])

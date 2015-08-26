@@ -17,8 +17,6 @@
 
 'use strict';
 
-require('../../views/modal/wizardPage.html');
-
 /**
  * Wizard page directive
  * possible attributes:

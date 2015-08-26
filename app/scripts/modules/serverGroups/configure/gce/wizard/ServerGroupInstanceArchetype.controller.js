@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./instanceArchetype.html');
-
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.instanceArchetypeCtrl', [])
   .controller('gceInstanceArchetypeCtrl', function($scope, instanceTypeService, modalWizardService) {
 

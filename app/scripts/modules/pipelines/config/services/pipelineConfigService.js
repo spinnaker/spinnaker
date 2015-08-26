@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('../../../delivery/triggers/toggleTrigger.modal.html');
-
 module.exports = angular.module('spinnaker.pipelines.config.services.configService', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),

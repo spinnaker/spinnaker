@@ -1,10 +1,7 @@
 'use strict';
 
-require('./loadBalancerDetails.html');
-require('../../configure/aws/createLoadBalancer.html');
-require('../../configure/aws/editLoadBalancer.html');
-
 let angular = require('angular');
+
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
   require('angular-ui-router'),
   require('../../../securityGroups/securityGroup.read.service.js'),

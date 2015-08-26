@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./pipelineTrigger.html');
-require('./pipelinePopoverLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.config.trigger.pipeline', [
   require('../../services/pipelineConfigService.js'),
   require('../../pipelineConfigProvider.js'),

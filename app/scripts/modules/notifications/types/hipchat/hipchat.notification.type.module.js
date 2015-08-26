@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./additionalFields.html');
-
 module.exports = angular.module('spinnaker.notification.types.hipchat', [])
   //BEN_TODO: what is addressTemplateUrl?
   .config(function(notificationTypeConfigProvider) {

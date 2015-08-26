@@ -1,7 +1,5 @@
 'use strict';
 
-require('./runningTasksTag.html');
-
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.display.tasks.tag', [

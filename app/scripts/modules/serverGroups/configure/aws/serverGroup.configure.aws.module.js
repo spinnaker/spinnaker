@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./wizard/templateSelection.html');
-
 module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
   require('../../../account/account.module.js'),
   require('./wizard/deployInitializer.controller.js'),

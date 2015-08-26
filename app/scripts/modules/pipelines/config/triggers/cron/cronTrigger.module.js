@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./cronTrigger.html');
-require('./cronPopoverLabel.html');
-
 module.exports = angular.module('spinnaker.pipelines.trigger.cron', [
     require('../trigger.directive.js'),
     require('../../../../utils/uuid.service.js'),

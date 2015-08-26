@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./scriptStage.html');
-require('./scriptExecutionDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.scriptStage', [
 ])
     .config(function(pipelineConfigProvider) {

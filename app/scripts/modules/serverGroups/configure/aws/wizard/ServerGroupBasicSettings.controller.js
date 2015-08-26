@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./basicSettings.html');
-
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettings', [
   require('../../../../../directives/modalWizard.js'),
 ])

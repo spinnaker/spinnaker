@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionGroup.html');
-
 module.exports = angular.module('spinnaker.delivery.executionGroup.directive', [
 ])
   .directive('executionGroup', function() {

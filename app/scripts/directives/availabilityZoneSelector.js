@@ -2,8 +2,6 @@
 
 //BEN_TODO
 
-require('../../views/application/modal/serverGroup/aws/availabilityZoneDirective.html');
-
 module.exports = function() {
   return {
     restrict: 'E',

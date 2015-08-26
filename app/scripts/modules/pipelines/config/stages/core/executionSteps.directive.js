@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionStepDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stages.core.executionStepDetails', [
   require('../../pipelineConfigProvider.js'),
 ])

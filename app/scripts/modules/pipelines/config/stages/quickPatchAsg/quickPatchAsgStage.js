@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./quickPatchAsgStage.html');
-require('./quickPatchAsgExecutionDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.quickPatchAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

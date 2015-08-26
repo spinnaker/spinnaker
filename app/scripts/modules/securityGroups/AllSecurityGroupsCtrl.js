@@ -2,10 +2,6 @@
 
 let angular = require('angular');
 
-require('./groupings.html');
-
-require('./configure/aws/createSecurityGroup.html');
-
 module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
   require('./filter/securityGroup.filter.model.js'),

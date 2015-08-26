@@ -2,43 +2,6 @@
 
 let angular = require('angular');
 
-// need to require these here so they get put in the cache. Look into a better way
-require('../modules/instance/details/aws/instanceDetails.html');
-require('../modules/instance/details/gce/instanceDetails.html');
-
-require('../modules/serverGroups/details/aws/serverGroupDetails.html');
-require('../modules/serverGroups/details/gce/serverGroupDetails.html');
-
-require('../modules/loadBalancers/details/aws/loadBalancerDetails.html');
-require('../modules/loadBalancers/details/gce/loadBalancerDetails.html');
-
-require('../modules/securityGroups/details/aws/securityGroupDetails.html');
-require('../modules/securityGroups/details/gce/securityGroupDetails.html');
-
-require('../modules/applications/applications.html');
-require('../../views/404.html');
-
-require('../modules/securityGroups/all.html');
-require('../modules/securityGroups/filter/filterNav.html');
-
-require('../modules/cluster/all.html');
-require('../modules/loadBalancers/filter/filterNav.html');
-require('../modules/clusterFilter/filterNav.html');
-require('../../views/infrastructure.html');
-
-require('../modules/fastProperties/applicationProperties.html');
-require('../modules/fastProperties/fastPropertyRollouts.html');
-require('../modules/config/config.html');
-
-require('../modules/fastProperties/main.html');
-require('../modules/fastProperties/properties.html');
-require('../modules/insight/insight.html');
-require('../modules/loadBalancers/all.html');
-
-require('../modules/tasks/tasks.html');
-require('../modules/applications/application.html');
-require('../modules/instance/standalone.html');
-
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
   require('./statehelper.js'),

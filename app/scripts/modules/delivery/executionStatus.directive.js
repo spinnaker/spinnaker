@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./executionStatus.html');
-
 module.exports = angular.module('spinnaker.delivery.executionStatus.directive', [
   require('utils/lodash.js'),
 ])

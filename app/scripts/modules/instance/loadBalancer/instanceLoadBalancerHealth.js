@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./health.html');
-
 module.exports = angular.module('spinnaker.instance.loadBalancer.health.directive', [
 ])
   .directive('instanceLoadBalancerHealth', function() {

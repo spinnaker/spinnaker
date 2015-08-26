@@ -1,7 +1,5 @@
 'use strict';
 
-require('../../views/sorttoggle.html');
-
 module.exports = function () {
   return {
     templateUrl: require('../../views/sorttoggle.html'),

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./scalingPolicy.directive.html');
-
 module.exports = angular.module('spinnaker.aws.instance.details.scalingPolicy.directive', [
   require('../../../../insight/insightFilterState.model.js'),
 ])

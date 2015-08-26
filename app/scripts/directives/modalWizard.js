@@ -18,8 +18,6 @@
 
 let angular = require('angular');
 
-require('../../views/modal/modalWizard.html');
-
 module.exports = angular.module('spinnaker.modalWizard', [])
   .directive('modalWizard', function () {
     return {

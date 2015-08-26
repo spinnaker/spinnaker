@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./securityGroup.html');
-
 module.exports = angular.module('spinnaker.securityGroup.rollup', [])
   .directive('securityGroup', function ($rootScope, $timeout, SecurityGroupFilterModel) {
     return {

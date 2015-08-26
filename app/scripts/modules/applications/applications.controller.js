@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./modal/newapplication.html');
-
 module.exports = angular.module('spinnaker.applications.controller', [
   require('./applications.read.service.js'),
   require('../account/accountService.js'),

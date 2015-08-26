@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('../../views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html');
-
 module.exports = function() {
   return {
     restrict: 'E',

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./execution.html');
-
 module.exports = angular.module('spinnaker.delivery.execution.directive', [
 ])
   .directive('execution', function($location) {

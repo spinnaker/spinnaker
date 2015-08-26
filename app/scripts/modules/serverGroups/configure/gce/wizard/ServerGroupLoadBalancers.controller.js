@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./loadBalancers.html');
-
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.loadBalancer', [])
   .controller('gceServerGroupLoadBalancersCtrl', function(modalWizardService) {
     modalWizardService.getWizard().markClean('load-balancers');

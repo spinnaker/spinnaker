@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./loadBalancer/loadBalancerServerGroup.html');
-
 module.exports = angular.module('spinnaker.loadBalancer.serverGroup', [
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),

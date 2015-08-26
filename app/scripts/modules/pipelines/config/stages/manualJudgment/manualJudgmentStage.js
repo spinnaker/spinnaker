@@ -2,10 +2,6 @@
 
 let angular = require('angular');
 
-require('./manualJudgmentStage.html');
-require('./manualJudgmentExecutionDetails.html');
-require('./modal/editNotification.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.manualJudgmentStage', [])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./loadBalancer/loadBalancer.html');
-
 module.exports = angular.module('spinnaker.loadBalancer.directive', [
 ])
   .directive('loadBalancer', function ($rootScope, $timeout, LoadBalancerFilterModel) {

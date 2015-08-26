@@ -1,7 +1,6 @@
 'use strict';
-let angular = require('angular');
 
-require('./determineTargetReferenceDetails.html');
+let angular = require('angular');
 
 module.exports =  angular.module('spinnaker.pipelines.stage.determineTargetReferenceStage', [])
   .config(function(pipelineConfigProvider) {

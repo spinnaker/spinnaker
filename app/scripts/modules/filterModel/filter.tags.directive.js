@@ -2,8 +2,6 @@
 
 let angular = require('angular');
 
-require('./filter.tags.html');
-
 module.exports = angular
   .module('spinnaker.filterModel.filterTags.directive', [
   ])

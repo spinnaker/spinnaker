@@ -2,9 +2,6 @@
 
 let angular = require('angular');
 
-require('./waitStage.html');
-require('./waitExecutionDetails.html');
-
 module.exports = angular.module('spinnaker.pipelines.stage.waitStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
