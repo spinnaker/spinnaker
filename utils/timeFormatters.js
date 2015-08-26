@@ -5,11 +5,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils.timeFormatters', [
   require('./moment.js'),
+  require('../settings/settings.js'),
 ])
-  .filter('timestamp', function(momentService) {
+  .filter('timestamp', function(momentService, settings) {
     return function(input) {
-      var moment = momentService(isNaN(parseInt(input)) ? input : parseInt(input));
-      return moment.isValid() ? moment.format('YYYY-MM-DD HH:mm:ss') : '-';
+      var tz = settings.defaultTimeZone || 'America/Los_Angeles';
+      var moment = momentService.tz(isNaN(parseInt(input)) ? input : parseInt(input), tz);
+      return moment.isValid() ? moment.format('YYYY-MM-DD HH:mm:ss z') : '-';
     };
   })
   .filter('relativeTime', function(momentService) {
