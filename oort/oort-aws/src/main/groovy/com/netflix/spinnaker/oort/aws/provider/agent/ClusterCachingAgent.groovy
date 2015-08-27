@@ -161,7 +161,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     def cacheResult = buildCacheResult(asgs, scalingPolicies, scheduledActions, subnetMap, [:])
     def cacheData = new DefaultCacheData(
       Keys.getServerGroupKey(asgName, account.name, region),
-      60 * 60,
+      10 * 60,
       [
         cacheTime   : new Date(),
         cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
@@ -214,12 +214,12 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region)
 
     def request = new DescribeAutoScalingGroupsRequest()
-    Long start = null
+    Long start = account.eddaEnabled ? null : System.currentTimeMillis()
 
     List<AutoScalingGroup> asgs = []
     while (true) {
       def resp = autoScaling.describeAutoScalingGroups(request)
-      if (!start) {
+      if (account.eddaEnabled) {
         start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
       }
       asgs.addAll(resp.autoScalingGroups)
@@ -228,6 +228,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
       } else {
         break
       }
+    }
+
+    if (!start) {
+      if (account.eddaEnabled) {
+        log.warn("${agentType} did not receive last-modified header in response")
+      }
+      start = System.currentTimeMillis()
     }
 
     new AutoScalingGroupsResults(start: start, asgs: asgs)
