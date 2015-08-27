@@ -52,7 +52,7 @@ class UpsertAsgScheduledActionsOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     boolean hasSucceeded = true
 
-    String descriptor = description.asgs.collect { it.toString() }
+    String descriptor = description.asgs.findResults { "${it.asgName} in ${it.region}" }.join(", ")
     task.updateStatus BASE_PHASE, "Initializing Upsert ASG Scheduled Actions operation for $descriptor..."
 
     for (asg in description.asgs) {
