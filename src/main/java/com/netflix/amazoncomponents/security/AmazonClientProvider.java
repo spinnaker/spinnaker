@@ -439,7 +439,7 @@ public class AmazonClientProvider {
     }
 
     private byte[] getJson(String objectName, String key) throws IOException {
-      String url = edda + "/REST/v2/aws/" + objectName + "/" + (key == null ? ";_expand" : key);
+      String url = edda + "/REST/v2/aws/" + objectName + (key == null ? ";_expand" : "/" + key);
       HttpGet get = new HttpGet(url);
       HttpResponse response = httpClient.execute(get);
       Map<String, List<String>> headers = new HashMap<>();
