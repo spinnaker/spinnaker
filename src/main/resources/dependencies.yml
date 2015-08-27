@@ -1,6 +1,6 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.11.9"
+  amazoncomponents: "0.11.10"
   amos: "0.30"
   cats: "0.19.0"
   kork: "1.48"
@@ -8,7 +8,7 @@ versions:
 # third party
   akka: "2.3.9"
   astyanax: "2.0.2"
-  aws: "1.10.5"
+  aws: "1.10.5.1"
   awsObjectMapper: "1.10.5.0"
   batch: "3.0.4.RELEASE"
   cglib: "3.1"
