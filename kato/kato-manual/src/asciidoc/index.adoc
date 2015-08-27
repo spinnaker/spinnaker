@@ -140,6 +140,8 @@ include::src/asciidoc/ops/shrinkClusterDescription.adoc[]
 - - -
 include::src/asciidoc/ops/upsertAsgTagsDescription.adoc[]
 - - -
+include::src/asciidoc/ops/upsertAsgScheduledActionsDescription.adoc[]
+- - -
 include::src/asciidoc/ops/deleteAsgTagsDescription.adoc[]
 - - -
 include::src/asciidoc/ops/rebootInstancesDescription.adoc[]
