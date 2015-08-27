@@ -1,0 +1,39 @@
+===== Upsert ASG Scheduled Actions Description
+
+====== Key
+
++upsertAsgScheduledActionsDescription+
+
+====== Description
+
+This description sets a collection of scheduled actions on an AutoScaling group, replacing any existing scheduled actions.
+
+====== Example Request Body
+[source,javascript]
+----
+[{
+    "upsertAsgScheduledActionsDescription": {
+        "asgs": [
+          { "asgName": "kato-main-v001", "region": "us-west-1" },
+          { "asgName": "kato-main-v003", "region": "us-east-1" }
+        ],
+        "scheduledActions": [
+            { "recurrence": "30 20 * * *", "minSize": 10 },
+            { "recurrence": "40 6 * * *", "maxSize": 20 },
+            { "recurrence": "40 2 * * *", "desiredCapacity": 15 },
+            { "recurrence": "00 1 * * *", "minSize": 3, "desiredCapacity": 15, "maxSize": 24 },
+        ],
+        "credentials": "test"
+    }
+}]
+----
+
+====== Description of inputs
+
+[width="100%",frame="topbot",options="header,footer"]
+|======================
+|Key               | Type   | Required | Value
+|asgs              | array  | true     | The ASGs upon which the scheduled actions will be applied. Each object in the array must supply an asgName and region.
+|scheduledActions  | array  | true     | A collection of actions to apply. Must include recurrence (a CRON expression), and at least one of: minSize, maxSize, desiredCapacity. Providing an empty array will remove all scheduled actions.
+|credentials       | string | true     | The named account credentials that are to be used for this operation.
+|======================
