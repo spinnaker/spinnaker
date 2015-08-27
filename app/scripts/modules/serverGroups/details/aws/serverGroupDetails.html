@@ -236,9 +236,10 @@
       <p>Scaling Policies can be modified via the AWS Console.</p>
       <scaling-policy ng-repeat="policy in serverGroup.scalingPolicies" policy="policy"></scaling-policy>
     </collapsible-section>
-    <collapsible-section heading="Scheduled Actions" ng-if="serverGroup.scheduledActions.length">
-      <p>Scheduled Actions can be modified via the AWS CLI.</p>
+    <collapsible-section heading="Scheduled Actions">
       <scheduled-action ng-repeat="action in serverGroup.scheduledActions" action="action"></scheduled-action>
+      <p ng-if="!serverGroup.scheduledActions.length">No Scheduled Actions are configured for this server group.</p>
+      <a href ng-click="ctrl.editScheduledActions()">Edit Scheduled Actions</a>
     </collapsible-section>
     <collapsible-section heading="Tags">
       <div ng-if="!serverGroup.asg.tags.length">No tags associated with this server group</div>
