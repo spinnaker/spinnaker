@@ -143,7 +143,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     def cacheResult = buildCacheResult(loadBalancers, [:])
     def cacheData = new DefaultCacheData(
       Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
-      60 * 60,
+      10 * 60,
       [
         cacheTime   : new Date(),
         cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
@@ -180,11 +180,11 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
     def request = new DescribeLoadBalancersRequest()
-    Long start = null
+    Long start = account.eddaEnabled ? null : System.currentTimeMillis()
 
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(request)
-      if (!start) {
+      if (account.eddaEnabled) {
         start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
       }
 
@@ -194,6 +194,13 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       } else {
         break
       }
+    }
+
+    if (!start) {
+      if (account.eddaEnabled) {
+        log.warn("${agentType} did not receive last-modified header in response")
+      }
+      start = System.currentTimeMillis()
     }
 
     def evictableOnDemandCacheDatas = []
