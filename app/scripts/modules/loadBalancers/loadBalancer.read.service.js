@@ -5,10 +5,12 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.loadBalancer.read.service', [
     require('../vpc/vpc.read.service.js'),
+    require('../naming/naming.service.js'),
     require('../caches/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
   ])
-  .factory('loadBalancerReader', function ($q, Restangular, searchService, loadBalancerTransformer, infrastructureCaches, vpcReader) {
+  .factory('loadBalancerReader', function ($q, Restangular, searchService, namingService,
+                                           loadBalancerTransformer, infrastructureCaches, vpcReader) {
 
     function loadLoadBalancers(applicationName) {
       var vpcLoader = vpcReader.listVpcs();
@@ -16,8 +18,14 @@ module.exports = angular
         return $q.all({vpcs: vpcLoader, loadBalancers: loadBalancerLoader}).then(function(results) {
           results.loadBalancers.forEach(loadBalancerTransformer.normalizeLoadBalancerWithServerGroups);
           results.loadBalancers.forEach(addVpcNameToLoadBalancer(results.vpcs));
+          results.loadBalancers.forEach(addStackToLoadBalancer);
           return results.loadBalancers;
         });
+    }
+
+    function addStackToLoadBalancer(loadBalancer) {
+      var nameParts = namingService.parseLoadBalancerName(loadBalancer.name);
+      loadBalancer.stack = nameParts.stack;
     }
 
     function addVpcNameToLoadBalancer(vpcs) {

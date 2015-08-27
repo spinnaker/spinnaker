@@ -33,6 +33,14 @@
     </div>
   </filter-section>
 
+  <filter-section heading="Stack" expanded="true">
+    <div class="checkbox" ng-repeat="heading in loadBalancerFilters.stackHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.stack[heading]" ng-change="loadBalancerFilters.updateLoadBalancerGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
   <filter-section heading="Instance Status" expanded="true">
     <div class="form">
       <div class="checkbox">

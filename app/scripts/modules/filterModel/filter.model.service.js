@@ -44,6 +44,17 @@ module.exports = angular
       };
     }
 
+    function checkStackFilters(model) {
+      return function(target) {
+        if (isFilterable(model.sortFilter.stack)) {
+          var checkedStacks = getCheckValues(model.sortFilter.stack);
+          return _.contains(checkedStacks, target.stack);
+        } else {
+          return true;
+        }
+      };
+    }
+
     function checkStatusFilters(model) {
       return function(target) {
         if (isFilterable(model.sortFilter.status)) {
@@ -163,7 +174,7 @@ module.exports = angular
       'inverse-boolean': {
         toParam: function(filterModel, property) {
           var val = filterModel.sortFilter[property.model];
-          return val ? null : val.toString();
+          return val ? null : 'true';
         },
         toModel: function(filterModel, property) {
           var val = getParamVal(property);
@@ -278,6 +289,7 @@ module.exports = angular
       getCheckValues: getCheckValues,
       checkAccountFilters: checkAccountFilters,
       checkRegionFilters: checkRegionFilters,
+      checkStackFilters: checkStackFilters,
       checkStatusFilters: checkStatusFilters,
       checkProviderFilters: checkProviderFilters
     };

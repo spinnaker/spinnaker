@@ -6,19 +6,26 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
   require('../modules/vpc/vpc.read.service.js'),
+  require('../modules/naming/naming.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('utils/lodash.js'),
 ])
-  .factory('clusterService', function ($q, Restangular, _, vpcReader) {
+  .factory('clusterService', function ($q, Restangular, _, vpcReader, namingService) {
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = Restangular.one('applications', applicationName).all('serverGroups').getList();
       var vpcLoader = vpcReader.listVpcs();
       return $q.all({ serverGroups: serverGroupLoader, vpcs: vpcLoader}).then(function(results) {
         results.serverGroups.forEach(addHealthyCountsToServerGroup);
+        results.serverGroups.forEach(addStackToServerGroup);
         results.serverGroups.forEach(addVpcNameToServerGroup(results.vpcs));
         return results.serverGroups;
       });
+    }
+
+    function addStackToServerGroup(serverGroup) {
+      var nameParts = namingService.parseServerGroupName(serverGroup.name);
+      serverGroup.stack = nameParts.stack;
     }
 
     function addVpcNameToServerGroup(vpcs) {

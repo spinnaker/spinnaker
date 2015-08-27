@@ -7,12 +7,13 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('../account/accountService.js'),
   require('../caches/deckCacheFactory.js'),
   require('../search/search.service.js'),
+  require('../naming/naming.service.js'),
   require('utils/lodash.js'),
   require('../caches/scheduledCache.js'),
   require('../caches/infrastructureCaches.js'),
   require('../vpc/vpc.read.service.js'),
 ])
-  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _,
+  .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, namingService,
                                             accountService, infrastructureCaches, vpcReader) {
 
     function loadSecurityGroups(application) {
@@ -52,6 +53,11 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
         });
         securityGroup.vpcName = matches.length ? matches[0].name : '';
       };
+    }
+
+    function addStackToSecurityGroup(securityGroup) {
+      var nameParts = namingService.parseSecurityGroupName(securityGroup.name);
+      securityGroup.stack = nameParts.stack;
     }
 
     function addProviderToSecurityGroup(securityGroup) {
@@ -144,6 +150,7 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
           application.securityGroups.forEach(addVpcNameToSecurityGroup(vpcs));
           application.securityGroups.forEach(addProviderToSecurityGroup);
           application.securityGroups.forEach(addAccountToSecurityGroup);
+          application.securityGroups.forEach(addStackToSecurityGroup);
         });
       }
 

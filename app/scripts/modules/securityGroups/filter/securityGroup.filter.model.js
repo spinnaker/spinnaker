@@ -14,6 +14,7 @@ module.exports = angular
       { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
       { model: 'account', param: 'acct', type: 'object' },
       { model: 'region', param: 'reg', type: 'object' },
+      { model: 'stack', param: 'stack', type: 'object', },
       { model: 'providerType', type: 'object', filterLabel: 'provider' },
       { model: 'showServerGroups', param: 'hideServerGroups', inverse: true, displayOption: true, type: 'inverse-boolean' },
       { model: 'showLoadBalancers', param: 'hideLoadBalancers', inverse: true, displayOption: true, type: 'inverse-boolean' },
