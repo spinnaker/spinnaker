@@ -26,6 +26,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
@@ -93,15 +94,17 @@ public class RedisCache implements WriteableCache {
 
         if (mset.length > 0) {
             try (Jedis jedis = source.getJedis()) {
-                jedis.sadd(allOfTypeId(type), ids);
-                jedis.mset(mset);
+                Pipeline pipeline = jedis.pipelined();
+                pipeline.sadd(allOfTypeId(type), ids);
+                pipeline.mset(mset);
                 if (relationships.length > 0) {
-                    jedis.sadd(allRelationshipsId(type), relationships);
+                    pipeline.sadd(allRelationshipsId(type), relationships);
                 }
 
                 for (Map.Entry<String, Integer> ttlEntry : ttlSecondsByKey.entrySet()) {
-                    jedis.expire(ttlEntry.getKey(), ttlEntry.getValue());
+                    pipeline.expire(ttlEntry.getKey(), ttlEntry.getValue());
                 }
+                pipeline.sync();
             }
         }
     }
@@ -191,7 +194,7 @@ public class RedisCache implements WriteableCache {
         }
 
         if (keyResult.size() != mget.length) {
-            throw new RuntimeException("Exepected same size result as request");
+            throw new RuntimeException("Expected same size result as request");
         }
 
         Collection<CacheData> results = new ArrayList<>(ids.size());
