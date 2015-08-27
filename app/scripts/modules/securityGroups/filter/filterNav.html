@@ -33,6 +33,14 @@
     </div>
   </filter-section>
 
+  <filter-section heading="Stack" expanded="true">
+    <div class="checkbox" ng-repeat="heading in securityGroupFilters.stackHeadings | orderBy: 'toString()' ">
+      <label>
+        <input type="checkbox" ng-model="sortFilter.stack[heading]" ng-change="securityGroupFilters.updateSecurityGroups()"/>{{heading}}
+      </label>
+    </div>
+  </filter-section>
+
   <filter-section heading="Provider" expanded="true" ng-if="securityGroupFilters.providerTypeHeadings.length > 1">
     <div class="checkbox" ng-repeat="heading in securityGroupFilters.providerTypeHeadings | orderBy: 'toString()'">
       <label>

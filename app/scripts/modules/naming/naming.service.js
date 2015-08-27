@@ -77,6 +77,7 @@ module.exports = angular.module('spinnaker.naming', [])
     return {
       parseServerGroupName: parseServerGroupName,
       parseLoadBalancerName: parseLoadBalancerName,
+      parseSecurityGroupName: parseLoadBalancerName, // seems to be all-purpose, what could go wrong
       getClusterName: getClusterName,
       getSequence: getSequence,
     };

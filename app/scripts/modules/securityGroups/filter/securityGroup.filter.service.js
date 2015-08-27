@@ -35,6 +35,7 @@ module.exports = angular
         .filter(checkSearchTextFilter)
         .filter(filterModelService.checkAccountFilters(SecurityGroupFilterModel))
         .filter(filterModelService.checkRegionFilters(SecurityGroupFilterModel))
+        .filter(filterModelService.checkStackFilters(SecurityGroupFilterModel))
         .filter(filterModelService.checkProviderFilters(SecurityGroupFilterModel))
         .value();
     }

@@ -24,7 +24,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
     };
 
     function getHeadingsForOption(option) {
-      return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
+      return _.compact(_.uniq(_.pluck(app.securityGroups, option))).sort();
     }
 
     function clearFilters() {
@@ -35,6 +35,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
     this.initialize = function() {
       ctrl.accountHeadings = getHeadingsForOption('account');
       ctrl.regionHeadings = getHeadingsForOption('region');
+      ctrl.stackHeadings = getHeadingsForOption('stack');
       ctrl.providerTypeHeadings = getHeadingsForOption('type');
       ctrl.clearFilters = clearFilters;
       $scope.securityGroups = app.securityGroups;

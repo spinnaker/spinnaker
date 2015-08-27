@@ -38,6 +38,7 @@ module.exports = angular
         .filter(checkSearchTextFilter)
         .filter(filterModelService.checkAccountFilters(LoadBalancerFilterModel))
         .filter(filterModelService.checkRegionFilters(LoadBalancerFilterModel))
+        .filter(filterModelService.checkStackFilters(LoadBalancerFilterModel))
         .filter(filterModelService.checkStatusFilters(LoadBalancerFilterModel))
         .filter(filterModelService.checkProviderFilters(LoadBalancerFilterModel))
         .filter(instanceFilters)

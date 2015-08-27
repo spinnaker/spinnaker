@@ -54,6 +54,7 @@ module.exports = angular.module('loadBalancer.filter.controller', [
     this.initialize = function() {
       ctrl.accountHeadings = getHeadingsForOption('account');
       ctrl.regionHeadings = getHeadingsForOption('region');
+      ctrl.stackHeadings = getHeadingsForOption('stack');
       ctrl.providerTypeHeadings = getHeadingsForOption('type');
       ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.clearFilters = clearFilters;

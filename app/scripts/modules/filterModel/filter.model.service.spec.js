@@ -597,7 +597,7 @@ describe('Service: FilterModelService', function () {
         filterModel.sortFilter.hideInstances = false;
 
         filterModel.applyParamsToUrl();
-        expect(searchParams.hideInstances).toBe('false');
+        expect(searchParams.hideInstances).toBe('true');
 
         filterModel.sortFilter.hideInstances = true;
 

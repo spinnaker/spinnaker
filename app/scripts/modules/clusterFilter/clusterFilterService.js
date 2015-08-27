@@ -71,6 +71,7 @@ module.exports = angular
         .filter(instanceCountFilter)
         .filter(filterModelService.checkAccountFilters(ClusterFilterModel))
         .filter(filterModelService.checkRegionFilters(ClusterFilterModel))
+        .filter(filterModelService.checkStackFilters(ClusterFilterModel))
         .filter(filterModelService.checkStatusFilters(ClusterFilterModel))
         .filter(filterModelService.checkProviderFilters(ClusterFilterModel))
         .filter(instanceTypeFilters)

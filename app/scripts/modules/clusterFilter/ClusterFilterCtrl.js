@@ -46,6 +46,7 @@ module.exports = angular.module('cluster', [
       ctrl.regionHeadings = getHeadingsForOption('region');
       ctrl.instanceTypeHeadings = getHeadingsForOption('instanceType');
       ctrl.providerTypeHeadings = getHeadingsForOption('type');
+      ctrl.stackHeadings = getHeadingsForOption('stack');
       ctrl.availabilityZoneHeadings = getAvailabilityZones();
       ctrl.clearFilters = clearFilters;
       $scope.clusters = app.clusters;
