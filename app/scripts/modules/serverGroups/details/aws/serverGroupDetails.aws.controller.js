@@ -298,6 +298,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       return null;
     };
 
+    this.editScheduledActions = function () {
+      $modal.open({
+        templateUrl: require('./scheduledAction/editScheduledActions.modal.html'),
+        controller: 'EditScheduledActionsCtrl as ctrl',
+        resolve: {
+          application: function() { return app; },
+          serverGroup: function() { return $scope.serverGroup; }
+        }
+      });
+    };
+
     this.truncateCommitHash = function() {
       if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
         return $scope.serverGroup.buildInfo.commit.substring(0, 8);
