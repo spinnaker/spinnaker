@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
@@ -123,12 +124,21 @@ class GCEUtil {
     }
   }
 
+  // If a forwarding rule with the specified name is found in any region, it is returned.
   static ForwardingRule queryRegionalForwardingRule(
-    String projectName, String region, String forwardingRuleName, Compute compute, Task task, String phase) {
+    String projectName, String forwardingRuleName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Checking for existing network load balancer (forwarding rule) $forwardingRuleName..."
 
-    return compute.forwardingRules().list(projectName, region).execute().items.find { existingForwardingRule ->
-      existingForwardingRule.name == forwardingRuleName
+    // Try to retrieve this forwarding rule in each region.
+    for (def region : compute.regions().list(projectName).execute().items) {
+      try {
+        return compute.forwardingRules().get(projectName, region.name, forwardingRuleName).execute()
+      } catch (GoogleJsonResponseException e) {
+        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
+        if (e.getStatusCode() != 404) {
+          throw e
+        }
+      }
     }
   }
 

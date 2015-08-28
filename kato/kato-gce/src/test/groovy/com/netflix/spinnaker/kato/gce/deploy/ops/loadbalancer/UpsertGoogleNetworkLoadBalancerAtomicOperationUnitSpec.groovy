@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops.loadbalancer
 
+import com.google.api.client.googleapis.testing.json.GoogleJsonResponseExceptionFactoryTesting
+import com.google.api.client.testing.json.MockJsonFactory
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
@@ -25,6 +27,8 @@ import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstancesScopedList
 import com.google.api.services.compute.model.Operation
+import com.google.api.services.compute.model.Region
+import com.google.api.services.compute.model.RegionList
 import com.google.api.services.compute.model.TargetPool
 import com.google.api.services.compute.model.TargetPoolList
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
@@ -33,6 +37,7 @@ import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -41,7 +46,9 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   private static final PROJECT_NAME = "my_project"
   private static final NETWORK_LOAD_BALANCER_NAME = "default"
   private static final TARGET_POOL_NAME = "$NETWORK_LOAD_BALANCER_NAME-targetpool"
-  private static final REGION = "us-central1"
+  private static final REGION_US = "us-central1"
+  private static final REGION_ASIA = "asia-east1"
+  private static final REGION_EUROPE = "europe-west1"
   private static final INSTANCE_1 = "instance-1"
   private static final INSTANCE_2 = "instance-2"
   private static final INSTANCE_3 = "instance-3"
@@ -93,10 +100,11 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           targetLink: "target-pool",
           name: TARGET_POOL_OP_NAME,
           status: DONE)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal =
-        new ForwardingRuleList(items: [new ForwardingRule(name: NETWORK_LOAD_BALANCER_NAME + "-other")])
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -105,7 +113,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           healthCheck: [port: Constants.DEFAULT_PORT],
           instances: [INSTANCE_1],
           ipAddress: IP_ADDRESS,
-          region: REGION,
+          region: REGION_US,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -119,18 +127,25 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.instances() >> instancesMock
       1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      3 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
       1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.insert(PROJECT_NAME, {it.port == Constants.DEFAULT_PORT && it.checkIntervalSec == 5}) >>
         httpHealthChecksInsert
       1 * httpHealthChecksInsert.execute() >> httpHealthChecksInsertOp
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.insert(PROJECT_NAME, REGION, {it.instances == [INSTANCE_1_URL]}) >> targetPoolsInsert
+      1 * targetPools.insert(PROJECT_NAME, REGION_US, {it.instances == [INSTANCE_1_URL]}) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.insert(PROJECT_NAME, REGION,
+      1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == IP_ADDRESS && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == Constants.DEFAULT_PORT_RANGE}) >>
         forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
@@ -139,7 +154,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
-      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
@@ -169,9 +184,11 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           targetLink: "target-pool",
           name: TARGET_POOL_OP_NAME,
           status: DONE)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [])
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
@@ -181,7 +198,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           instances: [INSTANCE_1],
           ipAddress: IP_ADDRESS,
           portRange: PORT_RANGE,
-          region: REGION,
+          region: REGION_US,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -195,18 +212,25 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.instances() >> instancesMock
       1 * instancesMock.aggregatedList(PROJECT_NAME) >> instancesAggregatedListMock
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      3 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
       1 * computeMock.httpHealthChecks() >> httpHealthChecks
       1 * httpHealthChecks.insert(PROJECT_NAME, {it.port == Constants.DEFAULT_PORT && it.checkIntervalSec == 5}) >>
         httpHealthChecksInsert
       1 * httpHealthChecksInsert.execute() >> httpHealthChecksInsertOp
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.insert(PROJECT_NAME, REGION, {it.instances == [INSTANCE_1_URL]}) >> targetPoolsInsert
+      1 * targetPools.insert(PROJECT_NAME, REGION_US, {it.instances == [INSTANCE_1_URL]}) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.insert(PROJECT_NAME, REGION,
+      1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == IP_ADDRESS && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == PORT_RANGE}) >>
         forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
@@ -215,7 +239,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
-      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
@@ -230,15 +254,17 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           targetLink: "target-pool",
           name: TARGET_POOL_OP_NAME,
           status: DONE)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [])
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          region: REGION,
+          region: REGION_US,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -249,19 +275,26 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      3 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
       0 * computeMock.httpHealthChecks()
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.insert(PROJECT_NAME, REGION, _) >> targetPoolsInsert
+      1 * targetPools.insert(PROJECT_NAME, REGION_US, _) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
+      1 * forwardingRules.insert(PROJECT_NAME, REGION_US, _) >> forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
 
       1 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
@@ -276,15 +309,17 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           targetLink: "target-pool",
           name: TARGET_POOL_OP_NAME,
           status: DONE)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [])
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          region: REGION,
+          region: REGION_US,
           ipProtocol: IP_PROTOCOL_UDP,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
@@ -296,37 +331,46 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      3 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
       0 * computeMock.httpHealthChecks()
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.insert(PROJECT_NAME, REGION, _) >> targetPoolsInsert
+      1 * targetPools.insert(PROJECT_NAME, REGION_US, _) >> targetPoolsInsert
       1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.insert(PROJECT_NAME, REGION,
+      1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == null && it.IPProtocol == IP_PROTOCOL_UDP && it.portRange == Constants.DEFAULT_PORT_RANGE}) >>
         forwardingRulesInsert
       1 * forwardingRulesInsert.execute() >> insertOp
 
       1 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
   }
 
-  void "should neither create anything new, nor edit anything existing, if a forwarding rule with the same name already exists"() {
+  void "should neither create anything new, nor edit anything existing, if a forwarding rule with the same name already exists in the same region"() {
     setup:
       def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_ASIA), new Region(name: REGION_US), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -337,7 +381,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-          region: REGION,
+          region: REGION_US,
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -346,27 +390,76 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       operation.operate([])
 
     then:
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
+  }
+
+  void "should throw an exception if a forwarding rule with the same name already exists in a different region"() {
+    setup:
+      def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_ASIA), new Region(name: REGION_US), new Region(name: REGION_EUROPE)])
+      def forwardingRules = Mock(Compute.ForwardingRules)
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
+          name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_EUROPE,
+          target: TARGET_POOL_NAME,
+          IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
+          portRange: Constants.DEFAULT_PORT_RANGE)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def description = new UpsertGoogleNetworkLoadBalancerDescription(
+          networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
+          accountName: ACCOUNT_NAME,
+          credentials: credentials)
+      @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      3 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_EUROPE, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
+      GoogleOperationException exc = thrown()
+      exc.message == "There is already a network load balancer named $NETWORK_LOAD_BALANCER_NAME (in region " +
+        "$REGION_EUROPE). Please specify a different name."
   }
 
   void "should update health check if specified properties differ from existing"() {
     setup:
       def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_ASIA), new Region(name: REGION_US), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-          new ForwardingRule(
-            name: NETWORK_LOAD_BALANCER_NAME,
-            target: TARGET_POOL_NAME,
-            IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-            portRange: Constants.DEFAULT_PORT_RANGE
-          )
-        ])
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
+          name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
+          target: TARGET_POOL_NAME,
+          IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal =
@@ -393,7 +486,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         healthCheck: [
           checkIntervalSec: Constants.DEFAULT_CHECK_INTERVAL_SEC + 1,
           healthyThreshold: Constants.DEFAULT_HEALTHY_THRESHOLD,
@@ -411,13 +504,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       // Query existing forwarding rules.
-      1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
+      2 * computeMock.forwardingRules() >> forwardingRules
+      1 * forwardingRules.get(PROJECT_NAME, REGION_ASIA, NETWORK_LOAD_BALANCER_NAME) >>
+        { throw GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found") }
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -434,16 +532,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   void "should neither create anything new, nor edit anything existing, if a forwarding rule, target pool and health check with the same properties already exist"() {
     setup:
       def computeMock = Mock(Compute)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -468,7 +568,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         healthCheck: [
           checkIntervalSec: Constants.DEFAULT_CHECK_INTERVAL_SEC,
           healthyThreshold: Constants.DEFAULT_HEALTHY_THRESHOLD,
@@ -486,13 +586,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -504,18 +607,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   void "should delete and recreate forwarding rule with same name if specified properties differ from existing"() {
     setup:
       def computeMock = Mock(Compute)
-      def regionOperations = Mock(Compute.RegionOperations)
-      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: IP_PROTOCOL_UDP,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -537,6 +640,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           requestPath: Constants.DEFAULT_REQUEST_PATH
         )
       ])
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionOperationsGet = Mock(Compute.RegionOperations.Get)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         targetLink: "delete-forwarding-rule",
@@ -546,7 +651,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         portRange: PORT_RANGE,
         healthCheck: [
           checkIntervalSec: Constants.DEFAULT_CHECK_INTERVAL_SEC,
@@ -567,13 +672,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -583,17 +691,17 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Delete existing forwarding rule.
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.delete(PROJECT_NAME, REGION, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesDelete
+      1 * forwardingRules.delete(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
       // Poll for completion of forwarding rule delete.
       1 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, DELETE_FORWARDING_RULE_OP_NAME) >> regionOperationsGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, DELETE_FORWARDING_RULE_OP_NAME) >> regionOperationsGet
       1 * regionOperationsGet.execute() >> forwardingRulesDeleteOp
 
       // Create new forwarding rule.
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.insert(PROJECT_NAME, REGION,
+      1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.name == NETWORK_LOAD_BALANCER_NAME && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == PORT_RANGE}) >>
         forwardingRulesInsert
       1 * forwardingRulesInsert.execute()
@@ -602,20 +710,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
   void "should add health check and update target pool if existing target pool does not have specified health check"() {
     setup:
       def computeMock = Mock(Compute)
-      def globalOperations = Mock(Compute.GlobalOperations)
-      def regionOperations = Mock(Compute.RegionOperations)
-      def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
-      def regionAddHealthCheckOperationGet = Mock(Compute.RegionOperations.Get)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -623,6 +729,10 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           name: TARGET_POOL_NAME
         )
       ])
+      def globalOperations = Mock(Compute.GlobalOperations)
+      def regionOperations = Mock(Compute.RegionOperations)
+      def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
+      def regionAddHealthCheckOperationGet = Mock(Compute.RegionOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
       def httpHealthChecksInsertOp = new Operation(
@@ -637,7 +747,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         healthCheck: [:],
         accountName: ACCOUNT_NAME,
         credentials: credentials)
@@ -650,13 +760,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Create new http health check.
@@ -674,30 +787,30 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Update target pool to reflect new http health check.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.addHealthCheck(PROJECT_NAME, REGION, TARGET_POOL_NAME, _) >> addHealthCheck
+      1 * targetPools.addHealthCheck(PROJECT_NAME, REGION_US, TARGET_POOL_NAME, _) >> addHealthCheck
       1 * addHealthCheck.execute() >> addHealthCheckOp
 
       // Poll for completion of target pool update.
       1 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, ADD_HEALTH_CHECK_OP_NAME) >> regionAddHealthCheckOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, ADD_HEALTH_CHECK_OP_NAME) >> regionAddHealthCheckOperationGet
       1 * regionAddHealthCheckOperationGet.execute() >> addHealthCheckOp
   }
 
   void "should remove health check and update target pool if existing target pool has health check and none is desired"() {
     setup:
       def computeMock = Mock(Compute)
-      def regionOperations = Mock(Compute.RegionOperations)
-      def regionRemoveHealthCheckOperationGet = Mock(Compute.RegionOperations.Get)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -718,6 +831,8 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           requestPath: Constants.DEFAULT_REQUEST_PATH
         )
       ])
+      def regionOperations = Mock(Compute.RegionOperations)
+      def regionRemoveHealthCheckOperationGet = Mock(Compute.RegionOperations.Get)
       def removeHealthCheck = Mock(Compute.TargetPools.RemoveHealthCheck)
       def removeHealthCheckOp = new Operation(
         targetLink: "remove-health-check",
@@ -728,7 +843,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         accountName: ACCOUNT_NAME,
         credentials: credentials)
       @Subject def operation = new UpsertGoogleNetworkLoadBalancerAtomicOperation(description)
@@ -740,13 +855,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
     then:
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -756,12 +874,12 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Update target pool to disassociate http health check.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.removeHealthCheck(PROJECT_NAME, REGION, TARGET_POOL_NAME, _) >> removeHealthCheck
+      1 * targetPools.removeHealthCheck(PROJECT_NAME, REGION_US, TARGET_POOL_NAME, _) >> removeHealthCheck
       1 * removeHealthCheck.execute() >> removeHealthCheckOp
 
       // Poll for completion of target pool update.
       1 * computeMock.regionOperations() >> regionOperations
-      1 * regionOperations.get(PROJECT_NAME, REGION, REMOVE_HEALTH_CHECK_OP_NAME) >> regionRemoveHealthCheckOperationGet
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, REMOVE_HEALTH_CHECK_OP_NAME) >> regionRemoveHealthCheckOperationGet
       1 * regionRemoveHealthCheckOperationGet.execute() >> removeHealthCheckOp
 
       // Delete extraneous http health check.
@@ -784,16 +902,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           ]),
       ]
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -820,7 +940,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         instances: [INSTANCE_1, INSTANCE_2, INSTANCE_3],
         healthCheck: [:],
         accountName: ACCOUNT_NAME,
@@ -837,13 +957,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -853,7 +976,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Add missing instances to target pool.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.addInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME,
+      1 * targetPools.addInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
         {it.instances.size == 2 &&
           it.instances[0].instance == INSTANCE_1_URL &&
           it.instances[1].instance == INSTANCE_3_URL}) >> targetPoolsAddInstance
@@ -874,16 +997,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           ]),
       ]
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -910,7 +1035,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         instances: [INSTANCE_3],
         healthCheck: [:],
         accountName: ACCOUNT_NAME,
@@ -927,13 +1052,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -943,7 +1071,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Remove extraneous instances from target pool.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME,
+      1 * targetPools.removeInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
         {it.instances.size == 2 &&
           it.instances[0].instance == INSTANCE_1_URL &&
           it.instances[1].instance == INSTANCE_2_URL}) >> targetPoolsRemoveInstance
@@ -964,16 +1092,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           ]),
       ]
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -1001,7 +1131,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         instances: [INSTANCE_2, INSTANCE_3],
         healthCheck: [:],
         accountName: ACCOUNT_NAME,
@@ -1018,13 +1148,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
@@ -1034,13 +1167,13 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
 
       // Add missing instances to target pool.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.addInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME,
+      1 * targetPools.addInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
         {it.instances.size == 1 && it.instances[0].instance == INSTANCE_3_URL}) >> targetPoolsAddInstance
       1 * targetPoolsAddInstance.execute()
 
       // Remove extraneous instances from target pool.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME,
+      1 * targetPools.removeInstance(PROJECT_NAME, REGION_US, TARGET_POOL_NAME,
         {it.instances.size == 1 && it.instances[0].instance == INSTANCE_1_URL}) >> targetPoolsRemoveInstance
       1 * targetPoolsRemoveInstance.execute()
   }
@@ -1059,16 +1192,18 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           ]),
       ]
       def instanceAggregatedList = new InstanceAggregatedList(items: zoneToInstancesMap)
+      def regions = Mock(Compute.Regions)
+      def regionsList = Mock(Compute.Regions.List)
+      def regionsListReal = new RegionList(
+          items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
-      def forwardingRulesListReal = new ForwardingRuleList(items: [
-        new ForwardingRule(
+      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRuleReal = new ForwardingRule(
           name: NETWORK_LOAD_BALANCER_NAME,
+          region: REGION_US,
           target: TARGET_POOL_NAME,
           IPProtocol: Constants.DEFAULT_IP_PROTOCOL,
-          portRange: Constants.DEFAULT_PORT_RANGE
-        )
-      ])
+          portRange: Constants.DEFAULT_PORT_RANGE)
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsList = Mock(Compute.TargetPools.List)
       def targetPoolsListReal = new TargetPoolList(items: [
@@ -1094,7 +1229,7 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleNetworkLoadBalancerDescription(
         networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
-        region: REGION,
+        region: REGION_US,
         instances: [INSTANCE_1, INSTANCE_2, INSTANCE_3],
         healthCheck: [:],
         accountName: ACCOUNT_NAME,
@@ -1111,13 +1246,16 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       1 * instancesAggregatedListMock.execute() >> instanceAggregatedList
 
       // Query existing forwarding rules.
+      1 * computeMock.regions() >> regions
+      1 * regions.list(PROJECT_NAME) >> regionsList
+      1 * regionsList.execute() >> regionsListReal
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
-      1 * forwardingRulesList.execute() >> forwardingRulesListReal
+      1 * forwardingRules.get(PROJECT_NAME, REGION_US, NETWORK_LOAD_BALANCER_NAME) >> forwardingRulesGet
+      1 * forwardingRulesGet.execute() >> forwardingRuleReal
 
       // Query existing target pools.
       1 * computeMock.targetPools() >> targetPools
-      1 * targetPools.list(PROJECT_NAME, REGION) >> targetPoolsList
+      1 * targetPools.list(PROJECT_NAME, REGION_US) >> targetPoolsList
       1 * targetPoolsList.execute() >> targetPoolsListReal
 
       // Query existing health checks.
