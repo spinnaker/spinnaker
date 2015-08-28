@@ -50,6 +50,10 @@
           ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
         <dt>IP Range</dt>
         <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
+        <dt ng-if="ipRangeRule.portRanges.length === 0">Protocol</dt>
+        <dd ng-if="ipRangeRule.portRanges.length === 0">
+          {{ipRangeRule.protocol}}
+        </dd>
         <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges</dt>
         <dd ng-repeat="portRange in ipRangeRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
           {{ipRangeRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
@@ -66,6 +70,10 @@
           <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'gce'})">
             {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
           </a>
+        </dd>
+        <dt ng-if="rule.portRanges.length === 0">Protocol</dt>
+        <dd ng-if="rule.portRanges.length === 0">
+          {{rule.protocol}}
         </dd>
         <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges</dt>
         <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
