@@ -40,7 +40,6 @@ configurations.all {
 }
 
 dependencies {
-    compile 'cz.jirutka.spring:spring-rest-exception-handler:1.0.0'
     compile project(':echo-core')
     compile project(':echo-model')
     compile project(':echo-cassandra')

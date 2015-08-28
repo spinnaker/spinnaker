@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.echo.config
 
 import com.netflix.astyanax.Keyspace
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionException
 import com.netflix.fenzo.triggers.TriggerOperator
 import com.netflix.fenzo.triggers.persistence.TriggerDao
 import com.netflix.scheduledactions.ActionsOperator
@@ -29,7 +28,6 @@ import com.netflix.scheduledactions.persistence.cassandra.CassandraExecutionDao
 import com.netflix.scheduledactions.persistence.cassandra.CassandraTriggerDao
 import com.netflix.scheduledactions.web.controllers.ActionInstanceController
 import com.netflix.spinnaker.kork.astyanax.AstyanaxComponents
-import com.netflix.spinnaker.kork.astyanax.AstyanaxKeyspaceFactory
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

@@ -17,10 +17,11 @@
 
 package com.netflix.spinnaker.echo.config
 
-import org.springframework.context.annotation.ComponentScan
+import com.netflix.scheduledactions.web.config.SpringWebConfiguration
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 
 @Configuration
-@ComponentScan(["com.netflix.scheduledactions.web.controllers"])
+@Import(SpringWebConfiguration)
 class SchedulerWebConfiguration {
 }
