@@ -21,10 +21,12 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class TargetReferenceSupport {
   @Autowired
   ObjectMapper mapper
@@ -65,16 +67,17 @@ class TargetReferenceSupport {
    */
   List<TargetReference> getTargetAsgReferences(Stage stage) {
     def config = stage.mapTo(TargetReferenceConfiguration)
-    if (isDynamicallyBound(stage) && stage.type != DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE) {
-      def target = stage.execution.stages.find {
-        it.type == DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE && (it.parentStageId == stage.parentStageId || it.parentStageId == stage.id)
+    if (isDynamicallyBound(stage) && !isDTRStage(stage)) {
+      // The DetermineTargetReferences stage has all the TargetReferences we want - go find it!
+      def dtrStage = stage.execution.stages.find {
+        isDTRStage(it) && (sameParent(stage, it) || isParentOf(stage, it))
       }
-      if (target?.context?.targetReferences) {
-        return target.context.targetReferences.collect {
+      if (dtrStage?.context?.targetReferences) {
+        return dtrStage.context.targetReferences.collect {
           new TargetReference(region: it.region, cluster: it.cluster, asg: it.asg)
         }
       } else {
-        return config.regions.collect { new TargetReference(region: it, cluster: config.cluster) }
+        return config.locations.collect { new TargetReference(region: it, cluster: config.cluster) }
       }
     }
 
@@ -83,55 +86,58 @@ class TargetReferenceSupport {
     }
 
     def names = Names.parseName(config.cluster ?: config.asgName)
-    def existingAsgs = getExistingAsgs(names.app, config.credentials, names.cluster, config.providerType)
-    if (!existingAsgs) {
+    def existingServerGroups = getExistingServerGroups(names.app, config.credentials, names.cluster, config.providerType)
+    if (!existingServerGroups) {
       if (isDynamicallyBound(stage)) {
-        return config.regions.collect {
+        return config.locations.collect {
           new TargetReference(region: it, cluster: config.cluster)
         }
       } else {
         throw new TargetReferenceNotFoundException("Could not ascertain targets for cluster ${names.cluster} " +
-          "in ${config.credentials} (regions: ${config.regions.join(',')})")
+          "in ${config.credentials} (regions: ${config.locations.join(',')})")
       }
     }
 
-    Map<String, List<Map>> asgsByRegion = (Map<String, List<Map>>) existingAsgs.groupBy { Map asg -> asg.region }
+    def serverGroupsByLocation = getServerGroupsByLocation(config, existingServerGroups)
     List<TargetReference> targetReferences = []
-    for (Map.Entry<String, List<Map>> entry in asgsByRegion) {
-      def region = entry.key
-      if (!config.regions || !config.regions.contains(region)) {
+    for (Map.Entry<String, List<Map>> entry in serverGroupsByLocation) {
+      def location = entry.key
+      if (!config.locations || !config.locations.contains(location)) {
         continue
       }
 
-      def sortedAsgs = entry.value.sort { a, b -> b.createdTime <=> a.createdTime }
-      def asgCount = sortedAsgs.size()
+      def sortedServerGroups = entry.value.sort { a, b -> b.createdTime <=> a.createdTime }
+      def asgCount = sortedServerGroups.size()
 
-      def targetReference = new TargetReference(region: region, cluster: config.cluster)
-      if (isCurrentAsg(config)) {
-        targetReference.asg = sortedAsgs.get(0)
-      } else if (isAncestorAsg(config)) {
-        // because of the groupBy above, there will be at least one - no need to check for zero
-        if (asgCount == 1) {
-          throw new TargetReferenceNotFoundException("Only one server group (${sortedAsgs.get(0).name}) found for " +
-            "cluster ${config.cluster} in ${config.credentials}:${region} - no ancestor available")
+      def targetReference = new TargetReference(region: location, cluster: config.cluster)
+      if (config.target) {
+        switch (config.target) {
+          case TargetReferenceConfiguration.Target.current_asg:
+          case TargetReferenceConfiguration.Target.current_asg_dynamic:
+            targetReference.asg = sortedServerGroups.get(0)
+            break
+          case TargetReferenceConfiguration.Target.ancestor_asg:
+          case TargetReferenceConfiguration.Target.ancestor_asg_dynamic:
+            // because of the groupBy above, there will be at least one - no need to check for zero
+            if (asgCount == 1) {
+              throw new TargetReferenceNotFoundException("Only one server group (${sortedServerGroups.get(0).name}) " +
+                "found for cluster ${config.cluster} in ${config.credentials}:${location} - no ancestor available")
+            }
+            targetReference.asg = sortedServerGroups.get(1)
+            break
+          case TargetReferenceConfiguration.Target.oldest_asg_dynamic:
+            // because of the groupBy above, there will be at least one - no need to check for zero
+            if (asgCount == 1) {
+              throw new TargetReferenceNotFoundException("Only one server group (${sortedServerGroups.get(0).name}) " +
+                "found for cluster ${config.cluster} in ${config.credentials}:${location} - at least two expected")
+            }
+            targetReference.asg = sortedServerGroups.last()
+            break
         }
-        targetReference.asg = sortedAsgs.get(1)
-      } else if (isOldestAsg(config)) {
-        // because of the groupBy above, there will be at least one - no need to check for zero
-        if (asgCount == 1) {
-          throw new TargetReferenceNotFoundException("Only one server group (${sortedAsgs.get(0).name}) found for " +
-            "cluster ${config.cluster} in ${config.credentials}:${region} - at least two expected")
-        }
-        targetReference.asg = sortedAsgs.last()
-      } else if (!config.target && config.asgName) {
-        def asg = sortedAsgs.find { it.name == config.asgName }
-        if (!asg) {
-          // Couldn't find the specified ASG in this region.
-          // This is probably OK, as the target region may be a transient deployment target
-          continue
-        } else {
-          targetReference.asg = asg
-        }
+      } else if (config.asgName) {
+        targetReference.asg = sortedServerGroups.find { it.name == config.asgName }
+        // if targetReference.asg is still null by this point, we couldn't find the specified ASG in this region.
+        // This is probably OK, as the target region may be a transient deployment target.
       }
 
       if (targetReference.asg) {
@@ -152,18 +158,23 @@ class TargetReferenceSupport {
     target
   }
 
-  private static boolean isCurrentAsg(config) {
-    TargetReferenceConfiguration.Target.current_asg == config.target ||
-      TargetReferenceConfiguration.Target.current_asg_dynamic == config.target
+  static boolean isDTRStage(Stage stage) {
+    return stage.type == DetermineTargetReferenceStage.PIPELINE_CONFIG_TYPE
   }
 
-  private static boolean isAncestorAsg(config) {
-    TargetReferenceConfiguration.Target.ancestor_asg == config.target ||
-      TargetReferenceConfiguration.Target.ancestor_asg_dynamic == config.target
+  static boolean sameParent(Stage a, Stage b) {
+    return a.parentStageId == b.parentStageId
   }
 
-  private static boolean isOldestAsg(config) {
-    TargetReferenceConfiguration.Target.oldest_asg_dynamic == config.target
+  static boolean isParentOf(Stage a, Stage b) {
+    return a.id == b.parentStageId
+  }
+
+  Map<String, List<Map>> getServerGroupsByLocation(TargetReferenceConfiguration config, List<Map> existingServerGroups) {
+    if (config.providerType == "gce") {
+      return existingServerGroups.groupBy { Map sg -> sg.zones[0] }
+    }
+    return existingServerGroups.groupBy { Map sg -> sg.region }
   }
 
   boolean isDynamicallyBound(Stage stage) {
@@ -173,7 +184,7 @@ class TargetReferenceSupport {
       config.target == TargetReferenceConfiguration.Target.oldest_asg_dynamic
   }
 
-  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
+  List<Map> getExistingServerGroups(String app, String account, String cluster, String providerType) {
     try {
       def response = oort.getCluster(app, account, cluster, providerType)
       def json = response.body.in().text

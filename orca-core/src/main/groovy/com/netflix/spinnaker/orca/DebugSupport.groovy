@@ -14,13 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca
 
-import groovy.transform.ToString
+import org.apache.commons.collections.MapUtils
 
-@ToString(includeNames = true)
-class TargetReference {
-  String region
-  String cluster
-  Map<String, Object> asg
+/**
+ * Utility class that aids in debugging Maps in the logs.
+ *
+ * Created by ttomsu on 8/20/15.
+ */
+class DebugSupport {
+
+  /**
+   * @return a prettier, loggable string version of a Map.
+   */
+  static String prettyPrint(Map m) {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    PrintStream ps = new PrintStream(baos);
+    MapUtils.debugPrint(ps, null, m);
+    return baos.toString();
+  }
 }
