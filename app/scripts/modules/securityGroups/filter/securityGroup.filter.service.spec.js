@@ -39,9 +39,9 @@ describe('Service: securityGroupFilterService', function () {
       ]
     };
     resultJson = [
-      { heading: 'us-east-1', securityGroup: app.securityGroups[0],  },
-      { heading: 'us-west-1', securityGroup: app.securityGroups[1],  },
-      { heading: 'us-east-1', securityGroup: app.securityGroups[2],  }
+      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[0],  },
+      { heading: 'us-west-1', vpcName: 'main', securityGroup: app.securityGroups[1],  },
+      { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[2],  }
     ];
     SecurityGroupFilterModel.clearFilters();
   });
@@ -191,7 +191,7 @@ describe('Service: securityGroupFilterService', function () {
       });
       var newGroup = { heading: 'management', subgroups: [
         { heading: 'sg-1', subgroups: [
-          { heading: 'us-east-1', securityGroup: app.securityGroups[3],  }
+          { heading: 'us-east-1', vpcName: '', securityGroup: app.securityGroups[3],  }
         ]}
       ]};
       service.updateSecurityGroups(app);
@@ -210,7 +210,7 @@ describe('Service: securityGroupFilterService', function () {
       app.securityGroups.push({
         name: 'sg-3', account: 'prod', region: 'eu-west-1',  vpcName: '',
       });
-      var newSubGroup = { heading: 'sg-3', subgroups: [{heading: 'eu-west-1', securityGroup: app.securityGroups[3],  }]};
+      var newSubGroup = { heading: 'sg-3', subgroups: [{heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3],  }]};
       service.updateSecurityGroups(app);
       expect(SecurityGroupFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
@@ -227,7 +227,7 @@ describe('Service: securityGroupFilterService', function () {
       app.securityGroups.push({
         name: 'sg-2', account: 'test', region: 'eu-west-1',  vpcName: '',
       });
-      var newSubsubGroup = { heading: 'eu-west-1', securityGroup: app.securityGroups[3],  };
+      var newSubsubGroup = { heading: 'eu-west-1', vpcName: '', securityGroup: app.securityGroups[3],  };
       service.updateSecurityGroups(app);
       expect(SecurityGroupFilterModel.groups).toEqual([
         {
