@@ -35,7 +35,7 @@ class TitanServerGroupNameResolver extends AbstractServerGroupNameResolver {
   @Override
   String getPreviousServerGroupName(String clusterName) {
     def clusterNameParts = Names.parseName(clusterName)
-    List<Job> jobs = titanClient.getJobsByApplication(clusterNameParts.app)
+    List<Job> jobs = titanClient.findJobsByApplication(clusterNameParts.app)
                                 .findAll { it.name?.startsWith(clusterName) }
     if (jobs) {
       jobs.sort(true, {it.submittedAt}).reverse(true)
