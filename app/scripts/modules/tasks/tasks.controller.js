@@ -106,7 +106,8 @@ module.exports = angular.module('spinnaker.tasks.main', [
 
       confirmationModalService.confirm({
         header: 'Really cancel ' + task.name + '?',
-        buttonText: 'Cancel Task',
+        buttonText: 'Yes',
+        cancelButtonText: 'No',
         submitMethod: submitMethod
       });
     };
