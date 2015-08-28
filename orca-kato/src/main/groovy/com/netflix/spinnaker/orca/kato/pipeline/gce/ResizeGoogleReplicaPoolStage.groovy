@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
-import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import groovy.transform.CompileDynamic
@@ -46,9 +45,6 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
 
   @Autowired
   ResizeSupport resizeSupport
-
-  @Autowired
-  ModifyScalingProcessStage modifyScalingProcessStage
 
   @Autowired
   DetermineTargetReferenceStage determineTargetReferenceStage
