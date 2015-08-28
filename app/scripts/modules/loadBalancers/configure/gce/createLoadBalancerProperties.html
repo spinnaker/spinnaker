@@ -16,7 +16,7 @@
                validate-unique="existingLoadBalancerNames"
                validate-ignore-case="true"
                name="loadBalancerName"/>
-        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
+        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}} with that name."></validation-error>
       </div>
     </div>
     <div class="form-group">
