@@ -18,9 +18,9 @@ package com.netflix.spinnaker.mort.aws.provider.agent
 
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.SecurityGroup
-import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -30,6 +30,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 
@@ -41,20 +42,27 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
+  private static final String ON_DEMAND_TYPE = 'AmazonSecurityGroup'
+
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final ExtendedRegistry extendedRegistry
+
+  final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
     AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
   ] as Set)
 
-  AmazonSecurityGroupCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+  AmazonSecurityGroupCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, ExtendedRegistry extendedRegistry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
+    this.extendedRegistry = extendedRegistry
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
   }
 
   @Override
@@ -87,9 +95,12 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
       return null
     }
 
-    def ec2 = amazonClientProvider.getAmazonEC2(account, region, true)
+    def securityGroups = metricsSupport.readData {
+      def ec2 = amazonClientProvider.getAmazonEC2(account, region, true)
+      return getSecurityGroups(ec2)
+    }
 
-    CacheResult result = buildCacheResult(providerCache, ec2)
+    CacheResult result = metricsSupport.transformData { buildCacheResult(providerCache, securityGroups) }
 
     new OnDemandAgent.OnDemandResult(sourceAgentType: getAgentType(), authoritativeTypes: [SECURITY_GROUPS.ns], cacheResult: result)
   }
@@ -103,13 +114,15 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
   @Override
   CacheResult loadData(ProviderCache providerCache) {
     def ec2 = amazonClientProvider.getAmazonEC2(account, region)
-    buildCacheResult(providerCache, ec2)
+    buildCacheResult(providerCache, getSecurityGroups(ec2))
   }
 
-  private CacheResult buildCacheResult(ProviderCache providerCache, AmazonEC2 ec2) {
+  private List<SecurityGroup> getSecurityGroups(AmazonEC2 amazonEC2) {
     log.info("Describing items in ${agentType}")
-    def securityGroups = ec2.describeSecurityGroups().securityGroups
+    amazonEC2.describeSecurityGroups().securityGroups
+  }
 
+  private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups) {
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
       Map<String, Object> attributes = objectMapper.convertValue(securityGroup, AwsInfrastructureProvider.ATTRIBUTES)
       new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),

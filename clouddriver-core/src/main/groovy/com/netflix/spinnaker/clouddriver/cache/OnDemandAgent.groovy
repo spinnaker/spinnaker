@@ -22,9 +22,11 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 
 interface OnDemandAgent {
 
-  String getProviderName();
+  String getProviderName()
 
-  String getOnDemandAgentType();
+  String getOnDemandAgentType()
+
+  OnDemandMetricsSupport getMetricsSupport()
 
   static class OnDemandResult {
     String sourceAgentType

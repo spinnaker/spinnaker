@@ -25,6 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -34,6 +35,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
@@ -46,6 +48,8 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
 @Slf4j
 class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
+
+  public static final String ON_DEMAND_TYPE = 'AmazonLoadBalancer'
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
@@ -77,15 +81,20 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final ExtendedRegistry extendedRegistry
+  final OnDemandMetricsSupport metricsSupport
 
   LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
-                           ObjectMapper objectMapper) {
+                           ObjectMapper objectMapper,
+                           ExtendedRegistry extendedRegistry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.extendedRegistry = extendedRegistry
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
   }
 
   static class MutableCacheData implements CacheData {
@@ -109,7 +118,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == "AmazonLoadBalancer"
+    type == ON_DEMAND_TYPE
   }
 
   @Override
@@ -132,26 +141,30 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       return null
     }
 
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
-    def loadBalancers = []
-    try {
-      loadBalancers = loadBalancing.describeLoadBalancers(
-        new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
-      ).loadBalancerDescriptions
-    } catch (LoadBalancerNotFoundException ignored) {}
+    List<LoadBalancerDescription> loadBalancers = metricsSupport.readData {
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
+      try {
+        return loadBalancing.describeLoadBalancers(
+          new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
+        ).loadBalancerDescriptions
+      } catch (LoadBalancerNotFoundException ignored) {
+        return []
+      }
+    }
 
-    def cacheResult = buildCacheResult(loadBalancers, [:])
-    def cacheData = new DefaultCacheData(
-      Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
-      10 * 60,
-      [
-        cacheTime   : new Date(),
-        cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
-      ],
-      [:]
-    )
-    providerCache.putCacheData(ON_DEMAND.ns, cacheData)
-
+    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:]) }
+    metricsSupport.onDemandStore {
+      def cacheData = new DefaultCacheData(
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
+        10 * 60,
+        [
+          cacheTime   : new Date(),
+          cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+        ],
+        [:]
+      )
+      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    }
     Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
       (LOAD_BALANCERS.ns): [
         Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String)
