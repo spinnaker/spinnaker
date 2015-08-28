@@ -152,12 +152,6 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     )
     providerCache.putCacheData(ON_DEMAND.ns, cacheData)
 
-    cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
-      cacheDatas.each {
-        ((MutableCacheData) it).ttlSeconds = 60
-      }
-    }
-
     Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
       (LOAD_BALANCERS.ns): [
         Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String)
