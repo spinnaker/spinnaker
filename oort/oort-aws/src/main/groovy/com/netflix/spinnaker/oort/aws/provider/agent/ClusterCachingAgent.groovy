@@ -186,12 +186,6 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     )
     providerCache.putCacheData(ON_DEMAND.ns, cacheData)
 
-    cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
-      cacheDatas.each {
-        ((MutableCacheData) it).ttlSeconds = 60
-      }
-    }
-
     Map<String, Collection<String>> evictions = asgs ? [:] : [
       (SERVER_GROUPS.ns): [
         Keys.getServerGroupKey(asgName, account.name, region)
