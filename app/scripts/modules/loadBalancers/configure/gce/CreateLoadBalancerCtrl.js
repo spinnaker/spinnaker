@@ -109,11 +109,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+      var account = $scope.loadBalancer.credentials;
 
-      if (allLoadBalancerNames[account] && allLoadBalancerNames[account][region]) {
-        $scope.existingLoadBalancerNames = allLoadBalancerNames[account][region];
+      if (allLoadBalancerNames[account]) {
+        $scope.existingLoadBalancerNames = _.flatten(_.map(allLoadBalancerNames[account]));
       } else {
         $scope.existingLoadBalancerNames = [];
       }
