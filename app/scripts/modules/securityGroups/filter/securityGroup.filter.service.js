@@ -68,6 +68,7 @@ module.exports = angular
           subGroup.forEach(function(securityGroup) {
             subSubGroups.push({
               heading: securityGroup.region,
+              vpcName: securityGroup.vpcName,
               securityGroup: securityGroup,
             });
           });
@@ -92,7 +93,7 @@ module.exports = angular
       var groupsToRemove = [];
 
       oldGroups.forEach(function(oldGroup, idx) {
-        var newGroup = _.find(newGroups, { heading: oldGroup.heading });
+        var newGroup = _.find(newGroups, { heading: oldGroup.heading, vpcName: oldGroup.vpcName });
         if (!newGroup) {
           groupsToRemove.push(idx);
         } else {
