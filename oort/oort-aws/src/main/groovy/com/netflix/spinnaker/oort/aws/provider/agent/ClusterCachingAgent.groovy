@@ -37,11 +37,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
 import groovy.util.logging.Slf4j
 
@@ -55,6 +57,7 @@ import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
 @Slf4j
 class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
+  public static final String ON_DEMAND_TYPE = "AmazonServerGroup"
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
@@ -70,12 +73,18 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final ExtendedRegistry extendedRegistry
 
-  ClusterCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper) {
+  final OnDemandMetricsSupport metricsSupport
+
+
+  ClusterCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, ExtendedRegistry extendedRegistry) {
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.extendedRegistry = extendedRegistry
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
   }
 
   @Override
@@ -132,7 +141,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == "AmazonServerGroup"
+    type == ON_DEMAND_TYPE
   }
 
   @Override
@@ -157,36 +166,51 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
 
     String asgName = data.asgName.toString()
 
-    def clients = new AmazonClients(amazonClientProvider, account, region, true)
 
-    List<AutoScalingGroup> asgs = clients.autoScaling.describeAutoScalingGroups(
-      new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
-    ).autoScalingGroups
+    Map onDemandData = metricsSupport.readData {
+      def clients = new AmazonClients(amazonClientProvider, account, region, true)
 
-    Map<String, Collection<Map>> scalingPolicies = loadScalingPolicies(clients, asgName)
+      List<AutoScalingGroup> asgs = clients.autoScaling.describeAutoScalingGroups(
+        new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
+      ).autoScalingGroups
 
-    Map<String, Collection<Map>> scheduledActions = loadScheduledActions(clients, asgName)
+      Map<String, Collection<Map>> scalingPolicies = loadScalingPolicies(clients, asgName)
 
-    Map<String, String> subnetMap = [:]
-    asgs.each {
-      if (it.getVPCZoneIdentifier()) {
-        subnetMap.putAll(getSubnetToVpcIdMap(clients, it.getVPCZoneIdentifier().split(',')))
+      Map<String, Collection<Map>> scheduledActions = loadScheduledActions(clients, asgName)
+
+      Map<String, String> subnetMap = [:]
+      asgs.each {
+        if (it.getVPCZoneIdentifier()) {
+          subnetMap.putAll(getSubnetToVpcIdMap(clients, it.getVPCZoneIdentifier().split(',')))
+        }
       }
+
+      return [
+        asgs: asgs,
+        scalingPolicies: scalingPolicies,
+        scheduledActions: scheduledActions,
+        subnetMap: subnetMap
+      ]
     }
 
-    def cacheResult = buildCacheResult(asgs, scalingPolicies, scheduledActions, subnetMap, [:])
-    def cacheData = new DefaultCacheData(
-      Keys.getServerGroupKey(asgName, account.name, region),
-      10 * 60,
-      [
-        cacheTime   : new Date(),
-        cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
-      ],
-      [:]
-    )
-    providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    def cacheResult = metricsSupport.transformData {
+      buildCacheResult(onDemandData.asgs, onDemandData.scalingPolicies, onDemandData.scheduledActions, onDemandData.subnetMap, [:])
+    }
+    metricsSupport.onDemandStore {
+      def cacheData = new DefaultCacheData(
+        Keys.getServerGroupKey(asgName, account.name, region),
+        10 * 60,
+        [
+          cacheTime   : new Date(),
+          cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+        ],
+        [:]
+      )
 
-    Map<String, Collection<String>> evictions = asgs ? [:] : [
+      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    }
+
+    Map<String, Collection<String>> evictions = onDemandData.asgs ? [:] : [
       (SERVER_GROUPS.ns): [
         Keys.getServerGroupKey(asgName, account.name, region)
       ]

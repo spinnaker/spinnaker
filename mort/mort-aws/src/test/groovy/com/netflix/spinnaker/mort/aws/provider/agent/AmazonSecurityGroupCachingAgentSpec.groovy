@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -45,7 +46,7 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
   ProviderCache providerCache = Mock(ProviderCache)
 
   AmazonObjectMapper mapper = new AmazonObjectMapper()
-  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(amazonClientProvider, creds, region, mapper)
+  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(amazonClientProvider, creds, region, mapper, Spectator.registry())
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')

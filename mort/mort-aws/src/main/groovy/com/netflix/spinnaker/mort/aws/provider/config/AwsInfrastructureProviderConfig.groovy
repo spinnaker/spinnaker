@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -37,7 +38,7 @@ import org.springframework.context.annotation.DependsOn
 class AwsInfrastructureProviderConfig {
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, AmazonObjectMapper amazonObjectMapper) {
+  AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, AmazonObjectMapper amazonObjectMapper, ExtendedRegistry extendedRegistry) {
     List<CachingAgent> agents = []
 
     def allAccounts = accountCredentialsRepository.all.findAll {
@@ -49,7 +50,7 @@ class AwsInfrastructureProviderConfig {
         agents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
-        agents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
+        agents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper, extendedRegistry)
         agents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
         agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
       }
