@@ -10,7 +10,8 @@ module.exports = angular.module('spinnaker.confirmationModal.service', [
 ])
   .factory('confirmationModalService', function($modal) {
     var defaults = {
-      buttonText: 'Confirm'
+      buttonText: 'Confirm',
+      cancelButtonText: 'Cancel'
     };
 
     function confirm(params) {
