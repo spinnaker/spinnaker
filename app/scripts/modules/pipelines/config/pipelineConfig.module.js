@@ -14,5 +14,6 @@ module.exports = angular.module('spinnaker.pipelines.config', [
   require('./pipelineConfig.controller.js'),
   require('./pipelineConfigView.js'),
   require('./pipelineConfigurer.js'),
+  require('./validation/pipelineConfigValidator.directive.js'),
   require('./targetSelect.directive.js'),
 ]).name;
