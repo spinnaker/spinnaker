@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../../services/instanceTypeService.js'),
   require('../../../subnet/subnet.read.service.js'),
-  require('../../../keyPairs/keyParis.read.service.js'),
+  require('../../../keyPairs/keyPairs.read.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
   require('utils/lodash.js'),

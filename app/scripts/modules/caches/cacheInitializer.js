@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.caches.initializer', [
   require('../securityGroups/securityGroup.read.service.js'),
   require('../subnet/subnet.read.service.js'),
   require('../vpc/vpc.read.service.js'),
-  require('../keyPairs/keyParis.read.service.js'),
+  require('../keyPairs/keyPairs.read.service.js'),
   require('../loadBalancers/loadBalancer.read.service.js'),
   require('../applications/applications.read.service.js'),
   require('../jenkins/index.js'),
