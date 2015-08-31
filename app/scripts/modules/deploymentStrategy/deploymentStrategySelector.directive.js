@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategy
         labelColumns: '@',
         fieldColumns: '@',
       },
-      templateUrl: require('./deploymentStrategySelector.html'),
+      templateUrl: require('./deploymentStrategySelector.directive.html'),
       controller: 'DeploymentStrategySelectorCtrl',
       controllerAs: 'strategyCtrl'
     };

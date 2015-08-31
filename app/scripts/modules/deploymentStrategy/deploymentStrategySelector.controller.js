@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategySelectorController', [
-  require('./services/deploymentStrategyService.js')
+  require('./services/deploymentStrategy.service.js')
 ])
   .controller('DeploymentStrategySelectorCtrl', function($scope, deploymentStrategyService) {
 
