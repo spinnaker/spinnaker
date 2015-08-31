@@ -6,10 +6,10 @@
           <div class="row">
             <label class="col-md-3 sm-label-left">Type</label>
             <div class="col-md-9" ng-if="stage.isNew">
-              <ui-select ng-model="stage.type"
+              <ui-select ng-model="options.selectedStageType"
                          style="width: 250px"
                          class="form-control input-sm"
-                         on-select="stageConfigCtrl.selectStage()">
+                         on-select="stageConfigCtrl.selectStageType($item.key)">
                 <ui-select-match>
                   <strong>{{$select.selected.label}}</strong>
                 </ui-select-match>
@@ -18,11 +18,11 @@
                   <div>{{option.description}}</div>
                 </ui-select-choices>
               </ui-select>
-              {{description}}
+              {{ description }}
             </div>
             <div class="col-md-6" ng-if="!stage.isNew">
               <p class="form-control-static" ng-if="!stage.isNew">
-                {{stage.type | robotToHuman}}
+                {{ label }}
                 <help-field content="{{description}}"></help-field>
               </p>
             </div>

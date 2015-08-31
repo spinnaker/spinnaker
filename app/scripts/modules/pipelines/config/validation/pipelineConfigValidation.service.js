@@ -81,7 +81,7 @@ module.exports = angular.module('spinnaker.pipelines.config.validator.service', 
       var stages = pipeline.stages || [],
           messages = [];
       stages.forEach(function(stage, index) {
-        var config = pipelineConfig.getStageConfig(stage.type);
+        let config = pipelineConfig.getStageConfig(stage);
         if (config && config.validators) {
           config.validators.forEach(function(validator) {
             switch(validator.type) {

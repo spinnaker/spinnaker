@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
 
       execution.stages.forEach(function(stage) {
         if (!stage.syntheticStageOwner && hiddenStageTypes.indexOf(stage.type) === -1) {
+          let context = stage.context || {};
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
@@ -53,7 +54,8 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             before: stage.before,
             after: stage.after,
             status: stage.status,
-            comments: stage.context ? stage.context.comments : null,
+            comments: context.comments || null,
+            cloudProvider: context.cloudProvider || context.cloudProviderType,
           });
         }
       });
@@ -219,7 +221,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
     }
 
     function styleStage(stage) {
-      var stageConfig = pipelineConfig.getStageConfig(stage.type);
+      var stageConfig = pipelineConfig.getStageConfig(stage);
       var status = stage.status || 'UNKNOWN';
       stage.color = colorMapping[status.toLowerCase()] || '#cccccc';
       if (stageConfig) {

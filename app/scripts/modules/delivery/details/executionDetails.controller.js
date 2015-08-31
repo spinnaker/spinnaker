@@ -63,7 +63,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
           var step = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
           $scope.stageSummary = stageSummary;
           $scope.stage = step;
-          var stageConfig = pipelineConfig.getStageConfig(step.type);
+          var stageConfig = pipelineConfig.getStageConfig(step);
           if (stageConfig) {
             return stageConfig.executionDetailsUrl || null;
           }
@@ -78,7 +78,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         if (stageSummary) {
           $scope.stageSummary = stageSummary;
           $scope.stage = stageSummary.stages[0];
-          var stageConfig = pipelineConfig.getStageConfig(stageSummary.type);
+          var stageConfig = pipelineConfig.getStageConfig(stageSummary);
           if (stageConfig && stageConfig.executionSummaryUrl) {
             return stageConfig.executionSummaryUrl;
           }
@@ -89,8 +89,8 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     };
 
-    controller.getStepLabel = function(stageType) {
-      var stageConfig = pipelineConfig.getStageConfig(stageType);
+    controller.getStepLabel = function(stage) {
+      var stageConfig = pipelineConfig.getStageConfig(stage);
       if (stageConfig && stageConfig.executionStepLabelUrl) {
         return stageConfig.executionStepLabelUrl;
       } else {

@@ -17,8 +17,8 @@ describe('pipelineConfigValidator', function () {
   describe('validation', function () {
 
     it('performs validation against stages where declared, ignores others', function () {
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-        if (type === 'withValidation') {
+      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+        if (stage.type === 'withValidation') {
           return {
             validators: [
               {
@@ -46,8 +46,8 @@ describe('pipelineConfigValidator', function () {
     });
 
     it('executes all validators', function () {
-      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-        if (type === 'withValidation') {
+      spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+        if (stage.type === 'withValidation') {
           return {
             validators: [
               {
@@ -89,8 +89,8 @@ describe('pipelineConfigValidator', function () {
 
     describe('stageBeforeType', function () {
       it('fails if no stage is first or not preceded by declared stage type', function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-          if (type === 'withValidation') {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'withValidation') {
             return {
               validators: [
                 {
@@ -140,8 +140,8 @@ describe('pipelineConfigValidator', function () {
       });
 
       it('validates against multiple types if present', function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-          if (type === 'withValidation') {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'withValidation') {
             return {
               validators: [
                 {
@@ -184,8 +184,8 @@ describe('pipelineConfigValidator', function () {
 
     describe('checkRequiredField', function () {
       beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-          if (type === 'simpleField') {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'simpleField') {
             return {
               validators: [
                 {
@@ -196,7 +196,7 @@ describe('pipelineConfigValidator', function () {
               ]
             };
           }
-          if (type === 'nestedField') {
+          if (stage.type === 'nestedField') {
             return {
               validators: [
                 {
@@ -285,8 +285,8 @@ describe('pipelineConfigValidator', function () {
 
     describe('targetImpedance', function () {
       beforeEach(function () {
-        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (type) {
-          if (type === 'targetCheck') {
+        spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
+          if (stage.type === 'targetCheck') {
             return {
               validators: [
                 {

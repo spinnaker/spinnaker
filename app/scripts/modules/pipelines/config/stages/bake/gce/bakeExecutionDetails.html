@@ -1,4 +1,4 @@
-<div ng-controller="BakeExecutionDetailsCtrl">
+<div ng-controller="gceBakeExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'bakeConfig'">
     <div class="row">
@@ -18,10 +18,6 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Base OS</dt>
           <dd>{{stage.context.baseOs}}</dd>
-          <dt ng-if="provider === 'aws'">VM Type</dt>
-          <dd ng-if="provider === 'aws'">{{stage.context.vmType | uppercase}}</dd>
-          <dt ng-if="provider === 'aws'">Store Type</dt>
-          <dd ng-if="provider === 'aws'">{{stage.context.storeType | uppercase}}</dd>
           <dt>Label</dt>
           <dd>{{stage.context.baseLabel}}</dd>
         </dl>
