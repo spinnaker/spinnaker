@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
 
 import com.netflix.spinnaker.kato.controllers.OperationsController
 import com.netflix.spinnaker.kato.data.task.Task
-import com.netflix.spinnaker.kato.orchestration.AnnotatedAtomicOperationsRegistry
+import com.netflix.spinnaker.kato.orchestration.AnnotationsBasedAtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
@@ -45,7 +45,7 @@ class OperationsControllerSpec extends Specification {
     def mvc = MockMvcBuilders.standaloneSetup(
       new OperationsController(
         orchestrationProcessor: orchestrationProcessor,
-        atomicOperationsRegistry: new AnnotatedAtomicOperationsRegistry(
+        atomicOperationsRegistry: new AnnotationsBasedAtomicOperationsRegistry(
           applicationContext: new AnnotationConfigApplicationContext(TestConfig),
           cloudProviders: []
         )

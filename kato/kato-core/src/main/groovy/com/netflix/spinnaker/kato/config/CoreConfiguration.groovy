@@ -23,7 +23,7 @@ import com.netflix.spinnaker.kato.deploy.DefaultDeployHandlerRegistry
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeployHandlerRegistry
 import com.netflix.spinnaker.kato.deploy.NullOpDeployHandler
-import com.netflix.spinnaker.kato.orchestration.AnnotatedAtomicOperationsRegistry
+import com.netflix.spinnaker.kato.orchestration.AnnotationsBasedAtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.DefaultOrchestrationProcessor
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
@@ -59,6 +59,6 @@ class CoreConfiguration {
 
   @Bean
   AtomicOperationsRegistry atomicOperationsRegistry() {
-    new AnnotatedAtomicOperationsRegistry()
+    new AnnotationsBasedAtomicOperationsRegistry()
   }
 }

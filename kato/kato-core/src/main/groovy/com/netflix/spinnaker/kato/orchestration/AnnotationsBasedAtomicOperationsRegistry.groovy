@@ -28,7 +28,7 @@ import java.lang.annotation.Annotation
  * @author sthadeshwar
  */
 @Slf4j
-class AnnotatedAtomicOperationsRegistry extends ApplicationContextAtomicOperationsRegistry {
+class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicOperationsRegistry {
 
   @Autowired
   List<CloudProvider> cloudProviders

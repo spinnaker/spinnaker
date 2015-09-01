@@ -29,17 +29,17 @@ import java.lang.annotation.Annotation
 /**
  * @author sthadeshwar
  */
-class AnnotatedAtomicOperationsRegistrySpec extends Specification {
+class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
 
   @Subject
-  AtomicOperationsRegistry annotatedAtomicOperationsRegistry = new AnnotatedAtomicOperationsRegistry(
+  AtomicOperationsRegistry atomicOperationsRegistry = new AnnotationsBasedAtomicOperationsRegistry(
     applicationContext: new AnnotationConfigApplicationContext(TestConfiguration),
     cloudProviders: [new MyCloudProvider()]
   )
 
   void 'annotations based registry should return the converter if the specified name matches the component name'() {
     when:
-    def converter = annotatedAtomicOperationsRegistry.getAtomicOperationConverter('operationOldDescription', null)
+    def converter = atomicOperationsRegistry.getAtomicOperationConverter('operationOldDescription', null)
 
     then:
     noExceptionThrown()
@@ -49,7 +49,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return the converter that matches the AtomicOperationDescription name and cloud provider'() {
     when:
-    def converter = annotatedAtomicOperationsRegistry.getAtomicOperationConverter('operationDescription', 'test-provider')
+    def converter = atomicOperationsRegistry.getAtomicOperationConverter('operationDescription', 'test-provider')
 
     then:
     noExceptionThrown()
@@ -59,7 +59,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should throw a NoSuchBeanDefinitionException if no converter found for given name with no cloud provider specified'() {
     when:
-    def converter = annotatedAtomicOperationsRegistry.getAtomicOperationConverter('foo', null)
+    def converter = atomicOperationsRegistry.getAtomicOperationConverter('foo', null)
 
     then:
     thrown(NoSuchBeanDefinitionException)
@@ -68,7 +68,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should throw an AtomicOperationConverterNotFoundException if no converter found for given name with cloud provider specified'() {
     when:
-    def converter = annotatedAtomicOperationsRegistry.getAtomicOperationConverter('foo', 'test-provider')
+    def converter = atomicOperationsRegistry.getAtomicOperationConverter('foo', 'test-provider')
 
     then:
     thrown(AtomicOperationConverterNotFoundException)
@@ -77,7 +77,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return the validator if the specified name matches the component name'() {
     when:
-    def validator = annotatedAtomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationOldDescriptionValidator', null)
+    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationOldDescriptionValidator', null)
 
     then:
     noExceptionThrown()
@@ -87,7 +87,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return the validator that matches the AtomicOperationDescription name and cloud provider'() {
     when:
-    def validator = annotatedAtomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationDescriptionValidator', 'test-provider')
+    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('operationDescriptionValidator', 'test-provider')
 
     then:
     noExceptionThrown()
@@ -97,7 +97,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return a null if no validator found for given name with no cloud provider specified'() {
     when:
-    def validator = annotatedAtomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', null)
+    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', null)
 
     then:
     noExceptionThrown()
@@ -106,7 +106,7 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
 
   void 'annotations based registry should return a null if no validator found for given name with cloud provider specified'() {
     when:
-    def validator = annotatedAtomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', 'test-provider')
+    def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator('foo', 'test-provider')
 
     then:
     noExceptionThrown()
