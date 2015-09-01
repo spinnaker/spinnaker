@@ -14,8 +14,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.advancedSet
     };
   })
   .controller('awsServerGroupAdvancedSettingsSelectorCtrl', function($scope) {
-    $scope.healthCheckTypes = ['EC2', 'ELB'];
-    $scope.terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
     this.toggleSuspendedProcess = function(process) {
       $scope.command.suspendedProcesses = $scope.command.suspendedProcesses || [];

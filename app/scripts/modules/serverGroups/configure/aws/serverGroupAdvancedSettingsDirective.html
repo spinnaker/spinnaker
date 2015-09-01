@@ -10,7 +10,7 @@
 
     <ui-select ng-model="command.healthCheckType" class="form-control input-sm">
       <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-      <ui-select-choices repeat="healthCheckType in healthCheckTypes | filter: $select.search">
+      <ui-select-choices repeat="healthCheckType in command.backingData.healthCheckTypes | filter: $select.search">
         <span ng-bind-html="healthCheckType | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>
@@ -29,7 +29,7 @@
 
     <ui-select multiple ng-model="command.terminationPolicies" class="form-control input-sm">
       <ui-select-match>{{$item}}</ui-select-match>
-      <ui-select-choices repeat="terminationPolicy in terminationPolicies | filter: $select.search | orderBy: 'toString()'">
+      <ui-select-choices repeat="terminationPolicy in command.backingData.terminationPolicies | filter: $select.search | orderBy: 'toString()'">
         <span ng-bind-html="terminationPolicy | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>

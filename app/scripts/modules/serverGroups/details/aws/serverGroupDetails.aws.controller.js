@@ -309,6 +309,17 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       });
     };
 
+    this.editAdvancedSettings = function () {
+      $modal.open({
+        templateUrl: require('./advancedSettings/editAsgAdvancedSettings.modal.html'),
+        controller: 'EditAsgAdvancedSettingsCtrl as ctrl',
+        resolve: {
+          application: function() { return app; },
+          serverGroup: function() { return $scope.serverGroup; }
+        }
+      });
+    };
+
     this.truncateCommitHash = function() {
       if ($scope.serverGroup && $scope.serverGroup.buildInfo && $scope.serverGroup.buildInfo.commit) {
         return $scope.serverGroup.buildInfo.commit.substring(0, 8);

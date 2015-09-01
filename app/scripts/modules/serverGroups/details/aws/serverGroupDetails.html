@@ -108,6 +108,13 @@
         <dd><vpc-tag vpc-id="serverGroup.vpcId"></vpc-tag></dd>
         <dt ng-if="serverGroup.vpcId">Subnet:</dt>
         <dd ng-if="serverGroup.vpcId">{{serverGroup.subnetType || 'None (EC2 Classic)'}}</dd>
+        <dt>Availability Zones:</dt>
+        <dd>
+          <ul>
+            <li ng-repeat="zone in serverGroup.asg.availabilityZones">{{zone}}</li>
+          </ul>
+        </dd>
+
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
@@ -274,14 +281,9 @@
         <dt>Grace Period</dt>
         <dd>{{serverGroup.asg.healthCheckGracePeriod}} seconds</dd>
         <dt>Termination Policies</dt>
-        <dd>{{serverGroup.asg.terminationPolicies.join(',')}}</dd>
-        <dt>Availability Zones</dt>
-        <dd>
-          <ul>
-            <li ng-repeat="zone in serverGroup.asg.availabilityZones">{{zone}}</li>
-          </ul>
-        </dd>
+        <dd>{{serverGroup.asg.terminationPolicies.join(', ')}}</dd>
       </dl>
+      <a href ng-click="ctrl.editAdvancedSettings()">Edit Advanced Settings</a>
     </collapsible-section>
     <collapsible-section heading="Logs">
       <ul>
