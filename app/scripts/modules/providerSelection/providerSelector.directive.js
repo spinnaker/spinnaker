@@ -5,18 +5,20 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.providerSelection.directive', [
   require('../account/accountService.js'),
 ])
-  .directive('providerSelector', function(accountService) {
+  .directive('providerSelector', function(accountService, $q) {
     return {
       restrict: 'E',
       scope: {
         component: '=',
         field: '@',
         readOnly: '=',
+        providers: '=?',
       },
       templateUrl: require('./providerSelector.html'),
       link: function(scope) {
         scope.initialized = false;
-        accountService.listProviders().then(function(providers) {
+        var getProviderList = scope.providers ? $q.when(scope.providers) : accountService.listProviders();
+        getProviderList.then(function(providers) {
           scope.initialized = true;
           if (!providers.length) {
             scope.component[scope.field] = 'aws';

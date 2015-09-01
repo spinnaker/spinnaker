@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.bake.executionDetails.controller', [
+module.exports = angular.module('spinnaker.pipelines.stage.bake.aws.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../../delivery/details/executionDetailsSection.service.js'),
+  require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('BakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout) {
+  .controller('awsBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout) {
 
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 

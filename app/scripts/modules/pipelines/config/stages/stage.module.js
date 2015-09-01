@@ -32,14 +32,12 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     $scope.options = {
       stageTypes: _.sortBy(stageTypes, function (stageType) {
         return stageType.label;
-      })
+      }),
+      selectedStageType: null,
     };
 
     function getConfig(type) {
-      var matches = stageTypes.filter(function(config) {
-        return config.key === type;
-      });
-      return matches.length ? matches[0] : null;
+      return pipelineConfig.getStageConfig({type: type});
     }
 
     $scope.groupDependencyOptions = function(stage) {
@@ -70,6 +68,11 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
       });
     };
 
+    this.selectStageType = (type) => {
+      $scope.stage.type = type;
+      this.selectStage();
+    };
+
     this.selectStage = function(newVal, oldVal) {
       if ($scope.viewState.stageIndex >= $scope.pipeline.stages.length) {
         $scope.viewState.stageIndex = $scope.pipeline.stages.length - 1;
@@ -77,7 +80,6 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
       $scope.stage = $scope.pipeline.stages[$scope.viewState.stageIndex];
 
       $scope.updateAvailableDependencyStages();
-
       var type = $scope.stage.type,
           stageScope = $scope.$new();
 
@@ -93,15 +95,19 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
       });
 
       if (type) {
-        var config = getConfig(type);
-
+        let config = getConfig(type);
         if (config) {
           $scope.description = config.description;
+          $scope.label = config.label;
+          if (config.useBaseProvider || config.provides) {
+            config.templateUrl = require('./baseProviderStage/baseProviderStage.html');
+            config.controller = 'BaseProviderStageCtrl as baseProviderStageCtrl';
+          }
           updateStageName(config, oldVal);
           applyConfigController(config, stageScope);
 
-          var template = $templateCache.get(config.templateUrl);
-          var templateBody = $compile(template)(stageScope);
+          let template = $templateCache.get(config.templateUrl);
+          let templateBody = $compile(template)(stageScope);
           $element.find('.stage-details').html(templateBody);
         }
       }
@@ -128,7 +134,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
           $scope.stage.name = config.label;
         }
       }
-      if (!$scope.stage.name) {
+      if (!$scope.stage.name && config.label) {
         $scope.stage.name = config.label;
       }
     }

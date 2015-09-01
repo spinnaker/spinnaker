@@ -31,6 +31,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       });
 
       execution.stages.forEach(function(stage) {
+        let context = stage.context || {};
         var owner = stage.syntheticStageOwner;
         var parent = _.find(execution.stages, { id: stage.parentStageId });
         if (parent) {
@@ -41,10 +42,12 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             parent.after.push(stage);
           }
         }
+        stage.cloudProvider = context.cloudProvider || context.cloudProviderType;
       });
 
       execution.stages.forEach(function(stage) {
         if (!stage.syntheticStageOwner && hiddenStageTypes.indexOf(stage.type) === -1) {
+          let context = stage.context || {};
           stageSummaries.push({
             name: stage.name,
             id: stage.id,
@@ -53,7 +56,8 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             before: stage.before,
             after: stage.after,
             status: stage.status,
-            comments: stage.context ? stage.context.comments : null,
+            comments: context.comments || null,
+            cloudProvider: stage.cloudProvider,
           });
         }
       });
@@ -219,7 +223,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
     }
 
     function styleStage(stage) {
-      var stageConfig = pipelineConfig.getStageConfig(stage.type);
+      var stageConfig = pipelineConfig.getStageConfig(stage);
       var status = stage.status || 'UNKNOWN';
       stage.color = colorMapping[status.toLowerCase()] || '#cccccc';
       if (stageConfig) {

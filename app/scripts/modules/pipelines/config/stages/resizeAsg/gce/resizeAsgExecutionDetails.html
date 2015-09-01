@@ -1,4 +1,4 @@
-<div ng-controller="ResizeAsgExecutionDetailsCtrl">
+<div ng-controller="gceResizeAsgExecutionDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'resizeServerGroupConfig'">
     <div class="row">
@@ -6,12 +6,12 @@
         <dl class="dl-narrow dl-horizontal">
           <dt>Account</dt>
           <dd><account-tag account="stage.context.credentials"></account-tag></dd>
-          <dt>Region</dt>
-          <dd>{{stage.context.regions.join(',')}}</dd>
+          <dt>Zones</dt>
+          <dd>{{stage.context.zones.join(',')}}</dd>
           <dt>Server Group</dt>
           <dd>{{stage.context.asgName}}</dd>
-          <dt>Capacity</dt>
-          <dd>{{stage.context.capacity.min}} / {{stage.context.capacity.desired}} / {{stage.context.capacity.max}}</dd>
+          <dt>Replicas</dt>
+          <dd>{{stage.context.numReplicas}}</dd>
         </dl>
       </div>
     </div>

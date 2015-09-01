@@ -20,6 +20,22 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
 
     function registerStage(stageConfig) {
       stageTypes.push(stageConfig);
+      normalizeStageTypes();
+    }
+
+    function normalizeStageTypes() {
+      stageTypes
+        .filter((stageType) => { return stageType.provides; })
+        .forEach((stageType) => {
+          var parent = stageTypes.filter((parentType) => {
+            return parentType.key === stageType.provides && !parentType.provides;
+          });
+          if (parent.length) {
+            stageType.label = stageType.label || parent[0].label;
+            stageType.description = stageType.description || parent[0].description;
+            stageType.key = stageType.key || parent[0].key;
+          }
+        });
     }
 
     function getExecutionTransformers() {
@@ -36,12 +52,34 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
 
     function getConfigurableStageTypes() {
       return getStageTypes().filter(function(stageType) {
-        return !stageType.synthetic;
+        return !stageType.synthetic && !stageType.provides;
       });
     }
 
-    function getStageConfig(type) {
-      var matches = getStageTypes().filter(function(stageType) { return stageType.key === type; });
+    function getProvidersFor(key) {
+      // because the key might be the implementation itself, determine the base key, then get every provider for it
+      let baseKey = key,
+          stageTypes = getStageTypes();
+      let candidates = stageTypes.filter(function(stageType) {
+        return stageType.provides && (stageType.provides === key || stageType.key === key);
+      });
+      if (candidates.length) {
+        baseKey = candidates[0].provides;
+      }
+      return getStageTypes().filter(function(stageType) {
+        return stageType.provides && stageType.provides === baseKey;
+      });
+    }
+
+    function getStageConfig(stage) {
+      if (!stage || !stage.type) {
+        return null;
+      }
+      var matches = getStageTypes().filter((stageType) => { return stageType.key === stage.type || stageType.provides === stage.type; });
+      if (matches.length > 1) {
+        var provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
+        matches = matches.filter((stageType) => { return stageType.cloudProvider === provider; });
+      }
       return matches.length ? matches[0] : null;
     }
 
@@ -56,6 +94,7 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
       return {
         getTriggerTypes: getTriggerTypes,
         getStageTypes: getStageTypes,
+        getProvidersFor: getProvidersFor,
         getTriggerConfig: getTriggerConfig,
         getStageConfig: getStageConfig,
         getConfigurableStageTypes: getConfigurableStageTypes,
