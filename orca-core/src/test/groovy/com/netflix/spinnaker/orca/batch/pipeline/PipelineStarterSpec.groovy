@@ -20,7 +20,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.ExecutionJobBuilder
 import com.netflix.spinnaker.orca.pipeline.ExecutionStarter
+import com.netflix.spinnaker.orca.pipeline.PipelineJobBuilder
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
@@ -31,12 +33,12 @@ import org.springframework.batch.core.launch.JobLauncher
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class ExecutionStarterSpec extends Specification {
+class PipelineStarterSpec extends Specification {
 
   @Unroll
   def "should not start a previously completed execution"() {
     given:
-    def executionStarter = getExecutionStarter(sourceExecutionStatus)
+    def executionStarter = getPipelineStarter(sourceExecutionStatus)
 
     when:
     executionStarter.start("{}")
@@ -53,7 +55,7 @@ class ExecutionStarterSpec extends Specification {
   @Unroll
   def "should send failure event when exception occurs in new stage"() {
     given:
-    def executionStarter = getExecutionStarter(status)
+    def executionStarter = getPipelineStarter(status)
     JobExecutionListener listener = Mock(JobExecutionListener)
     executionStarter.pipelineListeners = [listener]
 
@@ -73,7 +75,7 @@ class ExecutionStarterSpec extends Specification {
   def "should queue concurrent executions and start ones that should not be queued"() {
 
     given:
-    def executionStarter = getExecutionStarter(ExecutionStatus.NOT_STARTED)
+    def executionStarter = getPipelineStarter(ExecutionStatus.NOT_STARTED)
     executionStarter.startTracker = Mock(PipelineStartTracker)
     executionStarter.startTracker.queueIfNotStarted(_,_) >> isStarted
 
@@ -99,7 +101,7 @@ class ExecutionStarterSpec extends Specification {
 
   def "should keep track of started pipelines"() {
     given:
-    def executionStarter = getExecutionStarter(ExecutionStatus.NOT_STARTED)
+    def executionStarter = getPipelineStarter(ExecutionStatus.NOT_STARTED)
     executionStarter.startTracker = Mock(PipelineStartTracker)
     executionStarter.startTracker.hasStartedExecutions(_) >> true
 
@@ -118,7 +120,7 @@ class ExecutionStarterSpec extends Specification {
 
   def "should keep track of started pipelines without pipeline id"() {
     given:
-    def executionStarter = getExecutionStarter(ExecutionStatus.NOT_STARTED)
+    def executionStarter = getPipelineStarter(ExecutionStatus.NOT_STARTED)
     executionStarter.startTracker = Mock(PipelineStartTracker)
     executionStarter.startTracker.hasStartedExecutions(_) >> true
 
@@ -132,17 +134,14 @@ class ExecutionStarterSpec extends Specification {
     1 * executionStarter.startTracker.addToStarted(null, _)
   }
 
-  private def getExecutionStarter(ExecutionStatus executionStatus) {
-    def executionJobBuilder = Stub(ExecutionJobBuilder) {
+  private def getPipelineStarter(ExecutionStatus executionStatus) {
+    def executionJobBuilder = Stub(PipelineJobBuilder) {
       jobNameFor(_) >> { Pipeline pipeline -> "Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}" }
       build(_) >> { Pipeline pipeline ->
         new SimpleJob("Pipeline:${pipeline.application}:${pipeline.name}:${pipeline.id}")
       }
     }
-    def executionStarter = new ExecutionStarter<Pipeline>("bake") {
-      @Override
-      protected ExecutionJobBuilder getExecutionJobBuilder() { executionJobBuilder }
-
+    def pipelineStarter = new PipelineStarter() {
       @Override
       protected void persistExecution(Pipeline subject) {}
 
@@ -164,10 +163,11 @@ class ExecutionStarterSpec extends Specification {
         return pipeline
       }
     }
-    executionStarter.jobRegistry = new MapJobRegistry()
-    executionStarter.mapper = new ObjectMapper()
-    executionStarter.launcher = Mock(JobLauncher)
-    executionStarter
+    pipelineStarter.executionJobBuilder = executionJobBuilder
+    pipelineStarter.jobRegistry = new MapJobRegistry()
+    pipelineStarter.mapper = new ObjectMapper()
+    pipelineStarter.launcher = Mock(JobLauncher)
+    pipelineStarter
   }
 
 }

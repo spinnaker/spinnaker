@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.pipeline
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.*
@@ -47,54 +46,33 @@ abstract class ExecutionStarter<T extends Execution> {
   @Autowired protected JobRepository jobRepository
   @Autowired protected ObjectMapper mapper
   @Autowired @Qualifier("instanceInfo") protected InstanceInfo currentInstance
-  @Autowired(required = false) protected PipelineStartTracker startTracker
-
-  @Autowired(required = false) List<JobExecutionListener> pipelineListeners
 
   T start(String configJson) {
-    boolean startImmediately = true
     Map<String, Serializable> config = mapper.readValue(configJson, Map)
     def subject = create(config)
     persistExecution(subject)
 
-    if (startTracker && subject instanceof Pipeline) {
-      def pipeline = (Pipeline) subject
-
-      if (startTracker &&
-          pipeline.pipelineConfigId &&
-          (pipeline.limitConcurrent == true) &&
-          startTracker.queueIfNotStarted(pipeline.pipelineConfigId, subject.id)){
-        log.info "Queueing: $subject.id"
-        startImmediately = false
-      }
+    if (queueExecution(subject)) {
+      log.info "Queueing: $subject.id"
+      return subject
     }
 
-    if (startImmediately) {
-      subject = startExecution(subject)
-    }
-
-    subject
+    return startExecution(subject)
   }
 
   T startExecution(T subject) {
     def job = createJob(subject)
     persistExecution(subject)
     if (subject.status.isComplete()) {
-      log.warn(
-        "Unable to start execution that has previously been completed (${subject.class.simpleName}:${subject.id}:${subject.status})")
-      if (subject instanceof Pipeline) {
-        pipelineListeners?.each {
-          it.afterJob(new JobExecution(0L, new JobParameters([pipeline: new JobParameter(subject.id)])))
-        }
-      }
+      onCompleteBeforeLaunch(subject)
       return subject
     }
+
     log.info "Starting $subject.id"
     launcher.run job, createJobParameters(subject)
-    if (startTracker && subject instanceof Pipeline) {
-      startTracker.addToStarted(((Pipeline) subject).pipelineConfigId, subject.id)
-    }
-    subject
+    afterJobLaunch(subject)
+
+    return subject
   }
 
   public Job createJob(T subject) {
@@ -117,16 +95,36 @@ abstract class ExecutionStarter<T extends Execution> {
     }
   }
 
-  protected abstract ExecutionJobBuilder<T> getExecutionJobBuilder()
-
-  protected abstract void persistExecution(T subject)
-
-  protected abstract T create(Map<String, Serializable> config)
-
   protected JobParameters createJobParameters(T subject) {
     def params = new JobParametersBuilder()
     params.addString(type, subject.id)
     params.addString("application", subject.application)
     params.toJobParameters()
   }
+
+  /**
+   * Hook for subclasses to decide if this execution should be queued or start immediately.
+   * @return true iff the stage should be queued.
+   */
+  protected boolean queueExecution(T subject) {false}
+
+  /**
+   * Hook for anything necessary after the job has started.
+   */
+  protected void afterJobLaunch(T subject) {}
+
+  /**
+   * Hook for when any configured stage has indicated that this pipeline is complete (usually terminated) before
+   * actually be started. Subclasses overriding this implementation should call super.onCompleteBeforeLaunch().
+   */
+  protected void onCompleteBeforeLaunch(T subject) {
+    log.warn("Unable to start execution that has previously been completed " +
+      "(${subject.class.simpleName}:${subject.id}:${subject.status})")
+  }
+
+  protected abstract ExecutionJobBuilder<T> getExecutionJobBuilder()
+
+  protected abstract void persistExecution(T subject)
+
+  protected abstract T create(Map<String, Serializable> config)
 }
