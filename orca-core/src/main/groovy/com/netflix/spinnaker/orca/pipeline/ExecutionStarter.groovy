@@ -114,8 +114,8 @@ abstract class ExecutionStarter<T extends Execution> {
   protected void afterJobLaunch(T subject) {}
 
   /**
-   * Hook for when the any configured stage has indicated that this pipeline is complete. Subclasses overriding this
-   * implementation should call super.onCompleteBeforeLaunch.
+   * Hook for when any configured stage has indicated that this pipeline is complete (usually terminated) before
+   * actually be started. Subclasses overriding this implementation should call super.onCompleteBeforeLaunch().
    */
   protected void onCompleteBeforeLaunch(T subject) {
     log.warn("Unable to start execution that has previously been completed " +
