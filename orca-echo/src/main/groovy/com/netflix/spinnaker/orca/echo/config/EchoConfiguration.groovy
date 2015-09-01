@@ -26,7 +26,7 @@ import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -40,7 +40,7 @@ import retrofit.converter.JacksonConverter
 
 @Configuration
 @Import([RetrofitConfiguration])
-@ConditionalOnProperty(value = 'echo.baseUrl')
+@ConditionalOnExpression('${echo.enabled:true}')
 @ComponentScan("com.netflix.spinnaker.orca.echo")
 @CompileStatic
 class EchoConfiguration {
