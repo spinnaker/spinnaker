@@ -17,12 +17,16 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.Amazon
 import com.netflix.spinnaker.kato.aws.deploy.description.DestroyAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.DestroyAsgAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationDescription
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@Amazon
+@AtomicOperationDescription("destroyServerGroupDescription")
 @Component("destroyAsgDescription")
 class DestroyAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override

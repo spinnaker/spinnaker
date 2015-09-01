@@ -16,27 +16,30 @@
 
 
 package com.netflix.spinnaker.kato.controllers
-
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.kato.security.AllowedAccountsValidator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
 import org.springframework.validation.ObjectError
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
 
@@ -47,9 +50,6 @@ class OperationsController {
   MessageSource messageSource
 
   @Autowired
-  ApplicationContext applicationContext
-
-  @Autowired
   OrchestrationProcessor orchestrationProcessor
 
   @Autowired
@@ -57,6 +57,9 @@ class OperationsController {
 
   @Autowired(required = false)
   Collection<AllowedAccountsValidator> allowedAccountValidators = []
+
+  @Autowired
+  AtomicOperationsRegistry atomicOperationsRegistry
 
   @RequestMapping(method = RequestMethod.POST)
   Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
@@ -113,14 +116,15 @@ class OperationsController {
     def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
 
     def descriptions = []
-    inputs.collectMany { input ->
-      input.collect { k, v ->
-        def converter = (AtomicOperationConverter) applicationContext.getBean(k)
+    inputs.collectMany { Map<String, Map> input ->
+      input.collect { String k, Map v ->
+        def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, v.cloudProvider)
         def description = converter.convertDescription(new HashMap(v))
         descriptions << description
         def errors = new DescriptionValidationErrors(description)
-        if (applicationContext.containsBean("${k}Validator")) {
-          def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
+
+        def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator("${k}Validator", v.cloudProvider)
+        if (validator) {
           validator.validate(descriptions, description, errors)
         }
 
