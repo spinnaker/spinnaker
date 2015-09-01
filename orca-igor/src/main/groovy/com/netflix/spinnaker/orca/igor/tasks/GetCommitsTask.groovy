@@ -15,18 +15,17 @@
  */
 
 package com.netflix.spinnaker.orca.igor.tasks
-
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.igor.IgorService
+import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.igor.IgorService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -36,7 +35,7 @@ import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
-class GetCommitsTask implements RetryableTask {
+class GetCommitsTask implements DiffTask {
   private static final int MAX_RETRIES = 10
 
   long backoffPeriod = 1000

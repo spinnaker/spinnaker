@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,14 @@
  * limitations under the License.
  */
 
-include "orca-core",
-  "orca-retrofit",
-  "orca-front50",
-  "orca-bakery",
-  "orca-echo",
-  "orca-eureka",
-  "orca-igor",
-  "orca-clouddriver",
-  "orca-mine",
-  "orca-test",
-  "orca-rush",
-  "orca-flex",
-  "orca-web",
-  "orca-smoke-test",
-  "orca-tide"
+package com.netflix.spinnaker.orca.kato.tasks
+import com.netflix.spinnaker.orca.RetryableTask
 
-rootProject.name = "orca"
+/**
+ * Marker interface for tasks that perform source/target diffs
+ * Example, source diffs, library diffs, etc.
+ * @author sthadeshwar
+ */
+public interface DiffTask extends RetryableTask {
 
-def setBuildFile(project) {
-  project.buildFileName = "${project.name}.gradle"
-  project.children.each {
-    setBuildFile(it)
-  }
-}
-
-rootProject.children.each {
-  setBuildFile it
 }

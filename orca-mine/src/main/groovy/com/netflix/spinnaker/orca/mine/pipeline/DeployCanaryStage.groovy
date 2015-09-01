@@ -22,13 +22,13 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.oort.tasks.FindAmiFromClusterTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.kato.pipeline.ParallelDeployStage
-import com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -39,9 +39,11 @@ class DeployCanaryStage extends ParallelDeployStage {
 
   public static final String PIPELINE_CONFIG_TYPE = "deployCanary"
 
-  @Autowired FindAmiFromClusterTask findAmi
+  @Autowired
+  FindAmiFromClusterTask findAmi
 
-  @Autowired(required = false) GetCommitsTask getCommits
+  @Autowired(required = false)
+  List<DiffTask> diffTasks
 
   DeployCanaryStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -126,8 +128,10 @@ class DeployCanaryStage extends ParallelDeployStage {
               buildId: cluster.buildUrl
             ]
           }
-          if (getCommits) {
-            getCommits.execute(stage)
+          if (diffTasks) {
+            diffTasks.each {
+              it.execute(stage)
+            }
           }
           deployedClusterPairs << resultPair
         }
