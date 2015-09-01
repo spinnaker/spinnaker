@@ -25,11 +25,13 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.oort.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
 
 @Component
+@Slf4j
 class FindAmiFromClusterTask implements Task {
 
   static enum SelectionStrategy {
@@ -132,7 +134,15 @@ class FindAmiFromClusterTask implements Task {
         return null
       }
 
-      [region: region, ami: serverGroup.image.imageId, imageName: serverGroup.image.name, sourceServerGroup: serverGroup.name] + (Map) serverGroup.image + (Map) serverGroup.buildInfo
+      def result = [region: region, ami: serverGroup.image.imageId, imageName: serverGroup.image.name, sourceServerGroup: serverGroup.name]
+      try {
+        result.putAll(serverGroup.image ?: [:])
+        result.putAll(serverGroup.buildInfo ?: [:])
+      } catch (Exception e) {
+        log.error("Unable to merge server group image/build info (serverGroup: ${serverGroup})", e)
+      }
+
+      return result
     }
 
     if (requiredRegions && deploymentDetails.size() != requiredRegions.size()) {

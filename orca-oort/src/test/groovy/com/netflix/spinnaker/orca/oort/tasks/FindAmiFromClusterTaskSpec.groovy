@@ -151,8 +151,8 @@ class FindAmiFromClusterTaskSpec extends Specification {
     then:
     1 * oortService.getCluster(app, account, cluster, 'aws') >> response
     result.globalOutputs?.deploymentDetails?.find { it.region == 'us-east-1' }?.ami == expectedAmi
-
-
+    result.globalOutputs?.deploymentDetails?.find { it.region == 'us-east-1' }?.imageId == expectedAmi
+    result.globalOutputs?.deploymentDetails?.find { it.region == 'us-east-1' }?.job == "foo-build"
 
     where:
     strategy  | expectedAmi
