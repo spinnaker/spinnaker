@@ -103,7 +103,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/scheduler/scheduler.service.js'),
     require('./services/urlbuilder.js'),
     require('./modules/clusterFilter/cluster.filter.module.js'),
-    require('./directives/modalWizard.js'),
+    require('./directives/modalWizard.directive.js'),
     require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/common/ajaxError.interceptor.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),

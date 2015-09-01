@@ -10,10 +10,9 @@ module.exports = angular.module('spinnaker.securityGroup.aws.create.controller',
   require('../../../tasks/monitor/taskMonitorService.js'),
   require('../../securityGroup.write.service.js'),
   require('../../../vpc/vpc.read.service.js'),
-  require('../../../../directives/modalWizard.js'),
 ])
   .controller('CreateSecurityGroupCtrl', function($scope, $modalInstance, $state, $controller,
-                                                  accountService, securityGroupReader, modalWizardService,
+                                                  accountService, securityGroupReader,
                                                   taskMonitorService, cacheInitializer, infrastructureCaches,
                                                   _, application, securityGroup ) {
 
