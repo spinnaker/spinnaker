@@ -27,21 +27,20 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class UpsertAsgScheduledActionsTask implements Task {
-
+class ModifyAsgTask implements Task {
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[upsertAsgScheduledActionsDescription: stage.context]])
+    def taskId = kato.requestOperations([[modifyAsgDescription: stage.context]])
         .toBlocking()
         .first()
 
     def deployServerGroups = AsgDescriptionSupport.convertAsgsToDeploymentTargets(stage.context.asgs)
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"     : "upsertasgscheduledactions",
+        "notification.type"     : "modifyasg",
         "deploy.server.groups"  : deployServerGroups,
         "kato.last.task.id"     : taskId,
     ])
