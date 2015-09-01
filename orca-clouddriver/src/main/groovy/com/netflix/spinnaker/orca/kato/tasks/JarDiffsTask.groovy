@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
@@ -46,7 +45,7 @@ import java.util.regex.Matcher
 @Import(RetrofitConfiguration)
 @ConditionalOnBean(ComparableLooseVersion)
 @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
-class JarDiffsTask implements RetryableTask {
+class JarDiffsTask implements DiffTask {
 
   private static final int MAX_RETRIES = 18
 

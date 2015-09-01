@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-dependencies {
-  compile project(":orca-retrofit")
-  testCompile project(":orca-test")
+package com.netflix.spinnaker.orca.kato.tasks
+import com.netflix.spinnaker.orca.RetryableTask
+
+/**
+ * Marker interface for tasks that perform source/target diffs
+ * Example, source diffs, library diffs, etc.
+ * @author sthadeshwar
+ */
+public interface DiffTask extends RetryableTask {
+
 }

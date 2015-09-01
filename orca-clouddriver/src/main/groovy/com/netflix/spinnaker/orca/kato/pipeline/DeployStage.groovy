@@ -15,44 +15,56 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline
-
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.igor.tasks.GetCommitsTask
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.CreateCopyLastAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.CreateDeployTask
+import com.netflix.spinnaker.orca.kato.tasks.DiffTask
 import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstancesTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopyLastAsgStage extends DeployStrategyStage {
+class DeployStage extends DeployStrategyStage {
+  public static final String PIPELINE_CONFIG_TYPE = "linearDeploy"
 
-  public static final String PIPELINE_CONFIG_TYPE = "copyLastAsg"
-
-  @Autowired(required = false)
-  GetCommitsTask commitsTask
-
-  CopyLastAsgStage() {
+  DeployStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
+  @Autowired(required = false)
+  List<DiffTask> diffTasks
+
+  @VisibleForTesting
   @Override
-  List<Step> basicSteps(Stage stage) {
-    def steps = [
-      buildStep(stage, "createCopyLastAsg", CreateCopyLastAsgTask),
-      buildStep(stage, "monitorDeploy", MonitorKatoTask)
-    ]
-    if (commitsTask) {
-      steps << buildStep(stage, "getCommits", commitsTask)
-    }
+  protected List<Step> basicSteps(Stage stage) {
+    def steps = []
+
+    steps << buildStep(stage, "createDeploy", CreateDeployTask)
+    steps << buildStep(stage, "monitorDeploy", MonitorKatoTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     steps << buildStep(stage, "waitForUpInstances", WaitForUpInstancesTask)
     steps << buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
+
+    if (diffTasks) {
+      diffTasks.each { DiffTask diffTask ->
+        steps << buildStep(stage, getDiffTaskName(diffTask.class.simpleName), diffTask.class)
+      }
+    }
+
     return steps
+  }
+
+  private String getDiffTaskName(String className) {
+    try {
+      className = className[0].toLowerCase() + className.substring(1)
+      className = className.replaceAll("Task", "")
+    } catch (e) {}
+    return className
   }
 }
