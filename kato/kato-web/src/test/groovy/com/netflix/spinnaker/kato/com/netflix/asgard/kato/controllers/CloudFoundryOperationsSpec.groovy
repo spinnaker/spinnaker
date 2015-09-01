@@ -20,6 +20,7 @@ import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
+import com.netflix.spinnaker.clouddriver.core.CloudProvider
 import com.netflix.spinnaker.kato.cf.deploy.description.CloudFoundryDeployDescription
 import com.netflix.spinnaker.kato.cf.deploy.handlers.CloudFoundryDeployHandler
 import com.netflix.spinnaker.kato.cf.security.CloudFoundryAccountCredentials
@@ -51,6 +52,8 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import org.springframework.web.context.support.GenericWebApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
+
+import java.lang.annotation.Annotation
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup
@@ -273,6 +276,14 @@ class CloudFoundryOperationsSpec extends Specification {
       new DefaultAccountCredentialsProvider(repository)
     }
 
+    @Bean
+    CloudProvider cloudProvider() {
+      new CloudProvider() {
+        String id = 'cloud-foundry'
+        String displayName = 'Cloud Foundry'
+        Class<? extends Annotation> annotation = null
+      }
+    }
   }
 
   static class TestCloudFoundryClientFactory implements CloudFoundryClientFactory {

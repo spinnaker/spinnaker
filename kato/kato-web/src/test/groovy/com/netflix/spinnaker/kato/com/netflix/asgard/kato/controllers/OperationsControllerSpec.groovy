@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.com.netflix.asgard.kato.controllers
 
 import com.netflix.spinnaker.kato.controllers.OperationsController
 import com.netflix.spinnaker.kato.data.task.Task
+import com.netflix.spinnaker.kato.orchestration.AnnotatedAtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
@@ -41,8 +42,14 @@ class OperationsControllerSpec extends Specification {
         will go to the Spring context for a bean named "desc1", and will call the "convertOperation" method on it, with the description as input.
       """
     OrchestrationProcessor orchestrationProcessor = Mock(OrchestrationProcessor)
-    def mvc = MockMvcBuilders.standaloneSetup(new OperationsController(orchestrationProcessor: orchestrationProcessor,
-        applicationContext: new AnnotationConfigApplicationContext(TestConfig))).build()
+    def mvc = MockMvcBuilders.standaloneSetup(
+      new OperationsController(
+        orchestrationProcessor: orchestrationProcessor,
+        atomicOperationsRegistry: new AnnotatedAtomicOperationsRegistry(
+          applicationContext: new AnnotationConfigApplicationContext(TestConfig),
+          cloudProviders: []
+        )
+      )).build()
 
     when:
     mvc.perform(MockMvcRequestBuilders.post("/ops").contentType(MediaType.APPLICATION_JSON).content('[ { "desc1": {}, "desc2": {} } ]')).andReturn()

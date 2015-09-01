@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
@@ -23,11 +22,13 @@ import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 
 @Configuration
 @ConditionalOnProperty('aws.enabled')
+@ComponentScan(["com.netflix.spinnaker.clouddriver.aws"])
 @Import([
   BastionConfig,
   AmazonCredentialsInitializer
