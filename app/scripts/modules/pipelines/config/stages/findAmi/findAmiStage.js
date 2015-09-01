@@ -13,6 +13,13 @@ module.exports = angular.module('spinnaker.pipelines.stage.findAmiStage', [])
       controllerAs: 'findAmiStageCtrl',
       templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: require('./findAmiExecutionDetails.html'),
+      validators: [
+        {
+          type: 'requiredField',
+          fieldName: 'cluster',
+          message: '<strong>Cluster</strong> is a required field on Find Image stages.',
+        },
+      ]
     });
   }).controller('findAmiStageCtrl', function($scope, stage, accountService, _) {
     $scope.stage = stage;
