@@ -24,12 +24,6 @@ class UpsertAsgScheduledActionsDescription extends AbstractAmazonCredentialsDesc
   List<ScheduledActionDescription> scheduledActions
 
   @ToString
-  static class AsgDescription {
-    String region
-    String asgName
-  }
-
-  @ToString
   static class ScheduledActionDescription {
     String recurrence
     Integer minSize

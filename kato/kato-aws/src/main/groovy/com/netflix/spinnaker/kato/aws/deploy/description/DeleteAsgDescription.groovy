@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.description
 
-import groovy.transform.ToString
-
 class DeleteAsgDescription extends AbstractAmazonCredentialsDescription {
   List<AsgDescription> asgs = []
   Boolean forceDelete = Boolean.FALSE
@@ -28,11 +26,5 @@ class DeleteAsgDescription extends AbstractAmazonCredentialsDescription {
 
   @Deprecated
   List<String> regions = []
-
-  @ToString
-  static class AsgDescription {
-    String region
-    String asgName
-  }
 
 }

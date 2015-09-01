@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.description
 
-import groovy.transform.ToString
-
 class UpsertAsgTagsDescription extends AbstractAmazonCredentialsDescription {
 
   List<AsgDescription> asgs = []
@@ -29,10 +27,4 @@ class UpsertAsgTagsDescription extends AbstractAmazonCredentialsDescription {
 
   @Deprecated
   List<String> regions = []
-
-  @ToString
-  static class AsgDescription {
-    String region
-    String asgName
-  }
 }
