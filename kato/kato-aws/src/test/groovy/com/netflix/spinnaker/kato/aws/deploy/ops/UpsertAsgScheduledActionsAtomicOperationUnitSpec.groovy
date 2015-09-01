@@ -23,6 +23,7 @@ import com.amazonaws.services.autoscaling.model.DescribeScheduledActionsResult
 import com.amazonaws.services.autoscaling.model.ScheduledUpdateGroupAction
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.TestCredential
+import com.netflix.spinnaker.kato.aws.deploy.description.AsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertAsgScheduledActionsDescription
 import com.netflix.spinnaker.kato.aws.services.IdGenerator
@@ -44,8 +45,8 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
     mockAmazonClientProvider.getAutoScaling(_, 'us-west-1', true) >> mockAutoScalingB
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
-            new UpsertAsgScheduledActionsDescription.AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
-            new UpsertAsgScheduledActionsDescription.AsgDescription(asgName: 'asg-v002', region: 'us-west-1'),
+            new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
+            new AsgDescription(asgName: 'asg-v002', region: 'us-west-1'),
         ],
         scheduledActions: [
             new UpsertAsgScheduledActionsDescription.ScheduledActionDescription(recurrence: '* 0 0 0 0', minSize: 1, maxSize: 1, desiredCapacity: 1),
@@ -100,7 +101,7 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
     mockAmazonClientProvider.getAutoScaling(_, 'us-east-1', true) >> mockAutoScaling
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
-            new UpsertAsgScheduledActionsDescription.AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
+            new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
         ],
         scheduledActions: []
     )
@@ -139,7 +140,7 @@ class UpsertAsgScheduledActionsAtomicOperationUnitSpec extends Specification {
     mockAmazonClientProvider.getAutoScaling(_, 'us-east-1', true) >> mockAutoScaling
     def description = new UpsertAsgScheduledActionsDescription(
         asgs: [
-            new UpsertAsgScheduledActionsDescription.AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
+            new AsgDescription(asgName: 'asg-v001', region: 'us-east-1'),
         ],
         scheduledActions: [
             new UpsertAsgScheduledActionsDescription.ScheduledActionDescription(recurrence: '40 20 * * *', minSize: 1, maxSize: 30, desiredCapacity: 1),
