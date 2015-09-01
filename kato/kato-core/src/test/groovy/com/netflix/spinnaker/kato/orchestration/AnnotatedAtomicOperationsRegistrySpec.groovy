@@ -16,13 +16,12 @@
 
 package com.netflix.spinnaker.kato.orchestration
 import com.netflix.spinnaker.clouddriver.core.CloudProvider
-import com.netflix.spinnaker.kato.orchestration.testregistry.TestConverter
-import com.netflix.spinnaker.kato.orchestration.testregistry.TestProvider
-import com.netflix.spinnaker.kato.orchestration.testregistry.TestValidator
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.validation.Errors
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -121,7 +120,37 @@ class AnnotatedAtomicOperationsRegistrySpec extends Specification {
   }
 
   @Configuration
-  @ComponentScan(["com.netflix.spinnaker.kato.orchestration.testregistry"])
-  static class TestConfiguration {}
+  static class TestConfiguration {
 
+    @Bean(name = "operationOldDescription")
+    AtomicOperationConverter testConverter() {
+      new TestConverter()
+    }
+
+    @Bean(name = "operationOldDescriptionValidator")
+    DescriptionValidator descriptionValidator() {
+      new TestValidator()
+    }
+  }
+
+  @TestProvider
+  @AtomicOperationDescription("operationDescription")
+  static class TestConverter implements AtomicOperationConverter {
+    @Override
+    AtomicOperation convertOperation(Map input) {
+      return null
+    }
+    @Override
+    Object convertDescription(Map input) {
+      return null
+    }
+  }
+
+  @TestProvider
+  @AtomicOperationDescriptionValidator("operationDescriptionValidator")
+  static class TestValidator extends DescriptionValidator {
+    @Override
+    void validate(List priorDescriptions, Object description, Errors errors) {
+    }
+  }
 }

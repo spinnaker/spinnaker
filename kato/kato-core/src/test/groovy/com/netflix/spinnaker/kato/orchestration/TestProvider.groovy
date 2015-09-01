@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.orchestration.testregistry
+package com.netflix.spinnaker.kato.orchestration
 
-import com.netflix.spinnaker.kato.deploy.DescriptionValidator
-import com.netflix.spinnaker.kato.orchestration.AtomicOperationDescriptionValidator
-import org.springframework.stereotype.Component
-import org.springframework.validation.Errors
+import java.lang.annotation.ElementType
+import java.lang.annotation.Retention
+import java.lang.annotation.RetentionPolicy
+import java.lang.annotation.Target
 
 /**
  * @author sthadeshwar
  */
-@TestProvider
-@AtomicOperationDescriptionValidator("operationDescriptionValidator")
-@Component("operationOldDescriptionValidator")
-class TestValidator extends DescriptionValidator {
 
-  @Override
-  void validate(List priorDescriptions, Object description, Errors errors) {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface TestProvider {
 
-  }
 }
