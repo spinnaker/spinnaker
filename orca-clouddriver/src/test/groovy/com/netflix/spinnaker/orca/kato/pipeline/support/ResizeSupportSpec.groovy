@@ -129,6 +129,8 @@ class ResizeSupportSpec extends Specification {
       !descriptors.empty
       descriptors[0] == [
         action         : "scale_up",
+        asgName        : "testapp-asg-v001",
+        capacity       : [min:12, desired:12, max:12],
         cluster        : "testapp-asg",
         credentials    : "test",
         numReplicas    : 12,

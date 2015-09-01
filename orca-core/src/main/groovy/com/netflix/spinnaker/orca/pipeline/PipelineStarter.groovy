@@ -19,6 +19,10 @@ package com.netflix.spinnaker.orca.pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import org.springframework.batch.core.JobExecution
+import org.springframework.batch.core.JobExecutionListener
+import org.springframework.batch.core.JobParameter
 import org.springframework.batch.core.JobParameters
 import org.springframework.batch.core.JobParametersBuilder
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,10 +30,13 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Slf4j
 class PipelineStarter extends ExecutionStarter<Pipeline> {
 
   @Autowired ExecutionRepository executionRepository
   @Autowired PipelineJobBuilder executionJobBuilder
+  @Autowired(required = false) PipelineStartTracker startTracker
+  @Autowired(required = false) List<JobExecutionListener> pipelineListeners
 
   PipelineStarter() {
     super("pipeline")
@@ -62,5 +69,27 @@ class PipelineStarter extends ExecutionStarter<Pipeline> {
     def params = new JobParametersBuilder(super.createJobParameters(pipeline))
     params.addString("name", pipeline.name)
     params.toJobParameters()
+  }
+
+  @Override
+  protected boolean queueExecution(Pipeline pipeline) {
+    return pipeline.pipelineConfigId &&
+        pipeline.limitConcurrent &&
+        startTracker &&
+        startTracker.queueIfNotStarted(pipeline.pipelineConfigId, pipeline.id)
+  }
+
+  @Override
+  protected void afterJobLaunch(Pipeline pipeline) {
+    startTracker?.addToStarted(pipeline.pipelineConfigId, pipeline.id)
+  }
+
+  @Override
+  protected void onCompleteBeforeLaunch(Pipeline pipeline) {
+    super.onCompleteBeforeLaunch(pipeline)
+
+    pipelineListeners?.each {
+      it.afterJob(new JobExecution(0L, new JobParameters([pipeline: new JobParameter(pipeline.id)])))
+    }
   }
 }
