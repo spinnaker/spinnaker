@@ -31,6 +31,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       });
 
       execution.stages.forEach(function(stage) {
+        let context = stage.context || {};
         var owner = stage.syntheticStageOwner;
         var parent = _.find(execution.stages, { id: stage.parentStageId });
         if (parent) {
@@ -41,6 +42,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             parent.after.push(stage);
           }
         }
+        stage.cloudProvider = context.cloudProvider || context.cloudProviderType;
       });
 
       execution.stages.forEach(function(stage) {
@@ -55,7 +57,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
             after: stage.after,
             status: stage.status,
             comments: context.comments || null,
-            cloudProvider: context.cloudProvider || context.cloudProviderType,
+            cloudProvider: stage.cloudProvider,
           });
         }
       });
