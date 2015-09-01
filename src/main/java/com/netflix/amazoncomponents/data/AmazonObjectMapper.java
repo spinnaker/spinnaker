@@ -16,8 +16,12 @@
 
 package com.netflix.amazoncomponents.data;
 
+@Deprecated
+/**
+ * @deprecated use com.netflix.awsobjectmapper.AmazonObjectMapper
+ */
 public class AmazonObjectMapper extends com.netflix.awsobjectmapper.AmazonObjectMapper {
-    public AmazonObjectMapper() {
+  public AmazonObjectMapper() {
         super();
     }
 }
