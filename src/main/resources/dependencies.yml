@@ -1,6 +1,6 @@
 versions:
 # spinnaker libs
-  amazoncomponents: "0.11.10"
+  amazoncomponents: "0.11.11"
   amos: "0.30"
   cats: "0.20.0"
   kork: "1.48"
@@ -31,10 +31,10 @@ versions:
   okHttp: "2.2.0"
   redisEmbedded: "0.6"
   retrofit: "1.9.0"
-  rxJava: "1.0.8"
+  rxJava: "1.0.14"
   slf4j: "1.7.10"
   snappy: "1.1.1.6"
-  spectator: "0.18"
+  spectator: "0.30.0"
   spock: "1.0-groovy-2.3"
   spring: "4.1.7.RELEASE"
   springBoot: "1.2.5.RELEASE"
