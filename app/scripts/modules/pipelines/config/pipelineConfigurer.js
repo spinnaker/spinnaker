@@ -233,15 +233,21 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
       $scope.$broadcast('pipeline-reverted');
     };
 
+    function cleanStageForDiffing(stage) {
+      delete stage.cloudProviderType;
+    }
+
     function getPlain(pipeline) {
-      var base = pipeline.fromServer ? pipeline.plain() : angular.copy(pipeline);
+      var base = pipeline.fromServer ? pipeline.plain() : pipeline;
+      var copy = _.cloneDeep(base);
+      copy.stages.forEach(cleanStageForDiffing);
       return {
-        stages: base.stages,
-        triggers: base.triggers,
-        parallel: base.parallel,
-        limitConcurrent: base.limitConcurrent,
-        stageCounter: base.stageCounter,
-        parameterConfig: base.parameterConfig
+        stages: copy.stages,
+        triggers: copy.triggers,
+        parallel: copy.parallel,
+        limitConcurrent: copy.limitConcurrent,
+        stageCounter: copy.stageCounter,
+        parameterConfig: copy.parameterConfig
       };
     }
 
