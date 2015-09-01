@@ -16,6 +16,8 @@
 
 'use strict';
 
+//TODO: move this out of the directives folder.
+
 module.exports = function () {
   return function (scope, element, attr) {
     scope.$watch(attr.isVisible, function (visible) {

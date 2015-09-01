@@ -4,7 +4,7 @@ module.exports = function() {
   return {
     restrict: 'E',
     replace: true,
-    templateUrl: require('../../views/directives/panelprogress.html'),
+    templateUrl: require('./panelProgress.directive.html'),
     scope: {
       item: '=',
     },

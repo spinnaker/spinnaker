@@ -12,7 +12,7 @@ module.exports = function() {
       usePreferredZones: '=',
       provider: '='
     },
-    templateUrl: require('../../views/application/modal/serverGroup/aws/loadBalancerAvailabilityZoneDirective.html'),
+    templateUrl: require('./loadBalancerAvailabilityZoneSelector.directive.html'),
     controller: function($scope, $q, accountService) {
       $scope.model.usePreferredZones = angular.isDefined($scope.model.usePreferredZones) ? $scope.model.usePreferredZones : true;
 

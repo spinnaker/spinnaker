@@ -4,7 +4,7 @@ module.exports = function () {
   return {
     restrict: 'E',
     replace: true,
-    templateUrl: require('../../views/application/modal/submitButton.html'),
+    templateUrl: require('./submitButton.directive.html'),
     scope: {
       onClick: '&',
       isDisabled: '=',

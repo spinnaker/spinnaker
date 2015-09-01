@@ -3,14 +3,15 @@
 module.exports = function () {
   return {
     restrict: 'E',
-    templateUrl: require('../../../views/directives/gce/zoneSelectField.html'),
+    templateUrl: require('./regionSelectField.directive.html'),
     scope: {
-      zones: '=',
+      regions: '=',
       component: '=',
       field: '@',
       account: '=',
       onChange: '&',
-      labelColumns: '@'
+      labelColumns: '@',
+      readOnly: '=',
     }
   };
 };

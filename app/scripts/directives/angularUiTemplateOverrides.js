@@ -27,7 +27,7 @@ let angular = require('angular');
  *   ng-bind="content" => ng-bind-html="content"
  */
 
-//BEN_TODO
+//TODO: move this out of the directives folder
 module.exports = angular.module('spinnaker')
   .run(function($templateCache) {
     $templateCache.put('template/popover/popover.html',

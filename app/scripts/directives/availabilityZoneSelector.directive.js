@@ -8,7 +8,7 @@ module.exports = function() {
     scope: {
       command: '=',
     },
-    templateUrl: require('../../views/application/modal/serverGroup/aws/availabilityZoneDirective.html'),
+    templateUrl: require('./availabilityZoneSelector.directive.html'),
     controller: function($scope) {
       $scope.autoBalancingOptions = [
         { label: 'Enabled', value: true},
