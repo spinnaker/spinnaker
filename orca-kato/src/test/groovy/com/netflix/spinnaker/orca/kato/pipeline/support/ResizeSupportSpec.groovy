@@ -138,6 +138,8 @@ class ResizeSupportSpec extends Specification {
         scaleNum       : 2,
         target         : "current_asg_dynamic",
         zones          : ["north-pole"],
+        asgName        : "testapp-asg-v001",
+        capacity       : [min: 12, desired: 12, max: 12]
       ]
   }
 }
