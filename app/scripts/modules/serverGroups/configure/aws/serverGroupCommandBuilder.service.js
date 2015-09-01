@@ -8,10 +8,13 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
   require('../../../subnet/subnet.read.service.js'),
   require('../../../../services/instanceTypeService.js'),
   require('../../../naming/naming.service.js'),
+  require('./serverGroupConfiguration.service.js'),
   require('utils/lodash.js'),
 ])
   .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, subnetReader, namingService, instanceTypeService, _) {
+                                                     accountService, subnetReader, namingService, instanceTypeService,
+                                                     awsServerGroupConfigurationService, _) {
+
     function buildNewServerGroupCommand (application, defaults) {
       defaults = defaults || {};
       var regionsKeyedByAccountLoader = accountService.getRegionsKeyedByAccount('aws');
@@ -112,6 +115,22 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           requiresTemplateSelection: true,
         }
       });
+    }
+
+    function buildUpdateServerGroupCommand(serverGroup) {
+      var command = {
+        type: 'modifyAsg',
+        asgs: [
+          { asgName: serverGroup.name, region: serverGroup.region }
+        ],
+        cooldown: serverGroup.asg.defaultCooldown,
+        healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
+        healthCheckType: serverGroup.asg.healthCheckType,
+        terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
+        credentials: serverGroup.account
+      };
+      awsServerGroupConfigurationService.configureUpdateCommand(command);
+      return command;
     }
 
     function buildServerGroupCommandFromExisting(application, serverGroup, mode) {
@@ -215,6 +234,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
+      buildUpdateServerGroupCommand: buildUpdateServerGroupCommand,
     };
 })
 .name;

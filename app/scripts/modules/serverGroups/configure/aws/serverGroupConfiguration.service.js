@@ -18,6 +18,16 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
                                                           subnetReader, keyPairsReader, loadBalancerReader, _) {
 
 
+    var healthCheckTypes = ['EC2', 'ELB'],
+      terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
+
+    function configureUpdateCommand(command) {
+      command.backingData = {
+        healthCheckTypes: angular.copy(healthCheckTypes),
+        terminationPolicies: angular.copy(terminationPolicies)
+      };
+    }
+
     function configureCommand(application, command) {
       var imageLoader;
       if (command.viewState.disableImageSelection) {
@@ -35,12 +45,14 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         keyPairs: keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: instanceTypeService.getAllTypesByRegion(),
-      }).then(function(loader) {
+        healthCheckTypes: $q.when(angular.copy(healthCheckTypes)),
+        terminationPolicies: $q.when(angular.copy(terminationPolicies)),
+      }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
-        loader.accounts = _.keys(loader.regionsKeyedByAccount);
-        loader.filtered = {};
-        command.backingData = loader;
+        backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
+        backingData.filtered = {};
+        command.backingData = backingData;
         configureVpcId(command);
 
         if (command.loadBalancers && command.loadBalancers.length) {
@@ -370,6 +382,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     return {
+      configureUpdateCommand: configureUpdateCommand,
       configureCommand: configureCommand,
       configureKeyPairs: configureKeyPairs,
       configureInstanceTypes: configureInstanceTypes,
