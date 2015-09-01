@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.directives', [
   require('./gist.directive.js'),
   require('./help.directive.js'),
-  require('./modalWizard.js'),
+  require('./modalWizard.directive.js'),
   require('./accountLabelColor.directive.js'),
   require('utils/scrollTriggerService.js'),
   require('utils/lodash.js'),

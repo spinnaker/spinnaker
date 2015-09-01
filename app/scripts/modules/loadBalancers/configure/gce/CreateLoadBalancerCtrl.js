@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../account/accountService.js'),
   require('./loadBalancer.transformer.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
-  require('../../../../directives/modalWizard.js'),
+  require('../../../../directives/modalWizard.service.js'),
   require('../../../tasks/monitor/taskMonitorService.js')
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
