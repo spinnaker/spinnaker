@@ -21,7 +21,6 @@ import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.NoSuchBeanDefinitionException
 import org.springframework.beans.factory.annotation.Autowired
-
 import java.lang.annotation.Annotation
 
 /**
@@ -67,7 +66,8 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
 
     if (converters.size() > 1) {
       throw new RuntimeException(
-        "More than one atomic operation converters found for description '${description}' and cloud provider '${cloudProvider}'"
+        "More than one (${converters.size()}) atomic operation converters found for description '${description}' and cloud provider " +
+          "'${cloudProvider}'"
       )
     }
 
@@ -97,11 +97,16 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
   }
 
   protected Class<? extends Annotation> getCloudProviderAnnotation(String cloudProvider) {
-    CloudProvider cloudProviderInstance = cloudProviders.find { it.id == cloudProvider }
-    if (!cloudProviderInstance) {
+    List<CloudProvider> cloudProviderInstances = cloudProviders.findAll { it.id == cloudProvider }
+    if (!cloudProviderInstances) {
       throw new CloudProviderNotFoundException("No cloud provider named '${cloudProvider}' found")
     }
-    cloudProviderInstance.getAnnotation()
+    if (cloudProviderInstances.size() > 1) {
+      throw new RuntimeException(
+        "More than one (${cloudProviderInstances.size()}) cloud providers found for the identifier '${cloudProvider}'"
+      )
+    }
+    cloudProviderInstances[0].getAnnotation()
   }
 
 }
