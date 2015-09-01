@@ -7,7 +7,7 @@ module.exports = angular.module('applicationBootstrap', [
 .directive('spinnaker', function() {
   return {
     restrict: 'E',
-    templateUrl: require('../../views/applicationBootstrap.html'),
+    templateUrl: require('./applicationBootstrap.directive.html'),
   };
 })
 .name;

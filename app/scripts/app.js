@@ -73,7 +73,7 @@ module.exports = angular.module('spinnaker', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('./filters/filters.module.js'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
-    require('./directives/applicationBootstrap.js'),
+    require('./directives/applicationBootstrap.directive.js'),
 
     require('exports?"angular.filter"!angular-filter'),
     require('./providers/states.js'),
@@ -266,7 +266,7 @@ module.exports = angular.module('spinnaker', [
       };
     });
   })
-  .config(require('./decorators/uiSelectDecorator.js'))
+  .config(require('./decorators/uiSelect.decorator.js'))
   //.config(function ($compileProvider) {
   //  $compileProvider.debugInfoEnabled(false);
   //})

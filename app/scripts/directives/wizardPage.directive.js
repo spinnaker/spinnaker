@@ -36,7 +36,7 @@ module.exports = function () {
     transclude: true,
     require: '^modalWizard',
     scope: true,
-    templateUrl: require('../../views/modal/wizardPage.html'),
+    templateUrl: require('./wizardPage.directive.html'),
     link: function($scope, elem, attrs, wizardCtrl) {
       var state = {
         rendered: !attrs.render || $scope.$eval(attrs.render),

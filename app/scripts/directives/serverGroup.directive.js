@@ -3,7 +3,7 @@
 module.exports = function ($rootScope, $timeout, $filter, scrollTriggerService, _, waypointService, clusterFilterService, ClusterFilterModel) {
   return {
     restrict: 'E',
-    templateUrl: require('../modules/cluster/serverGroup.html'),
+    templateUrl: require('./serverGroup.directive.html'),
     scope: {
       cluster: '=',
       serverGroup: '=',

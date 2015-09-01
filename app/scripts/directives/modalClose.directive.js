@@ -4,6 +4,6 @@ module.exports = function () {
   return {
     scope: true,
     restrict: 'E',
-    templateUrl: require('../../views/directives/modalClose.html'),
+    templateUrl: require('./modalClose.directive.html'),
   };
 };
