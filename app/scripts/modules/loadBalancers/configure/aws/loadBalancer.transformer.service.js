@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
 
     function updateHealthCounts(container) {
       var instances = container.instances;
-      var serverGroups = container.serverGroups || [];
+      var serverGroups = container.serverGroups || [container];
       container.healthCounts = {
         upCount: instances.filter(function (instance) {
           return instance.health[0].state === 'InService';

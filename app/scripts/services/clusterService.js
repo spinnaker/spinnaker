@@ -69,9 +69,6 @@ module.exports = angular.module('spinnaker.cluster.service', [
         return;
       }
       cluster.serverGroups.forEach(function(serverGroup) {
-        if (serverGroup.isDisabled) {
-          return;
-        }
         cluster.totalCount += serverGroup.totalCount || 0;
         cluster.upCount += serverGroup.upCount || 0;
         cluster.downCount += serverGroup.downCount || 0;
