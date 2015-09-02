@@ -116,7 +116,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
   static class MyCloudProvider implements CloudProvider {
     String id = 'test-provider'
     String displayName = 'Test Provider'
-    Class<? extends Annotation> annotation = TestProvider
+    Class<? extends Annotation> operationAnnotationType = TestProviderOperation
   }
 
   @Configuration
@@ -133,8 +133,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     }
   }
 
-  @TestProvider
-  @AtomicOperationDescription("operationDescription")
+  @TestProviderOperation("operationDescription")
   static class TestConverter implements AtomicOperationConverter {
     @Override
     AtomicOperation convertOperation(Map input) {
@@ -146,8 +145,7 @@ class AnnotationsBasedAtomicOperationsRegistrySpec extends Specification {
     }
   }
 
-  @TestProvider
-  @AtomicOperationDescriptionValidator("operationDescriptionValidator")
+  @TestProviderOperation("operationDescription")
   static class TestValidator extends DescriptionValidator {
     @Override
     void validate(List priorDescriptions, Object description, Errors errors) {

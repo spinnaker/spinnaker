@@ -51,11 +51,11 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
       }
     }
 
-    def providerAnnotation = getCloudProviderAnnotation(cloudProvider)
+    Class<? extends Annotation> providerAnnotationType = getCloudProviderAnnotation(cloudProvider)
 
-    List converters = applicationContext.getBeansWithAnnotation(AtomicOperationDescription).findAll { key, value ->
-      value.getClass().getAnnotation(AtomicOperationDescription).value() == description &&
-      value.getClass().getAnnotationsByType(providerAnnotation) != null
+    List converters = applicationContext.getBeansWithAnnotation(providerAnnotationType).findAll { key, value ->
+      value.getClass().getAnnotation(providerAnnotationType).value() == description &&
+      value instanceof AtomicOperationConverter
     }.values().toList()
 
     if (!converters) {
@@ -86,11 +86,11 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
 
     if (!cloudProvider) return null
 
-    def providerAnnotation = getCloudProviderAnnotation(cloudProvider)
+    Class<? extends Annotation> providerAnnotationType = getCloudProviderAnnotation(cloudProvider)
 
-    List validators = applicationContext.getBeansWithAnnotation(AtomicOperationDescriptionValidator).findAll { key, value ->
-      value.getClass().getAnnotation(AtomicOperationDescriptionValidator).value() == validator &&
-      value.getClass().getAnnotationsByType(providerAnnotation) != null
+    List validators = applicationContext.getBeansWithAnnotation(providerAnnotationType).findAll { key, value ->
+      DescriptionValidator.getValidatorName(value.getClass().getAnnotation(providerAnnotationType).value()) == validator &&
+      value instanceof DescriptionValidator
     }.values().toList()
 
     return validators ? (DescriptionValidator) validators[0] : null
@@ -106,7 +106,7 @@ class AnnotationsBasedAtomicOperationsRegistry extends ApplicationContextAtomicO
         "More than one (${cloudProviderInstances.size()}) cloud providers found for the identifier '${cloudProvider}'"
       )
     }
-    cloudProviderInstances[0].getAnnotation()
+    cloudProviderInstances[0].getOperationAnnotationType()
   }
 
 }

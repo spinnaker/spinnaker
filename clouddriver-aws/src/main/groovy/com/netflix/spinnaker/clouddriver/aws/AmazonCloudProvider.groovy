@@ -37,7 +37,7 @@ class AmazonCloudProvider implements CloudProvider {
   }
 
   @Override
-  Class<? extends Annotation> getAnnotation() {
-    Amazon
+  Class<? extends Annotation> getOperationAnnotationType() {
+    AmazonOperation
   }
 }

@@ -16,17 +16,10 @@
 
 package com.netflix.spinnaker.kato.orchestration
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
-
 /**
+ * A class that holds the names of ALL the kato operations as constants
  * @author sthadeshwar
  */
-
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface TestProvider {
-
+final class AtomicOperations {
+  public static final String DESTROY_SERVER_GROUP = "destroyServerGroup"
 }

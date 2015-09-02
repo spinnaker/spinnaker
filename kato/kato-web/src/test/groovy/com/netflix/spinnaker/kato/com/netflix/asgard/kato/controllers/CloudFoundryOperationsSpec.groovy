@@ -281,7 +281,7 @@ class CloudFoundryOperationsSpec extends Specification {
       new CloudProvider() {
         String id = 'cloud-foundry'
         String displayName = 'Cloud Foundry'
-        Class<? extends Annotation> annotation = null
+        Class<? extends Annotation> operationAnnotationType = null
       }
     }
   }

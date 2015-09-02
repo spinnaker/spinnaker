@@ -22,18 +22,11 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * Used to annotate an {@link AtomicOperationConverter} with the description of {@link AtomicOperation}
- * For example,
- * {@code
- *    @AtomicOperationDescription("destroyServerGroupDescription")
- *    class DestroyAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
- *      // ...
- *    }
- * }
  * @author sthadeshwar
  */
+
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@interface AtomicOperationDescription {
+public @interface TestProviderOperation {
   String value()
 }
