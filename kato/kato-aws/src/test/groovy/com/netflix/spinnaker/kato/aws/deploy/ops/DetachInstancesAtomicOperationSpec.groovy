@@ -22,7 +22,9 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.DetachInstancesRequest
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.AmazonEC2
+import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.kato.aws.deploy.description.DetachInstancesDescription
@@ -33,12 +35,9 @@ import spock.lang.Specification
 class DetachInstancesAtomicOperationSpec extends Specification {
   def amazonAutoScaling = Mock(AmazonAutoScaling)
   def amazonEC2 = Mock(AmazonEC2)
-  def amazonClientProvider = Mock(AmazonClientProvider) {
-    getAutoScaling(_, _, _) >> { amazonAutoScaling }
-    getAmazonEC2(_, _, _) >> { amazonEC2 }
-  }
+  def amazonClientProvider = Mock(AmazonClientProvider)
 
-  def setupSpec() {
+  void setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
@@ -58,17 +57,23 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
+    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001"))]
+        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(2)]
       )
     }
+    1 * amazonEC2.createTags({ CreateTagsRequest request ->
+      request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:PendingTermination", "spinnaker:Detached"])
+    } as CreateTagsRequest)
     1 * amazonEC2.terminateInstances({ TerminateInstancesRequest request ->
       request.instanceIds == ["i-000001"]
     } as TerminateInstancesRequest)
     1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
       request.instanceIds == ["i-000001"] && request.shouldDecrementDesiredCapacity
     } as DetachInstancesRequest)
+    0 * _
   }
 
   void "should not terminate or decrement desired capacity unless explicitly specified"() {
@@ -87,14 +92,76 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     operation.operate([])
 
     then:
+    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
+    1 * amazonEC2.createTags({ CreateTagsRequest request ->
+      request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:Detached"])
+    } as CreateTagsRequest)
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001"))]
+        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(2)]
       )
     }
-    0 * amazonEC2.terminateInstances(_)
     1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
       request.instanceIds == ["i-000001"] && !request.shouldDecrementDesiredCapacity
     } as DetachInstancesRequest)
+    0 * _
+  }
+
+  void "should adjust minSize if specified (and required)"() {
+    given:
+    def description = new DetachInstancesDescription(
+      instanceIds: ["i-000001", "i-000002"],
+      terminateDetachedInstances: false,
+      decrementDesiredCapacity: false,
+      adjustMinIfNecessary: true
+    )
+
+    and:
+    def operation = new DetachInstancesAtomicOperation(description)
+    operation.amazonClientProvider = amazonClientProvider
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
+    1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(1)]
+      )
+    }
+    1 * amazonEC2.createTags({ CreateTagsRequest request ->
+      request.resources == ["i-000001"] && request.tags*.key.containsAll(["spinnaker:Detached"])
+    } as CreateTagsRequest)
+    1 * amazonAutoScaling.updateAutoScalingGroup({ UpdateAutoScalingGroupRequest request ->
+      request.minSize == 0
+    } as UpdateAutoScalingGroupRequest)
+    1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
+      request.instanceIds == ["i-000001"] && !request.shouldDecrementDesiredCapacity
+    } as DetachInstancesRequest)
+    0 * _
+  }
+
+  void "should fail if minSize adjustment is necessary but not allowed"() {
+    given:
+    def description = new DetachInstancesDescription(instanceIds: ["i-000001", "i-000002"])
+
+    and:
+    def operation = new DetachInstancesAtomicOperation(description)
+    operation.amazonClientProvider = amazonClientProvider
+
+    when:
+    operation.operate([])
+
+    then:
+    1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
+    1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
+      new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
+        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(1)]
+      )
+    }
+    thrown(IllegalStateException)
   }
 }
