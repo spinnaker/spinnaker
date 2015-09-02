@@ -234,7 +234,10 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
     };
 
     function cleanStageForDiffing(stage) {
-      delete stage.cloudProviderType;
+      // TODO: Consider removing this altogether after migrating existing pipelines
+      if (stage.cloudProviderType === 'aws') {
+        delete stage.cloudProviderType;
+      }
     }
 
     function getPlain(pipeline) {
