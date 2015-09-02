@@ -152,4 +152,24 @@ class DependentPipelineExecutionListenerSpec extends Specification {
     0 * dependentPipelineStarter._
   }
 
+  def "ignores executions with null pipelineConfigIds"(){
+    pipeline.stages.each {
+      it.status = ExecutionStatus.SUCCEEDED
+      it.tasks = [Mock(Task)]
+    }
+
+    pipelineConfig.triggers.first().pipeline = null
+    pipeline.pipelineConfigId = null
+
+    executionRepository.retrievePipeline(_) >> pipeline
+    front50Service.getAllPipelines() >> [
+      pipelineConfig
+    ]
+
+    when:
+    listener.afterJob(jobExecution)
+
+    then:
+    0 * dependentPipelineStarter._
+  }
 }
