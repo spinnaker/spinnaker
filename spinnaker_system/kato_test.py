@@ -218,23 +218,13 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     for name in names:
       # If one of our instances still exists, it should be STOPPING.
       name_matches_pred = jc.PathContainsPredicate('name', name)
-      is_stopping_pred = jc.ConjunctivePredicate(
-        [name_matches_pred,jc.PathEqPredicate('status', 'STOPPING')])
+      is_stopping_pred = jc.PathEqPredicate('status', 'STOPPING')
 
-      # This states we dont expect to see the name at all.
-      nolonger_exists_pred = jc.CardinalityPredicate(
-        name_matches_pred, max=0)
-
-      # Add disjunction (named instance is stopping or doesnt exist at all)
-      disjunction = jc.DisjunctivePredicate(
-          [is_stopping_pred, nolonger_exists_pred])
-      clause.add_mapped_constraint(disjunction)
-
-      # We want the disjunction to apply to all the observed objects so we'll
-      # map the constraint over the observation. Otherwise, if we just added it,
+      # We want the condition to apply to all the observed objects so we'll
+      # map the constraint over the observation. Otherwise, if dont map it,
       # then we'd expect the constraint to hold somewhere among the observed
       # objects, but not necessarily all of them.
-      clause.add_mapped_constraint(disjunction)
+      clause.add_mapped_constraint(jc.IF(name_matches_pred, is_stopping_pred))
 
     payload = self.agent.type_to_payload(
           'terminateGoogleInstancesDescription',
