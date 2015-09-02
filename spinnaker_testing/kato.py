@@ -90,6 +90,39 @@ class _KatoStatus(sk.SpinnakerStatus):
       self._exception_details = status['status']
 
 
+class KatoAgent(sk.SpinnakerAgent):
+  """Specialization of SpinnakerAgent for Kato subsystem.
+
+  This class just adds convienence methods specific to Kato.
+  """
+
+  @staticmethod
+  def type_to_payload(name, payload_dict):
+    """Make a kato operation JSON payload string.
+
+    Args:
+       name: The kato type name of the payload is used to
+         build a payload dictionary in the form {[name: payload_dict]}.
+       payload_dict: The value of the payload content.
+
+    Returns:
+       JSON encoded payload string for Kato request.
+    """
+    return KatoAgent.make_payload([{ name: payload_dict }])
+
+  @staticmethod
+  def make_payload(payload_dict):
+    """Make a kato operation JSON payload string.
+
+    Args:
+       payload_dict: An object representation of the entire payload.
+
+    Returns:
+       JSON encoded payload string for Kato request.
+    """
+    return json.JSONEncoder().encode(payload_dict)
+ 
+
 def new_agent(bindings, port=7002):
   """Create agent to interact with a Spinnaker Kato server.
 
@@ -102,6 +135,6 @@ def new_agent(bindings, port=7002):
   Returns:
     sk.SpinnakerAgent connected to the specified kato server, or None.
   """
-  kato = sk.SpinnakerAgent.new_instance_from_bindings(
+  kato = KatoAgent.new_instance_from_bindings(
       'kato', _KatoStatus.new, bindings, port)
   return kato
