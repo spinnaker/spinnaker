@@ -43,7 +43,7 @@ class CatsSearchProvider implements SearchProvider {
   private static class DefaultQueryIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
     @Override
     Collection<String> getIdentifiers(Cache cacheView, String type, String query) {
-      return cacheView.filterIdentifiers(type, "${type}:*${query}*")
+      return cacheView.filterIdentifiers(type, "*:${type}:*${query}*")
     }
   }
 
@@ -115,7 +115,9 @@ class CatsSearchProvider implements SearchProvider {
       results: results
     )
     resultSet.results.each { Map<String, String> result ->
-      result.provider = getPlatform()
+      if (!result.provider) {
+        result.provider = getPlatform()
+      }
 
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]

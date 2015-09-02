@@ -54,11 +54,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
 
   @Override
   Set<AmazonSecurityGroup> getAll(boolean includeRules) {
-    def transform = this.&fromCacheData.curry(includeRules)
-    def cacheData = cacheView.getAll(SECURITY_GROUPS.ns, RelationshipCacheFilter.none())
-    def transformed = cacheData.collect(transform)
-
-    return transformed
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'), includeRules)
   }
 
   @Override

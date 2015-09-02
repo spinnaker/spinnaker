@@ -48,7 +48,7 @@ class AwsInfrastructureProvider implements SearchableProvider {
   final Set<String> defaultCaches = [SECURITY_GROUPS.ns].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [
-    (SECURITY_GROUPS.ns): '/securityGroups/$account/aws/$name?region=$region'
+    (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
@@ -57,10 +57,6 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   @Override
   Map<String, String> parseKey(String key) {
-    def result = Keys.parse(key)
-    if (result.size() == 1) {
-      return null
-    }
-    return result
+    return Keys.parse(key)
   }
 }

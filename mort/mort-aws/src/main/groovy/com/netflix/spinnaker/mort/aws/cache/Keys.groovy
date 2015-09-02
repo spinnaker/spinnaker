@@ -42,53 +42,62 @@ class Keys {
 
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
-    def result = [:]
-    switch (parts[0]) {
+
+    if (parts.length < 2) {
+      return null
+    }
+
+    def result = [provider: parts[0], type: parts[1]]
+
+    switch (result.type) {
       case Namespace.SECURITY_GROUPS.ns:
-        def names = Names.parseName(parts[1])
-        result = [application: names.app, name: parts[1], id: parts[2], region: parts[3], account: parts[4], vpcId: parts[5] == "null" ? null : parts[5]]
+        def names = Names.parseName(parts[2])
+        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5], vpcId: parts[6] == "null" ? null : parts[6]]
         break
       case Namespace.VPCS.ns:
-        result = [id: parts[1], account: parts[2], region: parts[3]]
+        result << [id: parts[2], account: parts[3], region: parts[4]]
         break
       case Namespace.SUBNETS.ns:
-        result = [id: parts[1], account: parts[2], region: parts[3]]
+        result << [id: parts[2], account: parts[3], region: parts[4]]
         break
-    case Namespace.KEY_PAIRS.ns:
-        result = [id: parts[1], account: parts[2], region: parts[3]]
+      case Namespace.KEY_PAIRS.ns:
+        result << [id: parts[2], account: parts[3], region: parts[4]]
         break
-    case Namespace.INSTANCE_TYPES.ns:
-        result = [name: parts[1], account: parts[2], region: parts[3]]
+      case Namespace.INSTANCE_TYPES.ns:
+        result << [name: parts[2], account: parts[3], region: parts[4]]
         break
       case Namespace.ELASTIC_IPS.ns:
-        result = [address: parts[1], account: parts[2], region: parts[3]]
+        result << [address: parts[2], account: parts[3], region: parts[4]]
+        break
+      default:
+        return null
         break
     }
-    result.type = parts[0]
+
     result
   }
 
   static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account, String vpcId) {
-    "${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
+    "aws:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
   }
 
   static String getSubnetKey(String subnetId, String region, String account) {
-      "${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+    "aws:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
   }
 
   static String getVpcKey(String vpcId, String region, String account) {
-    "${Namespace.VPCS}:${vpcId}:${account}:${region}"
+    "aws:${Namespace.VPCS}:${vpcId}:${account}:${region}"
   }
 
   static String getKeyPairKey(String keyName, String region, String account) {
-      "${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
+    "aws:${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 
   static String getInstanceTypeKey(String instanceType, String region, String account) {
-      "${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
+    "aws:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
   }
 
   static String getElasticIpKey(String ipAddress, String region, String account) {
-      "${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
+    "aws:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
   }
 }
