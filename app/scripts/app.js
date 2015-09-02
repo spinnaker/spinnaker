@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker', [
     require('./directives/applicationBootstrap.directive.js'),
 
     require('exports?"angular.filter"!angular-filter'),
-    require('./providers/states.js'),
+    require('./providers/states.provider.js'),
     require('./modules/caches/cacheInitializer.js'),
     require('./modules/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
