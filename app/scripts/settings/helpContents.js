@@ -154,6 +154,11 @@ module.exports = angular.module('spinnaker.help.contents', [])
     'pipeline.config.timeout.jenkins': '<p>For the Jenkins stage, the timeout will apply to both the "Wait For Jenkins Job Start" and "Monitor Jenkins Job" tasks.</p>',
     'pipeline.config.script.path': '<p>Path to the folder hosting the scripts in Stash. (e.g. <samp>groovy</samp>, <samp>python</samp> or <samp>shell</samp>)</p>',
     'pipeline.config.script.command': '<p>Executable script and parameters. (e.g. <samp>script.py --ami-id ${deploymentDetails[0].ami}</samp> ) </p>',
+    'pipeline.config.script.image': '<p>(Optional) image passed down to script execution as IMAGE_ID</p>',
+    'pipeline.config.script.account': '<p>(Optional) account passed down to script execution as ENV_PARAM</p>',
+    'pipeline.config.script.region': '<p>(Optional) region passed down to script execution as REGION_PARAM</p>',
+    'pipeline.config.script.cluster': '<p>(Optional) cluster passed down to script execution as CLUSTER_PARAM</p>',
+    'pipeline.config.script.cmc': '<p>(Optional) cmc passed down to script execution as CMC</p>',
     'pipeline.config.script.propertyFile': '<p>(Optional) The name to the properties file produced by the script execution to be used by later stages of the Spinnaker pipeline. </p>',
     'serverGroupCapacity.useSourceCapacityTrue':  '<p>Spinnaker will use the current capacity of the existing server group when deploying a new server group.</p>' +
       '<p>This setting is intended to support a server group with auto-scaling enabled, where the bounds and desired capacity are controlled by an external process.</p>' +
