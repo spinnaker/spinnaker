@@ -20,5 +20,5 @@ package com.netflix.spinnaker.kato.orchestration
  * @author sthadeshwar
  */
 final class AtomicOperationDescriptions {
-  static final String DESTROY_SERVER_GROUP = "destroyServerGroupDescription"
+  public static final String DESTROY_SERVER_GROUP = "destroyServerGroupDescription"
 }
