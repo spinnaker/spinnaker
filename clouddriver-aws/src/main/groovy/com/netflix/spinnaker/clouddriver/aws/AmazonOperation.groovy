@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.orchestration
+package com.netflix.spinnaker.clouddriver.aws
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -22,19 +22,10 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
 /**
- * Used to annotate a {@link com.netflix.spinnaker.kato.deploy.DescriptionValidator}
- * with the description validator of {@link AtomicOperation}
- * For example,
- * {@code
- *    @AtomicOperationDescriptionValidator("destroyServerGroupDescriptionValidator")
- *    class DestroyAsgDescriptionValidator extends AmazonDescriptionValidationSupport<DestroyAsgDescription> {
- *      // ...
- *    }
- * }
  * @author sthadeshwar
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@interface AtomicOperationDescriptionValidator {
+public @interface AmazonOperation {
   String value()
 }

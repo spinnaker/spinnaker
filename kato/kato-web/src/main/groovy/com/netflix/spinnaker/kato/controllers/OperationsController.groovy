@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.controllers
 import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
+import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
@@ -123,7 +124,9 @@ class OperationsController {
         descriptions << description
         def errors = new DescriptionValidationErrors(description)
 
-        def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator("${k}Validator", v.cloudProvider)
+        def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator(
+          DescriptionValidator.getValidatorName(k), v.cloudProvider
+        )
         if (validator) {
           validator.validate(descriptions, description, errors)
         }

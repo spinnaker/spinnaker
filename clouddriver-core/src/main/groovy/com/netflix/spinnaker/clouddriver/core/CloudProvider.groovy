@@ -43,6 +43,6 @@ interface CloudProvider {
    * Annotation that can be assigned to the implementations (operations, converters, validators, etc.) to indicate those
    * @return
    */
-  Class<? extends Annotation> getAnnotation()
+  Class<? extends Annotation> getOperationAnnotationType()
 
 }
