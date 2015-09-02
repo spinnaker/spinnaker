@@ -35,19 +35,19 @@ class KeysSpec extends Specification {
 
   def 'key parsing'() {
     expect:
-    Keys.parse(Keys.getApplicationKey('theApp')) == [type: Keys.Namespace.APPLICATIONS.ns, application: 'theapp']
-    Keys.parse(Keys.getServerGroupKey('theAsg', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg', serverGroup: 'theAsg', account: 'account', region: 'region', detail: null, stack: null, sequence: null]
-    Keys.parse(Keys.getServerGroupKey('theAsg-v001', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg', serverGroup: 'theAsg-v001', account: 'account', region: 'region', detail: null, stack: null, sequence: '1']
-    Keys.parse(Keys.getServerGroupKey('theAsg-test-v001', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg-test', serverGroup: 'theAsg-test-v001', account: 'account', region: 'region', stack: 'test', detail: null, sequence: '1']
-    Keys.parse(Keys.getServerGroupKey('theAsg--details-v001', 'account', 'region')) == [type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg--details', serverGroup: 'theAsg--details-v001', account: 'account', region: 'region', stack: null, detail: 'details', sequence: '1']
-    Keys.parse(Keys.getClusterKey('cluster', 'application', 'account')) == [type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster', application: 'application', account: 'account', stack: null, detail: null]
-    Keys.parse(Keys.getClusterKey('cluster-test', 'application', 'account')) == [type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster-test', application: 'application', account: 'account', stack: 'test', detail: null]
-    Keys.parse(Keys.getClusterKey('cluster-test-useast1', 'application', 'account')) == [type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster-test-useast1', application: 'application', account: 'account', stack: 'test', detail: 'useast1']
-    Keys.parse(Keys.getImageKey('image', 'account', 'region')) == [type: Keys.Namespace.IMAGES.ns, imageId: 'image', region: 'region', account: 'account']
-    Keys.parse(Keys.getInstanceHealthKey('instanceId', 'account', 'region', 'provider')) == [type: Keys.Namespace.HEALTH.ns, instanceId: 'instanceId', account: 'account', region: 'region', provider: 'provider']
-    Keys.parse(Keys.getLaunchConfigKey('kato-main-v056-10062014221307', 'account', 'region')) == [type: Keys.Namespace.LAUNCH_CONFIGS.ns, launchConfig: 'kato-main-v056-10062014221307', region: 'region', account: 'account', application: 'kato', stack:'main']
-    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345')) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', application: 'loadbalancer', stack: null, detail: null]
-    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null)) == [type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, stack: 'main', detail: 'frontend', application: 'kato']
+    Keys.parse(Keys.getApplicationKey('theApp')) == [provider: 'aws', type: Keys.Namespace.APPLICATIONS.ns, application: 'theapp']
+    Keys.parse(Keys.getServerGroupKey('theAsg', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg', serverGroup: 'theAsg', account: 'account', region: 'region', detail: null, stack: null, sequence: null]
+    Keys.parse(Keys.getServerGroupKey('theAsg-v001', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg', serverGroup: 'theAsg-v001', account: 'account', region: 'region', detail: null, stack: null, sequence: '1']
+    Keys.parse(Keys.getServerGroupKey('theAsg-test-v001', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg-test', serverGroup: 'theAsg-test-v001', account: 'account', region: 'region', stack: 'test', detail: null, sequence: '1']
+    Keys.parse(Keys.getServerGroupKey('theAsg--details-v001', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.SERVER_GROUPS.ns, application: 'theasg', cluster: 'theAsg--details', serverGroup: 'theAsg--details-v001', account: 'account', region: 'region', stack: null, detail: 'details', sequence: '1']
+    Keys.parse(Keys.getClusterKey('cluster', 'application', 'account')) == [provider: 'aws', type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster', application: 'application', account: 'account', stack: null, detail: null]
+    Keys.parse(Keys.getClusterKey('cluster-test', 'application', 'account')) == [provider: 'aws', type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster-test', application: 'application', account: 'account', stack: 'test', detail: null]
+    Keys.parse(Keys.getClusterKey('cluster-test-useast1', 'application', 'account')) == [provider: 'aws', type: Keys.Namespace.CLUSTERS.ns, cluster: 'cluster-test-useast1', application: 'application', account: 'account', stack: 'test', detail: 'useast1']
+    Keys.parse(Keys.getImageKey('image', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.IMAGES.ns, imageId: 'image', region: 'region', account: 'account']
+    Keys.parse(Keys.getInstanceHealthKey('instanceId', 'account', 'region', 'provider')) == [provider: 'aws', type: Keys.Namespace.HEALTH.ns, instanceId: 'instanceId', account: 'account', region: 'region', provider: 'provider']
+    Keys.parse(Keys.getLaunchConfigKey('kato-main-v056-10062014221307', 'account', 'region')) == [provider: 'aws', type: Keys.Namespace.LAUNCH_CONFIGS.ns, launchConfig: 'kato-main-v056-10062014221307', region: 'region', account: 'account', application: 'kato', stack:'main']
+    Keys.parse(Keys.getLoadBalancerKey('loadBalancer', 'account', 'region', 'vpc-12345')) == [provider: 'aws', type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'loadBalancer', account: 'account', region: 'region', vpcId: 'vpc-12345', application: 'loadbalancer', stack: null, detail: null]
+    Keys.parse(Keys.getLoadBalancerKey('kato-main-frontend', 'account', 'region', null)) == [provider: 'aws', type: Keys.Namespace.LOAD_BALANCERS.ns, loadBalancer: 'kato-main-frontend', account: 'account', region: 'region', vpcId: null, stack: 'main', detail: 'frontend', application: 'kato']
   }
 
 }

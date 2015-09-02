@@ -50,78 +50,87 @@ class Keys {
 
   static Map<String, String> parse(String key) {
     def parts = key.split(':')
-    def result = [:]
-    switch (parts[0]) {
+
+    if (parts.length < 2) {
+      return null
+    }
+
+    def result = [provider: parts[0], type: parts[1]]
+
+    switch (result.type) {
       case Namespace.IMAGES.ns:
-        result = [account: parts[1], region: parts[2], imageId: parts[3]]
+        result << [account: parts[2], region: parts[3], imageId: parts[4]]
         break
       case Namespace.NAMED_IMAGES.ns:
-        result = [account: parts[1], imageName: parts[2]]
+        result << [account: parts[2], imageName: parts[3]]
         break
       case Namespace.SERVER_GROUPS.ns:
-        def names = Names.parseName(parts[4])
-        result = [application: names.app.toLowerCase(), cluster: parts[1], account: parts[2], region: parts[3], serverGroup: parts[4], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
+        def names = Names.parseName(parts[5])
+        result << [application: names.app.toLowerCase(), cluster: parts[2], account: parts[3], region: parts[4], serverGroup: parts[5], stack: names.stack, detail: names.detail, sequence: names.sequence?.toString()]
         break
       case Namespace.INSTANCES.ns:
-        result = [account: parts[1], region: parts[2], instanceId: parts[3]]
+        result << [account: parts[2], region: parts[3], instanceId: parts[4]]
         break
       case Namespace.LAUNCH_CONFIGS.ns:
-        def names = Names.parseName(parts[3])
-        result = [account: parts[1], region: parts[2], launchConfig: parts[3], application: names.app?.toLowerCase(), stack: names.stack]
+        def names = Names.parseName(parts[4])
+        result << [account: parts[2], region: parts[3], launchConfig: parts[4], application: names.app?.toLowerCase(), stack: names.stack]
         break
       case Namespace.LOAD_BALANCERS.ns:
-        def names = Names.parseName(parts[3])
-        result = [account: parts[1], region: parts[2], loadBalancer: parts[3], vpcId: parts.length > 4 ? parts[4] : null, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
+        def names = Names.parseName(parts[4])
+        result << [account: parts[2], region: parts[3], loadBalancer: parts[4], vpcId: parts.length > 5 ? parts[5] : null, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
         break
       case Namespace.CLUSTERS.ns:
-        def names = Names.parseName(parts[3])
-        result = [application: parts[1].toLowerCase(), account: parts[2], cluster: parts[3], stack: names.stack, detail: names.detail]
+        def names = Names.parseName(parts[4])
+        result << [application: parts[2].toLowerCase(), account: parts[3], cluster: parts[4], stack: names.stack, detail: names.detail]
         break
       case Namespace.APPLICATIONS.ns:
-        result = [application: parts[1].toLowerCase()]
+        result << [application: parts[2].toLowerCase()]
         break
       case Namespace.HEALTH.ns:
-        result = [instanceId: parts[1], account: parts[2], region: parts[3], provider: parts[4]]
+        result << [instanceId: parts[2], account: parts[3], region: parts[4], provider: parts[5]]
+        break
+      default:
+        return null
         break
     }
-    result.type = parts[0]
+
     result
   }
 
   static String getImageKey(String imageId, String account, String region) {
-    "${Namespace.IMAGES}:${account}:${region}:${imageId}"
+    "aws:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getNamedImageKey(String account, String imageName) {
-    "${Namespace.NAMED_IMAGES}:${account}:${imageName}"
+    "aws:${Namespace.NAMED_IMAGES}:${account}:${imageName}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
     Names names = Names.parseName(autoScalingGroupName)
-    "${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
+    "aws:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
   static String getInstanceKey(String instanceId, String account, String region) {
-    "${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
+    "aws:${Namespace.INSTANCES}:${account}:${region}:${instanceId}"
   }
 
   static String getLaunchConfigKey(String launchConfigName, String account, String region) {
-    "${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
+    "aws:${Namespace.LAUNCH_CONFIGS}:${account}:${region}:${launchConfigName}"
   }
 
   static String getLoadBalancerKey(String loadBalancerName, String account, String region, String vpcId) {
-    "${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
+    "aws:${Namespace.LOAD_BALANCERS}:${account}:${region}:${loadBalancerName}${vpcId ? ':' + vpcId : ''}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
-    "${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
+    "aws:${Namespace.CLUSTERS}:${application.toLowerCase()}:${account}:${clusterName}"
   }
 
   static String getApplicationKey(String application) {
-    "${Namespace.APPLICATIONS}:${application.toLowerCase()}"
+    "aws:${Namespace.APPLICATIONS}:${application.toLowerCase()}"
   }
 
   static String getInstanceHealthKey(String instanceId, String account, String region, String provider) {
-    "${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
+    "aws:${Namespace.HEALTH}:${instanceId}:${account}:${region}:${provider}"
   }
 }

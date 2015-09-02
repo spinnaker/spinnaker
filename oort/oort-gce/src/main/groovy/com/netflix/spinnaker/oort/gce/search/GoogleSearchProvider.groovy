@@ -57,7 +57,7 @@ class GoogleSearchProvider implements SearchProvider {
 
   static Map<String, Template> urlMappings = [
     (SERVER_GROUPS_TYPE):
-      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region'),
+      urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster/gce/serverGroups/$serverGroup?region=$region'),
     (CLUSTERS_TYPE):
       urlMappingTemplateEngine.createTemplate('/applications/${application.toLowerCase()}/clusters/$account/$cluster'),
     (APPLICATIONS_TYPE):
