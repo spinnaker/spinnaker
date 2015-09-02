@@ -40,7 +40,8 @@ interface CloudProvider {
   String getDisplayName()
 
   /**
-   * Annotation that can be assigned to the implementations (operations, converters, validators, etc.) to indicate those
+   * Annotation type that can be assigned to the implementations for operations, converters, validators, etc. to enable
+   * lookup based on the operation description name and cloud provider type
    * @return
    */
   Class<? extends Annotation> getOperationAnnotationType()
