@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
-  require('./statehelper.js'),
+  require('./stateHelper.provider.js'),
   require('../modules/delivery/states.js'),
   require('../modules/serverGroups/details/aws/serverGroup.details.module.js'),
 ])

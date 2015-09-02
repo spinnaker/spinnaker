@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.directives', [
 .directive('stateActive', require('./stateactive.directive.js'))
 .directive('submitButton', require('./submitButton.directive.js'))
 .directive('subnetSelectField', require('./subnetSelectField.directive.js'))
-.directive('isVisible', require('./visible.js'))
+.directive('isVisible', require('./isVisible.directive.js'))
 .directive('wizardPage', require('./wizardPage.directive.js'))
 .directive('gceRegionSelectField', require('./gce/gceRegionSelectField.directive.js'))
 .directive('gceZoneSelectField', require('./gce/gceZoneSelectField.directive.js'))
