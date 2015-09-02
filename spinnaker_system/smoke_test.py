@@ -242,7 +242,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Managed Instance Group Added',
-                                 retryable_for_secs=15)
+                                 retryable_for_secs=30)
         .inspect_resource('managed-instance-groups', group_name)
         .contains_eq('targetSize', 2))
 
