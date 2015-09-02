@@ -50,6 +50,7 @@ class StartScriptTask implements Task {
     String region = stage.context.region
     String account = stage.context.account
     String cluster = stage.context.cluster
+    String cmc = stage.context.cmc
 
     def parameters = [
       SCRIPT_PATH  : scriptPath,
@@ -57,7 +58,8 @@ class StartScriptTask implements Task {
       IMAGE_ID     : image,
       REGION_PARAM : region,
       ENV_PARAM    : account,
-      CLUSTER_PARAM: cluster
+      CLUSTER_PARAM: cluster,
+      CMC          : cmc
     ]
 
     String queuedBuild = igorService.build(master, job, parameters)
