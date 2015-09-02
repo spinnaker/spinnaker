@@ -18,15 +18,27 @@ package com.netflix.spinnaker.kork.aws;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.retry.RetryPolicy;
+import com.netflix.spectator.api.Registry;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AwsComponents {
-    @Bean
-    @ConditionalOnMissingBean(AWSCredentialsProvider.class)
-    AWSCredentialsProvider awsCredentialsProvider() {
-        return new DefaultAWSCredentialsProviderChain();
-    }
+  @Bean
+  @ConditionalOnMissingBean(AWSCredentialsProvider.class)
+  AWSCredentialsProvider awsCredentialsProvider() {
+    return new DefaultAWSCredentialsProviderChain();
+  }
+
+  @Bean
+  RetryPolicy.RetryCondition instrumentedRetryCondition(Registry registry) {
+    return new InstrumentedRetryCondition(registry);
+  }
+
+  @Bean
+  RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(Registry registry) {
+    return new InstrumentedBackoffStrategy(registry);
+  }
 }
