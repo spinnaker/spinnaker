@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./bleskOverrides.css');
+
 // TODO: Move to external plugins
 module.exports = angular.module('spinnaker.blesk', [
   require('../../settings/settings.js'),
