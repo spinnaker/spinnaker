@@ -6,6 +6,7 @@ configurations.all {
 dependencies {
   compile project(":mort:mort-core")
   compile project(":mort:mort-aws")
+  compile project(":mort:mort-gce")
   spinnaker.group('bootWeb')
   runtime spinnaker.dependency("kork")
   compile spinnaker.dependency("korkWeb")

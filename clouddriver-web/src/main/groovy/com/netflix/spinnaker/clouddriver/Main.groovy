@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
-import com.netflix.spinnaker.clouddriver.google.config.GoogleConfig
+import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -41,7 +41,7 @@ import java.security.Security
   CloudDriverConfig,
   RetrofitConfig,
   AwsConfiguration,
-  GoogleConfig,
+  GoogleConfiguration,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
   com.netflix.spinnaker.oort.Main,
