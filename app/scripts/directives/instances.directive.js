@@ -14,6 +14,7 @@ module.exports = function ($timeout, $, _) {
       var base = elem.parent().inheritedData('$uiView').state;
 
       function renderInstances() {
+        $('[data-toggle="tooltip"]', elem).tooltip('destroy').removeData();
         var instances = _.sortBy(scope.instances, 'launchTime');
         elem.get(0).innerHTML = '<div class="instances">' + instances.map(function(instance) {
             var id = instance.id,
@@ -29,9 +30,9 @@ module.exports = function ($timeout, $, _) {
               '" data-toggle="tooltip" data-instance-id="' + id +
               '" class="instance health-status-' + instance.healthState + activeClass + '"></a>';
           }).join('') + '</div>';
-      }
 
-      $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
+        $('[data-toggle="tooltip"]', elem).tooltip({placement: 'top', container: 'body'});
+      }
 
       elem.click(function(event) {
         $timeout(function() {
