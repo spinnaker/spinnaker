@@ -72,6 +72,19 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
   @classmethod
   def new_agent(cls, bindings):
+    """Implements the base class interface to create a new agent.
+
+    This method is called by the base classes during setup/initialization.
+
+    Args:
+      bindings: The bindings dictionary with configuration information
+        that this factory can draw from to initialize. If the factory would
+        like additional custom bindings it could add them to initArgumentParser.
+
+    Returns:
+      A citest.service_testing.TestableAgent that can interact with Kato.
+      This is the agent that test operations will be posted to.
+    """
     return kato.new_agent(bindings)
 
   @classmethod
@@ -85,9 +98,9 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
     # TODO(ewiseblatt): Move this image name somewhere.
     parser.add_argument(
-        '--test_image_name',
-        default='ubuntu-1404-trusty-v20150316',
-        help='Image name to use when creating test instance.')
+        '--test_gce_image_name',
+        default='ubuntu-1404-trusty-v20150805',
+        help='Image name to use when creating test instance on GCE.')
 
   def __init__(self, bindings, agent):
     """Construct new scenaro.
@@ -115,10 +128,18 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
+    # We're going to make specific instances so we can refer to them later
+    # in tests involving instances. The instances are decorated to trace back
+    # to this particular run so as not to conflict with other tests that may
+    # be running.
     self.use_instance_names = [
         'katotest%sa' % _TEST_DECORATOR,
         'katotest%sb' % _TEST_DECORATOR,
         'katotest%sc' % _TEST_DECORATOR]
+
+    # Put the instance in zones. Force one zone to be different
+    # to ensure we're testing zone placement. We arent bothering
+    # with different regions at this time.
     self.use_instance_zones = [
         self.bindings['TEST_GCE_ZONE'],
         'us-central1-b',
@@ -126,24 +147,28 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     if self.use_instance_zones[0] == self.use_instance_zones[1]:
       self.use_instance_zones[1] = 'us-central1-c'
 
-    image_name = [self.bindings['TEST_IMAGE_NAME'],
-                  'debian-7-wheezy-v20150526',
-                  self.bindings['TEST_IMAGE_NAME']]
+    # Give the instances images and machine types. Again we're forcing
+    # one to be different to ensure that we're using the values.
+    image_name = [self.bindings['TEST_GCE_IMAGE_NAME'],
+                  'debian-7-wheezy-v20150818',
+                  self.bindings['TEST_GCE_IMAGE_NAME']]
     if image_name[0] == image_name[1]:
-      image_name[1] = 'ubuntu-1404-trusty-v20150316'
+      image_name[1] = 'ubuntu-1404-trusty-v20150805'
     machine_type = ['f1-micro', 'g1-small', 'f1-micro']
 
+    # The instance_spec will turn into the payload of instances we request.
     instance_spec = []
     builder = gcp.GceContractBuilder(self.gce_observer)
     for i in range(3):
-      instance_spec.append(self.substitute_variables(
-          '{"createGoogleInstanceDescription": {'
-              '"instanceName": "' + self.use_instance_names[i] + '",'
-              '"image": "' + image_name[i] + '",'
-              '"instanceType": "' + machine_type[i] + '",'
-              '"zone": "' + self.use_instance_zones[i] + '",'
-              '"credentials": "$GCE_CREDENTIALS"}'
-          '}'))
+      instance_spec.append(
+        { 'createGoogleInstanceDescription': {
+            'instanceName': self.use_instance_names[i],
+            'image': image_name[i],
+            'instanceType': machine_type[i],
+            'zone': self.use_instance_zones[i],
+            'credentials': self.bindings['GCE_CREDENTIALS'] }
+        })
+
       # Verify we created an instance, whether or not it boots.
       (builder.new_clause_builder(
           'Instance %d Created' % i, retryable_for_secs=90)
@@ -152,6 +177,10 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       if i < 2:
         # Verify the details are what we asked for.
         # Since we've finished the created clause, this already exists.
+        # Note we're only checking the first two since they are different
+        # from one another. Anything after that isnt necessary for the test.
+        # The clause above already checked that they were all created so we
+        # can assume from this test that the details are ok as well.
         (builder.new_clause_builder('Instance %d Details' % i)
             .inspect_resource('instances', self.use_instance_names[i],
                               extra_args=['--zone', self.use_instance_zones[i]])
@@ -166,8 +195,8 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
                               extra_args=['--zone', self.use_instance_zones[i]])
             .contains_eq('status', 'RUNNING'))
 
-    payload = '[{0},{1},{2}]'.format(
-        instance_spec[0], instance_spec[1], instance_spec[2])
+    payload = self.agent.make_payload(instance_spec)
+
     return st.OperationContract(
         self.new_post_operation(
             title='create_instances', data=payload, path='ops'),
@@ -186,15 +215,13 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GceContractBuilder(self.gce_observer)
     clause = (builder.new_clause_builder('Instances Deleted', strict=True)
               .list_resources('instances'))
-    name_str = ''
-    sep = ""
     for name in names:
-      name_str += '{sep}"{name}"'.format(sep=sep, name=name)
-      sep = ','
-
+      # If one of our instances still exists, it should be STOPPING.
       name_matches_pred = jc.PathContainsPredicate('name', name)
       is_stopping_pred = jc.ConjunctivePredicate(
         [name_matches_pred,jc.PathEqPredicate('status', 'STOPPING')])
+
+      # This states we dont expect to see the name at all.
       nolonger_exists_pred = jc.CardinalityPredicate(
         name_matches_pred, max=0)
 
@@ -203,14 +230,18 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
           [is_stopping_pred, nolonger_exists_pred])
       clause.add_mapped_constraint(disjunction)
 
-    payload = self.substitute_variables(
-      '[{'
-          '"terminateGoogleInstancesDescription":{'
-              '"instanceIds": [' + name_str + '],'
-              '"zone": "' + zone + '",'
-              '"credentials": "$GCE_CREDENTIALS"'
-          '}'
-      '}]')
+      # We want the disjunction to apply to all the observed objects so we'll
+      # map the constraint over the observation. Otherwise, if we just added it,
+      # then we'd expect the constraint to hold somewhere among the observed
+      # objects, but not necessarily all of them.
+      clause.add_mapped_constraint(disjunction)
+
+    payload = self.agent.type_to_payload(
+          'terminateGoogleInstancesDescription',
+          { 'instanceIds': names,
+            'zone': zone,
+            'credentials': self.bindings['GCE_CREDENTIALS']
+          })
 
     return st.OperationContract(
         self.new_post_operation(
@@ -219,15 +250,13 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
   def upsert_google_server_group_tags(self):
     replica_pool_name = 'katotest-replica-pool'
-    payload = self.substitute_variables(
-      '[{'
-          '"upsertGoogleServerGroupTagsDescription":{'
-             '"credentials": "$GCE_CREDENTIALS",'
-             '"zone": "$TEST_GCE_ZONE",'
-             '"replicaPoolName":"katotest-replica-pool",'
-                '"tags": ["test-tag-1", "test-tag-2"]'
-          '}'
-      '}]')
+    payload = self.agent.type_to_payload(
+      'upsertGoogleServerGroupTagsDescription',
+      { 'credentials': self.bindings['GCE_CREDENTIALS'],
+        'zone': self.bindings['TEST_GCE_ZONE'],
+        'replicaPoolName': 'katotest-replica-pool',
+        'tags': ['test-tag-1', 'test-tag-2']
+      })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Replica Pool Tags Added')
@@ -278,30 +307,21 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     # TODO(ewiseblatt): 20150530
     # Specify explicit backends?
 
-    payload = self.substitute_variables(
-      '[{'
-          '"createGoogleHttpLoadBalancerDescription":{'
-              '"healthCheck":{'
-              + ('"checkIntervalSec":{interval},'
-                 '"healthyThreshold":{healthy},'
-                 '"unhealthyThreshold":{unhealthy},'
-                 '"timeoutSec":{timeout},'
-                 '"requestPath":"{path}"'
-                     .format(interval=interval, healthy=healthy,
-                             unhealthy=unhealthy, timeout=timeout,
-                             path=path))
-              + '},'
-          '"portRange:":"' + port_range +'",'
-          '"loadBalancerName":"' + logical_http_lb_name +'",'
-          '"credentials":"$GCE_CREDENTIALS"}'
-      '}]')
-
     health_check = {
         'checkIntervalSec': interval,
         'healthyThreshold': healthy,
         'unhealthyThreshold': unhealthy,
         'timeoutSec': timeout,
         'requestPath': path }
+
+    payload = self.agent.type_to_payload(
+        'createGoogleHttpLoadBalancerDescription',
+        { 'healthCheck': health_check,
+          'portRange': port_range,
+          'loadBalancerName': logical_http_lb_name,
+          'credentials': self.bindings['GCE_CREDENTIALS']
+        })
+
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Http Health Check Added')
@@ -338,13 +358,12 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def delete_http_load_balancer(self):
-    payload = self.substitute_variables(
-      '[{'
-          '"deleteGoogleHttpLoadBalancerDescription":{'
-              '"loadBalancerName":"' + self._use_http_lb_name +'",'
-              '"credentials":"$GCE_CREDENTIALS"'
-          '}'
-      '}]')
+    payload = self.agent.type_to_payload(
+        'deleteGoogleHttpLoadBalancerDescription',
+        { 'loadBalancerName': self._use_http_lb_name,
+          'credentials': self.bindings['GCE_CREDENTIALS']
+        })
+
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed')
        .list_resources('http-health-checks')
@@ -381,23 +400,20 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     timeout=78
     path='/' + self._use_lb_target
 
-    payload = self.substitute_variables(
-      '[{'
-          '"upsertGoogleNetworkLoadBalancerDescription":{'
-              '"healthCheck":{'
-              + ('"checkIntervalSec":{interval},'
-                  '"healthyThreshold":{healthy},'
-                  '"unhealthyThreshold":{unhealthy},'
-                  '"timeoutSec":{timeout},'
-                  '"requestPath":"{path}"'
-                      .format(interval=interval, healthy=healthy,
-                              unhealthy=unhealthy, timeout=timeout,
-                              path=path))
-               + '},'
-          '"region":"$TEST_GCE_REGION",'
-          '"credentials":"$GCE_CREDENTIALS",'
-          '"networkLoadBalancerName":"' + self._use_lb_name + '"}'
-      '}]')
+    health_check = {
+        'checkIntervalSec': interval,
+        'healthyThreshold': healthy,
+        'unhealthyThreshold': unhealthy,
+        'timeoutSec': timeout,
+        'requestPath': path }
+
+    payload = self.agent.type_to_payload(
+        'upsertGoogleNetworkLoadBalancerDescription',
+        { 'healthCheck': health_check,
+          'region': self.bindings['TEST_GCE_REGION'],
+          'credentials': self.bindings['GCE_CREDENTIALS'],
+          'networkLoadBalancerName': self._use_lb_name
+        })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Forwarding Rules Added',
@@ -411,13 +427,6 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
      # We list the resources here because the name isnt exact
      # and the list also returns the details we need.
-    health_check = {
-      'checkIntervalSec': interval,
-      'healthyThreshold': healthy,
-      'unhealthyThreshold': unhealthy,
-      'timeoutSec': timeout,
-      'requestPath': path }
-
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resources('http-health-checks')
        .contains_group([jc.PathContainsPredicate('name', self._use_lb_hc_name),
@@ -429,13 +438,12 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       contract=builder.build())
 
   def delete_network_load_balancer(self):
-    payload = self.substitute_variables(
-      '[{'
-          '"deleteGoogleNetworkLoadBalancerDescription":{'
-          '"region":"$TEST_GCE_REGION",'
-          '"credentials":"$GCE_CREDENTIALS",'
-          '"networkLoadBalancerName":"' + self._use_lb_name + '"}'
-      '}]')
+    payload = self.agent.type_to_payload(
+      'deleteGoogleNetworkLoadBalancerDescription',
+      { 'region': self.bindings['TEST_GCE_REGION'],
+        'credentials': self.bindings['GCE_CREDENTIALS'],
+        'networkLoadBalancerName': self._use_lb_name
+      })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Health Check Removed')
@@ -465,17 +473,14 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
-    instance_str = '"{0}","{1}"'.format(
-        self.use_instance_names[0], self.use_instance_names[1])
-    payload = self.substitute_variables(
-      '[{'
-          '"registerInstancesWithGoogleNetworkLoadBalancerDescription":{'
-              '"networkLoadBalancerNames":["' + self._use_lb_name + '"],'
-              '"instanceIds":[' + instance_str + '],'
-              '"region":"$TEST_GCE_REGION",'
-              '"credentials":"$GCE_CREDENTIALS"'
-          '}'
-      '}]')
+    payload = self.agent.type_to_payload(
+        'registerInstancesWithGoogleNetworkLoadBalancerDescription',
+        { 'networkLoadBalancerNames': [ self._use_lb_name ],
+          'instanceIds': self.use_instance_names[:2],
+          'region': self.bindings['TEST_GCE_REGION'],
+          'credentials': self.bindings['GCE_CREDENTIALS']
+        })
+
     builder = gcp.GceContractBuilder(self.gce_observer)
     (builder.new_clause_builder('Instances in Target Pool',
                                 retryable_for_secs=15)
@@ -504,17 +509,14 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     Returns:
       st.OperationContract
     """
-    instance_str = '"{0}","{1}"'.format(
-        self.use_instance_names[0], self.use_instance_names[1])
-    payload = self.substitute_variables(
-      '[{'
-          '"deregisterInstancesFromGoogleNetworkLoadBalancerDescription":{'
-              '"networkLoadBalancerNames":["' + self._use_lb_name + '"],'
-              '"instanceIds":[' + instance_str + '],'
-              '"region":"$TEST_GCE_REGION",'
-              '"credentials":"$GCE_CREDENTIALS"'
-          '}'
-      '}]')
+              
+    payload = self.agent.type_to_payload(
+       'deregisterInstancesFromGoogleNetworkLoadBalancerDescription',
+        { 'networkLoadBalancerNames': [ self._use_lb_name ],
+          'instanceIds': self.use_instance_names[:2],
+          'region': self.bindings['TEST_GCE_REGION'],
+          'credentials': self.bindings['GCE_CREDENTIALS']
+        })
 
     # NOTE(ewiseblatt): 20150530
     # This displays an error that 'instances' field doesnt exist.
