@@ -47,11 +47,12 @@ class DependentPipelineExecutionListener implements JobExecutionListener {
   @Override
   void afterJob(JobExecution jobExecution) {
     def execution = currentExecution(jobExecution)
-    if (execution) {
+    if (execution && execution.pipelineConfigId) {
       front50Service.getAllPipelines().each {
         it.triggers.each { trigger ->
           if (trigger.enabled &&
             trigger.type == 'pipeline' &&
+            trigger.pipeline &&
             trigger.pipeline == execution.pipelineConfigId &&
             trigger.status.contains(convertStatus(execution))
           ) {
