@@ -184,15 +184,24 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
       st.OperationContract
     """
     builder = gcp.GceContractBuilder(self.gce_observer)
-    clause = (builder.new_clause_builder('Instances Deleted')
+    clause = (builder.new_clause_builder('Instances Deleted', strict=True)
               .list_resources('instances'))
     name_str = ''
     sep = ""
     for name in names:
       name_str += '{sep}"{name}"'.format(sep=sep, name=name)
       sep = ','
-      clause.contains_group([jc.PathContainsPredicate('name', name),
-                             jc.PathEqPredicate('status', 'STOPPING')])
+
+      name_matches_pred = jc.PathContainsPredicate('name', name)
+      is_stopping_pred = jc.ConjunctivePredicate(
+        [name_matches_pred,jc.PathEqPredicate('status', 'STOPPING')])
+      nolonger_exists_pred = jc.CardinalityPredicate(
+        name_matches_pred, max=0)
+
+      # Add disjunction (named instance is stopping or doesnt exist at all)
+      disjunction = jc.DisjunctivePredicate(
+          [is_stopping_pred, nolonger_exists_pred])
+      clause.add_mapped_constraint(disjunction)
 
     payload = self.substitute_variables(
       '[{'
