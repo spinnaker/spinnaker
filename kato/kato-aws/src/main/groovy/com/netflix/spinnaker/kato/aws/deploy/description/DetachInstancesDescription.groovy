@@ -23,5 +23,6 @@ class DetachInstancesDescription extends AbstractAmazonCredentialsDescription {
   List<String> instanceIds
   boolean decrementDesiredCapacity
   boolean terminateDetachedInstances
+  boolean adjustMinIfNecessary
 }
 

@@ -31,5 +31,6 @@ This description detaches (and optionally terminates) selected instances from an
 |region                     | string  | true     | The region that the asg/regions exist in.
 |terminateDetachedInstances | boolean | false    | Should the detached instances should be terminated.
 |decrementDesiredCapacity   | boolean | false    | Should the desired ASG capacity be decremented by # of instances detached.
+|adjustMinIfNecessary       | boolean | false    | Should the minimum size of the ASG be adjusted to reflect # of instances detached.
 |credentials                | string  | true     | The named account credentials that are to be used for this operation.
 |======================
