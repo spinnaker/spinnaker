@@ -46,14 +46,22 @@ class StartScriptTask implements Task {
   TaskResult execute(Stage stage) {
     String scriptPath = stage.context.scriptPath
     String command = stage.context.command
+    String image = stage.context.image
+    String region = stage.context.region
+    String account = stage.context.account
+    String cluster = stage.context.cluster
 
     def parameters = [
       SCRIPT_PATH  : scriptPath,
-      COMMAND      : command
+      COMMAND      : command,
+      IMAGE_ID     : image,
+      REGION_PARAM : region,
+      ENV_PARAM    : account,
+      CLUSTER_PARAM: cluster
     ]
 
     String queuedBuild = igorService.build(master, job, parameters)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [master:master, job:job, queuedBuild: queuedBuild])
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [master: master, job: job, queuedBuild: queuedBuild])
   }
 
 }
