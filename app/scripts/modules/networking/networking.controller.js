@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.networking.controller', [
     function getElasticIpsForCluster() {
       var serverGroup = $scope.serverGroup;
       elasticIpReader.getElasticIpsForCluster(application.name, serverGroup.account, serverGroup.cluster, serverGroup.region).then(function (elasticIps) {
-        $scope.elasticIps = elasticIps.plain();
+        $scope.elasticIps = elasticIps.plain ? elasticIps.plain() : [];
       });
     }
 
