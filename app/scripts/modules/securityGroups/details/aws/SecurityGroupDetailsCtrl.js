@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../../securityGroup.read.service.js'),
   require('../../securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
-  require('utils/lodash.js'),
+  require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,

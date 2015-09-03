@@ -9,8 +9,8 @@ module.exports = angular
     require('./fastProperty.write.service.js'),
     require('./modal/createNewFastProperty.controller.js'),
     require('../confirmationModal/confirmationModal.service.js'),
-    require('./fastPropetyTrasnformer.service.js'),
-    require('utils/lodash.js'),
+    require('./fastPropertyTransformer.service.js'),
+    require('../utils/lodash.js'),
   ])
   .controller('ApplicationPropertiesController', function ($scope, $filter, $modal, $state, app, fastPropertyReader, fastPropertyWriter, fastPropertyTransformer, _) {
     var vm = this;

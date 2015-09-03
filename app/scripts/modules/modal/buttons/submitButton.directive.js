@@ -1,16 +1,20 @@
 'use strict';
 
-module.exports = function () {
-  return {
-    restrict: 'E',
-    replace: true,
-    templateUrl: require('./submitButton.directive.html'),
-    scope: {
-      onClick: '&',
-      isDisabled: '=',
-      isNew: '=',
-      submitting: '=',
-      label: '=',
-    }
-  };
-};
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.modal.buttons.submitButton.directive', [
+])
+  .directive('submitButton', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      templateUrl: require('./submitButton.directive.html'),
+      scope: {
+        onClick: '&',
+        isDisabled: '=',
+        isNew: '=',
+        submitting: '=',
+        label: '=',
+      }
+    };
+}).name;

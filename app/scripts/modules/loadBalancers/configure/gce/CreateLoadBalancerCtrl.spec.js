@@ -6,11 +6,11 @@ describe('Controller: gceCreateLoadBalancerCtrl', function () {
   const angular = require('angular');
 
   // load the controller's module
-  beforeEach(
-    window.module(
-      require('./CreateLoadBalancerCtrl')
-    )
-  );
+  beforeEach(function() {
+      window.module(
+        require('./CreateLoadBalancerCtrl.js')
+      );
+    });
 
   // Initialize the controller and a mock scope
   beforeEach(window.inject(function ($controller, $rootScope, _modalWizardService_) {

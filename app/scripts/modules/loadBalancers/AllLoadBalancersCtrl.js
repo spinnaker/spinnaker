@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
   require('../providerSelection/providerSelection.service.js'),
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
-  require('utils/lodash.js'),
+  require('../utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('../filterModel/filter.tags.directive.js'),
   require('exports?"ui.bootstrap"!angular-bootstrap')

@@ -22,14 +22,13 @@ describe('Directives: checklist', function () {
 
   beforeEach(
     window.module(
-      require('./directives.module.js')
+      require('./checklist.directive.js')
     )
   );
 
-  beforeEach(window.inject(function ($rootScope, $compile, $) {
+  beforeEach(window.inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
-    this.$ = $;
   }));
 
   it('initializes with provided values', function() {

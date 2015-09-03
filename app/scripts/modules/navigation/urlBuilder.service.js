@@ -6,7 +6,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.urlBuilder', [
   require('angular-ui-router'),
 ])
-  .factory('urlBuilder', function($state) {
+  .factory('urlBuilderService', function($state) {
     var lookup = {
       // url for a single serverGroup
       'serverGroups': function(input) {

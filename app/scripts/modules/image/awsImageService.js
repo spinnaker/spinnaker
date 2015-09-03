@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.image.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../modules/caches/deckCacheFactory.js'),
-  require('../modules/caches/scheduledCache.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../caches/scheduledCache.js'),
 ])
   .factory('awsImageService', function ($q, Restangular) {
 

@@ -4,9 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.instanceType.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../modules/caches/deckCacheFactory.js'),
-  require('utils/lodash.js'),
-  require('../modules/caches/infrastructureCaches.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../utils/lodash.js'),
+  require('../config/settings.js'),
+  require('../caches/infrastructureCaches.js'),
 ])
   .factory('awsInstanceTypeService', function ($http, $q, settings, _, Restangular, infrastructureCaches) {
 

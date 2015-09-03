@@ -19,7 +19,6 @@
 describe('Directives: auto-scroll', function () {
 
   beforeEach(window.module(
-    require('utils/jQuery.js'),
     require('./autoScroll.directive.js')
   ));
 
@@ -35,13 +34,12 @@ describe('Directives: auto-scroll', function () {
   }
 
   function buildWatchableContainer(watch, context) {
-    var $ = context.$,
-        compile = context.compile,
+    var compile = context.compile,
         scope = context.scope;
 
-    var container = $(buildContainer(15)),
-      autoScroller = $(buildAutoScroller(watch)),
-      child = $(buildChild(50));
+    var container = angular.element(buildContainer(15)),
+      autoScroller = angular.element(buildAutoScroller(watch)),
+      child = angular.element(buildChild(50));
 
     autoScroller.append(child);
     container.append(autoScroller);
@@ -53,11 +51,10 @@ describe('Directives: auto-scroll', function () {
     return container;
   }
 
-  beforeEach(window.inject(function ($rootScope, $compile, $, _$timeout_) {
+  beforeEach(window.inject(function ($rootScope, $compile, _$timeout_) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.timeout = _$timeout_;
-    this.$ = $;
   }));
 
   it ('should scroll when a watched property is changed', function() {
@@ -113,17 +110,16 @@ describe('Directives: auto-scroll', function () {
   });
 
   it ('should scroll after dom changes applied', function() {
-    var $ = this.$,
-      compile = this.compile,
+    var compile = this.compile,
       scope = this.scope;
 
     scope.a = 0;
     scope.b = 0;
 
-    var container = $(buildContainer(25)),
-      autoScroller = $('<div auto-scroll="[a,b]"></div>'),
-      childA = $('<div ng-if="a === 1" style="height: 100px"></div>'),
-      childB = $('<div ng-if="b === 1" style="height: 60px"></div>');
+    var container = angular.element(buildContainer(25)),
+      autoScroller = angular.element('<div auto-scroll="[a,b]"></div>'),
+      childA = angular.element('<div ng-if="a === 1" style="height: 100px"></div>'),
+      childB = angular.element('<div ng-if="b === 1" style="height: 60px"></div>');
 
     autoScroller.append(childA).append(childB);
     container.append(autoScroller);

@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.orchestratedItem.service', [
-  require('../modules/utils/moment.js')
+  require('../utils/moment.js')
 ])
-  .factory('orchestratedItem', function(momentService, $log) {
+  .factory('orchestratedItemTransformer', function(momentService, $log) {
     function defineProperties(item) {
       if (!item || typeof item !== 'object') {
         return;

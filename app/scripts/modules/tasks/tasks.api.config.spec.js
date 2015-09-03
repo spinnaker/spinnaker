@@ -19,19 +19,17 @@
 describe('Service: tasksApi - task complete, task force refresh', function() {
   const angular = require('angular');
 
-  var service, $http, config, scope, timeout, task;
+  var service, $http, scope, timeout, task;
 
   beforeEach(
     window.module(
-      require('./tasks.api.config.js'),
-      require('../../settings/settings.js')
+      require('./tasks.api.config.js')
     )
   );
 
 
-  beforeEach(window.inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function(tasksApi, $httpBackend, $rootScope, $timeout) {
     service = tasksApi;
-    config = settings;
     $http = $httpBackend;
     timeout = $timeout;
     scope = $rootScope.$new();

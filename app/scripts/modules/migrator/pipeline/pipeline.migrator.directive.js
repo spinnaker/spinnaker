@@ -7,12 +7,12 @@ module.exports = angular
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('../../vpc/vpc.read.service.js'),
     require('../../subnet/subnet.read.service.js'),
-    require('../../../settings/settings.js'),
+    require('../../config/settings.js'),
     require('../migrator.service.js'),
-    require('utils/lodash.js'),
-    require('../../../directives/autoScroll.directive.js'),
+    require('../../utils/lodash.js'),
+    require('../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../pipelines/config/services/pipelineConfigService.js'),
-    require('utils/scrollTo/scrollTo.service.js'),
+    require('../../utils/scrollTo/scrollTo.service.js'),
     require('../../caches/cacheInitializer.js'),
   ])
   .directive('pipelineMigrator', function () {

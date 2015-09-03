@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.baseProviderStage', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('../../../../providerSelection/providerSelector.directive.js'),
 ])
   .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig, _) {

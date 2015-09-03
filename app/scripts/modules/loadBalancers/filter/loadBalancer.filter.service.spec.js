@@ -13,7 +13,7 @@ describe('Service: loadBalancerFilterService', function () {
 
   beforeEach(
     window.module(
-      require('utils/lodash.js'),
+      require('../../utils/lodash.js'),
       require('./loadBalancer.filter.service.js'),
       require('./loadBalancer.filter.model.js')
     )

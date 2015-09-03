@@ -4,8 +4,7 @@ describe('Service: whatsNew reader ', function () {
 
   beforeEach(
     window.module(
-      require('./whatsNew.read.service'),
-      require('../../settings/settings.js')
+      require('./whatsNew.read.service')
     )
   );
 

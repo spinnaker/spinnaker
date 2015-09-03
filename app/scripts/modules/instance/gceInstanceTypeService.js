@@ -4,11 +4,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.instanceType.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../modules/caches/deckCacheFactory.js'),
-  require('utils/lodash.js'),
-  require('../settings/settings.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../utils/lodash.js'),
 ])
-  .factory('gceInstanceTypeService', function ($http, $q, settings, _) {
+  .factory('gceInstanceTypeService', function ($http, $q, _) {
 
     var cachedResult = null;
 

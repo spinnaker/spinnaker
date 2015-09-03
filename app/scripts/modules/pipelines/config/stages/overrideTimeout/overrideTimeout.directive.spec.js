@@ -9,7 +9,6 @@ describe('Directives: overrideTimeout', function () {
   beforeEach(
     window.module(
       require('./overrideTimeout.directive.js'),
-      require('../../../../../settings/helpContents.js'),
       function ($provide) {
         $provide.service('pipelineConfig', function () {
           return {

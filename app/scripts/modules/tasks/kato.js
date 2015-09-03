@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.kato.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('utils/lodash.js'),
-  require('../modules/caches/deckCacheFactory.js'),
+  require('../utils/lodash.js'),
+  require('../caches/deckCacheFactory.js'),
 ])
   .factory('kato', function(settings, Restangular, $timeout, $q, _) {
 

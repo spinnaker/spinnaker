@@ -40,7 +40,7 @@ require('../styles/newapplication.less');
 require('../styles/pipelines.less');
 require('../styles/rollups.less');
 require('../styles/tasks.less');
-require('../../utils/stickyHeader/stickyHeader.less');
+require('./modules/utils/stickyHeader/stickyHeader.less');
 
 require('../styles/imports/commonImports.less');
 require('./modules/search/global/globalSearch.less');
@@ -71,39 +71,39 @@ module.exports = angular.module('spinnaker', [
     require('angular-ui-router'),
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('./filters/filters.module.js'),
+    require('./modules/core/presentation/anyFieldFilter/anyField.filter.js'),
+    require('./modules/core/presentation/robotToHumanFilter/robotToHuman.filter.js'),
     require('imports?define=>false!exports?"angularSpinner"!angular-spinner'),
-    require('./directives/applicationBootstrap.directive.js'),
+    require('./modules/core/bootstrap/applicationBootstrap.directive.js'),
+
+    require('./modules/core/presentation/presentation.module.js'),
+    require('./modules/core/forms/forms.module.js'),
+    require('./modules/modal/modal.module.js'),
 
     require('exports?"angular.filter"!angular-filter'),
-    require('./providers/states.provider.js'),
+    require('./modules/navigation/states.provider.js'),
     require('./modules/caches/cacheInitializer.js'),
     require('./modules/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
-    require('./directives/directives.module.js'),
 
     require('./modules/insight/insight.module.js'),
     require('./modules/applications/application.module.js'),
     require('./modules/feedback/feedback.module.js'),
 
-    require('utils/stickyHeader/stickyHeader.directive.js'),
-
     require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
     require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
 
-    require('./modules/aws.module.js'),
-    require('./modules/gce.module.js'),
+    require('./modules/amazon/aws.module.js'),
+    require('./modules/google/gce.module.js'),
     require('./modules/subnet/subnet.module.js'),
-    require('utils/utils.module.js'),
+    require('./modules/utils/utils.module.js'),
     require('./modules/caches/caches.module.js'),
     require('./modules/naming/naming.service.js'),
     require('./modules/delegation/serviceDelegate.service.js'),
     require('./modules/healthCounts/healthCounts.directive.js'),
-    require('./settings/settings.js'),
+    require('./modules/config/settings.js'),
     require('./modules/scheduler/scheduler.service.js'),
-    require('./services/urlbuilder.js'),
     require('./modules/clusterFilter/cluster.filter.module.js'),
-    require('./directives/modalWizard.directive.js'),
     require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/common/ajaxError.interceptor.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
@@ -151,13 +151,11 @@ module.exports = angular.module('spinnaker', [
     require('./modules/vpc/vpc.module.js'),
     require('./modules/keyPairs/keyPairs.module.js'),
     require('./modules/config/config.module.js'),
-    require('./directives/gist.directive.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
-    require('./directives/help.directive.js'),
     require('./modules/networking/networking.module.js'),
     require('./modules/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
-    require('./directives/accountLabelColor.directive.js'),
+    require('./modules/account/accountLabelColor.directive.js'),
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {
     // This can go away when the next version of ui-router is available (0.2.11+)
@@ -266,7 +264,7 @@ module.exports = angular.module('spinnaker', [
       };
     });
   })
-  .config(require('./decorators/uiSelect.decorator.js'))
+  .config(require('./modules/core/uiSelect.decorator.js'))
   //.config(function ($compileProvider) {
   //  $compileProvider.debugInfoEnabled(false);
   //})

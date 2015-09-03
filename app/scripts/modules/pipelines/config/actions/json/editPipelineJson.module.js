@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
 ])
   .controller('EditPipelineJsonModalCtrl', function($scope, pipeline, _, $modalInstance) {
 

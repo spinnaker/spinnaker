@@ -18,62 +18,63 @@
 
 let angular = require('angular');
 
-module.exports = function() {
-  return {
-    restrict: 'E',
-    templateUrl: require('./checklist.directive.html'),
-    scope: {
-      items: '=',
-      model: '=',
-      onChange: '&',
-      inline: '=',
-      includeSelectAllButton: '=',
-    },
-    link: function(scope) {
-      function initializeModelHolder() {
-        scope.model = scope.model || [];
-        scope.modelHolder = {};
-        scope.model.forEach(function (val) {
-          scope.modelHolder[val] = true;
-        });
-      }
-
-      function updateModel() {
-        var updatedModel = [];
-        scope.items.forEach(function (testKey) {
-          if (scope.modelHolder[testKey]) {
-            updatedModel.push(testKey);
-          }
-        });
-
-        angular.copy(updatedModel, scope.model);
-
-        if (scope.onChange) {
-          scope.$evalAsync(scope.onChange);
+module.exports = angular.module('spinnaker.core.forms.checklist.checklist.directive', [])
+  .directive('checklist', function() {
+    return {
+      restrict: 'E',
+      templateUrl: require('./checklist.directive.html'),
+      scope: {
+        items: '=',
+        model: '=',
+        onChange: '&',
+        inline: '=',
+        includeSelectAllButton: '=',
+      },
+      link: function(scope) {
+        function initializeModelHolder() {
+          scope.model = scope.model || [];
+          scope.modelHolder = {};
+          scope.model.forEach(function (val) {
+            scope.modelHolder[val] = true;
+          });
         }
-      }
 
-      scope.selectAll = function () {
-        scope.items.forEach(function (key) {
-          scope.modelHolder[key] = true;
-        });
-        updateModel();
-      };
-
-      scope.updateModel = updateModel;
-
-      scope.$watch('model', initializeModelHolder);
-
-      scope.$watch('items', function(newOptions, oldOptions) {
-        if (oldOptions && oldOptions !== newOptions) {
-          oldOptions.forEach(function(oldOption) {
-            if (newOptions.indexOf(oldOption) === -1) {
-              delete scope.modelHolder[oldOption];
+        function updateModel() {
+          var updatedModel = [];
+          scope.items.forEach(function (testKey) {
+            if (scope.modelHolder[testKey]) {
+              updatedModel.push(testKey);
             }
           });
-          updateModel();
+
+          angular.copy(updatedModel, scope.model);
+
+          if (scope.onChange) {
+            scope.$evalAsync(scope.onChange);
+          }
         }
-      });
-    }
-  };
-};
+
+        scope.selectAll = function () {
+          scope.items.forEach(function (key) {
+            scope.modelHolder[key] = true;
+          });
+          updateModel();
+        };
+
+        scope.updateModel = updateModel;
+
+        scope.$watch('model', initializeModelHolder);
+
+        scope.$watch('items', function(newOptions, oldOptions) {
+          if (oldOptions && oldOptions !== newOptions) {
+            oldOptions.forEach(function(oldOption) {
+              if (newOptions.indexOf(oldOption) === -1) {
+                delete scope.modelHolder[oldOption];
+              }
+            });
+            updateModel();
+          }
+        });
+      }
+    };
+  }).name;

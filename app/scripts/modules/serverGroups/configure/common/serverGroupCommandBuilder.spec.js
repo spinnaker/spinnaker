@@ -9,7 +9,7 @@ describe('serverGroupCommandBuilder', function() {
       require('./serverGroupCommandBuilder.js'),
       require('../../../account/accountService'),
       require('../../../subnet/subnet.read.service.js'),
-      require('../../../../services/instanceTypeService.js'),
+      require('../../../instance/instanceTypeService.js'),
       require('../../configure/aws/serverGroupCommandBuilder.service.js')
     )
   );

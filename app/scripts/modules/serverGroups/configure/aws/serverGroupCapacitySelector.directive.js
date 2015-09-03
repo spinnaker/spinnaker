@@ -2,7 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws.capacitySelector.directive', [])
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.capacitySelector.directive', [
+  require('./wizard/availabilityZoneSelector.directive.js'),
+])
   .directive('awsServerGroupCapacitySelector', function() {
     return {
       restrict: 'E',

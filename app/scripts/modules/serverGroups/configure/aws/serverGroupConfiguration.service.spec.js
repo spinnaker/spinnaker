@@ -18,7 +18,7 @@
 
 describe('Service: awsServerGroupConfiguration', function () {
 
-  var service, $q, imageService, accountService, securityGroupReader,
+  var service, $q, awsImageService, accountService, securityGroupReader,
     instanceTypeService, cacheInitializer,
     subnetReader, keyPairsReader, loadBalancerReader, $scope;
 
@@ -29,12 +29,12 @@ describe('Service: awsServerGroupConfiguration', function () {
   );
 
 
-  beforeEach(window.inject(function (_awsServerGroupConfigurationService_, _$q_, _imageService_, _accountService_,
+  beforeEach(window.inject(function (_awsServerGroupConfigurationService_, _$q_, _awsImageService_, _accountService_,
                                      _securityGroupReader_, _instanceTypeService_, _cacheInitializer_,
                                      _subnetReader_, _keyPairsReader_, _loadBalancerReader_, $rootScope) {
     service = _awsServerGroupConfigurationService_;
     $q = _$q_;
-    imageService = _imageService_;
+    awsImageService = _awsImageService_;
     accountService = _accountService_;
     securityGroupReader = _securityGroupReader_;
     instanceTypeService = _instanceTypeService_;

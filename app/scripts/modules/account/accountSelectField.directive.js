@@ -1,8 +1,11 @@
 'use strict';
 
-//BEN_TODO
+let angular = require('angular');
 
-module.exports = function(settings, _) {
+module.exports = angular.module('spinnaker.account.accountSelectField.directive', [
+  require('../config/settings.js')
+])
+  .directive('accountSelectField', function(settings, _) {
   return {
     restrict: 'E',
     templateUrl: require('./accountSelectField.directive.html'),
@@ -49,4 +52,4 @@ module.exports = function(settings, _) {
       scope.$watch('accounts', groupAccounts);
     }
   };
-};
+}).name;

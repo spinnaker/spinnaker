@@ -2,18 +2,14 @@
 
 describe('authenticationService', function() {
 
-  var $http, settings;
-  
   beforeEach(
     window.module(
       require('./authenticationService.js')
     )
   );
 
-  beforeEach(window.inject(function(authenticationService, $httpBackend, _settings_) {
+  beforeEach(window.inject(function(authenticationService) {
     this.authenticationService = authenticationService;
-    $http = $httpBackend;
-    settings = _settings_;
   }));
 
   describe('setAuthenticatedUser', function() {

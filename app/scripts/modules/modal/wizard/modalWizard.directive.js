@@ -19,7 +19,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.modalWizard', [
-  require('./modalWizard.service.js')
+  require('./modalWizard.service.js'),
+  require('./wizardPage.directive.js'),
 ])
   .directive('modalWizard', function () {
     return {

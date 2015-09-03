@@ -10,7 +10,7 @@ describe('Controller: Config', function () {
   var application;
 
   beforeEach(window.module(
-    require('./config.controller.js'),
+    require('./applicationConfig.controller.js'),
     require('../notifications/notification.service.js')
   ));
 
@@ -35,7 +35,7 @@ describe('Controller: Config', function () {
           accounts: 'test'
         };
 
-        configController = $controller('ConfigController', {
+        configController = $controller('ApplicationConfigController', {
           app: application,
           $modal: $modal,
           notificationService: notificationService,

@@ -24,8 +24,8 @@ describe('Directives: regionSelectField', function () {
 
   beforeEach(function() {
     window.module(
-      require('./directives.module.js'),
-      require('../modules/caches/cacheInitializer.js'),
+      require('./regionSelectField.directive.js'),
+      require('../caches/cacheInitializer.js'),
       function($provide) {
         $provide.decorator('cacheInitializer', function() {
           return {
@@ -40,7 +40,7 @@ describe('Directives: regionSelectField', function () {
 
 
 
-  beforeEach(window.inject(function ($rootScope, $compile, $) {
+  beforeEach(window.inject(function ($rootScope, $compile) {
     this.scope = $rootScope.$new();
     this.compile = $compile;
     this.divider = '---------------';

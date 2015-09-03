@@ -30,27 +30,31 @@
  *   - lazy (optional, default: false): when set to true, the page will actually be rendered and initialized but will
  *     not be displayed. This is useful if the page's controller should be initialized immediately
  */
-module.exports = function () {
-  return {
-    restrict: 'E',
-    transclude: true,
-    require: '^modalWizard',
-    scope: true,
-    templateUrl: require('./wizardPage.directive.html'),
-    link: function($scope, elem, attrs, wizardCtrl) {
-      var state = {
-        rendered: !attrs.render || $scope.$eval(attrs.render),
-        done: attrs.done === 'true',
-        dirty: false,
-        blocked: attrs.blocked !== 'false',
-        required: attrs.mandatory !== 'false'
-      };
-      $scope.hideSubheading = attrs.hideSubheading === 'true';
-      $scope.key = attrs.key;
-      $scope.label = attrs.label;
-      $scope.lazy = attrs.lazy !== 'true';
-      wizardCtrl.getWizard().registerPage($scope.key, $scope.label, state);
-    }
-  };
-};
+let angular = require('angular');
+
+module.exports = angular.module('spinnaker.modal.wizard.wizardPage.directive', [
+])
+  .directive('wizardPage', function () {
+    return {
+      restrict: 'E',
+      transclude: true,
+      require: '^modalWizard',
+      scope: true,
+      templateUrl: require('./wizardPage.directive.html'),
+      link: function($scope, elem, attrs, wizardCtrl) {
+        var state = {
+          rendered: !attrs.render || $scope.$eval(attrs.render),
+          done: attrs.done === 'true',
+          dirty: false,
+          blocked: attrs.blocked !== 'false',
+          required: attrs.mandatory !== 'false'
+        };
+        $scope.hideSubheading = attrs.hideSubheading === 'true';
+        $scope.key = attrs.key;
+        $scope.label = attrs.label;
+        $scope.lazy = attrs.lazy !== 'true';
+        wizardCtrl.getWizard().registerPage($scope.key, $scope.label, state);
+      }
+    };
+}).name;
 

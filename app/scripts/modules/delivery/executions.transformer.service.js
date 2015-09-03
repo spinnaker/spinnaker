@@ -5,11 +5,11 @@ let angular = require('angular');
 let executionBarLabelTemplate =  require('../pipelines/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.delivery.executionTransformer.service', [
-  require('../../services/orchestratedItem.js'),
-  require('utils/lodash.js'),
+  require('../orchestratedItem/orchestratedItem.transformer.js'),
+  require('../utils/lodash.js'),
   require('../pipelines/config/pipelineConfigProvider.js'),
 ])
-  .factory('executionsTransformer', function(orchestratedItem, _, pipelineConfig) {
+  .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig) {
 
     var hiddenStageTypes = ['pipelineInitialization', 'waitForRequisiteCompletion'];
 
@@ -24,9 +24,9 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
         stage.before = stage.before || [];
         stage.after = stage.after || [];
         stage.index = index;
-        orchestratedItem.defineProperties(stage);
+        orchestratedItemTransformer.defineProperties(stage);
         if (stage.tasks && stage.tasks.length) {
-          stage.tasks.forEach(orchestratedItem.defineProperties);
+          stage.tasks.forEach(orchestratedItemTransformer.defineProperties);
         }
       });
 
@@ -62,7 +62,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
         }
       });
 
-      orchestratedItem.defineProperties(execution);
+      orchestratedItemTransformer.defineProperties(execution);
 
       stageSummaries.forEach(transformStageSummary);
       execution.stageSummaries = stageSummaries;
@@ -240,7 +240,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       summary.masterStageIndex = summary.stages.indexOf(summary.masterStage) === -1 ? 0 : summary.stages.indexOf(summary.masterStage);
       transformStage(summary);
       styleStage(summary);
-      orchestratedItem.defineProperties(summary);
+      orchestratedItemTransformer.defineProperties(summary);
     }
 
     return {

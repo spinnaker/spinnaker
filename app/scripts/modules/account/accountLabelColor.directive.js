@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.accountLabelColor.directive', [
-    require('../settings/settings.js')
+    require('../config/settings.js')
   ])
   .directive('accountLabelColor', function () {
     return {

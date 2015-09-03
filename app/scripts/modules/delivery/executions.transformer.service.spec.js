@@ -7,7 +7,7 @@ describe('executionsService', function() {
   beforeEach(
     window.module(
       require('./executions.transformer.service'),
-      require('utils/lodash.js')
+      require('../utils/lodash.js')
     )
   );
 

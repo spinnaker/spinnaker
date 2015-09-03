@@ -4,12 +4,13 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.api', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../services/kato.js'),
+  require('./kato.js'),
+  require('../config/settings.js'),
   require('../caches/deckCacheFactory.js'),
-  require('../../services/urlbuilder.js'),
-  require('../../services/orchestratedItem.js')
+  require('../navigation/urlBuilder.service.js'),
+  require('../orchestratedItem/orchestratedItem.transformer.js')
 ])
-  .factory('tasksApi', function(settings, Restangular, urlBuilder, $timeout, $q, kato, $exceptionHandler, orchestratedItem) {
+  .factory('tasksApi', function(settings, Restangular, urlBuilderService, $timeout, $q, kato, $exceptionHandler, orchestratedItemTransformer) {
 
     function getKatoTasks(task) {
       return task.getValueFor('kato.tasks');
@@ -230,7 +231,7 @@ module.exports = angular.module('spinnaker.tasks.api', [
         },
         href: {
           get: function() {
-            return task.isCompleted ? urlBuilder.buildFromTask(task) : false;
+            return task.isCompleted ? urlBuilderService.buildFromTask(task) : false;
           }
         },
         lastKatoMessage: {
@@ -263,9 +264,9 @@ module.exports = angular.module('spinnaker.tasks.api', [
       return Restangular.withConfig(function(RestangularConfigurer) {
         RestangularConfigurer.addElementTransformer('tasks', false, function(task) {
 
-          orchestratedItem.defineProperties(task);
+          orchestratedItemTransformer.defineProperties(task);
           if (task.steps && task.steps.length) {
-            task.steps.forEach(orchestratedItem.defineProperties);
+            task.steps.forEach(orchestratedItemTransformer.defineProperties);
           }
           setTaskProperties(task);
 

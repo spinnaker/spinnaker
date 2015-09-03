@@ -7,8 +7,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../account/accountService.js'),
   require('./loadBalancer.transformer.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
-  require('../../../../directives/modalWizard.service.js'),
-  require('../../../tasks/monitor/taskMonitorService.js')
+  require('../../../modal/wizard/modalWizard.service.js'),
+  require('../../../tasks/monitor/taskMonitorService.js'),
+  require('../../../google/gceRegionSelectField.directive.js'),
+  require('../../../search/search.service.js'),
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew,
@@ -16,7 +18,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
-
+console.warn('EL CONTROLO!!!');
     $scope.isNew = isNew;
 
     $scope.state = {

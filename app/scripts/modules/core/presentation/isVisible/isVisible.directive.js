@@ -16,12 +16,14 @@
 
 'use strict';
 
-//TODO: move this out of the directives folder.
+let angular = require('angular');
 
-module.exports = function () {
-  return function (scope, element, attr) {
-    scope.$watch(attr.isVisible, function (visible) {
-      element.css('visibility', visible ? 'visible' : 'hidden');
-    });
-  };
-};
+module.exports = angular.module('spinnaker.core.presentation.isVisible.directive', [
+])
+  .directive('isVisible', function () {
+    return function (scope, element, attr) {
+      scope.$watch(attr.isVisible, function (visible) {
+        element.css('visibility', visible ? 'visible' : 'hidden');
+      });
+    };
+}).name;

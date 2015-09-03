@@ -4,7 +4,7 @@ describe('pipelineConfigService', function () {
   beforeEach(
     window.module(
       require('./pipelineConfigService'),
-      require('utils/lodash.js')
+      require('../../../utils/lodash.js')
     )
   );
 

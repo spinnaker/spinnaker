@@ -3,13 +3,14 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.controller', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('angular-ui-router'),
   require('../../../../clusterFilter/clusterFilterService.js'),
   require('../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../navigation/urlBuilder.service.js'),
 ])
-  .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilder, clusterFilterService) {
+  .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilderService, clusterFilterService) {
 
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
@@ -46,7 +47,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
                 region: region,
                 provider: context.providerType || 'aws'
               };
-              result.href = urlBuilder.buildFromMetadata(result);
+              result.href = urlBuilderService.buildFromMetadata(result);
               results.push(result);
             });
           }

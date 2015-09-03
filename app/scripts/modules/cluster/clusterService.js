@@ -5,10 +5,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
-  require('../modules/vpc/vpc.read.service.js'),
-  require('../modules/naming/naming.service.js'),
+  require('../vpc/vpc.read.service.js'),
+  require('../naming/naming.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('utils/lodash.js'),
+  require('../utils/lodash.js'),
 ])
   .factory('clusterService', function ($q, Restangular, _, vpcReader, namingService) {
 

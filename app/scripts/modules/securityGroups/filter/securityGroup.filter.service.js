@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('securityGroup.filter.service', [
     require('./securityGroup.filter.model.js'),
-    require('utils/lodash.js'),
-    require('utils/waypoints/waypoint.service.js'),
+    require('../../utils/lodash.js'),
+    require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, _, waypointService, filterModelService,

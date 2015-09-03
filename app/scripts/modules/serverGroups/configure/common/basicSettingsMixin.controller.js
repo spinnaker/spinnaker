@@ -6,10 +6,10 @@ module.exports = angular
   .module('spinnaker.serverGroups.basicSettings.controller', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('angular-ui-router'),
-    require('utils/rx.js'),
-    require('utils/lodash.js'),
+    require('../../../utils/rx.js'),
+    require('../../../utils/lodash.js'),
     require('../../../naming/naming.service.js'),
-    require('../../../../services/imageService.js')
+    require('../../../image/imageService.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, RxService, imageService, namingService, $modalStack, $state, _) {
     function searchImages(q) {

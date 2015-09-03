@@ -22,13 +22,12 @@ describe('Service: ImageService', function() {
 
   beforeEach(
     window.module(
-      require('./imageService.js'),
-      require('../settings/settings.js')
+      require('./imageService.js')
     )
   );
 
 
-  beforeEach(window.inject(function (settings, imageService, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function (imageService, $httpBackend, $rootScope, $timeout) {
 
     service = imageService;
     $http = $httpBackend;

@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('loadBalancer.filter.service', [
     require('./loadBalancer.filter.model.js'),
-    require('utils/lodash.js'),
-    require('utils/waypoints/waypoint.service.js'),
+    require('../../utils/lodash.js'),
+    require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, _, waypointService, filterModelService,

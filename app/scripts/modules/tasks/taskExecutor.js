@@ -4,17 +4,16 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.taskExecutor.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../modules/caches/deckCacheFactory.js'),
-  require('../modules/scheduler/scheduler.service.js'),
-  require('./urlbuilder.js'),
-  require('../modules/authentication/authentication.module.js'),
-  require('../modules/authentication/authenticationService.js'),
-  require('../modules/caches/scheduledCache.js'),
-  require('../modules/caches/infrastructureCaches.js'),
-  require('../modules/tasks/tasks.read.service.js'),
-  require('../modules/tasks/tasks.write.service.js'),
+  require('../caches/deckCacheFactory.js'),
+  require('../scheduler/scheduler.service.js'),
+  require('../authentication/authentication.module.js'),
+  require('../authentication/authenticationService.js'),
+  require('../caches/scheduledCache.js'),
+  require('../caches/infrastructureCaches.js'),
+  require('./tasks.read.service.js'),
+  require('./tasks.write.service.js'),
 ])
-  .factory('taskExecutor', function(Restangular, scheduler, urlBuilder, $q, authenticationService, tasksReader, tasksWriter) {
+  .factory('taskExecutor', function(Restangular, scheduler, $q, authenticationService, tasksReader, tasksWriter) {
 
 
     function executeTask(taskCommand) {

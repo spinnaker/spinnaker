@@ -22,19 +22,17 @@ describe('Service: Pond - task complete, task force refresh', function() {
   const TasksFixture = require('./tasks.fixture.js');
 
   var application = 'deck';
-  var service, $http, config, scope, timeout, task, lodash;
+  var service, $http, scope, timeout, task, lodash;
 
   beforeEach(
     window.module(
-      require('./tasks.api.config.js'),
-      require('../../settings/settings.js')
+      require('./tasks.api.config.js')
     )
   );
 
-  beforeEach(window.inject(function(settings, tasksApi, $httpBackend, $rootScope, $timeout, _) {
+  beforeEach(window.inject(function(tasksApi, $httpBackend, $rootScope, $timeout, _) {
 
     service = tasksApi;
-    config = settings;
     $http = $httpBackend;
     timeout = $timeout;
     scope = $rootScope.$new();
