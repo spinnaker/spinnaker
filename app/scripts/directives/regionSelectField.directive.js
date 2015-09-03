@@ -3,7 +3,7 @@
 module.exports = function (settings, _) {
   return {
     restrict: 'E',
-    templateUrl: require('../../views/directives/regionSelectField.html'),
+    templateUrl: require('./regionSelectField.directive.html'),
     scope: {
       regions: '=',
       component: '=',

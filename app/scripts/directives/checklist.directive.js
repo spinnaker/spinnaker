@@ -21,7 +21,7 @@ let angular = require('angular');
 module.exports = function() {
   return {
     restrict: 'E',
-    templateUrl: require('../../views/directives/checklist.html'),
+    templateUrl: require('./checklist.directive.html'),
     scope: {
       items: '=',
       model: '=',

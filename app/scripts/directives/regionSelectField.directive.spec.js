@@ -20,7 +20,7 @@ describe('Directives: regionSelectField', function () {
 
   const angular = require('angular');
 
-  require('../../views/directives/regionSelectField.html');
+  require('./regionSelectField.directive.html');
 
   beforeEach(function() {
     window.module(
