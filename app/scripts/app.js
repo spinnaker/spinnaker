@@ -27,22 +27,21 @@ require('source-sans-pro');
 
 
 // likely that some of these can be moved to the modules that support them
-require('../styles/application.less');
-require('../styles/counters.less');
-require('../styles/delivery.less');
-require('../styles/details.less');
-require('../styles/fastProperties.less');
-require('../styles/instanceSelection.less');
-require('../styles/main.less');
-require('../styles/modals.less');
-require('../styles/navigation.less');
-require('../styles/newapplication.less');
-require('../styles/pipelines.less');
-require('../styles/rollups.less');
-require('../styles/tasks.less');
+require('./modules/applications/application.less');
+require('./modules/healthCounts/counters.less');
+require('./modules/delivery/delivery.less');
+require('./modules/core/presentation/details.less');
+require('./modules/fastProperties/fastProperties.less');
+require('./modules/instance/instanceSelection.less');
+require('./modules/core/presentation/main.less');
+require('./modules/modal/modals.less');
+require('./modules/navigation/navigation.less');
+require('./modules/applications/newapplication.less');
+require('./modules/pipelines/pipelines.less');
+require('./modules/cluster/rollups.less');
+require('./modules/tasks/tasks.less');
 require('./modules/utils/stickyHeader/stickyHeader.less');
 
-require('../styles/imports/commonImports.less');
 require('./modules/search/global/globalSearch.less');
 require('./modules/confirmationModal/confirmationModal.less');
 require('./modules/migrator/migrator.less');

@@ -1,5 +1,7 @@
 'use strict';
 
+let angular = require('angular');
+
 module.exports = angular.module('spinnaker.account.accountTag.directive', [
 ])
   .directive('accountTag', function () {

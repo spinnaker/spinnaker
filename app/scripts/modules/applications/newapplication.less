@@ -14,39 +14,8 @@
  * limitations under the License.
  */
 
-@import "imports/commonImports.less";
+@import "../core/presentation/less/imports/commonImports.less";
 
-.glyphicon {
-  &.healthy {
-    color: @healthy_green_border;
-  }
-  &.unhealthy {
-    color: @unhealthy_red;
-  }
-  &.unknown {
-    color: @mid_grey;
-  }
-}
-
-.instance-health-counts, .securityGroup-counts {
-  .pull-right;
-  padding-left: 5px;
-}
-.instance-health-counts {
-
-  .healthy {
-    color: #8cad6e;
-  }
-  .unhealthy {
-    color: @unhealthy_orange;
-  }
-  .dead {
-    color: #D9534F;
-  }
-}
-
-.securityGroup-counts {
-  .count {
-    margin-left: 5px;
-  }
+#pagerDutyApiKeyLabel {
+  font-size: 0.95em;
 }
