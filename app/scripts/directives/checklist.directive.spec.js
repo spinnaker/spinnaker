@@ -18,7 +18,7 @@
 
 describe('Directives: checklist', function () {
 
-  require('../../views/directives/checklist.html');
+  require('./checklist.directive.html');
 
   beforeEach(
     window.module(
