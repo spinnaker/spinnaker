@@ -18,7 +18,10 @@
           ng-repeat="instanceType in family.instanceTypes"
           ng-class="{info: command.instanceType === instanceType.name}"
           ng-click="instanceTypeCtrl.selectInstanceType(instanceType.name)">
-        <td><input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/></td>
+        <td>
+          <help-field nf-if="instanceType.helpFieldKey" key="{{instanceType.helpFieldKey}}"></help-field>
+          <input type="radio" ng-value="instanceType.name" ng-model="command.instanceType"/>
+        </td>
         <td>{{instanceType.label}}</td>
         <td>{{instanceType.cpu}}</td>
         <td>{{instanceType.memory}}</td>
