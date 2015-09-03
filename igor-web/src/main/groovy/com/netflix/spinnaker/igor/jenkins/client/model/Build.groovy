@@ -44,6 +44,8 @@ class Build {
     String id
     String url
     @Element(required = false)
+    Boolean keepLog
+    @Element(required = false)
     String builtOn
     @Element(required = false)
     String fullDisplayName
