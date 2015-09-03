@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.igor.jenkins
 
+import com.netflix.spinnaker.igor.config.JenkinsProperties
 import com.netflix.spinnaker.igor.jenkins.client.JenkinsMasters
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+
+import javax.ws.rs.QueryParam
 
 /**
  * A controller that provides jenkins information
@@ -40,10 +43,22 @@ class InfoController {
     @Autowired
     JenkinsMasters masters
 
+    @Autowired
+    JenkinsProperties jenkinsProperties
+
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
-    List<String> listMasters() {
+    List<Object> listMasters(@RequestParam(value="showUrl", defaultValue="false") String showUrl ) {
         log.info('Getting list of masters')
-        masters.map.keySet().sort()
+        if(showUrl == 'true'){
+            jenkinsProperties.masters.collect{
+                [
+                    "name": it.name,
+                    "address": it.address
+                ]
+            }
+        } else {
+            masters.map.keySet().sort()
+        }
     }
 
     @RequestMapping(value = '/jobs/{master}', method = RequestMethod.GET)
