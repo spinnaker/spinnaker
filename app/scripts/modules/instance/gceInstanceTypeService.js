@@ -73,6 +73,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
         },
         {
           name: 'n1-standard-32',
+          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 120,
@@ -166,6 +167,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
         },
         {
           name: 'n1-highmem-32',
+          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 208,
@@ -229,6 +231,7 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
         },
         {
           name: 'n1-highcpu-32',
+          helpFieldKey: 'gce.instanceType.32core',
           label: '4XLarge',
           cpu: 32,
           memory: 28.8,
