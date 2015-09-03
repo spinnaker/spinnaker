@@ -29,6 +29,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
 import groovy.util.logging.Slf4j
@@ -38,8 +39,12 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 @Slf4j
 class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
-  private static final String ON_DEMAND_TYPE = 'GoogleSecurityGroup'
+  @Deprecated
+  private static final String LEGACY_ON_DEMAND_TYPE = 'GoogleSecurityGroup'
 
+  private static final String ON_DEMAND_TYPE = 'SecurityGroup'
+
+  final GoogleCloudProvider googleCloudProvider
   final String accountName
   final GoogleCredentials credentials
   final ObjectMapper objectMapper
@@ -50,11 +55,17 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
     AUTHORITATIVE.forType(Keys.Namespace.SECURITY_GROUPS.ns)
   ] as Set)
 
-  GoogleSecurityGroupCachingAgent(String accountName, GoogleCredentials credentials, ObjectMapper objectMapper, ExtendedRegistry extendedRegistry) {
+  GoogleSecurityGroupCachingAgent(GoogleCloudProvider googleCloudProvider,
+                                  String accountName,
+                                  GoogleCredentials credentials,
+                                  ObjectMapper objectMapper,
+                                  ExtendedRegistry extendedRegistry) {
+    this.googleCloudProvider = googleCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.objectMapper = objectMapper
     this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, googleCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   @Override
@@ -96,7 +107,12 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == "GoogleSecurityGroup"
+    type == LEGACY_ON_DEMAND_TYPE
+  }
+
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    type == ON_DEMAND_TYPE && cloudProvider == googleCloudProvider.id
   }
 
   @Override

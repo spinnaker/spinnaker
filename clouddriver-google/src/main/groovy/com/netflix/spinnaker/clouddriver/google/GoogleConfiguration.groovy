@@ -23,6 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -31,6 +32,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 @EnableConfigurationProperties
 @EnableScheduling
 @ConditionalOnProperty('google.enabled')
+@ComponentScan(["com.netflix.spinnaker.clouddriver.google"])
 @Import([ GoogleCredentialsInitializer ])
 class GoogleConfiguration {
   @Bean

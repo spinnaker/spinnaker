@@ -24,6 +24,7 @@ import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
@@ -36,6 +37,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
 
   void "should add security groups on initial run"() {
     setup:
+      def googleCloudProvider = new GoogleCloudProvider()
       def computeMock = Mock(Compute)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def firewallsMock = Mock(Compute.Firewalls)
@@ -49,7 +51,8 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
         securityGroupB
       ])
       def ProviderCache providerCache = Mock(ProviderCache)
-      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(ACCOUNT_NAME, credentials, new ObjectMapper(), Spectator.registry())
+      @Subject GoogleSecurityGroupCachingAgent agent = new GoogleSecurityGroupCachingAgent(
+        googleCloudProvider, ACCOUNT_NAME, credentials, new ObjectMapper(), Spectator.registry())
 
     when:
       def cache = agent.loadData(providerCache)

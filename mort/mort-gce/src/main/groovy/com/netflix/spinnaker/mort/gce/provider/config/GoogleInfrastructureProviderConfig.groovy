@@ -21,6 +21,7 @@ import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleSecurityGroupCachingAgent
 import org.springframework.context.annotation.Bean
@@ -31,7 +32,10 @@ import org.springframework.context.annotation.DependsOn
 class GoogleInfrastructureProviderConfig {
   @Bean
   @DependsOn('googleNamedAccountCredentials')
-  GoogleInfrastructureProvider googleInfrastructureProvider(AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, ExtendedRegistry extendedRegistry) {
+  GoogleInfrastructureProvider googleInfrastructureProvider(GoogleCloudProvider googleCloudProvider,
+                                                            AccountCredentialsRepository accountCredentialsRepository,
+                                                            ObjectMapper objectMapper,
+                                                            ExtendedRegistry extendedRegistry) {
     List<CachingAgent> agents = []
 
     def allAccounts = accountCredentialsRepository.all.findAll {
@@ -39,7 +43,7 @@ class GoogleInfrastructureProviderConfig {
     } as Collection<GoogleNamedAccountCredentials>
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
-      agents << new GoogleSecurityGroupCachingAgent(credentials.accountName, credentials.credentials, objectMapper, extendedRegistry)
+      agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, extendedRegistry)
     }
 
     new GoogleInfrastructureProvider(agents)

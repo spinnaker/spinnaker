@@ -1,4 +1,5 @@
 dependencies {
+  compile project(":clouddriver-google")
   compile project(":mort:mort-core")
   compile spinnaker.dependency("frigga")
   spinnaker.group('google')
