@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.gce', [
     providerImageServiceProvider.registerImage({
       provider: 'gce',
       key: 'logo',
-      path: require('../../../images/providers/logo_gce.png')
+      path: require('./logo_gce.png')
     });
   }).name;
 

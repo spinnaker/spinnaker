@@ -2,6 +2,9 @@
 
 let angular = require('angular');
 
+require('./details.less');
+require('./main.less');
+
 module.exports = angular.module('spinnaker.core.presentation', [
   require('./anyFieldFilter/anyField.filter.js'),
   require('./autoScroll/autoScroll.directive.js'),

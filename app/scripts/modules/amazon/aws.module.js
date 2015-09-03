@@ -14,6 +14,6 @@ module.exports = angular.module('spinnaker.aws', [
     providerImageServiceProvider.registerImage({
       provider: 'aws',
       key: 'logo',
-      path: require('../../../images/providers/logo_aws.png')
+      path: require('./logo_aws.png')
     });
   }).name;
