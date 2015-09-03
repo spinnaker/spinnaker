@@ -21,5 +21,21 @@ package com.netflix.spinnaker.kato.orchestration
  * @author sthadeshwar
  */
 final class AtomicOperations {
+
+  // Server Group operations
+  public static final String CLONE_SERVER_GROUP = "cloneServerGroup"
+  public static final String CREATE_SERVER_GROUP = "createServerGroup"
+  public static final String DISABLE_SERVER_GROUP = "disableServerGroup"
   public static final String DESTROY_SERVER_GROUP = "destroyServerGroup"
+  public static final String RESIZE_SERVER_GROUP = "resizeServerGroup"
+
+  // Load Balancer operations
+  public static final String CREATE_LOAD_BALANCER = "createLoadBalancer"
+  public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"
+  public static final String UPDATE_LOAD_BALANCER = "updateLoadBalancer"
+
+  // Security Group operations
+  public static final String CREATE_SECURITY_GROUP = "createSecurityGroup"
+  public static final String DELETE_SECURITY_GROUP = "deleteSecurityGroup"
+  public static final String UPDATE_SECURITY_GROUP = "updateSecurityGroup"
 }
