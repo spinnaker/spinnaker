@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.oort.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import retrofit.RestAdapter
 
 /**

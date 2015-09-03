@@ -18,9 +18,9 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.oort.InstanceService
-import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.oort.util.OortHelper
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.OperatingSystem

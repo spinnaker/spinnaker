@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstanceAndDecrementAsgTask
 import com.netflix.spinnaker.orca.kato.tasks.UpsertAsgScheduledActionsTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.batch.core.Step

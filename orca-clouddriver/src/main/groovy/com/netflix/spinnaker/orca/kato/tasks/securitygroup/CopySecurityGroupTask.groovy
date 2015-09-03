@@ -20,14 +20,14 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.api.KatoService
-import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.orca.mort.MortService.VPC.*
-import static com.netflix.spinnaker.orca.mort.MortService.SecurityGroup.*
+import static com.netflix.spinnaker.orca.clouddriver.MortService.VPC.*
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.*
 
 @Component
 class CopySecurityGroupTask implements Task {

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
-import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.RetrofitError
@@ -29,7 +29,7 @@ import spock.lang.Subject
 import spock.lang.Unroll
 
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND
-import static com.netflix.spinnaker.orca.mort.MortService.SecurityGroup.*
+import static com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup.*
 
 class WaitForUpsertedSecurityGroupTaskSpec extends Specification {
 
