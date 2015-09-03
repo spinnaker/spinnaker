@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.core.presentation.sortToggle.directiv
 ])
   .directive('sortToggle', function () {
     return {
-      templateUrl: require('./sortToggle.directive.html'),
+      templateUrl: require('./sorttoggle.directive.html'),
       scope: {
         key: '@',
         label: '@',

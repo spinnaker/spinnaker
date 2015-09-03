@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.applications.controller', [
   require('../account/accountService.js'),
   require('../core/presentation/anyFieldFilter/anyField.filter.js'),
   require('../caches/viewStateCache.js'),
-  require('../core/presentation/sortToggle/sortToggle.directive.js'),
+  require('../core/presentation/sortToggle/sorttoggle.directive.js'),
 ])
   .controller('ApplicationsCtrl', function($scope, $exceptionHandler, $modal, $log, $filter, accountService,
                                            $state, applicationReader, viewStateCache) {
