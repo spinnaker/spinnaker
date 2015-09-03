@@ -102,6 +102,12 @@
           <account-tag account="serverGroup.account" provider="serverGroup.type" pad="right"></account-tag>
           {{serverGroup.region}}
         </dd>
+        <dt>Zone:</dt>
+        <dd>
+          <ul>
+            <li ng-repeat="zone in serverGroup.zones">{{zone}}</li>
+          </ul>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section heading="Size" expanded="true">
