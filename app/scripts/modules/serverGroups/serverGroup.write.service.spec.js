@@ -4,22 +4,19 @@ describe('serverGroupWriter', function () {
   const angular = require('angular');
 
   var serverGroupWriter,
-    $httpBackend,
-    settings;
+    $httpBackend;
 
   beforeEach(
     window.module(
       require('./serverGroup.write.service.js'),
-      require('./configure/aws/serverGroup.transformer.service.js'),
-      require('../../settings/settings.js')
+      require('./configure/aws/serverGroup.transformer.service.js')
     )
   );
 
   beforeEach(function () {
-    window.inject(function (_serverGroupWriter_, _$httpBackend_, _settings_) {
+    window.inject(function (_serverGroupWriter_, _$httpBackend_) {
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
-      settings = _settings_;
     });
   });
 

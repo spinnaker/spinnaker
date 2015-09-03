@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.instance.write.service', [
-    require('../../services/taskExecutor.js'),
+    require('../tasks/taskExecutor.js'),
     require('../serverGroups/serverGroup.read.service.js'),
   ])
   .factory('instanceWriter', function (taskExecutor, serverGroupReader) {

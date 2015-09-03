@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.overrideTimeout', [
   require('../../pipelineConfigProvider.js'),
-  require('../../../../help/help.module.js')
+  require('../../../../help/helpContents.js')
 ])
   .directive('overrideTimeout', function() {
     return {

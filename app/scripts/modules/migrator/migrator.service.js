@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular
 
   .module('spinnaker.migrator.service', [
-    require('utils/lodash.js'),
-    require('../../services/taskExecutor.js'),
+    require('../utils/lodash.js'),
+    require('../tasks/taskExecutor.js'),
   ])
   .factory('migratorService', function($timeout, $q, _, taskExecutor) {
 

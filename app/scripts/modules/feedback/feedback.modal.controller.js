@@ -3,7 +3,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.feedback.modal.controller', [
   require('../caches/deckCacheFactory.js'),
-  require('../authentication/authenticationService.js')
+  require('../authentication/authenticationService.js'),
+  require('../config/settings.js'),
 ])
   .controller('FeedbackModalCtrl', function($scope, $location, $http, $modalInstance, settings, authenticationService) {
 

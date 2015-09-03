@@ -3,9 +3,10 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
-  require('utils/rx.js'),
+  require('../../utils/rx.js'),
+  require('../../navigation/urlBuilder.service.js'),
 ])
-  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilder) {
+  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService) {
     return function() {
       var deferred;
 
@@ -70,7 +71,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           var tmp = result.results.reduce(function(categories, entry) {
             var cat = entry.type;
             entry.name = displayNameFormatter[entry.type](entry);
-            entry.href = urlBuilder.buildFromMetadata(entry);
+            entry.href = urlBuilderService.buildFromMetadata(entry);
             applySublinks(entry);
             if (angular.isDefined(categories[cat])) {
               categories[cat].push(entry);

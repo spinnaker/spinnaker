@@ -4,15 +4,15 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployment.details.controller', [
   require('angular-ui-router'),
-  require('utils/lodash.js'),
+  require('../../../../../utils/lodash.js'),
   require('../../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
-  require('../../../../../../services/urlbuilder.js'),
+  require('../../../../../navigation/urlBuilder.service.js'),
   require('./canaryDeploymentHistory.service.js')
 ])
   .controller('CanaryDeploymentExecutionDetailsCtrl', function ($scope, _, $stateParams, $timeout,
                                                                 executionDetailsSectionService,
-                                                                canaryDeploymentHistoryService, urlBuilder,
+                                                                canaryDeploymentHistoryService, urlBuilderService,
                                                                 clusterFilterService) {
 
     function initialize() {
@@ -40,7 +40,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
           cluster: $scope.deployment.baselineCluster.name,
           account: $scope.deployment.baselineCluster.accountName,
         };
-        baselineMetadata.href = urlBuilder.buildFromMetadata(baselineMetadata);
+        baselineMetadata.href = urlBuilderService.buildFromMetadata(baselineMetadata);
         $scope.baselineClusterUrl = baselineMetadata;
 
         var canaryMetadata = {
@@ -49,7 +49,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.canaryDeployme
           cluster: $scope.deployment.canaryCluster.name,
           account: $scope.deployment.canaryCluster.accountName,
         };
-        canaryMetadata.href = urlBuilder.buildFromMetadata(canaryMetadata);
+        canaryMetadata.href = urlBuilderService.buildFromMetadata(canaryMetadata);
         $scope.canaryClusterUrl = canaryMetadata;
 
         $scope.loadHistory();

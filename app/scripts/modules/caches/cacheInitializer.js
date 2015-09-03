@@ -5,9 +5,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.caches.initializer', [
   require('../subnet/subnet.read.service.js'),
   require('../loadBalancers/loadBalancer.read.service.js'),
-  //require('../account/account.module.js'),
   require('../account/accountService.js'),
-  require('../../services/instanceTypeService.js'),
+  require('../instance/instanceTypeService.js'),
   require('../securityGroups/securityGroup.read.service.js'),
   require('../subnet/subnet.read.service.js'),
   require('../vpc/vpc.read.service.js'),

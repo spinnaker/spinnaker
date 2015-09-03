@@ -19,7 +19,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.help.helpField', [
-  require('../../settings/helpContents.js')
+  require('./helpContents.js')
 ])
   .directive('helpField', function (helpContents) {
     return {

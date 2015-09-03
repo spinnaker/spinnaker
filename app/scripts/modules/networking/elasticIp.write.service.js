@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.elasticIp.write.service', [
-    require('../../services/taskExecutor.js')
+    require('../tasks/taskExecutor.js')
   ])
   .factory('elasticIpWriter', function (taskExecutor) {
     function associateElasticIpWithCluster(application, account, cluster, region, elasticIp) {

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common.service'
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../caches/deckCacheFactory.js'),
   require('../../../delegation/serviceDelegate.service.js'),
-  require('../../../../settings/settings.js')
+  require('../../../config/settings.js')
 ])
   .factory('serverGroupCommandBuilder', function (settings, Restangular, serviceDelegate) {
 

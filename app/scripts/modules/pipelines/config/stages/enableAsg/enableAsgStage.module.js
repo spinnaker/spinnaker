@@ -9,5 +9,5 @@ module.exports = angular.module('spinnaker.pipelines.stage.enableAsg', [
   require('../core/stage.core.module.js'),
   require('../../../../account/account.module.js'),
   require('../destroyAsg/destroyAsgExecutionDetails.controller.js'),
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
 ]).name;

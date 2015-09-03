@@ -3,17 +3,17 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
-  require('../../../../services/imageService.js'),
+  require('../../../image/awsImageService.js'),
   require('../../../account/accountService.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
-  require('../../../../services/instanceTypeService.js'),
+  require('../../../instance/instanceTypeService.js'),
   require('../../../subnet/subnet.read.service.js'),
   require('../../../keyPairs/keyPairs.read.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
-  require('utils/lodash.js'),
+  require('../../../utils/lodash.js'),
 ])
-  .factory('awsServerGroupConfigurationService', function($q, imageService, accountService, securityGroupReader,
+  .factory('awsServerGroupConfigurationService', function($q, awsImageService, accountService, securityGroupReader,
                                                           instanceTypeService, cacheInitializer,
                                                           subnetReader, keyPairsReader, loadBalancerReader, _) {
 
@@ -76,14 +76,14 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function loadImagesFromApplicationName(application, provider) {
-      return imageService.findImages({
+      return awsImageService.findImages({
         provider: provider,
         q: application.name.replace(/_/g, '[_\\-]') + '*',
       });
     }
 
     function loadImagesFromAmi(command) {
-      return imageService.getAmi(command.selectedProvider, command.viewState.imageId, command.region, command.credentials).then(
+      return awsImageService.getAmi(command.viewState.imageId, command.region, command.credentials).then(
         function (namedImage) {
           if (!namedImage) {
             return [];
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
             return [namedImage];
           }
 
-          return imageService.findImages({
+          return awsImageService.findImages({
             provider: command.selectedProvider,
             q: packageBase + '-*',
           });

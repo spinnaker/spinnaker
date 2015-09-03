@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils.timeFormatters', [
   require('./moment.js'),
-  require('../../settings/settings.js'),
+  require('../config/settings.js'),
 ])
   .filter('timestamp', function(momentService, settings) {
     return function(input) {

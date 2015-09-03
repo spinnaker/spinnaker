@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('angular-ui-router'),
   require('exports?"ui.bootstrap"!angular-bootstrap'),
-  require('utils/lodash.js'),
+  require('../../../utils/lodash.js'),
   require('../../instance.write.service.js'),
   require('../../instance.read.service.js'),
   require('../../../vpc/vpcTag.directive.js'),

@@ -3,9 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActions.editScheduledActions.modal.controller', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('../../../../tasks/monitor/taskMonitor.module.js'),
-  require('../../../../../services/taskExecutor.js'),
+  require('../../../../tasks/taskExecutor.js'),
 ])
   .controller('EditScheduledActionsCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, _,
                                                      application, serverGroup) {

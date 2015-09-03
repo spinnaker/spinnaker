@@ -9,4 +9,5 @@ module.exports = angular.module('spinnaker.utils', [
   require('./moment.js'),
   require('./rx.js'),
   require('./uuid.service.js'),
+  require('./appendTransform.js'),
 ]).name;

@@ -4,13 +4,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router'),
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('../serverGroupConfiguration.service.js'),
   require('../../../serverGroup.write.service.js'),
   require('../../../../tasks/monitor/taskMonitorService.js'),
-  require('../../../../../services/imageService.js'),
-  require('../../../../../directives/modalWizard.service.js'),
-
+  require('../../../../modal/wizard/modalWizard.service.js'),
 ])
   .controller('awsCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,

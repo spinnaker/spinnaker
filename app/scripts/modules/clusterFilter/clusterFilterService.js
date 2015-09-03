@@ -6,8 +6,8 @@ module.exports = angular
   .module('cluster.filter.service', [
     require('angular-ui-router'),
     require('./clusterFilterModel.js'),
-    require('utils/lodash.js'),
-    require('utils/waypoints/waypoint.service.js'),
+    require('../utils/lodash.js'),
+    require('../utils/waypoints/waypoint.service.js'),
     require('../filterModel/filter.model.service.js'),
   ])
   .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService) {

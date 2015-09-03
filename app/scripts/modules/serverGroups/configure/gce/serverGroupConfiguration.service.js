@@ -7,11 +7,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
-  require('../../../../services/imageService.js'),
-  require('../../../../services/instanceTypeService.js'),
+  require('../../../image/gceImageService.js'),
+  require('../../../instance/gceInstanceTypeService.js'),
 ])
-  .factory('gceServerGroupConfigurationService', function(imageService, accountService, securityGroupReader,
-                                                          instanceTypeService, cacheInitializer,
+  .factory('gceServerGroupConfigurationService', function(gceImageService, accountService, securityGroupReader,
+                                                          gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, _) {
 
 
@@ -20,8 +20,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
         loadBalancers: loadBalancerReader.listGCELoadBalancers(),
-        instanceTypes: instanceTypeService.getAllTypesByRegion('gce'),
-        images: imageService.findImages({provider: 'gce'})
+        instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
+        images: gceImageService.findImages({provider: 'gce'}),
       }).then(function(loader) {
         loader.accounts = _.keys(loader.regionsKeyedByAccount);
         loader.filtered = {};
@@ -34,7 +34,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
       if (command.region) {
-        var filtered = instanceTypeService.getAvailableTypesForRegions('gce', command.backingData.instanceTypes, [command.region]);
+        var filtered = gceInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           command.instanceType = null;
           result.dirty.instanceType = true;
@@ -117,7 +117,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
     function refreshInstanceTypes(command) {
       return cacheInitializer.refreshCache('instanceTypes').then(function() {
-        return instanceTypeService.getAllTypesByRegion('aws').then(function(instanceTypes) {
+        return gceInstanceTypeService.getAllTypesByRegion().then(function(instanceTypes) {
           command.backingData.instanceTypes = instanceTypes;
           configureInstanceTypes(command);
         });

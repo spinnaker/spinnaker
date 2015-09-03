@@ -13,7 +13,6 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(
     window.module(
-      require('utils/lodash.js'),
       require('./clusterFilterService.js'),
       require('./clusterFilterModel.js'),
       require('../../../../test/mock/mockApplicationData.js')

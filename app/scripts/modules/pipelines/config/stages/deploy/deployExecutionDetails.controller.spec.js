@@ -13,7 +13,7 @@ describe('DeployExecutionDetailsCtrl', function() {
     this._ = _;
     this.$timeout = $timeout;
     this.$scope = $rootScope.$new();
-    this.urlBuilder = { buildFromMetadata: function() { return '#'; }};
+    this.urlBuilderService = { buildFromMetadata: function() { return '#'; }};
 
   }));
 
@@ -28,7 +28,7 @@ describe('DeployExecutionDetailsCtrl', function() {
           _: _,
           $stateParams: { details: 'deploymentConfig' },
           executionDetailsSectionService: jasmine.createSpyObj('executionDetailsSectionService', ['synchronizeSection']),
-          urlBuilder: this.urlBuilder,
+          urlBuilderService: this.urlBuilderService,
         });
         this.$timeout.flush();
       };

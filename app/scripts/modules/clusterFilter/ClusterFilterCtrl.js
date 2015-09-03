@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('cluster', [
   require('./clusterFilterService.js'),
   require('./clusterFilterModel.js'),
-  require('utils/lodash.js'),
+  require('../utils/lodash.js'),
 ])
   .controller('ClusterFilterCtr', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel) {
 

@@ -6,9 +6,9 @@ module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
     require('../../vpc/vpc.read.service.js'),
-    require('../../../settings/settings.js'),
+    require('../../config/settings.js'),
     require('../migrator.service.js'),
-    require('../../../directives/autoScroll.directive.js'),
+    require('../../core/presentation/autoScroll/autoScroll.directive.js'),
   ])
   .directive('migrator', function () {
     return {

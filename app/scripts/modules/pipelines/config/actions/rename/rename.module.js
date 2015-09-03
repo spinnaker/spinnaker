@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.actions.rename', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
   require('../../services/dirtyPipelineTracker.service.js'),
   require('../../services/pipelineConfigService.js'),
 ])

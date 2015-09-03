@@ -3,8 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.service', [
-  require('../../settings/settings.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap')
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
 ])
   .factory('authenticationService', function () {
     var user = {

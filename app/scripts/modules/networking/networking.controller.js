@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.networking.controller', [
   require('../confirmationModal/confirmationModal.service.js'),
-  require('utils/lodash.js'),
+  require('../utils/lodash.js'),
   require('./elasticIp.read.service.js'),
   require('./elasticIp.controller.js'),
   require('./ip.sort.filter.js'),

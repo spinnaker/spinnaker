@@ -8,5 +8,5 @@ module.exports = angular
     require('./ClusterFilterCtrl.js'),
     require('../cluster/allClusters.controller.js'),
     require('./collapsibleFilterSection.directive.js'),
-    require('utils/lodash.js'),
+    require('../utils/lodash.js'),
   ]).name;

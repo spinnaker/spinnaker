@@ -2,9 +2,8 @@
 
 let angular = require('angular');
 
-//BEN_TODO lodash
 module.exports = angular.module('spinnaker.pipelines.stage.disableAsgStage', [
-  require('utils/lodash.js'),
+  require('../../../../utils/lodash.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

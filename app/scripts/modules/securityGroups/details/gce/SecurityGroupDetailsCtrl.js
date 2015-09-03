@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../../securityGroup.read.service.js'),
   require('../../securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
-  require('utils/lodash.js'),
+  require('../../../utils/lodash.js'),
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,

@@ -4,13 +4,13 @@ var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.securityGroup.baseConfig.controller', [
-    'ui.router',
-    'spinnaker.tasks.monitor.service',
-    'spinnaker.securityGroup.write.service',
-    'spinnaker.account.service',
-    'spinnaker.vpc.read.service',
-    'spinnaker.modalWizard',
-    require('utils/lodash.js'),
+    require('angular-ui-router'),
+    require('../../../tasks/monitor/taskMonitorService.js'),
+    require('../../securityGroup.write.service.js'),
+    require('../../../account/accountService.js'),
+    require('../../../vpc/vpc.read.service.js'),
+    require('../../../modal/wizard/modalWizard.directive.js'),
+    require('../../../utils/lodash.js'),
   ])
   .controller('ConfigSecurityGroupMixin', function ($scope,
                                                              $state,
