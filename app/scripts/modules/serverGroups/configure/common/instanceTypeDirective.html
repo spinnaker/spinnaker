@@ -9,7 +9,7 @@
         <th>Size</th>
         <th>vCPU</th>
         <th>Mem (GiB)</th>
-        <th>SSD Storage (GB)</th>
+        <th>{{family.storageType || 'SSD'}} Storage (GB)</th>
         <th>Cost</th>
       </tr>
       </thead>
@@ -23,7 +23,7 @@
         <td>{{instanceType.cpu}}</td>
         <td>{{instanceType.memory}}</td>
         <td ng-if="instanceType.storage.type === 'EBS'">EBS Only</td>
-        <td ng-if="instanceType.storage.type === 'SSD'">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
+        <td ng-if="instanceType.storage.type === 'SSD' || family.storageType">{{instanceType.storage.count}}&times;{{instanceType.storage.size}}</td>
         <td><cost-factor factor="instanceType.costFactor"></cost-factor></td>
       </tr>
       </tbody>
