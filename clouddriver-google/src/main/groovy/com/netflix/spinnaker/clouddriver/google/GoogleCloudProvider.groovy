@@ -22,7 +22,7 @@ import org.springframework.stereotype.Component
 import java.lang.annotation.Annotation
 
 /**
- * Created by ttomsu on 9/2/15.
+ * Google Compute Engine declaration as a {@link CloudProvider}.
  */
 @Component
 class GoogleCloudProvider implements CloudProvider {

@@ -21,6 +21,9 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 
+/**
+ * {@code GoogleOperation}s specify implementation classes of Spinnaker AtomicOperations for the Google Cloud Platform.
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @interface GoogleOperation {
