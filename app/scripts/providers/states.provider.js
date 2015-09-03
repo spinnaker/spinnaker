@@ -179,17 +179,6 @@ module.exports = angular.module('spinnaker.states', [
         }
       };
 
-      var notFound = {
-        name: '404',
-        url: '/404',
-        views: {
-          'main@': {
-            templateUrl: require('../../views/404.html'),
-            controller: angular.noop,
-          }
-        }
-      };
-
       var taskDetails = {
         name: 'taskDetails',
         url: '/:taskId',
@@ -464,7 +453,7 @@ module.exports = angular.module('spinnaker.states', [
         reloadOnSearch: false,
         views: {
           'main@': {
-            templateUrl: require('../../views/infrastructure.html'),
+            templateUrl: require('../modules/search/infrastructure/infrastructure.html'),
             controller: 'InfrastructureCtrl',
             controllerAs: 'ctrl'
           }
@@ -518,7 +507,6 @@ module.exports = angular.module('spinnaker.states', [
         name: 'home',
         abstract: true,
         children: [
-          notFound,
           applications,
           infrastructure,
           data,

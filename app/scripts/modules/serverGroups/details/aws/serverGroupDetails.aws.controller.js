@@ -284,7 +284,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        templateUrl: require('../../../../../views/application/modal/serverGroup/userData.html'),
+        templateUrl: require('../userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });
