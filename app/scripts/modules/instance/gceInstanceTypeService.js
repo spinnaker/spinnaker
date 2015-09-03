@@ -70,6 +70,17 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
             count: 1
           },
           costFactor: 3
+        },
+        {
+          name: 'n1-standard-32',
+          label: '4XLarge',
+          cpu: 32,
+          memory: 120,
+          storage: {
+            size: 640,
+            count: 1
+          },
+          costFactor: 4
         }
       ]
     };
@@ -152,6 +163,17 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
             count: 1
           },
           costFactor: 3
+        },
+        {
+          name: 'n1-highmem-32',
+          label: '4XLarge',
+          cpu: 32,
+          memory: 208,
+          storage: {
+            size: 640,
+            count: 1
+          },
+          costFactor: 4
         }
       ]
     };
@@ -204,6 +226,17 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [
             count: 1
           },
           costFactor: 3
+        },
+        {
+          name: 'n1-highcpu-32',
+          label: '4XLarge',
+          cpu: 32,
+          memory: 28.8,
+          storage: {
+            size: 640,
+            count: 1
+          },
+          costFactor: 4
         }
       ]
     };
