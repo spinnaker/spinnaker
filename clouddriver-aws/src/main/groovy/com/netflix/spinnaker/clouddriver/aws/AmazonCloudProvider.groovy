@@ -25,19 +25,7 @@ import java.lang.annotation.Annotation
  */
 @Component
 class AmazonCloudProvider implements CloudProvider {
-
-  @Override
-  String getId() {
-    'aws'
-  }
-
-  @Override
-  String getDisplayName() {
-    'Amazon'
-  }
-
-  @Override
-  Class<? extends Annotation> getOperationAnnotationType() {
-    AmazonOperation
-  }
+  final String id = "aws"
+  final String displayName = "Amazon"
+  final Class<? extends Annotation> operationAnnotationType = AmazonOperation
 }

@@ -29,21 +29,25 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
+import groovy.util.logging.Slf4j
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
-import groovy.util.logging.Slf4j
-
 @Slf4j
 class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
-  private static final String ON_DEMAND_TYPE = 'AmazonSecurityGroup'
+  @Deprecated
+  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonSecurityGroup'
 
+  private static final String ON_DEMAND_TYPE = 'SecurityGroup'
+
+  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -56,13 +60,19 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
     AUTHORITATIVE.forType(SECURITY_GROUPS.ns)
   ] as Set)
 
-  AmazonSecurityGroupCachingAgent(AmazonClientProvider amazonClientProvider, NetflixAmazonCredentials account, String region, ObjectMapper objectMapper, ExtendedRegistry extendedRegistry) {
+  AmazonSecurityGroupCachingAgent(AmazonCloudProvider amazonCloudProvider,
+                                  AmazonClientProvider amazonClientProvider,
+                                  NetflixAmazonCredentials account,
+                                  String region,
+                                  ObjectMapper objectMapper,
+                                  ExtendedRegistry extendedRegistry) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
     this.extendedRegistry = extendedRegistry
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, LEGACY_ON_DEMAND_TYPE)
   }
 
   @Override
@@ -107,9 +117,14 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == "AmazonSecurityGroup"
+    type == LEGACY_ON_DEMAND_TYPE
   }
 
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    if (type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id) return true
+    else return handles(type)
+  }
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {

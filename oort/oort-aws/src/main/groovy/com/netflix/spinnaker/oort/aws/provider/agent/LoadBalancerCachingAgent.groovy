@@ -34,6 +34,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
@@ -49,7 +50,11 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 @Slf4j
 class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
-  public static final String ON_DEMAND_TYPE = 'AmazonLoadBalancer'
+  @Deprecated
+  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'
+
+  private static final String ON_DEMAND_TYPE = 'LoadBalancer'
+
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
@@ -77,6 +82,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     types
   }
 
+  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
@@ -84,17 +90,19 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   final ExtendedRegistry extendedRegistry
   final OnDemandMetricsSupport metricsSupport
 
-  LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider,
+  LoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
+                           AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
                            ObjectMapper objectMapper,
                            ExtendedRegistry extendedRegistry) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.extendedRegistry = extendedRegistry
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, LEGACY_ON_DEMAND_TYPE)
   }
 
   static class MutableCacheData implements CacheData {
@@ -118,7 +126,13 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == ON_DEMAND_TYPE
+    type == LEGACY_ON_DEMAND_TYPE
+  }
+
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    if (type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id) return true
+    else return handles(type)
   }
 
   @Override

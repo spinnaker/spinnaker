@@ -35,7 +35,10 @@ interface OnDemandAgent {
     Map<String, Collection<String>> evictions = [:]
   }
 
+  @Deprecated
   boolean handles(String type)
+
+  boolean handles(String type, String cloudProvider)
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 }
