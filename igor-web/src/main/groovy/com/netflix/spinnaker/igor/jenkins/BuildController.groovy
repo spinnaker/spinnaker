@@ -96,7 +96,7 @@ class BuildController {
                 log.info("${master} ${job} ${buildNumber} already locked - doing nothing")
             }
         } catch(e){
-            log.info("could not lock ${master} ${job} ${buildNumber}", e)
+            log.error("could not lock ${master} ${job} ${buildNumber}", e)
             false
         } finally {
             true
