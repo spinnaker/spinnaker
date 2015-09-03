@@ -53,8 +53,7 @@ class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   @Override
   boolean handles(String type, String cloudProvider) {
-    if (type == TYPE && cloudProvider == googleCloudProvider.id) return true
-    else return handles(type)
+    type == TYPE && cloudProvider == googleCloudProvider.id
   }
 
   @Override

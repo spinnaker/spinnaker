@@ -102,7 +102,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     this.extendedRegistry = extendedRegistry
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, LEGACY_ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   static class MutableCacheData implements CacheData {
@@ -131,8 +131,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type, String cloudProvider) {
-    if (type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id) return true
-    else return handles(type)
+    type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id
   }
 
   @Override
