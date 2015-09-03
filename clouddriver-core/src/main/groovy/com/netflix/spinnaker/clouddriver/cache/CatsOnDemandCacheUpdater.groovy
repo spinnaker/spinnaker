@@ -49,9 +49,24 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
+  boolean handles(String type, String cloudProvider) {
+    onDemandAgents.any { it.handles(type, cloudProvider) }
+  }
+
+  @Override
   void handle(String type, Map<String, ? extends Object> data) {
-    Collection<OnDemandAgent> handleAgents = onDemandAgents.findAll { it.handles(type) }
-    for (OnDemandAgent agent : handleAgents) {
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type) }
+    handle(onDemandAgents, data)
+  }
+
+  @Override
+  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
+    handle(onDemandAgents, data)
+  }
+
+  void handle(Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+    for (OnDemandAgent agent : onDemandAgents) {
       try {
         final long startTime = System.nanoTime()
         def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)

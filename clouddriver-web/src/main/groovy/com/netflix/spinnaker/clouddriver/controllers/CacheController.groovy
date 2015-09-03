@@ -29,11 +29,24 @@ class CacheController {
   @Autowired
   List<OnDemandCacheUpdater> onDemandCacheUpdaters
 
+  @Deprecated
   @RequestMapping(method = RequestMethod.POST, value = "/{type}")
   ResponseEntity handleOnDemand(@PathVariable String type, @RequestBody Map<String, ? extends Object> data) {
     for (updater in onDemandCacheUpdaters) {
       if (updater.handles(type)) {
         updater.handle(type, data)
+      }
+    }
+    new ResponseEntity(HttpStatus.ACCEPTED)
+  }
+
+  @RequestMapping(method = RequestMethod.POST, value = "/{cloudProvider}/{type}")
+  ResponseEntity handleOnDemand(@PathVariable String cloudProvider,
+                                @PathVariable String type,
+                                @RequestBody Map<String, ? extends Object> data) {
+    for (updater in onDemandCacheUpdaters) {
+      if (updater.handles(type, cloudProvider)) {
+        updater.handle(type, cloudProvider, data)
       }
     }
     new ResponseEntity(HttpStatus.ACCEPTED)
