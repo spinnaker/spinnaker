@@ -6,10 +6,11 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
   require('../../../caches/deckCacheFactory.js'),
   require('../../../utils/lodash.js')
 ])
-  .factory('gceLoadBalancerTransformer', function ( settings, _) {
+  .factory('gceLoadBalancerTransformer', function (settings, _) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
+      var serverGroups = container.serverGroups || [container];
       container.healthCounts = {
         upCount: instances.filter(function (instance) {
           return instance.health[0].state === 'InService';
@@ -17,7 +18,11 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
         downCount: instances.filter(function (instance) {
           return instance.health[0].state === 'OutOfService';
         }).length,
-        unknownCount: container.detachedInstances.length,
+        outOfServiceCount: serverGroups.reduce(function (acc, serverGroup) {
+          return serverGroup.instances.filter(function (instance) {
+            return instance.healthState === 'OutOfService';
+          }).length + acc;
+        }, 0),
       };
       angular.extend(container, container.healthCounts);
     }
