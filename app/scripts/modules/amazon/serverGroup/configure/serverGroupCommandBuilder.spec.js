@@ -6,11 +6,11 @@ describe('serverGroupCommandBuilder', function() {
 
   beforeEach(
     window.module(
-      require('./serverGroupCommandBuilder.js'),
+      require('../../../serverGroups/configure/common/serverGroupCommandBuilder.js'),
       require('../../../account/accountService'),
       require('../../../subnet/subnet.read.service.js'),
       require('../../../instance/instanceTypeService.js'),
-      require('../../configure/aws/serverGroupCommandBuilder.service.js')
+      require('./serverGroupCommandBuilder.service.js')
     )
   );
 

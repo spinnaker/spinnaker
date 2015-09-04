@@ -5,11 +5,11 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router'),
-  require('../../configure/gce/ServerGroupCommandBuilder.js'),
-  require('../../serverGroup.read.service.js'),
+  require('../configure/ServerGroupCommandBuilder.js'),
+  require('../../../serverGroups/serverGroup.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
-  require('../../serverGroup.write.service.js'),
-  require('../../configure/common/runningExecutions.service.js'),
+  require('../../../serverGroups/serverGroup.write.service.js'),
+  require('../../../serverGroups/configure/common/runningExecutions.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
 ])
@@ -128,7 +128,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.getBodyTemplate = function(serverGroup, application) {
       if(this.isLastServerGroupInRegion(serverGroup, application)){
-        var template = $templateCache.get('app/scripts/modules/serverGroups/details/deleteLastServerGroupWarning.html');
+        var template = $templateCache.get(require('../../../serverGroups/details/deleteLastServerGroupWarning.html'));
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);
       }
@@ -193,7 +193,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: require('../resizeServerGroup.html'),
+        templateUrl: require('../../../serverGroups/details/resizeServerGroup.html'),
         controller: 'ResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
@@ -204,8 +204,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.cloneServerGroup = function cloneServerGroup(serverGroup) {
       $modal.open({
-        templateUrl: 'app/scripts/modules/serverGroups/configure/gce/wizard/serverGroupWizard.html',
-        controller: serverGroup.type + 'CloneServerGroupCtrl as ctrl',
+        templateUrl: require('../configure/wizard/serverGroupWizard.html'),
+        controller: 'gceCloneServerGroupCtrl as ctrl',
         resolve: {
           title: function() { return 'Clone ' + serverGroup.name; },
           application: function() { return application; },
@@ -215,24 +215,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       });
     };
 
-    this.showScalingActivities = function showScalingActivities() {
-      $scope.activities = [];
-      $modal.open({
-        templateUrl: require('../scalingActivities.html'),
-        controller: 'ScalingActivitiesCtrl as ctrl',
-        resolve: {
-          applicationName: function() { return application.name; },
-          account: function() { return $scope.serverGroup.account; },
-          clusterName: function() { return $scope.serverGroup.cluster; },
-          serverGroup: function() { return $scope.serverGroup; }
-        }
-      });
-    };
-
     this.showUserData = function showScalingActivities() {
       $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
       $modal.open({
-        templateUrl: require('../userData.html'),
+        templateUrl: require('../../../serverGroups/details/userData.html'),
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

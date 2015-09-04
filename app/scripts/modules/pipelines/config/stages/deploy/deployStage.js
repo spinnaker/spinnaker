@@ -2,7 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
+module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [
+  require('../../../../serverGroups/serverGroup.read.service.js'),
+  require('../../../../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('../../../../core/cloudProvider/cloudProvider.registry.js'),
+])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Deploy',
@@ -22,7 +26,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
       ],
     });
   })
-  .controller('DeployStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService, serverGroupCommandBuilder, serverGroupTransformer) {
+  .controller('DeployStageCtrl', function ($scope, $modal, stage, namingService, providerSelectionService,
+                                           cloudProviderRegistry, serverGroupCommandBuilder, serverGroupTransformer) {
     $scope.stage = stage;
 
     function initializeCommand() {
@@ -55,9 +60,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
 
     this.addCluster = function() {
       providerSelectionService.selectProvider().then(function(selectedProvider) {
+        let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $modal.open({
-          templateUrl: require('../../../../serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html'),
-          controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
+          templateUrl: config.cloneServerGroupTemplateUrl,
+          controller: `${config.cloneServerGroupController} as ctrl`,
           resolve: {
             title: function () {
               return 'Configure Deployment Cluster';
@@ -81,9 +87,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.deployStage', [])
 
     this.editCluster = function(cluster, index) {
       cluster.provider = cluster.providerType || 'aws';
+      let providerConfig = cloudProviderRegistry.getProvider(cluster.provider);
       return $modal.open({
-        templateUrl: require('../../../../serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html'),
-        controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
+        templateUrl: providerConfig.serverGroup.cloneServerGroupTemplateUrl,
+        controller: `${providerConfig.serverGroup.cloneServerGroupController} as ctrl`,
         resolve: {
           title: function () {
             return 'Configure Deployment Cluster';

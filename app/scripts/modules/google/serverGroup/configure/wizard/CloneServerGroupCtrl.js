@@ -9,6 +9,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
                                                   gceServerGroupCommandBuilder, gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
+    $scope.pages = {
+      templateSelection: require('./templateSelection.html'),
+      basicSettings: require('./basicSettings.html'),
+      loadBalancers: require('./loadBalancers.html'),
+      instanceArchetype: require('./instanceArchetype.html'),
+      instanceType: require('./instanceType.html'),
+      capacity: require('./capacity.html'),
+      advancedSettings: require('./advancedSettings.html'),
+    };
+
     $scope.title = title;
 
     $scope.applicationName = application.name;
