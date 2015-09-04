@@ -221,6 +221,7 @@ class GoogleResourceRetriever {
 
           if (loadBalancer) {
             def instances = [] as Set
+            def detachedInstances = [] as Set
 
             serverGroup.instances.each { instance ->
               def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
@@ -249,13 +250,16 @@ class GoogleResourceRetriever {
                   zone  : Utils.getLocalName(instance.getZone()),
                   health: health
                 ]
+              } else {
+                detachedInstances << instance.name
               }
             }
 
             def serverGroupSummary = [
-              name      : serverGroup.name,
-              isDisabled: serverGroup.isDisabled(),
-              instances : instances
+              name      :        serverGroup.name,
+              isDisabled:        serverGroup.isDisabled(),
+              instances :        instances,
+              detachedInstances: detachedInstances
             ]
 
             loadBalancer.serverGroups << serverGroupSummary
