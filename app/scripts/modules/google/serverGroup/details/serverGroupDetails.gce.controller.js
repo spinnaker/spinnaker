@@ -128,7 +128,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.getBodyTemplate = function(serverGroup, application) {
       if(this.isLastServerGroupInRegion(serverGroup, application)){
-        var template = $templateCache.get(require('../../..//serverGroups/details/deleteLastServerGroupWarning.html'));
+        var template = $templateCache.get(require('../../../serverGroups/details/deleteLastServerGroupWarning.html'));
         $scope.deletingServerGroup = serverGroup;
         return $compile(template)($scope);
       }
