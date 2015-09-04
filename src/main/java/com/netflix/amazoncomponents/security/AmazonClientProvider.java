@@ -18,6 +18,7 @@ package com.netflix.amazoncomponents.security;
 
 import com.amazonaws.AmazonWebServiceClient;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.handlers.RequestHandler2;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedRetryPolicies;
@@ -45,6 +46,8 @@ import org.apache.http.impl.client.HttpClients;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +60,7 @@ public class AmazonClientProvider {
   private final ObjectMapper objectMapper;
   private final EddaTemplater eddaTemplater;
   private final RetryPolicy retryPolicy;
+  private final List<RequestHandler2> requestHandlers;
 
   public static class Builder {
     private HttpClient httpClient;
@@ -65,6 +69,7 @@ public class AmazonClientProvider {
     private RetryPolicy.RetryCondition retryCondition;
     private RetryPolicy.BackoffStrategy backoffStrategy;
     private Integer maxErrorRetry;
+    private List<RequestHandler2> requestHandlers = new ArrayList<>();
 
     public Builder httpClient(HttpClient httpClient) {
       this.httpClient = httpClient;
@@ -96,13 +101,18 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder requestHandler(RequestHandler2 requestHandler) {
+      this.requestHandlers.add(requestHandler);
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient == null ? HttpClients.createDefault() : this.httpClient;
       ObjectMapper mapper = this.objectMapper == null ? new AmazonObjectMapper() : this.objectMapper;
       EddaTemplater templater = this.eddaTemplater == null ? EddaTemplater.defaultTemplater() : this.eddaTemplater;
       RetryPolicy policy = buildPolicy();
 
-      return new AmazonClientProvider(client, mapper, templater, policy);
+      return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers);
     }
 
     private RetryPolicy buildPolicy() {
@@ -133,7 +143,7 @@ public class AmazonClientProvider {
   }
 
   public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper) {
-    this(httpClient == null ? HttpClients.createDefault() : httpClient, objectMapper == null ? new AmazonObjectMapper() : objectMapper, EddaTemplater.defaultTemplater(), PredefinedRetryPolicies.getDefaultRetryPolicy());
+    this(httpClient == null ? HttpClients.createDefault() : httpClient, objectMapper == null ? new AmazonObjectMapper() : objectMapper, EddaTemplater.defaultTemplater(), PredefinedRetryPolicies.getDefaultRetryPolicy(), Collections.emptyList());
   }
 
   public static <T> T notNull(T obj, String name) {
@@ -143,11 +153,12 @@ public class AmazonClientProvider {
     return obj;
   }
 
-  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, RetryPolicy retryPolicy) {
+  public AmazonClientProvider(HttpClient httpClient, ObjectMapper objectMapper, EddaTemplater eddaTemplater, RetryPolicy retryPolicy, List<RequestHandler2> requestHandlers) {
     this.httpClient = notNull(httpClient, "httpClient");
     this.objectMapper = notNull(objectMapper, "objectMapper");
     this.eddaTemplater = notNull(eddaTemplater, "eddaTemplater");
     this.retryPolicy = notNull(retryPolicy, "retryPolicy");
+    this.requestHandlers = requestHandlers == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(requestHandlers));
   }
 
   /**
@@ -263,6 +274,9 @@ public class AmazonClientProvider {
     InstantiationException, NoSuchMethodException {
     Constructor<T> constructor = impl.getConstructor(AWSCredentialsProvider.class);
     T delegate = constructor.newInstance(amazonCredentials.getCredentialsProvider());
+    for (RequestHandler2 requestHandler : requestHandlers) {
+      delegate.addRequestHandler(requestHandler);
+    }
     if (region != null && region.length() > 0) {
       delegate.setRegion(Region.getRegion(Regions.fromName(region)));
     }
