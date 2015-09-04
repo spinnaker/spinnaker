@@ -69,15 +69,15 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   void executionCompleted(CachingAgent agent) {
     Long startTime = timingsMap.get().remove(agentName(agent))
     if (startTime != null) {
-      extendedRegistry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
+      registry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
     }
-    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
+    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
   }
 
   @Override
   void executionFailed(CachingAgent agent, Throwable cause) {
     timingsMap.get().remove(agentName(agent))
-    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
+    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
   }
 }
 
