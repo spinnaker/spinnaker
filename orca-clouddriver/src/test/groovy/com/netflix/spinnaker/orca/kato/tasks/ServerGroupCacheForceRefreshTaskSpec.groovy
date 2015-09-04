@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import retrofit.client.Response
 import retrofit.mime.TypedString
@@ -29,6 +30,7 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
   def stage = new PipelineStage(type: "whatever")
 
   def deployConfig = [
+    "cloudProvider" : "aws",
     "account.name" : "fzlem",
     "deploy.server.groups": ["us-east-1": ["kato-main-v000"]]
   ]
@@ -46,7 +48,8 @@ class ServerGroupCacheForceRefreshTaskSpec extends Specification {
     def result = task.execute(stage.asImmutable())
 
     then:
-    1 * task.oort.forceCacheUpdate(ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, ServerGroupCacheForceRefreshTask.REFRESH_TYPE, _) >> {
+      String cloudProvider, String type, Map<String, ? extends Object> body ->
       expectations = body
       return new Response('oort', 202, 'ok', [], new TypedString("[]"))
     }

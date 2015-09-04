@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
-
+package com.netflix.spinnaker.orca.clouddriver.tasks
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -26,27 +25,24 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class ServerGroupCacheForceRefreshTask implements Task {
-  static final String REFRESH_TYPE = "AmazonServerGroup"
+class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+
+  static final String REFRESH_TYPE = "ServerGroup"
 
   @Autowired
   OortService oort
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context."account.name"
-    if (stage.context.account && !account) {
-      account = stage.context.account
-    } else if (stage.context.credentials && !account) {
-      account = stage.context.credentials
-    }
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
     Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."deploy.server.groups"
     def outputs = [:]
     capturedServerGroups?.each { region, serverGroups ->
       for (serverGroup in serverGroups) {
-        def model = [asgName: serverGroup, region: region, account: account]
+        def model = [serverGroupName: serverGroup, asgName: serverGroup, region: region, account: account] // TODO retire asgName
         try {
-          oort.forceCacheUpdate(REFRESH_TYPE, model)
+          oort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
         } catch (e) {
           if (!outputs.containsKey("force.cache.refresh.errors")) {
             outputs["force.cache.refresh.errors"] = []

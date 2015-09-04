@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForUpInstanceHealthTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.InstanceHealthCheckTask
 import com.netflix.spinnaker.orca.kato.tasks.quip.MonitorQuipTask

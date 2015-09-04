@@ -20,7 +20,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearSta
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceNotFoundException
 import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForDestroyedAsgTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
