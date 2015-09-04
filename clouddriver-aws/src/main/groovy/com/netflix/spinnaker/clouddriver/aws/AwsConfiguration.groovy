@@ -22,6 +22,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentialsInitializer
+import com.netflix.spinnaker.kork.aws.AwsComponents
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -33,14 +34,15 @@ import org.springframework.context.annotation.Import
 @ComponentScan(["com.netflix.spinnaker.clouddriver.aws"])
 @Import([
   BastionConfig,
-  AmazonCredentialsInitializer
+  AmazonCredentialsInitializer,
+  AwsComponents
 ])
 class AwsConfiguration {
   @Bean
-  AmazonClientProvider amazonClientProvider(RetryPolicy.RetryCondition retryCondition, RetryPolicy.BackoffStrategy backoffStrategy) {
+  AmazonClientProvider amazonClientProvider(RetryPolicy.RetryCondition instrumentedRetryCondition, RetryPolicy.BackoffStrategy instrumentedBackoffStrategy) {
     new AmazonClientProvider.Builder()
-      .backoffStrategy(backoffStrategy)
-      .retryCondition(retryCondition)
+      .backoffStrategy(instrumentedBackoffStrategy)
+      .retryCondition(instrumentedRetryCondition)
       .objectMapper(amazonObjectMapper())
       .build()
   }
