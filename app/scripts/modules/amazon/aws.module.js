@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.aws', [
   require('./serverGroup/configure/serverGroup.transformer.service.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.aws.module.js'),
-  require('../providerSelection/provider.image.service.provider.js'),
   require('../pipelines/config/stages/bake/aws/awsBakeStage.js'),
   require('../pipelines/config/stages/resizeAsg/aws/awsResizeAsgStage.js'),
   require('./instance/awsInstanceTypeService.js'),
@@ -20,13 +19,11 @@ module.exports = angular.module('spinnaker.aws', [
   require('./securityGroup/configure/CreateSecurityGroupCtrl.js'),
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
 ])
-  .config(function(providerImageServiceProvider, cloudProviderRegistryProvider) {
-    providerImageServiceProvider.registerImage({
-      provider: 'aws',
-      key: 'logo',
-      path: require('./logo_aws.png')
-    });
+  .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
+      logo: {
+        path: require('./logo_aws.png'),
+      },
       serverGroup: {
         transformer: 'awsServerGroupTransformer',
         detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),
