@@ -105,6 +105,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       description: firewall.description,
       accountName: account,
       region: region,
+      network: getLocalName(firewall.network),
       inboundRules: buildInboundIpRangeRules(firewall)
     )
   }
@@ -168,5 +169,15 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     }
 
     rangeRules.sort()
+  }
+
+  private String getLocalName(String fullUrl) {
+    if (!fullUrl) {
+      return fullUrl
+    }
+
+    def urlParts = fullUrl.split("/")
+
+    return urlParts[urlParts.length - 1]
   }
 }

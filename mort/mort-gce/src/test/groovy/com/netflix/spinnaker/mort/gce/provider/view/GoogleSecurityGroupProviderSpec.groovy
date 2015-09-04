@@ -145,6 +145,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         type: 'gce',
         id: 'name-a',
         name: 'name-a',
+        network: 'default',
         description: 'a',
         accountName: account,
         region: region,
@@ -254,6 +255,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         new Firewall(
           name: 'name-a',
           id: 6614377178691015951,
+          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           description: 'a',
           sourceRanges: ['192.168.2.0/24'],
           allowed: [
@@ -271,6 +273,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         new Firewall(
           name: 'b',
           id: 123,
+          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           description: 'description of b',
           sourceRanges: ['192.168.3.100'],
           allowed: [
@@ -282,6 +285,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         new Firewall(
           name: 'c',
           id: 456,
+          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
           description: 'description of c',
           sourceRanges: ['192.168.4.100/32'],
           allowed: [
