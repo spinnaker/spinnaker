@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.advancedSetti
   require('../../../../utils/lodash.js'),
   require('../../../../tasks/monitor/taskMonitor.module.js'),
   require('../../../../tasks/taskExecutor.js'),
-  require('../../../configure/aws/serverGroupCommandBuilder.service.js'),
+  require('../../configure/serverGroupCommandBuilder.service.js'),
 ])
   .controller('EditAsgAdvancedSettingsCtrl', function($scope, $modalInstance, taskMonitorService, taskExecutor, _,
                                                      application, serverGroup, awsServerGroupCommandBuilder) {

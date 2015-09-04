@@ -2,7 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
+module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [
+  require('../../../../amazon/serverGroup/configure/serverGroupCommandBuilder.service.js'),
+  require('../../../../core/cloudProvider/cloudProvider.registry.js'),
+])
   .config(function (pipelineConfigProvider, settings) {
     if (settings.feature.canary === true) {
         pipelineConfigProvider.registerStage({
@@ -27,7 +30,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
   })
   .controller('CanaryStageCtrl', function ($scope, $modal, stage, _,
                                            namingService, providerSelectionService,
-                                           authenticationService,
+                                           authenticationService, cloudProviderRegistry,
                                            serverGroupCommandBuilder, awsServerGroupTransformer, accountService) {
 
     var user = authenticationService.getAuthenticatedUser();
@@ -95,9 +98,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
     this.addClusterPair = function() {
       $scope.stage.clusterPairs = $scope.stage.clusterPairs || [];
       providerSelectionService.selectProvider().then(function(selectedProvider) {
+        let config = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $modal.open({
-          templateUrl: 'app/scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
-          controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
+          templateUrl: config.cloneServerGroupTemplateUrl,
+          controller: `${config.cloneServerGroupController} as ctrl`,
           resolve: {
             title: function () {
               return 'Add Cluster Pair';
@@ -134,9 +138,10 @@ module.exports = angular.module('spinnaker.pipelines.stage.canaryStage', [])
 
     this.editCluster = function(cluster, index, type) {
       cluster.provider = cluster.provider || 'aws';
-      return $modal.open({
-        templateUrl: 'app/scripts/modules/serverGroups/configure/' + cluster.provider + '/wizard/serverGroupWizard.html',
-        controller: cluster.provider + 'CloneServerGroupCtrl as ctrl',
+      let config = cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
+      $modal.open({
+        templateUrl: config.cloneServerGroupTemplateUrl,
+        controller: `${config.cloneServerGroupController} as ctrl`,
         resolve: {
           title: function () {
             return 'Configure ' + type + ' Cluster';

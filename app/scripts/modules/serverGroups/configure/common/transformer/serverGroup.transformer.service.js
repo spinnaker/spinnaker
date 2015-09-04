@@ -4,7 +4,7 @@ var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.serverGroup.transformer.service', [
-    require('../../../../delegation/serviceDelegate.service.js'),
+    require('../../../../core/cloudProvider/serviceDelegate.service.js'),
   ])
   .factory('serverGroupTransformer', function (serviceDelegate) {
 

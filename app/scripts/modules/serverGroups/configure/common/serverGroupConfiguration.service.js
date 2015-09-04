@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.common.configure.service', [
-  require('../../../delegation/serviceDelegate.service.js'),
+  require('../../../core/cloudProvider/serviceDelegate.service.js'),
 ])
 .factory('serverGroupConfigurationService', function(serviceDelegate) {
 

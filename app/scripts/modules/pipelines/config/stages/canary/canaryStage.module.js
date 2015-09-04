@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary', [
   require('../../../../authentication/authenticationService.js'),
   require('../../../../utils/lodash.js'),
   require('../../../../serverGroups/serverGroup.read.service.js'),
-  require('../../../../serverGroups/configure/aws/serverGroupCommandBuilder.service.js'),
   require('./canaryDeployment/canaryDeployment.module.js'),
   require('./canaryStage.transformer.js'),
   require('./canaryScore.directive.js'),

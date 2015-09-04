@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.serverGroup.configure.aws.awsServerGroupBasicSettingsSelector', [
-    require('../common/basicSettingsMixin.controller.js'),
+    require('../../../serverGroups/configure/common/basicSettingsMixin.controller.js'),
     require('../../../region/regionSelectField.directive.js'),
     require('../../../account/accountSelectField.directive.js'),
     require('../../../subnet/subnetSelectField.directive.js'),

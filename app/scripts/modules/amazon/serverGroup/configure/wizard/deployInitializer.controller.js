@@ -2,21 +2,24 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployInitialization.controller', [
-  require('../../../serverGroup.read.service.js'),
+module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
+  require('../../../../serverGroups/serverGroup.read.service.js'),
   require('../../../../utils/lodash.js'),
-  require('../../aws/serverGroupCommandBuilder.service.js'),
+  require('../serverGroupCommandBuilder.service.js'),
 ])
-  .controller('gceDeployInitializerCtrl', function($scope, gceServerGroupCommandBuilder, serverGroupReader, _) {
+  .controller('awsDeployInitializerCtrl', function($scope, awsServerGroupCommandBuilder, serverGroupReader, _) {
     var controller = this;
 
-    var noTemplate = { label: 'None', serverGroup: null, cluster: null };
+    $scope.templates = [];
+    if (!$scope.command.viewState.disableNoTemplateSelection) {
+      var noTemplate = { label: 'None', serverGroup: null, cluster: null };
 
-    $scope.command.viewState.template = noTemplate;
+      $scope.command.viewState.template = noTemplate;
 
-    $scope.templates = [ noTemplate ];
+      $scope.templates = [ noTemplate ];
+    }
 
-    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'gce' }), function(serverGroup) {
+    var allClusters = _.groupBy(_.filter($scope.application.serverGroups, { type: 'aws' }), function(serverGroup) {
       return [serverGroup.cluster, serverGroup.account, serverGroup.region].join(':');
     });
 
@@ -33,14 +36,22 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployIniti
 
     function applyCommandToScope(command) {
       command.viewState.disableImageSelection = true;
-      command.viewState.disableStrategySelection = false;
+      command.viewState.disableStrategySelection = $scope.command.viewState.disableStrategySelection || false;
       command.viewState.imageId = null;
+      command.viewState.readOnlyFields = $scope.command.viewState.readOnlyFields || {};
       command.viewState.submitButtonLabel = 'Add';
+      command.viewState.hideClusterNamePreview = $scope.command.viewState.hideClusterNamePreview || false;
+      command.viewState.templatingEnabled = true;
+      if ($scope.command.viewState.overrides) {
+        _.forOwn($scope.command.viewState.overrides, function(val, key) {
+          command[key] = val;
+        });
+      }
       angular.copy(command, $scope.command);
     }
 
     function buildEmptyCommand() {
-      return gceServerGroupCommandBuilder.buildNewServerGroupCommand($scope.application, {mode: 'createPipeline'}).then(function(command) {
+      return awsServerGroupCommandBuilder.buildNewServerGroupCommand($scope.application, {mode: 'createPipeline'}).then(function(command) {
         applyCommandToScope(command);
       });
     }
@@ -48,8 +59,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.deployIniti
     function buildCommandFromTemplate(serverGroup) {
       return serverGroupReader.getServerGroup($scope.application.name, serverGroup.account, serverGroup.region, serverGroup.name).then(function (details) {
         angular.extend(details, serverGroup);
-        return gceServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
+        return awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting($scope.application, details, 'editPipeline').then(function (command) {
           applyCommandToScope(command);
+          $scope.command.strategy = 'redblack';
         });
       });
     }

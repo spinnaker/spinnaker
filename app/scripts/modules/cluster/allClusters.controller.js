@@ -13,9 +13,10 @@ module.exports = angular.module('clusters.all', [
   require('../filterModel/filter.tags.directive.js'),
   require('../utils/waypoints/waypointContainer.directive.js'),
   require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,
-                                          ClusterFilterModel, serverGroupCommandBuilder) {
+                                          ClusterFilterModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     ClusterFilterModel.activate();
 
@@ -60,11 +61,11 @@ module.exports = angular.module('clusters.all', [
     };
 
     this.createServerGroup = function createServerGroup() {
-      // BEN_TODO: figure out interpolated values with webpack
       providerSelectionService.selectProvider().then(function(selectedProvider) {
+        let provider = cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
         $modal.open({
-          templateUrl: 'app/scripts/modules/serverGroups/configure/' + selectedProvider + '/wizard/serverGroupWizard.html',
-          controller: selectedProvider + 'CloneServerGroupCtrl as ctrl',
+          templateUrl: provider.cloneServerGroupTemplateUrl,
+          controller: `${provider.cloneServerGroupController} as ctrl`,
           resolve: {
             title: function() { return 'Create New Server Group'; },
             application: function() { return app; },

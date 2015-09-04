@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
   require('./stateHelper.provider.js'),
   require('../delivery/states.js'),
-  require('../serverGroups/details/aws/serverGroup.details.module.js'),
+  require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
@@ -67,12 +67,12 @@ module.exports = angular.module('spinnaker.states', [
         url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
         views: {
           'detail@home.applications.application.insight': {
-            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+            templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('app/scripts/modules/serverGroups/details/' + provider + '/serverGroupDetails.html'); }],
-            controllerProvider: ['$stateParams', function($stateParams) {
+              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'serverGroup.detailsTemplateUrl')); }],
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return provider + 'ServerGroupDetailsCtrl';
+              return cloudProviderRegistry.getValue(provider, 'serverGroup.detailsController');
             }],
             controllerAs: 'ctrl'
           }

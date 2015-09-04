@@ -4,7 +4,7 @@ describe('Controller: ScalingActivitiesCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./scalingActivities.controller')
+      require('./scalingActivities.controller.js')
     )
   );
 

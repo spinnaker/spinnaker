@@ -9,7 +9,7 @@ describe('serverGroupWriter', function () {
   beforeEach(
     window.module(
       require('./serverGroup.write.service.js'),
-      require('./configure/aws/serverGroup.transformer.service.js')
+      require('../amazon/serverGroup/configure/serverGroup.transformer.service.js') // TODO: move this to provider module
     )
   );
 
