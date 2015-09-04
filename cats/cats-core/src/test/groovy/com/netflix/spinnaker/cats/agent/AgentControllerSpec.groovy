@@ -47,9 +47,9 @@ class AgentControllerSpec extends Specification {
         new AgentController(registry, sched, instr)
 
         then:
-        1 * p1.getCachingAgents() >> [a1]
+        1 * p1.getAgents() >> [a1]
         1 * sched.schedule(a1, _ as AgentExecution, instr)
-        1 * p2.getCachingAgents() >> [a2]
+        1 * p2.getAgents() >> [a2]
         1 * sched.schedule(a2, _ as AgentExecution, instr)
         0 * _
     }

@@ -27,18 +27,7 @@ import java.util.Collection;
  * an agent might load clusters for the AWS provider, and be scoped to a particular account
  * and region.
  */
-public interface CachingAgent {
-    /**
-     * @return name of this Agent's provider
-     * @see com.netflix.spinnaker.cats.provider.ProviderRegistry
-     */
-    String getProviderName();
-
-    /**
-     * @return the type of this agent.
-     */
-    String getAgentType();
-
+public interface CachingAgent extends Agent {
     /**
      * @return the data types this Agent returns
      * @see com.netflix.spinnaker.cats.agent.AgentDataType.Authority

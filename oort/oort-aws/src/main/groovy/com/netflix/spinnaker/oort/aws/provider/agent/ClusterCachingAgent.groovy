@@ -39,6 +39,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.frigga.Names
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
@@ -51,14 +52,12 @@ import groovy.util.logging.Slf4j
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.*
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
 import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 
 @Slf4j
-class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
-
+class ClusterCachingAgent extends AbstractCachingAgent implements OnDemandAgent {
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonServerGroup'
 

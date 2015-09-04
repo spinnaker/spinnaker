@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
-import com.netflix.spinnaker.cats.agent.CachingAgent;
+import com.netflix.spinnaker.cats.agent.Agent;
 
 public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     private final long interval;
@@ -33,7 +33,7 @@ public class DefaultAgentIntervalProvider implements AgentIntervalProvider {
     }
 
     @Override
-    public Interval getInterval(CachingAgent agent) {
+    public Interval getInterval(Agent agent) {
         return new Interval(interval, timeout);
     }
 }

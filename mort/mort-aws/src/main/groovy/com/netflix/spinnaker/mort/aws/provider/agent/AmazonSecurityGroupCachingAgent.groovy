@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -40,7 +41,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUPS
 
 @Slf4j
-class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
+class AmazonSecurityGroupCachingAgent extends AbstractCachingAgent implements OnDemandAgent {
 
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonSecurityGroup'

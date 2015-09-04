@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.mort.aws.provider.agent
 
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
+
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SUBNETS
 
@@ -35,7 +37,7 @@ import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonSubnetCachingAgent implements CachingAgent {
+class AmazonSubnetCachingAgent extends AbstractCachingAgent {
 
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account

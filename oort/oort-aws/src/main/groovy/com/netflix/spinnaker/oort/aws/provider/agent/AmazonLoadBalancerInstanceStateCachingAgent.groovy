@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -43,7 +44,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 
 @Slf4j
-class AmazonLoadBalancerInstanceStateCachingAgent implements HealthProvidingCachingAgent {
+class AmazonLoadBalancerInstanceStateCachingAgent extends AbstractCachingAgent implements HealthProvidingCachingAgent {
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region

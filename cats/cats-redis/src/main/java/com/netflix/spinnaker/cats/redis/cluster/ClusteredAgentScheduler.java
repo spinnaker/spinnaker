@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.cats.redis.cluster;
 
-import com.netflix.spinnaker.cats.agent.AgentExecution;
-import com.netflix.spinnaker.cats.agent.AgentScheduler;
-import com.netflix.spinnaker.cats.agent.CachingAgent;
-import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation;
+import com.netflix.spinnaker.cats.agent.*;
 import com.netflix.spinnaker.cats.redis.JedisSource;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
 import redis.clients.jedis.Jedis;
@@ -137,7 +134,7 @@ public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
     }
 
     @Override
-    public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+    public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
         final AgentExecutionAction agentExecutionAction = new AgentExecutionAction(agent, agentExecution, executionInstrumentation);
         agents.put(agent.getAgentType(), agentExecutionAction);
     }
@@ -164,18 +161,18 @@ public class ClusteredAgentScheduler implements AgentScheduler, Runnable {
     }
 
     private static class AgentExecutionAction {
-        private final CachingAgent agent;
+        private final Agent agent;
         private final AgentExecution agentExecution;
         private final ExecutionInstrumentation executionInstrumentation;
 
 
-        public AgentExecutionAction(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+        public AgentExecutionAction(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
             this.agent = agent;
             this.agentExecution = agentExecution;
             this.executionInstrumentation = executionInstrumentation;
         }
 
-        public CachingAgent getAgent() {
+        public Agent getAgent() {
             return agent;
         }
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
@@ -37,7 +38,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class EddaLoadBalancerCachingAgent implements HealthProvidingCachingAgent {
+class EddaLoadBalancerCachingAgent extends AbstractCachingAgent implements HealthProvidingCachingAgent {
   private final EddaApi eddaApi
   private final NetflixAmazonCredentials account
   private final String region

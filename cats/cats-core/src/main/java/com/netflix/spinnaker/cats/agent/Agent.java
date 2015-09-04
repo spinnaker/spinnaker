@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,19 @@
 
 package com.netflix.spinnaker.cats.agent;
 
-public interface AgentExecution {
-    void executeAgent(Agent agent);
+import com.netflix.spinnaker.cats.provider.ProviderRegistry;
+
+public interface Agent {
+  /**
+   * @return the type of this agent.
+   */
+  String getAgentType();
+
+  /**
+   * @return name of this Agent's provider
+   * @see com.netflix.spinnaker.cats.provider.ProviderRegistry
+   */
+  String getProviderName();
+
+  AgentExecution getAgentExecution(ProviderRegistry providerRegistry);
 }

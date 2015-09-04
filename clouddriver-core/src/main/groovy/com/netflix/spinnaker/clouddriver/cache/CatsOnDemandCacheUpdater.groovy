@@ -39,7 +39,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private Collection<OnDemandAgent> getOnDemandAgents() {
     providers.collect {
-      it.cachingAgents.findAll { it instanceof OnDemandAgent } as Collection<OnDemandAgent>
+      it.agents.findAll { it instanceof OnDemandAgent } as Collection<OnDemandAgent>
     }.flatten()
   }
 

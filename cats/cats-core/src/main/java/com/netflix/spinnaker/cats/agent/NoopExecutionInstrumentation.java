@@ -18,17 +18,17 @@ package com.netflix.spinnaker.cats.agent;
 
 public class NoopExecutionInstrumentation implements ExecutionInstrumentation {
     @Override
-    public void executionStarted(CachingAgent agent) {
+    public void executionStarted(Agent agent) {
         //noop
     }
 
     @Override
-    public void executionCompleted(CachingAgent agent) {
+    public void executionCompleted(Agent agent) {
         //noop
     }
 
     @Override
-    public void executionFailed(CachingAgent agent, Throwable cause) {
+    public void executionFailed(Agent agent, Throwable cause) {
         //noop
     }
 }

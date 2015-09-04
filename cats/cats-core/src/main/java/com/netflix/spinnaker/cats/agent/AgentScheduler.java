@@ -20,5 +20,5 @@ package com.netflix.spinnaker.cats.agent;
  * An AgentScheduler manages the execution of a CachingAgent.
  */
 public interface AgentScheduler {
-    void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation);
+    void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation);
 }

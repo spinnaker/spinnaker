@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -41,7 +42,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.IMAGES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.NAMED_IMAGES
 
 @Slf4j
-class ImageCachingAgent implements CachingAgent {
+class ImageCachingAgent extends AbstractCachingAgent {
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -60,7 +61,7 @@ class CacheConfig {
   AgentScheduler noopAgentScheduler() {
     new AgentScheduler() {
       @Override
-      void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+      void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
         //do nothing
       }
     }
@@ -76,7 +77,7 @@ class CacheConfig {
       }
 
       @Override
-      Collection<CachingAgent> getCachingAgents() {
+      Collection<CachingAgent> getAgents() {
         Collections.emptySet()
       }
 

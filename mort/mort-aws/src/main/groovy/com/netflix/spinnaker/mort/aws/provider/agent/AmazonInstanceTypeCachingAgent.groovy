@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.KeyPairInfo
 import com.amazonaws.services.ec2.model.ReservedInstancesOffering
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
+import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -40,7 +41,7 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.INSTANCE_TYPES
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class AmazonInstanceTypeCachingAgent implements CustomScheduledAgent {
+class AmazonInstanceTypeCachingAgent extends AbstractCachingAgent implements CustomScheduledAgent {
 
   public static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.HOURS.toMillis(2)
   public static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(15)
