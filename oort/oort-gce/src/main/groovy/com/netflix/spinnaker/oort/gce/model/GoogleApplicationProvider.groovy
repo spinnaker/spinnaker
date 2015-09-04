@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.oort.gce.model
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.ApplicationProvider
@@ -30,7 +30,7 @@ import java.util.concurrent.Callable
 class GoogleApplicationProvider implements ApplicationProvider {
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -44,8 +44,8 @@ class GoogleApplicationProvider implements ApplicationProvider {
   @PostConstruct
   void init() {
     String[] tags = ['className', this.class.simpleName]
-    applications = extendedRegistry.timer('applications', tags)
-    applicationByName = extendedRegistry.timer('applicationByName', tags)
+    applications = registry.timer('applications', tags)
+    applicationByName = registry.timer('applicationByName', tags)
   }
 
   @Override

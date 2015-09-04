@@ -25,7 +25,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -87,7 +87,7 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final ExtendedRegistry extendedRegistry
+  final Registry registry
   final OnDemandMetricsSupport metricsSupport
 
   LoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
@@ -95,14 +95,14 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
                            NetflixAmazonCredentials account,
                            String region,
                            ObjectMapper objectMapper,
-                           ExtendedRegistry extendedRegistry) {
+                           Registry registry) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    this.extendedRegistry = extendedRegistry
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.registry = registry
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   static class MutableCacheData implements CacheData {

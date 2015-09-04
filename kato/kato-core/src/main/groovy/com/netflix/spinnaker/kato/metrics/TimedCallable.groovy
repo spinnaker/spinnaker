@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kato.metrics
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import groovy.transform.CompileStatic
 
 import java.util.concurrent.Callable
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 
 @CompileStatic
 class TimedCallable<T> implements Callable<T> {
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
   private final Id metricId
   private final Callable<T> callable
 
@@ -56,21 +56,21 @@ class TimedCallable<T> implements Callable<T> {
     }
   }
 
-  public static TimedCallable<Void> forRunnable(ExtendedRegistry extendedRegistry, Id metricId, Runnable runnable) {
-    new TimedCallable<Void>(extendedRegistry, metricId, new RunnableWrapper(runnable))
+  public static TimedCallable<Void> forRunnable(Registry registry, Id metricId, Runnable runnable) {
+    new TimedCallable<Void>(registry, metricId, new RunnableWrapper(runnable))
   }
 
-  public static <T> TimedCallable<T> forCallable(ExtendedRegistry extendedRegistry, Id metricId, Callable<T> callable) {
-    new TimedCallable<T>(extendedRegistry, metricId, callable)
+  public static <T> TimedCallable<T> forCallable(Registry registry, Id metricId, Callable<T> callable) {
+    new TimedCallable<T>(registry, metricId, callable)
   }
 
-  public static <T> TimedCallable<T> forClosure(ExtendedRegistry extendedRegistry, Id metricId, Closure<T> closure) {
-    new TimedCallable<T>(extendedRegistry, metricId, new ClosureWrapper<T>(closure))
+  public static <T> TimedCallable<T> forClosure(Registry registry, Id metricId, Closure<T> closure) {
+    new TimedCallable<T>(registry, metricId, new ClosureWrapper<T>(closure))
   }
 
 
-  TimedCallable(ExtendedRegistry extendedRegistry, Id metricId, Callable<T> callable) {
-    this.extendedRegistry = extendedRegistry
+  TimedCallable(Registry registry, Id metricId, Callable<T> callable) {
+    this.registry = registry
     this.metricId = metricId
     this.callable = callable
   }
@@ -87,7 +87,7 @@ class TimedCallable<T> implements Callable<T> {
       thisId = thisId.withTag("success", "false").withTag("cause", ex.class.simpleName)
       throw ex
     } finally {
-      extendedRegistry.timer(thisId).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+      registry.timer(thisId).record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
     }
   }
 }

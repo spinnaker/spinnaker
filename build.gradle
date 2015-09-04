@@ -27,7 +27,7 @@ buildscript {
     maven { url "http://dl.bintray.com/spinnaker/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.107'
+    classpath 'com.netflix.spinnaker:spinnaker-gradle-project:1.12.108'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
   }
 }
@@ -46,10 +46,10 @@ subprojects { project ->
 
 
   repositories {
+    maven { url 'http://oss.jfrog.org/repo' }
     jcenter()
     maven { url 'http://dl.bintray.com/spinnaker/spinnaker' }
     maven { url 'http://repo.spring.io/repo' }
-    maven { url 'http://oss.sonatype.org/content/repositories/staging' }
   }
 
   configurations {

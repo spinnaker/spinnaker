@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.controllers.CacheController
 import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
 import com.netflix.spinnaker.clouddriver.controllers.SearchController
@@ -42,13 +42,13 @@ import javax.servlet.Filter
 ])
 public class WebConfig extends WebMvcConfigurerAdapter {
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        extendedRegistry, "controller.invocations", ["account", "region"], ["BasicErrorController"]
+        this.registry, "controller.invocations", ["account", "region"], ["BasicErrorController"]
       )
     )
   }

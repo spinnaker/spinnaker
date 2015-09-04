@@ -18,7 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
@@ -43,7 +43,7 @@ class AwsInfrastructureProviderConfig {
                                                       AmazonClientProvider amazonClientProvider,
                                                       AccountCredentialsRepository accountCredentialsRepository,
                                                       AmazonObjectMapper amazonObjectMapper,
-                                                      ExtendedRegistry extendedRegistry) {
+                                                      Registry registry) {
     List<CachingAgent> agents = []
 
     def allAccounts = accountCredentialsRepository.all.findAll {
@@ -55,7 +55,7 @@ class AwsInfrastructureProviderConfig {
         agents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
-        agents << new AmazonSecurityGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper, extendedRegistry)
+        agents << new AmazonSecurityGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
         agents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
         agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
       }

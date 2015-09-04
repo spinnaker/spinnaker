@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
@@ -40,16 +40,16 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     }
   }
 
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
   private final Id timingId
   private final Id counterId
 
   @Autowired
-  public MetricInstrumentation(ExtendedRegistry extendedRegistry) {
-    this.extendedRegistry = extendedRegistry
-    timingId = extendedRegistry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
-    counterId = extendedRegistry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
+  public MetricInstrumentation(Registry registry) {
+    this.registry = registry
+    timingId = registry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
+    counterId = registry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
 

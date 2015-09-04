@@ -17,10 +17,9 @@
 
 package com.netflix.spinnaker.kato.orchestration
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.metrics.TimedCallable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -41,15 +40,15 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
   ApplicationContext applicationContext
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   Task process(List<AtomicOperation> atomicOperations) {
 
-    def orchestrationsId = extendedRegistry.createId('orchestrations')
-    def atomicOperationId = extendedRegistry.createId('operations')
-    def tasksId = extendedRegistry.createId('tasks')
+    def orchestrationsId = registry.createId('orchestrations')
+    def atomicOperationId = registry.createId('operations')
+    def tasksId = registry.createId('tasks')
     def task = taskRepository.create(TASK_PHASE, "Initializing Orchestration Task...")
-    executorService.submit TimedCallable.forClosure(extendedRegistry, orchestrationsId) {
+    executorService.submit TimedCallable.forClosure(registry, orchestrationsId) {
       try {
         // Autowire the atomic operations
         for (op in atomicOperations) {
@@ -61,7 +60,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
           def thisOp = atomicOperationId.withTag("OperationType", atomicOperation.class.simpleName)
           task.updateStatus TASK_PHASE, "Processing op: ${atomicOperation.class.simpleName}"
           try {
-            TimedCallable.forClosure(extendedRegistry, thisOp) {
+            TimedCallable.forClosure(registry, thisOp) {
               results << atomicOperation.operate(results)
               task.updateStatus(TASK_PHASE, "Orchestration completed.")
             }.call()
@@ -87,9 +86,9 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
         if (!task.status?.isCompleted()) {
           task.complete()
         }
-        extendedRegistry.counter(tasksId.withTag("success", "true")).increment()
+        registry.counter(tasksId.withTag("success", "true")).increment()
       } catch (Exception e) {
-        extendedRegistry.counter(tasksId.withTag("success", "false").withTag("cause", e.class.simpleName)).increment()
+        registry.counter(tasksId.withTag("success", "false").withTag("cause", e.class.simpleName)).increment()
         if (e instanceof TimeoutException) {
           task.updateStatus "INIT", "Orchestration timed out."
           task.addResultObjects([[type: "EXCEPTION", cause: e.class.simpleName, message: "Orchestration timed out."]])

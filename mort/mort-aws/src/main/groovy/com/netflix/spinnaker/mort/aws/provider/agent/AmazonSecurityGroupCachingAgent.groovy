@@ -20,7 +20,7 @@ import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -52,7 +52,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
-  final ExtendedRegistry extendedRegistry
+  final Registry registry
 
   final OnDemandMetricsSupport metricsSupport
 
@@ -65,14 +65,14 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
                                   NetflixAmazonCredentials account,
                                   String region,
                                   ObjectMapper objectMapper,
-                                  ExtendedRegistry extendedRegistry) {
+                                  Registry registry) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
-    this.extendedRegistry = extendedRegistry
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.registry = registry
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   @Override
