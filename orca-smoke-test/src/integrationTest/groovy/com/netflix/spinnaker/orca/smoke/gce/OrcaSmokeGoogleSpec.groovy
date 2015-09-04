@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.orca.smoke.gce
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
-import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
-import com.netflix.spinnaker.orca.mort.config.MortConfiguration
-import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.orca.smoke.OrcaSmokeUtils
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -43,8 +41,8 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 
 // Only runs if the gcs-kms server is listening on port 7909 on the same machine.
 @IgnoreIf({ notReachable("http://localhost:7909") })
-@ContextConfiguration(classes = [OrcaConfiguration, KatoConfiguration, BatchTestConfiguration, OortConfiguration,
-                                 EmbeddedRedisConfiguration, Front50Configuration, JesqueConfiguration, MortConfiguration])
+@ContextConfiguration(classes = [OrcaConfiguration, CloudDriverConfiguration, BatchTestConfiguration,
+                                 EmbeddedRedisConfiguration, Front50Configuration, JesqueConfiguration])
 @DirtiesContext(classMode = AFTER_CLASS)
 class OrcaSmokeGoogleSpec extends Specification {
 

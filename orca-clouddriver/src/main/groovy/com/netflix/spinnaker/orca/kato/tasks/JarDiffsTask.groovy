@@ -23,9 +23,9 @@ import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.Library
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffTool
 import com.netflix.spinnaker.orca.libdiffs.LibraryDiffs
-import com.netflix.spinnaker.orca.oort.InstanceService
-import com.netflix.spinnaker.orca.oort.OortService
-import com.netflix.spinnaker.orca.oort.util.OortHelper
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
+import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import groovy.util.logging.Slf4j

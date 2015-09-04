@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.kato.pipeline.strategy.DeployStrategyStage
-import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired

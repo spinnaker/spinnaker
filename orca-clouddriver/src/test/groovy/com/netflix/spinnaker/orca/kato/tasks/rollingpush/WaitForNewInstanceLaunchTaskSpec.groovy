@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.oort.OortService
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import retrofit.client.Response

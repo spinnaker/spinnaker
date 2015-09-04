@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.netflix.spinnaker.orca.kato.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.mort.MortService
+import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject

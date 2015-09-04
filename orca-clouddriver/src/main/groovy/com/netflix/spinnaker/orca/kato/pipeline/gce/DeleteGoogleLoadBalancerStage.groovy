@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.netflix.spinnaker.orca.kato.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.DeleteGoogleLoadBalancerTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage

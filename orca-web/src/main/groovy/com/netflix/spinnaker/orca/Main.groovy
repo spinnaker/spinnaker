@@ -15,10 +15,10 @@
  */
 
 package com.netflix.spinnaker.orca
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.TomcatConfiguration
 import com.netflix.spinnaker.orca.bakery.config.BakeryConfiguration
+import com.netflix.spinnaker.orca.clouddriver.config.CloudDriverConfiguration
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
@@ -29,10 +29,7 @@ import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.orca.flex.config.FlexConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
-import com.netflix.spinnaker.orca.kato.config.KatoConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
-import com.netflix.spinnaker.orca.mort.config.MortConfiguration
-import com.netflix.spinnaker.orca.oort.config.OortConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import com.netflix.spinnaker.orca.rush.config.RushConfiguration
 import com.netflix.spinnaker.orca.tide.config.TideConfiguration
@@ -64,9 +61,7 @@ import org.springframework.scheduling.annotation.EnableAsync
   EchoConfiguration,
   Front50Configuration,
   FlexConfiguration,
-  KatoConfiguration,
-  MortConfiguration,
-  OortConfiguration,
+  CloudDriverConfiguration,
   RushConfiguration,
   IgorConfiguration,
   DiscoveryPollingConfiguration,
