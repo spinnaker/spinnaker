@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.kork.web.interceptors;
 
-import com.netflix.spectator.api.ExtendedRegistry;
 import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An interceptor that logs Controller metrics to an underlying {@link com.netflix.spectator.api.ExtendedRegistry}.
+ * An interceptor that logs Controller metrics to an underlying {@link com.netflix.spectator.api.Registry}.
  * <p>
  * A `timer` will be created for each request with the following tags:
  * <p>
@@ -45,23 +45,23 @@ import java.util.concurrent.TimeUnit;
 public class MetricsInterceptor extends HandlerInterceptorAdapter {
   static final String TIMER_ATTRIBUTE = "Metrics_startTime";
 
-  private final ExtendedRegistry extendedRegistry;
+  private final Registry registry;
   private final String metricName;
   private final Set<String> pathVariablesToTag = new HashSet<String>();
   private final Set<String> controllersToExclude = new HashSet<String>();
 
   /**
-   * @param extendedRegistry     Underlying metrics registry
+   * @param registry             Underlying metrics registry
    * @param metricName           Metric name
    * @param pathVariablesToTag   Variables from the request uri that should be added as metric tags
    * @param controllersToExclude Controller names that should be excluded from metrics
    */
-  public MetricsInterceptor(ExtendedRegistry extendedRegistry,
+  public MetricsInterceptor(Registry registry,
                             String metricName,
                             Collection<String> pathVariablesToTag,
                             Collection<String> controllersToExclude
   ) {
-    this.extendedRegistry = extendedRegistry;
+    this.registry = registry;
     this.metricName = metricName;
     if (pathVariablesToTag != null) {
       this.pathVariablesToTag.addAll(pathVariablesToTag);
@@ -96,7 +96,7 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
         status = 500;
       }
 
-      Id id = extendedRegistry.createId(metricName)
+      Id id = registry.createId(metricName)
         .withTag("controller", controller)
         .withTag("method", handlerMethod.getMethod().getName())
         .withTag("status", status.toString().charAt(0) + "xx")
@@ -115,7 +115,7 @@ public class MetricsInterceptor extends HandlerInterceptorAdapter {
         id = id.withTag("success", "true");
       }
 
-      extendedRegistry.timer(id).record(
+      registry.timer(id).record(
         getNanoTime() - ((Long) request.getAttribute(TIMER_ATTRIBUTE)), TimeUnit.NANOSECONDS
       );
     }

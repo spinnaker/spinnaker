@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.metrics;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import com.netflix.spectator.api.ExtendedRegistry;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import org.springframework.boot.actuate.metrics.Metric;

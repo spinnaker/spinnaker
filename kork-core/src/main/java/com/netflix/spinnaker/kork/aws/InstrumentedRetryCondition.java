@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kork.aws;
 
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.AmazonWebServiceRequest;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
@@ -48,7 +47,7 @@ public class InstrumentedRetryCondition implements RetryPolicy.RetryCondition {
   public boolean shouldRetry(AmazonWebServiceRequest originalRequest, AmazonClientException exception, int retriesAttempted) {
     final boolean result = delegate.shouldRetry(originalRequest, exception, retriesAttempted);
     if (result) {
-      registry.counter("AWS_retries", InstrumentedRetrySupport.buildTags(originalRequest, exception)).increment();
+      registry.counter("AWS_retries", AwsMetricsSupport.buildExceptionTags(originalRequest, exception)).increment();
     }
     return result;
   }

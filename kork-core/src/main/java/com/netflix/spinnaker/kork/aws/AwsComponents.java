@@ -18,13 +18,18 @@ package com.netflix.spinnaker.kork.aws;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.metrics.AwsSdkMetrics;
 import com.amazonaws.retry.RetryPolicy;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.aws.SpectatorMetricsCollector;
+import com.netflix.spinnaker.kork.metrics.SpectatorConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
+@Import(SpectatorConfiguration.class)
 public class AwsComponents {
   @Bean
   @ConditionalOnMissingBean(AWSCredentialsProvider.class)
@@ -40,5 +45,12 @@ public class AwsComponents {
   @Bean
   RetryPolicy.BackoffStrategy instrumentedBackoffStrategy(Registry registry) {
     return new InstrumentedBackoffStrategy(registry);
+  }
+
+  @Bean
+  SpectatorMetricsCollector spectatorMetricsCollector(Registry registry) {
+    SpectatorMetricsCollector collector = new SpectatorMetricsCollector(registry);
+    AwsSdkMetrics.setMetricCollector(collector);
+    return collector;
   }
 }

@@ -16,35 +16,35 @@
 
 package com.netflix.spinnaker.kork.aws;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.AmazonWebServiceRequest;
+import com.amazonaws.*;
 
-class InstrumentedRetrySupport {
-  static String[] buildTags(AmazonWebServiceRequest originalRequest, AmazonClientException exception) {
+public class AwsMetricsSupport {
+  static String[] buildExceptionTags(AmazonWebServiceRequest originalRequest, Exception exception) {
     final AmazonServiceException ase = amazonServiceException(exception);
 
-    final String[] tags = {
+    return new String[] {
       "requestType", originalRequest.getClass().getSimpleName(),
       "statusCode", Integer.toString(ase.getStatusCode()),
       "errorCode", ase.getErrorCode(),
       "serviceName", ase.getServiceName(),
       "errorType", ase.getErrorType().name()
     };
-    return tags;
   }
 
-  private static AmazonServiceException amazonServiceException(AmazonClientException exception) {
+  static AmazonServiceException amazonServiceException(Exception exception) {
+    return amazonServiceException(exception, "UNKNOWN", -1);
+  }
+
+  static AmazonServiceException amazonServiceException(Exception exception, String serviceName, int statusCode) {
     if (exception instanceof AmazonServiceException) {
       return (AmazonServiceException) exception;
     }
 
     final AmazonServiceException ase = new AmazonServiceException(exception.getMessage(), exception);
-    ase.setStatusCode(-1);
+    ase.setStatusCode(statusCode);
     ase.setErrorCode("UNKNOWN");
-    ase.setServiceName("UNKNOWN");
+    ase.setServiceName(serviceName);
     ase.setErrorType(AmazonServiceException.ErrorType.Unknown);
     return ase;
   }
-
 }

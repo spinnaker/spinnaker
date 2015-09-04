@@ -45,7 +45,7 @@ public class InstrumentedBackoffStrategy implements RetryPolicy.BackoffStrategy 
 
   public long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest, AmazonClientException exception, int retriesAttempted) {
     long delay = delegate.delayBeforeNextRetry(originalRequest, exception, retriesAttempted);
-    registry.distributionSummary("AWS_delay", InstrumentedRetrySupport.buildTags(originalRequest, exception)).record(delay);
+    registry.distributionSummary("AWS_delay", AwsMetricsSupport.buildExceptionTags(originalRequest, exception)).record(delay);
     return delay;
   }
 }
