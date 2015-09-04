@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -124,8 +124,8 @@ class CacheConfig {
   }
 
   @Bean
-  ExecutionInstrumentation metricInstrumentation(ExtendedRegistry extendedRegistry) {
-    new MetricInstrumentation(extendedRegistry)
+  ExecutionInstrumentation metricInstrumentation(Registry registry) {
+    new MetricInstrumentation(registry)
   }
 
   @Bean

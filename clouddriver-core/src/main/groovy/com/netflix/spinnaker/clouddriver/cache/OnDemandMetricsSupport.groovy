@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 
 import java.util.concurrent.TimeUnit
 import com.netflix.spectator.api.Timer
@@ -40,15 +40,15 @@ class OnDemandMetricsSupport {
   private final Timer cacheEvict
   private final Counter onDemandErrors
 
-  public OnDemandMetricsSupport(ExtendedRegistry extendedRegistry, OnDemandAgent agent, String onDemandType) {
+  public OnDemandMetricsSupport(Registry registry, OnDemandAgent agent, String onDemandType) {
     final String[] tags = ["providerName", agent.providerName, "agentType", agent.onDemandAgentType, "onDemandType", onDemandType]
-    this.onDemandTotal = extendedRegistry.timer(ON_DEMAND_TOTAL_TIME, tags)
-    this.dataRead = extendedRegistry.timer(DATA_READ, tags)
-    this.dataTransform = extendedRegistry.timer(DATA_TRANSFORM, tags)
-    this.onDemandStore = extendedRegistry.timer(ON_DEMAND_STORE, tags)
-    this.cacheWrite = extendedRegistry.timer(CACHE_WRITE, tags)
-    this.cacheEvict = extendedRegistry.timer(CACHE_EVICT, tags)
-    this.onDemandErrors = extendedRegistry.counter(ON_DEMAND_ERROR, tags)
+    this.onDemandTotal = registry.timer(ON_DEMAND_TOTAL_TIME, tags)
+    this.dataRead = registry.timer(DATA_READ, tags)
+    this.dataTransform = registry.timer(DATA_TRANSFORM, tags)
+    this.onDemandStore = registry.timer(ON_DEMAND_STORE, tags)
+    this.cacheWrite = registry.timer(CACHE_WRITE, tags)
+    this.cacheEvict = registry.timer(CACHE_EVICT, tags)
+    this.onDemandErrors = registry.counter(ON_DEMAND_ERROR, tags)
   }
 
 

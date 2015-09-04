@@ -44,7 +44,7 @@ class DefaultOrchestrationProcessorSpec extends Specification {
     taskRepository = Mock(TaskRepository)
     processor.applicationContext = applicationContext
     processor.taskRepository = taskRepository
-    processor.extendedRegistry = Spectator.registry()
+    processor.registry = Spectator.globalRegistry()
   }
 
   void "complete the task when everything goes as planned"() {

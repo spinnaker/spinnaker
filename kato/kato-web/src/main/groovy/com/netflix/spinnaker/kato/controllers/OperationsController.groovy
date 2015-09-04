@@ -16,7 +16,8 @@
 
 
 package com.netflix.spinnaker.kato.controllers
-import com.netflix.spectator.api.ExtendedRegistry
+
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
@@ -54,7 +55,7 @@ class OperationsController {
   OrchestrationProcessor orchestrationProcessor
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   @Autowired(required = false)
   Collection<AllowedAccountsValidator> allowedAccountValidators = []
@@ -140,7 +141,7 @@ class OperationsController {
           throw new AtomicOperationNotFoundException(k)
         }
         if (errors.hasErrors()) {
-          extendedRegistry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
+          registry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
         }
         new AtomicOperationBindingResult(atomicOperation, errors)
       }

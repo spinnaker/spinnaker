@@ -15,6 +15,8 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws
+
+import com.amazonaws.retry.RetryPolicy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
@@ -35,8 +37,12 @@ import org.springframework.context.annotation.Import
 ])
 class AwsConfiguration {
   @Bean
-  AmazonClientProvider amazonClientProvider() {
-    new AmazonClientProvider(amazonObjectMapper())
+  AmazonClientProvider amazonClientProvider(RetryPolicy.RetryCondition retryCondition, RetryPolicy.BackoffStrategy backoffStrategy) {
+    new AmazonClientProvider.Builder()
+      .backoffStrategy(backoffStrategy)
+      .retryCondition(retryCondition)
+      .objectMapper(amazonObjectMapper())
+      .build()
   }
 
   @Bean
