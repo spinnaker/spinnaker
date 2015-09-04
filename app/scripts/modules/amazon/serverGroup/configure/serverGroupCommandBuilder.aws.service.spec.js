@@ -25,13 +25,14 @@ describe('Service: awsServerGroup', function () {
   );
 
   beforeEach(
-    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _$q_, _settings_, $rootScope) {
-    this.$httpBackend = _$httpBackend_;
-    this.service = awsServerGroupCommandBuilder;
-    this.accountService = _accountService_;
-    this.$q = _$q_;
-    this.settings = _settings_;
-    this.$scope = $rootScope;
+    window.inject(function (_$httpBackend_, awsServerGroupCommandBuilder, _accountService_, _instanceTypeService_, _$q_, _settings_, $rootScope) {
+      this.$httpBackend = _$httpBackend_;
+      this.service = awsServerGroupCommandBuilder;
+      this.accountService = _accountService_;
+      this.$q = _$q_;
+      this.settings = _settings_;
+      this.$scope = $rootScope;
+      spyOn(_instanceTypeService_, 'getCategoryForInstanceType').and.returnValue(_$q_.when('custom'));
   }));
 
   describe('buildServerGroupCommandFromPipeline', function () {

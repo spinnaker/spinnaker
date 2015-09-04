@@ -7,12 +7,11 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('../../../caches/deckCacheFactory.js'),
   require('../../../account/accountService.js'),
   require('../../../naming/naming.service.js'),
-  require('../../../instance/instanceTypeService.js'),
-  require('../../../instance/gceInstanceTypeService.js'),
+  require('../../instance/gceInstanceTypeService.js'),
   require('../../../utils/lodash.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, instanceTypeService, gceInstanceTypeService, namingService, _) {
+                                                     accountService, gceInstanceTypeService, namingService, _) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -193,7 +192,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
+      var instanceTypeCategoryLoader = gceInstanceTypeService.getCategoryForInstanceType(pipelineCluster.instanceType);
       var commandOptions = { account: pipelineCluster.account, region: region };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
 

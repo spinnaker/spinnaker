@@ -17,7 +17,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
   beforeEach(function() {
     window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageService, settings,
-                     searchService, instanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
+                     searchService, awsInstanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
@@ -25,7 +25,7 @@ describe('Controller: awsCloneServerGroup', function () {
       this.serverGroupWriter = serverGroupWriter;
       this.awsImageService = awsImageService;
       this.searchService = searchService;
-      this.instanceTypeService = instanceTypeService;
+      this.awsInstanceTypeService = awsInstanceTypeService;
       this.modalWizardService = modalWizardService;
       this.securityGroupReader = securityGroupReader;
       this.awsServerGroupConfigurationService = awsServerGroupConfigurationService;
@@ -98,7 +98,7 @@ describe('Controller: awsCloneServerGroup', function () {
           serverGroupWriter: this.serverGroupWriter,
           awsImageService: this.awsImageService,
           searchService: this.searchService,
-          instanceTypeService: this.instanceTypeService,
+          awsInstanceTypeService: this.awsInstanceTypeService,
           modalWizardService: this.modalWizardService,
           securityGroupReader: this.securityGroupReader,
           awsServerGroupConfigurationService: this.awsServerGroupConfigurationService,
@@ -124,8 +124,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
     it('updates to default values when credentials changed', function() {
@@ -214,7 +214,7 @@ describe('Controller: awsCloneServerGroup', function () {
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
-          instanceTypeService: this.instanceTypeService,
+          awsInstanceTypeService: this.awsInstanceTypeService,
           modalWizardService: this.modalWizardService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroupCommand,
@@ -237,8 +237,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
     }
 
     it('sets state flags useAllImageSelection when none found and no server group provided', function () {
@@ -369,7 +369,7 @@ describe('Controller: awsCloneServerGroup', function () {
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
-          instanceTypeService: this.instanceTypeService,
+          awsInstanceTypeService: this.awsInstanceTypeService,
           modalWizardService: this.modalWizardService,
           taskMonitorService: this.taskMonitorService,
           serverGroupCommand: serverGroup,
@@ -393,8 +393,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
-      spyOn(this.instanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
-      spyOn(this.instanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
+      spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
       spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
       spyOn(this.awsImageService, 'getAmi').and.callFake(this.reject(null));
 

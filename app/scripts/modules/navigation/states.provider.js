@@ -37,12 +37,12 @@ module.exports = angular.module('spinnaker.states', [
         url: '/instanceDetails/:provider/:instanceId',
         views: {
           'detail@home.applications.application.insight': {
-            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+            templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('app/scripts/modules/instance/details/' + provider + '/instanceDetails.html'); }],
-            controllerProvider: ['$stateParams', function($stateParams) {
+              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'instance.detailsTemplateUrl')); }],
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return provider + 'InstanceDetailsCtrl';
+              return cloudProviderRegistry.getValue(provider, 'instance.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -107,12 +107,12 @@ module.exports = angular.module('spinnaker.states', [
         },
         views: {
           'detail@home.applications.application.insight': {
-            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+            templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('app/scripts/modules/loadBalancers/details/' + provider + '/loadBalancerDetails.html'); }],
-            controllerProvider: ['$stateParams', function($stateParams) {
+              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'loadBalancer.detailsTemplateUrl')); }],
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return provider + 'LoadBalancerDetailsCtrl';
+              return cloudProviderRegistry.getValue(provider, 'loadBalancer.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -148,12 +148,12 @@ module.exports = angular.module('spinnaker.states', [
         },
         views: {
           'detail@home.applications.application.insight': {
-            templateProvider: ['$templateCache', '$stateParams', function($templateCache, $stateParams) {
+            templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return $templateCache.get('app/scripts/modules/securityGroups/details/' + provider + '/securityGroupDetails.html'); }],
-            controllerProvider: ['$stateParams', function($stateParams) {
+              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'securityGroup.detailsTemplateUrl')); }],
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
               var provider = $stateParams.provider || 'aws';
-              return provider + 'SecurityGroupDetailsCtrl';
+              return cloudProviderRegistry.getValue(provider, 'securityGroup.detailsController');
             }],
             controllerAs: 'ctrl'
           }

@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.loadBalancer.transformer.service', [
   .factory('loadBalancerTransformer', function ( settings, _, serviceDelegate) {
 
     function normalizeLoadBalancerWithServerGroups(loadBalancer) {
-      serviceDelegate.getDelegate(loadBalancer.provider || loadBalancer.type, 'LoadBalancerTransformer').
+      serviceDelegate.getDelegate(loadBalancer.provider || loadBalancer.type, 'loadBalancer.transformer').
         normalizeLoadBalancerWithServerGroups(loadBalancer);
     }
 

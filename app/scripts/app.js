@@ -89,9 +89,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/applications/application.module.js'),
     require('./modules/feedback/feedback.module.js'),
 
-    require('./modules/loadBalancers/configure/aws/loadBalancer.transformer.service.js'),
-    require('./modules/loadBalancers/configure/gce/loadBalancer.transformer.service.js'),
-
     require('./modules/amazon/aws.module.js'),
     require('./modules/google/gce.module.js'),
     require('./modules/subnet/subnet.module.js'),

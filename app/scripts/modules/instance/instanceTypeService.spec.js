@@ -45,10 +45,14 @@ describe('Service: instanceTypeService', function () {
   );
 
   beforeEach(
-    window.inject(function (_instanceTypeService_, _$q_, $rootScope) {
+    window.inject(function (_instanceTypeService_, _$q_, $rootScope, serviceDelegate) {
       instanceTypeService = _instanceTypeService_;
       $q = _$q_;
       $scope = $rootScope.$new();
+
+      spyOn(serviceDelegate, 'getDelegate').and.returnValue({
+        getCategories: () => { return $q.when(categories); }
+      });
     })
   );
 

@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common.service'
     }
 
     function getDelegate(provider) {
-      return serviceDelegate.getDelegate(provider, 'ServerGroupCommandBuilder');
+      return serviceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
     }
 
     function buildNewServerGroupCommand(application, provider, options) {
