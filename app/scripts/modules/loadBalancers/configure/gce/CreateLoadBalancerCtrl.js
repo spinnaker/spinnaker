@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
   require('../../loadBalancer.write.service.js'),
+  require('../../loadBalancer.read.service.js'),
   require('../../../account/accountService.js'),
   require('./loadBalancer.transformer.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
@@ -13,12 +14,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../search/search.service.js'),
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
-                                                 application, loadBalancer, isNew,
+                                                 application, loadBalancer, isNew, loadBalancerReader,
                                                  accountService, gceLoadBalancerTransformer, securityGroupReader,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
-console.warn('EL CONTROLO!!!');
+
     $scope.isNew = isNew;
 
     $scope.state = {
@@ -69,18 +70,24 @@ console.warn('EL CONTROLO!!!');
     }
 
     function initializeLoadBalancerNames() {
-      searchService.search({q: '', type: 'loadBalancers', pageSize: 100000}).then(function(searchResults) {
-        searchResults.results.forEach(function(result) {
-          if (!allLoadBalancerNames[result.account]) {
-            allLoadBalancerNames[result.account] = {};
-          }
-          if (!allLoadBalancerNames[result.account][result.region]) {
-            allLoadBalancerNames[result.account][result.region] = [];
-          }
-          allLoadBalancerNames[result.account][result.region].push(result.loadBalancer.toLowerCase());
-          $scope.state.loadBalancerNamesLoaded = true;
-          updateLoadBalancerNames();
+      loadBalancerReader.listGCELoadBalancers().then(function (loadBalancers) {
+        loadBalancers.forEach((loadBalancer) => {
+          loadBalancer.accounts.forEach((account) => {
+            var accountName = account.name;
+            account.regions.forEach((region) => {
+              var regionName = region.name;
+              if (!allLoadBalancerNames[accountName]) {
+                allLoadBalancerNames[accountName] = {};
+              }
+              if (!allLoadBalancerNames[accountName][regionName]) {
+                allLoadBalancerNames[accountName][regionName] = [];
+              }
+              allLoadBalancerNames[accountName][regionName].push(loadBalancer.name);
+            });
+          });
         });
+        updateLoadBalancerNames();
+        $scope.state.loadBalancerNamesLoaded = true;
       });
     }
 
