@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.gce', [
   require('./serverGroup/configure/wizard/CloneServerGroupCtrl.js'),
   require('./serverGroup/configure/serverGroup.configure.gce.module.js'),
   require('./serverGroup/configure/serverGroup.transformer.service.js'),
-  require('../providerSelection/provider.image.service.provider.js'),
   require('../pipelines/config/stages/bake/gce/gceBakeStage.js'),
   require('../pipelines/config/stages/resizeAsg/gce/gceResizeAsgStage.js'),
   require('./instance/gceInstanceTypeService.js'),
@@ -21,13 +20,11 @@ module.exports = angular.module('spinnaker.gce', [
   require('./securityGroup/configure/CreateSecurityGroupCtrl.js'),
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
 ])
-  .config(function(providerImageServiceProvider, cloudProviderRegistryProvider) {
-    providerImageServiceProvider.registerImage({
-      provider: 'gce',
-      key: 'logo',
-      path: require('./logo_gce.png')
-    });
+  .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('gce', {
+      logo: {
+        path: require('./logo_gce.png'),
+      },
       serverGroup: {
         transformer: 'gceServerGroupTransformer',
         detailsTemplateUrl: require('./serverGroup/details/serverGroupDetails.html'),

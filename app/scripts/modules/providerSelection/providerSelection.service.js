@@ -4,7 +4,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.providerSelection.service', [
   require('../account/accountService.js'),
-  require('./ProviderSelectCtrl.js'),
 ])
   .factory('providerSelectionService', function($modal, $q, accountService) {
     function selectProvider() {

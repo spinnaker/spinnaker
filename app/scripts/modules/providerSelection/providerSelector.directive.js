@@ -33,4 +33,23 @@ module.exports = angular.module('spinnaker.providerSelection.directive', [
         });
       },
     };
+  })
+  .controller('ProviderSelectCtrl', function($scope, $modalInstance, settings, cloudProviderRegistry, providerOptions) {
+
+    $scope.command = {
+      provider: ''
+    };
+
+    $scope.getImage = function(provider) {
+      return cloudProviderRegistry.getValue(provider, 'logo.path');
+    };
+
+    $scope.providerOptions = providerOptions;
+
+    this.selectProvider = function() {
+      $modalInstance.close($scope.command.provider);
+    };
+
+    this.cancel = $modalInstance.dismiss;
+
   }).name;
