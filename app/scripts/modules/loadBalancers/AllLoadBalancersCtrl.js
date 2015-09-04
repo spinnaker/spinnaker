@@ -9,9 +9,10 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
   require('../utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('../filterModel/filter.tags.directive.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap')
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
-  .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService,
+  .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService, cloudProviderRegistry,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
 
     LoadBalancerFilterModel.activate();
@@ -49,10 +50,11 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
     }
 
     this.createLoadBalancer = function createLoadBalancer() {
-      providerSelectionService.selectProvider().then(function(provider) {
+      providerSelectionService.selectProvider().then(function(selectedProvider) {
+        let provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
         $modal.open({
-          templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/createLoadBalancer.html',
-          controller: provider + 'CreateLoadBalancerCtrl as ctrl',
+          templateUrl: provider.createLoadBalancerTemplateUrl,
+          controller: `${provider.createLoadBalancerController} as ctrl`,
           resolve: {
             application: function() { return app; },
             loadBalancer: function() { return null; },

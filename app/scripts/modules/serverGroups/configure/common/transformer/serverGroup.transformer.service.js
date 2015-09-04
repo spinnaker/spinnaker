@@ -9,7 +9,7 @@ module.exports = angular
   .factory('serverGroupTransformer', function (serviceDelegate) {
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      var service = serviceDelegate.getDelegate(base.provider, 'ServerGroupTransformer');
+      var service = serviceDelegate.getDelegate(base.selectedProvider, 'serverGroup.transformer');
       return service ? service.convertServerGroupCommandToDeployConfiguration(base) : null;
     }
 

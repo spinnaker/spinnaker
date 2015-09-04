@@ -8,9 +8,11 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   require('../utils/lodash.js'),
   require('../providerSelection/providerSelection.service.js'),
   require('../config/settings.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap')
+  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, app, $modal, _, providerSelectionService, settings,
+                                                cloudProviderRegistry,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 
     SecurityGroupFilterModel.activate();
@@ -49,12 +51,13 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
     }
 
     this.createSecurityGroup = function createSecurityGroup() {
-      providerSelectionService.selectProvider().then(function(provider) {
-        var defaultCredentials = app.defaultCredentials || settings.providers.aws.defaults.account,
-            defaultRegion = app.defaultRegion || settings.providers.aws.defaults.region;
+      providerSelectionService.selectProvider().then(function(selectedProvider) {
+        let provider = cloudProviderRegistry.getValue(selectedProvider, 'securityGroup');
+        var defaultCredentials = app.defaultCredentials || settings.providers[selectedProvider].defaults.account,
+            defaultRegion = app.defaultRegion || settings.providers[selectedProvider].defaults.region;
         $modal.open({
-          templateUrl: 'app/scripts/modules/securityGroups/configure/' + provider + '/createSecurityGroup.html',
-          controller: 'CreateSecurityGroupCtrl as ctrl',
+          templateUrl: provider.createSecurityGroupTemplateUrl,
+          controller: `${provider.createSecurityGroupController} as ctrl`,
           resolve: {
             securityGroup: function () {
               return {

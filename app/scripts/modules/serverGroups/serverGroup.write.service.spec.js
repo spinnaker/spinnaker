@@ -4,21 +4,27 @@ describe('serverGroupWriter', function () {
   const angular = require('angular');
 
   var serverGroupWriter,
-    $httpBackend;
+    $httpBackend,
+    serverGroupTransformer;
 
   beforeEach(
     window.module(
-      require('./serverGroup.write.service.js'),
-      require('../amazon/serverGroup/configure/serverGroup.transformer.service.js') // TODO: move this to provider module
+      require('./serverGroup.write.service.js')
     )
   );
 
   beforeEach(function () {
-    window.inject(function (_serverGroupWriter_, _$httpBackend_) {
+    window.inject(function (_serverGroupWriter_, _$httpBackend_, _serverGroupTransformer_) {
       serverGroupWriter = _serverGroupWriter_;
       $httpBackend = _$httpBackend_;
+      serverGroupTransformer = _serverGroupTransformer_;
     });
   });
+
+  beforeEach(function() {
+    spyOn(serverGroupTransformer, 'convertServerGroupCommandToDeployConfiguration').and.callFake((command) => { return command; });
+  });
+
 
   describe('clone server group submit', function () {
 
@@ -36,41 +42,6 @@ describe('serverGroupWriter', function () {
 
       return submitted;
     }
-
-    it('sets amiName from allImageSelection', function () {
-      var command = {
-          viewState: {
-            mode: 'create',
-            useAllImageSelection: true,
-            allImageSelection: 'something-packagebase',
-          },
-          application: { name: 'theApp'}
-        };
-
-      var submitted = postTask(command);
-
-      expect(submitted.job[0].amiName).toBe('something-packagebase');
-
-    });
-
-    it('removes subnetType property when null', function () {
-      var command = {
-          viewState: {
-            mode: 'create',
-            useAllImageSelection: true,
-            allImageSelection: 'something-packagebase',
-          },
-          subnetType: null,
-          application: { name: 'theApp'}
-        };
-
-      var submitted = postTask(command);
-      expect(submitted.job[0].subnetType).toBe(undefined);
-
-      command.subnetType = 'internal';
-      submitted = postTask(command);
-      expect(submitted.job[0].subnetType).toBe('internal');
-    });
 
     it('sets action type and description appropriately when creating new', function () {
       var command = {

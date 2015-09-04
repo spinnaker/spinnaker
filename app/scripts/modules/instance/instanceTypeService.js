@@ -5,15 +5,12 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.instanceType.service', [
   require('../caches/deckCacheFactory.js'),
   require('../utils/lodash.js'),
-  require('./awsInstanceTypeService.js'),
-  require('./gceInstanceTypeService.js'),
+  require('../core/cloudProvider/serviceDelegate.service.js'),
 ])
-  .factory('instanceTypeService', function ($http, $q, _, $window, awsInstanceTypeService, gceInstanceTypeService) {
+  .factory('instanceTypeService', function ($http, $q, _, $window, serviceDelegate) {
 
-    // TODO: Make the selection of the delegate pluggable? Maybe mort (or something like it) provides this data and we
-    // should just pass the selectedProvider argument to that rest service?
     function getDelegate(selectedProvider) {
-      return (!selectedProvider || selectedProvider === 'aws') ? awsInstanceTypeService : gceInstanceTypeService;
+      return serviceDelegate.getDelegate(selectedProvider, 'instance.instanceTypeService');
     }
 
     function getCategories(selectedProvider) {

@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../caches/cacheInitializer.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../image/gceImageService.js'),
-  require('../../../instance/gceInstanceTypeService.js'),
+  require('../../instance/gceInstanceTypeService.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageService, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,

@@ -2,16 +2,17 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.delegation', [])
-  .factory('serviceDelegate', function($injector) {
+module.exports = angular.module('spinnaker.delegation', [
+  require('./cloudProvider.registry.js'),
+])
+  .factory('serviceDelegate', function($injector, cloudProviderRegistry) {
 
-    function getDelegate(provider, serviceBaseName) {
-      provider = provider || 'aws';
-      var delegate = provider + serviceBaseName;
-      if ($injector.has(delegate)) {
-        return $injector.get(delegate);
+    function getDelegate(provider, serviceKey) {
+      let service = cloudProviderRegistry.getValue(provider, serviceKey);
+      if ($injector.has(service)) {
+        return $injector.get(service);
       } else {
-        throw new Error('No "' + serviceBaseName + '" service found for provider "' + provider + '"');
+        throw new Error('No "' + serviceKey + '" service found for provider "' + provider + '"');
       }
     }
 

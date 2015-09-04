@@ -11,10 +11,5 @@ module.exports = angular
     require('./securityGroup.read.service.js'),
     require('./securityGroup.write.service.js'),
     require('./securityGroupCounts.directive.js'),
-    require('./details/aws/SecurityGroupDetailsCtrl.js'),
-    require('./details/gce/SecurityGroupDetailsCtrl.js'),
-    require('./configure/aws/EditSecurityGroupCtrl.js'),
-    require('./configure/aws/CreateSecurityGroupCtrl.js'),
-    require('./clone/aws/cloneSecurityGroup.controller.js'),
     require('./SecurityGroupsNavCtrl.js')
   ]).name;

@@ -2,6 +2,15 @@
 
 describe('Controller: Instance Archetype Selector', function() {
 
+  var categories = [
+    {
+      type: 'cpu',
+    },
+    {
+      type: 'micro',
+    }
+  ];
+
   beforeEach(
     window.module(
       require('./instanceArchetypeSelector.js'),
@@ -12,7 +21,7 @@ describe('Controller: Instance Archetype Selector', function() {
   );
 
   beforeEach(window.inject(function ($controller, $rootScope, instanceTypeService, infrastructureCaches,
-                              serverGroupConfigurationService) {
+                              serverGroupConfigurationService, $q) {
     this.$scope = $rootScope.$new();
     this.$scope.command = {viewState: {instanceProfile: null}};
     this.$controller = $controller;
@@ -22,6 +31,8 @@ describe('Controller: Instance Archetype Selector', function() {
       infrastructureCaches: infrastructureCaches,
       serverGroupConfigurationService: serverGroupConfigurationService
     };
+    spyOn(instanceTypeService, 'getCategories').and.returnValue($q.when(categories));
+    spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when(categories));
   }));
 
   it('should select a profile, change it, then unselect it', function(){

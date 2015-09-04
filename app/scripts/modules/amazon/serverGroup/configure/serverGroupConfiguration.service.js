@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../image/awsImageService.js'),
   require('../../../account/accountService.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
-  require('../../../instance/instanceTypeService.js'),
+  require('../../instance/awsInstanceTypeService.js'),
   require('../../../subnet/subnet.read.service.js'),
   require('../../../keyPairs/keyPairs.read.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../utils/lodash.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageService, accountService, securityGroupReader,
-                                                          instanceTypeService, cacheInitializer,
+                                                          awsInstanceTypeService, cacheInitializer,
                                                           subnetReader, keyPairsReader, loadBalancerReader, _) {
 
 
@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         preferredZones: accountService.getPreferredZonesByAccount(),
         keyPairs: keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
-        instanceTypes: instanceTypeService.getAllTypesByRegion(),
+        instanceTypes: awsInstanceTypeService.getAllTypesByRegion(),
         healthCheckTypes: $q.when(angular.copy(healthCheckTypes)),
         terminationPolicies: $q.when(angular.copy(terminationPolicies)),
       }).then(function(backingData) {
@@ -133,7 +133,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     function configureInstanceTypes(command) {
       var result = { dirty: {} };
       if (command.region) {
-        var filtered = instanceTypeService.getAvailableTypesForRegions(command.selectedProvider, command.backingData.instanceTypes, [command.region]);
+        var filtered = awsInstanceTypeService.getAvailableTypesForRegions(command.backingData.instanceTypes, [command.region]);
         if (command.instanceType && filtered.indexOf(command.instanceType) === -1) {
           command.instanceType = null;
           result.dirty.instanceType = true;
@@ -250,7 +250,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function refreshInstanceTypes(command) {
       return cacheInitializer.refreshCache('instanceTypes').then(function() {
-        return instanceTypeService.getAllTypesByRegion('aws').then(function(instanceTypes) {
+        return awsInstanceTypeService.getAllTypesByRegion().then(function(instanceTypes) {
           command.backingData.instanceTypes = instanceTypes;
           configureInstanceTypes(command);
         });

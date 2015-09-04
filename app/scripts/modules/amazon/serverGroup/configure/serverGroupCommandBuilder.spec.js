@@ -1,26 +1,18 @@
 'use strict';
 
-describe('serverGroupCommandBuilder', function() {
-  //const helper = require('../../../../../../test/helpers/loadDeck');
+describe('awsServerGroupCommandBuilder', function() {
   const AccountServiceFixture = require('../../../../../../test/fixture/AccountServiceFixtures');
 
   beforeEach(
     window.module(
-      require('../../../serverGroups/configure/common/serverGroupCommandBuilder.js'),
       require('../../../account/accountService'),
       require('../../../subnet/subnet.read.service.js'),
-      require('../../../instance/instanceTypeService.js'),
       require('./serverGroupCommandBuilder.service.js')
     )
   );
 
-  //beforeEach(function() {
-    //helper.loadDeckWithoutCacheInitializer();
-
-  //});
-
-  beforeEach(window.inject(function(serverGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
-    this.serverGroupCommandBuilder = serverGroupCommandBuilder;
+  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
+    this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
     this.$scope = $rootScope;
     this.instanceTypeService = instanceTypeService;
     this.$q = $q;
@@ -36,7 +28,7 @@ describe('serverGroupCommandBuilder', function() {
 
     it('initializes to default values, setting usePreferredZone flag to true', function () {
       var command = null;
-      this.serverGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo'}, 'aws').then(function(result) {
+      this.awsServerGroupCommandBuilder.buildNewServerGroupCommand({name: 'appo'}, 'aws').then(function(result) {
         command = result;
       });
 
@@ -47,7 +39,7 @@ describe('serverGroupCommandBuilder', function() {
     });
 
     it('sets usePreferredZones flag based on initial value', function() {
-
+      spyOn(this.instanceTypeService, 'getCategoryForInstanceType').and.returnValue(this.$q.when('custom'));
       var baseServerGroup = {
         account: 'prod',
         region: 'us-west-1',
@@ -58,7 +50,7 @@ describe('serverGroupCommandBuilder', function() {
       };
       var command = null;
 
-      this.serverGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
+      this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
         command = result;
       });
 
@@ -69,7 +61,7 @@ describe('serverGroupCommandBuilder', function() {
 
       baseServerGroup.asg.availabilityZones = ['g'];
 
-      this.serverGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
+      this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
         command = result;
       });
 
@@ -98,7 +90,7 @@ describe('serverGroupCommandBuilder', function() {
       };
       var command = null;
 
-      this.serverGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
+      this.awsServerGroupCommandBuilder.buildServerGroupCommandFromExisting({name: 'appo'}, baseServerGroup).then(function(result) {
         command = result;
       });
 

@@ -19,7 +19,7 @@
 describe('Service: awsServerGroupConfiguration', function () {
 
   var service, $q, awsImageService, accountService, securityGroupReader,
-    instanceTypeService, cacheInitializer,
+    awsInstanceTypeService, cacheInitializer,
     subnetReader, keyPairsReader, loadBalancerReader, $scope;
 
   beforeEach(
@@ -30,14 +30,14 @@ describe('Service: awsServerGroupConfiguration', function () {
 
 
   beforeEach(window.inject(function (_awsServerGroupConfigurationService_, _$q_, _awsImageService_, _accountService_,
-                                     _securityGroupReader_, _instanceTypeService_, _cacheInitializer_,
+                                     _securityGroupReader_, _awsInstanceTypeService_, _cacheInitializer_,
                                      _subnetReader_, _keyPairsReader_, _loadBalancerReader_, $rootScope) {
     service = _awsServerGroupConfigurationService_;
     $q = _$q_;
     awsImageService = _awsImageService_;
     accountService = _accountService_;
     securityGroupReader = _securityGroupReader_;
-    instanceTypeService = _instanceTypeService_;
+    awsInstanceTypeService = _awsInstanceTypeService_;
     cacheInitializer = _cacheInitializer_;
     subnetReader = _subnetReader_;
     keyPairsReader = _keyPairsReader_;
@@ -96,7 +96,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
       spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
-      spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
       spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
 
       var command = {
@@ -127,7 +127,7 @@ describe('Service: awsServerGroupConfiguration', function () {
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
       spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
-      spyOn(instanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
       spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
 
       var command = {

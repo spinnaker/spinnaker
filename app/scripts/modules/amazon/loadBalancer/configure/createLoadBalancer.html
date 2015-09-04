@@ -1,0 +1,14 @@
+<modal-wizard heading="Create New Load Balancer">
+  <wizard-page key="Location" label="Location">
+    <ng-include src="pages.location"></ng-include>
+  </wizard-page>
+  <wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
+    <ng-include src="pages.securityGroups"></ng-include>
+  </wizard-page>
+  <wizard-page key="Listeners" label="Listeners" done="true">
+    <ng-include src="pages.listeners"></ng-include>
+  </wizard-page>
+  <wizard-page key="Health Check" label="Health Check" done="true" hide-subheading="true">
+    <ng-include src="pages.healthCheck"></ng-include>
+  </wizard-page>
+</modal-wizard>
