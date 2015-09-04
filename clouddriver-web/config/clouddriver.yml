@@ -100,6 +100,10 @@ google:
       persistentDisk:
         type: pd-ssd
         size: 320
+    - instanceType: n1-standard-32
+      persistentDisk:
+        type: pd-ssd
+        size: 640
     - instanceType: f1-micro
       persistentDisk:
         type: pd-standard
@@ -124,6 +128,10 @@ google:
       persistentDisk:
         type: pd-ssd
         size: 320
+    - instanceType: n1-highmem-32
+      persistentDisk:
+        type: pd-ssd
+        size: 640
     - instanceType: n1-highcpu-2
       persistentDisk:
         type: pd-ssd
@@ -140,6 +148,10 @@ google:
       persistentDisk:
         type: pd-ssd
         size: 320
+    - instanceType: n1-highcpu-32
+      persistentDisk:
+        type: pd-ssd
+        size: 640
     - instanceType: default
       persistentDisk:
         type: pd-standard
@@ -204,6 +216,3 @@ spring:
 #  port: 22
 #  proxyRegion: us-west-1
 #  proxyCluster: my-credentials-cluster
-
-redis:
-  connection: redis://localhost:6379
