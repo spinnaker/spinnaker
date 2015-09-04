@@ -3,8 +3,9 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.directive', [
+  require('../utils/lodash.js'),
 ])
-  .directive('loadBalancer', function ($rootScope, $timeout, LoadBalancerFilterModel) {
+  .directive('loadBalancer', function ($rootScope, $timeout, _, LoadBalancerFilterModel) {
     return {
       restrict: 'E',
       templateUrl: require('./loadBalancer/loadBalancer.html'),
@@ -20,6 +21,10 @@ module.exports = angular.module('spinnaker.loadBalancer.directive', [
         scope.$state = $rootScope.$state;
 
         scope.waypoint = [loadBalancer.account, loadBalancer.region, loadBalancer.name].join(':');
+
+        scope.viewModel = {
+          instances: loadBalancer.instances.concat(_.flatten(_.pluck(loadBalancer.serverGroups, 'detachedInstances')))
+        };
 
         scope.loadDetails = function(event) {
           $timeout(function() {
