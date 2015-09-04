@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.kork.metrics;
 
-import com.netflix.spectator.api.ExtendedRegistry;
+import com.netflix.spectator.api.Registry;
 import com.netflix.spectator.api.Spectator;
 import org.springframework.boot.actuate.metrics.writer.CompositeMetricWriter;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
@@ -30,18 +30,18 @@ import org.springframework.context.annotation.Primary;
 import java.util.List;
 
 @Configuration
-@ConditionalOnClass(ExtendedRegistry.class)
+@ConditionalOnClass(Registry.class)
 public class SpectatorConfiguration {
 
   @Bean
-  @ConditionalOnMissingBean(ExtendedRegistry.class)
-  ExtendedRegistry extendedRegistry() {
-    return Spectator.registry();
+  @ConditionalOnMissingBean(Registry.class)
+  Registry registry() {
+    return Spectator.globalRegistry();
   }
 
   @Bean
-  MetricWriter spectatorMetricWriter(ExtendedRegistry extendedRegistry) {
-    return new SpectatorMetricWriter(extendedRegistry);
+  MetricWriter spectatorMetricWriter(Registry registry) {
+    return new SpectatorMetricWriter(registry);
   }
 
   @Bean

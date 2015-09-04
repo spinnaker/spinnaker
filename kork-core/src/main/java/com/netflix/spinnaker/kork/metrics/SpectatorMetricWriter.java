@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.kork.metrics;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import com.netflix.spectator.api.ExtendedRegistry;
 import com.netflix.spectator.api.Id;
+import com.netflix.spectator.api.Registry;
 import org.springframework.boot.actuate.metrics.Metric;
 import org.springframework.boot.actuate.metrics.writer.Delta;
 import org.springframework.boot.actuate.metrics.writer.MetricWriter;
@@ -30,11 +30,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SpectatorMetricWriter implements MetricWriter {
 
-  private final ExtendedRegistry registry;
+  private final Registry registry;
   private final ConcurrentMap<Id, AtomicLong> counters = new ConcurrentHashMap<>();
   private final ConcurrentMap<Id, AtomicDouble> gauges = new ConcurrentHashMap<>();
 
-  public SpectatorMetricWriter(ExtendedRegistry registry) {
+  public SpectatorMetricWriter(Registry registry) {
     this.registry = registry;
   }
 

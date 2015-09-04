@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kork.web.interceptors
 
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spectator.api.DefaultTimer
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
@@ -65,7 +64,7 @@ class MetricsInterceptorSpec extends Specification {
     def registry = new StubRegistry()
     def handler = new HandlerMethod(new Example(), Example.getMethod("get"))
     def interceptor = Spy(MetricsInterceptor, constructorArgs: [
-      new ExtendedRegistry(registry), metric, variablesToTag, null
+      registry, metric, variablesToTag, null
     ]) {
       1 * getNanoTime() >> { return endTime }
     }

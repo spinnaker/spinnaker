@@ -4,6 +4,7 @@ dependencies {
     compile spinnaker.dependency('eurekaClient')
     compile spinnaker.dependency('awsCore')
     compile spinnaker.dependency('spectatorApi')
+    compile spinnaker.dependency('spectatorAws')
     testCompile spinnaker.dependency('junit')
     testRuntime spinnaker.dependency('slf4jSimple')
 }
