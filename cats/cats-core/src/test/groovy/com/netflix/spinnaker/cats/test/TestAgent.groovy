@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.cats.test
 
-import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -27,7 +26,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
-class TestAgent extends AbstractCachingAgent {
+class TestAgent implements CachingAgent {
 
     String scope = UUID.randomUUID().toString()
     Set<String> authoritative = []

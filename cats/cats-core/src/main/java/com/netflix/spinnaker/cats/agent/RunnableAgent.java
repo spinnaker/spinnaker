@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.provider;
+package com.netflix.spinnaker.cats.agent;
 
-import com.netflix.spinnaker.cats.agent.Agent;
-import com.netflix.spinnaker.cats.agent.CachingAgent;
+import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 
-import java.util.Collection;
+public interface RunnableAgent extends Agent {
+  void run();
 
-/**
- * A Provider has many Agents.
- */
-public interface Provider {
-    String getProviderName();
+  @Override
+  default AgentExecution getAgentExecution(ProviderRegistry providerRegistry) {
+    return new RunnableAgentExecution();
+  }
 
-    Collection<Agent> getAgents();
+  class RunnableAgentExecution implements AgentExecution {
+    @Override
+    public void executeAgent(Agent agent) {
+      ((RunnableAgent) agent).run();
+    }
+  }
 }

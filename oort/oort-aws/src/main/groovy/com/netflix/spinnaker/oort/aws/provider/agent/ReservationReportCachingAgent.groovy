@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.cats.agent.AbstractCachingAgent
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -40,7 +39,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITA
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.RESERVATION_REPORTS
 
 @Slf4j
-class ReservationReportCachingAgent extends AbstractCachingAgent {
+class ReservationReportCachingAgent implements CachingAgent {
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
     AUTHORITATIVE.forType(RESERVATION_REPORTS.ns)
   ])
