@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.mort.gce.provider
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
@@ -24,8 +23,6 @@ import com.netflix.spinnaker.mort.gce.cache.Keys
 import static com.netflix.spinnaker.mort.gce.cache.Keys.Namespace.SECURITY_GROUPS
 
 class GoogleInfrastructureProvider implements SearchableProvider {
-  public static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
-
   public static final String PROVIDER_NAME = GoogleInfrastructureProvider.name
 
   private final Collection<CachingAgent> agents

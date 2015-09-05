@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.mort.gce.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
@@ -35,7 +35,7 @@ class GoogleInfrastructureProviderConfig {
   GoogleInfrastructureProvider googleInfrastructureProvider(GoogleCloudProvider googleCloudProvider,
                                                             AccountCredentialsRepository accountCredentialsRepository,
                                                             ObjectMapper objectMapper,
-                                                            ExtendedRegistry extendedRegistry) {
+                                                            Registry registry) {
     List<CachingAgent> agents = []
 
     def allAccounts = accountCredentialsRepository.all.findAll {
@@ -43,7 +43,7 @@ class GoogleInfrastructureProviderConfig {
     } as Collection<GoogleNamedAccountCredentials>
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
-      agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, extendedRegistry)
+      agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
     }
 
     new GoogleInfrastructureProvider(agents)

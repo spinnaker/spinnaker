@@ -18,7 +18,7 @@ package com.netflix.spinnaker.mort.gce.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.Firewall
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -59,13 +59,12 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
                                   String accountName,
                                   GoogleCredentials credentials,
                                   ObjectMapper objectMapper,
-                                  ExtendedRegistry extendedRegistry) {
+                                  Registry registry) {
     this.googleCloudProvider = googleCloudProvider
     this.accountName = accountName
     this.credentials = credentials
     this.objectMapper = objectMapper
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, ON_DEMAND_TYPE)
-    this.metricsSupport = new OnDemandMetricsSupport(extendedRegistry, this, googleCloudProvider.id + ":" + ON_DEMAND_TYPE)
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, googleCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   @Override
