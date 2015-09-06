@@ -24,7 +24,7 @@ import groovy.transform.Immutable
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class GoogleSecurityGroup implements SecurityGroup {
-  final String type = "gce"
+  final String type
   final String id
   final String name
   final String vpcId

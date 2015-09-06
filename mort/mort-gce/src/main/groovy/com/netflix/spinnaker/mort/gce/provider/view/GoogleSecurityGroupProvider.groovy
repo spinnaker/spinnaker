@@ -21,6 +21,7 @@ import com.google.api.services.compute.model.Firewall
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.model.AddressableRange
@@ -35,48 +36,50 @@ import static com.netflix.spinnaker.mort.gce.cache.Keys.Namespace.SECURITY_GROUP
 @Component
 class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurityGroup> {
 
+  final GoogleCloudProvider googleCloudProvider
   final Cache cacheView
   final ObjectMapper objectMapper
 
   @Autowired
-  GoogleSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
+  GoogleSecurityGroupProvider(GoogleCloudProvider googleCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.googleCloudProvider = googleCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
   String getType() {
-    return "gce"
+    return googleCloudProvider.id
   }
 
   @Override
   Set<GoogleSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', '*', '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, '*', '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', account, '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', '*', account, '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, account, '*'))
   }
 
   @Override
   GoogleSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId))[0]
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', region, account, vpcId))[0]
   }
 
   Set<GoogleSecurityGroup> getAllMatchingKeyPattern(String pattern) {
@@ -93,13 +96,14 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     }
 
     Firewall firewall = objectMapper.convertValue(cacheData.attributes.firewall, Firewall)
-    Map<String, String> parts = Keys.parse(cacheData.id)
+    Map<String, String> parts = Keys.parse(googleCloudProvider, cacheData.id)
 
     return convertToGoogleSecurityGroup(firewall, parts.account, parts.region)
   }
 
   private GoogleSecurityGroup convertToGoogleSecurityGroup(Firewall firewall, String account, String region) {
     new GoogleSecurityGroup(
+      type: googleCloudProvider.id,
       id: firewall.name,
       name: firewall.name,
       description: firewall.description,

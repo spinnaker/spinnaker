@@ -139,7 +139,7 @@ class AmazonSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
   private CacheResult buildCacheResult(ProviderCache providerCache, List<SecurityGroup> securityGroups) {
     List<CacheData> data = securityGroups.collect { SecurityGroup securityGroup ->
       Map<String, Object> attributes = objectMapper.convertValue(securityGroup, AwsInfrastructureProvider.ATTRIBUTES)
-      new DefaultCacheData(Keys.getSecurityGroupKey(securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
+      new DefaultCacheData(Keys.getSecurityGroupKey(amazonCloudProvider, securityGroup.groupName, securityGroup.groupId, region, account.name, securityGroup.vpcId),
         attributes,
         [:])
     }

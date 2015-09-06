@@ -18,7 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 
@@ -29,9 +29,11 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
 
+  private final AmazonCloudProvider amazonCloudProvider
   private final Collection<Agent> agents
 
-  AwsInfrastructureProvider(Collection<Agent> agents) {
+  AwsInfrastructureProvider(AmazonCloudProvider amazonCloudProvider, Collection<Agent> agents) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.agents = Collections.unmodifiableCollection(agents)
   }
 
@@ -57,6 +59,6 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   @Override
   Map<String, String> parseKey(String key) {
-    return Keys.parse(key)
+    return Keys.parse(amazonCloudProvider, key)
   }
 }

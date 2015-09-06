@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.mem.InMemoryCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonElasticIp
 import com.netflix.spinnaker.mort.model.ElasticIp
@@ -36,15 +37,17 @@ class AmazonElasticIpProviderSpec extends Specification {
   @Subject
   AmazonElasticIpProvider provider
 
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   ObjectMapper objectMapper = new ObjectMapper()
 
   def setup() {
     def cache = new InMemoryCache()
     getAllElasticIps().each {
-      cache.merge(ELASTIC_IPS.ns, new DefaultCacheData(makeKey(it), objectMapper.convertValue(it, ATTRIBUTES), [:]))
+      cache.merge(ELASTIC_IPS.ns,
+          new DefaultCacheData(makeKey(amazonCloudProvider, it), objectMapper.convertValue(it, ATTRIBUTES), [:]))
     }
 
-    provider = new AmazonElasticIpProvider(cache, objectMapper)
+    provider = new AmazonElasticIpProvider(amazonCloudProvider, cache, objectMapper)
   }
 
   @Unroll
@@ -108,8 +111,8 @@ class AmazonElasticIpProviderSpec extends Specification {
     }.flatten()
   }
 
-  private static String makeKey(ElasticIp elasticIp) {
-    Keys.getElasticIpKey(elasticIp.address, elasticIp.region, elasticIp.accountName)
+  private static String makeKey(AmazonCloudProvider amazonCloudProvider, ElasticIp elasticIp) {
+    Keys.getElasticIpKey(amazonCloudProvider, elasticIp.address, elasticIp.region, elasticIp.accountName)
   }
 
 }

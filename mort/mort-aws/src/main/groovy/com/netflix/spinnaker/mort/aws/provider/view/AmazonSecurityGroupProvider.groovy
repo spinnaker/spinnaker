@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.AddressableRange
@@ -38,48 +39,50 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.SECURITY_GROUP
 @Component
 class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurityGroup> {
 
+  final AmazonCloudProvider amazonCloudProvider
   final Cache cacheView
   final ObjectMapper objectMapper
 
   @Autowired
-  AmazonSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
+  AmazonSecurityGroupProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
 
   @Override
   String getType() {
-    return "aws"
+    return amazonCloudProvider.id
   }
 
   @Override
   Set<AmazonSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', '*', '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', '*', '*', '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, '*', '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', region, '*', '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', '*', account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', '*', account, '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', '*', account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, name, '*', '*', account, '*'), includeRules)
   }
 
   @Override
   Set<AmazonSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey('*', '*', region, account, '*'), includeRules)
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, '*', '*', region, account, '*'), includeRules)
   }
 
   @Override
   AmazonSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(name, '*', region, account, vpcId), true)[0]
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(amazonCloudProvider, name, '*', region, account, vpcId), true)[0]
   }
 
   Set<AmazonSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
@@ -95,7 +98,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
   }
 
   AmazonSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
-    Map<String, String> parts = Keys.parse(cacheData.id)
+    Map<String, String> parts = Keys.parse(amazonCloudProvider, cacheData.id)
     return convertToAmazonSecurityGroup(includeRules, cacheData.attributes, parts.account, parts.region)
   }
 
@@ -116,6 +119,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
     }
 
     new AmazonSecurityGroup(
+      type: amazonCloudProvider.id,
       id: securityGroup.groupId,
       name: securityGroup.groupName,
       vpcId: securityGroup.vpcId,
@@ -157,6 +161,7 @@ class AmazonSecurityGroupProvider implements SecurityGroupProvider<AmazonSecurit
           protocol     : permission.ipProtocol,
           securityGroup:
             new AmazonSecurityGroup(
+              type: amazonCloudProvider.id,
               id: sg.groupId,
               name: sg.groupName,
               accountName: account,

@@ -46,6 +46,6 @@ class GoogleInfrastructureProviderConfig {
       agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
     }
 
-    new GoogleInfrastructureProvider(agents)
+    new GoogleInfrastructureProvider(googleCloudProvider, agents)
   }
 }

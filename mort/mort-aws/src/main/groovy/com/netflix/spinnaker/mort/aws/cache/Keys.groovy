@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.mort.aws.cache
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 
 class Keys {
   static enum Namespace {
@@ -40,7 +41,7 @@ class Keys {
     }
   }
 
-  static Map<String, String> parse(String key) {
+  static Map<String, String> parse(AmazonCloudProvider amazonCloudProvider, String key) {
     def parts = key.split(':')
 
     if (parts.length < 2) {
@@ -48,6 +49,10 @@ class Keys {
     }
 
     def result = [provider: parts[0], type: parts[1]]
+
+    if (result.provider != amazonCloudProvider.id) {
+      return null
+    }
 
     switch (result.type) {
       case Namespace.SECURITY_GROUPS.ns:
@@ -77,27 +82,47 @@ class Keys {
     result
   }
 
-  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account, String vpcId) {
-    "aws:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
+  static String getSecurityGroupKey(AmazonCloudProvider amazonCloudProvider,
+                                    String securityGroupName,
+                                    String securityGroupId,
+                                    String region,
+                                    String account,
+                                    String vpcId) {
+    "$amazonCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
   }
 
-  static String getSubnetKey(String subnetId, String region, String account) {
-    "aws:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+  static String getSubnetKey(AmazonCloudProvider amazonCloudProvider,
+                             String subnetId,
+                             String region,
+                             String account) {
+    "$amazonCloudProvider.id:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
   }
 
-  static String getVpcKey(String vpcId, String region, String account) {
-    "aws:${Namespace.VPCS}:${vpcId}:${account}:${region}"
+  static String getVpcKey(AmazonCloudProvider amazonCloudProvider,
+                          String vpcId,
+                          String region,
+                          String account) {
+    "$amazonCloudProvider.id:${Namespace.VPCS}:${vpcId}:${account}:${region}"
   }
 
-  static String getKeyPairKey(String keyName, String region, String account) {
-    "aws:${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
+  static String getKeyPairKey(AmazonCloudProvider amazonCloudProvider,
+                              String keyName,
+                              String region,
+                              String account) {
+    "$amazonCloudProvider.id:${Namespace.KEY_PAIRS}:${keyName}:${account}:${region}"
   }
 
-  static String getInstanceTypeKey(String instanceType, String region, String account) {
-    "aws:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
+  static String getInstanceTypeKey(AmazonCloudProvider amazonCloudProvider,
+                                   String instanceType,
+                                   String region,
+                                   String account) {
+    "$amazonCloudProvider.id:${Namespace.INSTANCE_TYPES}:${instanceType}:${account}:${region}"
   }
 
-  static String getElasticIpKey(String ipAddress, String region, String account) {
-    "aws:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
+  static String getElasticIpKey(AmazonCloudProvider amazonCloudProvider,
+                                String ipAddress,
+                                String region,
+                                String account) {
+    "$amazonCloudProvider.id:${Namespace.ELASTIC_IPS}:${ipAddress}:${account}:${region}"
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSubnet
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
@@ -32,11 +33,12 @@ import spock.lang.Subject
 
 class AmazonSubnetProviderSpec extends Specification {
 
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   Cache cache = Mock(Cache)
   ObjectMapper mapper = new AmazonObjectMapper()
 
   @Subject
-  AmazonSubnetProvider provider = new AmazonSubnetProvider(cache, mapper)
+  AmazonSubnetProvider provider = new AmazonSubnetProvider(amazonCloudProvider, cache, mapper)
 
   void "should retrieve all subnets"() {
     when:
@@ -169,7 +171,7 @@ class AmazonSubnetProviderSpec extends Specification {
 
   CacheData snData(String account, String region, Subnet subnet) {
     Map<String, Object> attributes = mapper.convertValue(subnet, AwsInfrastructureProvider.ATTRIBUTES)
-    new DefaultCacheData(Keys.getSubnetKey(subnet.subnetId, region, account),
+    new DefaultCacheData(Keys.getSubnetKey(amazonCloudProvider, subnet.subnetId, region, account),
       attributes,
       [:]
     )

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.mort.gce.cache
 
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 
 class Keys {
   static enum Namespace {
@@ -35,7 +36,7 @@ class Keys {
     }
   }
 
-  static Map<String, String> parse(String key) {
+  static Map<String, String> parse(GoogleCloudProvider googleCloudProvider, String key) {
     def parts = key.split(':')
 
     if (parts.length < 2) {
@@ -43,6 +44,10 @@ class Keys {
     }
 
     def result = [provider: parts[0], type: parts[1]]
+
+    if (result.provider != googleCloudProvider.id) {
+      return null
+    }
 
     switch (result.type) {
       case Namespace.SECURITY_GROUPS.ns:
@@ -57,7 +62,12 @@ class Keys {
     result
   }
 
-  static String getSecurityGroupKey(String securityGroupName, String securityGroupId, String region, String account, String vpcId) {
-    "gce:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
+  static String getSecurityGroupKey(GoogleCloudProvider googleCloudProvider,
+                                    String securityGroupName,
+                                    String securityGroupId,
+                                    String region,
+                                    String account,
+                                    String vpcId) {
+    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
   }
 }

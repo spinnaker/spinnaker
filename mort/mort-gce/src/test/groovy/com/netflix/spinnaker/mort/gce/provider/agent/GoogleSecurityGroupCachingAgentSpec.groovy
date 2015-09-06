@@ -44,8 +44,8 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')
       def securityGroupB = new Firewall(name: 'name-b')
-      def keyGroupA = Keys.getSecurityGroupKey(securityGroupA.name, securityGroupA.name, REGION, ACCOUNT_NAME, null)
-      def keyGroupB = Keys.getSecurityGroupKey(securityGroupB.name, securityGroupB.name, REGION, ACCOUNT_NAME, null)
+      def keyGroupA = Keys.getSecurityGroupKey(googleCloudProvider, securityGroupA.name, securityGroupA.name, REGION, ACCOUNT_NAME, null)
+      def keyGroupB = Keys.getSecurityGroupKey(googleCloudProvider, securityGroupB.name, securityGroupB.name, REGION, ACCOUNT_NAME, null)
       def firewallListReal = new FirewallList(items: [
         securityGroupA,
         securityGroupB

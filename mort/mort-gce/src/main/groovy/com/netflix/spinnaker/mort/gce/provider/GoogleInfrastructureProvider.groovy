@@ -18,6 +18,7 @@ package com.netflix.spinnaker.mort.gce.provider
 
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 
 import static com.netflix.spinnaker.mort.gce.cache.Keys.Namespace.SECURITY_GROUPS
@@ -25,9 +26,11 @@ import static com.netflix.spinnaker.mort.gce.cache.Keys.Namespace.SECURITY_GROUP
 class GoogleInfrastructureProvider implements SearchableProvider {
   public static final String PROVIDER_NAME = GoogleInfrastructureProvider.name
 
+  private final GoogleCloudProvider googleCloudProvider
   private final Collection<CachingAgent> agents
 
-  GoogleInfrastructureProvider(Collection<CachingAgent> agents) {
+  GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<CachingAgent> agents) {
+    this.googleCloudProvider = googleCloudProvider
     this.agents = Collections.unmodifiableCollection(agents)
   }
 
@@ -53,6 +56,6 @@ class GoogleInfrastructureProvider implements SearchableProvider {
 
   @Override
   Map<String, String> parseKey(String key) {
-    return Keys.parse(key)
+    return Keys.parse(googleCloudProvider, key)
   }
 }

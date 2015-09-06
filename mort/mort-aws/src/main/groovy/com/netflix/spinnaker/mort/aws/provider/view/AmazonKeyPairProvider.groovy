@@ -19,6 +19,7 @@ package com.netflix.spinnaker.mort.aws.provider.view
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonKeyPair
 import com.netflix.spinnaker.mort.model.KeyPairProvider
@@ -30,18 +31,19 @@ import static com.netflix.spinnaker.mort.aws.cache.Keys.Namespace.KEY_PAIRS
 @Component
 class AmazonKeyPairProvider implements KeyPairProvider<AmazonKeyPair> {
 
-
+  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
 
   @Autowired
-  AmazonKeyPairProvider(Cache cacheView) {
+  AmazonKeyPairProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
   }
 
   @Override
   Set<AmazonKeyPair> getAll() {
     cacheView.getAll(KEY_PAIRS.ns, RelationshipCacheFilter.none()).collect { CacheData cacheData ->
-      Map<String, String> parts = Keys.parse(cacheData.id)
+      Map<String, String> parts = Keys.parse(amazonCloudProvider, cacheData.id)
       new AmazonKeyPair(
         parts.account,
         parts.region,

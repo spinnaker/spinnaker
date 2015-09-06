@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.model.AddressableRange
@@ -37,11 +38,12 @@ class GoogleSecurityGroupProviderSpec extends Specification {
   @Subject
   GoogleSecurityGroupProvider provider
 
+  GoogleCloudProvider googleCloudProvider = new GoogleCloudProvider()
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
   def setup() {
-    provider = new GoogleSecurityGroupProvider(cache, mapper)
+    provider = new GoogleSecurityGroupProvider(googleCloudProvider, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 
@@ -302,7 +304,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       regions.collect { String region, List<Firewall> firewalls ->
         firewalls.collect { Firewall firewall ->
           Map<String, Object> attributes = [firewall: firewall]
-          new DefaultCacheData(Keys.getSecurityGroupKey(firewall.getName(), firewall.getName(), "global", account, null), attributes, [:])
+          new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", account, null), attributes, [:])
         }
       }.flatten()
     }.flatten()

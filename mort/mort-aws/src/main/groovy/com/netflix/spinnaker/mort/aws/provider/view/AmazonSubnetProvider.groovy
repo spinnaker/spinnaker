@@ -22,6 +22,7 @@ import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSubnet
 import com.netflix.spinnaker.mort.model.SubnetProvider
@@ -36,11 +37,13 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   private static final String NAME_TAG_KEY = 'name'
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
+  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
 
   @Autowired
-  AmazonSubnetProvider(Cache cacheView, AmazonObjectMapper objectMapper) {
+  AmazonSubnetProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AmazonObjectMapper objectMapper) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -51,7 +54,7 @@ class AmazonSubnetProvider implements SubnetProvider<AmazonSubnet> {
   }
 
   AmazonSubnet fromCacheData(CacheData cacheData) {
-    def parts = Keys.parse(cacheData.id)
+    def parts = Keys.parse(amazonCloudProvider, cacheData.id)
     def subnet = objectMapper.convertValue(cacheData.attributes, Subnet)
     def tag = subnet.tags.find { it.key == METADATA_TAG_KEY }
     def isDeprecated = subnet.tags.find { it.key == DEPRECATED_TAG_KEY }?.value

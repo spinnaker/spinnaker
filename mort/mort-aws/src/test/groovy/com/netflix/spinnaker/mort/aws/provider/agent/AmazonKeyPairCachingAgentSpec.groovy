@@ -23,6 +23,7 @@ import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
@@ -30,6 +31,8 @@ import spock.lang.Subject
 class AmazonKeyPairCachingAgentSpec extends Specification {
   static final String account = 'test'
   static final String region = 'us-east-1'
+
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
 
@@ -45,7 +48,7 @@ class AmazonKeyPairCachingAgentSpec extends Specification {
 
   @Subject
   AmazonKeyPairCachingAgent agent = new AmazonKeyPairCachingAgent(
-    amazonClientProvider, creds, region)
+    amazonCloudProvider, amazonClientProvider, creds, region)
 
   void "should add on loadData"() {
     when:
@@ -58,10 +61,10 @@ class AmazonKeyPairCachingAgentSpec extends Specification {
     ])
     with (result.cacheResults.get(Keys.Namespace.KEY_PAIRS.ns)) { List<CacheData> cd ->
       cd.size() == 2
-      def k1 = cd.find { it.id == Keys.getKeyPairKey('key1', region, account) }
+      def k1 = cd.find { it.id == Keys.getKeyPairKey(amazonCloudProvider, 'key1', region, account) }
       k1.attributes.keyName == 'key1'
       k1.attributes.keyFingerprint == '1'
-      def k2 = cd.find { it.id == Keys.getKeyPairKey('key2', region, account) }
+      def k2 = cd.find { it.id == Keys.getKeyPairKey(amazonCloudProvider, 'key2', region, account) }
       k2.attributes.keyName == 'key2'
       k2.attributes.keyFingerprint == '2'
     }
