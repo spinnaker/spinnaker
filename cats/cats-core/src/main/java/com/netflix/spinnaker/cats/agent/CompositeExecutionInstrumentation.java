@@ -26,21 +26,21 @@ public class CompositeExecutionInstrumentation implements ExecutionInstrumentati
     }
 
     @Override
-    public void executionStarted(CachingAgent agent) {
+    public void executionStarted(Agent agent) {
         for (ExecutionInstrumentation exec : instrumentations) {
             exec.executionStarted(agent);
         }
     }
 
     @Override
-    public void executionCompleted(CachingAgent agent) {
+    public void executionCompleted(Agent agent) {
         for (ExecutionInstrumentation exec : instrumentations) {
             exec.executionCompleted(agent);
         }
     }
 
     @Override
-    public void executionFailed(CachingAgent agent, Throwable cause) {
+    public void executionFailed(Agent agent, Throwable cause) {
         for (ExecutionInstrumentation exec : instrumentations) {
             exec.executionFailed(agent, cause);
         }

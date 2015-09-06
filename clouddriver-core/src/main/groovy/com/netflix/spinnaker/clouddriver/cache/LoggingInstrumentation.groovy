@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,17 +27,17 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
   private final Logger logger = LoggerFactory.getLogger(LoggingInstrumentation)
 
   @Override
-  void executionStarted(CachingAgent agent) {
+  void executionStarted(Agent agent) {
     logger.info("${agent.providerName}:${agent.agentType} starting")
   }
 
   @Override
-  void executionCompleted(CachingAgent agent) {
+  void executionCompleted(Agent agent) {
     logger.info("${agent.providerName}:${agent.agentType} completed")
   }
 
   @Override
-  void executionFailed(CachingAgent agent, Throwable cause) {
+  void executionFailed(Agent agent, Throwable cause) {
     logger.warn("${agent.providerName}:${agent.agentType} completed", cause)
   }
 }

@@ -38,7 +38,7 @@ class TestProvider implements Provider {
     }
 
     @Override
-    Collection<CachingAgent> getCachingAgents() {
+    Collection<CachingAgent> getAgents() {
         agents
     }
 }

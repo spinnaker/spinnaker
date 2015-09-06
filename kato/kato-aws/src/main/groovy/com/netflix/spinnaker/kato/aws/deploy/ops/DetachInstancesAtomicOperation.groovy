@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired
 class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "DETACH_INSTANCES"
   private static final String TAG_DETACHED = "spinnaker:Detached"
-  private static final String TAG_PENDING_TERMINATION = "spinnaker:PendingTermination"
+  public static final String TAG_PENDING_TERMINATION = "spinnaker:PendingTermination"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()

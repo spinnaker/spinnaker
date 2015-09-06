@@ -17,9 +17,9 @@
 package com.netflix.spinnaker.cats.agent;
 
 public interface ExecutionInstrumentation {
-    void executionStarted(CachingAgent agent);
+    void executionStarted(Agent agent);
 
-    void executionCompleted(CachingAgent agent);
+    void executionCompleted(Agent agent);
 
-    void executionFailed(CachingAgent agent, Throwable cause);
+    void executionFailed(Agent agent, Throwable cause);
 }

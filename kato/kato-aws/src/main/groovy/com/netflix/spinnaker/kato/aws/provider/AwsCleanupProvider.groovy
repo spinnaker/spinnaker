@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.agent;
 
-public interface AgentExecution {
-    void executeAgent(Agent agent);
+package com.netflix.spinnaker.kato.aws.provider
+
+import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.provider.Provider
+
+class AwsCleanupProvider implements Provider {
+  public static final String PROVIDER_NAME = AwsCleanupProvider.name
+
+  private final Collection<Agent> agents
+
+  AwsCleanupProvider(Collection<Agent> agents) {
+    this.agents = agents
+  }
+
+  @Override
+  String getProviderName() {
+    return PROVIDER_NAME
+  }
+
+  @Override
+  Collection<Agent> getAgents() {
+    return agents
+  }
 }

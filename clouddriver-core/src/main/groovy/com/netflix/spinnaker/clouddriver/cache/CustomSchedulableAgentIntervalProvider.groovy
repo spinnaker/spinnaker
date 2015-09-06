@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
 import com.netflix.spinnaker.cats.redis.cluster.DefaultAgentIntervalProvider
 import groovy.transform.CompileStatic
@@ -29,7 +29,7 @@ class CustomSchedulableAgentIntervalProvider extends DefaultAgentIntervalProvide
   }
 
   @Override
-  AgentIntervalProvider.Interval getInterval(CachingAgent agent) {
+  AgentIntervalProvider.Interval getInterval(Agent agent) {
     if (agent instanceof CustomScheduledAgent) {
       return new AgentIntervalProvider.Interval(agent.pollIntervalMillis, agent.timeoutMillis)
     }

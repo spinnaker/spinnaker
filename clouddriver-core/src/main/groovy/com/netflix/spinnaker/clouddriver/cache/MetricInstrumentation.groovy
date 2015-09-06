@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.cache
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -53,12 +53,12 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   }
 
 
-  private static String agentName(CachingAgent agent) {
+  private static String agentName(Agent agent) {
     "$agent.providerName/$agent.agentType"
   }
 
   @Override
-  void executionStarted(CachingAgent agent) {
+  void executionStarted(Agent agent) {
     Long previous = timingsMap.get().put(agentName(agent), System.nanoTime())
     if (previous != null) {
       logger.warn("Metric value not cleared for ${agentName(agent)}")
@@ -66,7 +66,7 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  void executionCompleted(CachingAgent agent) {
+  void executionCompleted(Agent agent) {
     Long startTime = timingsMap.get().remove(agentName(agent))
     if (startTime != null) {
       registry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
@@ -75,7 +75,7 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  void executionFailed(CachingAgent agent, Throwable cause) {
+  void executionFailed(Agent agent, Throwable cause) {
     timingsMap.get().remove(agentName(agent))
     registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
   }

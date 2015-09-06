@@ -57,16 +57,16 @@ public class DefaultAgentScheduler implements AgentScheduler {
     }
 
     @Override
-    public void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+    public void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
         scheduledExecutorService.scheduleAtFixedRate(new AgentExecutionRunnable(agent, agentExecution, executionInstrumentation), 0, interval, timeUnit);
     }
 
     private static class AgentExecutionRunnable implements Runnable {
-        private final CachingAgent agent;
+        private final Agent agent;
         private final AgentExecution execution;
         private final ExecutionInstrumentation executionInstrumentation;
 
-        public AgentExecutionRunnable(CachingAgent agent, AgentExecution execution, ExecutionInstrumentation executionInstrumentation) {
+        public AgentExecutionRunnable(Agent agent, AgentExecution execution, ExecutionInstrumentation executionInstrumentation) {
             this.agent = agent;
             this.execution = execution;
             this.executionInstrumentation = executionInstrumentation;

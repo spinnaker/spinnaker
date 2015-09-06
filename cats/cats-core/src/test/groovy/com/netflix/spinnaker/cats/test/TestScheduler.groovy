@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.cats.test
 
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 
 class TestScheduler implements AgentScheduler {
     Collection<Scheduled> scheduled = []
 
     @Override
-    void schedule(CachingAgent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
+    void schedule(Agent agent, AgentExecution agentExecution, ExecutionInstrumentation executionInstrumentation) {
         scheduled << new Scheduled(agent, agentExecution)
     }
 
@@ -36,10 +36,10 @@ class TestScheduler implements AgentScheduler {
     }
 
     private static class Scheduled {
-        CachingAgent agent
+        Agent agent
         AgentExecution exec
 
-        Scheduled(CachingAgent agent, AgentExecution exec) {
+        Scheduled(Agent agent, AgentExecution exec) {
             this.agent = agent
             this.exec = exec
         }

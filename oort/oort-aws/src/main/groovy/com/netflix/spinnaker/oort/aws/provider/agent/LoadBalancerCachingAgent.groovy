@@ -48,7 +48,7 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
 @Slf4j
-class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
+class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Deprecated
   private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'

@@ -17,54 +17,21 @@
 package com.netflix.spinnaker.cats.agent;
 
 import com.netflix.spinnaker.cats.provider.Provider;
-import com.netflix.spinnaker.cats.provider.ProviderCache;
 import com.netflix.spinnaker.cats.provider.ProviderRegistry;
 
-import java.util.Collection;
-import java.util.HashSet;
-
 /**
- * AgentController schedules an AgentExecution for each CachingAgent in each Provider in the ProviderRegistry.
+ * AgentController schedules an AgentExecution for each Agent in each Provider in the ProviderRegistry.
  * <p/>
  * When the AgentControllers AgentExecution is invoked, it will trigger a load and cache cycle for that agent.
  */
 public class AgentController {
-    private final ProviderRegistry providerRegistry;
-    private final AgentScheduler agentScheduler;
-    private final AgentExecution executionHandler;
-
-    public AgentController(ProviderRegistry providerRegistry, AgentScheduler agentScheduler, ExecutionInstrumentation executionInstrumentation) {
-        this.providerRegistry = providerRegistry;
-        this.agentScheduler = agentScheduler;
-        this.executionHandler = new CacheExecution(providerRegistry);
-
+    public AgentController(ProviderRegistry providerRegistry,
+                           AgentScheduler agentScheduler,
+                           ExecutionInstrumentation executionInstrumentation) {
         for (Provider provider : providerRegistry.getProviders()) {
-            for (CachingAgent agent : provider.getCachingAgents()) {
-                agentScheduler.schedule(agent, executionHandler, executionInstrumentation);
+            for (Agent agent : provider.getAgents()) {
+                agentScheduler.schedule(agent, agent.getAgentExecution(providerRegistry), executionInstrumentation);
             }
-        }
-    }
-
-    private static class CacheExecution implements AgentExecution {
-        private final ProviderRegistry providerRegistry;
-
-        public CacheExecution(ProviderRegistry providerRegistry) {
-            this.providerRegistry = providerRegistry;
-        }
-
-        @Override
-        public void executeAgent(CachingAgent agent) {
-            ProviderCache cache = providerRegistry.getProviderCache(agent.getProviderName());
-
-            CacheResult result = agent.loadData(cache);
-            Collection<AgentDataType> providedTypes = agent.getProvidedDataTypes();
-            Collection<String> authoritative = new HashSet<>(providedTypes.size());
-            for (AgentDataType type : providedTypes) {
-                if (type.getAuthority() == AgentDataType.Authority.AUTHORITATIVE) {
-                    authoritative.add(type.getTypeName());
-                }
-            }
-            cache.putCacheResult(agent.getAgentType(), authoritative, result);
         }
     }
 }
