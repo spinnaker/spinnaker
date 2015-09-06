@@ -14,11 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.cache
+
+package com.netflix.spinnaker.kato.aws.provider
 
 import com.netflix.spinnaker.cats.agent.Agent
+import com.netflix.spinnaker.cats.provider.Provider
 
-interface CustomScheduledAgent extends Agent {
-  long getPollIntervalMillis()
-  long getTimeoutMillis()
+class AwsCleanupProvider implements Provider {
+  public static final String PROVIDER_NAME = AwsCleanupProvider.name
+
+  private final Collection<Agent> agents
+
+  AwsCleanupProvider(Collection<Agent> agents) {
+    this.agents = agents
+  }
+
+  @Override
+  String getProviderName() {
+    return PROVIDER_NAME
+  }
+
+  @Override
+  Collection<Agent> getAgents() {
+    return agents
+  }
 }
