@@ -97,10 +97,18 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
       return null
     }
 
+    List<Firewall> firewallList = metricsSupport.readData {
+      loadFirewalls()
+    }
+
+    CacheResult result = metricsSupport.transformData {
+      buildCacheResult(providerCache, firewallList)
+    }
+
     new OnDemandAgent.OnDemandResult(
       sourceAgentType: getAgentType(),
       authoritativeTypes: [Keys.Namespace.SECURITY_GROUPS.ns],
-      cacheResult: buildCacheResult(providerCache)
+      cacheResult: result
     )
   }
 
@@ -116,16 +124,20 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    buildCacheResult(providerCache)
+    List<Firewall> firewallList = loadFirewalls()
+
+    buildCacheResult(providerCache, firewallList)
   }
 
-  private CacheResult buildCacheResult(ProviderCache providerCache) {
-    log.info("Describing items in ${agentType}")
-
+  List<Firewall> loadFirewalls() {
     def compute = credentials.compute
     def project = credentials.project
 
-    List<Firewall> firewallList = compute.firewalls().list(project).execute().items
+    compute.firewalls().list(project).execute().items
+  }
+
+  private CacheResult buildCacheResult(ProviderCache providerCache, List<Firewall> firewallList) {
+    log.info("Describing items in ${agentType}")
 
     List<CacheData> data = firewallList.collect { Firewall firewall ->
       Map<String, Object> attributes = [firewall: firewall]
