@@ -3,5 +3,7 @@ dependencies {
   compile project(":mort:mort-core")
   compile spinnaker.dependency("frigga")
   spinnaker.group('google')
-  spinnaker.group('cats')
+
+  compile project(':cats:cats-core')
+  compile project(':cats:cats-redis')
 }
