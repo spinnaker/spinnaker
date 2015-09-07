@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.mort.gce.provider
 
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.cache.Keys
@@ -27,9 +27,9 @@ class GoogleInfrastructureProvider implements SearchableProvider {
   public static final String PROVIDER_NAME = GoogleInfrastructureProvider.name
 
   private final GoogleCloudProvider googleCloudProvider
-  private final Collection<CachingAgent> agents
+  private final Collection<Agent> agents
 
-  GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<CachingAgent> agents) {
+  GoogleInfrastructureProvider(GoogleCloudProvider googleCloudProvider, Collection<Agent> agents) {
     this.googleCloudProvider = googleCloudProvider
     this.agents = Collections.unmodifiableCollection(agents)
   }
@@ -40,7 +40,7 @@ class GoogleInfrastructureProvider implements SearchableProvider {
   }
 
   @Override
-  Collection<CachingAgent> getCachingAgents() {
+  Collection<Agent> getAgents() {
     agents
   }
 
