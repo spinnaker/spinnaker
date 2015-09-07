@@ -304,7 +304,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       regions.collect { String region, List<Firewall> firewalls ->
         firewalls.collect { Firewall firewall ->
           Map<String, Object> attributes = [firewall: firewall]
-          new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", account, null), attributes, [:])
+          new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", account), attributes, [:])
         }
       }.flatten()
     }.flatten()

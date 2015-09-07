@@ -54,32 +54,33 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
 
   @Override
   Set<GoogleSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, '*'))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', account))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', '*', account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', '*', account))
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, account, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, account))
   }
 
   @Override
   GoogleSecurityGroup get(String account, String region, String name, String vpcId) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', region, account, vpcId))[0]
+    // We ignore vpcId here.
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', region, account))[0]
   }
 
   Set<GoogleSecurityGroup> getAllMatchingKeyPattern(String pattern) {

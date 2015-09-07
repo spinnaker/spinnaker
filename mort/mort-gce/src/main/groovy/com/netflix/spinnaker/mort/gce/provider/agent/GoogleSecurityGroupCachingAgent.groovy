@@ -142,7 +142,7 @@ class GoogleSecurityGroupCachingAgent implements CachingAgent, OnDemandAgent {
     List<CacheData> data = firewallList.collect { Firewall firewall ->
       Map<String, Object> attributes = [firewall: firewall]
 
-      new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", accountName, null),
+      new DefaultCacheData(Keys.getSecurityGroupKey(googleCloudProvider, firewall.getName(), firewall.getName(), "global", accountName),
                            attributes,
                            [:])
     }

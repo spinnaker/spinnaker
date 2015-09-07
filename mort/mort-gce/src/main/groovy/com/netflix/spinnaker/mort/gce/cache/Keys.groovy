@@ -52,7 +52,7 @@ class Keys {
     switch (result.type) {
       case Namespace.SECURITY_GROUPS.ns:
         def names = Names.parseName(parts[2])
-        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5], vpcId: parts[6] == "null" ? null : parts[6]]
+        result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
         break
       default:
         return null
@@ -66,8 +66,7 @@ class Keys {
                                     String securityGroupName,
                                     String securityGroupId,
                                     String region,
-                                    String account,
-                                    String vpcId) {
-    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}:${vpcId}"
+                                    String account) {
+    "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
   }
 }

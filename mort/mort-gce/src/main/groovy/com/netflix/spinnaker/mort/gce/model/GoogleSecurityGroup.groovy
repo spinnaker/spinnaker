@@ -27,7 +27,6 @@ class GoogleSecurityGroup implements SecurityGroup {
   final String type
   final String id
   final String name
-  final String vpcId
   final String description
   final String application
   final String accountName
