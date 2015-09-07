@@ -12,7 +12,7 @@
                  ng-pattern="ctrl.namePattern"
                  trigger-validation="securityGroup.subnet"
                  required/>
-          <validation-error ng-if="form.securityGroupName.$error.validateUnique" message="There is already a security group in {{securityGroup.credentials}}:{{securityGroup.region}} with that name."></validation-error>
+          <validation-error ng-if="form.securityGroupName.$error.validateUnique && securityGroup.credentials" message="A security group named '{{namePreview}}' already exists in one or more of the selected regions"></validation-error>
           <validation-error ng-if="form.securityGroupName.$error.pattern" message="Name must match {{ctrl.getCurrentNamePattern().toString()}}"></validation-error>
         </div>
       </div>
