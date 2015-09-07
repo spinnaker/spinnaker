@@ -70,7 +70,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   @Value('${pollers.topApplicationExecutionCleanup.intervalMs:3600000}')
   long pollingIntervalMs
 
-  @Value('${pollers.topApplicationExecutionCleanup.threshold:150}')
+  @Value('${pollers.topApplicationExecutionCleanup.threshold:50}')
   int threshold
 
   @Value('${pollers.topApplicationExecutionCleanup.minimumNumberOfExecutionsToKeepPerPipeline:5}')

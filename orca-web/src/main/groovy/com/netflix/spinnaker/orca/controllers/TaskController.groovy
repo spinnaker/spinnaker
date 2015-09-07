@@ -122,7 +122,12 @@ class TaskController {
 
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelines() {
-    executionRepository.retrievePipelines().toBlocking().iterator.toList().sort { it.startTime ?: it.id }.reverse()
+    def allPipelines = executionRepository.retrievePipelines().toBlocking().iterator.toList()
+    try {
+      return allPipelines.sort { it.startTime ?: it.id }.reverse()
+    } catch (Exception ignored) {
+      return allPipelines
+    }
   }
 
   @RequestMapping(value = "/applications/{application}/pipelines", method = RequestMethod.GET)
