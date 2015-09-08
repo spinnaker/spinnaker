@@ -1,0 +1,15 @@
+baseurl: "/spinnaker"
+exclude: 
+  - "less"
+  - "node_modules"
+  - "gulpfile.js"
+  - "package.json"
+markdown: kramdown
+kramdown:
+  toc_levels: 1..2
+# Default sitewide metadata
+meta_defaults:
+  description: ""
+  title: "Smoother Cloud Deployments"
+  # All titles (including the default) will have this prepended to them
+  title_prefix: "Spinnaker: "  

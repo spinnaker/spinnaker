@@ -1,0 +1,49 @@
+---
+layout: base
+lang: en
+---
+
+<body class="homepage">
+  <a class="sr-only" href="#main-content">Skip to main content</a>  
+  {% include navigation.html %}
+
+  <div class="hero-banner">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-lg-10 col-lg-offset-1 text-center">
+          <div class="row">
+            <div class="col-xs-12">
+              <div class="row">
+                <div class="col-xs-12 text-center">
+                  <img class="hero-banner-logo" src="{{ site.baseurl }}/images/hero-banner-logo.png" alt="">
+                </div>
+              </div>
+              <div class="row text-center hero-banner-tagline">
+                <div class="col-xs-12">
+                  <div>{% include tagline.txt %}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- the id is used exclusively for easy access by assistive technology -->
+  <main class="main-homepage-content" id="main-content">
+    <div class="container">
+      <div class="row">
+        <div class="col-xs-12 col-lg-10 col-lg-offset-1">
+          {% capture the_include %}{% include homepage.md %}{% endcapture %}
+          {{ the_include | markdownify }}
+        </div>
+      </div>
+    </div>
+  </main>
+
+  {% include site-footer.html %}
+  
+  {% include javascript-includes.html %}
+  
+</body>
