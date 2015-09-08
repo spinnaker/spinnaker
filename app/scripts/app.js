@@ -144,7 +144,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/loadBalancers/loadBalancers.module.js'),
     require('./modules/config/config.module.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
-    require('./modules/networking/networking.module.js'),
     require('./modules/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
     require('./modules/account/accountLabelColor.directive.js'),

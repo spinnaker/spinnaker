@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.networking.ip.sort.filter', [])
+module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.ip.sort.filter', [])
   .filter('ipSorter', function() {
 
     return function(input) {

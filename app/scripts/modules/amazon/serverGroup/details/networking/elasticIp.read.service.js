@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.elasticIp.read.service', [
+  .module('spinnaker.aws.serverGroup.details.elasticIp.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
   ])
   .factory('elasticIpReader', function (Restangular, $exceptionHandler) {

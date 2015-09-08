@@ -2,9 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.networking.controller', [
-  require('../confirmationModal/confirmationModal.service.js'),
-  require('../utils/lodash.js'),
+module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.controller', [
+  require('../../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../../utils/lodash.js'),
   require('./elasticIp.read.service.js'),
   require('./elasticIp.controller.js'),
   require('./ip.sort.filter.js'),
@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.networking.controller', [
 
     $scope.associateElasticIp = function associateElasticIp() {
       $modal.open({
-        templateUrl: require('./details/aws/associateElasticIp.html'),
+        templateUrl: require('./details/associateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.networking.controller', [
 
     $scope.disassociateElasticIp = function disassociateElasticIp(address) {
       $modal.open({
-        templateUrl: require('./details/aws/disassociateElasticIp.html'),
+        templateUrl: require('./details/disassociateElasticIp.html'),
         controller: 'ElasticIpCtrl as ctrl',
         resolve: {
           application: function() { return $scope.application; },
