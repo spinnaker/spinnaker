@@ -5,9 +5,9 @@ services:
   oort:
     baseUrl: http://localhost:8081
   orca:
-    baseUrl: http://orca-${netflix.stack}.${netflix.environment}.netflix.net
+    baseUrl: http://localhost:8083
   front50:
-    baseUrl: http://front50-${netflix.stack}.${netflix.environment}.netflix.net
+    baseUrl: http://localhost:8080
   mort:
     baseUrl: http://localhost:8082
   kato:
@@ -20,7 +20,6 @@ services:
   igor:
     enabled: false
   mahe:
-    baseUrl: http://mahe-${netflix.stack}.${netflix.environment}.netflix.net
     enabled: false
 
 redis:
