@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.controller', [
-  require('../providerSelection/providerSelection.service.js'),
+  require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
   require('./filter/loadBalancer.filter.service.js'),
   require('./filter/loadBalancer.filter.model.js'),
   require('../utils/lodash.js'),
