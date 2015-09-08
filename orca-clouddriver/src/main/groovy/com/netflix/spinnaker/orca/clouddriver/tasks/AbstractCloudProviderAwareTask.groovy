@@ -17,16 +17,22 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 
 /**
  * @author sthadeshwar
  */
+@Slf4j
 abstract class AbstractCloudProviderAwareTask {
 
   private static final String DEFAULT_CLOUD_PROVIDER = "aws"  // TODO: Should we fetch this from configuration instead?
 
   protected String getCloudProvider(Stage stage) {
-    stage.context.cloudProvider ?: DEFAULT_CLOUD_PROVIDER
+    if (!stage.context.cloudProvider) {
+      log.info("The stage context for this cloud provider aware task does not contain 'cloudProvider': ${stage.context}")
+      return DEFAULT_CLOUD_PROVIDER
+    }
+    return stage.context.cloudProvider
   }
 
   protected String getCredentials(Stage stage) {

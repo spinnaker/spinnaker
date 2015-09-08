@@ -52,10 +52,7 @@ interface OortService {
                                    @Path("name") String name)
 
   /**
-   * This endpoint is deprecated. Use "/cache/{cloudProvider}/{type}" instead
-   * @param type
-   * @param data
-   * @return
+   * @deprecated Use "/cache/{cloudProvider}/{type}" instead
    */
   @Deprecated
   @POST("/cache/{type}")
