@@ -36,11 +36,12 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
 
     public DefaultAstyanaxKeyspaceFactory(final AstyanaxConfiguration astyanaxConfiguration,
                                           final ConnectionPoolConfiguration connectionPoolConfiguration,
-                                          final ConnectionPoolMonitor connectionPoolMonitor) {
+                                          final ConnectionPoolMonitor connectionPoolMonitor,
+                                          final KeyspaceInitializer keyspaceInitializer) {
         keyspaces = CacheBuilder
                 .newBuilder()
                 .removalListener(createRemovalListener())
-                .build(createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor));
+                .build(createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor, keyspaceInitializer));
     }
 
     @Override
@@ -114,7 +115,8 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
 
     CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> createCacheLoader(final AstyanaxConfiguration astyanaxConfiguration,
                                                                           final ConnectionPoolConfiguration connectionPoolConfiguration,
-                                                                          final ConnectionPoolMonitor connectionPoolMonitor) {
+                                                                          final ConnectionPoolMonitor connectionPoolMonitor,
+                                                                          final KeyspaceInitializer keyspaceInitializer) {
         return new CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>>() {
             @Override
             public AstyanaxContext<Keyspace> load(KeyspaceKey key) throws Exception {
@@ -126,6 +128,7 @@ public class DefaultAstyanaxKeyspaceFactory implements AstyanaxKeyspaceFactory {
                         .withConnectionPoolMonitor(connectionPoolMonitor)
                         .buildKeyspace(ThriftFamilyFactory.getInstance());
                 context.start();
+                keyspaceInitializer.initKeyspace(context.getClient());
                 return context;
             }
         };

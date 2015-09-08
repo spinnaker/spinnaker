@@ -71,14 +71,15 @@ public class DefaultAstyanaxKeyspaceFactoryTest {
         public final AtomicInteger removeCount = new AtomicInteger();
 
         public TestDAKF(AstyanaxComponents comp) {
-            super(comp.astyanaxConfiguration(), comp.connectionPoolConfiguration(9160, "127.0.0.1", 3), comp.connectionPoolMonitor());
+            super(comp.astyanaxConfiguration(), comp.connectionPoolConfiguration(9160, "127.0.0.1", 3), comp.connectionPoolMonitor(), comp.noopKeyspaceInitializer());
         }
 
         @Override
         CacheLoader<DefaultAstyanaxKeyspaceFactory.KeyspaceKey, AstyanaxContext<Keyspace>> createCacheLoader(AstyanaxConfiguration astyanaxConfiguration,
                                                                                                              ConnectionPoolConfiguration connectionPoolConfiguration,
-                                                                                                             ConnectionPoolMonitor connectionPoolMonitor) {
-            final CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> delegate = super.createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor);
+                                                                                                             ConnectionPoolMonitor connectionPoolMonitor,
+                                                                                                             KeyspaceInitializer keyspaceInitializer) {
+            final CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>> delegate = super.createCacheLoader(astyanaxConfiguration, connectionPoolConfiguration, connectionPoolMonitor, keyspaceInitializer);
             return new CacheLoader<KeyspaceKey, AstyanaxContext<Keyspace>>() {
                 @Override
                 public AstyanaxContext<Keyspace> load(KeyspaceKey key) throws Exception {

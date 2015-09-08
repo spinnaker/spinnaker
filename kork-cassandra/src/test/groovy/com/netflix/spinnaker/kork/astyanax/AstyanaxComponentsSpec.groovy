@@ -39,11 +39,14 @@ class AstyanaxComponentsSpec extends Specification {
         and:
         def ctx = createContext()
 
-        expect:
-        ctx.getBean(AstyanaxComponents.EmbeddedCassandraRunner)
+        when:
+        def bean = ctx.getBean(KeyspaceInitializer)
+
+        then:
+        bean instanceof AstyanaxComponents.EmbeddedCassandraRunner
 
         cleanup:
-        ctx.close()
+        ctx?.close()
 
         and:
         properties.each { k, v -> System.clearProperty(k) }
@@ -61,13 +64,13 @@ class AstyanaxComponentsSpec extends Specification {
         def ctx = createContext(context)
 
         when:
-        ctx.getBean(AstyanaxComponents.EmbeddedCassandraRunner)
+        def bean = ctx.getBean(KeyspaceInitializer)
 
         then:
-        thrown NoSuchBeanDefinitionException
+        !(bean instanceof AstyanaxComponents.EmbeddedCassandraRunner)
 
         cleanup:
-        ctx.close()
+        ctx?.close()
 
         and:
         properties.each { k, v -> System.clearProperty(k) }

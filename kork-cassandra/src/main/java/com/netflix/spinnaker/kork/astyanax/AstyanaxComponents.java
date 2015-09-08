@@ -31,12 +31,11 @@ import com.netflix.astyanax.test.EmbeddedCassandra;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -76,30 +75,40 @@ public class AstyanaxComponents {
     @Bean
     public AstyanaxKeyspaceFactory keyspaceFactory(AstyanaxConfiguration config,
                                                    ConnectionPoolConfiguration poolConfig,
-                                                   ConnectionPoolMonitor poolMonitor) {
-        return new DefaultAstyanaxKeyspaceFactory(config, poolConfig, poolMonitor);
+                                                   ConnectionPoolMonitor poolMonitor,
+                                                   KeyspaceInitializer keyspaceInitializer) {
+        return new DefaultAstyanaxKeyspaceFactory(config, poolConfig, poolMonitor, keyspaceInitializer);
     }
 
     @ConditionalOnExpression("${cassandra.embedded:true} and '${cassandra.host:127.0.0.1}' == '127.0.0.1'")
-    @ConditionalOnBean(Keyspace.class)
     @Bean
-    public EmbeddedCassandraRunner embeddedCassandra(Keyspace keyspace, @Value("${cassandra.port:9160}") int port,
-                                                     @Value("${cassandra.storagePort:7000}") int storagePort,
-                                                     @Value("${cassandra.host:127.0.0.1}") String host) {
-        return new EmbeddedCassandraRunner(keyspace, port, storagePort, host);
+    @ConditionalOnBean(Keyspace.class)
+    public KeyspaceInitializer embeddedCassandra(@Value("${cassandra.port:9160}") int port,
+                                                 @Value("${cassandra.storagePort:7000}") int storagePort,
+                                                 @Value("${cassandra.host:127.0.0.1}") String host) {
+        return new EmbeddedCassandraRunner(port, storagePort, host);
     }
 
-    public static class EmbeddedCassandraRunner {
+    @ConditionalOnMissingBean(KeyspaceInitializer.class)
+    @Bean
+    public KeyspaceInitializer noopKeyspaceInitializer() {
+        return new KeyspaceInitializer() {
+            @Override
+            public void initKeyspace(Keyspace keyspace) throws ConnectionException {
+                //noop
+            }
+        };
+    }
+
+    public static class EmbeddedCassandraRunner implements KeyspaceInitializer {
         private static final Logger log = LoggerFactory.getLogger(EmbeddedCassandraRunner.class);
 
-        private final Keyspace keyspace;
         private final int port;
         private final int storagePort;
         private final String host;
         private EmbeddedCassandra embeddedCassandra;
 
-        public EmbeddedCassandraRunner(Keyspace keyspace, int port, int storagePort, String host) {
-            this.keyspace = keyspace;
+        public EmbeddedCassandraRunner(int port, int storagePort, String host) {
             this.port = port;
             this.storagePort = storagePort;
             this.host = host;
@@ -126,14 +135,18 @@ public class AstyanaxComponents {
             });
             waitForCassandraFuture.get(60, TimeUnit.SECONDS);
             log.info("Embedded cassandra started.");
+        }
+
+        @Override
+        public void initKeyspace(Keyspace keyspace) throws ConnectionException {
             try {
                 keyspace.describeKeyspace();
             } catch (ConnectionException e) {
                 Map<String, Object> options = ImmutableMap.<String, Object>builder()
-                        .put("name", keyspace.getKeyspaceName())
-                        .put("strategy_class", "SimpleStrategy")
-                        .put("strategy_options", ImmutableMap.of("replication_factor", "1"))
-                        .build();
+                    .put("name", keyspace.getKeyspaceName())
+                    .put("strategy_class", "SimpleStrategy")
+                    .put("strategy_options", ImmutableMap.of("replication_factor", "1"))
+                    .build();
                 keyspace.createKeyspace(options);
             }
         }
