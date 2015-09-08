@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
     function removeImmutableFields(obj) {
       delete obj.name;
       delete obj.application;
-      delete obj.appConfig;
       delete obj.index;
       delete obj.id;
       delete obj.stageCounter;
