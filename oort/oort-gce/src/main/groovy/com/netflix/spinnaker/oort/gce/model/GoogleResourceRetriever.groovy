@@ -28,6 +28,7 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.MIGSCallback
@@ -52,6 +53,9 @@ class GoogleResourceRetriever {
 
   @Autowired
   GoogleConfigurationProperties googleConfigurationProperties
+
+  @Autowired
+  GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
@@ -109,12 +113,14 @@ class GoogleResourceRetriever {
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
           def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
           def regions = compute.regions().list(project).execute().getItems()
+          def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
           def regionsCallback = new RegionsCallback(tempAppMap,
                                                     accountName,
                                                     project,
                                                     compute,
                                                     credentialBuilder,
                                                     replicaPool,
+                                                    googleSecurityGroups,
                                                     tempImageMap,
                                                     defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
@@ -168,7 +174,8 @@ class GoogleResourceRetriever {
           }
 
           def instanceAggregatedListCallback =
-            new InstanceAggregatedListCallback(instanceNameToGoogleServerGroupMap,
+            new InstanceAggregatedListCallback(googleSecurityGroups,
+                                               instanceNameToGoogleServerGroupMap,
                                                tempStandaloneInstanceMap[accountName],
                                                instanceNameToLoadBalancerHealthStatusMap)
 
@@ -331,6 +338,7 @@ class GoogleResourceRetriever {
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
+          def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, data.account)
           def migsCallback = new MIGSCallback(tempAppMap,
                                               data.region,
                                               data.zone,
@@ -338,6 +346,7 @@ class GoogleResourceRetriever {
                                               project,
                                               compute,
                                               credentialBuilder,
+                                              googleSecurityGroups,
                                               imageMap,
                                               defaultBuildHost,
                                               instanceNameToGoogleServerGroupMap,
@@ -362,7 +371,7 @@ class GoogleResourceRetriever {
 
             // TODO(duftler): Would be more efficient to retrieve just the instances for the server group's zone.
             def instanceAggregatedListCallback =
-              new InstanceAggregatedListCallback(instanceNameToGoogleServerGroupMap, null, null)
+              new InstanceAggregatedListCallback(googleSecurityGroups, instanceNameToGoogleServerGroupMap, null, null)
 
             compute.instances().aggregatedList(project).queue(instancesBatch, instanceAggregatedListCallback)
             executeIfRequestsAreQueued(instancesBatch)
