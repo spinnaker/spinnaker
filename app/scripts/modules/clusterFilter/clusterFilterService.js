@@ -201,6 +201,8 @@ module.exports = angular
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
             oldGroup.serverGroups[idx] = newServerGroup;
           }
+          serverGroup.executions = newServerGroup.executions;
+          serverGroup.runningTasks = newServerGroup.runningTasks;
         }
       });
       toRemove.reverse().forEach(function(idx) {

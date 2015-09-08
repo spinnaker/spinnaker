@@ -609,5 +609,21 @@ describe('Service: clusterFilterService', function () {
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(application.serverGroups[0]);
       expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[1]).toBe(this.serverGroup001);
     });
+
+    it('adds executions and running tasks, even when stringVal does not change', function () {
+      var runningTasks = [ { name: 'a' } ],
+          executions = [ { name: 'b' } ];
+      var application = {
+        serverGroups: [
+          { cluster: 'cluster-a', name: 'cluster-a-v001', account: 'prod', region: 'us-east-1', stringVal: 'original',
+            runningTasks: runningTasks, executions: executions,
+          },
+        ]
+      };
+      service.updateClusterGroups(application);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0]).toBe(this.serverGroup001);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].runningTasks).toBe(runningTasks);
+      expect(ClusterFilterModel.groups[0].subgroups[0].subgroups[0].serverGroups[0].executions).toBe(executions);
+    });
   });
 });
