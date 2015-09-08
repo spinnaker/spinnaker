@@ -1,14 +1,16 @@
 'use strict';
 
+require('../migrator.less');
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
-    require('../../amazon/vpc/vpc.read.service.js'),
-    require('../../config/settings.js'),
+    require('../../../amazon/vpc/vpc.read.service.js'),
+    require('../../../config/settings.js'),
     require('../migrator.service.js'),
-    require('../../core/presentation/autoScroll/autoScroll.directive.js'),
+    require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
   ])
   .directive('migrator', function () {
     return {
@@ -48,6 +50,8 @@ module.exports = angular
     };
   })
   .controller('MigratorCtrl', function ($scope, serverGroup, application, type, $modalInstance, migratorService) {
+
+    $scope.submittingTemplateUrl = require('../migrator.modal.submitting.html');
 
     $scope.application = application;
     $scope.serverGroup = serverGroup;

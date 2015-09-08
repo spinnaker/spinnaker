@@ -44,7 +44,6 @@ require('./modules/utils/stickyHeader/stickyHeader.less');
 
 require('./modules/search/global/globalSearch.less');
 require('./modules/confirmationModal/confirmationModal.less');
-require('./modules/migrator/migrator.less');
 
 require('../fonts/spinnaker/icons.css');
 
@@ -144,7 +143,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/loadBalancers/loadBalancers.module.js'),
     require('./modules/config/config.module.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
-    require('./modules/blesk/blesk.module.js'),
+    require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
     require('./modules/account/accountLabelColor.directive.js'),
 ])
