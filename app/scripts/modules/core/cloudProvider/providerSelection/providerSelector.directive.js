@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.providerSelection.directive', [
-  require('../account/accountService.js'),
+  require('../../../account/accountService.js'),
 ])
   .directive('providerSelector', function(accountService, $q) {
     return {
