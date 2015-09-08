@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.serverGroup', [
     require('./details/resizeServerGroup.controller.js'),
     require('./serverGroup.write.service.js'),
-    require('./configure/common/transformer/serverGroup.transformer.service.js'),
+    require('./serverGroup.transformer.js'),
     require('./configure/common/serverGroup.configure.common.module.js'),
     require('./pod/runningTasksTag.directive.js'),
 

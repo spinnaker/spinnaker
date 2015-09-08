@@ -8,17 +8,18 @@ module.exports = angular.module('spinnaker.gce', [
   require('./serverGroup/configure/ServerGroupCommandBuilder.js'),
   require('./serverGroup/configure/wizard/CloneServerGroupCtrl.js'),
   require('./serverGroup/configure/serverGroup.configure.gce.module.js'),
-  require('./serverGroup/configure/serverGroup.transformer.service.js'),
+  require('./serverGroup/serverGroup.transformer.js'),
   require('../pipelines/config/stages/bake/gce/gceBakeStage.js'),
   require('../pipelines/config/stages/resizeAsg/gce/gceResizeAsgStage.js'),
   require('./instance/gceInstanceTypeService.js'),
-  require('./loadBalancer/configure/loadBalancer.transformer.service.js'),
+  require('./loadBalancer/loadBalancer.transformer.js'),
   require('./loadBalancer/details/LoadBalancerDetailsCtrl.js'),
   require('./loadBalancer/configure/CreateLoadBalancerCtrl.js'),
   require('./instance/details/instance.details.controller.js'),
   require('./securityGroup/details/SecurityGroupDetailsCtrl.js'),
   require('./securityGroup/configure/CreateSecurityGroupCtrl.js'),
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
+  require('./securityGroup/securityGroup.transformer.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('gce', {
@@ -46,6 +47,7 @@ module.exports = angular.module('spinnaker.gce', [
         createLoadBalancerController: 'gceCreateLoadBalancerCtrl',
       },
       securityGroup: {
+        transformer: 'gceSecurityGroupTransformer',
         detailsTemplateUrl: require('./securityGroup/details/securityGroupDetails.html'),
         detailsController: 'gceSecurityGroupDetailsCtrl',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),

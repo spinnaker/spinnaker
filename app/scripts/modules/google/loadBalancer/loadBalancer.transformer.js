@@ -2,11 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service', [
-  require('../../../caches/deckCacheFactory.js'),
-  require('../../../utils/lodash.js')
+module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [
+  require('../../utils/lodash.js')
 ])
-  .factory('awsLoadBalancerTransformer', function (settings, _) {
+  .factory('gceLoadBalancerTransformer', function ($q, settings, _) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -38,7 +37,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
       instance.loadBalancers = [loadBalancer.name];
     }
 
-    function normalizeLoadBalancerWithServerGroups(loadBalancer) {
+    function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
         serverGroup.account = loadBalancer.account;
         serverGroup.region = loadBalancer.region;
@@ -61,18 +60,19 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
       loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
       loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
       updateHealthCounts(loadBalancer);
+      return $q.when(loadBalancer);
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'aws' &&
+      return serverGroup.type === 'gce' &&
         serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
-        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
+        provider: 'gce',
         editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
@@ -91,11 +91,9 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
           toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             var listener = description.listener;
             return {
-              internalProtocol: listener.instanceProtocol,
-              internalPort: listener.instancePort,
-              externalProtocol: listener.protocol,
-              externalPort: listener.loadBalancerPort,
-              sslCertificateId: listener.sslcertificateId
+              protocol: listener.protocol,
+              portRange: listener.loadBalancerPort,
+              healthCheck: elb.healthCheck !== undefined
             };
           });
         }
@@ -110,11 +108,7 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
           var protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
 
-          if (pathIndex === -1) {
-            pathIndex = healthCheck.length;
-          }
-
-          if (protocolIndex !== -1) {
+          if (protocolIndex !== -1 && pathIndex !== -1) {
             toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);
             toEdit.healthCheckPort = healthCheck.substring(protocolIndex + 1, pathIndex);
             toEdit.healthCheckPath = healthCheck.substring(pathIndex);
@@ -122,42 +116,46 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer.service'
               toEdit.healthCheckPort = Number(toEdit.healthCheckPort);
             }
           }
+        } else {
+          toEdit.healthCheckProtocol = 'HTTP';
+          toEdit.healthCheckPort = 80;
+          toEdit.healthCheckPath = '/';
+          toEdit.healthTimeout = 5;
+          toEdit.healthInterval = 10;
+          toEdit.healthyThreshold = 10;
+          toEdit.unhealthyThreshold = 2;
         }
       }
       return toEdit;
     }
 
-    function constructNewLoadBalancerTemplate(application) {
-      var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
-          defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
+    function constructNewLoadBalancerTemplate() {
       return {
+        provider: 'gce',
         stack: '',
         detail: 'frontend',
-        credentials: defaultCredentials,
-        region: defaultRegion,
-        vpcId: null,
+        credentials: settings.providers.gce ? settings.providers.gce.defaults.account : null,
+        region: settings.providers.gce ? settings.providers.gce.defaults.region : null,
         healthCheckProtocol: 'HTTP',
-        healthCheckPort: 7001,
-        healthCheckPath: '/healthcheck',
+        healthCheckPort: 80,
+        healthCheckPath: '/',
         healthTimeout: 5,
         healthInterval: 10,
         healthyThreshold: 10,
         unhealthyThreshold: 2,
         regionZones: [],
-        securityGroups: [],
         listeners: [
           {
-            internalProtocol: 'HTTP',
-            internalPort: 7001,
-            externalProtocol: 'HTTP',
-            externalPort: 80
+            protocol: 'TCP',
+            portRange: '8080',
+            healthCheck: true
           }
         ]
       };
     }
 
     return {
-      normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
+      normalizeLoadBalancer: normalizeLoadBalancer,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,

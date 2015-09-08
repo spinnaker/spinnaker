@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../utils/lodash.js'),
   require('../../../instance/instance.write.service.js'),
   require('../../../instance/instance.read.service.js'),
-  require('../../../vpc/vpcTag.directive.js'),
+  require('../../vpc/vpcTag.directive.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('../../../insight/insightFilterState.model.js'),
 ])

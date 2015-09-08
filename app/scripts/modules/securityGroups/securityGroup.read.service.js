@@ -11,10 +11,10 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
   require('../utils/lodash.js'),
   require('../caches/scheduledCache.js'),
   require('../caches/infrastructureCaches.js'),
-  require('../vpc/vpc.read.service.js'),
+  require('./securityGroup.transformer.js'),
 ])
   .factory('securityGroupReader', function ($q, $exceptionHandler, $log, Restangular, searchService, _, namingService,
-                                            accountService, infrastructureCaches, vpcReader) {
+                                            accountService, infrastructureCaches, securityGroupTransformer) {
 
     function loadSecurityGroups(application) {
 
@@ -44,15 +44,6 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
 
       return $q.all(securityGroupPromises).then(_.flatten);
 
-    }
-
-    function addVpcNameToSecurityGroup(vpcs) {
-      return function(securityGroup) {
-        var matches = vpcs.filter(function(test) {
-          return test.id === securityGroup.vpcId;
-        });
-        securityGroup.vpcName = matches.length ? matches[0].name : '';
-      };
     }
 
     function addStackToSecurityGroup(securityGroup) {
@@ -146,12 +137,11 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
         return clearCacheAndRetryAttachingSecurityGroups(application, nameBasedSecurityGroups);
       } else {
         application.securityGroups = _.unique(applicationSecurityGroups);
-        return vpcReader.listVpcs().then(function(vpcs) {
-          application.securityGroups.forEach(addVpcNameToSecurityGroup(vpcs));
-          application.securityGroups.forEach(addProviderToSecurityGroup);
-          application.securityGroups.forEach(addAccountToSecurityGroup);
-          application.securityGroups.forEach(addStackToSecurityGroup);
-        });
+        application.securityGroups.forEach(addProviderToSecurityGroup);
+        application.securityGroups.forEach(addAccountToSecurityGroup);
+        application.securityGroups.forEach(addStackToSecurityGroup);
+
+        return $q.all(application.securityGroups.map(securityGroupTransformer.normalizeSecurityGroup));
       }
 
     }

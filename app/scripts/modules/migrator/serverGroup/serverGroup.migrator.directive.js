@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.migrator.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
-    require('../../vpc/vpc.read.service.js'),
+    require('../../amazon/vpc/vpc.read.service.js'),
     require('../../config/settings.js'),
     require('../migrator.service.js'),
     require('../../core/presentation/autoScroll/autoScroll.directive.js'),

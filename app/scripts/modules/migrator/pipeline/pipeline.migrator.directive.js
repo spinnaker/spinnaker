@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
     require('exports?"ui.bootstrap"!angular-bootstrap'),
-    require('../../vpc/vpc.read.service.js'),
-    require('../../subnet/subnet.read.service.js'),
+    require('../../amazon/vpc/vpc.read.service.js'),
+    require('../../amazon/subnet/subnet.read.service.js'),
     require('../../config/settings.js'),
     require('../migrator.service.js'),
     require('../../utils/lodash.js'),

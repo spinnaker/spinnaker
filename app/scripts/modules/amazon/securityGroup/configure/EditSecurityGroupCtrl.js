@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   require('../../../caches/cacheInitializer.js'),
   require('../../../tasks/monitor/taskMonitorService.js'),
   require('../../../securityGroups/securityGroup.write.service.js'),
-  require('../../../vpc/vpc.read.service.js'),
 ])
   .controller('awsEditSecurityGroupCtrl', function($scope, $modalInstance, $exceptionHandler, $state,
                                                 accountService,  securityGroupReader,

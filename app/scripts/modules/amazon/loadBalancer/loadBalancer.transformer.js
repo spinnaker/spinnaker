@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service', [
-  require('../../../caches/deckCacheFactory.js'),
-  require('../../../utils/lodash.js')
+module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
+  require('../../utils/lodash.js'),
+  require('../vpc/vpc.read.service.js'),
 ])
-  .factory('gceLoadBalancerTransformer', function (settings, _) {
+  .factory('awsLoadBalancerTransformer', function (settings, _, vpcReader) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
@@ -38,7 +38,17 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
       instance.loadBalancers = [loadBalancer.name];
     }
 
-    function normalizeLoadBalancerWithServerGroups(loadBalancer) {
+    function addVpcNameToLoadBalancer(loadBalancer) {
+      return function(vpcs) {
+        var matches = vpcs.filter(function(test) {
+          return test.id === loadBalancer.vpcId;
+        });
+        loadBalancer.vpcName = matches.length ? matches[0].name : '';
+        return loadBalancer;
+      };
+    }
+
+    function normalizeLoadBalancer(loadBalancer) {
       loadBalancer.serverGroups.forEach(function(serverGroup) {
         serverGroup.account = loadBalancer.account;
         serverGroup.region = loadBalancer.region;
@@ -61,18 +71,19 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
       loadBalancer.instances = _(activeServerGroups).pluck('instances').flatten().valueOf();
       loadBalancer.detachedInstances = _(activeServerGroups).pluck('detachedInstances').flatten().valueOf();
       updateHealthCounts(loadBalancer);
+      return vpcReader.listVpcs().then(addVpcNameToLoadBalancer(loadBalancer));
     }
 
     function serverGroupIsInLoadBalancer(serverGroup, loadBalancer) {
-      return serverGroup.type === 'gce' &&
+      return serverGroup.type === 'aws' &&
         serverGroup.account === loadBalancer.account &&
         serverGroup.region === loadBalancer.region &&
+        (typeof loadBalancer.vpcId === 'undefined' || serverGroup.vpcId === loadBalancer.vpcId) &&
         serverGroup.loadBalancers.indexOf(loadBalancer.name) !== -1;
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
-        provider: 'gce',
         editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
@@ -91,9 +102,11 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
           toEdit.listeners = elb.listenerDescriptions.map(function (description) {
             var listener = description.listener;
             return {
-              protocol: listener.protocol,
-              portRange: listener.loadBalancerPort,
-              healthCheck: elb.healthCheck !== undefined
+              internalProtocol: listener.instanceProtocol,
+              internalPort: listener.instancePort,
+              externalProtocol: listener.protocol,
+              externalPort: listener.loadBalancerPort,
+              sslCertificateId: listener.sslcertificateId
             };
           });
         }
@@ -108,7 +121,11 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
           var protocolIndex = healthCheck.indexOf(':'),
             pathIndex = healthCheck.indexOf('/');
 
-          if (protocolIndex !== -1 && pathIndex !== -1) {
+          if (pathIndex === -1) {
+            pathIndex = healthCheck.length;
+          }
+
+          if (protocolIndex !== -1) {
             toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);
             toEdit.healthCheckPort = healthCheck.substring(protocolIndex + 1, pathIndex);
             toEdit.healthCheckPath = healthCheck.substring(pathIndex);
@@ -116,46 +133,42 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer.service'
               toEdit.healthCheckPort = Number(toEdit.healthCheckPort);
             }
           }
-        } else {
-          toEdit.healthCheckProtocol = 'HTTP';
-          toEdit.healthCheckPort = 80;
-          toEdit.healthCheckPath = '/';
-          toEdit.healthTimeout = 5;
-          toEdit.healthInterval = 10;
-          toEdit.healthyThreshold = 10;
-          toEdit.unhealthyThreshold = 2;
         }
       }
       return toEdit;
     }
 
-    function constructNewLoadBalancerTemplate() {
+    function constructNewLoadBalancerTemplate(application) {
+      var defaultCredentials = application.defaultCredentials || settings.providers.aws.defaults.account,
+          defaultRegion = application.defaultRegion || settings.providers.aws.defaults.region;
       return {
-        provider: 'gce',
         stack: '',
         detail: 'frontend',
-        credentials: settings.providers.gce ? settings.providers.gce.defaults.account : null,
-        region: settings.providers.gce ? settings.providers.gce.defaults.region : null,
+        credentials: defaultCredentials,
+        region: defaultRegion,
+        vpcId: null,
         healthCheckProtocol: 'HTTP',
-        healthCheckPort: 80,
-        healthCheckPath: '/',
+        healthCheckPort: 7001,
+        healthCheckPath: '/healthcheck',
         healthTimeout: 5,
         healthInterval: 10,
         healthyThreshold: 10,
         unhealthyThreshold: 2,
         regionZones: [],
+        securityGroups: [],
         listeners: [
           {
-            protocol: 'TCP',
-            portRange: '8080',
-            healthCheck: true
+            internalProtocol: 'HTTP',
+            internalPort: 7001,
+            externalProtocol: 'HTTP',
+            externalPort: 80
           }
         ]
       };
     }
 
     return {
-      normalizeLoadBalancerWithServerGroups: normalizeLoadBalancerWithServerGroups,
+      normalizeLoadBalancer: normalizeLoadBalancer,
       serverGroupIsInLoadBalancer: serverGroupIsInLoadBalancer,
       convertLoadBalancerForEditing: convertLoadBalancerForEditing,
       constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,

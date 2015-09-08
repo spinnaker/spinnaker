@@ -3,10 +3,14 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.serverGroup.aws.transformer.service', [
-    require('../../../utils/lodash.js')
+  .module('spinnaker.gce.serverGroup.transformer', [
+    require('../../utils/lodash.js'),
   ])
-  .factory('awsServerGroupTransformer', function (_) {
+  .factory('gceServerGroupTransformer', function ($q, _) {
+
+    function normalizeServerGroup(serverGroup) {
+      return $q.when(serverGroup); // no-op
+    }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
       // use _.defaults to avoid copying the backingData, which is huge and expensive to copy over
@@ -18,7 +22,7 @@ module.exports = angular
         command.amiName = base.viewState.allImageSelection;
       }
       command.availabilityZones = {};
-      command.availabilityZones[command.region] = base.availabilityZones;
+      command.availabilityZones[command.region] = [base.zone];
       command.account = command.credentials;
       if (!command.ramdiskId) {
         delete command.ramdiskId; // TODO: clean up in kato? - should ignore if empty string
@@ -37,7 +41,8 @@ module.exports = angular
     }
 
     return {
-      convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration
+      convertServerGroupCommandToDeployConfiguration: convertServerGroupCommandToDeployConfiguration,
+      normalizeServerGroup: normalizeServerGroup,
     };
 
   }).name;
