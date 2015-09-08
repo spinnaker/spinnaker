@@ -5,36 +5,25 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
-  require('../vpc/vpc.read.service.js'),
   require('../naming/naming.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../utils/lodash.js'),
+  require('../serverGroups/serverGroup.transformer.js'),
 ])
-  .factory('clusterService', function ($q, Restangular, _, vpcReader, namingService) {
+  .factory('clusterService', function ($q, Restangular, _, serverGroupTransformer, namingService) {
 
     function loadServerGroups(applicationName) {
       var serverGroupLoader = Restangular.one('applications', applicationName).all('serverGroups').getList();
-      var vpcLoader = vpcReader.listVpcs();
-      return $q.all({ serverGroups: serverGroupLoader, vpcs: vpcLoader}).then(function(results) {
-        results.serverGroups.forEach(addHealthyCountsToServerGroup);
-        results.serverGroups.forEach(addStackToServerGroup);
-        results.serverGroups.forEach(addVpcNameToServerGroup(results.vpcs));
-        return results.serverGroups;
+      return serverGroupLoader.then(function(results) {
+        results.forEach(addHealthyCountsToServerGroup);
+        results.forEach(addStackToServerGroup);
+        return $q.all(results.map(serverGroupTransformer.normalizeServerGroup));
       });
     }
 
     function addStackToServerGroup(serverGroup) {
       var nameParts = namingService.parseServerGroupName(serverGroup.name);
       serverGroup.stack = nameParts.stack;
-    }
-
-    function addVpcNameToServerGroup(vpcs) {
-      return function(serverGroup) {
-        var matches = vpcs.filter(function(test) {
-          return test.id === serverGroup.vpcId;
-        });
-        serverGroup.vpcName = matches.length ? matches[0].name : '';
-      };
     }
 
     function addHealthStatusCheck(serverGroup) {

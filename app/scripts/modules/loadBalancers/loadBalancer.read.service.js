@@ -4,37 +4,24 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.loadBalancer.read.service', [
-    require('../vpc/vpc.read.service.js'),
     require('../naming/naming.service.js'),
     require('../caches/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
   ])
   .factory('loadBalancerReader', function ($q, Restangular, searchService, namingService,
-                                           loadBalancerTransformer, infrastructureCaches, vpcReader) {
+                                           loadBalancerTransformer, infrastructureCaches) {
 
     function loadLoadBalancers(applicationName) {
-      var vpcLoader = vpcReader.listVpcs();
-      var loadBalancerLoader = Restangular.one('applications', applicationName).all('loadBalancers').getList();
-        return $q.all({vpcs: vpcLoader, loadBalancers: loadBalancerLoader}).then(function(results) {
-          results.loadBalancers.forEach(loadBalancerTransformer.normalizeLoadBalancerWithServerGroups);
-          results.loadBalancers.forEach(addVpcNameToLoadBalancer(results.vpcs));
-          results.loadBalancers.forEach(addStackToLoadBalancer);
-          return results.loadBalancers;
+      var loadBalancers = Restangular.one('applications', applicationName).all('loadBalancers').getList();
+        return loadBalancers.then(function(results) {
+          results.forEach(addStackToLoadBalancer);
+          return $q.all(results.map(loadBalancerTransformer.normalizeLoadBalancer));
         });
     }
 
     function addStackToLoadBalancer(loadBalancer) {
       var nameParts = namingService.parseLoadBalancerName(loadBalancer.name);
       loadBalancer.stack = nameParts.stack;
-    }
-
-    function addVpcNameToLoadBalancer(vpcs) {
-      return function(loadBalancer) {
-        var matches = vpcs.filter(function(test) {
-          return test.id === loadBalancer.vpcId;
-        });
-        loadBalancer.vpcName = matches.length ? matches[0].name : '';
-      };
     }
 
     function getLoadBalancerDetails(provider, account, region, name) {

@@ -262,7 +262,7 @@ module.exports = angular
             securityGroups: securityGroupLoader,
           })
             .then(function(results) {
-              serverGroups = results.serverGroups.plain();
+              serverGroups = results.serverGroups;
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
               application.loadBalancers = applicationLoader.loadBalancers;

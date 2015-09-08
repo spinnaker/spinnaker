@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('./serverGroupBasicSettingsSelector.directive.js'),
   require('./serverGroupLoadBalancersSelector.directive.js'),
   require('./serverGroupCapacitySelector.directive.js'),
-  require('./serverGroup.transformer.service.js'),
   require('./serverGroupAdvancedSettingsSelector.directive.js'),
 
 ])

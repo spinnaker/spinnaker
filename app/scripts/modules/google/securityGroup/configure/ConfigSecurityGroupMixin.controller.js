@@ -8,7 +8,6 @@ module.exports = angular
     require('../../../tasks/monitor/taskMonitorService.js'),
     require('../../../securityGroups/securityGroup.write.service.js'),
     require('../../../account/accountService.js'),
-    require('../../../vpc/vpc.read.service.js'),
     require('../../../modal/wizard/modalWizard.directive.js'),
     require('../../../utils/lodash.js'),
   ])
@@ -23,7 +22,6 @@ module.exports = angular
                                                              accountService,
                                                              modalWizardService,
                                                              cacheInitializer,
-                                                             vpcReader,
                                                              _ ) {
 
 
@@ -79,100 +77,9 @@ module.exports = angular
       );
     };
 
-    function clearSecurityGroups() {
-      $scope.availableSecurityGroups = [];
-      $scope.existingSecurityGroupNames = [];
-    }
-
-    ctrl.accountUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      accountService.getRegionsForAccount(account).then(function(regions) {
-        $scope.regions = _.pluck(regions, 'name');
-        clearSecurityGroups();
-        ctrl.regionUpdated();
-        ctrl.updateName();
-      });
-    };
-
-    //ctrl.ifVcsFoundInAllRegions = function() {
-    //  var foundInAllRegions = true;
-    //  _.forEach($scope.securityGroup.regions, function(region) {
-    //    if (!_.some(vpcsToTest, { region: region, account: $scope.securityGroup.credentials })) {
-    //      foundInAllRegions = false;
-    //    }
-    //  });
-    //  return foundInAllRegions;
-    //};
-
-    ctrl.regionUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      vpcReader.listVpcs().then(function(vpcs) {
-        var vpcsByName = _.groupBy(vpcs, 'label');
-        $scope.allVpcs = vpcs;
-        var available = [];
-        _.forOwn(vpcsByName, function(vpcsToTest, label) {
-          var foundInAllRegions = true;
-          _.forEach($scope.securityGroup.regions, function(region) {
-            if (!_.some(vpcsToTest, { region: region, account: account })) {
-              foundInAllRegions = false;
-            }
-          });
-          if (foundInAllRegions) {
-            available.push( {
-              ids: _.pluck(vpcsToTest, 'id'),
-              label: label,
-              deprecated: vpcsToTest[0].deprecated,
-            });
-          }
-        });
-
-        $scope.activeVpcs = available.filter(function(vpc) { return !vpc.deprecated; });
-        $scope.deprecatedVpcs = available.filter(function(vpc) { return vpc.deprecated; });
-        $scope.vpcs = available;
-
-        var match = _.find(available, function(vpc) {
-          return vpc.ids.indexOf($scope.securityGroup.vpcId) !== -1;
-        });
-        $scope.securityGroup.vpcId = match ? match.ids[0] : null;
-        ctrl.vpcUpdated();
-      });
-    };
-
-    this.vpcUpdated = function() {
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName,
-        regions = $scope.securityGroup.regions;
-      if (account && regions && regions.length) {
-        configureFilteredSecurityGroups();
-      } else {
-        clearSecurityGroups();
-      }
-    };
-
     function configureFilteredSecurityGroups() {
-      var vpcId = $scope.securityGroup.vpcId || null;
-      var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-      var regions = $scope.securityGroup.regions || [];
       var existingSecurityGroupNames = [];
       var availableSecurityGroups = [];
-
-      regions.forEach(function (region) {
-        var regionalVpcId = null;
-        if (vpcId) {
-          var baseVpc = _.find($scope.allVpcs, { id: vpcId });
-          regionalVpcId = _.find($scope.allVpcs, { account: account, region: region, name: baseVpc.name }).id;
-        }
-
-        var regionalSecurityGroups = _.filter(allSecurityGroups[account].aws[region], { vpcId: regionalVpcId }),
-          regionalGroupNames = _.pluck(regionalSecurityGroups, 'name');
-
-        existingSecurityGroupNames = _.uniq(existingSecurityGroupNames.concat(regionalGroupNames));
-
-        if (!availableSecurityGroups.length) {
-          availableSecurityGroups = existingSecurityGroupNames;
-        } else {
-          availableSecurityGroups = _.intersection(availableSecurityGroups, regionalGroupNames);
-        }
-      });
 
       $scope.availableSecurityGroups = availableSecurityGroups;
       $scope.existingSecurityGroupNames = existingSecurityGroupNames;
@@ -186,6 +93,8 @@ module.exports = angular
         }
       );
     };
+
+    ctrl.accountUpdated = configureFilteredSecurityGroups;
 
     function clearInvalidSecurityGroups() {
       var removed = $scope.state.removedRules;
@@ -205,7 +114,6 @@ module.exports = angular
       $scope.state.refreshingSecurityGroups = true;
       return cacheInitializer.refreshCache('securityGroups').then(function() {
         return ctrl.initializeSecurityGroups().then(function() {
-          ctrl.vpcUpdated();
           $scope.state.refreshingSecurityGroups = false;
         });
       });
@@ -217,12 +125,10 @@ module.exports = angular
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        var region = $scope.securityGroup.region;
-        var vpcId = $scope.securityGroup.vpcId || null;
 
         var availableGroups;
-        if(account && region) {
-          availableGroups = _.filter(securityGroups[account].aws[region], { vpcId: vpcId });
+        if(account) {
+          availableGroups = securityGroups[account].gce.global;
         } else {
           availableGroups = securityGroups;
         }
@@ -236,7 +142,7 @@ module.exports = angular
     };
 
     ctrl.getCurrentNamePattern = function() {
-      return $scope.securityGroup.vpcId ? vpcPattern : classicPattern;
+      return /.+/;
     };
 
     ctrl.updateName = function() {
@@ -266,10 +172,6 @@ module.exports = angular
     ctrl.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
     };
-
-
-    var classicPattern = /^[\x00-\x7F]+$/;
-    var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
 
 
   })

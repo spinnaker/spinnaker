@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
   require('./serverGroupLoadBalancersSelector.directive.js'),
   require('./serverGroupSecurityGroupsSelector.directive.js'),
   require('./serverGroupCapacitySelector.directive.js'),
-  require('./serverGroup.transformer.service.js'),
+  require('../serverGroup.transformer.js'),
   require('./serverGroupAdvancedSettingsSelector.directive.js'),
   require('../../../serverGroups/configure/common/instanceArchetypeSelector.js'),
   require('../../../serverGroups/configure/common/instanceTypeSelector.js')

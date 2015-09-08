@@ -7,12 +7,11 @@ describe('Service: InstanceType', function () {
     )
   );
 
-  var clusterService, $http, vpcReader, $q, $scope;
+  var clusterService, $http, $q, $scope;
 
-  beforeEach(window.inject(function (_clusterService_, $httpBackend, _vpcReader_, _$q_, $rootScope) {
+  beforeEach(window.inject(function (_clusterService_, $httpBackend, _$q_, $rootScope) {
     clusterService = _clusterService_;
     $http = $httpBackend;
-    vpcReader = _vpcReader_;
     $q = _$q_;
     $scope = $rootScope.$new();
 
@@ -36,35 +35,6 @@ describe('Service: InstanceType', function () {
     };
 
   }));
-
-  describe('loading server groups', function() {
-    it ('adds vpc name', function () {
-      var instanceCounts = {
-        total: 0, up: 0, down: 0, unknown: 0, starting: 0, outOfService: 0,
-      };
-
-      $http.whenGET('/applications/app/serverGroups').respond(200, [
-        {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-east-1',
-          instances: [], instanceCounts: instanceCounts, vpcId: 'vpc-1' },
-        {cluster: 'cluster-a', name: 'cluster-a-v001', account: 'test', region: 'us-west-1',
-          instances: [], instanceCounts: instanceCounts, vpcId: 'vpc-not-found' },
-        {cluster: 'cluster-a', name: 'cluster-a-v002', account: 'test', region: 'us-west-1',
-          instances: [], instanceCounts: instanceCounts },
-      ]);
-      spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([{id: 'vpc-1', name: 'Main'}]));
-
-      var results = null;
-      clusterService.loadServerGroups('app').then(function(result) { results = result; });
-      $http.flush();
-      $scope.$digest();
-
-      expect(results.length).toBe(3);
-      expect(results[0].vpcName).toBe('Main');
-      expect(results[1].vpcName).toBe('');
-      expect(results[2].vpcName).toBe('');
-
-    });
-  });
 
   describe('health count rollups', function() {
     it('aggregates health counts from server groups', function() {

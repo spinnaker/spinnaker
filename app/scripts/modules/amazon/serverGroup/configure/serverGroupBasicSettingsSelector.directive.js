@@ -7,7 +7,7 @@ module.exports = angular
     require('../../../serverGroups/configure/common/basicSettingsMixin.controller.js'),
     require('../../../region/regionSelectField.directive.js'),
     require('../../../account/accountSelectField.directive.js'),
-    require('../../../subnet/subnetSelectField.directive.js'),
+    require('../../subnet/subnetSelectField.directive.js'),
   ])
   .directive('awsServerGroupBasicSettingsSelector', function() {
     return {

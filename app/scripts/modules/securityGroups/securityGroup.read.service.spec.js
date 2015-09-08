@@ -17,18 +17,20 @@ describe('Service: securityGroupReader', function () {
 
   beforeEach(
     window.inject(function (_securityGroupReader_, _infrastructureCaches_, $httpBackend, _settings_,
-                            _$exceptionHandler_, $rootScope, vpcReader, $q) {
+                            _$exceptionHandler_, $rootScope, $q, securityGroupTransformer) {
       securityGroupReader = _securityGroupReader_;
       infrastructureCaches = _infrastructureCaches_;
       $http = $httpBackend;
       settings = _settings_;
       $exceptionHandler = _$exceptionHandler_;
       $scope = $rootScope.$new();
-      spyOn(vpcReader, 'listVpcs').and.returnValue($q.when([ { id: 'vpc-1', name: 'main' }]));
+      spyOn(securityGroupTransformer, 'normalizeSecurityGroup').and.callFake((securityGroup) => {
+        return $q.when(securityGroup);
+      });
     })
   );
 
-  it('attaches account, vpcName fields', function () {
+  it('attaches account', function () {
     var application = {
       serverGroups: [],
       loadBalancers: []
@@ -38,23 +40,21 @@ describe('Service: securityGroupReader', function () {
       { account: 'test',
         securityGroups: {
           'us-east-1': [
-            { name: 'in-vpc', id: 'sg-1', vpcId: 'vpc-1' },
-            { name: 'not-in-vpc', id: 'sg-2', vpcId: null },
+            { name: 'a', id: 'sg-1' },
+            { name: 'b', id: 'sg-2' },
           ]
         }
       }
     ];
 
     var namedBasedGroups = [
-      { account: 'test', region: 'us-east-1', vpcId: 'vpc-1', id: 'sg-1'},
-      { account: 'test', region: 'us-east-1', vpcId: null, id: 'sg-2'}
+      { account: 'test', region: 'us-east-1', id: 'sg-1'},
+      { account: 'test', region: 'us-east-1', id: 'sg-2'}
     ];
 
     securityGroupReader.attachSecurityGroups(application, securityGroups, namedBasedGroups, false);
     $scope.$digest();
-    expect(application.securityGroups[0].vpcName).toBe('main');
     expect(application.securityGroups[0].account).toBe('test');
-    expect(application.securityGroups[1].vpcName).toBe('');
     expect(application.securityGroups[1].account).toBe('test');
   });
 

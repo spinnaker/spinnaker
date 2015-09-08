@@ -3,14 +3,13 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.caches.initializer', [
-  require('../subnet/subnet.read.service.js'),
   require('../loadBalancers/loadBalancer.read.service.js'),
   require('../account/accountService.js'),
   require('../instance/instanceTypeService.js'),
   require('../securityGroups/securityGroup.read.service.js'),
-  require('../subnet/subnet.read.service.js'),
-  require('../vpc/vpc.read.service.js'),
-  require('../keyPairs/keyPairs.read.service.js'),
+  require('../amazon/subnet/subnet.read.service.js'),
+  require('../amazon/vpc/vpc.read.service.js'),
+  require('../amazon/keyPairs/keyPairs.read.service.js'),
   require('../loadBalancers/loadBalancer.read.service.js'),
   require('../applications/applications.read.service.js'),
   require('../jenkins/index.js'),

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.subnet.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../modules/caches/infrastructureCaches.js')
+    require('../../caches/infrastructureCaches.js')
   ])
   .factory('subnetReader', function (Restangular, infrastructureCaches) {
 
