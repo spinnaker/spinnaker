@@ -28,7 +28,7 @@ describe('Controller: renamePipelineModal', function() {
     var pipeline = {
       name: 'foo',
       application: 'myApp',
-      appConfig: null,
+      appConfig: 'appConfig',
       stage: {
         foo: [
           {}
@@ -58,7 +58,7 @@ describe('Controller: renamePipelineModal', function() {
     // name
     expect(converted.name).toBeUndefined();
     expect(converted.application).toBeUndefined();
-    expect(converted.appConfig).toBeUndefined();
+    expect(converted.appConfig).toBe('appConfig');
 
     // hash keys
     expect(converted.stage.$$hashKey).toBeUndefined();
