@@ -50,6 +50,10 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
         } else {
           $scope.securityGroup = details;
 
+          if ($scope.securityGroup.targetTags) {
+            $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(", ");
+          }
+
           accountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {
             $scope.securityGroup.logsLink =
               'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + securityGroup.name;

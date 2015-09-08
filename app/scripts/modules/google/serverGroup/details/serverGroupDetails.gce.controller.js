@@ -58,10 +58,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
         };
 
         if (!_.isEmpty($scope.serverGroup)) {
-          if (details.launchConfig && details.launchConfig.securityGroups) {
-            $scope.securityGroups = _(details.launchConfig.securityGroups).map(function(id) {
-              return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+          if (details.securityGroups) {
+            $scope.securityGroups = _(details.securityGroups).map(function(id) {
+              return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
+                _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
             }).compact().value();
           }
 
