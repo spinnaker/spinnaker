@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
 ])
   .provider('cloudProviderRegistry', function(_) {
 
-    const providers = {};
+    const providers = Object.create(null);
 
     this.registerProvider = (cloudProvider, config) => {
       providers[cloudProvider] = config;
@@ -15,6 +15,10 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
 
     function getProvider(provider) {
       return _.cloneDeep(providers[provider]);
+    }
+
+    function listRegisteredProviders() {
+      return Object.keys(providers);
     }
 
     function getValue(provider, key) {
@@ -50,6 +54,7 @@ module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
       return {
         getProvider: getProvider,
         getValue: getValue,
+        listRegisteredProviders: listRegisteredProviders,
       };
     };
 

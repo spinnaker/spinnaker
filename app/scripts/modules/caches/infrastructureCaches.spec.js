@@ -60,15 +60,12 @@ describe('spinnaker.caches.infrastructure', function() {
 
       infrastructureCaches.createCache('myCache', config);
 
-      expect(this.cacheInstantiations.length).toBe(6);
-      expect(this.cacheInstantiations[0].config.storagePrefix).toBeUndefined();
-      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('myCache', 1));
-      expect(this.cacheInstantiations[2].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
-      expect(this.cacheInstantiations[3].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('myCache', 2));
-      expect(this.cacheInstantiations[4].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
-      expect(this.cacheInstantiations[5].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 2));
-      expect(this.removalCalls.length).toBe(5);
-      expect(this.removalCalls).toEqual(['myCache', 'myCache', 'infrastructure:myCache', 'myCache', 'infrastructure:myCache']);
+      expect(this.cacheInstantiations.length).toBe(3);
+      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
+      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
+      expect(this.cacheInstantiations[2].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 2));
+      expect(this.removalCalls.length).toBe(2);
+      expect(this.removalCalls).toEqual(['infrastructure:myCache', 'infrastructure:myCache']);
 
     });
 
@@ -77,13 +74,11 @@ describe('spinnaker.caches.infrastructure', function() {
         cacheFactory: this.cacheFactory,
       });
 
-      expect(this.cacheInstantiations.length).toBe(4);
-      expect(this.cacheInstantiations[0].config.storagePrefix).toBeUndefined();
-      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('myCache', 1));
-      expect(this.cacheInstantiations[2].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
-      expect(this.cacheInstantiations[3].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
-      expect(this.removalCalls.length).toBe(3);
-      expect(this.removalCalls).toEqual(['myCache', 'myCache', 'infrastructure:myCache']);
+      expect(this.cacheInstantiations.length).toBe(2);
+      expect(this.cacheInstantiations[0].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 0));
+      expect(this.cacheInstantiations[1].config.storagePrefix).toBe(deckCacheFactory.getStoragePrefix('infrastructure:myCache', 1));
+      expect(this.removalCalls.length).toBe(1);
+      expect(this.removalCalls).toEqual(['infrastructure:myCache']);
     });
 
     it('should remove all keys when clearCache called', function() {

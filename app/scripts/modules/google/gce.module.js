@@ -21,11 +21,15 @@ module.exports = angular.module('spinnaker.gce', [
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
   require('./image/image.reader.js'),
+  require('./cache/cacheConfigurer.service.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('gce', {
       logo: {
         path: require('./logo_gce.png'),
+      },
+      cache: {
+        configurer: 'gceCacheConfigurer',
       },
       image: {
         reader: 'gceImageReader',
