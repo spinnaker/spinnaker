@@ -102,22 +102,8 @@ module.exports = angular.module('spinnaker.caches.core', [
     function clearPreviousVersions(namespace, cacheId, currentVersion, cacheFactory) {
       if (currentVersion) {
 
-        // clear non-versioned cache (TODO: remove after 5/15/15)
-        cacheFactory.createCache(cacheId, { storageMode: 'localStorage', });
-        cacheFactory.get(cacheId).removeAll();
-        cacheFactory.get(cacheId).destroy();
-
         // clear previous versions
         for (var i = 0; i < currentVersion; i++) {
-          // non-namespaced (TODO: remove after 5/15/15)
-          cacheFactory.createCache(cacheId, {
-            storageMode: 'localStorage',
-            storagePrefix: getStoragePrefix(cacheId, i+1),
-          });
-          cacheFactory.get(cacheId).removeAll();
-          cacheFactory.get(cacheId).destroy();
-
-          // namespaced
           var key = buildCacheKey(namespace, cacheId);
           if (cacheFactory.get(key)) {
             cacheFactory.get(key).destroy();

@@ -23,11 +23,15 @@ module.exports = angular.module('spinnaker.aws', [
   require('./subnet/subnet.module.js'),
   require('./vpc/vpc.module.js'),
   require('./image/image.reader.js'),
+  require('./cache/cacheConfigurer.service.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
       logo: {
         path: require('./logo_aws.png'),
+      },
+      cache: {
+        configurer: 'awsCacheConfigurer',
       },
       image: {
         reader: 'awsImageReader',
