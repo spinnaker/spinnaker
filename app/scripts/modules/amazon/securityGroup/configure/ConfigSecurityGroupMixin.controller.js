@@ -267,6 +267,11 @@ module.exports = angular
       ruleset.splice(index, 1);
     };
 
+    ctrl.dismissRemovedRules = function() {
+       $scope.state.removedRules = [];
+       modalWizardService.getWizard().markClean('Ingress');
+       modalWizardService.getWizard().markComplete('Ingress');
+    };
 
     var classicPattern = /^[\x00-\x7F]+$/;
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;

@@ -10,7 +10,7 @@
               <li ng-repeat="securityGroup in state.removedRules">{{securityGroup}}</li>
             </ul>
             <p class="text-right">
-              <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="state.removedRules = []">Okay</a>
+              <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.dismissRemovedRules()">Okay</a>
             </p>
           </div>
         </div>
