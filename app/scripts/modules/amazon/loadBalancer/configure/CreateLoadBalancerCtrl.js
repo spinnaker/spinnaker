@@ -100,7 +100,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function initializeLoadBalancerNames() {
-      loadBalancerReader.listAWSLoadBalancers().then(function(loadBalancers) {
+      loadBalancerReader.listLoadBalancers('aws').then(function(loadBalancers) {
         loadBalancers.forEach((loadBalancer) => {
           loadBalancer.accounts.forEach((account) => {
             var accountName = account.name;

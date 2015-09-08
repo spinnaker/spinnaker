@@ -92,7 +92,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     it ('attempts to reload load balancers if some are not found on initialization, but does not set dirty flag', function () {
       spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
-      spyOn(loadBalancerReader, 'listAWSLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
+      spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
       spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
@@ -115,7 +115,7 @@ describe('Service: awsServerGroupConfiguration', function () {
 
       expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('loadBalancers');
       expect(cacheInitializer.refreshCache.calls.count()).toBe(1);
-      expect(loadBalancerReader.listAWSLoadBalancers.calls.count()).toBe(2);
+      expect(loadBalancerReader.listLoadBalancers.calls.count()).toBe(2);
       expect(command.dirty).toBeUndefined();
 
     });
@@ -123,7 +123,7 @@ describe('Service: awsServerGroupConfiguration', function () {
     it ('attempts to reload security groups if some are not found on initialization, but does not set dirty flag', function () {
       spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
-      spyOn(loadBalancerReader, 'listAWSLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
+      spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when(this.allLoadBalancers));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
       spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
       spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));

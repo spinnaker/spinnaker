@@ -28,25 +28,17 @@ module.exports = angular
       return Restangular.one('loadBalancers').one(account).one(region).one(name).get({'provider': provider});
     }
 
-    function listAWSLoadBalancers() {
+    function listLoadBalancers(provider) {
       return Restangular
         .all('loadBalancers')
         .withHttpConfig({cache: infrastructureCaches.loadBalancers})
-        .getList({provider: 'aws'});
-    }
-
-    function listGCELoadBalancers() {
-      return Restangular
-        .all('loadBalancers')
-        .withHttpConfig({cache: infrastructureCaches.loadBalancers})
-        .getList({provider: 'gce'});
+        .getList({provider: provider});
     }
 
     return {
       loadLoadBalancers: loadLoadBalancers,
       getLoadBalancerDetails: getLoadBalancerDetails,
-      listAWSLoadBalancers: listAWSLoadBalancers,
-      listGCELoadBalancers: listGCELoadBalancers
+      listLoadBalancers: listLoadBalancers,
     };
 
   })

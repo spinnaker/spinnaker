@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       command.image = command.viewState.imageId;
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
-        loadBalancers: loadBalancerReader.listGCELoadBalancers(),
+        loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         images: gceImageReader.findImages({provider: 'gce'}),
       }).then(function(loader) {
@@ -108,7 +108,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
     function refreshLoadBalancers(command) {
       return cacheInitializer.refreshCache('loadBalancers').then(function() {
-        return loadBalancerReader.listGCELoadBalancers().then(function(loadBalancers) {
+        return loadBalancerReader.listLoadBalancers('gce').then(function(loadBalancers) {
           command.backingData.loadBalancers = loadBalancers;
           configureLoadBalancerOptions(command);
         });
