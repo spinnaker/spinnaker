@@ -16,14 +16,14 @@ describe('Controller: awsCloneServerGroup', function () {
   );
 
   beforeEach(function() {
-    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageService, settings,
+    window.inject(function ($controller, $rootScope, accountService, serverGroupWriter, awsImageReader, settings,
                      searchService, awsInstanceTypeService, modalWizardService, securityGroupReader, taskMonitorService,
                      awsServerGroupConfigurationService, $q, subnetReader, keyPairsReader, loadBalancerReader) {
 
       this.$scope = $rootScope.$new();
       this.accountService = accountService;
       this.serverGroupWriter = serverGroupWriter;
-      this.awsImageService = awsImageService;
+      this.awsImageReader = awsImageReader;
       this.searchService = searchService;
       this.awsInstanceTypeService = awsInstanceTypeService;
       this.modalWizardService = modalWizardService;
@@ -96,7 +96,7 @@ describe('Controller: awsCloneServerGroup', function () {
           $modalInstance: this.modalInstance,
           accountService: this.accountService,
           serverGroupWriter: this.serverGroupWriter,
-          awsImageService: this.awsImageService,
+          awsImageReader: this.awsImageReader,
           searchService: this.searchService,
           awsInstanceTypeService: this.awsInstanceTypeService,
           modalWizardService: this.modalWizardService,
@@ -120,7 +120,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
       spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
-      spyOn(this.awsImageService, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
@@ -245,7 +245,7 @@ describe('Controller: awsCloneServerGroup', function () {
       var $scope = this.$scope;
       setupMocks.bind(this).call();
 
-      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));
 
       initController(this.buildBaseNew());
 
@@ -261,7 +261,7 @@ describe('Controller: awsCloneServerGroup', function () {
         ];
       setupMocks.bind(this).call();
 
-      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve(regionalImages));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve(regionalImages));
 
       initController(this.buildBaseNew());
 
@@ -282,7 +282,7 @@ describe('Controller: awsCloneServerGroup', function () {
 
       serverGroup.region = 'us-east-1';
 
-      spyOn(this.awsImageService, 'findImages').and.callFake(function (params) {
+      spyOn(this.awsImageReader, 'findImages').and.callFake(function (params) {
         if (params.q === 'something-*') {
           return context.resolve(packageBasedImages).call();
         } else {
@@ -290,15 +290,15 @@ describe('Controller: awsCloneServerGroup', function () {
         }
       });
 
-      spyOn(this.awsImageService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
+      spyOn(this.awsImageReader, 'getImage').and.callFake(this.resolve(amiBasedImage));
 
       initController(serverGroup);
 
       $scope.$digest();
 
       expect($scope.command.viewState.useAllImageSelection).toBeFalsy();
-      expect(this.awsImageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
-      expect(this.awsImageService.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
+      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageReader.findImages).toHaveBeenCalledWith({provider: 'aws', q: 'something-*'});
 
       expect($scope.command.backingData.filtered.images.length).toBe(1);
       expect($scope.command.backingData.filtered.images[0]).toEqual({imageName: 'something-packagebase-something-something', ami: 'ami-1234'});
@@ -315,14 +315,14 @@ describe('Controller: awsCloneServerGroup', function () {
 
       serverGroup.region = 'us-east-1';
 
-      spyOn(this.awsImageService, 'findImages');
+      spyOn(this.awsImageReader, 'findImages');
 
-      spyOn(this.awsImageService, 'getAmi').and.callFake(this.resolve(amiBasedImage));
+      spyOn(this.awsImageReader, 'getImage').and.callFake(this.resolve(amiBasedImage));
 
       initController(serverGroup);
       $scope.$digest();
 
-      expect(this.awsImageService.findImages).not.toHaveBeenCalled();
+      expect(this.awsImageReader.findImages).not.toHaveBeenCalled();
       expect($scope.command.backingData.filtered.images.length).toBe(1);
       expect($scope.command.backingData.filtered.images[0].imageName).toBe(amiBasedImage.imageName);
     });
@@ -332,15 +332,15 @@ describe('Controller: awsCloneServerGroup', function () {
         serverGroup = this.buildBaseClone();
       setupMocks.bind(this).call();
 
-      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
-      spyOn(this.awsImageService, 'getAmi').and.callFake(this.reject(null));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageReader, 'getImage').and.callFake(this.reject(null));
 
       initController(serverGroup);
 
       $scope.$digest();
 
       expect($scope.command.viewState.useAllImageSelection).toBe(true);
-      expect(this.awsImageService.getAmi).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
+      expect(this.awsImageReader.getImage).toHaveBeenCalledWith(serverGroup.viewState.imageId, serverGroup.region, serverGroup.credentials);
       expect($scope.command.backingData.filtered.images).toEqual([]);
     });
 
@@ -349,8 +349,8 @@ describe('Controller: awsCloneServerGroup', function () {
 
       setupMocks.bind(this).call();
 
-      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
-      spyOn(this.awsImageService, 'getAmi').and.callFake(this.reject(null));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageReader, 'getImage').and.callFake(this.reject(null));
 
       initController(this.buildBaseNew());
 
@@ -395,8 +395,8 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
       spyOn(this.awsInstanceTypeService, 'getAllTypesByRegion').and.callFake(resolve([]));
       spyOn(this.awsInstanceTypeService, 'getAvailableTypesForRegions').and.callFake(resolve([]));
-      spyOn(this.awsImageService, 'findImages').and.callFake(this.resolve([]));
-      spyOn(this.awsImageService, 'getAmi').and.callFake(this.reject(null));
+      spyOn(this.awsImageReader, 'findImages').and.callFake(this.resolve([]));
+      spyOn(this.awsImageReader, 'getImage').and.callFake(this.reject(null));
 
       spyOn(this.serverGroupWriter, 'cloneServerGroup').and.callFake(function(command, applicationName, description) {
         spec.submitted = {

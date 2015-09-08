@@ -21,12 +21,12 @@ module.exports = angular
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })
-  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageService, namingService, $modalStack, $state) {
+  .controller('ServerGroupBasicSettingsSelectorCtrl', function($scope, $controller, RxService, imageReader, namingService, $modalStack, $state) {
 
     angular.extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,
       RxService: RxService,
-      imageService: imageService,
+      imageReader: imageReader,
       namingService: namingService,
       $modalStack: $modalStack,
       $state: $state,

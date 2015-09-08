@@ -16,20 +16,20 @@
 
 'use strict';
 
-describe('Service: ImageService', function() {
+describe('Service: aws Image Reader', function() {
 
   var service, $http, scope, timeout;
 
   beforeEach(
     window.module(
-      require('./imageService.js')
+      require('./image.reader.js')
     )
   );
 
 
-  beforeEach(window.inject(function (imageService, $httpBackend, $rootScope, $timeout) {
+  beforeEach(window.inject(function (awsImageReader, $httpBackend, $rootScope, $timeout) {
 
-    service = imageService;
+    service = awsImageReader;
     $http = $httpBackend;
     timeout = $timeout;
     scope = $rootScope.$new();
@@ -119,7 +119,7 @@ describe('Service: ImageService', function() {
     });
   });
 
-  describe('getAmi', function() {
+  describe('getImage', function() {
     var imageName = 'abc', region = 'us-west-1', credentials = 'test';
 
     function buildQueryString() {
@@ -131,7 +131,7 @@ describe('Service: ImageService', function() {
 
       $http.when('GET', buildQueryString()).respond(404, {});
 
-      service.getAmi('aws', imageName, region, credentials).then(function(results) {
+      service.getImage(imageName, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -143,7 +143,7 @@ describe('Service: ImageService', function() {
 
       $http.when('GET', buildQueryString()).respond(200, []);
 
-      service.getAmi('aws', imageName, region, credentials).then(function(results) {
+      service.getImage(imageName, region, credentials).then(function(results) {
         result = results;
       });
 
@@ -152,5 +152,4 @@ describe('Service: ImageService', function() {
       expect(result).toBe(null);
     });
   });
-
 });

@@ -2,12 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.aws.image.service', [
+module.exports = angular.module('spinnaker.aws.image.reader', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../caches/deckCacheFactory.js'),
-  require('../caches/scheduledCache.js'),
 ])
-  .factory('awsImageService', function ($q, Restangular) {
+  .factory('awsImageReader', function ($q, Restangular) {
 
     function findImages(params) {
       if (!params.q || params.q.length < 3) {
@@ -22,7 +20,7 @@ module.exports = angular.module('spinnaker.aws.image.service', [
         });
     }
 
-    function getAmi(amiName, region, credentials) {
+    function getImage(amiName, region, credentials) {
       return Restangular.all('images').one(credentials).one(region).all(amiName).getList({provider: 'aws'}).then(function(results) {
           return results && results.length ? results[0] : null;
         },
@@ -33,6 +31,6 @@ module.exports = angular.module('spinnaker.aws.image.service', [
 
     return {
       findImages: findImages,
-      getAmi: getAmi,
+      getImage: getImage,
     };
   }).name;

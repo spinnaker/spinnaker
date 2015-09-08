@@ -7,10 +7,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
-  require('../../../image/gceImageService.js'),
+  require('../../image/image.reader.js'),
   require('../../instance/gceInstanceTypeService.js'),
 ])
-  .factory('gceServerGroupConfigurationService', function(gceImageService, accountService, securityGroupReader,
+  .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, _) {
 
@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
         loadBalancers: loadBalancerReader.listGCELoadBalancers(),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
-        images: gceImageService.findImages({provider: 'gce'}),
+        images: gceImageReader.findImages({provider: 'gce'}),
       }).then(function(loader) {
         loader.accounts = _.keys(loader.regionsKeyedByAccount);
         loader.filtered = {};
