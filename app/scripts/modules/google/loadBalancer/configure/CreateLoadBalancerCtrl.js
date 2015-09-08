@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     }
 
     function initializeLoadBalancerNames() {
-      loadBalancerReader.listGCELoadBalancers().then(function (loadBalancers) {
+      loadBalancerReader.listLoadBalancers('gce').then(function (loadBalancers) {
         loadBalancers.forEach((loadBalancer) => {
           loadBalancer.accounts.forEach((account) => {
             var accountName = account.name;

@@ -39,7 +39,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('aws'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
-        loadBalancers: loadBalancerReader.listAWSLoadBalancers(),
+        loadBalancers: loadBalancerReader.listLoadBalancers('aws'),
         subnets: subnetReader.listSubnets(),
         preferredZones: accountService.getPreferredZonesByAccount(),
         keyPairs: keyPairsReader.listKeyPairs(),
@@ -293,7 +293,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('loadBalancers').then(function() {
-        return loadBalancerReader.listAWSLoadBalancers().then(function (loadBalancers) {
+        return loadBalancerReader.listLoadBalancers('aws').then(function (loadBalancers) {
           command.backingData.loadBalancers = loadBalancers;
           if (!skipCommandReconfiguration) {
             configureLoadBalancerOptions(command);

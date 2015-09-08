@@ -119,7 +119,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
-      spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
       spyOn(this.awsImageReader, 'findImages').and.callFake(resolve([{amis: {'us-east-1': []}}]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
@@ -233,7 +233,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
-      spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);
@@ -389,7 +389,7 @@ describe('Controller: awsCloneServerGroup', function () {
       spyOn(this.subnetReader, 'listSubnets').and.callFake(resolve([]));
       spyOn(this.keyPairsReader, 'listKeyPairs').and.callFake(resolve([]));
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.callFake(resolve(securityGroupReaderFixture.allSecurityGroups));
-      spyOn(this.loadBalancerReader, 'listAWSLoadBalancers').and.callFake(resolve([]));
+      spyOn(this.loadBalancerReader, 'listLoadBalancers').and.callFake(resolve([]));
 
       spyOn(this.searchService, 'search').and.callFake(resolve({results: []}));
       spyOn(this.modalWizardService, 'getWizard').and.returnValue(this.wizard);

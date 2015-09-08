@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.caches.initializer', [
     var initializers = {
       credentials: [accountService.getRegionsKeyedByAccount, accountService.listAccounts],
       instanceTypes: [ function() { return instanceTypeService.getAllTypesByRegion('aws'); }],
-      loadBalancers: [loadBalancerReader.listAWSLoadBalancers],
+      loadBalancers: [ function() { return loadBalancerReader.listLoadBalancers('aws'); }],
       securityGroups: [securityGroupReader.getAllSecurityGroups],
       subnets: [subnetReader.listSubnets],
       vpcs: [vpcReader.listVpcs],
