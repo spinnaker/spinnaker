@@ -197,31 +197,69 @@
         <div class="row">
   <div class="col-xs-12 toc-page not-ready">
     <ul id="markdown-toc">
-  <li><a href="#integration-guide" id="markdown-toc-integration-guide">Integration Guide</a>    <ul>
-      <li><a href="#spinnaker-api" id="markdown-toc-spinnaker-api">Spinnaker API</a></li>
-      <li><a href="#spinnaker-events" id="markdown-toc-spinnaker-events">Spinnaker Events</a></li>
-      <li><a href="#jenkins-integration" id="markdown-toc-jenkins-integration">Jenkins Integration</a></li>
+  <li><a href="#spinnaker-api" id="markdown-toc-spinnaker-api">Spinnaker API</a></li>
+  <li><a href="#spinnaker-events" id="markdown-toc-spinnaker-events">Spinnaker Events</a></li>
+  <li><a href="#jenkins-integration" id="markdown-toc-jenkins-integration">Jenkins Integration</a>    <ul>
+      <li><a href="#configuration" id="markdown-toc-configuration">Configuration</a></li>
+      <li><a href="#jenkins-builds-as-pipeline-triggers" id="markdown-toc-jenkins-builds-as-pipeline-triggers">Jenkins Builds as pipeline triggers</a></li>
+      <li><a href="#triggering-jenkins-jobs" id="markdown-toc-triggering-jenkins-jobs">Triggering Jenkins Jobs</a></li>
     </ul>
   </li>
 </ul>
 
-<h1 id="integration-guide">Integration Guide</h1>
+<h1>Integration Guide</h1>
 
 <p>This guide provides information on how Spinnaker can be integrated with third party services. It documents both existing integrations ( stash, jenkins, etc ) as well as options for connecting to new systems.</p>
 
-<h2 id="spinnaker-api">Spinnaker API</h2>
+<h1 id="spinnaker-api">Spinnaker API</h1>
 
-<h2 id="spinnaker-events">Spinnaker Events</h2>
+<h1 id="spinnaker-events">Spinnaker Events</h1>
 
-<h2 id="jenkins-integration">Jenkins Integration</h2>
+<h1 id="jenkins-integration">Jenkins Integration</h1>
 
 <p>Spinnaker integrates with Jenkins via the <a href="https://www.github.com/spinnaker/igor">Igor</a> microservice.</p>
 
-<h3 id="configuration">Configuration</h3>
+<p>Most commonly, jenkins builds are integrated into Spinnaker as either pipeline triggers or jenkins stages.</p>
 
-<h3 id="new-build-detection">New build detection</h3>
+<ul>
+  <li><em>Pipeline triggers</em> launch a pipeline execution when a jenkins build has finished.</li>
+  <li><em>Jenkins stages</em>, in contrast, launch new jenkins job executions at specific points in the Spinnaker pipeline.</li>
+</ul>
 
-<h3 id="passing-information-to-spinnaker-via-property-files">Passing information to Spinnaker via property files</h3>
+<h2 id="configuration">Configuration</h2>
+
+<p>Igor serves as an interface to multiple jenkins hosts. To configure the list of jenkins masters, you need to modify the igor.yml file that contains the configurations.</p>
+
+<p>Below is an example of two jenkins hosts configured for use in Spinnaker:</p>
+
+<pre><code>jenkins:
+  masters:
+    -
+      address: "http://spinhost.builds.example.net/"
+      name: spinnakerhost
+      password: f5e42494586b86687399aa5780eb2222
+      username: foo
+    -
+      address: "http://spinhost2.anotherexample.net/"
+      name: anotherhost
+      password: a56761f6a117022008e3c44396937f24
+      username: bar
+</code></pre>
+
+<p>In this example, we have two jenkins hosts. These will appear as <em>spinnakerhost</em> and <em>anotherhost</em> wherever the Spinnaker UI allows you to select a jenkins host.</p>
+
+<p>The username and password combination are used to identify the user accessing the jenkins host via its API. The user should have permissions to post new jobs if jenkins stages are being used in pipelines.</p>
+
+<p>Although Spinnaker allows you to specify the password you use to login to your Jenkins host, we recommend using an API token to access your build. The API token can be retrieved after login on your jenkins server through http://[my.jenkins.host]/user/[username]/configure. The value is under the heading “API Token”.</p>
+
+<h2 id="jenkins-builds-as-pipeline-triggers">Jenkins Builds as pipeline triggers</h2>
+
+<h3 id="understanding-artifacts-and-the-bake-stage">Understanding artifacts and the bake stage</h3>
+
+<h3 id="passing-information-via-property-files">Passing information via property files</h3>
+
+<h2 id="triggering-jenkins-jobs">Triggering Jenkins Jobs</h2>
+
 
     
     <div class="row row-gap-medium"></div>
