@@ -22,11 +22,15 @@ module.exports = angular.module('spinnaker.aws', [
   require('./securityGroup/securityGroup.transformer.js'),
   require('./subnet/subnet.module.js'),
   require('./vpc/vpc.module.js'),
+  require('./image/image.reader.js'),
 ])
   .config(function(cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('aws', {
       logo: {
         path: require('./logo_aws.png'),
+      },
+      image: {
+        reader: 'awsImageReader',
       },
       serverGroup: {
         transformer: 'awsServerGroupTransformer',

@@ -9,9 +9,9 @@ module.exports = angular
     require('../../../utils/rx.js'),
     require('../../../utils/lodash.js'),
     require('../../../naming/naming.service.js'),
-    require('../../../image/imageService.js')
+    require('../../../image/image.reader.js')
   ])
-  .controller('BasicSettingsMixin', function ($scope, RxService, imageService, namingService, $modalStack, $state, _) {
+  .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $modalStack, $state, _) {
     function searchImages(q) {
       $scope.allImageSearchResults = [
         {
@@ -19,7 +19,7 @@ module.exports = angular
         }
       ];
       return RxService.Observable.fromPromise(
-        imageService.findImages({
+        imageReader.findImages({
           provider: $scope.command.selectedProvider,
           q: q,
           region: $scope.command.region

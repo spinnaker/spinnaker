@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
-  require('../../../image/awsImageService.js'),
+  require('../../image/image.reader.js'),
   require('../../../account/accountService.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../instance/awsInstanceTypeService.js'),
@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../../caches/cacheInitializer.js'),
   require('../../../utils/lodash.js'),
 ])
-  .factory('awsServerGroupConfigurationService', function($q, awsImageService, accountService, securityGroupReader,
+  .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,
                                                           awsInstanceTypeService, cacheInitializer,
                                                           subnetReader, keyPairsReader, loadBalancerReader, _) {
 
@@ -76,14 +76,14 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function loadImagesFromApplicationName(application, provider) {
-      return awsImageService.findImages({
+      return awsImageReader.findImages({
         provider: provider,
         q: application.name.replace(/_/g, '[_\\-]') + '*',
       });
     }
 
     function loadImagesFromAmi(command) {
-      return awsImageService.getAmi(command.viewState.imageId, command.region, command.credentials).then(
+      return awsImageReader.getImage(command.viewState.imageId, command.region, command.credentials).then(
         function (namedImage) {
           if (!namedImage) {
             return [];
@@ -99,7 +99,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
             return [namedImage];
           }
 
-          return awsImageService.findImages({
+          return awsImageReader.findImages({
             provider: command.selectedProvider,
             q: packageBase + '-*',
           });
