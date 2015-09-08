@@ -5,8 +5,8 @@ let angular = require('angular');
 require('./bleskOverrides.css');
 
 // TODO: Move to external plugins
-module.exports = angular.module('spinnaker.blesk', [
-  require('../config/settings.js'),
+module.exports = angular.module('spinnaker.netflix.blesk', [
+  require('../../config/settings.js'),
 ])
   .factory('blesk', function() {
     function initialize() {
