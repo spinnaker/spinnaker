@@ -54,44 +54,48 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
 
   @Override
   Set<GoogleSecurityGroup> getAll(boolean includeRules) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', '*'), includeRules)
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByRegion(boolean includeRules, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, '*'))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, '*'), includeRules)
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccount(boolean includeRules, String account) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', account))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', '*', account), includeRules)
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndName(boolean includeRules, String account, String name) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', '*', account))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', '*', account), includeRules)
   }
 
   @Override
   Set<GoogleSecurityGroup> getAllByAccountAndRegion(boolean includeRules, String account, String region) {
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, account))
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, '*', '*', region, account), includeRules)
   }
 
   @Override
   GoogleSecurityGroup get(String account, String region, String name, String vpcId) {
     // We ignore vpcId here.
-    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', region, account))[0]
+    getAllMatchingKeyPattern(Keys.getSecurityGroupKey(googleCloudProvider, name, '*', region, account), true)[0]
   }
 
-  Set<GoogleSecurityGroup> getAllMatchingKeyPattern(String pattern) {
-    loadResults(cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
+  Set<GoogleSecurityGroup> getAllMatchingKeyPattern(String pattern, boolean includeRules) {
+    loadResults(includeRules, cacheView.filterIdentifiers(SECURITY_GROUPS.ns, pattern))
   }
 
-  Set<GoogleSecurityGroup> loadResults(Collection<String> identifiers) {
-    cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none()).collect(this.&fromCacheData)
+  Set<GoogleSecurityGroup> loadResults(boolean includeRules, Collection<String> identifiers) {
+    def transform = this.&fromCacheData.curry(includeRules)
+    def data = cacheView.getAll(SECURITY_GROUPS.ns, identifiers, RelationshipCacheFilter.none())
+    def transformed = data.collect(transform)
+
+    return transformed
   }
 
-  GoogleSecurityGroup fromCacheData(CacheData cacheData) {
+  GoogleSecurityGroup fromCacheData(boolean includeRules, CacheData cacheData) {
     if (!(cacheData.attributes.firewall.id instanceof BigInteger)) {
       cacheData.attributes.firewall.id = new BigInteger(cacheData.attributes.firewall.id)
     }
@@ -99,10 +103,12 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     Firewall firewall = objectMapper.convertValue(cacheData.attributes.firewall, Firewall)
     Map<String, String> parts = Keys.parse(googleCloudProvider, cacheData.id)
 
-    return convertToGoogleSecurityGroup(firewall, parts.account, parts.region)
+    return convertToGoogleSecurityGroup(includeRules, firewall, parts.account, parts.region)
   }
 
-  private GoogleSecurityGroup convertToGoogleSecurityGroup(Firewall firewall, String account, String region) {
+  private GoogleSecurityGroup convertToGoogleSecurityGroup(boolean includeRules, Firewall firewall, String account, String region) {
+    List<Rule> inboundRules = includeRules ? buildInboundIpRangeRules(firewall) : []
+
     new GoogleSecurityGroup(
       type: googleCloudProvider.id,
       id: firewall.name,
@@ -112,7 +118,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       region: region,
       network: getLocalName(firewall.network),
       targetTags: firewall.targetTags,
-      inboundRules: buildInboundIpRangeRules(firewall)
+      inboundRules: inboundRules
     )
   }
 
