@@ -5,7 +5,7 @@ describe('Filter: ipSort', function() {
 
   beforeEach(
     window.module(
-      require('./ip.sort.filter')
+      require('./ip.sort.filter.js')
     )
   );
 

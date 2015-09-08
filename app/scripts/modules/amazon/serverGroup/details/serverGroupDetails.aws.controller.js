@@ -19,6 +19,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scheduledAction/scheduledAction.directive.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
+  require('./networking/networking.module.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
