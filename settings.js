@@ -4,10 +4,12 @@ let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/su
 let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
 let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
 
+let protocol = process.env.PROTOCOL || 'https';
+
 window.spinnakerSettings = {
   feedbackUrl: feedbackUrl,
-  gateUrl: `https://${gateHost}`,
-  authEndpoint: `https://${authEndpoint}`,
+  gateUrl: `${protocol}://${gateHost}`,
+  authEndpoint: `${protocol}://${authEndpoint}`,
   pollSchedule: 30000,
   defaultTimeZone: 'America/Los_Angeles', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
