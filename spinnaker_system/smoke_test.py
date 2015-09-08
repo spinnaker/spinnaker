@@ -161,7 +161,8 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
          .contains_group(
             [jc.PathContainsPredicate('name', '%s-hc' % load_balancer_name),
              jc.DICT_SUBSET(spec)]))
-    (builder.new_clause_builder('Target Pool Added')
+    (builder.new_clause_builder('Target Pool Added',
+                                retryable_for_secs=30)
          .list_resources('target-pools')
          .contains('name', '%s-tp' % load_balancer_name))
     (builder.new_clause_builder('Forwarding Rules Added',
