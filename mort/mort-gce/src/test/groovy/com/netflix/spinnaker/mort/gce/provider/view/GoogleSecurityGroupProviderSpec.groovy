@@ -148,6 +148,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         id: 'name-a',
         name: 'name-a',
         network: 'default',
+        targetTags: ['tag-1', 'tag-2'],
         description: 'a',
         accountName: account,
         region: region,
@@ -258,6 +259,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
           name: 'name-a',
           id: 6614377178691015951,
           network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          targetTags: ['tag-1', 'tag-2'],
           description: 'a',
           sourceRanges: ['192.168.2.0/24'],
           allowed: [

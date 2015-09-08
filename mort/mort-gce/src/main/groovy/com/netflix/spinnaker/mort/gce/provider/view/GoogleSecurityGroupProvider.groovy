@@ -111,6 +111,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       accountName: account,
       region: region,
       network: getLocalName(firewall.network),
+      targetTags: firewall.targetTags,
       inboundRules: buildInboundIpRangeRules(firewall)
     )
   }

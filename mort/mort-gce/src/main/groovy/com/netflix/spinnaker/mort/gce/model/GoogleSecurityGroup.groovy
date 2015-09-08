@@ -32,6 +32,7 @@ class GoogleSecurityGroup implements SecurityGroup {
   final String accountName
   final String region
   final String network
+  final List<String> targetTags
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
 }
