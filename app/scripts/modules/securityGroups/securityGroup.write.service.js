@@ -26,18 +26,15 @@ module.exports = angular
       return operation;
     }
 
-    function deleteSecurityGroup(securityGroup, application) {
+    function deleteSecurityGroup(securityGroup, application, params={}) {
+      params.type = 'deleteSecurityGroup';
+      params.securityGroupName = securityGroup.name;
+      params.regions = [securityGroup.region];
+      params.credentials = securityGroup.accountName;
+      params.providerType = securityGroup.providerType;
+
       var operation = taskExecutor.executeTask({
-        job: [
-          {
-            type: 'deleteSecurityGroup',
-            securityGroupName: securityGroup.name,
-            regions: [securityGroup.region],
-            credentials: securityGroup.accountName,
-            providerType: securityGroup.providerType,
-            vpcId: securityGroup.vpcId
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountName + ':' + securityGroup.region
       });
