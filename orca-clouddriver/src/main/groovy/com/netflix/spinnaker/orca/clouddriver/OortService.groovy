@@ -26,23 +26,38 @@ import retrofit.http.Query
 
 interface OortService {
   @GET("/applications/{app}/clusters/{account}/{cluster}/{type}")
-  Response getCluster(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
+  Response getCluster(@Path("app") String app,
+                      @Path("account") String account,
+                      @Path("cluster") String cluster,
                       @Path("type") String type)
 
   @GET("/applications/{app}/clusters/{account}/{cluster}/{type}/serverGroups/{serverGroup}")
-  Response getServerGroup(@Path("app") String app, @Path("account") String account, @Path("cluster") String cluster,
-                          @Path("serverGroup") String serverGroup, @Query("region") String region,
+  Response getServerGroup(@Path("app") String app,
+                          @Path("account") String account,
+                          @Path("cluster") String cluster,
+                          @Path("serverGroup") String serverGroup,
+                          @Query("region") String region,
                           @Path("type") String type)
 
+  @GET("/applications/{app}/clusters/{account}/{cluster}/{cloudProvider}/{scope}/serverGroups/target/{target}")
+  Response getTargetServerGroup(@Path("app") String app,
+                                @Path("account") String account,
+                                @Path("cluster") String cluster,
+                                @Path("cloudProvider") String cloudProvider,
+                                @Path("scope") String scope,
+                                @Path("target") String target)
+
   @GET("/search")
-  Response getSearchResults(@Query("q") String searchTerm, @Query("type") String type,
+  Response getSearchResults(@Query("q") String searchTerm,
+                            @Query("type") String type,
                             @Query("platform") String platform)
 
   @GET("/applications/{app}")
   Response getApplication(@Path("app") String app)
 
   @GET("/instances/{account}/{region}/{instanceId}")
-  Response getInstance(@Path("account") String account, @Path("region") String region,
+  Response getInstance(@Path("account") String account,
+                       @Path("region") String region,
                        @Path("instanceId") String instanceId)
 
   @GET("/{provider}/loadBalancers/{account}/{region}/{name}")
@@ -64,5 +79,8 @@ interface OortService {
                             @Body Map<String, ? extends Object> data)
 
   @GET("/{type}/images/{account}/{region}/{imageId}")
-  Response getByAmiId(@Path("type") String type, @Path("account") String account, @Path("region") String region, @Path("imageId") imageId)
+  Response getByAmiId(@Path("type") String type,
+                      @Path("account") String account,
+                      @Path("region") String region,
+                      @Path("imageId") imageId)
 }
