@@ -168,8 +168,11 @@ titan:
   enabled: ${TITAN_ENABLED:false}
 
 cf:
-  enabled: ${CF_ENABLED:false}
-
+  enabled: false
+  accounts:
+    -
+      name: ${CF_ACCOUNT_NAME}
+      password: ${CF_PASSWORD}
 
 ---
 

@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.web.filter.ShallowEtagHeaderFilter
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
@@ -67,4 +68,11 @@ public class WebConfig extends WebMvcConfigurerAdapter {
   Filter corsFilter() {
     new SimpleCORSFilter()
   }
+
+  @Override
+  void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    super.configureContentNegotiation(configurer)
+    configurer.favorPathExtension(false);
+  }
+
 }

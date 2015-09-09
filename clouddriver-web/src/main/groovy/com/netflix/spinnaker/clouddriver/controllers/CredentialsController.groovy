@@ -45,7 +45,7 @@ class CredentialsController {
     }
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   AccountCredentials getAccount(@PathVariable("name") String name) {
     accountCredentialsProvider.getCredentials name
   }

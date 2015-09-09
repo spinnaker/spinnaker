@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014-2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
+import com.netflix.spinnaker.clouddriver.cf.config.CloudFoundryConfig
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
@@ -43,6 +44,7 @@ import java.security.Security
   AwsConfiguration,
   TitanConfiguration,
   GoogleConfiguration,
+  CloudFoundryConfig,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
   com.netflix.spinnaker.oort.Main
@@ -86,7 +88,6 @@ class Main extends SpringBootServletInitializer {
   SpringApplicationBuilder configure(SpringApplicationBuilder application) {
     application.sources Main
   }
-
 
 }
 

@@ -55,7 +55,7 @@ class ClusterController {
     clusterNames
   }
 
-  @RequestMapping(value = "/{account}")
+  @RequestMapping(value = "/{account:.+}")
   Set<ClusterViewModel> getForAccount(@PathVariable String application, @PathVariable String account) {
     def clusters = (Set<ClusterViewModel>) clusterProviders.collect {
       def clusters = (Set<Cluster>) it.getClusters(application, account)
@@ -76,7 +76,7 @@ class ClusterController {
   }
 
 
-  @RequestMapping(value = "/{account}/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account:.+}/{name:.+}", method = RequestMethod.GET)
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,
                                     @PathVariable String name) {
@@ -90,7 +90,7 @@ class ClusterController {
     clusters
   }
 
-  @RequestMapping(value = "/{account}/{name}/{type}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account:.+}/{name:.+}/{type}", method = RequestMethod.GET)
   Cluster getForAccountAndNameAndType(@PathVariable String application,
                                       @PathVariable String account,
                                       @PathVariable String name,
@@ -103,7 +103,7 @@ class ClusterController {
     cluster
   }
 
-  @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{type}/serverGroups", method = RequestMethod.GET)
   Set<ServerGroup> getServerGroups(@PathVariable String application,
                                    @PathVariable String account,
                                    @PathVariable String clusterName,
@@ -114,7 +114,7 @@ class ClusterController {
     results ?: []
   }
 
-  @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{type}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
   def getServerGroup(@PathVariable String application,
                      @PathVariable String account,
                      @PathVariable String clusterName,
@@ -135,7 +135,7 @@ class ClusterController {
    * @param scope Should be either a region or zone, depending on the cloud provider.
    * @return A dynamically determined server group using a {@code TargetServerGroup} specifier.
    */
-  @RequestMapping(value = "/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{account:.+}/{clusterName:.+}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
   ServerGroup getTargetServerGroup(@PathVariable String application,
                                    @PathVariable String account,
                                    @PathVariable String clusterName,

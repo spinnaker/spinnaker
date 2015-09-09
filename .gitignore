@@ -9,3 +9,4 @@ TestScript.groovy
 .idea/
 application.yml
 *.hprof
+README.html
