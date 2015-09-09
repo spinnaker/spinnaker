@@ -4,11 +4,12 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.loadBalancer.write.service', [
+    require('../utils/lodash.js'),
     require('../tasks/taskExecutor.js'),
     require('../caches/infrastructureCaches.js'),
     require('../caches/scheduledCache.js')
   ])
-  .factory('loadBalancerWriter', function(infrastructureCaches, taskExecutor) {
+  .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 
     function deleteLoadBalancer(loadBalancer, application, params={}) {
       params.type = 'deleteLoadBalancer';
@@ -29,7 +30,7 @@ module.exports = angular
     }
 
 
-    function upsertLoadBalancer(loadBalancer, application, descriptor) {
+    function upsertLoadBalancer(loadBalancer, application, descriptor, params={}) {
       var name = loadBalancer.clusterName || loadBalancer.name;
       loadBalancer.providerType = loadBalancer.provider;
       if (loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0) {
@@ -43,10 +44,14 @@ module.exports = angular
       if (!loadBalancer.vpcId && !loadBalancer.subnetType) {
         loadBalancer.securityGroups = null;
       }
+
+      // We want to extend params with all attributes from loadBalancer, but only if they don't already exist.
+      _.assign(params, loadBalancer, function(value, other) {
+        return _.isUndefined(value) ? other : value;
+      });
+
       var operation = taskExecutor.executeTask({
-        job: [
-          loadBalancer
-        ],
+        job: [params],
         application: application,
         description: descriptor + ' Load Balancer: ' + name
       });

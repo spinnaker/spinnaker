@@ -95,7 +95,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.destroyServerGroup(serverGroup, application);
+        return serverGroupWriter.destroyServerGroup(serverGroup, application, {
+          replicaPoolName: serverGroup.name,
+          region: serverGroup.region,
+          zone: serverGroup.zones[0],
+        });
       };
 
       var stateParams = {
@@ -152,7 +156,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.disableServerGroup(serverGroup, application);
+        return serverGroupWriter.disableServerGroup(serverGroup, application, {
+          replicaPoolName: serverGroup.name,
+          region: serverGroup.region,
+          zone: serverGroup.zones[0],
+        });
       };
 
       confirmationModalService.confirm({
@@ -177,7 +185,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       };
 
       var submitMethod = function () {
-        return serverGroupWriter.enableServerGroup(serverGroup, application);
+        return serverGroupWriter.enableServerGroup(serverGroup, application, {
+          replicaPoolName: serverGroup.name,
+          region: serverGroup.region,
+          zone: serverGroup.zones[0],
+        });
       };
 
       confirmationModalService.confirm({

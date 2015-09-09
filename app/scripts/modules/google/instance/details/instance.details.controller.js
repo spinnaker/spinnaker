@@ -251,7 +251,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
+        return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
+          networkLoadBalancerNames: instance.loadBalancers,
+        });
       };
 
       confirmationModalService.confirm({
@@ -274,7 +276,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
+        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
+          networkLoadBalancerNames: instance.loadBalancers,
+        });
       };
 
       confirmationModalService.confirm({
