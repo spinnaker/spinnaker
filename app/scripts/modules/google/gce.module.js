@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./securityGroup/configure/CreateSecurityGroupCtrl.js'),
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
+  require('./securityGroup/securityGroup.reader.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
 ])
@@ -56,6 +57,7 @@ module.exports = angular.module('spinnaker.gce', [
       },
       securityGroup: {
         transformer: 'gceSecurityGroupTransformer',
+        reader: 'gceSecurityGroupReader',
         detailsTemplateUrl: require('./securityGroup/details/securityGroupDetails.html'),
         detailsController: 'gceSecurityGroupDetailsCtrl',
         createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
