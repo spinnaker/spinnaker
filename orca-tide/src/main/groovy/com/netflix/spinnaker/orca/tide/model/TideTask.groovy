@@ -61,12 +61,13 @@ class TideTask {
     Description description
     Map result
     String message
+    String status
   }
 
   @Immutable
   static class Mutation {
     String taskId
-    Map AwsReference
+    Map awsReference
     Map pipelineToCreate
     String operation
   }

@@ -53,7 +53,7 @@ class WaitForTideTaskSpec extends Specification {
     def taskResult = task.execute(new PipelineStage(pipeline, "DeepCopyServerGroup", config))
 
     then:
-    task.tideService.getTask(config."tide.task.id") >> [taskComplete: new TideTask.TaskComplete()]
+    task.tideService.getTask(config."tide.task.id") >> [taskComplete: new TideTask.TaskComplete(status: "success")]
     taskResult.status == ExecutionStatus.SUCCEEDED
   }
 
