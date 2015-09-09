@@ -131,12 +131,16 @@ class ClusterController {
     region ? serverGroups?.getAt(0) : serverGroups
   }
 
-  @RequestMapping(value = "/{account}/{clusterName}/{cloudProvider}/{location}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
+  /**
+   * @param scope Should be either a region or zone, depending on the cloud provider.
+   * @return A dynamically determined server group using a {@code TargetServerGroup} specifier.
+   */
+  @RequestMapping(value = "/{account}/{clusterName}/{cloudProvider}/{scope}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
   ServerGroup getTargetServerGroup(@PathVariable String application,
                                    @PathVariable String account,
                                    @PathVariable String clusterName,
                                    @PathVariable String cloudProvider,
-                                   @PathVariable String location,
+                                   @PathVariable String scope,
                                    @PathVariable String target) {
     TargetServerGroup tsg
     try {
@@ -146,7 +150,7 @@ class ClusterController {
     }
 
     def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
-      it.region == location || it.zones.contains(location)
+      it.region == scope || it.zones.contains(scope)
     }.sort { a, b -> b.createdTime <=> a.createdTime }
 
     if (!sortedServerGroups) {
@@ -154,15 +158,15 @@ class ClusterController {
     }
 
     switch (tsg) {
-      case TargetServerGroup.Current:
+      case TargetServerGroup.CURRENT:
         return sortedServerGroups.get(0)
-      case TargetServerGroup.Previous:
+      case TargetServerGroup.PREVIOUS:
         // At least two expected
         if (sortedServerGroups.size() == 1) {
           throw new TargetNotFoundException(target: target)
         }
         return sortedServerGroups.get(1)
-      case TargetServerGroup.Oldest:
+      case TargetServerGroup.OLDEST:
         // At least two expected
         if (sortedServerGroups.size() == 1) {
           throw new TargetNotFoundException(target: target)

@@ -23,19 +23,19 @@ enum TargetServerGroup {
   /**
    * The most recent Server Group.
    */
-  Current,
+  CURRENT,
 
   /**
    * The second most recent Server Group. Useful for referencing the Server Group to which to roll back.
    */
-  Previous,
+  PREVIOUS,
 
   /**
    * The oldest Server Group.
    */
-  Oldest,
+  OLDEST,
 
-  // Legacy suffixes. They used to determine when targets were resolved (during setup or execution, respectively).
+  // Legacy suffixes - used to determine when targets were resolved (during setup or execution, respectively).
   @Deprecated private static String asg = "_asg"
   @Deprecated private static String asgDynamic = "_asg_dynamic"
 
