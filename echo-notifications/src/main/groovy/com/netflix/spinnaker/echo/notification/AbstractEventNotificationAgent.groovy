@@ -103,7 +103,7 @@ abstract class AbstractEventNotificationAgent implements EchoEventListener {
 
       // stage level configurations
       if (config.type == 'stage') {
-        if (event.content?.context?.sendNotifications) {
+        if (event.content?.context?.sendNotifications && ( event.content?.context?.stageDetails?.isSynthetic == false ) ) {
           event.content?.context?.notifications?.each { notification ->
             String key = "${getNotificationType()}"
             if (notification.type == key && notification?.when?.contains("$config.type.$status".toString())) {
