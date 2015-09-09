@@ -4,13 +4,16 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cloudProvider.registry', [
   require('../../utils/lodash.js'),
+  require('../../config/settings.js'),
 ])
-  .provider('cloudProviderRegistry', function(_) {
+  .provider('cloudProviderRegistry', function(_, settings) {
 
     const providers = Object.create(null);
 
     this.registerProvider = (cloudProvider, config) => {
-      providers[cloudProvider] = config;
+      if (settings.providers && settings.providers[cloudProvider]) {
+        providers[cloudProvider] = config;
+      }
     };
 
     function getProvider(provider) {
