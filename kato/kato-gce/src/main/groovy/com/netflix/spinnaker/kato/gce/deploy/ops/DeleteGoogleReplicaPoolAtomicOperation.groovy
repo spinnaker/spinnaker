@@ -46,7 +46,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "cloudProvider": "gce", "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {

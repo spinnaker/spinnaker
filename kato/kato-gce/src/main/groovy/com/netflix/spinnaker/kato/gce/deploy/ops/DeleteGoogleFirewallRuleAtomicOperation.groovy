@@ -40,7 +40,7 @@ class DeleteGoogleFirewallRuleAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteSecurityGroup": { "cloudProvider": "gce", "firewallRuleName":"mysecuritygroup", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteSecurityGroup": { "firewallRuleName":"mysecuritygroup", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
