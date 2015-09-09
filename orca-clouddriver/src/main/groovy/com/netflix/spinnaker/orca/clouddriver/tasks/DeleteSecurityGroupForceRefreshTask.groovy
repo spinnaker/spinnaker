@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -26,7 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DeleteSecurityGroupForceRefreshTask implements Task {
+class DeleteSecurityGroupForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
   static final String REFRESH_TYPE = "SecurityGroup"
 
   @Autowired
@@ -34,14 +34,16 @@ class DeleteSecurityGroupForceRefreshTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context.credentials
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
     String vpcId = stage.context.vpcId
     String name = stage.context.securityGroupName
     List<String> regions = stage.context.regions
 
     regions.each { region ->
       def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true]
-      mort.forceCacheUpdate(REFRESH_TYPE, model)
+      mort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
