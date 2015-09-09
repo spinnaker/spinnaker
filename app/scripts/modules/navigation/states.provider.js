@@ -24,25 +24,15 @@ module.exports = angular.module('spinnaker.states', [
         '/applications/{application}/securityGroups'
       );
 
-      // Handle legacy links to old clusters paths
-      $urlRouterProvider.when(
-        '/applications/{application}/clusters/{acct}/{q}?reg',
-        ['$match', function ($match) {
-          return '/applications/' + $match.application + '/clusters?q=cluster:' + $match.q + '&acct=' + $match.acct + '&reg=' + $match.reg;
-        }]
-      );
-
       var instanceDetails = {
         name: 'instanceDetails',
         url: '/instanceDetails/:provider/:instanceId',
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'instance.detailsTemplateUrl')); }],
+              return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return cloudProviderRegistry.getValue(provider, 'instance.detailsController');
+              return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -68,11 +58,9 @@ module.exports = angular.module('spinnaker.states', [
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'serverGroup.detailsTemplateUrl')); }],
+              return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return cloudProviderRegistry.getValue(provider, 'serverGroup.detailsController');
+              return cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -108,11 +96,9 @@ module.exports = angular.module('spinnaker.states', [
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'loadBalancer.detailsTemplateUrl')); }],
+              return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return cloudProviderRegistry.getValue(provider, 'loadBalancer.detailsController');
+              return cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -149,11 +135,9 @@ module.exports = angular.module('spinnaker.states', [
         views: {
           'detail@home.applications.application.insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return $templateCache.get(cloudProviderRegistry.getValue(provider, 'securityGroup.detailsTemplateUrl')); }],
+              return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
-              var provider = $stateParams.provider || 'aws';
-              return cloudProviderRegistry.getValue(provider, 'securityGroup.detailsController');
+              return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -163,7 +147,7 @@ module.exports = angular.module('spinnaker.states', [
             return {
               name: $stateParams.name,
               accountId: $stateParams.accountId,
-              provider: $stateParams.provider || 'aws',
+              provider: $stateParams.provider,
               region: $stateParams.region,
               vpcId: $stateParams.vpcId,
             };
@@ -471,9 +455,8 @@ module.exports = angular.module('spinnaker.states', [
         views: {
           'main@': {
             templateUrl: require('../instance/standalone.html'),
-            controllerProvider: ['$stateParams', function($stateParams) {
-              var provider = $stateParams.provider || 'aws';
-              return provider + 'InstanceDetailsCtrl';
+            controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
+              return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
             }],
             controllerAs: 'ctrl'
           }
@@ -487,7 +470,7 @@ module.exports = angular.module('spinnaker.states', [
               noApplication: true
             };
           }],
-          application: function() {
+          app: function() {
             return {
               name: '(standalone instance)',
               registerAutoRefreshHandler: angular.noop,
