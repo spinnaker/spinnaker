@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.DeleteSecurityGroupForceRefreshTask
 import spock.lang.Specification
 import spock.lang.Subject
 import com.netflix.spinnaker.orca.clouddriver.MortService
@@ -25,8 +26,9 @@ class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
   def stage = new PipelineStage(type: "whatever")
 
   def config = [
-    regions           : ["us-west-1"],
-    credentials       : "fzlem",
+    cloudProvider     : 'gce',
+    regions           : ['us-west-1'],
+    credentials       : 'fzlem',
     vpcId             : 'vpc1',
     securityGroupName : 'foo'
   ]
@@ -35,7 +37,7 @@ class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
     stage.context.putAll(config)
   }
 
-  void "should force cache refresh server groups via oort when clusterName provided"() {
+  void "should force cache refresh security group via mort"() {
     setup:
     task.mort = Mock(MortService)
 
@@ -43,7 +45,9 @@ class DeleteSecurityGroupForceRefreshTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.mort.forceCacheUpdate(DeleteSecurityGroupForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.mort.forceCacheUpdate(stage.context.cloudProvider, DeleteSecurityGroupForceRefreshTask.REFRESH_TYPE, _) >> {
+      String cloudProvider, String type, Map<String, ? extends Object> body ->
+
       assert body.securityGroupName == config.securityGroupName
       assert body.vpcId == config.vpcId
       assert body.account == config.credentials
