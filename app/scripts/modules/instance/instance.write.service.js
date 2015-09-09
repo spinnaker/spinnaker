@@ -68,35 +68,31 @@ module.exports = angular
       });
     }
 
-    function deregisterInstanceFromLoadBalancer(instance, application) {
+    function deregisterInstanceFromLoadBalancer(instance, application, params={}) {
+      params.type = 'deregisterInstancesFromLoadBalancer';
+      params.instanceIds = [instance.instanceId];
+      params.loadBalancerNames = instance.loadBalancers;
+      params.region = instance.region;
+      params.credentials = instance.account;
+      params.providerType = instance.providerType;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'deregisterInstancesFromLoadBalancer',
-            instanceIds: [instance.instanceId],
-            loadBalancerNames: instance.loadBalancers,
-            region: instance.region,
-            credentials: instance.account,
-            providerType: instance.providerType
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Deregister instance: ' + instance.instanceId
       });
     }
 
-    function registerInstanceWithLoadBalancer(instance, application) {
+    function registerInstanceWithLoadBalancer(instance, application, params={}) {
+      params.type = 'registerInstancesWithLoadBalancer';
+      params.instanceIds = [instance.instanceId];
+      params.loadBalancerNames = instance.loadBalancers;
+      params.region = instance.region;
+      params.credentials = instance.account;
+      params.providerType = instance.providerType;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'registerInstancesWithLoadBalancer',
-            instanceIds: [instance.instanceId],
-            loadBalancerNames: instance.loadBalancers,
-            region: instance.region,
-            credentials: instance.account,
-            providerType: instance.providerType
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Register instance: ' + instance.instanceId
       });

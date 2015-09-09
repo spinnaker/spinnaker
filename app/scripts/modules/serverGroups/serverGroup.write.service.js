@@ -9,52 +9,46 @@ module.exports = angular
   ])
   .factory('serverGroupWriter', function (taskExecutor, serverGroupTransformer) {
 
-    function destroyServerGroup(serverGroup, application) {
+    function destroyServerGroup(serverGroup, application, params={}) {
+      params.asgName = serverGroup.name;
+      params.type = 'destroyAsg';
+      params.regions = [serverGroup.region];
+      params.zones = serverGroup.zones;
+      params.credentials = serverGroup.account;
+      params.providerType = serverGroup.type;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            asgName: serverGroup.name,
-            type: 'destroyAsg',
-            regions: [serverGroup.region],
-            zones: serverGroup.zones,
-            credentials: serverGroup.account,
-            providerType: serverGroup.type
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Destroy Server Group: ' + serverGroup.name
       });
     }
 
-    function disableServerGroup(serverGroup, applicationName) {
+    function disableServerGroup(serverGroup, applicationName, params={}) {
+      params.asgName = serverGroup.name;
+      params.type = 'disableAsg';
+      params.regions = [serverGroup.region];
+      params.zones = serverGroup.zones;
+      params.credentials = serverGroup.account;
+      params.providerType = serverGroup.type;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            asgName: serverGroup.name,
-            type: 'disableAsg',
-            regions: [serverGroup.region],
-            zones: serverGroup.zones,
-            credentials: serverGroup.account,
-            providerType: serverGroup.type
-          }
-        ],
+        job: [params],
         application: applicationName,
         description: 'Disable Server Group: ' + serverGroup.name
       });
     }
 
-    function enableServerGroup(serverGroup, application) {
+    function enableServerGroup(serverGroup, application, params={}) {
+      params.asgName = serverGroup.name;
+      params.type = 'enableAsg';
+      params.regions = [serverGroup.region];
+      params.zones = serverGroup.zones;
+      params.credentials = serverGroup.account;
+      params.providerType = serverGroup.type;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            asgName: serverGroup.name,
-            type: 'enableAsg',
-            regions: [serverGroup.region],
-            zones: serverGroup.zones,
-            credentials: serverGroup.account,
-            providerType: serverGroup.type
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Enable Server Group: ' + serverGroup.name
       });

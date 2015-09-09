@@ -62,10 +62,9 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     //BEN_TODO
 
     this.editLoadBalancer = function editLoadBalancer() {
-      var provider = $scope.loadBalancer.provider;
       $modal.open({
-        templateUrl: 'app/scripts/modules/loadBalancers/configure/' + provider + '/editLoadBalancer.html',
-        controller: provider + 'CreateLoadBalancerCtrl as ctrl',
+        templateUrl: require('../configure/editLoadBalancer.html'),
+        controller: 'gceCreateLoadBalancerCtrl as ctrl',
         resolve: {
           application: function() { return application; },
           loadBalancer: function() { return angular.copy($scope.loadBalancer); },
@@ -88,7 +87,10 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.provider;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application);
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
+          networkLoadBalancerName: loadBalancer.name,
+          region: loadBalancer.region,
+        });
       };
 
       confirmationModalService.confirm({

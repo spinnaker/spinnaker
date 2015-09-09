@@ -211,7 +211,36 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
       $scope.taskMonitor.submit(
         function() {
-          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
+          let params = {
+            networkLoadBalancerName: $scope.loadBalancer.name,
+          };
+
+          if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
+            let listener = $scope.loadBalancer.listeners[0];
+
+            if (listener.protocol) {
+              params.ipProtocol = listener.protocol;
+            }
+
+            if (listener.portRange) {
+              params.portRange = listener.portRange;
+            }
+
+            if (listener.healthCheck) {
+              params.healthCheck = {
+                port: $scope.loadBalancer.healthCheckPort,
+                requestPath: $scope.loadBalancer.healthCheckPath,
+                timeoutSec: $scope.loadBalancer.healthTimeout,
+                checkIntervalSec: $scope.loadBalancer.healthInterval,
+                healthyThreshold: $scope.loadBalancer.healthyThreshold,
+                unhealthyThreshold: $scope.loadBalancer.unhealthyThreshold,
+              };
+            } else {
+              params.healthCheck = null;
+            }
+          }
+
+          return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor, params);
         }
       );
     };
