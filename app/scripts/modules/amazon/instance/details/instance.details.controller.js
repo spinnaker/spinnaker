@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
                                                instanceReader, _, instance, app) {
 
     // needed for standalone instances
-    $scope.provider = 'aws';
+    $scope.detailsTemplateUrl = require('./instanceDetails.html');
 
     $scope.state = {
       loading: true,

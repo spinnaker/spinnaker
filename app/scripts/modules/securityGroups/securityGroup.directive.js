@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.securityGroup.rollup', [])
               accountId: securityGroup.accountName,
               name: securityGroup.name,
               vpcId: securityGroup.vpcId,
-              provider: securityGroup.provider || 'aws',
+              provider: securityGroup.provider,
             };
             // also stolen from uiSref directive
             scope.$state.go('.securityGroupDetails', params, {relative: base, inherit: true});

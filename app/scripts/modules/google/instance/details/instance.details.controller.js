@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
                                                instanceReader, _, instance, app) {
 
     // needed for standalone instances
-    $scope.provider = 'gce';
+    $scope.detailsTemplateUrl = require('./instanceDetails.html');
 
     $scope.state = {
       loading: true,
