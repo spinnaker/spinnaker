@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.basicSettingsSelector', [
-  require('../../../google/gceRegionSelectField.directive.js'),
-  require('../../../google/gceZoneSelectField.directive.js'),
+  require('../../gceRegionSelectField.directive.js'),
+  require('../../gceZoneSelectField.directive.js'),
 ])
   .directive('gceServerGroupBasicSettingsSelector', function() {
     return {
