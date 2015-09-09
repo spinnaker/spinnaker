@@ -23,6 +23,7 @@ import com.netflix.spinnaker.gate.services.internal.OortService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @CompileStatic
 @Component
@@ -43,10 +44,17 @@ class ServerGroupService {
 
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion", true) {
-      def context = getContext(applicationName, account, region, serverGroupName)
-      return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
+      try {
+        def context = getContext(applicationName, account, region, serverGroupName)
+        return oortService.getServerGroupDetails(applicationName, account, region, serverGroupName) + [
           "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
-      ]
+        ]
+      } catch (RetrofitError e) {
+        if (e.response.status == 404) {
+          return [:]
+        }
+        throw e
+      }
     } execute()
   }
 
