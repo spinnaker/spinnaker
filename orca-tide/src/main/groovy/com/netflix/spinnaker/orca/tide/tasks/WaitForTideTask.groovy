@@ -41,7 +41,16 @@ class WaitForTideTask implements RetryableTask {
 
     TideTask tideTask = tideService.getTask(taskId)
 
-    ExecutionStatus status = tideTask.taskComplete ? ExecutionStatus.SUCCEEDED : ExecutionStatus.RUNNING
+    ExecutionStatus status
+    if (tideTask.taskComplete) {
+      if (tideTask.taskComplete.status == "success") {
+        status = ExecutionStatus.SUCCEEDED
+      } else {
+        status = ExecutionStatus.TERMINAL
+      }
+    } else {
+      status = ExecutionStatus.RUNNING
+    }
     Map outputs = [
         "tide.task": tideTask
     ]
