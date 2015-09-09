@@ -10,18 +10,15 @@ module.exports = angular
   ])
   .factory('loadBalancerWriter', function(infrastructureCaches, taskExecutor) {
 
-    function deleteLoadBalancer(loadBalancer, application) {
+    function deleteLoadBalancer(loadBalancer, application, params={}) {
+      params.type = 'deleteLoadBalancer';
+      params.loadBalancerName = loadBalancer.name;
+      params.regions = [loadBalancer.region];
+      params.credentials = loadBalancer.accountId;
+      params.providerType = loadBalancer.providerType;
+
       var operation = taskExecutor.executeTask({
-        job: [
-          {
-            type: 'deleteLoadBalancer',
-            loadBalancerName: loadBalancer.name,
-            regions: [loadBalancer.region],
-            credentials: loadBalancer.accountId,
-            providerType: loadBalancer.providerType,
-            vpcId: loadBalancer.vpcId || '',
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Delete load balancer: ' + loadBalancer.name + ' in ' + loadBalancer.accountId + ':' + loadBalancer.region
       });

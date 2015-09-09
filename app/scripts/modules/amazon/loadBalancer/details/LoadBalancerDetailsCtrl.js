@@ -105,8 +105,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
 
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.type;
-        loadBalancer.vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
-        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app);
+        let vpcId = angular.isDefined($scope.loadBalancer.elb) ? $scope.loadBalancer.elb.vpcid : loadBalancer.vpcId || null;
+        return loadBalancerWriter.deleteLoadBalancer(loadBalancer, app, { vpcId: vpcId });
       };
 
       confirmationModalService.confirm({
