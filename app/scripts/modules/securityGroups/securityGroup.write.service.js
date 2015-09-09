@@ -30,13 +30,13 @@ module.exports = angular
       params.type = 'deleteSecurityGroup';
       params.securityGroupName = securityGroup.name;
       params.regions = [securityGroup.region];
-      params.credentials = securityGroup.accountName;
+      params.credentials = securityGroup.accountId;
       params.providerType = securityGroup.providerType;
 
       var operation = taskExecutor.executeTask({
         job: [params],
         application: application,
-        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountName + ':' + securityGroup.region
+        description: 'Delete security group: ' + securityGroup.name + ' in ' + securityGroup.accountId + ':' + securityGroup.region
       });
 
       infrastructureCaches.clearCache('securityGroups');
