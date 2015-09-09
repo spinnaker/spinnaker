@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.pipeline.model.InjectedStageConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Stage.SyntheticStageOwner
-import com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
 import org.springframework.batch.core.Step

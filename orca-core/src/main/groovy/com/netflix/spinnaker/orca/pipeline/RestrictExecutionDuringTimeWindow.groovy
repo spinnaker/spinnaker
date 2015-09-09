@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.pipeline.stages
+package com.netflix.spinnaker.orca.pipeline
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus

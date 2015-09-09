@@ -33,8 +33,16 @@ import rx.Observable
  */
 interface KatoService {
 
+  /**
+   * @deprecated Use {@code /{cloudProvider}/ops} instead
+   */
+  @Deprecated
   @POST("/ops")
   Observable<TaskId> requestOperations(@Body Collection<? extends Map<String, Map>> operations)
+
+  @POST("/{cloudProvider}/ops")
+  Observable<TaskId> requestOperations(@Path("cloudProvider") String cloudProvider,
+                                       @Body Collection<? extends Map<String, Map>> operations)
 
   @GET("/task")
   Observable<List<Task>> listTasks()

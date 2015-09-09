@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
@@ -44,7 +44,7 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired ObjectMapper mapper
   @Autowired ResizeAsgStage resizeAsgStage
   @Autowired DisableAsgStage disableAsgStage
-  @Autowired DestroyAsgStage destroyAsgStage
+  @Autowired DestroyServerGroupStage destroyServerGroupStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
   @Autowired SourceResolver sourceResolver
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
@@ -144,7 +144,7 @@ abstract class DeployStrategyStage extends LinearStage {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
             logger.info("Injecting destroyAsg stage (${region}:${asg})")
             nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
-            injectAfter(stage, "destroyAsg", destroyAsgStage, nextStageContext)
+            injectAfter(stage, "destroyAsg", destroyServerGroupStage, nextStageContext)
           }
         }
       }
@@ -198,7 +198,7 @@ abstract class DeployStrategyStage extends LinearStage {
           }
 
           logger.info("Injecting destroyAsg stage (${asg.region}:${asg.name})")
-          injectAfter(stage, "destroyAsg", destroyAsgStage, nextContext)
+          injectAfter(stage, "destroyAsg", destroyServerGroupStage, nextContext)
         }
       }
     }

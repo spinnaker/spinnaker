@@ -87,7 +87,7 @@ class DeployStageSpec extends Specification {
   @Shared OortService oortService
   @Shared SourceResolver sourceResolver
   @Shared DisableAsgStage disableAsgStage
-  @Shared DestroyAsgStage destroyAsgStage
+  @Shared DestroyServerGroupStage destroyServerGroupStage
   @Shared ResizeAsgStage resizeAsgStage
   @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
@@ -95,12 +95,12 @@ class DeployStageSpec extends Specification {
     sourceResolver = Mock(SourceResolver)
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
-    destroyAsgStage = Mock(DestroyAsgStage)
+    destroyServerGroupStage = Mock(DestroyServerGroupStage)
     resizeAsgStage = Mock(ResizeAsgStage)
     modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
     deployStage = new DeployStage(sourceResolver: sourceResolver, disableAsgStage: disableAsgStage,
-                                  destroyAsgStage: destroyAsgStage,
+                                  destroyServerGroupStage: destroyServerGroupStage,
                                   resizeAsgStage: resizeAsgStage,
                                   modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
@@ -225,7 +225,7 @@ class DeployStageSpec extends Specification {
         it == [asgName: asgs.get(index++).name, regions: ["us-west-1"], credentials: config.account]
       }
       stage.afterStages[1..calledDestroyAsgNumTimes].stageBuilder.every { it ->
-        it == destroyAsgStage
+        it == destroyServerGroupStage
       }
     }
 
@@ -263,7 +263,7 @@ class DeployStageSpec extends Specification {
       [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     1 == stage.afterStages.size()
-    stage.afterStages[0].stageBuilder == destroyAsgStage
+    stage.afterStages[0].stageBuilder == destroyServerGroupStage
   }
 
   void "should create basicDeploy tasks when no strategy is chosen"() {

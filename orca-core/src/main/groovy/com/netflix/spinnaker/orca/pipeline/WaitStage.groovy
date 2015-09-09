@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline
-
-import com.netflix.spinnaker.orca.kato.tasks.WaitTask
-import com.netflix.spinnaker.orca.pipeline.LinearStage
+package com.netflix.spinnaker.orca.pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component

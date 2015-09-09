@@ -28,8 +28,8 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DestroyAsgTaskSpec extends Specification {
-  @Subject task = new DestroyAsgTask()
+class DestroyServerGroupTaskSpec extends Specification {
+  @Subject task = new DestroyServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "whatever")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())

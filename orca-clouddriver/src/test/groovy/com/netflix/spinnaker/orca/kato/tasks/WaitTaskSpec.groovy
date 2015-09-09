@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import com.netflix.spinnaker.orca.pipeline.tasks.WaitTask
 import spock.lang.Specification
 import spock.lang.Subject
 

@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceNotFoundException
-import com.netflix.spinnaker.orca.kato.tasks.DestroyAsgTask
+import com.netflix.spinnaker.orca.kato.tasks.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.WaitForDestroyedAsgTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDestroyedServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
@@ -29,11 +29,11 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DestroyAsgStage extends TargetReferenceLinearStageSupport {
+class DestroyServerGroupStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
   static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
 
-  DestroyAsgStage() {
+  DestroyServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
@@ -41,10 +41,10 @@ class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   public List<Step> buildSteps(Stage stage) {
     try {
       composeTargets(stage)
-      def step1 = buildStep(stage, "destroyAsg", DestroyAsgTask)
-      def step2 = buildStep(stage, "monitorAsg", MonitorKatoTask)
+      def step1 = buildStep(stage, "destroyServerGroup", DestroyServerGroupTask)
+      def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
       def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-      def step4 = buildStep(stage, "waitForDestroyedAsg", WaitForDestroyedAsgTask)
+      def step4 = buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask)
       [step1, step2, step3, step4].flatten().toList()
     } catch (TargetReferenceNotFoundException ignored) {
       [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)].flatten().toList()

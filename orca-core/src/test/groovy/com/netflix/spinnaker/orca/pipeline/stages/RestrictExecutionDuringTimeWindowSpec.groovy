@@ -38,9 +38,9 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import spock.lang.Unroll
 import static com.netflix.spinnaker.orca.batch.PipelineInitializerTasklet.initializationStep
-import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
-import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
-import static com.netflix.spinnaker.orca.pipeline.stages.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
+import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask
+import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.HourMinute
+import static com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow.SuspendExecutionDuringTimeWindowTask.TimeWindow
 
 /**
  *

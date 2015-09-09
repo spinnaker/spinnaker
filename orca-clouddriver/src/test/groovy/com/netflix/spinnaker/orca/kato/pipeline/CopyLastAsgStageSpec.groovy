@@ -49,7 +49,7 @@ class CopyLastAsgStageSpec extends Specification {
   @Subject copyLastAsgStage = new CopyLastAsgStage()
   def resolver = Mock(SourceResolver)
   def disableAsgStage = Mock(DisableAsgStage)
-  def destroyAsgStage = Mock(DestroyAsgStage)
+  def destroyServerGroupStage = Mock(DestroyServerGroupStage)
 
   def objectMapper = new OrcaObjectMapper()
   def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
@@ -63,7 +63,7 @@ class CopyLastAsgStageSpec extends Specification {
     copyLastAsgStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
     copyLastAsgStage.sourceResolver = resolver
     copyLastAsgStage.disableAsgStage = disableAsgStage
-    copyLastAsgStage.destroyAsgStage = destroyAsgStage
+    copyLastAsgStage.destroyServerGroupStage = destroyServerGroupStage
   }
 
   @Unroll
@@ -101,7 +101,7 @@ class CopyLastAsgStageSpec extends Specification {
     3 == stage.afterStages.size()
 
     and:
-    stage.afterStages*.stageBuilder.unique() == [destroyAsgStage]
+    stage.afterStages*.stageBuilder.unique() == [destroyServerGroupStage]
 
     and:
     stage.afterStages*.context == asgNames.collect { name ->
@@ -207,7 +207,7 @@ class CopyLastAsgStageSpec extends Specification {
         it == [asgName: asgNames.get(index++), regions: [region.toString()], credentials: account.toString()]
       }
       stage.afterStages[1..calledDestroyAsgNumTimes].stageBuilder.every { it ->
-        it == destroyAsgStage
+        it == destroyServerGroupStage
       }
     }
 
