@@ -20,6 +20,10 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
       var application = taskCommand.application;
       taskCommand.application = application.name;
 
+      if (taskCommand.job[0].providerType === 'aws') {
+        delete taskCommand.job[0].providerType;
+      }
+
       taskCommand.job.forEach(function(job) {
         job.user = authenticationService.getAuthenticatedUser().name;
       });
