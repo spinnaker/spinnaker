@@ -313,7 +313,11 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
     if (asgName) {
       alarmNames = scalingPolicies.findResults { it.alarms.findResults { it.alarmName }}.flatten().unique()
     }
-    Map<String, Map> alarms = loadAlarms(clients, alarmNames)
+
+    Map<String, Map> alarms = [:]
+    if (!asgName || alarmNames) {
+      alarms = loadAlarms(clients, alarmNames)
+    }
 
     scalingPolicies
         .findResults { buildScalingPolicy(it, alarms) }
