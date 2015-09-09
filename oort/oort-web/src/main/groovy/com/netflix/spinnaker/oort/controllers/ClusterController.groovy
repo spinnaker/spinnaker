@@ -61,7 +61,9 @@ class ClusterController {
       def clusters = (Set<Cluster>) it.getClusters(application, account)
       def clusterViews = []
       for (cluster in clusters) {
-        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect { it.name }, serverGroups: cluster.serverGroups.collect {
+        clusterViews << new ClusterViewModel(name: cluster.name, account: cluster.accountName, loadBalancers: cluster.loadBalancers.collect {
+          it.name
+        }, serverGroups: cluster.serverGroups.collect {
           it.name
         })
       }
@@ -75,7 +77,9 @@ class ClusterController {
 
 
   @RequestMapping(value = "/{account}/{name:.+}", method = RequestMethod.GET)
-  Set<Cluster> getForAccountAndName(@PathVariable String application, @PathVariable String account, @PathVariable String name) {
+  Set<Cluster> getForAccountAndName(@PathVariable String application,
+                                    @PathVariable String account,
+                                    @PathVariable String name) {
     def clusters = clusterProviders.collect {
       it.getCluster(application, account, name)
     }
@@ -87,7 +91,10 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}/{name}/{type}", method = RequestMethod.GET)
-  Cluster getForAccountAndNameAndType(@PathVariable String application, @PathVariable String account, @PathVariable String name, @PathVariable String type) {
+  Cluster getForAccountAndNameAndType(@PathVariable String application,
+                                      @PathVariable String account,
+                                      @PathVariable String name,
+                                      @PathVariable String type) {
     Set<Cluster> allClusters = getForAccountAndName(application, account, name)
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
@@ -97,7 +104,10 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups", method = RequestMethod.GET)
-  Set<ServerGroup> getServerGroups(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type,
+  Set<ServerGroup> getServerGroups(@PathVariable String application,
+                                   @PathVariable String account,
+                                   @PathVariable String clusterName,
+                                   @PathVariable String type,
                                    @RequestParam(value = "region", required = false) String region) {
     Cluster cluster = getForAccountAndNameAndType(application, account, clusterName, type)
     def results = region ? cluster.serverGroups.findAll { it.region == region } : cluster.serverGroups
@@ -105,13 +115,60 @@ class ClusterController {
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/serverGroups/{serverGroupName:.+}", method = RequestMethod.GET)
-  def getServerGroup(@PathVariable String application, @PathVariable String account, @PathVariable String clusterName, @PathVariable String type, @PathVariable String serverGroupName,
-                     @RequestParam(value = "region", required = false) String region, @RequestParam(value = "health", required = false) Boolean health) {
-    def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll { region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName }
+  def getServerGroup(@PathVariable String application,
+                     @PathVariable String account,
+                     @PathVariable String clusterName,
+                     @PathVariable String type,
+                     @PathVariable String serverGroupName,
+                     @RequestParam(value = "region", required = false) String region,
+                     @RequestParam(value = "health", required = false) Boolean health) {
+    def serverGroups = getServerGroups(application, account, clusterName, type, region).findAll {
+      region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
+    }
     if (!serverGroups) {
       throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
     }
     region ? serverGroups?.getAt(0) : serverGroups
+  }
+
+  @RequestMapping(value = "/{account}/{clusterName}/{cloudProvider}/{location}/serverGroups/target/{target:.+}", method = RequestMethod.GET)
+  ServerGroup getTargetServerGroup(@PathVariable String application,
+                                   @PathVariable String account,
+                                   @PathVariable String clusterName,
+                                   @PathVariable String cloudProvider,
+                                   @PathVariable String location,
+                                   @PathVariable String target) {
+    TargetServerGroup tsg
+    try {
+      tsg = TargetServerGroup.fromString(target)
+    } catch (IllegalArgumentException e) {
+      throw new TargetNotFoundException(target: target)
+    }
+
+    def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
+      it.region == location || it.zones.contains(location)
+    }.sort { a, b -> b.createdTime <=> a.createdTime }
+
+    if (!sortedServerGroups) {
+      throw new ServerGroupNotFoundException()
+    }
+
+    switch (tsg) {
+      case TargetServerGroup.Current:
+        return sortedServerGroups.get(0)
+      case TargetServerGroup.Previous:
+        // At least two expected
+        if (sortedServerGroups.size() == 1) {
+          throw new TargetNotFoundException(target: target)
+        }
+        return sortedServerGroups.get(1)
+      case TargetServerGroup.Oldest:
+        // At least two expected
+        if (sortedServerGroups.size() == 1) {
+          throw new TargetNotFoundException(target: target)
+        }
+        return sortedServerGroups.last()
+    }
   }
 
   @ExceptionHandler
@@ -135,6 +192,13 @@ class ClusterController {
     [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
   }
 
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  Map handleTargetNotFoundException(TargetNotFoundException ex) {
+    def message = messageSource.getMessage("target.not.found", [ex.target] as String[], "target.not.found", LocaleContextHolder.locale)
+    [error: "target.not.found", message: message, status: HttpStatus.NOT_FOUND]
+  }
+
   static class AccountClustersNotFoundException extends RuntimeException {
     String application
     String account
@@ -146,6 +210,10 @@ class ClusterController {
 
   static class ServerGroupNotFoundException extends RuntimeException {
     String serverGroupName
+  }
+
+  static class TargetNotFoundException extends RuntimeException {
+    String target
   }
 
   @Canonical
