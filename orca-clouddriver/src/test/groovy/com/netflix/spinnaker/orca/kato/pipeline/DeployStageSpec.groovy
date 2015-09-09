@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.clouddriver.OortService

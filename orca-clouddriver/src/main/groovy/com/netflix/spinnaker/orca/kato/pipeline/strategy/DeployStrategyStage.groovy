@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.kato.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
