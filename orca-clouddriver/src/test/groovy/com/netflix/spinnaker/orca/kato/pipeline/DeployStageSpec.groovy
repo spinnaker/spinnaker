@@ -197,7 +197,7 @@ class DeployStageSpec extends Specification {
   }
 
   @Unroll
-  void "should create stages of deploy, disableAsg, and destroyAsg stages when strategy is redblack and maxRemainingAsgs is defined"() {
+  void "should create stages of deploy, disableAsg, and destroyServerGroup stages when strategy is redblack and maxRemainingAsgs is defined"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)
@@ -246,7 +246,7 @@ class DeployStageSpec extends Specification {
     [[name: "pond-prestaging-v300", region: "us-west-1"], [name: "pond-prestaging-v303", region: "us-west-1"], [name: "pond-prestaging-v304", region: "us-west-1"]] | 5                | 0
   }
 
-  void "should create stages of deploy and destroyAsg when strategy is highlander"() {
+  void "should create stages of deploy and destroyServerGroup when strategy is highlander"() {
     setup:
     def pipeline = new Pipeline()
     def config = mapper.readValue(configJson, Map)

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,15 +30,16 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class CleanupCanaryTask implements Task {
+class CleanupCanaryTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired KatoService katoService
 
   @Override
   TaskResult execute(Stage stage) {
-    def ops = DeployedClustersUtil.toKatoAsgOperations('destroyAsgDescription', stage.context)
+    String cloudProvider = getCloudProvider(stage)
+    def ops = DeployedClustersUtil.toKatoAsgOperations('destroyServerGroup', stage.context)
     log.info "Cleaning up canary clusters in ${stage.id} with ${ops}"
-    def taskId = katoService.requestOperations(ops).toBlocking().first()
+    def taskId = katoService.requestOperations(cloudProvider, ops).toBlocking().first()
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ['kato.last.task.id': taskId])
   }
 }

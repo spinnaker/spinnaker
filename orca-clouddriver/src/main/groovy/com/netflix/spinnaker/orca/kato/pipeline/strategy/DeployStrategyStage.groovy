@@ -142,9 +142,9 @@ abstract class DeployStrategyStage extends LinearStage {
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
         if (stageData?.maxRemainingAsgs > 0 && (asgs.size() - stageData.maxRemainingAsgs) >= 0) {
           asgs[0..(asgs.size() - stageData.maxRemainingAsgs)].each { asg ->
-            logger.info("Injecting destroyAsg stage (${region}:${asg})")
+            logger.info("Injecting destroyServerGroup stage (${region}:${asg})")
             nextStageContext.putAll([asgName: asg, credentials: cleanupConfig.account, regions: [region]])
-            injectAfter(stage, "destroyAsg", destroyServerGroupStage, nextStageContext)
+            injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextStageContext)
           }
         }
       }
@@ -197,8 +197,8 @@ abstract class DeployStrategyStage extends LinearStage {
             }
           }
 
-          logger.info("Injecting destroyAsg stage (${asg.region}:${asg.name})")
-          injectAfter(stage, "destroyAsg", destroyServerGroupStage, nextContext)
+          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
+          injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
         }
       }
     }

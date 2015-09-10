@@ -57,9 +57,9 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
         "notification.type"   : "destroyservergroup",
         "deploy.account.name" : operation.credentials,
         "kato.last.task.id"   : taskId,
-        "asgName"             : operation.serverGroupName,  // TODO: Retire asgName
-        "serverGroupName"     : operation.serverGroupName,
-        "deploy.server.groups": ((Iterable) operation.regions).collectEntries { [(it): [operation.serverGroupName]] }
+        "asgName"             : operation.asgName,  // TODO: Retire asgName
+        "serverGroupName"     : operation.asgName,
+        "deploy.server.groups": ((Iterable) operation.regions).collectEntries { [(it): [operation.asgName]] }
     ])
   }
 
