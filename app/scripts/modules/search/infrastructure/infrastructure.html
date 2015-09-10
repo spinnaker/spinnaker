@@ -40,7 +40,9 @@
         <div class="details-container list-group">
           <a class="list-group-item"
              ng-repeat="result in category.results"
-             href="{{ result.href }}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
+             href="{{ result.href }}">
+            <search-result item="result"></search-result>
+          </a>
         </div>
       </div>
     </div>
@@ -56,7 +58,7 @@
     </div>
   </div>
 </div>
-<div ng-if="ctrl.hasRecentItems && !viewState.searching">
+<div ng-if="ctrl.hasRecentItems && !viewState.searching && !categories.length">
   <div class="row infrastructure recently-viewed-items">
     <div class="col-md-12">
       <h3>Recently viewed</h3>
@@ -69,7 +71,9 @@
         <div class="details-container list-group">
           <a class="list-group-item"
              ng-repeat="result in category.results"
-             ui-sref="{{ result.state }}(result.params)">{{ result.name }}</a>
+             ui-sref="{{ result.state }}(result.params)">
+            <search-result item="result"></search-result>
+          </a>
         </div>
       </div>
     </div>

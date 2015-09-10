@@ -5,6 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
   require('../../core/history/recentHistory.service.js'),
+  require('../searchResult/searchResult.directive.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService, _, recentHistoryService) {
 
