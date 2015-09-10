@@ -9,20 +9,18 @@ module.exports = angular
   ])
   .factory('instanceWriter', function (taskExecutor, serverGroupReader) {
 
-    function terminateInstance(instance, application) {
+    function terminateInstance(instance, application, params={}) {
+      params.type = 'terminateInstances';
+      params.instanceIds = [instance.instanceId];
+      params.serverGroup = instance.serverGroup;
+      params.launchTimes = [instance.launchTime];
+      params.region = instance.region;
+      params.zone = instance.placement.availabilityZone;
+      params.credentials = instance.account;
+      params.providerType = instance.providerType;
+
       return taskExecutor.executeTask({
-        job: [
-          {
-            type: 'terminateInstances',
-            instanceIds: [instance.instanceId],
-            serverGroup: instance.serverGroup,
-            launchTimes: [instance.launchTime],
-            region: instance.region,
-            zone: instance.placement.availabilityZone,
-            credentials: instance.account,
-            providerType: instance.providerType
-          }
-        ],
+        job: [params],
         application: application,
         description: 'Terminate instance: ' + instance.instanceId
       });
