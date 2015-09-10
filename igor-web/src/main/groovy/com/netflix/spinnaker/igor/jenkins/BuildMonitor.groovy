@@ -120,7 +120,11 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
         try {
             lastPoll = System.currentTimeMillis()
             List<String> cachedBuilds = cache.getJobNames(master)
+
+            def startTime = System.currentTimeMillis()
             List<Project> builds = jenkinsMasters.map[master].projects?.list
+            log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
+
             List<String> buildNames = builds*.name
             Observable.from(cachedBuilds).filter { String name ->
                 !(name in buildNames)
@@ -178,13 +182,15 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         results << [previous: cachedBuild, current: project]
                     }
                 }, {
-                log.error("Error: ${it.message}")
+                log.error("Error: ${it.message} (${master})")
             }, {
             } as Action0
             )
         } catch (e) {
             log.error("failed to update master $master", e)
         }
+
+        log.info("Last poll took ${System.currentTimeMillis() - lastPoll}ms (master: ${master})")
         results
     }
 }
