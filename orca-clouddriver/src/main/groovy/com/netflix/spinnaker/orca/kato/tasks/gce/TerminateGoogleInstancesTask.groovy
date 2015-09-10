@@ -45,7 +45,6 @@ class TerminateGoogleInstancesTask implements Task {
         "terminate.account.name": stage.context.credentials,
         "terminate.region"      : stage.context.zone,
         "kato.last.task.id"     : taskId,
-        "kato.task.id"          : taskId, // TODO retire this.
         "terminate.instance.ids": stage.context.instanceIds,
     ])
   }

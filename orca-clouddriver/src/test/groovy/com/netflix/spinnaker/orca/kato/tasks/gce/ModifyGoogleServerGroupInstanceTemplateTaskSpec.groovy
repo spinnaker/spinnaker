@@ -30,7 +30,7 @@ class ModifyGoogleServerGroupInstanceTemplateTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def modifyGoogleServerGroupInstanceTemplateConfig = [
-      serverGroupName : "test-server-group",
+      replicaPoolName : "test-server-group",
       region          : "us-central1",
       zone            : "us-central1-f",
       credentials     : "fzlem",
@@ -64,7 +64,7 @@ class ModifyGoogleServerGroupInstanceTemplateTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].modifyGoogleServerGroupInstanceTemplateDescription) {
         it instanceof Map
-        replicaPoolName == this.modifyGoogleServerGroupInstanceTemplateConfig.serverGroupName
+        replicaPoolName == this.modifyGoogleServerGroupInstanceTemplateConfig.replicaPoolName
         region == this.modifyGoogleServerGroupInstanceTemplateConfig.region
         zone == this.modifyGoogleServerGroupInstanceTemplateConfig.zone
         credentials == this.modifyGoogleServerGroupInstanceTemplateConfig.credentials

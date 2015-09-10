@@ -30,9 +30,9 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
-    asgName    : "test-asg",
-    zones      : ["us-central1-b"],
-    credentials: "fzlem"
+    replicaPoolName: "test-asg",
+    zone           : "us-central1-b",
+    credentials    : "fzlem"
   ]
 
   def setup() {
@@ -56,8 +56,8 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
     operations.size() == 1
     with(operations[0].deleteGoogleReplicaPoolDescription) {
       it instanceof Map
-      replicaPoolName == this.destroyASGConfig.asgName
-      zone == this.destroyASGConfig.zones[0]
+      replicaPoolName == this.destroyASGConfig.replicaPoolName
+      zone == this.destroyASGConfig.zone
       credentials == this.destroyASGConfig.credentials
     }
   }
@@ -73,7 +73,7 @@ class DestroyGoogleReplicaPoolTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."deploy.account.name" == destroyASGConfig.credentials
   }
 }

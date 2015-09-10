@@ -33,23 +33,15 @@ class UpsertGoogleServerGroupTagsTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[upsertGoogleServerGroupTagsDescription: operation]])
+    def taskId = kato.requestOperations([[upsertGoogleServerGroupTagsDescription: stage.context]])
                      .toBlocking()
                      .first()
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"   : "upsertgoogleservergrouptags",
-        "deploy.account.name" : operation.credentials,
+        "deploy.account.name" : stage.context.credentials,
         "kato.last.task.id"   : taskId,
-        "deploy.server.groups": [(operation.region): [operation.replicaPoolName]]
+        "deploy.server.groups": [(stage.context.region): [stage.context.serverGroupName]]
     ])
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    operation.putAll(stage.context)
-    operation.replicaPoolName = operation.serverGroupName
-    operation
   }
 }

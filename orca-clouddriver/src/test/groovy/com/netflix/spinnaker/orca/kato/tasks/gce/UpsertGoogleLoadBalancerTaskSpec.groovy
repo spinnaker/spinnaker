@@ -29,72 +29,40 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def upsertGoogleLoadBalancerConfig = [
-    name       : "flapjack-frontend",
-    region     : ["us-central1"],
+    networkLoadBalancerName: "flapjack-frontend",
+    region: ["us-central1"],
     credentials: "test-account-name"
   ]
 
   def upsertGoogleLoadBalancerConfigWithPort = [
-    name       : "flapjack-frontend",
-    region     : ["us-central1"],
+    networkLoadBalancerName: "flapjack-frontend",
+    region: ["us-central1"],
     credentials: "test-account-name",
-    listeners  : [
-      [
-        protocol: "TCP",
-        portRange: "8080",
-        healthCheck: false
-      ]
-    ]
+    ipProtocol: "TCP",
+    portRange: "8080",
   ]
 
   def upsertGoogleLoadBalancerConfigWithPortRange = [
-    name       : "flapjack-frontend",
-    region     : ["us-central1"],
+    networkLoadBalancerName: "flapjack-frontend",
+    region: ["us-central1"],
     credentials: "test-account-name",
-    listeners  : [
-      [
-        protocol: "UDP",
-        portRange: "4040-5050",
-        healthCheck: false
-      ]
-    ]
+    ipProtocol: "UDP",
+    portRange: "4040-5050",
   ]
 
   def upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck = [
-    name       : "flapjack-frontend",
-    region     : ["us-central1"],
+    networkLoadBalancerName: "flapjack-frontend",
+    region: ["us-central1"],
     credentials: "test-account-name",
-    healthCheckPort: 80,
-    healthCheckPath: "/healthCheck",
-    healthTimeout: 5,
-    healthInterval: 10,
-    healthyThreshold: 10,
-    unhealthyThreshold: 2,
-    listeners  : [
-      [
-        protocol: "TCP",
-        portRange: "4040-5050",
-        healthCheck: true
-      ]
-    ]
-  ]
-
-  def upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse = [
-    name       : "flapjack-frontend",
-    region     : ["us-central1"],
-    credentials: "test-account-name",
-    healthCheckPort: 80,
-    healthCheckPath: "/healthCheck",
-    healthTimeout: 5,
-    healthInterval: 10,
-    healthyThreshold: 10,
-    unhealthyThreshold: 2,
-    listeners  : [
-      [
-        protocol: "TCP",
-        portRange: "4040-5050",
-        healthCheck: false
-      ]
+    healthCheck: [
+      port: 80,
+      requestPath: "/healthCheck",
+      timeoutSec: 5,
+      checkIntervalSec: 10,
+      healthyThreshold: 10,
+      unhealthyThreshold: 2,
+      ipProtocol: "TCP",
+      portRange: "4040-5050",
     ]
   ]
 
@@ -116,7 +84,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfig.name
+        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfig.networkLoadBalancerName
         region == this.upsertGoogleLoadBalancerConfig.region
         credentials == this.upsertGoogleLoadBalancerConfig.credentials
         !portRange
@@ -142,10 +110,10 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.name
+        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.networkLoadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPort.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPort.credentials
-        portRange == this.upsertGoogleLoadBalancerConfigWithPort.listeners[0].portRange
+        portRange == this.upsertGoogleLoadBalancerConfigWithPort.portRange
         !healthCheck
       }
   }
@@ -168,11 +136,11 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.name
+        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.networkLoadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPortRange.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRange.credentials
-        portRange == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].portRange
-        ipProtocol == this.upsertGoogleLoadBalancerConfigWithPortRange.listeners[0].protocol
+        portRange == this.upsertGoogleLoadBalancerConfigWithPortRange.portRange
+        ipProtocol == this.upsertGoogleLoadBalancerConfigWithPortRange.ipProtocol
         !healthCheck
       }
   }
@@ -195,44 +163,18 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.name
+        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.networkLoadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.credentials
-        portRange == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.listeners[0].portRange
-        healthCheck == [
-          port: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheckPort,
-          requestPath: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheckPath,
-          timeoutSec: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthTimeout,
-          checkIntervalSec: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthInterval,
-          healthyThreshold: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthyThreshold,
-          unhealthyThreshold: this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.unhealthyThreshold
-        ]
-      }
-  }
-
-  def "health check parameters are ignored if health check is false"() {
-    setup:
-      stage.context.putAll(upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse)
-      def operations
-      task.kato = Mock(KatoService) {
-        1 * requestOperations(*_) >> {
-          operations = it[0]
-          rx.Observable.from(taskId)
+        portRange == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.portRange
+        with(healthCheck) {
+          port == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.port
+          requestPath == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.requestPath
+          timeoutSec == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.timeoutSec
+          checkIntervalSec == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.checkIntervalSec
+          healthyThreshold == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.healthyThreshold
+          unhealthyThreshold == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.healthCheck.unhealthyThreshold
         }
-      }
-
-    when:
-      task.execute(stage.asImmutable())
-
-    then:
-      operations.size() == 1
-      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
-        it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.name
-        region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.region
-        credentials == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.credentials
-        portRange == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheckFalse.listeners[0].portRange
-        !healthCheck
       }
   }
 
@@ -248,7 +190,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
+      result.outputs."kato.last.task.id" == taskId
       result.outputs."upsert.account" == upsertGoogleLoadBalancerConfig.credentials
   }
 }

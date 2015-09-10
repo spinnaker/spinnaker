@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -31,33 +30,17 @@ abstract class AbstractInstanceGoogleLoadBalancerRegistrationTask implements Tas
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   abstract String getAction()
 
   @Override
   TaskResult execute(Stage stage) {
-    def katoRequest = convert(stage)
-    def taskId = kato.requestOperations([katoRequest])
+    def taskId = kato.requestOperations([[("${action}Description".toString()): stage.context]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"        : getAction().toLowerCase(),
       "kato.last.task.id"        : taskId,
-      "kato.task.id"             : taskId, // TODO retire this.
       "relevant.health.providers": ["LoadBalancer"]
     ])
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    operation.putAll(stage.context)
-    operation.networkLoadBalancerNames = operation.loadBalancerNames
-
-    def katoOperationDescription = "${action}Description".toString()
-    def katoRequest = [:]
-    katoRequest[katoOperationDescription] = operation
-    katoRequest
   }
 }

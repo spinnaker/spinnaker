@@ -29,9 +29,11 @@ class DeleteGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deleteGoogleLoadBalancerConfig = [
-    loadBalancerName: "flapjack-frontend",
-    regions         : ["us-central1"],
-    credentials     : "test-account-name"
+    loadBalancerName       : "flapjack-frontend",
+    networkLoadBalancerName: "flapjack-frontend",
+    regions                : ["us-central1"],
+    region                 : "us-central1",
+    credentials            : "test-account-name"
   ]
 
   def setup() {
@@ -55,8 +57,8 @@ class DeleteGoogleLoadBalancerTaskSpec extends Specification {
     operations.size() == 1
     with(operations[0].deleteGoogleNetworkLoadBalancerDescription) {
       it instanceof Map
-      networkLoadBalancerName == this.deleteGoogleLoadBalancerConfig.loadBalancerName
-      region == this.deleteGoogleLoadBalancerConfig.regions[0]
+      networkLoadBalancerName == this.deleteGoogleLoadBalancerConfig.networkLoadBalancerName
+      region == this.deleteGoogleLoadBalancerConfig.region
       credentials == this.deleteGoogleLoadBalancerConfig.credentials
     }
   }
@@ -72,7 +74,7 @@ class DeleteGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."delete.account.name" == deleteGoogleLoadBalancerConfig.credentials
   }
 }

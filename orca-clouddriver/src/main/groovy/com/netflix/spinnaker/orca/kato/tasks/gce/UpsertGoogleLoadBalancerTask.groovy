@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -32,23 +31,17 @@ class UpsertGoogleLoadBalancerTask implements Task {
   @Autowired
   KatoService kato
 
-  @Autowired
-  ObjectMapper mapper
-
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-
-    def taskId = kato.requestOperations([[upsertGoogleNetworkLoadBalancerDescription: operation]])
+    def taskId = kato.requestOperations([[upsertGoogleNetworkLoadBalancerDescription: stage.context]])
                      .toBlocking()
                      .first()
 
     Map outputs = [
         "notification.type": "upsertgoogleloadbalancer",
         "kato.last.task.id": taskId,
-        "kato.task.id"     : taskId, // TODO retire this.
         "upsert.account"   : stage.context.credentials,
-        "upsert.regions"   : [operation.region]
+        "upsert.regions"   : [stage.context.region]
     ]
 
     if (stage.context.clusterName) {
@@ -60,36 +53,5 @@ class UpsertGoogleLoadBalancerTask implements Task {
     }
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    def context = stage.context
-    operation.networkLoadBalancerName = context.name
-    operation.region = context.region
-    operation.credentials = context.credentials
-
-    def listener = context.listeners?.get(0)
-
-    if (listener?.protocol) {
-      operation.ipProtocol = listener.protocol;
-    }
-
-    if (listener?.portRange) {
-      operation.portRange = listener.portRange;
-    }
-
-    if (listener?.healthCheck) {
-      operation.healthCheck = [
-        port: context.healthCheckPort,
-        requestPath: context.healthCheckPath,
-        timeoutSec: context.healthTimeout,
-        checkIntervalSec: context.healthInterval,
-        healthyThreshold: context.healthyThreshold,
-        unhealthyThreshold: context.unhealthyThreshold
-      ]
-    }
-
-    operation
   }
 }

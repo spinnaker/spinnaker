@@ -32,26 +32,15 @@ class EnableGoogleServerGroupTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[enableGoogleReplicaPoolDescription: operation]])
+    def taskId = kato.requestOperations([[enableGoogleReplicaPoolDescription: stage.context]])
                      .toBlocking()
                      .first()
 
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"   : "enablegoogleservergroup",
-        "deploy.account.name" : operation.credentials,
+        "deploy.account.name" : stage.context.credentials,
         "kato.last.task.id"   : taskId,
-        "kato.task.id"        : taskId, // TODO retire this.
-        "deploy.server.groups": [(operation.region): [operation.replicaPoolName]],
+        "deploy.server.groups": [(stage.context.regions[0]): [stage.context.asgName]],
     ])
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    operation.putAll(stage.context)
-    operation.replicaPoolName = operation.asgName
-    operation.region = operation.regions ? operation.regions[0] : null
-    operation.zone = operation.zones ? operation.zones[0] : null
-    operation
   }
 }

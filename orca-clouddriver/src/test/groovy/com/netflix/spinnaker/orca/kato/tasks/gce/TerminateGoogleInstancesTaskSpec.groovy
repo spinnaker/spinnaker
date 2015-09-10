@@ -104,7 +104,7 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."terminate.account.name" == terminateInstancesConfig.credentials
   }
 }
