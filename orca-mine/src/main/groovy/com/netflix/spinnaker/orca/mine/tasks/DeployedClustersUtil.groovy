@@ -20,7 +20,11 @@ class DeployedClustersUtil {
   static List<Map> toKatoAsgOperations(String asgOperationDescription, Map stageContext) {
     stageContext.deployedClusterPairs.findAll { it.canaryStage == stageContext.canaryStageId }.collect {
       [it.canaryCluster, it.baselineCluster].collect {
-        [(asgOperationDescription): [asgName: it.serverGroup, regions: [it.region], credentials: it.accountName]]
+        [
+          (asgOperationDescription): [
+            serverGroupName: it.serverGroup, asgName: it.serverGroup, regions: [it.region], credentials: it.accountName
+          ]
+        ]
       }
     }.flatten()
   }

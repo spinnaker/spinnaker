@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import groovy.transform.CompileStatic
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -27,11 +29,14 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage.DESTROY_ASG_DESCRIPTIONS_KEY
+import static com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage.DESTROY_ASG_DESCRIPTIONS_KEY
 
+/**
+ * TODO: This task can be moved to clouddriver.tasks package once the convert() method has been cleaned up using the new oort APIs
+ */
 @Component
 @CompileStatic
-class DestroyAsgTask implements Task {
+class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato
@@ -44,18 +49,18 @@ class DestroyAsgTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[destroyAsgDescription: operation]])
+    Map context = convert(stage)
+    String cloudProvider = getCloudProvider(stage)
+    TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"   : "destroyasg",
-        "deploy.account.name" : operation.credentials,
+        "notification.type"   : "destroyservergroup",
+        "deploy.account.name" : context.credentials,
         "kato.last.task.id"   : taskId,
-        "asgName"             : operation.asgName,
-        "deploy.server.groups": ((Iterable) operation.regions).collectEntries {
-          [(it): [operation.asgName]]
-        }
+        "asgName"             : context.serverGroupName,  // TODO: Retire asgName
+        "serverGroupName"     : context.serverGroupName,
+        "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [context.serverGroupName]] }
     ])
   }
 
@@ -66,11 +71,14 @@ class DestroyAsgTask implements Task {
       input = ((List) stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
     }
 
-    def operation = mapper.convertValue(input, Map)
+    Map context = mapper.convertValue(input, Map)
+    context.serverGroupName = (context.serverGroupName ?: context.asgName) as String
+
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-      operation.asgName = targetReference.asg.name
+      context.serverGroupName = targetReference.asg.name
     }
-    operation
+
+    context
   }
 }

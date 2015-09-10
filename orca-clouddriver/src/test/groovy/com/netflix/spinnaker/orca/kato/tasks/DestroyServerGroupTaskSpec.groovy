@@ -28,34 +28,32 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DestroyAsgTaskSpec extends Specification {
-  @Subject task = new DestroyAsgTask()
+class DestroyServerGroupTaskSpec extends Specification {
+  @Subject task = new DestroyServerGroupTask()
   def stage = new PipelineStage(new Pipeline(), "whatever")
   def mapper = new OrcaObjectMapper()
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def destroyASGConfig = [
-    asgName    : "test-asg",
-    regions    : ["us-west-1"],
-    credentials: "fzlem"
+    cloudProvider : "aws",
+    asgName       : "test-asg",
+    regions       : ["us-west-1"],
+    credentials   : "fzlem"
   ]
 
   def setup() {
     mapper.registerModule(new GuavaModule())
-
     task.mapper = mapper
     task.targetReferenceSupport = Mock(TargetReferenceSupport)
-
     stage.context = destroyASGConfig
-
   }
 
   def "creates a destroy ASG task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations('aws', _) >> {
+        operations = it[1]
         rx.Observable.from(taskId)
       }
     }
@@ -65,7 +63,7 @@ class DestroyAsgTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].destroyAsgDescription) {
+    with(operations[0].destroyServerGroup) {
       it instanceof Map
       asgName == this.destroyASGConfig.asgName
       regions == this.destroyASGConfig.regions
@@ -76,7 +74,7 @@ class DestroyAsgTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     given:
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> rx.Observable.from(taskId)
     }
 
     when:
@@ -95,7 +93,7 @@ class DestroyAsgTaskSpec extends Specification {
       [asgName: "bar", regions: ["us"], credentials: account]
     ]
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> rx.Observable.from(taskId)
     }
 
     when:
@@ -113,7 +111,7 @@ class DestroyAsgTaskSpec extends Specification {
     setup:
     stage.context.target = TargetReferenceConfiguration.Target.ancestor_asg_dynamic
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations('aws', _) >> rx.Observable.from(taskId)
     }
 
     when:
@@ -127,5 +125,29 @@ class DestroyAsgTaskSpec extends Specification {
     ]
     result.stageOutputs.asgName == "foo-v001"
     result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
+  }
+
+  def "task uses serverGroupName if present"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "whatever2")
+    stage.context = [
+      cloudProvider   : "aws",
+      serverGroupName : "test-server-group",
+      regions         : ["us-west-1"],
+      credentials     : "test"
+    ]
+    task.kato = Stub(KatoService) {
+      requestOperations('aws', _) >> rx.Observable.from(taskId)
+    }
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == 'test'
+    result.stageOutputs."asgName" == 'test-server-group'
+    result.stageOutputs."serverGroupName" == 'test-server-group'
   }
 }

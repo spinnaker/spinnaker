@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
-
+package com.netflix.spinnaker.orca.clouddriver.tasks
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -32,7 +31,7 @@ import retrofit.RetrofitError
 
 @Slf4j
 @Component
-class WaitForDestroyedAsgTask implements RetryableTask {
+class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   long backoffPeriod = 1000
   long timeout = 1800000
 
@@ -44,27 +43,23 @@ class WaitForDestroyedAsgTask implements RetryableTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context."account.name"
-    if (stage.context.account && !account) {
-      account = stage.context.account
-    } else if (stage.context.credentials && !account) {
-      account = stage.context.credentials
-    }
-
-    def serverGroupRegion = (stage.context.regions as Collection)?.getAt(0)
-    def serverGroup = stage.context.asgName as String
-    Names names = Names.parseName(serverGroup)
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0)
+    String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
+    Names names = Names.parseName(serverGroupName)
     try {
-      def response = oortService.getCluster(names.app, account, names.cluster, stage.context.providerType ?: "aws")
+      def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
 
       if (response.status != 200) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
       }
-      def cluster = objectMapper.readValue(response.body.in().text, Map)
+
+      Map cluster = objectMapper.readValue(response.body.in().text, Map)
       if (!cluster || !cluster.serverGroups) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
-      if (!cluster.serverGroups.find { it.name == serverGroup && it.region == serverGroupRegion }) {
+      if (!cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
 
