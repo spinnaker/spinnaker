@@ -107,7 +107,16 @@ abstract class ParallelStage extends StageBuilder {
       }
 
       return flowBuilder.end()
-    }
+    } ?: [noFlowsFlow(stage)]
+  }
+
+  protected Flow noFlowsFlow(Stage stage) {
+    new FlowBuilder<Flow>("ParallelStage.noParallelContexts.${UUID.randomUUID().toString()}").from(buildStep(stage, "noopStep", new Task() {
+      @Override
+      TaskResult execute(Stage s) {
+        DefaultTaskResult.SUCCEEDED
+      }
+    })).end()
   }
 
   protected Task beginParallel() {
