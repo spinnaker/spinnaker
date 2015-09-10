@@ -46,8 +46,8 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
     String serverGroupRegion = (stage.context.regions as Collection)?.getAt(0)
-    String serverGroup = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
-    Names names = Names.parseName(serverGroup)
+    String serverGroupName = (stage.context.serverGroupName ?: stage.context.asgName) as String // TODO: Retire asgName
+    Names names = Names.parseName(serverGroupName)
     try {
       def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
 
@@ -59,7 +59,7 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
       if (!cluster || !cluster.serverGroups) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
-      if (!cluster.serverGroups.find { it.name == serverGroup && it.region == serverGroupRegion }) {
+      if (!cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }) {
         return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
       }
 

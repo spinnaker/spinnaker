@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import groovy.transform.CompileStatic
@@ -48,18 +49,19 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
 
   @Override
   TaskResult execute(Stage stage) {
-    Map operation = convert(stage)
+    Map context = convert(stage)
     String cloudProvider = getCloudProvider(stage)
-    def taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: operation]])
+    String serverGroupName = (context.serverGroupName ?: context.asgName) as String // TODO: Retire asgName
+    TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"   : "destroyservergroup",
-        "deploy.account.name" : operation.credentials,
+        "deploy.account.name" : context.credentials,
         "kato.last.task.id"   : taskId,
-        "asgName"             : operation.asgName,  // TODO: Retire asgName
-        "serverGroupName"     : operation.asgName,
-        "deploy.server.groups": ((Iterable) operation.regions).collectEntries { [(it): [operation.asgName]] }
+        "asgName"             : serverGroupName,  // TODO: Retire asgName
+        "serverGroupName"     : serverGroupName,
+        "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [serverGroupName]] }
     ])
   }
 
@@ -70,12 +72,13 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
       input = ((List) stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
     }
 
-    def operation = mapper.convertValue(input, Map)
+    Map context = mapper.convertValue(input, Map)
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-      operation.asgName = targetReference.asg.name
-      operation.serverGroupName = targetReference.asg.name
+      context.asgName = targetReference.asg.name
     }
-    operation
+
+    context.serverGroupName = context.asgName
+    context
   }
 }
