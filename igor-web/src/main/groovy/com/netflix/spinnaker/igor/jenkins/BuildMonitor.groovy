@@ -61,7 +61,7 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
     @Autowired
     JenkinsMasters jenkinsMasters
 
-    def lastPoll
+    Long lastPoll
 
     @SuppressWarnings('GStringExpressionWithinString')
     @Value('${spinnaker.build.pollInterval:60}')
@@ -93,7 +93,8 @@ class BuildMonitor implements ApplicationListener<ContextRefreshedEvent> {
                         changedBuilds(master)
                     }
                 } else {
-                    log.info("not in service")
+                    log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
+                    lastPoll = null
                 }
             } as Action0, 0, pollInterval, TimeUnit.SECONDS
         )
