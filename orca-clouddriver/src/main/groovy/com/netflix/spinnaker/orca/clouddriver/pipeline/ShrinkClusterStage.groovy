@@ -80,20 +80,44 @@ class ShrinkClusterStage extends ParallelStage {
       if (!regionGroups) {
         return null
       }
-      getDeletionPriorityServerGroups(regionGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize) ?: null
+      getDeletionServerGroups(regionGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize) ?: null
     }.flatten().collect {
       [
         type: DestroyServerGroupStage.PIPELINE_CONFIG_TYPE,
         region: it.region,
         account: account,
         serverGroupName: it.name,
-        cloudProvider: cloudProvider
+        cloudProvider: cloudProvider,
+        //TODO(cfieber) - lots of duplication to make TargetReferenceSupport happy...
+        asgName: it.name,
+        cluster: clusterName,
+        credentials: account,
+        regions: [it.region],
+        providerType: cloudProvider
       ]
     }
   }
 
+  /**
+   * From the provided serverGroups (all within the same region), determine which to delete.
+   *
+   * @param serverGroups the candidates for deletion - all must be in the same region
+   * @param retainLargerOverNewer whether a larger security group should take priority over a newer security group
+   * @param allowDeleteActive whether active server groups should be considered for deletion
+   * @param shrinkToSize the number of serverGroups to retain
+   * @return the list of server groups for deletion
+   */
+  @PackageScope
+  List<Map> getDeletionServerGroups(List<Map> serverGroups, boolean retainLargerOverNewer, boolean allowDeleteActive, int shrinkToSize) {
+    if (!serverGroups) {
+      return []
+    }
 
-  @PackageScope List<Map> getDeletionPriorityServerGroups(List<Map> serverGroups, boolean retainLargerOverNewer, boolean allowDeleteActive, int shrinkToSize) {
+    String region = serverGroups[0].region
+    if (!serverGroups.every { it.region == region }) {
+      throw new IllegalStateException("all server groups must be in the same region, found ${serverGroups*.region}")
+    }
+
     def comparators = []
     int dropCount = shrinkToSize
     if (allowDeleteActive) {

@@ -79,7 +79,7 @@ class ShrinkClusterStageSpec extends Specification {
   def "deletion priority #desc"() {
 
     when:
-    def toDelete = stage.getDeletionPriorityServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
+    def toDelete = stage.getDeletionServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
 
     then:
     toDelete == expected
