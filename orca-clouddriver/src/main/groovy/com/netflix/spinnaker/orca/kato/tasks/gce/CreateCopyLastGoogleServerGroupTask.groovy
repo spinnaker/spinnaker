@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -34,26 +33,13 @@ class CreateCopyLastGoogleServerGroupTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = deploy(operation)
+    def taskId = kato.requestOperations([[copyLastGoogleServerGroupDescription: stage.context]]).toBlocking().first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED,
         [
             "notification.type"  : "createcopylastasg",
             "kato.last.task.id"  : taskId,
-            "deploy.account.name": operation.credentials,
+            "deploy.account.name": stage.context.credentials,
         ]
     )
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    operation.putAll(stage.context)
-    operation.initialNumReplicas = operation.capacity.desired
-    operation.networkLoadBalancers = operation.loadBalancers
-    operation
-  }
-
-  private TaskId deploy(Map deployOperation) {
-    kato.requestOperations([[copyLastGoogleServerGroupDescription: deployOperation]]).toBlocking().first()
   }
 }

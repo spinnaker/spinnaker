@@ -30,26 +30,28 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def copyLastAsgConfig = [
-    application        : "myapp",
-    stack              : "test",
-    capacity           : [
+    application          : "myapp",
+    stack                : "test",
+    initialNumReplicas   : 6,
+    capacity             : [
             min    : 6,
             max    : 6,
             desired: 6
     ],
-    image              : "some-base-image",
-    instanceType       : "f1-micro",
-    zone               : "us-central1-b",
-    instanceMetadata   : [
-            someKey    : 'someValue',
-            anotherKey : 'anotherValue',
+    image                : "some-base-image",
+    instanceType         : "f1-micro",
+    zone                 : "us-central1-b",
+    instanceMetadata     : [
+            someKey      : 'someValue',
+            anotherKey   : 'anotherValue',
     ],
-    loadBalancers      : ["testlb"],
-    source             : [
+    networkLoadBalancers : ["testlb"],
+    loadBalancers        : ["testlb"],
+    source               : [
             zone            : "us-central1-a",
             serverGroupName : "myapp-test-v000"
     ],
-    credentials        : "fzlem"
+    credentials          : "fzlem"
   ]
 
   def setup() {
@@ -77,11 +79,11 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
       it instanceof Map
       application == this.copyLastAsgConfig.application
       stack == this.copyLastAsgConfig.stack
-      initialNumReplicas == this.copyLastAsgConfig.capacity.desired
+      initialNumReplicas == this.copyLastAsgConfig.initialNumReplicas
       image == this.copyLastAsgConfig.image
       instanceType == this.copyLastAsgConfig.instanceType
       instanceMetadata == this.copyLastAsgConfig.instanceMetadata
-      networkLoadBalancers == this.copyLastAsgConfig.loadBalancers
+      networkLoadBalancers == this.copyLastAsgConfig.networkLoadBalancers
       zone == this.copyLastAsgConfig.zone
       source.zone == this.copyLastAsgConfig.source.zone
       source.serverGroupName == this.copyLastAsgConfig.source.serverGroupName
