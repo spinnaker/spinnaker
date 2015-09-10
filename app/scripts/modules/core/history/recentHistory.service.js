@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
 
     function addItem(type, state, params) {
       var items = _.sortBy(getItems(type), 'accessTime').slice(0, maxItems),
-          existing = _.find(items, { state: state, params: params }),
+          existing = _.find(items, { params: params }),
           entry = {
             params: params,
             state: state,
