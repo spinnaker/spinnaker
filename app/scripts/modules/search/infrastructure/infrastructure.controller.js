@@ -14,16 +14,18 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       searching: false,
     };
 
-    $scope.recentItems = ['applications', 'loadBalancers', 'serverGroups', 'instances'].map((category) => {
-      return {
-        category: category,
-        results: recentHistoryService.getItems(category).map((result) => {
-          let routeParams = angular.extend(result.params, result.extraData);
-          result.name = search.formatRouteResult(category, routeParams);
-          return result;
-        })
-      };
-    });
+    $scope.recentItems = ['applications', 'loadBalancers', 'serverGroups', 'instances']
+      .map((category) => {
+        return {
+          category: category,
+          results: recentHistoryService.getItems(category).map((result) => {
+            let routeParams = angular.extend(result.params, result.extraData);
+            result.name = search.formatRouteResult(category, routeParams);
+            return result;
+          })
+        };
+      })
+      .filter((category) => { return category.results.length; });
 
     this.hasRecentItems = $scope.recentItems.some((category) => { return category.results.length > 0; });
 
