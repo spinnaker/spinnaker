@@ -54,27 +54,20 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       }
 
       var displayNameFormatter = {
-        serverGroups: function(entry, fromRoute) {
-          if (fromRoute) {
-            return entry.serverGroup + ' (' + entry.accountId + ': ' + entry.region + ')';
-          }
-          return entry.serverGroup + ' (' + entry.account + ': ' + entry.region + ')';
+        serverGroups: function(entry) {
+          return entry.serverGroup + ' (' + entry.region + ')';
         },
-        instances: function(entry, fromRoute) {
-          if (fromRoute && entry.serverGroup) {
-            return entry.instanceId + ' (' + entry.account + ': ' + entry.region + ' - ' + (entry.serverGroup || 'standalone instance') + ')';
-          }
-          return entry.instanceId + ' (' + (entry.serverGroup || 'standalone instance') + ')';
+        instances: function(entry) {
+          let serverGroup = entry.serverGroup || 'standalone instance';
+          return entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')';
         },
         clusters: function(entry) {
-          return entry.cluster + ' (' + entry.account + ')';
+          return entry.cluster;
         },
         applications: simpleField('application'),
         loadBalancers: function(entry, fromRoute) {
-          if (fromRoute) {
-            return entry.name + ' (' + entry.accountId + ': ' + entry.region + ')';
-          }
-          return entry.loadBalancer + ' (' + entry.account + ': ' + entry.region + ')';
+          let name = fromRoute ? entry.name : entry.loadBalancer;
+          return name + ' (' + entry.region + ')';
         }
       };
 

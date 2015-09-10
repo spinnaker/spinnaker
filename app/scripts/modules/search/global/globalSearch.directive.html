@@ -33,7 +33,8 @@
          analytics-category="Global Search"
          ng-class="{sublinked: result.sublinks}"
          ng-focus="ctrl.focussedResult = result"
-         analytics-label="{{result.name}}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span>
+         analytics-label="{{result.name}}">
+        <search-result item="result"></search-result>
         <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">- {{result.sublinks[0].name}}</span>
       </a>
       <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
