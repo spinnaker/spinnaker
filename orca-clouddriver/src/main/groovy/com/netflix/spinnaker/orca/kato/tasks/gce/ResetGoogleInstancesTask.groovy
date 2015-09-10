@@ -44,7 +44,6 @@ class ResetGoogleInstancesTask implements Task {
         "reset.account.name" : stage.context.credentials,
         "reset.region"       : stage.context.zone,
         "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
         "reset.instance.ids" : stage.context.instanceIds,
     ])
   }

@@ -29,10 +29,11 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def registerInstancesWithLoadBalancerConfig = [
-    instanceIds       : ["some-instance-name"],
-    loadBalancerNames : ["flapjack-frontend"],
-    region            : "us-central1",
-    credentials       : "test-account-name"
+    instanceIds             : ["some-instance-name"],
+    loadBalancerNames       : ["flapjack-frontend"],
+    networkLoadBalancerNames: ["flapjack-frontend"],
+    region                  : "us-central1",
+    credentials             : "test-account-name"
   ]
 
   def setup() {
@@ -57,7 +58,7 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
       with(operations[0].registerInstancesWithGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         instanceIds == this.registerInstancesWithLoadBalancerConfig.instanceIds
-        networkLoadBalancerNames == this.registerInstancesWithLoadBalancerConfig.loadBalancerNames
+        networkLoadBalancerNames == this.registerInstancesWithLoadBalancerConfig.networkLoadBalancerNames
         region == this.registerInstancesWithLoadBalancerConfig.region
         credentials == this.registerInstancesWithLoadBalancerConfig.credentials
       }
@@ -74,7 +75,7 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
+      result.outputs."kato.last.task.id" == taskId
       result.outputs."relevant.health.providers" == ["LoadBalancer"]
   }
 }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.gce
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -28,47 +29,26 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class TerminateGoogleInstancesTask implements Task {
+class TerminateGoogleInstancesTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def katoRequest = convert(stage)
-    def taskId = kato.requestOperations([katoRequest])
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    def taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
                      .toBlocking()
                      .first()
 
     // TODO(duftler): Reconcile the mismatch between region and zone here.
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"     : "terminategoogleinstances",
-        "terminate.account.name": stage.context.credentials,
+        "terminate.account.name": account,
         "terminate.region"      : stage.context.zone,
         "kato.last.task.id"     : taskId,
-        "kato.task.id"          : taskId, // TODO retire this.
         "terminate.instance.ids": stage.context.instanceIds,
     ])
-  }
-
-  // If the instance is contained within a server group, we want to delegate to the kato task that results in a managed
-  // instance groups recreate instances operation. If the instance is standalone, we want to delegate to the kato task
-  // that results in instance delete operations.
-  Map convert(Stage stage) {
-    def operation = [:]
-
-    operation.putAll(stage.context)
-
-    if (operation.serverGroup) {
-      operation.replicaPoolName = operation.remove('serverGroup')
-    }
-
-    def katoOperationDescription = operation.replicaPoolName
-                                   ? 'recreateGoogleReplicaPoolInstancesDescription'
-                                   : 'terminateGoogleInstancesDescription'
-    def katoRequest = [:]
-
-    katoRequest[katoOperationDescription] = operation
-
-    katoRequest
   }
 }

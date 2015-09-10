@@ -29,10 +29,11 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def deregisterInstancesFromLoadBalancerConfig = [
-    instanceIds       : ["some-instance-name"],
-    loadBalancerNames : ["flapjack-frontend"],
-    region            : "us-central1",
-    credentials       : "test-account-name"
+    instanceIds             : ["some-instance-name"],
+    loadBalancerNames       : ["flapjack-frontend"],
+    networkLoadBalancerNames: ["flapjack-frontend"],
+    region                  : "us-central1",
+    credentials             : "test-account-name"
   ]
 
   def setup() {
@@ -57,7 +58,7 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
       with(operations[0].deregisterInstancesFromGoogleNetworkLoadBalancerDescription) {
         it instanceof Map
         instanceIds == this.deregisterInstancesFromLoadBalancerConfig.instanceIds
-        networkLoadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.loadBalancerNames
+        networkLoadBalancerNames == this.deregisterInstancesFromLoadBalancerConfig.networkLoadBalancerNames
         region == this.deregisterInstancesFromLoadBalancerConfig.region
         credentials == this.deregisterInstancesFromLoadBalancerConfig.credentials
       }
@@ -74,7 +75,7 @@ class DeregisterInstancesFromGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       result.status == ExecutionStatus.SUCCEEDED
-      result.outputs."kato.task.id" == taskId
+      result.outputs."kato.last.task.id" == taskId
       result.outputs."relevant.health.providers" == ["LoadBalancer"]
   }
 }

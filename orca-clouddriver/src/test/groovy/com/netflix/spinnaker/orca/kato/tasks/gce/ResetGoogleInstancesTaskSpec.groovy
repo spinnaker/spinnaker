@@ -73,7 +73,7 @@ class ResetGoogleInstancesTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."reset.account.name" == resetInstancesConfig.credentials
   }
 }

@@ -30,6 +30,7 @@ class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def upsertGoogleServerGroupTagsConfig = [
+      replicaPoolName: "test-server-group",
       serverGroupName: "test-server-group",
       region         : "us-central1",
       zone           : "us-central1-f",
@@ -58,7 +59,7 @@ class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].upsertGoogleServerGroupTagsDescription) {
         it instanceof Map
-        replicaPoolName == this.upsertGoogleServerGroupTagsConfig.serverGroupName
+        replicaPoolName == this.upsertGoogleServerGroupTagsConfig.replicaPoolName
         region == this.upsertGoogleServerGroupTagsConfig.region
         zone == this.upsertGoogleServerGroupTagsConfig.zone
         credentials == this.upsertGoogleServerGroupTagsConfig.credentials
@@ -80,7 +81,7 @@ class UpsertGoogleServerGroupTagsTaskSpec extends Specification {
       result.outputs."kato.last.task.id" == taskId
       result.outputs."deploy.account.name" == upsertGoogleServerGroupTagsConfig.credentials
       result.outputs."deploy.server.groups" == [
-          (upsertGoogleServerGroupTagsConfig.region): [upsertGoogleServerGroupTagsConfig.serverGroupName]
+          (upsertGoogleServerGroupTagsConfig.region): [upsertGoogleServerGroupTagsConfig.replicaPoolName]
       ]
   }
 }

@@ -33,26 +33,16 @@ class DeleteGoogleLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def operation = convert(stage)
-    def taskId = kato.requestOperations([[deleteGoogleNetworkLoadBalancerDescription: operation]])
+    def taskId = kato.requestOperations([[deleteGoogleNetworkLoadBalancerDescription: stage.context]])
                      .toBlocking()
                      .first()
     Map outputs = [
         "notification.type"  : "deletegoogleloadbalancer",
         "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
-        "delete.name"        : operation.loadBalancerName,
-        "delete.regions"     : operation.regions.join(','),
-        "delete.account.name": operation.credentials
+        "delete.name"        : stage.context.loadBalancerName,
+        "delete.regions"     : stage.context.regions.join(','),
+        "delete.account.name": stage.context.credentials
     ]
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
-  }
-
-  Map convert(Stage stage) {
-    def operation = [:]
-    operation.putAll(stage.context)
-    operation.networkLoadBalancerName = operation.loadBalancerName
-    operation.region = operation.regions ? operation.regions[0] : null
-    operation
   }
 }

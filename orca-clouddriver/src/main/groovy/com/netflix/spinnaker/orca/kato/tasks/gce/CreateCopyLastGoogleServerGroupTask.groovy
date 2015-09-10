@@ -40,7 +40,6 @@ class CreateCopyLastGoogleServerGroupTask implements Task {
         [
             "notification.type"  : "createcopylastasg",
             "kato.last.task.id"  : taskId,
-            "kato.task.id"       : taskId, // TODO retire this.
             "deploy.account.name": operation.credentials,
         ]
     )

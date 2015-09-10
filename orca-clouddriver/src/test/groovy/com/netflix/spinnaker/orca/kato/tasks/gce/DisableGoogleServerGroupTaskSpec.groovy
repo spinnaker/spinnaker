@@ -30,9 +30,11 @@ class DisableGoogleServerGroupTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def disableASGConfig = [
-    asgName    : "test-asg",
-    zones      : ["us-central1-b"],
-    credentials: "fzlem"
+    asgName        : "test-asg",
+    replicaPoolName: "test-asg",
+    regions        : ["us-central1"],
+    zone           : "us-central1-b",
+    credentials    : "fzlem"
   ]
 
   def setup() {
@@ -56,8 +58,8 @@ class DisableGoogleServerGroupTaskSpec extends Specification {
     operations.size() == 1
     with(operations[0].disableGoogleReplicaPoolDescription) {
       it instanceof Map
-      replicaPoolName == this.disableASGConfig.asgName
-      zone == this.disableASGConfig.zones[0]
+      replicaPoolName == this.disableASGConfig.replicaPoolName
+      zone == this.disableASGConfig.zone
       credentials == this.disableASGConfig.credentials
     }
   }
@@ -73,7 +75,7 @@ class DisableGoogleServerGroupTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."deploy.account.name" == disableASGConfig.credentials
   }
 }
