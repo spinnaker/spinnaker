@@ -10,9 +10,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
+  require('../../../core/history/recentHistory.service.js'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
-                                               instanceWriter, confirmationModalService,
+                                               instanceWriter, confirmationModalService, recentHistoryService,
                                                instanceReader, _, instance, app) {
 
     // needed for standalone instances
@@ -52,6 +53,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
     }
 
     function retrieveInstance() {
+      var extraData = {};
       var instanceSummary, loadBalancers, account, region, vpcId;
       if (!app.serverGroups) {
         // standalone instance
@@ -67,7 +69,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
               loadBalancers = serverGroup.loadBalancers;
               account = serverGroup.account;
               region = serverGroup.region;
-              vpcId = serverGroup.vpcId;
+              extraData.serverGroup = serverGroup.name;
               return true;
             }
           });
@@ -110,6 +112,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       }
 
       if (instanceSummary && account && region) {
+        extraData.account = account;
+        extraData.region = region;
+        recentHistoryService.addExtraDataToLatest('instances', extraData);
         instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           details = details.plain();
           $scope.state.loading = false;

@@ -5,10 +5,24 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.infrastructure.search.service', [
   require('../../utils/rx.js'),
   require('../../navigation/urlBuilder.service.js'),
+  require('../../applications/applications.read.service.js'),
 ])
-  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService) {
+  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader) {
     return function() {
       var deferred;
+
+      // TODO: Remove once Oort is indexing all applications
+      function searchApplications(query) {
+        return applicationReader.listApplications().then((applications) => {
+          return applications
+            .filter((application) => {
+              return application.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+            })
+            .map((application) => {
+              return { application: application.name, type: 'applications', provider: 'aws', url: '/applications/' + application.name };
+            });
+        });
+      }
 
       var categoryNameLookup = {
         serverGroups: 'Server Groups',
@@ -40,20 +54,37 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       }
 
       var displayNameFormatter = {
-        serverGroups: function(entry) {
+        serverGroups: function(entry, fromRoute) {
+          if (fromRoute) {
+            return entry.serverGroup + ' (' + entry.accountId + ': ' + entry.region + ')';
+          }
           return entry.serverGroup + ' (' + entry.account + ': ' + entry.region + ')';
         },
-        instances: function(entry) {
+        instances: function(entry, fromRoute) {
+          if (fromRoute && entry.serverGroup) {
+            return entry.instanceId + ' (' + entry.account + ': ' + entry.region + ' - ' + (entry.serverGroup || 'standalone instance') + ')';
+          }
           return entry.instanceId + ' (' + (entry.serverGroup || 'standalone instance') + ')';
         },
         clusters: function(entry) {
           return entry.cluster + ' (' + entry.account + ')';
         },
         applications: simpleField('application'),
-        loadBalancers: function(entry) {
+        loadBalancers: function(entry, fromRoute) {
+          if (fromRoute) {
+            return entry.name + ' (' + entry.accountId + ': ' + entry.region + ')';
+          }
           return entry.loadBalancer + ' (' + entry.account + ': ' + entry.region + ')';
         }
       };
+
+      function augmentSearchResultsWithApplications(searchResults, applications) {
+        applications.forEach((application) => {
+          if (searchResults.results.every((searchResult) => { return !angular.equals(application, searchResult); })) {
+            searchResults.results.push(application);
+          }
+        });
+      }
 
       var querySubject = new RxService.Subject();
 
@@ -62,10 +93,23 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just(searchService.getFallbackResults());
           }
-          return RxService.Observable.fromPromise(searchService.search({
-            q: query,
-            type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
-          }));
+          // TODO: use this once Oort searches all applications
+          //return RxService.Observable.fromPromise(searchService.search({
+          //  q: query,
+          //  type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
+          //}));
+
+          return RxService.Observable.fromPromise(
+            searchApplications(query).then(function(applications) {
+              return searchService.search({
+                q: query,
+                type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
+              }).then(function(searchResults) {
+                augmentSearchResultsWithApplications(searchResults, applications);
+                return searchResults;
+              });
+            })
+          );
         })
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
@@ -93,6 +137,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           deferred = $q.defer();
           querySubject.onNext(query);
           return deferred.promise;
+        },
+        formatRouteResult: function(type, params) {
+          return displayNameFormatter[type](params, true);
         },
       };
     };

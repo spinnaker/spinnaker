@@ -1,16 +1,25 @@
 <div class="container infrastructure global-search-header">
   <div class="row">
-    <div class="col-md-3 col-sm-12">
-      <h2>Infrastructure</h2>
+    <div class="col-md-12">
+      <h2>Infrastructure Search</h2>
     </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <h4>You may search for Applications, Clusters, Load Balancers, and Server Groups.</h4>
+    </div>
+  </div>
+  <div class="row">
     <div class="col-md-4 col-sm-12">
       <form class="form form-horizontal">
         <div class="form-group">
           <div class="col-md-12">
             <input type="search"
-                   class="form-control input-md"
+                   class="form-control input-lg"
+                   style="margin-bottom: 10px"
                    placeholder="Search infrastructure"
-                   focus
+                   autofocus
+                   ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
                    ng-model="query">
           </div>
         </div>
@@ -18,31 +27,51 @@
     </div>
   </div>
 </div>
-<span ng-if="ctrl.hasResults()">
+<div ng-if="ctrl.hasResults()">
   <div class="row" ng-if="moreResults">
     <div class="col-md-12">
       <p style="margin: 10px 20px 0">Only showing the first {{pageSize}} results found.</p>
     </div>
   </div>
   <div class="row infrastructure">
-    <div class="col-md-4" ng-repeat="category in categories | orderBy:'category'">
+    <div class="col-md-4 animated category-container" ng-repeat="category in categories | orderBy:'category'">
       <div class="panel category row">
         <div class="summary">{{ category.category }} ({{category.results.length}})</div>
-        <div class="col-md-12 details-container">
-          <div class="details row padding">
-            <div class="col-md-12" ng-repeat="result in category.results">
-              <a href="{{ result.href }}">{{ result.name }}</a>
-            </div>
-          </div>
+        <div class="details-container list-group">
+          <a class="list-group-item"
+             ng-repeat="result in category.results"
+             href="{{ result.href }}"><span bind-html-unsafe="result.name | typeaheadHighlight:query"></span></a>
         </div>
       </div>
     </div>
   </div>
-</span>
-<span ng-if="ctrl.noMatches()">
+</div>
+<h2 ng-if="viewState.searching" class="text-center" style="margin-bottom: 25px">
+  <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+</h2>
+<div ng-if="ctrl.noMatches() && !viewState.searching">
   <div class="row">
     <div class="col-md-12">
       <h4 class="text-center">No results matching {{ query }}.</h4>
     </div>
   </div>
-</span>
+</div>
+<div ng-if="ctrl.hasRecentItems && !viewState.searching">
+  <div class="row infrastructure recently-viewed-items">
+    <div class="col-md-12">
+      <h3>Recently viewed</h3>
+    </div>
+  </div>
+  <div class="row infrastructure">
+    <div class="col-md-4 animated category-container" ng-repeat="category in recentItems | orderBy:'category'">
+      <div class="panel category row">
+        <div class="summary">{{ category.category | robotToHuman }} ({{category.results.length}})</div>
+        <div class="details-container list-group">
+          <a class="list-group-item"
+             ng-repeat="result in category.results"
+             ui-sref="{{ result.state }}(result.params)">{{ result.name }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

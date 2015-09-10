@@ -146,8 +146,9 @@ module.exports = angular.module('spinnaker', [
     require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
     require('./modules/account/accountLabelColor.directive.js'),
+    require('./modules/core/history/recentHistory.service.js'),
 ])
-  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings) {
+  .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings, recentHistoryService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
     // for now, it's needed because ui-sref-active does not work on parent states
     // and we have to use ng-class. It's gross.
@@ -200,6 +201,9 @@ module.exports = angular.module('spinnaker', [
         fromParams: fromParams
       });
       pageTitleService.handleRoutingSuccess(toState.data);
+      if (toState.data && toState.data.history) {
+        recentHistoryService.addItem(toState.data.history.type, toState.name, toParams);
+      }
     });
 
     $rootScope.feature = settings.feature;
@@ -293,7 +297,7 @@ module.exports = angular.module('spinnaker', [
           $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
           $delegate(exception, cause);
         } catch(e) {
-          // eat it to permit a endless exception loop from happening
+          // eat it to prevent an endless exception loop from happening
         }
       };
     });

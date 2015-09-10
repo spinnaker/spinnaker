@@ -17,18 +17,32 @@
 @import "../../core/presentation/less/imports/commonImports.less";
 
 .infrastructure {
+  h3 {
+    font-weight: 600;
+    margin-left: 15px;
+  }
+  &.recently-viewed-items {
+    border-top: 1px solid @mid_grey;
+  }
   .panel {
-    background-color: #f1f1f1;
+    border: 0;
     .summary {
-      padding: 15px;
+      background-color: @mid_grey;
+      color: @lightest_grey;
+      text-transform: uppercase;
+      padding: 8px 12px;
+      font-weight: 600;
     }
     .details-container {
-      background-color: #FFF;
+      background-color: @lightest_grey;
       height: 200px;
       overflow-y: scroll;
-      .details {
-        padding-top: 15px;
-
+      border-bottom: 2px solid @mid_grey;
+      a {
+        background-color: @lightest_grey;
+        &:hover, &:focus {
+          background-color: #ffffff;
+        }
       }
     }
 
