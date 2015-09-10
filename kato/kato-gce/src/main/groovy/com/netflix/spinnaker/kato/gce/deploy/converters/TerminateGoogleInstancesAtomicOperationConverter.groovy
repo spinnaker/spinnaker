@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
+import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.ops.TerminateGoogleInstancesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
-@Component("terminateGoogleInstancesDescription")
+@GoogleOperation(AtomicOperations.TERMINATE_INSTANCES)
+@Component
 class TerminateGoogleInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
   AtomicOperation convertOperation(Map input) {
-    new TerminateGoogleInstancesAtomicOperation(convertDescription(input))
+    new TerminateGoogleInstancesAtomicOperation(convertDescription(input), new ReplicaPoolBuilder())
   }
 
   @Override
