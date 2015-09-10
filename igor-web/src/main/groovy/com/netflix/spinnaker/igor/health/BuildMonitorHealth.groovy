@@ -39,9 +39,9 @@ public class BuildMonitorHealth implements HealthIndicator {
                 Health.unknown().withDetail('buildmonitor.status', 'not polling yet').build()
             } else {
                 if (System.currentTimeMillis() - poller.lastPoll > (poller.pollInterval * 2 * 1000)) {
-                    Health.down().withDetail('buildmonitor.status', 'stopped').withDetail('buildmonitor.lastPoll', "${poller.lastPoll}").build()
+                    Health.down().withDetail('buildmonitor.status', 'stopped').withDetail('buildmonitor.lastPoll', poller.lastPoll.toString()).build()
                 } else {
-                    Health.up().withDetail('buildmonitor.status', 'running').withDetail('buildmonitor.lastPoll', "${poller.lastPoll}").build()
+                    Health.up().withDetail('buildmonitor.status', 'running').withDetail('buildmonitor.lastPoll', poller.lastPoll.toString()).build()
                 }
             }
         } else {
