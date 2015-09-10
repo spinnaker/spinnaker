@@ -28,6 +28,11 @@
   </div>
 </div>
 <div ng-if="ctrl.hasResults()">
+  <div class="row">
+    <div class="col-md-12">
+      <h3>Infrastructure matching "{{query}}"</h3>
+    </div>
+  </div>
   <div class="row" ng-if="moreResults">
     <div class="col-md-12">
       <p style="margin: 10px 20px 0">Only showing the first {{pageSize}} results found.</p>
