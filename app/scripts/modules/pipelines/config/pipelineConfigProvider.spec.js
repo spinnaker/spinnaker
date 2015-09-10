@@ -78,6 +78,14 @@ describe('pipelineConfigProvider: API', function() {
         {key: 'c', provides: 'a', description: 'a1', label: 'aa'}
       ]);
     }));
+
+    it('returns stage config when an alias is supplied', window.inject(function() {
+      let config = {key: 'a', alias: 'a1'};
+      configurer.registerStage(config);
+      expect(configurer.$get().getStageConfig({type: 'a'})).toEqual(config);
+      expect(configurer.$get().getStageConfig({type: 'a1'})).toEqual(config);
+      expect(configurer.$get().getStageConfig({type: 'b'})).toBe(null);
+    }));
   });
 
 });
