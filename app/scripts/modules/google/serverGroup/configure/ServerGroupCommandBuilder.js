@@ -6,18 +6,18 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../caches/deckCacheFactory.js'),
   require('../../../account/accountService.js'),
+  require('../../../instance/instanceTypeService.js'),
   require('../../../naming/naming.service.js'),
-  require('../../instance/gceInstanceTypeService.js'),
   require('../../../utils/lodash.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
-                                                     accountService, gceInstanceTypeService, namingService, _) {
+                                                     accountService, instanceTypeService, namingService, _) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
     //   2) Each machine type appears in exactly one category.
     function determineInstanceCategoryFromInstanceType(command) {
-      return gceInstanceTypeService.getCategories().then(function(categories) {
+      return instanceTypeService.getCategories('gce').then(function(categories) {
         categories.forEach(function(category) {
           category.families.forEach(function(family) {
             family.instanceTypes.forEach(function(instanceType) {
@@ -32,13 +32,26 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
-        metadataItems.forEach(function(metadataItem) {
-          // Don't show 'load-balancer-names' key/value pair in the wizard.
-          if (metadataItem.key !== 'load-balancer-names') {
-            // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
-            command.instanceMetadata.push(metadataItem);
+        if (angular.isArray(metadataItems)) {
+          metadataItems.forEach(function (metadataItem) {
+            // Don't show 'load-balancer-names' key/value pair in the wizard.
+            if (metadataItem.key !== 'load-balancer-names') {
+              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
+              command.instanceMetadata.push(metadataItem);
+            }
+          });
+        } else {
+          for (var property in metadataItems) {
+            // Don't show 'load-balancer-names' key/value pair in the wizard.
+            if (property !== 'load-balancer-names') {
+              // The 'key' and 'value' attributes are used to enable the Add/Remove behavior in the wizard.
+              command.instanceMetadata.push({
+                key: property,
+                value: metadataItems[property],
+              });
+            }
           }
-        });
+        }
       }
     }
 
@@ -192,7 +205,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
-      var instanceTypeCategoryLoader = gceInstanceTypeService.getCategoryForInstanceType(pipelineCluster.instanceType);
+      var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
       var commandOptions = { account: pipelineCluster.account, region: region };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
 
@@ -215,40 +228,25 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         pipelineCluster.strategy = pipelineCluster.strategy || '';
 
-        return angular.extend({}, command, pipelineCluster, viewOverrides);
+        var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
+
+        var instanceMetadata = extendedCommand.instanceMetadata;
+        extendedCommand.instanceMetadata = [];
+        populateCustomMetadata(instanceMetadata, extendedCommand);
+
+        var instanceTemplateTags = {items: extendedCommand.tags};
+        extendedCommand.tags = [];
+        populateTags(instanceTemplateTags, extendedCommand);
+
+        return extendedCommand;
       });
 
-    }
-
-    function buildSubmittableCommand(original) {
-      var command = angular.copy(original);
-      var transformedInstanceMetadata = {};
-      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
-      command.instanceMetadata.forEach(function(metadataPair) {
-        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
-      });
-
-      // We use this list of load balancer names when 'Enabling' a server group.
-      if (command.loadBalancers && command.loadBalancers.length > 0) {
-        transformedInstanceMetadata['load-balancer-names'] = command.loadBalancers.toString();
-      }
-      command.instanceMetadata = transformedInstanceMetadata;
-
-      var transformedTags = [];
-      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
-      command.tags.forEach(function(tag) {
-        transformedTags.push(tag.value);
-      });
-      command.tags = transformedTags;
-
-      return command;
     }
 
     return {
       buildNewServerGroupCommand: buildNewServerGroupCommand,
       buildNewServerGroupCommandForPipeline: buildNewServerGroupCommandForPipeline,
       buildServerGroupCommandFromExisting: buildServerGroupCommandFromExisting,
-      buildSubmittableCommand: buildSubmittableCommand,
       buildServerGroupCommandFromPipeline: buildServerGroupCommandFromPipeline,
     };
 })

@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 ])
   .controller('gceCloneServerGroupCtrl', function($scope, $modalInstance, _, $q, $exceptionHandler, $state,
                                                   serverGroupWriter, modalWizardService, taskMonitorService,
-                                                  gceServerGroupCommandBuilder, gceServerGroupConfigurationService,
+                                                  gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title) {
     $scope.pages = {
       templateSelection: require('./templateSelection.html'),
@@ -129,6 +129,28 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     };
 
     this.clone = function () {
+      var transformedInstanceMetadata = {};
+      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the wizard.
+      $scope.command.instanceMetadata.forEach(function(metadataPair) {
+        transformedInstanceMetadata[metadataPair.key] = metadataPair.value;
+      });
+
+      // We use this list of load balancer names when 'Enabling' a server group.
+      if ($scope.command.loadBalancers && $scope.command.loadBalancers.length > 0) {
+        transformedInstanceMetadata['load-balancer-names'] = $scope.command.loadBalancers.toString();
+      }
+      $scope.command.instanceMetadata = transformedInstanceMetadata;
+
+      var transformedTags = [];
+      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
+      $scope.command.tags.forEach(function(tag) {
+        transformedTags.push(tag.value);
+      });
+      $scope.command.tags = transformedTags;
+
+      $scope.command.initialNumReplicas = $scope.command.capacity.desired;
+      $scope.command.networkLoadBalancers = $scope.command.loadBalancers;
+
       // We want min/max set to the same value as desired.
       $scope.command.capacity.min = $scope.command.capacity.desired;
       $scope.command.capacity.max = $scope.command.capacity.desired;
@@ -138,9 +160,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       }
       $scope.taskMonitor.submit(
         function() {
-          var command = gceServerGroupCommandBuilder.buildSubmittableCommand($scope.command);
-
-          return serverGroupWriter.cloneServerGroup(command, application);
+          return serverGroupWriter.cloneServerGroup(angular.copy($scope.command), application);
         }
       );
     };
