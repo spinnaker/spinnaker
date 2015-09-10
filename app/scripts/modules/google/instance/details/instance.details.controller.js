@@ -209,7 +209,13 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstance(instance, app);
+        let params = {cloudProvider: 'gce'};
+
+        if (instance.serverGroup) {
+          params.managedInstanceGroupName = instance.serverGroup;
+        }
+
+        return instanceWriter.terminateInstance(instance, app, params);
       };
 
       confirmationModalService.confirm({
