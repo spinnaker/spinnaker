@@ -48,7 +48,10 @@ module.exports = angular.module('spinnaker.states', [
           pageTitleDetails: {
             title: 'Instance Details',
             nameParam: 'instanceId'
-          }
+          },
+          history: {
+            type: 'instances',
+          },
         }
       };
 
@@ -80,7 +83,10 @@ module.exports = angular.module('spinnaker.states', [
             nameParam: 'serverGroup',
             accountParam: 'accountId',
             regionParam: 'region'
-          }
+          },
+          history: {
+            type: 'serverGroups',
+          },
         }
       };
 
@@ -119,7 +125,10 @@ module.exports = angular.module('spinnaker.states', [
             nameParam: 'name',
             accountParam: 'accountId',
             regionParam: 'region'
-          }
+          },
+          history: {
+            type: 'loadBalancers',
+          },
         }
       };
 
@@ -363,7 +372,10 @@ module.exports = angular.module('spinnaker.states', [
         data: {
           pageTitleMain: {
             field: 'application'
-          }
+          },
+          history: {
+            type: 'applications',
+          },
         },
         children: [
           insight,
@@ -482,7 +494,10 @@ module.exports = angular.module('spinnaker.states', [
           pageTitleDetails: {
             title: 'Instance Details',
             nameParam: 'instanceId'
-          }
+          },
+          history: {
+            type: 'instances',
+          },
         }
       };
 

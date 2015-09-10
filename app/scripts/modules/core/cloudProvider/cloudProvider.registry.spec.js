@@ -18,9 +18,6 @@ describe('cloudProviderRegistry: API', function() {
       var config = { key: 'a' };
       configurer.registerProvider('aws', config);
       expect(configurer.$get().getProvider('aws')).toEqual(config);
-
-      configurer.registerProvider('gce', {key: 'b'});
-      expect(configurer.$get().getProvider('gce')).toEqual({key: 'b'});
     }));
   });
 
