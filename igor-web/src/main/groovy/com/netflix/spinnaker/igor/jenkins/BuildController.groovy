@@ -54,14 +54,18 @@ class BuildController {
             throw new MasterNotFoundException()
         }
         Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
-        Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
-        if (scm?.action?.lastBuiltRevision?.branch?.name) {
-            result.scm = scm?.action.lastBuiltRevision
-            result.scm = result.scm.branch.collect {
-                it.branch = it.name.split('/').last()
-                it
-            }
+        try {
+            Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber).first(), Map)
+            if (scm?.action?.lastBuiltRevision?.branch?.name) {
+                result.scm = scm?.action.lastBuiltRevision
+                result.scm = result.scm.branch.collect {
+                    it.branch = it.name.split('/').last()
+                    it
+                }
 
+            }
+        }catch(Exception e){
+            log.error("could not get scm results for $master / $job / $buildNumber")
         }
         result
     }
