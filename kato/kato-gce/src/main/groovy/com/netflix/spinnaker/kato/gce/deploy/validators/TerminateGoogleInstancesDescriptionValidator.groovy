@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
-@Component("terminateGoogleInstancesDescriptionValidator")
+@GoogleOperation(AtomicOperations.TERMINATE_INSTANCES)
+@Component
 class TerminateGoogleInstancesDescriptionValidator extends DescriptionValidator<TerminateGoogleInstancesDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider

@@ -30,6 +30,9 @@ final class AtomicOperations {
   public static final String DESTROY_SERVER_GROUP = "destroyServerGroup"
   public static final String RESIZE_SERVER_GROUP = "resizeServerGroup"
 
+  // Instance operations
+  public static final String TERMINATE_INSTANCES = "terminateInstances"
+
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"
   public static final String UPSERT_LOAD_BALANCER = "upsertLoadBalancer"
