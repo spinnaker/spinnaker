@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
+@Deprecated
 class ResizeAsgStage extends LinearStage {
   static final String PIPELINE_CONFIG_TYPE = "resizeAsg"
 

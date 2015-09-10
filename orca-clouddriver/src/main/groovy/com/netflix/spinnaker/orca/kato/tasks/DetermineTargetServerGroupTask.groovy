@@ -20,23 +20,26 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@Deprecated
-class DetermineTargetReferenceTask implements Task {
+class DetermineTargetServerGroupTask implements Task {
 
   @Autowired
-  TargetReferenceSupport targetReferenceSupport
+  TargetServerGroupResolver resolver
 
   @Override
   TaskResult execute(Stage stage) {
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      targetReferences: targetReferenceSupport.getTargetAsgReferences(stage)
+      targetReferences: getTargetServerGroups(stage)
     ])
+  }
+
+  List<TargetServerGroup> getTargetServerGroups(Stage stage) {
+    resolver.resolve(TargetServerGroup.Params.fromStage(stage))
   }
 }

@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -112,6 +113,7 @@ class ResizeSupportSpec extends Specification {
       [:]                                | [minSize: 1, maxSize: 3, desiredCapacity: 3] || [min: 1, max: 3, desired: 3]
   }
 
+  @Ignore
   def "should use GCE-specific modifications"() {
     setup:
       context.provider = "gce"

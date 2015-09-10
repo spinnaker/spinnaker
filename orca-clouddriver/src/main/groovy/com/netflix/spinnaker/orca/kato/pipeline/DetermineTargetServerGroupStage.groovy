@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetReferenceTask
+import com.netflix.spinnaker.orca.kato.tasks.DetermineTargetServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -25,17 +26,16 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-@Deprecated
-class DetermineTargetReferenceStage extends LinearStage {
+class DetermineTargetServerGroupStage extends LinearStage {
 
-  static final String PIPELINE_CONFIG_TYPE = "determineTargetReference"
+  static final String PIPELINE_CONFIG_TYPE = "determineTargetServerGroup"
 
-  DetermineTargetReferenceStage() {
+  DetermineTargetServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    [ buildStep(stage, "determineTargetReference", DetermineTargetReferenceTask) ]
+    [ buildStep(stage, "determineTargetServerGroup", DetermineTargetServerGroupTask) ]
   }
 }
