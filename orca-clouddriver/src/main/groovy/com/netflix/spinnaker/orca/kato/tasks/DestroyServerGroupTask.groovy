@@ -51,7 +51,6 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
   TaskResult execute(Stage stage) {
     Map context = convert(stage)
     String cloudProvider = getCloudProvider(stage)
-    String serverGroupName = (context.serverGroupName ?: context.asgName) as String // TODO: Retire asgName
     TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
                      .toBlocking()
                      .first()
@@ -59,9 +58,9 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
         "notification.type"   : "destroyservergroup",
         "deploy.account.name" : context.credentials,
         "kato.last.task.id"   : taskId,
-        "asgName"             : serverGroupName,  // TODO: Retire asgName
-        "serverGroupName"     : serverGroupName,
-        "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [serverGroupName]] }
+        "asgName"             : context.serverGroupName,  // TODO: Retire asgName
+        "serverGroupName"     : context.serverGroupName,
+        "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [context.serverGroupName]] }
     ])
   }
 
@@ -73,12 +72,13 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
     }
 
     Map context = mapper.convertValue(input, Map)
+    context.serverGroupName = (context.serverGroupName ?: context.asgName) as String
+
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-      context.asgName = targetReference.asg.name
+      context.serverGroupName = targetReference.asg.name
     }
 
-    context.serverGroupName = context.asgName
     context
   }
 }

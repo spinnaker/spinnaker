@@ -126,4 +126,28 @@ class DestroyServerGroupTaskSpec extends Specification {
     result.stageOutputs.asgName == "foo-v001"
     result.stageOutputs."deploy.server.groups" == ["us-west-1": ["foo-v001"]]
   }
+
+  def "task uses serverGroupName if present"() {
+    given:
+    def stage = new PipelineStage(new Pipeline(), "whatever2")
+    stage.context = [
+      cloudProvider   : "aws",
+      serverGroupName : "test-server-group",
+      regions         : ["us-west-1"],
+      credentials     : "test"
+    ]
+    task.kato = Stub(KatoService) {
+      requestOperations('aws', _) >> rx.Observable.from(taskId)
+    }
+
+    when:
+    def result = task.execute(stage.asImmutable())
+
+    then:
+    result.status == ExecutionStatus.SUCCEEDED
+    result.stageOutputs."kato.last.task.id" == taskId
+    result.stageOutputs."deploy.account.name" == 'test'
+    result.stageOutputs."asgName" == 'test-server-group'
+    result.stageOutputs."serverGroupName" == 'test-server-group'
+  }
 }
