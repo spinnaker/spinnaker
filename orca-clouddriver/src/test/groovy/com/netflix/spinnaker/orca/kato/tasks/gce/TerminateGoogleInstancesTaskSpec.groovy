@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,12 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def terminateInstancesConfig = [
-    zone       : "us-central1-b",
-    credentials: "fzlem",
-    instanceIds: ['i-123456', 'i-654321'],
-    launchTimes: [1419273631008, 1419273085007]
+    cloudProvider           : "gce",
+    zone                    : "us-central1-b",
+    credentials             : "fzlem",
+    managedInstanceGroupName: "myapp-test-v001",
+    instanceIds             : ['myapp-test-v001-abcd', 'myapp-test-v001-efgh'],
+    launchTimes             : [1419273631008, 1419273085007]
   ]
   def serverGroup = "some-server-group"
 
@@ -41,12 +43,12 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
     stage.context.putAll(terminateInstancesConfig)
   }
 
-  def "creates a terminate google instance task based on job parameters"() {
+  def "creates a terminate google instances task based on job parameters"() {
     given:
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations(stage.context.cloudProvider, _) >> {
+        operations = it[1]
         rx.Observable.from(taskId)
       }
     }
@@ -56,38 +58,16 @@ class TerminateGoogleInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    def katoRequest = operations[0].terminateGoogleInstancesDescription
+    def katoRequest = operations[0].terminateInstances
     katoRequest instanceof Map
     validTerminateInstancesCall(katoRequest)
-  }
-
-  def "creates a recreate google replica pool instance task based on job parameters"() {
-    given:
-    def operations
-    task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
-        rx.Observable.from(taskId)
-      }
-    }
-
-    when:
-    stage.context.serverGroup = serverGroup
-    task.execute(stage.asImmutable())
-
-    then:
-    operations.size() == 1
-    def katoRequest = operations[0].recreateGoogleReplicaPoolInstancesDescription
-    katoRequest instanceof Map
-    validTerminateInstancesCall(katoRequest)
-
-    katoRequest.replicaPoolName == serverGroup
   }
 
   void validTerminateInstancesCall(Map katoRequest) {
     with (katoRequest) {
       assert zone == this.terminateInstancesConfig.zone
       assert credentials == this.terminateInstancesConfig.credentials
+      assert managedInstanceGroupName == this.terminateInstancesConfig.managedInstanceGroupName
       assert instanceIds == this.terminateInstancesConfig.instanceIds
       assert launchTimes == this.terminateInstancesConfig.launchTimes
     }
