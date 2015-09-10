@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
       let baseKey = key,
           stageTypes = getStageTypes();
       let candidates = stageTypes.filter(function(stageType) {
-        return stageType.provides && (stageType.provides === key || stageType.key === key);
+        return stageType.provides && (stageType.provides === key || stageType.key === key || stageType.alias === key);
       });
       if (candidates.length) {
         baseKey = candidates[0].provides;
@@ -75,7 +75,9 @@ module.exports = angular.module('spinnaker.pipelines.config.configProvider', [
       if (!stage || !stage.type) {
         return null;
       }
-      var matches = getStageTypes().filter((stageType) => { return stageType.key === stage.type || stageType.provides === stage.type; });
+      var matches = getStageTypes().filter((stageType) => {
+        return stageType.key === stage.type || stageType.provides === stage.type || stageType.alias === stage.type;
+      });
       if (matches.length > 1) {
         var provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
         matches = matches.filter((stageType) => { return stageType.cloudProvider === provider; });

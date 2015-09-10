@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
   require('../trigger.directive.js'),
-  require('../../../../jenkins/index.js'), //igorService BEN_TODO
+  require('../../../../jenkins/igor.service.js'),
   require('../../../../caches/cacheInitializer.js'),
   require('../../../../caches/infrastructureCaches.js'),
   require('../../pipelineConfigProvider.js'),
