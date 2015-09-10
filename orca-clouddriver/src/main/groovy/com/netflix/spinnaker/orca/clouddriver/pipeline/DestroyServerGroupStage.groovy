@@ -30,11 +30,14 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 class DestroyServerGroupStage extends TargetReferenceLinearStageSupport {
-  static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
-  static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
+  static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
 
   DestroyServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
+  }
+
+  DestroyServerGroupStage(String type) {
+    super(type)
   }
 
   @Override
