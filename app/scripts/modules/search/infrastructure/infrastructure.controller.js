@@ -46,6 +46,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
           return resultSet.results.length;
         }) === $scope.pageSize;
         $location.search('q', query || null);
+        $location.replace();
         pageTitleService.handleRoutingSuccess(
           {
             pageTitleMain: {

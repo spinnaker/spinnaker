@@ -9,19 +9,14 @@ module.exports = angular.module('securityGroup.filter.controller', [
   require('./securityGroup.filter.model.js'),
   require('../../utils/lodash.js'),
 ])
-  .controller('SecurityGroupFilterCtrl', function ($scope, app, _, $log, securityGroupFilterService, SecurityGroupFilterModel) {
+  .controller('SecurityGroupFilterCtrl', function ($scope, app, _, $log, securityGroupFilterService, SecurityGroupFilterModel, $rootScope) {
 
     $scope.application = app;
     $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
 
     var ctrl = this;
 
-    this.updateSecurityGroups = function () {
-      SecurityGroupFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(
-        securityGroupFilterService.updateSecurityGroups(app)
-      );
-    };
+    this.updateSecurityGroups = SecurityGroupFilterModel.applyParamsToUrl();
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.securityGroups, option))).sort();
@@ -44,6 +39,11 @@ module.exports = angular.module('securityGroup.filter.controller', [
     this.initialize();
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
+
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', function() {
+      SecurityGroupFilterModel.activate();
+      securityGroupFilterService.updateClusterGroups(app);
+    }));
 
   }
 )

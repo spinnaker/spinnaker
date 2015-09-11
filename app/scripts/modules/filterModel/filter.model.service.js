@@ -7,7 +7,7 @@ module.exports = angular
     require('../utils/lodash.js'),
     require('angular-ui-router'),
   ])
-.factory('filterModelService', function (_, $location, $state, $stateParams) {
+.factory('filterModelService', function (_, $location, $state, $stateParams, $timeout) {
 
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
@@ -249,9 +249,11 @@ module.exports = angular
               delete currentParams[key];
             }
           });
-          $location.search(angular.extend(currentParams, savedState.filters));
-          $location.replace();
-          filterModel.activate();
+          $timeout(function() {
+            $location.search(angular.extend(currentParams, savedState.filters));
+            filterModel.activate();
+            $location.replace();
+          });
         }
       };
 

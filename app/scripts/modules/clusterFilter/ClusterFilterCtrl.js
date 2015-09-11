@@ -9,19 +9,14 @@ module.exports = angular.module('cluster', [
   require('./clusterFilterModel.js'),
   require('../utils/lodash.js'),
 ])
-  .controller('ClusterFilterCtr', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel) {
+  .controller('ClusterFilterCtr', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel, $rootScope) {
 
     $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;
 
     var ctrl = this;
 
-    this.updateClusterGroups = function () {
-      ClusterFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(
-        clusterFilterService.updateClusterGroups(app)
-      );
-    };
+    this.updateClusterGroups = ClusterFilterModel.applyParamsToUrl();
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
@@ -56,6 +51,10 @@ module.exports = angular.module('cluster', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', function() {
+      ClusterFilterModel.activate();
+      clusterFilterService.updateClusterGroups(app);
+    }));
   }
 )
 .name;

@@ -55,9 +55,15 @@ module.exports = angular
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
     // come back to this application view, we'll get whatever that search was.
-    $rootScope.$on('$locationChangeStart', function(event, toUrl) {
-      let parts = toUrl.split('?');
-      mostRecentParams = parts.length === 2 ? urlParser.parseQueryString(parts[1]) : {};
+    $rootScope.$on('$locationChangeStart', function(event, toUrl, fromUrl) {
+      let [oldBase, oldQuery] = fromUrl.split('?'),
+        [newBase, newQuery] = toUrl.split('?');
+
+      if (oldBase === newBase) {
+        mostRecentParams = newQuery ? urlParser.parseQueryString(newQuery) : {};
+      } else {
+        mostRecentParams = oldQuery ? urlParser.parseQueryString(oldQuery) : {};
+      }
     });
 
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
