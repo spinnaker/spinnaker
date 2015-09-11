@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.image.service', [
   .factory('imageReader', function (serviceDelegate) {
 
     function getDelegate(provider) {
-      return serviceDelegate.getDelegate(provider, 'image.service');
+      return serviceDelegate.getDelegate(provider, 'image.reader');
     }
 
     function findImages(params) {

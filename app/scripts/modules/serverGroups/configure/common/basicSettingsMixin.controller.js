@@ -39,7 +39,7 @@ module.exports = angular
           }
           return {
             imageName: image.imageName,
-            ami: image.amis ? image.amis[$scope.command.region][0] : null
+            ami: image.amis && image.amis[$scope.command.region] ? image.amis[$scope.command.region][0] : null
           };
         });
       });
