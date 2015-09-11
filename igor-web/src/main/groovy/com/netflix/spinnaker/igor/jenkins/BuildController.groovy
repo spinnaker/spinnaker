@@ -55,7 +55,7 @@ class BuildController {
         }
         Map result = objectMapper.convertValue(masters.map[master].getBuild(job, buildNumber), Map)
         try {
-            Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber).first(), Map)
+            Map scm = objectMapper.convertValue(masters.map[master].getGitDetails(job, buildNumber), Map)
             if (scm?.action?.lastBuiltRevision?.branch?.name) {
                 result.scm = scm?.action.lastBuiltRevision
                 result.scm = result.scm.branch.collect {
