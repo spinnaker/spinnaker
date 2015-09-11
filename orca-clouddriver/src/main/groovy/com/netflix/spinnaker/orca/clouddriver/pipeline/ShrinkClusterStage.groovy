@@ -84,6 +84,7 @@ class ShrinkClusterStage extends ParallelStage {
     }.flatten().collect {
       [
         type: DestroyServerGroupStage.PIPELINE_CONFIG_TYPE,
+        name: "Destroy Server Group $it.name in $it.region".toString(),
         credentials: account,
         regions: [it.region],
 
