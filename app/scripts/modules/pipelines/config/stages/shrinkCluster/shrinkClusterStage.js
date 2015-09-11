@@ -17,8 +17,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.shrinkClusterStage', 
       controller: 'ShrinkClusterStageCtrl',
       controllerAs: 'shrinkClusterStageCtrl',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
-      executionStepLabelUrl: require('./shrinkClusterStepLabel.html'),
       validators: [
         {
           type: 'requiredField',
@@ -72,8 +70,15 @@ module.exports = angular.module('spinnaker.pipelines.stage.shrinkClusterStage', 
       stage.allowDeleteActive = false;
     }
 
+    ctrl.pluralize = function(str, val) {
+      if (val === 1) {
+        return str;
+      }
+      return str + 's';
+    };
+
     if (stage.retainLargerOverNewer === undefined) {
-      stage.retainLargerOverNewer = false;
+      stage.retainLargerOverNewer = "false";
     }
   })
   .name;

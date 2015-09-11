@@ -26,33 +26,27 @@
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-1 sm-label-left">
-      <b>Shrink to Size</b>
+      <b>Shrink Options</b>
     </div>
-    <div class="col-md-1">
-      <input type="number" required ng-model="stage.shrinkToSize"
-             class="form-control input-sm" />
+    <div class="col-md-6">
+      <div class="form-inline">
+        Shrink to
+        <input type="number" min="0" required ng-model="stage.shrinkToSize"
+               class="form-control input-sm" style="width: 50px" />
+        {{shrinkClusterStageCtrl.pluralize('Server Group', stage.shrinkToSize)}}, keeping the
+        <select class="form-control input-sm"
+                ng-model="stage.retainLargerOverNewer" style="width: 100px">
+          <option value="true">largest</option>
+          <option value="false">newest</option>
+        </select>
+      </div>
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-2 col-md-offset-1 sm-label-left"><b>Server Group Deletion</b></div>
-    <div class="col-md-6 checkbox">
+    <div class="col-md-offset-3 col-md-6 checkbox">
       <label>
         <input type="checkbox" ng-model="stage.allowDeleteActive"/>
         Allow deletion of active Server Groups
-      </label>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-md-offset-3 col-md-3 radio">
-      <label>
-        <input type="radio" ng-model="stage.retainLargerOverNewer" ng-value="true" id="retainLargerOverNewerTrue"/>
-        Keep largest Server Groups
-      </label>
-    </div>
-    <div class="col-md-3 radio">
-      <label>
-        <input type="radio" ng-model="stage.retainLargerOverNewer" ng-value="false" id="retainLargerOverNewerFalse"/>
-        Keep newest Server Groups
       </label>
     </div>
   </div>
