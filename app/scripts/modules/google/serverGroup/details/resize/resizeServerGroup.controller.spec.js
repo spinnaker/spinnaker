@@ -1,6 +1,6 @@
 'use strict';
 
-describe('Controller: ResizeServerGroupCtrl', function () {
+describe('Controller: awsResizeServerGroupCtrl', function () {
 
   //NOTE: This is only testing the controllers dependencies. Please add more tests.
 
@@ -16,7 +16,7 @@ describe('Controller: ResizeServerGroupCtrl', function () {
   beforeEach(
     window.inject(function ($rootScope, $controller) {
       scope = $rootScope.$new();
-      controller = $controller('ResizeServerGroupCtrl', {
+      controller = $controller('gceResizeServerGroupCtrl', {
         $scope: scope,
         $modalInstance: {},
         application: {},

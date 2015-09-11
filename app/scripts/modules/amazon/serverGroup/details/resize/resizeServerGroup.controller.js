@@ -2,12 +2,12 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.resizeServerGroup.controller', [
-  require('../../account/accountService.js'),
-  require('../serverGroup.write.service.js'),
-  require('../../tasks/monitor/taskMonitorService.js')
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
+  require('../../../../account/accountService.js'),
+  require('../../../../serverGroups/serverGroup.write.service.js'),
+  require('../../../../tasks/monitor/taskMonitorService.js')
 ])
-  .controller('ResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
+  .controller('awsResizeServerGroupCtrl', function($scope, $modalInstance, accountService, serverGroupWriter, taskMonitorService,
                                                 application, serverGroup) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = {
@@ -44,7 +44,7 @@ module.exports = angular.module('spinnaker.resizeServerGroup.controller', [
       }
 
       var submitMethod = function() {
-        return serverGroupWriter.resizeServerGroup(serverGroup, capacity, application);
+        return serverGroupWriter.resizeServerGroup(serverGroup, application, {capacity: capacity});
       };
 
       var taskMonitorConfig = {

@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../../../insight/insightFilterState.model.js'),
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./networking/networking.module.js'),
+  require('./resize/resizeServerGroup.controller'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $modal, confirmationModalService, _, serverGroupWriter,
@@ -248,8 +249,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: require('../../../serverGroups/details/resizeServerGroup.html'),
-        controller: 'ResizeServerGroupCtrl as ctrl',
+        templateUrl: require('./resize/resizeServerGroup.html'),
+        controller: 'awsResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
           application: function() { return app; }

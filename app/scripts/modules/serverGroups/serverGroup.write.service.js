@@ -54,21 +54,17 @@ module.exports = angular
       });
     }
 
-    function resizeServerGroup(serverGroup, capacity, application) {
+    function resizeServerGroup(serverGroup, application, params={}) {
+      params.asgName = serverGroup.name;
+      params.type = 'resizeAsg';
+      params.regions = [serverGroup.region];
+      params.zones = serverGroup.zones;
+      params.credentials = serverGroup.account;
+      params.providerType = serverGroup.type;
       return taskExecutor.executeTask({
-        job: [
-          {
-            asgName: serverGroup.name,
-            type: 'resizeAsg',
-            regions: [serverGroup.region],
-            zones: serverGroup.zones,
-            credentials: serverGroup.account,
-            capacity: capacity,
-            providerType: serverGroup.type
-          }
-        ],
+        job: [params],
         application: application,
-        description: 'Resize Server Group: ' + serverGroup.name + ' to ' + capacity.min + '/' + capacity.desired + '/' + capacity.max
+        description: 'Resize Server Group: ' + serverGroup.name + ' to ' + params.capacity.min + '/' + params.capacity.desired + '/' + params.capacity.max
       });
     }
 

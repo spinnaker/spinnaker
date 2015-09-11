@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../serverGroups/configure/common/runningExecutions.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
+  require('./resize/resizeServerGroup.controller'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
@@ -205,8 +206,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
     this.resizeServerGroup = function resizeServerGroup() {
       $modal.open({
-        templateUrl: require('../../../serverGroups/details/resizeServerGroup.html'),
-        controller: 'ResizeServerGroupCtrl as ctrl',
+        templateUrl: require('./resize/resizeServerGroup.html'),
+        controller: 'gceResizeServerGroupCtrl as ctrl',
         resolve: {
           serverGroup: function() { return $scope.serverGroup; },
           application: function() { return application; }
