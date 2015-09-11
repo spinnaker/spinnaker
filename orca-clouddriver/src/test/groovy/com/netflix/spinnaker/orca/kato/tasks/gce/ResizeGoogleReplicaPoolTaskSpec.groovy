@@ -34,10 +34,12 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def resizeASGConfig = [
-    asgName    : "test-replica-pool",
-    zones      : ["us-central1-b"],
-    credentials: "fzlem",
-    capacity   : [
+    replicaPoolName: "test-replica-pool",
+    asgName        : "test-replica-pool",
+    zone           : "us-central1-b",
+    credentials    : "fzlem",
+    numReplicas    : 6,
+    capacity       : [
       min    : 1,
       max    : 10,
       desired: 6
@@ -65,10 +67,10 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].resizeGoogleReplicaPoolDescription) {
         it instanceof Map
-        replicaPoolName == this.resizeASGConfig.asgName
-        zone == this.resizeASGConfig.zones[0]
+        replicaPoolName == this.resizeASGConfig.replicaPoolName
+        zone == this.resizeASGConfig.zone
         credentials == this.resizeASGConfig.credentials
-        numReplicas == this.resizeASGConfig.capacity.desired
+        numReplicas == this.resizeASGConfig.numReplicas
       }
   }
 
@@ -121,10 +123,10 @@ class ResizeGoogleReplicaPoolTaskSpec extends Specification {
       operations.size() == 1
       with(operations[0].resizeGoogleReplicaPoolDescription) {
         it instanceof Map
-        replicaPoolName == this.resizeASGConfig.asgName
-        zone == this.resizeASGConfig.zones[0]
+        replicaPoolName == this.resizeASGConfig.replicaPoolName
+        zone == this.resizeASGConfig.zone
         credentials == this.resizeASGConfig.credentials
-        numReplicas == this.resizeASGConfig.capacity.desired
+        numReplicas == this.resizeASGConfig.numReplicas
       }
   }
 }
