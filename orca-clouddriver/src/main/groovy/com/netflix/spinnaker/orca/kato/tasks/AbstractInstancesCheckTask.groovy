@@ -117,9 +117,9 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
       }
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
-      if (e.response.status == 404) {
+      if (e.response?.status == 404) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)
-      } else if (e.response.status >= 500) {
+      } else if (e.response?.status >= 500) {
         log.error("Unexpected retrofit error (${retrofitErrorResponse})")
         return new DefaultTaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
       }
