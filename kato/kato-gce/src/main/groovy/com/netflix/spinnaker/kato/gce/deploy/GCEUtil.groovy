@@ -472,6 +472,10 @@ class GCEUtil {
       firewall.allowed = allowed
     }
 
+    if (firewallRuleDescription.description) {
+      firewall.description = firewallRuleDescription.description
+    }
+
     if (firewallRuleDescription.sourceRanges) {
       firewall.sourceRanges = firewallRuleDescription.sourceRanges
     }

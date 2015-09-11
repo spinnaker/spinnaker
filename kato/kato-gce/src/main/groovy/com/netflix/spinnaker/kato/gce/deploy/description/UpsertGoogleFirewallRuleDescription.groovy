@@ -20,6 +20,7 @@ import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class UpsertGoogleFirewallRuleDescription {
   String firewallRuleName
+  String description
   String network = "default"
   List<String> sourceRanges
   List<String> sourceTags

@@ -32,6 +32,7 @@ import spock.lang.Subject
 
 class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
   private static final FIREWALL_RULE_NAME = "spinnaker-firewall-1"
+  private static final DESCRIPTION = "Some firewall description..."
   private static final NETWORK_NAME = "default"
   private static final SOURCE_RANGE = "192.0.0.0/8"
   private static final SOURCE_TAG = "some-source-tag"
@@ -60,6 +61,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
       def description = new UpsertGoogleFirewallRuleDescription(
           firewallRuleName: FIREWALL_RULE_NAME,
+          description: DESCRIPTION,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
           sourceTags: [SOURCE_TAG],
@@ -93,6 +95,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       // Insert the new firewall rule.
       1 * firewallsMock.insert(PROJECT_NAME, {
           it.name == FIREWALL_RULE_NAME &&
+          it.description == DESCRIPTION &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
