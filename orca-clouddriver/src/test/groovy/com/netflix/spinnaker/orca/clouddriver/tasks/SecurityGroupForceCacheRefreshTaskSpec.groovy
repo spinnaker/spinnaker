@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.SecurityGroupForceCacheRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -27,9 +26,9 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
   def stage = new PipelineStage(type: "whatever")
 
   def config = [
-    name   : "sg-12345a",
-    region : "us-west-1",
-    account: "fzlem"
+    name       : "sg-12345a",
+    region     : "us-west-1",
+    credentials: "fzlem"
   ]
 
   def setup() {
@@ -46,9 +45,11 @@ class SecurityGroupForceCacheRefreshTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.mort.forceCacheUpdate(SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.mort.forceCacheUpdate('aws', SecurityGroupForceCacheRefreshTask.REFRESH_TYPE, _) >> {
+      String cloudProvider, String type, Map<String, ? extends Object> body ->
+
       assert body.securityGroupName == config.name
-      assert body.account == config.account
+      assert body.account == config.credentials
       assert body.region == "us-west-1"
     }
   }
