@@ -5,12 +5,13 @@ let angular = require('angular');
 module.exports = angular
   .module('cluster.filter.service', [
     require('angular-ui-router'),
+    require('exports?"debounce"!angular-debounce'),
     require('./clusterFilterModel.js'),
     require('../utils/lodash.js'),
     require('../utils/waypoints/waypoint.service.js'),
     require('../filterModel/filter.model.service.js'),
   ])
-  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService) {
+  .factory('clusterFilterService', function (ClusterFilterModel, _, waypointService, $log, $stateParams, filterModelService, debounce) {
 
     var lastApplication = null;
 
@@ -114,8 +115,8 @@ module.exports = angular
     /**
      * Grouping logic
      */
-
-    function updateClusterGroups(application) {
+    // this gets called every time the URL changes, so we debounce it a tiny bit
+    var updateClusterGroups = debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {
@@ -153,7 +154,7 @@ module.exports = angular
       ClusterFilterModel.addTags();
       lastApplication = application;
       return groups;
-    }
+    }, 25);
 
     function getCluster(application, clusterName, account) {
       return _.find(application.clusters, {account: account, name: clusterName });

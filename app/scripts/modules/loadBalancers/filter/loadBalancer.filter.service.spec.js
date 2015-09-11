@@ -10,6 +10,7 @@ describe('Service: loadBalancerFilterService', function () {
   var _;
   var app;
   var resultJson;
+  var $timeout;
 
   beforeEach(
     window.module(
@@ -21,11 +22,13 @@ describe('Service: loadBalancerFilterService', function () {
 
   beforeEach(
     window.inject(
-      function (_$location_, loadBalancerFilterService, _LoadBalancerFilterModel_, ___) {
+      function (_$location_, loadBalancerFilterService, _LoadBalancerFilterModel_, ___, _$timeout_) {
         _ = ___;
         service = loadBalancerFilterService;
         $location = _$location_;
         LoadBalancerFilterModel = _LoadBalancerFilterModel_;
+        $timeout = _$timeout_;
+        LoadBalancerFilterModel.groups = [];
       }
     )
   );
@@ -50,20 +53,24 @@ describe('Service: loadBalancerFilterService', function () {
 
     it('no filter: should be transformed', function () {
       var expected = [
+        { heading: 'prod', subgroups: [
+          { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
         { heading: 'test', subgroups: [
           { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
         ]},
-        { heading: 'prod', subgroups: [
-          { heading: 'elb-2', subgroups: [ resultJson[2] ]}
-        ]}
       ];
-      expect(service.updateLoadBalancerGroups(app)).toEqual(expected);
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual(expected);
     });
 
     describe('filter by vpc', function () {
       it('should filter by vpc name as an exact match', function () {
         LoadBalancerFilterModel.sortFilter.filter = 'vpc:main';
-        expect(service.updateLoadBalancerGroups(app)).toEqual([
+        service.updateLoadBalancerGroups(app);
+        $timeout.flush();
+        expect(LoadBalancerFilterModel.groups).toEqual([
           { heading: 'test', subgroups: [
             { heading: 'elb-1', subgroups: [ resultJson[1] ]}
           ]}
@@ -72,14 +79,18 @@ describe('Service: loadBalancerFilterService', function () {
 
       it('should not match on partial vpc name', function () {
         LoadBalancerFilterModel.sortFilter.filter = 'vpc:main-old';
-        expect(service.updateLoadBalancerGroups(app)).toEqual([]);
+        service.updateLoadBalancerGroups(app);
+        $timeout.flush();
+        expect(LoadBalancerFilterModel.groups).toEqual([]);
       });
     });
 
     describe('filtering by account type', function () {
       it('1 account filter: should be transformed showing only prod accounts', function () {
         LoadBalancerFilterModel.sortFilter.account = {prod: true};
-        expect(service.updateLoadBalancerGroups(app)).toEqual([
+        service.updateLoadBalancerGroups(app);
+        $timeout.flush();
+        expect(LoadBalancerFilterModel.groups).toEqual([
           { heading: 'prod', subgroups: [
             { heading: 'elb-2', subgroups: [ resultJson[2] ]}
           ]}
@@ -88,13 +99,15 @@ describe('Service: loadBalancerFilterService', function () {
 
       it('All account filters: should show all accounts', function () {
         LoadBalancerFilterModel.sortFilter.account = {prod: true, test: true};
-        expect(service.updateLoadBalancerGroups(app)).toEqual([
+        service.updateLoadBalancerGroups(app);
+        $timeout.flush();
+        expect(LoadBalancerFilterModel.groups).toEqual([
+          { heading: 'prod', subgroups: [
+            { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+          ]},
           { heading: 'test', subgroups: [
             { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
           ]},
-          { heading: 'prod', subgroups: [
-            { heading: 'elb-2', subgroups: [ resultJson[2] ]}
-          ]}
         ]);
       });
     });
@@ -104,12 +117,14 @@ describe('Service: loadBalancerFilterService', function () {
     it('1 region: should filter by that region', function () {
       LoadBalancerFilterModel.sortFilter.region = {'us-east-1' : true};
 
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[0] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[0] ]}
         ]}
       ]);
     });
@@ -117,17 +132,18 @@ describe('Service: loadBalancerFilterService', function () {
     it('All regions: should show all load balancers', function () {
       LoadBalancerFilterModel.sortFilter.region = {'us-east-1' : true, 'us-west-1': true};
 
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
         ]}
       ]);
     });
   });
-
   describe('filter by healthy state', function () {
     it('should filter any load balancers with down instances (based on downCount) if "Up" checked', function () {
       LoadBalancerFilterModel.sortFilter.status = {'Up' : true };
@@ -135,12 +151,14 @@ describe('Service: loadBalancerFilterService', function () {
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Up' } ];
       });
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[1] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[1] ]}
         ]}
       ]);
     });
@@ -151,7 +169,9 @@ describe('Service: loadBalancerFilterService', function () {
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Down' } ];
       });
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'test', subgroups: [
           { heading: 'elb-1', subgroups: [ resultJson[0] ]}
         ]},
@@ -164,7 +184,9 @@ describe('Service: loadBalancerFilterService', function () {
       app.loadBalancers.forEach(function (loadBalancer) {
         loadBalancer.instances = [ { healthState: 'Starting' } ];
       });
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'test', subgroups: [
           { heading: 'elb-1', subgroups: [ resultJson[0] ]}
         ]},
@@ -181,36 +203,42 @@ describe('Service: loadBalancerFilterService', function () {
     });
     it('should filter by aws if checked', function () {
       LoadBalancerFilterModel.sortFilter.providerType = {aws : true};
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[0] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[0] ]}
         ]}
       ]);
     });
 
     it('should not filter if no provider type is selected', function () {
       LoadBalancerFilterModel.sortFilter.providerType = undefined;
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
         ]}
       ]);
     });
 
     it('should not filter if all provider are selected', function () {
       LoadBalancerFilterModel.sortFilter.providerType = {aws: true, gce: true};
-      expect(service.updateLoadBalancerGroups(app)).toEqual([
-        { heading: 'test', subgroups: [
-          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
-        ]},
+      service.updateLoadBalancerGroups(app);
+      $timeout.flush();
+      expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
           { heading: 'elb-2', subgroups: [ resultJson[2] ]}
+        ]},
+        { heading: 'test', subgroups: [
+          { heading: 'elb-1', subgroups: [ resultJson[0], resultJson[1] ]}
         ]}
       ]);
     });
@@ -240,6 +268,7 @@ describe('Service: loadBalancerFilterService', function () {
         ]}
       ]};
       service.updateLoadBalancerGroups(app);
+      $timeout.flush();
       expect(LoadBalancerFilterModel.groups).toEqual([
         newGroup,
         { heading: 'prod', subgroups: [
@@ -257,6 +286,7 @@ describe('Service: loadBalancerFilterService', function () {
       });
       var newSubGroup = { heading: 'elb-3', subgroups: [{heading: 'eu-west-1', loadBalancer: app.loadBalancers[3], serverGroups: [] }]};
       service.updateLoadBalancerGroups(app);
+      $timeout.flush();
       expect(LoadBalancerFilterModel.groups).toEqual([
         { heading: 'prod', subgroups: [
             { heading: 'elb-2', subgroups: [resultJson[2]] },
@@ -274,6 +304,7 @@ describe('Service: loadBalancerFilterService', function () {
       });
       var newSubsubGroup = { heading: 'eu-west-1', loadBalancer: app.loadBalancers[3], serverGroups: [] };
       service.updateLoadBalancerGroups(app);
+      $timeout.flush();
       expect(LoadBalancerFilterModel.groups).toEqual([
         {
           heading: 'prod', subgroups: [

@@ -28,6 +28,7 @@
     "loader-utils": "^0.2.11",
     "lodash": "^3.10.1",
     "moment-timezone": "^0.4.0",
+    "ng-debounce": "git://github.com/shahata/angular-debounce.git#0.1.7",
     "ng-infinite-scroll": "^1.2.0",
     "restangular": "~1.4.0",
     "rx": "^2.5.3",

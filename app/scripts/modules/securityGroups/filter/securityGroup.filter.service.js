@@ -6,11 +6,12 @@ module.exports = angular
   .module('securityGroup.filter.service', [
     require('./securityGroup.filter.model.js'),
     require('../../utils/lodash.js'),
+    require('exports?"debounce"!angular-debounce'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, _, waypointService, filterModelService,
-                                                  $log) {
+                                                  $log, debounce) {
 
     var lastApplication = null;
 
@@ -45,7 +46,7 @@ module.exports = angular
      * @param application
      * @returns {*}
      */
-    function updateSecurityGroups(application) {
+    var updateSecurityGroups = debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {
@@ -87,7 +88,7 @@ module.exports = angular
       SecurityGroupFilterModel.addTags();
       lastApplication = application;
       return groups;
-    }
+    }, 25);
 
     function diffSubgroups(oldGroups, newGroups) {
       var groupsToRemove = [];

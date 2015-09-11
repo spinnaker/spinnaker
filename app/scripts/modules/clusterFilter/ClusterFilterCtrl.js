@@ -16,7 +16,10 @@ module.exports = angular.module('cluster', [
 
     var ctrl = this;
 
-    this.updateClusterGroups = ClusterFilterModel.applyParamsToUrl;
+    this.updateClusterGroups = () => {
+      ClusterFilterModel.applyParamsToUrl();
+      clusterFilterService.updateClusterGroups(app);
+    };
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
@@ -51,10 +54,7 @@ module.exports = angular.module('cluster', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', function() {
-      ClusterFilterModel.activate();
-      clusterFilterService.updateClusterGroups(app);
-    }));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => { clusterFilterService.updateClusterGroups(app); }));
   }
 )
 .name;
