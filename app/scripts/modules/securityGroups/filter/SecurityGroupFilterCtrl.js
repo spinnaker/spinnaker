@@ -16,7 +16,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
 
     var ctrl = this;
 
-    this.updateSecurityGroups = SecurityGroupFilterModel.applyParamsToUrl();
+    this.updateSecurityGroups = SecurityGroupFilterModel.applyParamsToUrl;
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.securityGroups, option))).sort();

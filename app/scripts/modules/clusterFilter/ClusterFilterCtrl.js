@@ -16,7 +16,7 @@ module.exports = angular.module('cluster', [
 
     var ctrl = this;
 
-    this.updateClusterGroups = ClusterFilterModel.applyParamsToUrl();
+    this.updateClusterGroups = ClusterFilterModel.applyParamsToUrl;
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
