@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,

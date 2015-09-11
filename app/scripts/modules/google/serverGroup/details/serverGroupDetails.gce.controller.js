@@ -14,6 +14,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   require('../../../insight/insightFilterState.model.js'),
   require('./resize/resizeServerGroup.controller'),
   require('../../../modal/closeable/closeable.modal.controller.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $modal, confirmationModalService, _, serverGroupWriter,
