@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
           category: category,
           results: recentHistoryService.getItems(category).map((result) => {
             let routeParams = angular.extend(result.params, result.extraData);
-            result.name = search.formatRouteResult(category, routeParams);
+            result.displayName = search.formatRouteResult(category, routeParams);
             return result;
           })
         };

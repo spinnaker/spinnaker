@@ -168,7 +168,7 @@ module.exports = angular.module('spinnaker.states', [
             nameParam: 'name',
             accountParam: 'accountId',
             regionParam: 'region'
-          }
+          },
         }
       };
 

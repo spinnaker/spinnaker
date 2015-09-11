@@ -71,11 +71,10 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           let name = fromRoute ? entry.name : entry.loadBalancer;
           return name + ' (' + entry.region + ')';
         },
-        securityGroups: function(entry, fromRoute) {
-          let name = entry.name;
+        securityGroups: function(entry) {
           return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
             let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
-            entry.displayName = name + ' (' + region + ')';
+            entry.displayName = entry.name + ' (' + region + ')';
           });
         }
       };
