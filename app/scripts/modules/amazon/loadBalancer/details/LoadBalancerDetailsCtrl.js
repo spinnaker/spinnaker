@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/presentation/collapsibleSection/collapsibleSection.directive.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
                                                    securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {

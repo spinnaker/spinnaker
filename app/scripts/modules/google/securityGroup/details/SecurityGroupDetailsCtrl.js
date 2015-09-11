@@ -27,6 +27,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService, app, InsightFilterStateModel,
                                                     confirmationModalService, securityGroupWriter, securityGroupReader,

@@ -11,6 +11,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService, recentHistoryService,

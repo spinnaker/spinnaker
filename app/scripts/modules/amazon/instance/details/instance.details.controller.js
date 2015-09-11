@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../confirmationModal/confirmationModal.service.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
+  require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService, recentHistoryService,
