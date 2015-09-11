@@ -16,6 +16,10 @@ module.exports = angular
     var vm = this;
     const application = app;
 
+    let refreshApp = () => {
+      app.refreshImmediately(true);
+    };
+
     vm.app = application.name;
     vm.itemsPerPage = 25;
     vm.filterString = '';
@@ -105,7 +109,7 @@ module.exports = angular
             return property;
           }
         }
-      });
+      }).result.then(refreshApp);
     };
 
     vm.editFastProperty = function(property) {
@@ -147,7 +151,8 @@ module.exports = angular
     vm.continue = function($event, promotion) {
       $event.stopPropagation();
       promotion.isPromoting = true;
-      fastPropertyWriter.continuePromotion(promotion.id);
+      fastPropertyWriter.continuePromotion(promotion.id)
+        .then(refreshApp, refreshApp);
     };
 
     vm.stop= function($event, promotion) {
