@@ -12,8 +12,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.destroyAsgStage', [
     pipelineConfigProvider.registerStage({
       label: 'Destroy Server Group',
       description: 'Destroys a server group',
-      key: 'destroyServerGroup',
-      alias: 'destroyAsg',
+      key: 'destroyAsg',
+      alias: 'destroyServerGroup',
       controller: 'DestroyAsgStageCtrl',
       controllerAs: 'destroyAsgStageCtrl',
       templateUrl: require('./destroyAsgStage.html'),
