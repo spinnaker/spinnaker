@@ -19,15 +19,12 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.ResizeAsgDescription
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 
-@AmazonOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 class ResizeAsgAtomicOperation implements AtomicOperation<Void> {
   private static final String PHASE = "RESIZE"
 
