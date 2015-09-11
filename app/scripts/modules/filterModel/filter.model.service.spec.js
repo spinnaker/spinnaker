@@ -5,7 +5,6 @@ describe('Service: FilterModelService', function () {
 
   var service;
   var $location;
-  var $timeout;
   var $stateParams;
   var searchParams;
   var filterModel;
@@ -25,10 +24,9 @@ describe('Service: FilterModelService', function () {
 
   beforeEach(
     window.inject(
-      function (filterModelService, _$location_, _$timeout_, _$stateParams_) {
+      function (filterModelService, _$location_, _$stateParams_) {
         service = filterModelService;
         $location = _$location_;
-        $timeout = _$timeout_;
         $stateParams = _$stateParams_;
         spyOn($location, 'search').and.callFake(function(key, val) {
           if (key) {
@@ -420,7 +418,6 @@ describe('Service: FilterModelService', function () {
       expect($location.search.calls.count()).toBe(1);
 
       filterModel.restoreState({ application: 'deck' });
-      $timeout.flush();
 
       expect($location.search.calls.count()).toBe(1);
     });
@@ -432,7 +429,6 @@ describe('Service: FilterModelService', function () {
       $stateParams.account = 'prod';
       $stateParams.cluster = 'deck-main';
       filterModel.restoreState({ application: 'deck' });
-      $timeout.flush();
 
       expect($stateParams.application).toBe('deck');
       expect($stateParams.account).toBeUndefined();
@@ -446,7 +442,6 @@ describe('Service: FilterModelService', function () {
         filters: {}
       };
       filterModel.restoreState({ application: 'deck' });
-      $timeout.flush();
       expect($location.search('account')).toBeUndefined();
     });
 

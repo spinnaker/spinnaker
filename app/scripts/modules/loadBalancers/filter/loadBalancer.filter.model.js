@@ -5,10 +5,12 @@ let angular = require('angular');
 module.exports = angular
   .module('loadBalancer.filter.model', [
     require('../../filterModel/filter.model.service.js'),
+    require('../../navigation/urlParser.service.js'),
   ])
-  .factory('LoadBalancerFilterModel', function($rootScope, filterModelService) {
+  .factory('LoadBalancerFilterModel', function($rootScope, filterModelService, urlParser) {
 
     var filterModel = this;
+    var mostRecentParams = null;
 
     var filterModelConfig = [
       { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
@@ -51,11 +53,22 @@ module.exports = angular
         fromState.name.indexOf('home.applications.application.insight.loadBalancers') === -1;
     }
 
+    // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
+    // params are on the route we are going to, so if the user is using the back button, for example, to go to the
+    // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
+    // come back to this application, we'll get whatever that search was.
+    $rootScope.$on('$locationChangeStart', function(event, toUrl) {
+      let parts = toUrl.split('?');
+      mostRecentParams = parts.length === 2 ? urlParser.parseQueryString(parts[1]) : {};
+    });
+
     $rootScope.$on('$stateChangeStart', function(event, toState, toParams, fromState, fromParams) {
       if (movingFromLoadBalancerState(toState, fromState)) {
-        filterModel.saveState(fromState, fromParams);
+        filterModel.saveState(fromState, fromParams, mostRecentParams);
       }
+    });
 
+    $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
       if (movingToLoadBalancerState(toState)) {
         if (filterModel.hasSavedState(toParams) && shouldRouteToSavedState(toState, toParams, fromState)) {
           filterModel.restoreState(toParams);
