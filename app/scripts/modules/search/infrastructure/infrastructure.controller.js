@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       searching: false,
     };
 
-    $scope.recentItems = ['applications', 'loadBalancers', 'serverGroups', 'instances']
+    $scope.recentItems = ['applications', 'loadBalancers', 'serverGroups', 'instances', 'securityGroups']
       .map((category) => {
         return {
           category: category,
