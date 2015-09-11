@@ -68,10 +68,6 @@ class ResizeGoogleReplicaPoolTask implements Task {
       }
     }
 
-    operation.replicaPoolName = operation.asgName
-    operation.numReplicas = operation.capacity.desired
-    operation.region = operation.regions ? operation.regions[0] : null
-    operation.zone = operation.zones ? operation.zones[0] : null
     operation
   }
 }

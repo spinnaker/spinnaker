@@ -57,39 +57,6 @@ class CreateGoogleServerGroupTask implements Task {
       operation.putAll(stage.context)
     }
 
-    // instanceMetadata from a pipeline is sent as a list of maps, each containing key and value entries.
-    if (operation.instanceMetadata instanceof List) {
-      def transformedInstanceMetadata = [:]
-
-      // The instanceMetadata is stored using 'key' and 'value' attributes to enable the Add/Remove behavior in the
-      // wizard.
-      operation.instanceMetadata?.each { metadataPair ->
-        transformedInstanceMetadata[metadataPair.key] = metadataPair.value
-      }
-
-      // We use this list of load balancer names when 'Enabling' a server group.
-      if (operation.loadBalancers) {
-        transformedInstanceMetadata['load-balancer-names'] = operation.loadBalancers.join(",");
-      }
-
-      operation.instanceMetadata = transformedInstanceMetadata
-    }
-
-    // tags from a pipeline are sent as a list of maps, each containing one mapping: value=$tag.
-    if (operation.tags && operation.tags.get(0) instanceof Map) {
-      def transformedTags = []
-
-      // The tags are stored using a 'value' attribute to enable the Add/Remove behavior in the wizard.
-      operation.tags.each { tag ->
-        transformedTags << tag.value
-      }
-
-      operation.tags = transformedTags
-    }
-
-    operation.initialNumReplicas = operation.capacity.desired
-    operation.networkLoadBalancers = operation.loadBalancers
-
     if (operation.account && !operation.credentials) {
       operation.credentials = operation.account
     }
