@@ -32,8 +32,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     $scope.pageSize = searchService.defaultPageSize;
 
-    if (angular.isDefined($stateParams.q)) {
-      $scope.query = $stateParams.q;
+    if (angular.isDefined($location.search().q)) {
+      $scope.query = $location.search().q;
     }
     $scope.$watch('query', function(query) {
       $scope.viewState.searching = true;
@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
         $scope.moreResults = _.sum(result, function(resultSet) {
           return resultSet.results.length;
         }) === $scope.pageSize;
-        $location.search('q', query);
+        $location.search('q', query || null);
         $scope.viewState.searching = false;
       });
     });

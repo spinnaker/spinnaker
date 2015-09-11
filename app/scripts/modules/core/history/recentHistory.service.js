@@ -7,18 +7,29 @@ module.exports = angular.module('spinnaker.core.history.service', [
   require('../../utils/lodash.js'),
 ])
   .factory('recentHistoryService', function (_, deckCacheFactory) {
-
     const maxItems = 15;
 
     deckCacheFactory.createCache('history', 'user', {
+      version: 2, // that was quick
       maxAge: 90 * 24 * 60 * 60 * 1000 // 90 days,
     });
 
     let cache = deckCacheFactory.getCache('history', 'user');
 
-    function addItem(type, state, params) {
-      var items = _.sortBy(getItems(type), 'accessTime').slice(0, maxItems),
-          existing = _.find(items, { params: params }),
+    function getExisting(items, params, keyParams) {
+      if (!keyParams) {
+        return _.find(items, { params: params });
+      }
+      return _.find(items, (item) => {
+        return keyParams.every((param) => {
+          return item.params[param] === params[param];
+        });
+      });
+    }
+
+    function addItem(type, state, params, keyParams) {
+      var items = getItems(type).slice(0, maxItems),
+          existing = getExisting(items, params, keyParams),
           entry = {
             params: params,
             state: state,
@@ -26,19 +37,18 @@ module.exports = angular.module('spinnaker.core.history.service', [
             extraData: {}
           };
       if (existing) {
-        items[items.indexOf(existing)] = entry;
-      } else {
-        if (items.length === maxItems) {
-          items[maxItems - 1] = entry;
-        } else {
-          items.push(entry);
-        }
+        items.splice(items.indexOf(existing), 1);
       }
+      if (items.length === maxItems) {
+        items.pop();
+      }
+      items.push(entry);
       cache.put(type, items.reverse());
     }
 
     function getItems(type) {
-      return cache.get(type) || [];
+      var items = cache.get(type);
+      return items ? _.sortBy(items, 'accessTime').reverse() : [];
     }
 
     /**
@@ -49,7 +59,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
      * @param extraData
      */
     function addExtraDataToLatest(type, extraData) {
-      var items = _.sortBy(getItems(type), 'accessTime').reverse();
+      var items = getItems(type);
       items[0].extraData = extraData;
       cache.put(type, items);
     }
