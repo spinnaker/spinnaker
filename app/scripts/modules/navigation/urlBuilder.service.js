@@ -23,6 +23,22 @@ module.exports = angular.module('spinnaker.urlBuilder', [
         );
         return buildUrl(href, {q: input.serverGroup, acct: input.account, reg: input.region});
       },
+      // url for a single securityGroup
+      'securityGroups': function(input) {
+        var href = $state.href(
+          'home.applications.application.insight.securityGroups.securityGroupDetails',
+          {
+            application: input.application,
+            accountId: input.account,
+            region: input.region,
+            name: input.name,
+            vpcId: input.vpcId,
+            provider: input.provider,
+          },
+          { inherit: false }
+        );
+        return buildUrl(href, {});
+      },
       // url for a single instance
       'instances': function(input) {
         if (!input.application) {

@@ -6,8 +6,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
   require('../../utils/rx.js'),
   require('../../navigation/urlBuilder.service.js'),
   require('../../applications/applications.read.service.js'),
+  require('../../amazon/vpc/vpc.read.service.js'),
 ])
-  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader) {
+  .factory('infrastructureSearchService', function(RxService, $q, searchService, urlBuilderService, applicationReader, vpcReader) {
     return function() {
       var deferred;
 
@@ -29,7 +30,8 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         instances: 'Instances',
         clusters: 'Clusters',
         applications: 'Applications',
-        loadBalancers: 'Load Balancers'
+        loadBalancers: 'Load Balancers',
+        securityGroups: 'Security Groups'
       };
 
       function simpleField(field) {
@@ -68,6 +70,13 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         loadBalancers: function(entry, fromRoute) {
           let name = fromRoute ? entry.name : entry.loadBalancer;
           return name + ' (' + entry.region + ')';
+        },
+        securityGroups: function(entry, fromRoute) {
+          let name = entry.name;
+          return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
+            let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
+            entry.displayName = name + ' (' + region + ')';
+          });
         }
       };
 
@@ -96,7 +105,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
             searchApplications(query).then(function(applications) {
               return searchService.search({
                 q: query,
-                type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
+                type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers', 'securityGroups'],
               }).then(function(searchResults) {
                 augmentSearchResultsWithApplications(searchResults, applications);
                 return searchResults;
@@ -107,7 +116,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
             var cat = entry.type;
-            entry.name = displayNameFormatter[entry.type](entry);
+            entry.displayName = displayNameFormatter[entry.type](entry);
             entry.href = urlBuilderService.buildFromMetadata(entry);
             applySublinks(entry);
             if (angular.isDefined(categories[cat])) {
