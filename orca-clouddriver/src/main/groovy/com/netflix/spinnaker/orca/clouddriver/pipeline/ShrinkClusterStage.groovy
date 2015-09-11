@@ -62,7 +62,7 @@ class ShrinkClusterStage extends ParallelStage {
     String clusterName = stage.context.cluster
     def names = Names.parseName(clusterName)
     String cloudProvider = stage.context.cloudProvider ?: 'aws'
-    String account = stage.context.account
+    String account = stage.context.credentials
     Set<String> regions = stage.context.regions as Set
     boolean allowDeleteActive = Boolean.valueOf(stage.context.allowDeleteActive as String)
     int shrinkToSize = Integer.parseInt(stage.context.shrinkToSize as String ?: "1")
@@ -84,15 +84,15 @@ class ShrinkClusterStage extends ParallelStage {
     }.flatten().collect {
       [
         type: DestroyServerGroupStage.PIPELINE_CONFIG_TYPE,
-        region: it.region,
-        account: account,
-        serverGroupName: it.name,
-        cloudProvider: cloudProvider,
-        //TODO(cfieber) - lots of duplication to make TargetReferenceSupport happy...
-        asgName: it.name,
-        cluster: clusterName,
         credentials: account,
         regions: [it.region],
+
+        //TODO(cfieber) - dedupe
+        serverGroupName: it.name,
+        asgName: it.name,
+
+        //TODO(cfieber) - dedupe
+        cloudProvider: cloudProvider,
         providerType: cloudProvider
       ]
     }

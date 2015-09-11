@@ -59,9 +59,10 @@ class ShrinkClusterStageSpec extends Specification {
     then:
     1 * oortService.getCluster('foo', 'test', 'foo-test', 'aws') >> oortResponse
 
+    contexts.size() == expected.size()
     expected.every { expect ->
       contexts.find { ctx ->
-        ctx.region == expect.region && ctx.serverGroupName == expect.name
+        ctx.regions == [expect.region] && ctx.serverGroupName == expect.name
       }
     }
 
@@ -146,7 +147,7 @@ class ShrinkClusterStageSpec extends Specification {
   private Map<String, Object> mkCtx(Boolean allowDeleteActive, Integer shrinkToSize, Boolean retainLargerOverNewer) {
     [
       cluster              : 'foo-test',
-      account              : 'test',
+      credentials          : 'test',
       regions              : ['us-east-1', 'us-west-1'],
       allowDeleteActive    : allowDeleteActive,
       shrinkToSize         : shrinkToSize,
