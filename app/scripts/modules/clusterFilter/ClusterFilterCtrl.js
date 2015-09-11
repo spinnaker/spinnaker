@@ -54,7 +54,7 @@ module.exports = angular.module('cluster', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => { clusterFilterService.updateClusterGroups(app); }));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', this.updateClusterGroups));
   }
 )
 .name;

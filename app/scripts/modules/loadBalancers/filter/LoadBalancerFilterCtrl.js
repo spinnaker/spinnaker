@@ -63,7 +63,7 @@ module.exports = angular.module('loadBalancer.filter.controller', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => { loadBalancerFilterService.updateLoadBalancerGroups(app); }));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', this.updateLoadBalancerGroups));
   }
 )
 .name;
