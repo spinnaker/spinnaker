@@ -415,11 +415,11 @@ describe('Service: FilterModelService', function () {
 
     it ('should do nothing if no state saved for application', function () {
       configure();
-      expect($location.search.calls.count()).toBe(1);
+      expect($location.search.calls.count()).toBe(2);
 
       filterModel.restoreState({ application: 'deck' });
 
-      expect($location.search.calls.count()).toBe(1);
+      expect($location.search.calls.count()).toBe(2);
     });
 
     it ('should overwrite any $stateParams with those in saved state', function () {

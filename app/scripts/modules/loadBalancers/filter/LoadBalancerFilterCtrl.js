@@ -16,7 +16,10 @@ module.exports = angular.module('loadBalancer.filter.controller', [
 
     var ctrl = this;
 
-    this.updateLoadBalancerGroups = LoadBalancerFilterModel.applyParamsToUrl;
+    this.updateLoadBalancerGroups = () => {
+      LoadBalancerFilterModel.applyParamsToUrl();
+      loadBalancerFilterService.updateLoadBalancerGroups(app);
+    };
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.serverGroups, option))).sort();
@@ -60,10 +63,7 @@ module.exports = angular.module('loadBalancer.filter.controller', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', function() {
-      LoadBalancerFilterModel.activate();
-      loadBalancerFilterService.updateClusterGroups(app);
-    }));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => { loadBalancerFilterService.updateLoadBalancerGroups(app); }));
   }
 )
 .name;

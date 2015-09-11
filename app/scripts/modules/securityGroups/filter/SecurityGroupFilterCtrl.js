@@ -16,7 +16,10 @@ module.exports = angular.module('securityGroup.filter.controller', [
 
     var ctrl = this;
 
-    this.updateSecurityGroups = SecurityGroupFilterModel.applyParamsToUrl;
+    this.updateSecurityGroups = function() {
+      SecurityGroupFilterModel.applyParamsToUrl();
+      securityGroupFilterService.updateSecurityGroups(app);
+    };
 
     function getHeadingsForOption(option) {
       return _.compact(_.uniq(_.pluck(app.securityGroups, option))).sort();
@@ -40,10 +43,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', function() {
-      SecurityGroupFilterModel.activate();
-      securityGroupFilterService.updateClusterGroups(app);
-    }));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => { securityGroupFilterService.updateSecurityGroups(app); }));
 
   }
 )

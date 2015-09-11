@@ -6,11 +6,12 @@ module.exports = angular
   .module('loadBalancer.filter.service', [
     require('./loadBalancer.filter.model.js'),
     require('../../utils/lodash.js'),
+    require('exports?"debounce"!angular-debounce'),
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])
   .factory('loadBalancerFilterService', function (LoadBalancerFilterModel, _, waypointService, filterModelService,
-                                                  $log) {
+                                                  $log, debounce) {
 
     var isFilterable = filterModelService.isFilterable,
         getCheckValues = filterModelService.getCheckValues;
@@ -87,7 +88,7 @@ module.exports = angular
      * @param application
      * @returns {*}
      */
-    function updateLoadBalancerGroups(application) {
+    var updateLoadBalancerGroups = debounce((application) => {
       if (!application) {
         application = lastApplication;
         if (!lastApplication) {
@@ -130,7 +131,7 @@ module.exports = angular
       LoadBalancerFilterModel.addTags();
       lastApplication = application;
       return groups;
-    }
+    }, 25);
 
     function diffSubgroups(oldGroups, newGroups) {
       var groupsToRemove = [];
