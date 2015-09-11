@@ -21,7 +21,9 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.model.AbstractStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.FlowBuilder
 import org.springframework.batch.core.job.flow.Flow
@@ -31,6 +33,7 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Component
 
 @Component
+@CompileStatic
 abstract class ParallelStage extends StageBuilder {
   @Autowired
   List<StepProvider> stepProviders
@@ -44,7 +47,7 @@ abstract class ParallelStage extends StageBuilder {
     stage.initializationStage = true
 
     List<Flow> flows = buildFlows(stage)
-    stage.name = parallelStageName(stage, flows.size() > 1)
+    ((AbstractStage) stage).name = parallelStageName(stage, flows.size() > 1)
 
     if (stage.execution.parallel) {
       def isFirst = {
@@ -94,7 +97,8 @@ abstract class ParallelStage extends StageBuilder {
       stage.execution.stages.add(nextStage)
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String)
-      buildSteps(nextStage).eachWithIndex { entry, i ->
+      List<Step> steps = buildSteps(nextStage)
+      steps.eachWithIndex { entry, i ->
         if (i == 0) {
           flowBuilder.from(entry)
         } else {
@@ -103,7 +107,16 @@ abstract class ParallelStage extends StageBuilder {
       }
 
       return flowBuilder.end()
-    }
+    } ?: [noFlowsFlow(stage)]
+  }
+
+  protected Flow noFlowsFlow(Stage stage) {
+    new FlowBuilder<Flow>("ParallelStage.noParallelContexts.${UUID.randomUUID().toString()}").from(buildStep(stage, "noopStep", new Task() {
+      @Override
+      TaskResult execute(Stage s) {
+        DefaultTaskResult.SUCCEEDED
+      }
+    })).end()
   }
 
   protected Task beginParallel() {
@@ -116,7 +129,8 @@ abstract class ParallelStage extends StageBuilder {
   }
 
   private List<Step> buildSteps(Stage stage) {
-    stepProviders.find { it.type == stage.context.type }.buildSteps(stage)
+    StepProvider provider = stepProviders.find { it.type == stage.context.type }
+    return provider.buildSteps(stage)
   }
 
   abstract String parallelStageName(Stage stage, boolean hasParallelFlows)
