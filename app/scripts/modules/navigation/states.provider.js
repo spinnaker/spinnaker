@@ -446,7 +446,7 @@ module.exports = angular.module('spinnaker.states', [
 
       var infrastructure = {
         name: 'infrastructure',
-        url: '/infrastructure',
+        url: '/infrastructure?q',
         reloadOnSearch: false,
         views: {
           'main@': {

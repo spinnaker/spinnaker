@@ -6,8 +6,10 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
   require('../../core/history/recentHistory.service.js'),
   require('../searchResult/searchResult.directive.js'),
+  require('../../pageTitle/pageTitleService.js'),
 ])
-  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService, _, recentHistoryService) {
+  .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
+                                             pageTitleService, _, recentHistoryService) {
 
     var search = infrastructureSearchService();
 
@@ -44,6 +46,13 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
           return resultSet.results.length;
         }) === $scope.pageSize;
         $location.search('q', query || null);
+        pageTitleService.handleRoutingSuccess(
+          {
+            pageTitleMain: {
+              label: query ? ' search results for "' + query + '"' : 'Infrastructure'
+            }
+          }
+        );
         $scope.viewState.searching = false;
       });
     });

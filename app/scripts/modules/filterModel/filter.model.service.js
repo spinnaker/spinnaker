@@ -7,7 +7,7 @@ module.exports = angular
     require('../utils/lodash.js'),
     require('angular-ui-router'),
   ])
-.factory('filterModelService', function (_, $location, $state, $stateParams, $timeout) {
+.factory('filterModelService', function (_, $location, $state, $stateParams) {
 
     function isFilterable(sortFilterModel) {
       return _.size(sortFilterModel) > 0 && _.any(sortFilterModel);
@@ -225,10 +225,11 @@ module.exports = angular
           });
       };
 
-      filterModel.saveState = function(state, params) {
+      filterModel.saveState = function(state, params, filters) {
         if (params.application) {
+          filters = filters || $location.search();
           filterModel.savedState[params.application] = {
-            filters: angular.copy($location.search()),
+            filters: angular.copy(filters),
             state: state,
             params: params,
           };
@@ -236,25 +237,22 @@ module.exports = angular
       };
 
       filterModel.restoreState = function(toParams) {
-        // execute in a timeout to avoid setting the location search before other filter pages have had a chance
-        // to save their state
-        $timeout(function() {
-          var application = toParams.application;
-          var savedState = filterModel.savedState[application];
-          if (savedState) {
-            angular.copy(savedState.params, $stateParams);
-            var currentParams = $location.search();
-            // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
-            // but this state does not have that field set, so angular.extend will not overwrite it
-            _.forOwn(currentParams, function(val, key) {
-              if (Object.hasOwnProperty(savedState.filters, key)) {
-                delete currentParams[key];
-              }
-            });
-            $location.search(angular.extend(currentParams, savedState.filters));
-            filterModel.activate();
-          }
-        });
+        var application = toParams.application;
+        var savedState = filterModel.savedState[application];
+        if (savedState) {
+          angular.copy(savedState.params, $stateParams);
+          var currentParams = $location.search();
+          // clear any shared params between states, e.g. previous state set 'acct', which this state also uses,
+          // but this state does not have that field set, so angular.extend will not overwrite it
+          _.forOwn(currentParams, function(val, key) {
+            if (Object.hasOwnProperty(savedState.filters, key)) {
+              delete currentParams[key];
+            }
+          });
+          $location.search(angular.extend(currentParams, savedState.filters));
+          $location.replace();
+          filterModel.activate();
+        }
       };
 
       filterModel.hasSavedState = function(toParams) {
