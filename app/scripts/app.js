@@ -202,7 +202,7 @@ module.exports = angular.module('spinnaker', [
       });
       pageTitleService.handleRoutingSuccess(toState.data);
       if (toState.data && toState.data.history) {
-        recentHistoryService.addItem(toState.data.history.type, toState.name, toParams);
+        recentHistoryService.addItem(toState.data.history.type, toState.name, toParams, toState.data.history.keyParams);
       }
     });
 

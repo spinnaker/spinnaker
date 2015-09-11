@@ -375,6 +375,7 @@ module.exports = angular.module('spinnaker.states', [
           },
           history: {
             type: 'applications',
+            keyParams: ['application']
           },
         },
         children: [
@@ -445,7 +446,7 @@ module.exports = angular.module('spinnaker.states', [
 
       var infrastructure = {
         name: 'infrastructure',
-        url: '/infrastructure?q',
+        url: '/infrastructure',
         reloadOnSearch: false,
         views: {
           'main@': {

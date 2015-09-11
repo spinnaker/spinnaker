@@ -15,13 +15,17 @@
         <form class="form form-horizontal">
           <div class="form-group">
             <div class="col-md-12">
+              <div class="input-group">
               <input type="search"
                      class="form-control input-lg"
-                     style="margin-bottom: 10px"
                      placeholder="Search infrastructure"
                      autofocus
                      ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
                      ng-model="query">
+                <span class="input-group-addon">
+                  <a href ng-click="query = null"><span class="glyphicon glyphicon-remove"></span></a>
+                </span>
+              </div>
             </div>
           </div>
         </form>
