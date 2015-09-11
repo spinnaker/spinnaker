@@ -16,7 +16,21 @@ describe('pipelineConfigValidator', function () {
 
   describe('validation', function () {
 
-    it('performs validation against stages where declared, ignores others', function () {
+    it('performs validation against stages and triggers where declared, ignores others', function () {
+      spyOn(this.pipelineConfig, 'getTriggerConfig').and.callFake(function (type) {
+        if (type === 'withTriggerValidation') {
+          return {
+            validators: [
+              {
+                type: 'requiredField',
+                fieldName: 'boo',
+                message: 'boo is required',
+              }
+            ]
+          };
+        }
+        return {};
+      });
       spyOn(this.pipelineConfig, 'getStageConfig').and.callFake(function (stage) {
         if (stage.type === 'withValidation') {
           return {
@@ -28,21 +42,25 @@ describe('pipelineConfigValidator', function () {
               }
             ]
           };
-        } else {
-          return {};
         }
+        return {};
       });
 
       var pipeline = {
         stages: [
           { type: 'withValidation', },
-          { type: 'no-validation' }
+          { type: 'no-validation' },
+        ],
+        triggers: [
+          { type: 'withTriggerValidation' },
+          { type: 'withoutValidation' },
         ]
       };
 
       var validationMessages = this.validator.validatePipeline(pipeline);
-      expect(validationMessages.length).toBe(1);
-      expect(validationMessages[0]).toBe('bar is required');
+      expect(validationMessages.length).toBe(2);
+      expect(validationMessages[0]).toBe('boo is required');
+      expect(validationMessages[1]).toBe('bar is required');
     });
 
     it('executes all validators', function () {

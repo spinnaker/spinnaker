@@ -79,7 +79,23 @@ module.exports = angular.module('spinnaker.pipelines.config.validator.service', 
 
     function validatePipeline(pipeline) {
       var stages = pipeline.stages || [],
+          triggers = pipeline.triggers || [],
           messages = [];
+
+      triggers.forEach(function(trigger, index) {
+        let config = pipelineConfig.getTriggerConfig(trigger.type);
+        if (config && config.validators) {
+          config.validators.forEach(function(validator) {
+            switch(validator.type) {
+              case 'requiredField':
+                validators.checkRequiredField(trigger, validator, messages);
+                break;
+              default:
+                $log.warn('No validator of type "' + validator.type + '" found, ignoring validation on trigger "' + (index+1) + '" (' + trigger.type + ')');
+            }
+          });
+        }
+      });
       stages.forEach(function(stage, index) {
         let config = pipelineConfig.getStageConfig(stage);
         if (config && config.validators) {

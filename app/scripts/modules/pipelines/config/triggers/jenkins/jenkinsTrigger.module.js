@@ -18,7 +18,14 @@ module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
-      popoverLabelUrl: require('./jenkinsPopoverLabel.html')
+      popoverLabelUrl: require('./jenkinsPopoverLabel.html'),
+      validators: [
+        {
+          type: 'requiredField',
+          fieldName: 'job',
+          message: '<strong>Job</strong> is a required field on Jenkins triggers.',
+        },
+      ],
     });
   })
   .controller('JenkinsTriggerCtrl', function($scope, trigger, igorService, cacheInitializer, infrastructureCaches, $filter) {
@@ -66,7 +73,7 @@ module.exports = angular.module('spinnaker.pipelines.config.trigger.jenkins', [
           $scope.viewState.jobsLoaded = true;
           $scope.viewState.jobsRefreshing = false;
           $scope.jobs = jobs;
-          if ($scope.jobs.indexOf($scope.trigger.job) === -1) {
+          if (jobs.length && $scope.jobs.indexOf($scope.trigger.job) === -1) {
             $scope.trigger.job = '';
           }
         });

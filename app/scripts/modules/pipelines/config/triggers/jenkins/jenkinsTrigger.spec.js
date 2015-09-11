@@ -91,6 +91,28 @@ describe('Controller: jenkinsTrigger', function() {
       expect(trigger.job).toBe('b');
       expect($scope.jobs).toBe(masterA.jobs);
     });
+
+    it('retains current job if no jobs found in master because that is probably a server-side issue', function() {
+      var masterA = {
+          name: 'masterA',
+          jobs: []
+        },
+        trigger = {
+          master: 'masterA',
+          job: 'a'
+        },
+        $scope = this.$scope,
+        $q = this.$q;
+
+      spyOn(this.igorService, 'listJobsForMaster').and.callFake(function() {
+        return $q.when([]);
+      });
+      spyOn(this.igorService, 'listMasters').and.returnValue($q.when(['masterA']));
+      this.initializeController(trigger);
+      $scope.$digest();
+
+      expect(trigger.job).toBe('a');
+    });
   });
 
 });
