@@ -48,7 +48,7 @@ class UpsertGoogleFirewallRuleAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleFirewallRuleDescription": { "firewallRuleName": "mysecuritygroup", "network": "default", "credentials": "my-account-name", "sourceRanges":["192.168.0.0/16"], "allowed":[{"ipProtocol":"tcp", "portRanges":["80"]}] }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertSecurityGroup": { "firewallRuleName": "mysecuritygroup", "network": "default", "credentials": "my-account-name", "sourceRanges":["192.168.0.0/16"], "allowed":[{"ipProtocol":"tcp", "portRanges":["80"]}] }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
