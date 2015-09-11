@@ -52,6 +52,11 @@ class BakeStage extends ParallelStage implements StepProvider {
   }
 
   @Override
+  protected List<Step> buildParallelContextSteps(Stage stage) {
+    buildSteps(stage)
+  }
+
+  @Override
   @CompileDynamic
   List<Map<String, Object>> parallelContexts(Stage stage) {
     Set<String> deployRegions = stage.context.region ? [stage.context.region] as Set<String> : []

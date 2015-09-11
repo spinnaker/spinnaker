@@ -97,7 +97,7 @@ abstract class ParallelStage extends StageBuilder {
       stage.execution.stages.add(nextStage)
 
       def flowBuilder = new FlowBuilder<Flow>(context.name as String)
-      List<Step> steps = buildSteps(nextStage)
+      List<Step> steps = buildParallelContextSteps(nextStage)
       steps.eachWithIndex { entry, i ->
         if (i == 0) {
           flowBuilder.from(entry)
@@ -128,7 +128,7 @@ abstract class ParallelStage extends StageBuilder {
     }
   }
 
-  private List<Step> buildSteps(Stage stage) {
+  protected List<Step> buildParallelContextSteps(Stage stage) {
     StepProvider provider = stepProviders.find { it.type == stage.context.type }
     return provider.buildSteps(stage)
   }
