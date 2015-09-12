@@ -31,7 +31,6 @@ module.exports = angular
       params.securityGroupName = securityGroup.name;
       params.regions = [securityGroup.region];
       params.credentials = securityGroup.accountId;
-      params.providerType = securityGroup.providerType;
 
       var operation = taskExecutor.executeTask({
         job: [params],
