@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
 
       function simpleField(field) {
         return function(entry) {
-          return entry[field];
+          return $q.when(entry[field]);
         };
       }
 
@@ -57,24 +57,25 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
 
       var displayNameFormatter = {
         serverGroups: function(entry) {
-          return entry.serverGroup + ' (' + entry.region + ')';
+          return $q.when(entry.serverGroup + ' (' + entry.region + ')');
         },
         instances: function(entry) {
           let serverGroup = entry.serverGroup || 'standalone instance';
-          return entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')';
+          return $q.when(entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')');
+
         },
         clusters: function(entry) {
-          return entry.cluster;
+          return $q.when(entry.cluster);
         },
         applications: simpleField('application'),
         loadBalancers: function(entry, fromRoute) {
           let name = fromRoute ? entry.name : entry.loadBalancer;
-          return name + ' (' + entry.region + ')';
+          return $q.when(name + ' (' + entry.region + ')');
         },
         securityGroups: function(entry) {
           return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
             let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
-            entry.displayName = entry.name + ' (' + region + ')';
+            return entry.name + ' (' + region + ')';
           });
         }
       };
@@ -115,7 +116,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
             var cat = entry.type;
-            entry.displayName = displayNameFormatter[entry.type](entry);
+            displayNameFormatter[entry.type](entry).then((name) => { entry.displayName = name; });
             entry.href = urlBuilderService.buildFromMetadata(entry);
             applySublinks(entry);
             if (angular.isDefined(categories[cat])) {

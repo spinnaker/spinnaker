@@ -169,6 +169,9 @@ module.exports = angular.module('spinnaker.states', [
             accountParam: 'accountId',
             regionParam: 'region'
           },
+          history: {
+            type: 'securityGroups',
+          },
         }
       };
 
