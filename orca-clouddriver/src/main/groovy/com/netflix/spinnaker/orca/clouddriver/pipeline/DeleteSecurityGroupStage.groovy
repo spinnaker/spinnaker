@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.gce
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.DeleteSecurityGroupForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.DeleteSecurityGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.DeleteGoogleSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class DeleteGoogleSecurityGroupStage extends LinearStage {
+class DeleteSecurityGroupStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "deleteSecurityGroup_gce"
+  public static final String PIPELINE_CONFIG_TYPE = "deleteSecurityGroup"
 
-  DeleteGoogleSecurityGroupStage() {
+  DeleteSecurityGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
     [
-      buildStep(stage, "deleteSecurityGroup", DeleteGoogleSecurityGroupTask),
+      buildStep(stage, PIPELINE_CONFIG_TYPE, DeleteSecurityGroupTask),
       buildStep(stage, "forceCacheRefresh", DeleteSecurityGroupForceRefreshTask),
       buildStep(stage, "monitorDelete", MonitorKatoTask),
     ]
