@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
-import com.netflix.spinnaker.kato.aws.deploy.validators.AmazonDescriptionValidationSupport
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.DeleteSecurityGroupDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
+@AmazonOperation(AtomicOperations.DELETE_SECURITY_GROUP)
 @Component("deleteSecurityGroupDescriptionValidator")
 class DeleteSecurityGroupDescriptionValidator extends AmazonDescriptionValidationSupport<DeleteSecurityGroupDescription> {
 
