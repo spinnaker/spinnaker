@@ -17,11 +17,8 @@
 package com.netflix.spinnaker.clouddriver
 
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.controllers.CacheController
-import com.netflix.spinnaker.clouddriver.controllers.CredentialsController
+import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
-import com.netflix.spinnaker.clouddriver.core.RedisConfig
-import com.netflix.spinnaker.clouddriver.filters.SimpleCORSFilter
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfig
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.actuate.autoconfigure.ManagementSecurityAutoConfiguration
@@ -31,7 +28,6 @@ import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAuto
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 import org.springframework.boot.context.web.SpringBootServletInitializer
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -43,6 +39,7 @@ import java.security.Security
 @Import([
   WebConfig,
   CloudDriverConfig,
+  RetrofitConfig,
   AwsConfiguration,
   GoogleConfig,
   com.netflix.spinnaker.kato.Main,

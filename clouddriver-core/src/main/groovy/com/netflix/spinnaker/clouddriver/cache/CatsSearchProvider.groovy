@@ -90,6 +90,9 @@ class CatsSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    // ensure we're only searching for types supported by the backing providers
+    types = defaultCaches.intersect(types)
+
     List<String> matches = findMatches(query, types, filters)
     generateResultSet(query, matches, pageNumber, pageSize)
   }
