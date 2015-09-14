@@ -77,6 +77,7 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
 
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+      context.asgName = targetReference.asg.name
       context.serverGroupName = targetReference.asg.name
     }
 
