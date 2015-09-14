@@ -88,7 +88,7 @@ class TargetServerGroupResolver {
     }
 
     if (!dtsgStage) {
-      throw new TargetServerGroup.NotFoundException("No DetermineTargetReferences stage found for stage ${stage}")
+      throw new TargetServerGroup.NotFoundException("No DetermineServerGroupStage found for stage ${stage}")
     } else if (!dtsgStage.context.targetReferences){
       throw new TargetServerGroup.NotFoundException("No TargetServerGroups found for stage ${stage}")
     }
