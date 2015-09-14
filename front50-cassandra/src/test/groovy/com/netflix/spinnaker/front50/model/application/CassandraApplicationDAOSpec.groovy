@@ -134,6 +134,12 @@ class CassandraApplicationDAOSpec extends Specification {
 
     then:
     thrown(NotFoundException)
+
+    when:
+    foundApplications = cassandraApplicationDAO.search([name: "app"])
+
+    then:
+    foundApplications*.allColumnProperties() == [newApplication]*.allColumnProperties()
   }
 
   @Unroll

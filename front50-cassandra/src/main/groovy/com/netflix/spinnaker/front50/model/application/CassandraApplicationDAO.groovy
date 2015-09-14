@@ -166,7 +166,11 @@ class CassandraApplicationDAO implements ApplicationDAO, ApplicationListener<Con
     def items = searchableApplications.findAll { app ->
       def result = true
       attributes.each { k, v ->
-        if (app.hasProperty(k) && (!app[k] || ((String) app[k]).toLowerCase() != v?.toLowerCase())) {
+        if (!v) {
+          return
+        }
+
+        if (app.hasProperty(k) && (!app[k] || !(app[k].toString().toLowerCase().contains(v.toLowerCase())))) {
           result = false
         }
       }
