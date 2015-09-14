@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.tasks
+
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import spock.lang.Specification
 import spock.lang.Subject
@@ -38,8 +39,8 @@ class DeleteSecurityGroupTaskSpec extends Specification {
     stage.context.putAll(config)
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations('aws', *_) >> {
+        operations = it[1]
         rx.Observable.from(taskId)
       }
     }
@@ -49,7 +50,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].deleteSecurityGroupDescription) {
+    with(operations[0].deleteSecurityGroup) {
       it instanceof Map
       securityGroupName == this.config.securityGroupName
       vpcId == this.config.vpcId
@@ -63,8 +64,8 @@ class DeleteSecurityGroupTaskSpec extends Specification {
     stage.context.putAll(config)
     def operations
     task.kato = Mock(KatoService) {
-      1 * requestOperations(*_) >> {
-        operations = it[0]
+      1 * requestOperations('aws', *_) >> {
+        operations = it[1]
         rx.Observable.from(taskId)
       }
     }
@@ -74,7 +75,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].deleteSecurityGroupDescription) {
+    with(operations[0].deleteSecurityGroup) {
       it instanceof Map
       securityGroupName == this.config.securityGroupName
       vpcId == this.config.vpcId
@@ -86,7 +87,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
   def "returns a success status with the kato task id"() {
     stage.context.putAll(config)
     task.kato = Stub(KatoService) {
-      requestOperations(*_) >> rx.Observable.from(taskId)
+      requestOperations('aws', *_) >> rx.Observable.from(taskId)
     }
 
     when:
@@ -94,7 +95,7 @@ class DeleteSecurityGroupTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-    result.outputs."kato.task.id" == taskId
+    result.outputs."kato.last.task.id" == taskId
     result.outputs."delete.account.name" == config.credentials
   }
 }

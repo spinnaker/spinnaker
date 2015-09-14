@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Google, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.gce
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -26,24 +26,30 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DeleteGoogleSecurityGroupTask implements Task {
+class DeleteSecurityGroupTask extends AbstractCloudProviderAwareTask implements Task {
+  static final String CLOUD_OPERATION_TYPE = "deleteSecurityGroup"
 
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[deleteGoogleFirewallRuleDescription: stage.context]])
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
                      .toBlocking()
                      .first()
     Map outputs = [
-        "notification.type"  : "deletesecuritygroup",
+        "notification.type"  : CLOUD_OPERATION_TYPE.toLowerCase(),
         "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
         "delete.name"        : stage.context.securityGroupName,
         "delete.regions"     : stage.context.regions.join(','),
-        "delete.account.name": stage.context.credentials
+        "delete.account.name": account
     ]
+    if (stage.context.vpcId) {
+      outputs["delete.vpcId"] = stage.context.vpcId
+    }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }
