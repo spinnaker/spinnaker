@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright 2015 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div ng-controller="dockerBakeExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'bakeConfig'">
+    <div class="row">
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt if-multiple-providers>Provider</dt>
+          <dd if-multiple-providers>{{provider}}</dd>
+          <dt>Image</dt>
+          <dd>{{stage.context.ami}}</dd>
+          <dt>Region</dt>
+          <dd>{{stage.context.region}}</dd>
+          <dt>Package</dt>
+          <dd>{{stage.context.package}}</dd>
+        </dl>
+      </div>
+      <div class="col-md-6">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Base OS</dt>
+          <dd>{{stage.context.baseOs}}</dd>
+          <dt>Label</dt>
+          <dd>{{stage.context.baseLabel}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+
+    <div class="row" ng-if="stage.context.package && stage.context.region && stage.context.status.resourceId">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <!-- TODO: Move this to config -->
+          <a target="_blank"
+             href="http://bakery.test.netflix.net/#/?region={{stage.context.region}}&package={{stage.context.package}}&detail=bake:{{stage.context.status.resourceId}}">
+            View Bakery Details
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>
