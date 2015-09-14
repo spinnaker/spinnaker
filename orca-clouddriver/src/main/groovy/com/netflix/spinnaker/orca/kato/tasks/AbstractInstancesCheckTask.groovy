@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.exceptions.RetrofitExceptionHandler
 import groovy.util.logging.Slf4j
@@ -30,7 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 @Slf4j
-abstract class AbstractInstancesCheckTask implements RetryableTask {
+abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   long backoffPeriod = 5000
   long timeout = 7200000
 
@@ -61,7 +62,7 @@ abstract class AbstractInstancesCheckTask implements RetryableTask {
     }
     Names names = Names.parseName(serverGroups.values().flatten()[0])
     try {
-      def response = oortService.getCluster(names.app, account, names.cluster, stage.context.providerType ?: "aws")
+      def response = oortService.getCluster(names.app, account, names.cluster, getCloudProvider(stage))
 
       if (response.status != 200) {
         return new DefaultTaskResult(ExecutionStatus.RUNNING)

@@ -30,6 +30,7 @@ class ResizeSupport {
   TargetReferenceSupport targetReferenceSupport
 
   @CompileDynamic
+  @Deprecated
   public List<Map<String, Object>> createResizeStageDescriptors(Stage stage, List<TargetReference> targetReferences) {
     def optionalConfig = stage.mapTo(OptionalConfiguration)
     Map<String, Map<String, Object>> descriptions = [:]
@@ -88,12 +89,74 @@ class ResizeSupport {
         description.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
       }
 
-      if (description.provider == "gce") {
-        augmentDescriptionForGCE(description, target)
-      }
       descriptions[asg.name as String] = description
     }
     descriptions.values().flatten()
+  }
+
+  @CompileDynamic
+  static public List<Map<String, Object>> createResizeDescriptors(Stage stage, List<TargetServerGroup> targetServerGroups) {
+    def optionalConfig = stage.mapTo(OptionalConfiguration)
+    Map<String, Map<String, Object>> operations = [:]
+
+    for (TargetServerGroup tsg : targetServerGroups) {
+      def location = tsg.location
+      def serverGroup = tsg.serverGroup
+
+      def operation = new HashMap(stage.context)
+      if (operations.containsKey(serverGroup.name)) {
+        // TODO(ttomsu): Multi-zone resizing for GCE, which means this 'regions' attribute will have to change, too.
+        operations[serverGroup.name as String].regions.add(location)
+        continue
+      }
+      operation.asgName = serverGroup.name
+      operation.regions = [serverGroup.region]
+
+      def currentMin = Integer.parseInt(serverGroup.asg.minSize.toString())
+      def currentDesired = Integer.parseInt(serverGroup.asg.desiredCapacity.toString())
+      def currentMax = Integer.parseInt(serverGroup.asg.maxSize.toString())
+
+      Integer newMin, newDesired, newMax
+      if (optionalConfig.scalePct) {
+        def factor = optionalConfig.scalePct / 100
+        def minDiff = Math.ceil(currentMin * factor)
+        def desiredDiff = Math.ceil(currentDesired * factor)
+        def maxDiff = Math.ceil(currentMax * factor)
+        newMin = currentMin + minDiff
+        newDesired = currentDesired + desiredDiff
+        newMax = currentMax + maxDiff
+
+        if (optionalConfig.action == ResizeAction.scale_down) {
+          newMin = Math.max(currentMin - minDiff, 0)
+          newDesired = Math.max(currentDesired - desiredDiff, 0)
+          newMax = Math.max(currentMax - maxDiff, 0)
+        }
+      } else if (optionalConfig.scaleNum) {
+        newMin = currentMin + optionalConfig.scaleNum
+        newDesired = currentDesired + optionalConfig.scaleNum
+        newMax = currentMax + optionalConfig.scaleNum
+
+        if (optionalConfig.action == ResizeAction.scale_down) {
+          newMin = Math.max(currentMin - optionalConfig.scaleNum, 0)
+          newDesired = Math.max(currentDesired - optionalConfig.scaleNum, 0)
+          newMax = Math.max(currentMax - optionalConfig.scaleNum, 0)
+        }
+      }
+
+      if (newMin != null && newDesired != null && newMax != null) {
+        operation.capacity = [min: newMin, desired: newDesired, max: newMax]
+      } else {
+        def capacity = stage.mapTo("/capacity", Capacity)
+        operation.capacity = mergeConfiguredCapacityWithCurrent(capacity, currentMin, currentDesired, currentMax)
+      }
+
+      // TODO(ttomsu): Remove cloud provider-specific operation.
+      if (operation.provider == "gce" || operation.cloudProvider == "gce") {
+        augmentDescriptionForGCE(operation, tsg)
+      }
+      operations[serverGroup.name as String] = operation
+    }
+    operations.values().flatten()
   }
 
   private static Map mergeConfiguredCapacityWithCurrent(Capacity configured, int currentMin, int currentDesired, int currentMax) {
@@ -124,8 +187,9 @@ class ResizeSupport {
     result
   }
 
-  private augmentDescriptionForGCE(Map description, TargetReference target) {
-    description.zones = target.asg.zones
+  private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
+    // TODO(ttomsu): Make clouddriver op support specifying multiple zones.
+    description.zone = tsg.location
     description.numReplicas = description.capacity.desired
     description.replicaPoolName = description.asgName
   }

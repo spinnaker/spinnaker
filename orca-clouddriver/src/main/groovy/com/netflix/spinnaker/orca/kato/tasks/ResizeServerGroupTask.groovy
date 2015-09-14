@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,57 +21,47 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@Deprecated
-class ResizeAsgTask implements Task {
+@Slf4j
+class ResizeServerGroupTask implements Task{
 
   @Autowired
   KatoService kato
 
-  @Autowired
-  TargetReferenceSupport targetReferenceSupport
-
-  @Autowired
-  ResizeSupport resizeSupport
-
   @Override
   TaskResult execute(Stage stage) {
     def operation = convert(stage)
-    def taskId = kato.requestOperations([[resizeAsgDescription: operation]])
+    def taskId = kato.requestOperations(stage.context.cloudProvider, [[resizeServerGroup: operation]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"   : "resizeasg",
-        "deploy.account.name" : operation.credentials,
-        "kato.last.task.id"   : taskId,
-        "asgName"             : operation.asgName,
-        "capacity"            : operation.capacity,
-        "deploy.server.groups": operation.regions.collectEntries {
-          [(it): [operation.asgName]]
-        }
-
+      "notification.type"   : "resizeasg", // TODO(someone on NFLX side): Rename to 'resizeservergroup'?
+      "deploy.account.name" : operation.credentials,
+      "kato.last.task.id"   : taskId,
+      "asgName"             : operation.asgName,
+      "capacity"            : operation.capacity,
+      "deploy.server.groups": operation.regions.collectEntries {
+        [(it): [operation.asgName]]
+      }
     ])
   }
 
   Map convert(Stage stage) {
-    Map context = stage.context
-    if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-      def descriptors = resizeSupport.createResizeStageDescriptors(stage, [targetReference])
-      if (!descriptors.isEmpty()) {
-        context = descriptors[0]
-      }
+    if (TargetServerGroup.isDynamicallyBound(stage)) {
+      List<TargetServerGroup> tsgs = TargetServerGroupResolver.fromPreviousStage(stage)
+      def descriptors = ResizeSupport.createResizeDescriptors(stage, tsgs)
+      return descriptors?.get(0)
     }
-    if (context.containsKey(ResizeAsgStage.PIPELINE_CONFIG_TYPE)) {
-      context = (Map) context[ResizeAsgStage.PIPELINE_CONFIG_TYPE]
-    }
-    context
+
+    // Statically bound resize operations put the descriptor as the context.
+    return stage.context
   }
 }
