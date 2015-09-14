@@ -67,7 +67,7 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
  */
 @WebAppConfiguration
 @ContextConfiguration(classes = [TestConfiguration])
-@IntegrationTest('cf.enabled:true')
+@IntegrationTest(['cf.enabled:true', 'services.front50.enabled:false'])
 class CloudFoundryOperationsSpec extends Specification {
 
   @Autowired

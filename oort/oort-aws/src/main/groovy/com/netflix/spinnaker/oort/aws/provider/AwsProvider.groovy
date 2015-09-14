@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired
 
 import java.util.regex.Pattern
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
@@ -38,9 +37,7 @@ class AwsProvider implements SearchableProvider {
 
   public static final String PROVIDER_NAME = AwsProvider.name
 
-
   final Set<String> defaultCaches = [
-    APPLICATIONS.ns,
     LOAD_BALANCERS.ns,
     CLUSTERS.ns,
     SERVER_GROUPS.ns,
@@ -50,8 +47,7 @@ class AwsProvider implements SearchableProvider {
   final Map<String, String> urlMappingTemplates = [
     (SERVER_GROUPS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region',
     (LOAD_BALANCERS.ns): '/aws/loadBalancers/$loadBalancer',
-    (CLUSTERS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster',
-    (APPLICATIONS.ns): '/applications/${application.toLowerCase()}'
+    (CLUSTERS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = [

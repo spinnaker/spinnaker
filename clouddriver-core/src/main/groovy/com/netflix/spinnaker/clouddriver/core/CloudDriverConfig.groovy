@@ -23,8 +23,11 @@ import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.core.services.Front50Service
+import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -64,5 +67,11 @@ class CloudDriverConfig {
   @ConditionalOnMissingBean(SearchProvider)
   NoopSearchProvider noopSearchProvider() {
     new NoopSearchProvider()
+  }
+
+  @Bean
+  @ConditionalOnExpression('${services.front50.enabled:true}')
+  ApplicationSearchProvider applicationSearchProvider(Front50Service front50Service) {
+    new ApplicationSearchProvider(front50Service)
   }
 }
