@@ -12,19 +12,6 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
     return function() {
       var deferred;
 
-      // TODO: Remove once Oort is indexing all applications
-      function searchApplications(query) {
-        return applicationReader.listApplications().then((applications) => {
-          return applications
-            .filter((application) => {
-              return application.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
-            })
-            .map((application) => {
-              return { application: application.name, type: 'applications', provider: 'aws', url: '/applications/' + application.name };
-            });
-        });
-      }
-
       var categoryNameLookup = {
         serverGroups: 'Server Groups',
         instances: 'Instances',
@@ -95,23 +82,11 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           if (!query || !angular.isDefined(query) || query.length < 1) {
             return RxService.Observable.just(searchService.getFallbackResults());
           }
-          // TODO: use this once Oort searches all applications
-          //return RxService.Observable.fromPromise(searchService.search({
-          //  q: query,
-          //  type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers'],
-          //}));
 
-          return RxService.Observable.fromPromise(
-            searchApplications(query).then(function(applications) {
-              return searchService.search({
-                q: query,
-                type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers', 'securityGroups'],
-              }).then(function(searchResults) {
-                augmentSearchResultsWithApplications(searchResults, applications);
-                return searchResults;
-              });
-            })
-          );
+          return RxService.Observable.fromPromise(searchService.search({
+           q: query,
+           type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers', 'securityGroups'],
+          }));
         })
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
