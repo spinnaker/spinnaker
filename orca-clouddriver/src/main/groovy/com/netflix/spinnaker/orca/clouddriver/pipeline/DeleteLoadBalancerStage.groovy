@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.tasks.DeleteLoadBalancerTask
 import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerForceRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.DeleteAmazonLoadBalancerTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.DeleteLoadBalancerForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -51,8 +51,8 @@ class DeleteLoadBalancerStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "deleteAmazonLoadBalancer", DeleteAmazonLoadBalancerTask)
-    def step2 = buildStep(stage, "forceCacheRefresh", DeleteAmazonLoadBalancerForceRefreshTask)
+    def step1 = buildStep(stage, "deleteLoadBalancer", DeleteLoadBalancerTask)
+    def step2 = buildStep(stage, "forceCacheRefresh", DeleteLoadBalancerForceRefreshTask)
     def step3 = buildStep(stage, "monitorDelete", MonitorKatoTask)
     [step1, step2, step3]
   }

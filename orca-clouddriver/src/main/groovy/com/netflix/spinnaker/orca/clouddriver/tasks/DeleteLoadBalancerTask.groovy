@@ -13,36 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+/**
+ * Created by aglover on 9/26/14.
+ */
 @Component
-class DeleteAmazonLoadBalancerForceRefreshTask implements Task {
-  static final String REFRESH_TYPE = "AmazonLoadBalancer"
+class DeleteLoadBalancerTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
-  OortService oort
+  KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    String account = stage.context.credentials
-    String name = stage.context.loadBalancerName
-    String vpcId = stage.context.vpcId ?: ''
-    List<String> regions = stage.context.regions
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
 
-    regions.each { region ->
-      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true]
-      oort.forceCacheUpdate(REFRESH_TYPE, model)
-    }
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    def taskId = kato.requestOperations(cloudProvider, [[deleteLoadBalancer: stage.context]])
+                     .toBlocking()
+                     .first()
+    Map outputs = [
+        "notification.type"  : "deleteloadbalancer",
+        "kato.last.task.id"  : taskId,
+        "delete.name"        : stage.context.loadBalancerName,
+        "delete.regions"     : stage.context.regions.join(','),
+        "delete.account.name": account
+    ]
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }
