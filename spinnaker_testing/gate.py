@@ -131,7 +131,7 @@ class GateAgent(sk.SpinnakerAgent):
       bindings: dictionary containing key/value pairs for
           GCE_CREDENTIALS and optional TEST_EMAIL.
       application: Name of application to create.
-      description: Text descriptioni field for the operation payload.
+      description: Text description field for the operation payload.
     Returns:
       AgentOperation.
     """
@@ -142,7 +142,7 @@ class GateAgent(sk.SpinnakerAgent):
           'type': 'createApplication',
           'account': account_name,
           'application': {
-              'name': account_name,
+              'name': application,
               'description': description or 'Gate Testing Application',
               'email': email
            },
@@ -170,7 +170,7 @@ class GateAgent(sk.SpinnakerAgent):
       job=[{
           'type': 'deleteApplication',
           'account': account_name,
-          'application': { 'name': account_name },
+          'application': { 'name': application },
           'user': '[anonymous]'
       }],
       description='Delete Application: ' + application,

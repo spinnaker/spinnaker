@@ -136,17 +136,17 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'detail': bindings['TEST_COMPONENT_DETAIL'],
           'credentials': bindings['GCE_CREDENTIALS'],
           'region': bindings['TEST_GCE_REGION'],
-          'healthCheckPort': spec['port'],
-          'healthTimeout': spec['timeoutSec'],
-          'healthInterval': spec['checkIntervalSec'],
-          'healthyThreshold': spec['healthyThreshold'],
-          'unhealthyThreshold': spec['unhealthyThreshold'],
-          'listeners':[{
-              'protocol':'TCP', 'portRange':spec['port'], 'healthCheck':True
-          }],
-          'name': load_balancer_name,
+          'ipProtocol': 'TCP',
+          'portRange': spec['port'],
+          'networkLoadBalancerName': load_balancer_name,
           'providerType': 'gce',
-          'healthCheck': 'HTTP:{0}/'.format(spec['port']),
+          'healthCheck': {
+              'port': spec['port'],
+              'timeoutSec': spec['timeoutSec'],
+              'checkIntervalSec': spec['checkIntervalSec'],
+              'healthyThreshold': spec['healthyThreshold'],
+              'unhealthyThreshold': spec['unhealthyThreshold'],
+          },
           'type': 'upsertAmazonLoadBalancer',
           'availabilityZones': { bindings['TEST_GCE_REGION']: [] },
           'user': '[anonymous]'
@@ -184,6 +184,8 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
        job=[{
           'type': 'deleteLoadBalancer',
           'loadBalancerName': load_balancer_name,
+          'networkLoadBalancerName': load_balancer_name,
+          'region': bindings['TEST_GCE_REGION'],
           'regions': [bindings['TEST_GCE_REGION']],
           'credentials': bindings['GCE_CREDENTIALS'],
           'providerType': 'gce',
@@ -224,7 +226,8 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_payload(
       job=[{
           'application': bindings['TEST_APP_NAME'],
-          'strategy':'', 'capacity': {'desired':2},
+          'strategy':'',
+          'initialNumReplicas': 2,
           'providerType': 'gce',
           'image': 'ubuntu-1404-trusty-v20150316',
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
@@ -261,10 +264,10 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     payload = self.agent.make_payload(
       job=[{
-          'asgName': group_name,
+          'replicaPoolName': group_name,
           'type': 'destroyAsg',
           'regions': [bindings['TEST_GCE_REGION']],
-          'zones': [bindings['TEST_GCE_ZONE']],
+          'zone': bindings['TEST_GCE_ZONE'],
           'credentials': bindings['GCE_CREDENTIALS'],
           'providerType': 'gce',
           'user': '[anonymous]'
