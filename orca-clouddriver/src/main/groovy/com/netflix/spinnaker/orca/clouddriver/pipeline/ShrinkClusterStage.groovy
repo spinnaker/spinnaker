@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.ParallelStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
 import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -57,35 +58,40 @@ class ShrinkClusterStage extends ParallelStage {
     }
   }
 
+  @Canonical
+  static class ShrinkConfig {
+    String cluster
+    String cloudProvider = 'aws'
+    String credentials
+    Set<String> regions
+    boolean allowDeleteActive = false
+    int shrinkToSize = 1
+    boolean retainLargerOverNewer = false
+  }
+
   @Override
   List<Map<String, Object>> parallelContexts(Stage stage) {
-    String clusterName = stage.context.cluster
-    def names = Names.parseName(clusterName)
-    String cloudProvider = stage.context.cloudProvider ?: 'aws'
-    String account = stage.context.credentials
-    Set<String> regions = stage.context.regions as Set
-    boolean allowDeleteActive = Boolean.valueOf(stage.context.allowDeleteActive as String)
-    int shrinkToSize = Integer.parseInt(stage.context.shrinkToSize as String ?: "1")
-    boolean retainLargerOverNewer = Boolean.valueOf(stage.context.retainLargerOverNewer as String)
+    def config = stage.mapTo(ShrinkConfig)
+    def names = Names.parseName(config.cluster)
 
-    def response = oortService.getCluster(names.app, account, clusterName, cloudProvider)
+    def response = oortService.getCluster(names.app, config.credentials, config.cluster, config.cloudProvider)
     Map cluster = objectMapper.readValue(response.body.in(), Map)
 
     List<Map> serverGroups = cluster.serverGroups
 
     Map<String, List<Map>> serverGroupsByRegion = serverGroups.groupBy { it.region }
 
-    regions.findResults {
+    config.regions.findResults {
       def regionGroups = serverGroupsByRegion[it]
       if (!regionGroups) {
         return null
       }
-      getDeletionServerGroups(regionGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize) ?: null
+      getDeletionServerGroups(regionGroups, config.retainLargerOverNewer, config.allowDeleteActive, config.shrinkToSize) ?: null
     }.flatten().collect {
       [
         type: DestroyServerGroupStage.PIPELINE_CONFIG_TYPE,
         name: "Destroy Server Group $it.name in $it.region".toString(),
-        credentials: account,
+        credentials: config.credentials,
         regions: [it.region],
 
         //TODO(cfieber) - dedupe
@@ -93,8 +99,8 @@ class ShrinkClusterStage extends ParallelStage {
         asgName: it.name,
 
         //TODO(cfieber) - dedupe
-        cloudProvider: cloudProvider,
-        providerType: cloudProvider
+        cloudProvider: config.cloudProvider,
+        providerType: config.cloudProvider
       ]
     }
   }

@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.CompositeComparitor
 import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.CreatedTime
 import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.InstanceCount
 import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.IsActive
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -71,6 +71,11 @@ class ShrinkClusterStageSpec extends Specification {
     null              | 1            | true                  | [mkSG(), mkSG()]                                                         | []            | 'default allowDeleteActive false'
     false             | null         | true                  | [mkSG(health: 'Down'), mkSG(health: 'Down'), mkSG()]                     | [0, 1]        | 'default shrinkToSize 1'
     false             | 1            | null                  | [mkSG(health: 'Down', instances: 5), mkSG(health: 'Down', instances: 4)] | [0]           | 'default retainLargerOverNewer false'
+    false             | "2"          | false                 | [mkSG(health: 'Down'), mkSG(health: 'Down'), mkSG(health: 'Down')]       | [0]           | 'handles shrinkToSize as a String'
+    false             | 2.0          | false                 | [mkSG(health: 'Down'), mkSG(health: 'Down'), mkSG(health: 'Down')]       | [0]           | 'handles shrinkToSize as a Double'
+    "true"            | 1            | false                 | [mkSG(), mkSG()]                                                         | [0]           | 'handles allowDeleteActive as String'
+    true              | 1            | "true"                | [mkSG(instances: 5), mkSG(instances: 4)]                                 | [1]           | 'handles largerOverNewer as String'
+
 
     context = mkCtx(allowDeleteActive, shrinkToSize, retainLargerOverNewer)
     expected = expectedItems.collect { serverGroups[it] }
@@ -144,7 +149,7 @@ class ShrinkClusterStageSpec extends Specification {
   }
 
 
-  private Map<String, Object> mkCtx(Boolean allowDeleteActive, Integer shrinkToSize, Boolean retainLargerOverNewer) {
+  private Map<String, Object> mkCtx(Object allowDeleteActive, Object shrinkToSize, Object retainLargerOverNewer) {
     [
       cluster              : 'foo-test',
       credentials          : 'test',
