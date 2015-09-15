@@ -62,6 +62,7 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),
+    require('angular-messages'),
     require('exports?"ui.select"!ui-select'),
     require('exports?"angulartics"!angulartics'),
     require('exports?"cfp.hotkeys"!angular-hotkeys'),
