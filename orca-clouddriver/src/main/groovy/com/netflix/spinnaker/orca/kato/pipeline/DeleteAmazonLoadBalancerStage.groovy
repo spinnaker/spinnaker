@@ -17,13 +17,14 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.DeleteLoadBalancerStage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
 /**
  * Created by aglover on 9/26/14.
  *
- * @deprecated use {@link DeleteLoadBalancerStage} instead.
+ * @deprecated use {@link com.netflix.spinnaker.orca.clouddriver.pipeline.DeleteLoadBalancerStage} instead.
  */
 
 @Deprecated

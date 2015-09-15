@@ -13,39 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.kato.tasks
+
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-/**
- * Created by aglover on 9/26/14.
- */
 @Component
-class DeleteAmazonLoadBalancerTask implements Task {
+class DeleteLoadBalancerForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
+  static final String REFRESH_TYPE = "LoadBalancer"
 
   @Autowired
-  KatoService kato
+  OortService oort
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[deleteAmazonLoadBalancerDescription: stage.context]])
-                     .toBlocking()
-                     .first()
-    Map outputs = [
-        "notification.type"  : "deleteamazonloadbalancer",
-        "kato.last.task.id"  : taskId,
-        "kato.task.id"       : taskId, // TODO retire this.
-        "delete.name"        : stage.context.loadBalancerName,
-        "delete.regions"     : stage.context.regions.join(','),
-        "delete.account.name": stage.context.credentials
-    ]
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    String name = stage.context.loadBalancerName
+    String vpcId = stage.context.vpcId ?: ''
+    List<String> regions = stage.context.regions
+
+    regions.each { region ->
+      def model = [loadBalancerName: name, region: region, account: account, vpcId: vpcId, evict: true]
+      oort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
+    }
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DeleteAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
-  @Subject task = new DeleteAmazonLoadBalancerForceRefreshTask()
+class DeleteLoadBalancerForceRefreshTaskSpec extends Specification {
+  @Subject task = new DeleteLoadBalancerForceRefreshTask()
   def stage = new PipelineStage(type: "whatever")
 
   def config = [
+    cloudProvider   : 'aws',
     regions         : ["us-west-1"],
     credentials     : "fzlem",
     loadBalancerName: 'flapjack-main-frontend'
@@ -43,7 +44,9 @@ class DeleteAmazonLoadBalancerForceRefreshTaskSpec extends Specification {
     task.execute(stage.asImmutable())
 
     then:
-    1 * task.oort.forceCacheUpdate(DeleteAmazonLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> { String type, Map<String, ? extends Object> body ->
+    1 * task.oort.forceCacheUpdate(stage.context.cloudProvider, DeleteLoadBalancerForceRefreshTask.REFRESH_TYPE, _) >> {
+      String cloudProvider, String type, Map<String, ? extends Object> body ->
+
       assert body.loadBalancerName == config.loadBalancerName
       assert body.account == config.credentials
       assert body.region == "us-west-1"
