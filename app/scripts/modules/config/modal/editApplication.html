@@ -55,7 +55,7 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left" id="repoType">Source Repo Type</div>
+        <div class="col-sm-3 sm-label-left" id="repoType">Repo Type</div>
         <div class="col-sm-9">
           <select
             class="form-control input-sm"
@@ -66,7 +66,7 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left" id="repoProjectKey">Source Project</div>
+        <div class="col-sm-3 sm-label-left" id="repoProjectKey">Repo Project</div>
         <div class="col-sm-9">
           <input type="text"
                  class="form-control input-sm"
@@ -77,16 +77,24 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-left" id="repoSlug">Source Repo</div>
+        <div class="col-sm-3 sm-label-left" id="repoSlug">Repo Name</div>
         <div class="col-sm-9">
           <input type="text"
                  class="form-control input-sm"
                  ng-model="editApp.applicationAttributes.repoSlug"
-                 placeholder="Enter your source repository"
-                 id="repoSlug">
+                 placeholder="Enter your source repository name (not the url)"
+                 pattern="^((?!https?\:\/\/).)*$"
+                 id="repoSlug" name="repoSlug">
           </input>
         </div>
       </div>
+
+      <div class="form-group row slide-in animated" ng-messages="editApplicationForm.repoSlug.$error">
+        <div class="col-sm-9 col-sm-offset-3 error-message" ng-message="pattern">
+          Enter your source repository name (not the URL).
+        </div>
+      </div>
+
       <div class="form-group row">
         <div class="col-sm-3 sm-label-left">Description</div>
         <div class="col-sm-9">
