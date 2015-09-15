@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2014 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-include 'echo-core', 'echo-model', 'echo-cassandra', 'echo-web', 'echo-elasticsearch', 'echo-kafka', 'echo-notifications', 'echo-pipelinetriggers', 'echo-scheduler', 'echo-rest'
+package com.netflix.spinnaker.echo.rest
 
-rootProject.name = 'echo'
+import retrofit.client.Response
+import retrofit.http.Body
+import retrofit.http.POST
 
-def setBuildFile(project) {
-    project.buildFileName = "${project.name}.gradle"
-    project.children.each {
-        setBuildFile(it)
-    }
-}
+interface RestService {
 
-rootProject.children.each {
-    setBuildFile it
+  @POST('/')
+  Response recordEvent(@Body Map<String, ?> event)
+
 }
