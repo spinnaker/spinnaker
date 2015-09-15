@@ -13,6 +13,7 @@
     "angular-filter": "^0.5.4",
     "angular-hotkeys": "^1.5.0",
     "angular-marked": "0.0.17",
+    "angular-messages": "^1.4.5",
     "angular-sanitize": "^1.4.1",
     "angular-spinner": "^0.5.1",
     "angular-ui-router": "=0.2.13",
