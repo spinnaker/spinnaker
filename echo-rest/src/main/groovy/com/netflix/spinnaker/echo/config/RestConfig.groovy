@@ -50,7 +50,7 @@ class RestConfig {
   }
 
   @Bean
-  LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:FULL}') String retrofitLogLevel) {
+  LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
     return LogLevel.valueOf(retrofitLogLevel)
   }
 
