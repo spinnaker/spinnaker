@@ -1,7 +1,7 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.CopySecurityGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.securitygroup.UpsertGoogleSecurityGroupTask
+import com.netflix.spinnaker.orca.kato.tasks.gce.securitygroup.WaitForGoogleUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.SecurityGroupForceCacheRefreshTask
-import com.netflix.spinnaker.orca.kato.tasks.securitygroup.WaitForUpsertedSecurityGroupTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -28,20 +28,20 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class CopySecurityGroupStage extends LinearStage {
+class UpsertGoogleSecurityGroupStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "copySecurityGroup"
+  public static final String PIPELINE_CONFIG_TYPE = "upsertSecurityGroup_gce"
 
-  CopySecurityGroupStage() {
+  UpsertGoogleSecurityGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "copySecurityGroup", CopySecurityGroupTask)
+    def step1 = buildStep(stage, "upsertSecurityGroup", UpsertGoogleSecurityGroupTask)
     def step2 = buildStep(stage, "monitorUpsert", MonitorKatoTask)
     def step3 = buildStep(stage, "forceCacheRefresh", SecurityGroupForceCacheRefreshTask)
-    def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForUpsertedSecurityGroupTask)
+    def step4 = buildStep(stage, "waitForUpsertedSecurityGroup", WaitForGoogleUpsertedSecurityGroupTask)
     [step1, step2, step3, step4]
   }
 }

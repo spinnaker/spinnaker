@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,32 +14,49 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks.securitygroup
+package com.netflix.spinnaker.orca.kato.tasks.gce.securitygroup
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-public class SecurityGroupForceCacheRefreshTask implements Task {
-  static final String REFRESH_TYPE = "AmazonSecurityGroup"
+class UpsertGoogleSecurityGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
-  MortService mort
+  KatoService kato
+
+  @Autowired
+  MortService mortService
 
   @Override
   TaskResult execute(Stage stage) {
-    stage.context.targets.each { Map target ->
-      mort.forceCacheUpdate(
-        REFRESH_TYPE, [account: target.account, securityGroupName: target.name, region: target.region]
-      )
-    }
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    def taskId = kato.requestOperations(cloudProvider, [[upsertSecurityGroup: stage.context]])
+                     .toBlocking()
+                     .first()
+
+    Map outputs = [
+      "notification.type"   : "upsertsecuritygroup",
+      "kato.last.task.id"   : taskId,
+      "targets"             : [
+        [
+          credentials: account,
+          region     : stage.context.region,
+          name       : stage.context.name
+        ]
+      ]
+    ]
+
+    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }
