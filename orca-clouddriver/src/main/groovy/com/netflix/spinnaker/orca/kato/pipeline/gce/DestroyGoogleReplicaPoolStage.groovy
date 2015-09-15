@@ -16,12 +16,12 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.DestroyGoogleReplicaPoolTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.GoogleServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -42,7 +42,7 @@ class DestroyGoogleReplicaPoolStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "destroyServerGroup", DestroyGoogleReplicaPoolTask)
     def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     [step1, step2, step3].flatten().toList()
   }
 }

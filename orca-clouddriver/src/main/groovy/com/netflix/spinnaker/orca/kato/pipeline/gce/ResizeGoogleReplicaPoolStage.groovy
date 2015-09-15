@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,16 @@
 package com.netflix.spinnaker.orca.kato.pipeline.gce
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForCapacityMatchTask
-import com.netflix.spinnaker.orca.kato.tasks.gce.GoogleServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.tasks.gce.ResizeGoogleReplicaPoolTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
@@ -71,7 +71,7 @@ class ResizeGoogleReplicaPoolStage extends LinearStage {
 
     def step1 = buildStep(stage, "resizeServerGroup", ResizeGoogleReplicaPoolTask)
     def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
-    def step3 = buildStep(stage, "forceCacheRefresh", GoogleServerGroupCacheForceRefreshTask)
+    def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
     def step4 = buildStep(stage, "waitForCapacityMatch", WaitForCapacityMatchTask)
     [step1, step2, step3, step4]
   }
