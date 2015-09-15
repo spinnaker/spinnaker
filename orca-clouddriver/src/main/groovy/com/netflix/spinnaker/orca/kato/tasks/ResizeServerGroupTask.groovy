@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
-class ResizeServerGroupTask implements Task{
+class ResizeServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato
@@ -39,7 +40,7 @@ class ResizeServerGroupTask implements Task{
   @Override
   TaskResult execute(Stage stage) {
     def operation = convert(stage)
-    def taskId = kato.requestOperations(stage.context.cloudProvider, [[resizeServerGroup: operation]])
+    def taskId = kato.requestOperations(getCloudProvider(stage), [[resizeServerGroup: operation]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
