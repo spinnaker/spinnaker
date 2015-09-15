@@ -48,6 +48,7 @@ dependencies {
     compile project(':echo-pipelinetriggers')
     compile project(':echo-scheduler')
     compile project(':echo-kafka')
+    compile project(':echo-rest')
     compile spinnaker.dependency('kork')
     compile spinnaker.dependency('korkWeb')
     compile spinnaker.dependency('bootActuator')
