@@ -13,7 +13,10 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
                                              pipelineConfigService, scrollToService, executionsService,
                                              viewStateCache, collapsibleSectionStateCache) {
 
-    var executionsViewStateCache = viewStateCache.executions || viewStateCache.createCache('executions', { version: 1 });
+    var executionsViewStateCache = viewStateCache.executions || viewStateCache.createCache('executions', {
+        version: 1,
+        maxAge: 180 * 24 * 60 * 60 * 1000, // 180 days
+      });
 
     function cacheViewState() {
       executionsViewStateCache.put($scope.application.name, $scope.filter);
@@ -33,7 +36,7 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
           completed: true,
           failed: true,
           'not_started': true,
-          canceled: false,
+          canceled: true,
           suspended: true,
         },
         triggers: {
