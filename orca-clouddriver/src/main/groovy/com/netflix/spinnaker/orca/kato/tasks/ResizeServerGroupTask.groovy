@@ -39,13 +39,16 @@ class ResizeServerGroupTask extends AbstractCloudProviderAwareTask implements Ta
 
   @Override
   TaskResult execute(Stage stage) {
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
     def operation = convert(stage)
-    def taskId = kato.requestOperations(getCloudProvider(stage), [[resizeServerGroup: operation]])
+    def taskId = kato.requestOperations(cloudProvider, [[resizeServerGroup: operation]])
                      .toBlocking()
                      .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : "resizeasg", // TODO(someone on NFLX side): Rename to 'resizeservergroup'?
-      "deploy.account.name" : operation.credentials,
+      "deploy.account.name" : account,
       "kato.last.task.id"   : taskId,
       "asgName"             : operation.asgName,
       "capacity"            : operation.capacity,
