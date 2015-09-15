@@ -21,10 +21,12 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask implements Task {
 
   static final String REFRESH_TYPE = "ServerGroup"
@@ -37,10 +39,19 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
     String cloudProvider = getCloudProvider(stage)
     String account = getCredentials(stage)
     Map<String, List<String>> capturedServerGroups = (Map<String, List<String>>) stage.context."deploy.server.groups"
+
+    def zone = stage.context.zone
+    if (!zone) {
+      zone = stage.context.zones ? stage.context.zones[0] : null
+    }
+
     def outputs = [:]
     capturedServerGroups?.each { region, serverGroups ->
       for (serverGroup in serverGroups) {
         def model = [serverGroupName: serverGroup, asgName: serverGroup, region: region, account: account] // TODO retire asgName
+        if (zone) {
+          model.zone = zone
+        }
         try {
           oort.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
         } catch (e) {
