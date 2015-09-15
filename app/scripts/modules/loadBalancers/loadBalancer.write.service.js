@@ -16,7 +16,7 @@ module.exports = angular
       params.loadBalancerName = loadBalancer.name;
       params.regions = [loadBalancer.region];
       params.credentials = loadBalancer.accountId;
-      params.providerType = loadBalancer.providerType;
+      params.cloudProvider = loadBalancer.providerType;
 
       var operation = taskExecutor.executeTask({
         job: [params],
