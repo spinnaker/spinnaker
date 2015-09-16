@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
+import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
 import com.netflix.spinnaker.clouddriver.search.SearchProvider
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -73,5 +74,11 @@ class CloudDriverConfig {
   @ConditionalOnExpression('${services.front50.enabled:true}')
   ApplicationSearchProvider applicationSearchProvider(Front50Service front50Service) {
     new ApplicationSearchProvider(front50Service)
+  }
+
+  @Bean
+  @ConditionalOnExpression('${services.front50.enabled:true}')
+  ProjectSearchProvider projectSearchProvider(Front50Service front50Service) {
+    new ProjectSearchProvider(front50Service)
   }
 }
