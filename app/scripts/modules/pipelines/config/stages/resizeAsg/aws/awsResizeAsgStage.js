@@ -7,7 +7,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.resizeAsgStage', 
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'resizeAsg',
+      provides: 'resizeServerGroup',
+      key: 'resizeServerGroup',
       cloudProvider: 'aws',
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
@@ -83,6 +84,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.resizeAsgStage', 
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
+    stage.cloudProvider = 'aws';
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;

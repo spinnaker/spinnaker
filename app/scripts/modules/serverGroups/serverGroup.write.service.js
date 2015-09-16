@@ -56,11 +56,11 @@ module.exports = angular
 
     function resizeServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
-      params.type = 'resizeAsg';
+      params.type = 'resizeServerGroup';
       params.regions = [serverGroup.region];
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
-      params.providerType = serverGroup.type;
+      params.cloudProvider = serverGroup.type;
       return taskExecutor.executeTask({
         job: [params],
         application: application,
