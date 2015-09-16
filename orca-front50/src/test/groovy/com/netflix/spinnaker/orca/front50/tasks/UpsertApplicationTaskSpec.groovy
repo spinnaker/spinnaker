@@ -46,37 +46,15 @@ class UpsertApplicationTaskSpec extends Specification {
   ]
 
   @Shared
-  def globalAccount = "global"
+  def globalAccount = "default"
 
-  void "should not create an application in a global registry if no global credentials are available"() {
-    given:
-    task.front50Service = Mock(Front50Service) {
-      3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> [new Front50Credential(name: config.account)]
-      1 * create(config.account, config.application.name, {
-        it.properties == new Application(config.application).properties
-      })
-      0 * _._
-    }
-
-    when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-  }
-
-  void "should create an application in global and non-global registries"() {
+  void "should create an application in global registries"() {
     given:
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> null
-      3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * create(globalAccount, config.application.name, {
         it.properties == new Application(config.application + [accounts: config.account]).properties
-      })
-      1 * create(config.account, config.application.name, {
-        it.properties == new Application(config.application).properties
       })
       0 * _._
     }
@@ -88,27 +66,16 @@ class UpsertApplicationTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
-  void "should update existing application (global) and create new application (non-global)"() {
+  void "should update existing application (global)"() {
     given:
     task.front50Service = Mock(Front50Service) {
       1 * get(globalAccount, config.application.name) >> existingGlobalApplication
-      1 * get(existingGlobalApplicationAccount, config.application.name) >> existingGlobalApplication
-      3 * get(config.account, config.application.name) >> null
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * update(globalAccount, {
         // assert that the global application is updated w/ new application attributes and merged accounts
         it.properties == new Application(
           config.application + [accounts: [existingGlobalApplicationAccount, config.account].join(",")]
         ).properties
-      })
-      1 * update(existingGlobalApplicationAccount, {
-        // assert that other per-account registries associated with the global application are also updated
-        it.properties == new Application(config.application + [accounts: null]).properties
-      })
-      1 * create(config.account, config.application.name, {
-        // assert that the new application properties override whatever existed in the global registry,
-        // 'accounts' should never be propagated to non-global applications
-        it.properties == (existingGlobalApplication.properties + config.application + [accounts: null])
       })
       0 * _._
     }
@@ -126,53 +93,15 @@ class UpsertApplicationTaskSpec extends Specification {
     )
   }
 
-  void "should update existing application in global and non-global registries"() {
-    given:
-    task.front50Service = Mock(Front50Service) {
-      1 * get(globalAccount, config.application.name) >> new Application(accounts: "prod")
-      1 * get("prod", config.application.name) >> null
-      3 * get(config.account, config.application.name) >> new Application()
-      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true), new Front50Credential(name: config.account)]
-      1 * update(globalAccount, {
-        it.properties == new Application(config.application + [accounts: "prod,test"]).properties
-      })
-      1 * update(config.account, {
-        it.properties == new Application(config.application).properties
-      })
-      0 * _._
-    }
-
-    when:
-    def result = task.execute(new PipelineStage(new Pipeline(), "UpsertApplication", config))
-
-    then:
-    result.status == ExecutionStatus.SUCCEEDED
-  }
-
-  void "should merge properties from source to target application"() {
-    given:
-    def source = new Application(email: "source@netflix.com", description: "sourceDescription", owner: "sourceOwner", repoProjectKey: "project-key", repoSlug: "repo-slug", repoType: "stash")
-    def target = new Application(owner: "targetOwner", repoProjectKey: "another-project-key", repoSlug: "another-repo-slug", repoType: "github")
-
-    when:
-    UpsertApplicationTask.mergeApplicationProperties(source, target)
-
-    then:
-    target.email == source.email
-    target.description == source.description
-    target.owner == "targetOwner"
-    target.repoProjectKey == "another-project-key"
-    target.repoSlug == "another-repo-slug"
-    target.repoType == "github"
-  }
-
   @Unroll
   void "should keep track of previous and new state during #operation"() {
     given:
     Application application = new Application(config.application)
+    application.accounts = config.account
+
     task.front50Service = Mock(Front50Service) {
-      3 * get(config.account, config.application.name) >> initialState >> initialState >> application
-      1 * getCredentials() >> [new Front50Credential(name: config.account)]
+      1 * get(globalAccount, config.application.name) >> initialState
+      1 * getCredentials() >> [new Front50Credential(name: globalAccount, global: true)]
       1 * "${operation}"(*_)
       0 * _._
     }
@@ -182,7 +111,7 @@ class UpsertApplicationTaskSpec extends Specification {
 
     then:
     result.stageOutputs.previousState == (initialState ?: [:])
-    result.stageOutputs.newState == application
+    result.stageOutputs.newState.properties == application.properties
 
     where:
     initialState      | operation

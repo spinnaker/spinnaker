@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.front50.pipeline
 
 import com.netflix.spinnaker.orca.front50.tasks.DeleteApplicationTask
 import com.netflix.spinnaker.orca.front50.tasks.VerifyApplicationHasNoDependenciesTask
-import com.netflix.spinnaker.orca.front50.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -38,7 +37,6 @@ class DeleteApplicationStage extends LinearStage {
   public List<Step> buildSteps(Stage stage) {
     def step1 = buildStep(stage, "verifyNoDependencies", VerifyApplicationHasNoDependenciesTask)
     def step2 = buildStep(stage, "deleteApplication", DeleteApplicationTask)
-    def step3 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
-    [step1, step2, step3]
+    [step1, step2]
   }
 }
