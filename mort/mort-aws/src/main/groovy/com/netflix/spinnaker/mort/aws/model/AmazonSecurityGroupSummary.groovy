@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,14 @@
 
 package com.netflix.spinnaker.mort.aws.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupSummary
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
 @Immutable
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-class AmazonSecurityGroup implements SecurityGroup {
-  final String type
-  final String id
-  final String name
-  final String vpcId
-  final String description
-  final String application
-  final String accountName
-  final String region
-  final Set<Rule> inboundRules
-  final Set<Rule> outboundRules
-
-  @Override
-  SecurityGroupSummary getSummary() {
-    new AmazonSecurityGroupSummary(name: name, id: id, vpcId: vpcId)
-  }
+@EqualsAndHashCode(includes = ['id', 'vpcId'], cache = true)
+class AmazonSecurityGroupSummary implements SecurityGroupSummary {
+  String name
+  String id
+  String vpcId
 }

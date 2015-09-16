@@ -17,11 +17,9 @@
 package com.netflix.spinnaker.mort.web
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupProvider
-import groovy.transform.EqualsAndHashCode
-import groovy.transform.Immutable
+import com.netflix.spinnaker.mort.model.SecurityGroupSummary
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -55,7 +53,7 @@ class SecurityGroupController {
       if (!objs[obj.accountName][obj.type].containsKey(obj.region)) {
         objs[obj.accountName][obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.accountName][obj.type][obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs[obj.accountName][obj.type][obj.region] << obj.summary
       objs
     }) doOnError {
       it.printStackTrace()
@@ -75,7 +73,7 @@ class SecurityGroupController {
       if (!objs[obj.type].containsKey(obj.region)) {
         objs[obj.type][obj.region] = sortedTreeSet
       }
-      objs[obj.type][obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs[obj.type][obj.region] << obj.summary
       objs
     }) toBlocking() first()
   }
@@ -91,7 +89,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.type)) {
         objs[obj.type] = sortedTreeSet
       }
-      objs[obj.type] << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs[obj.type] << obj.summary
       objs
     }) toBlocking() first()
   }
@@ -106,7 +104,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs[obj.region] << obj.summary
       objs
     }) toBlocking() first()
   }
@@ -119,7 +117,7 @@ class SecurityGroupController {
     } flatMap {
       rx.Observable.from(it.getAllByAccountAndRegion(false, account, region))
     } reduce(sortedTreeSet, { Set objs, SecurityGroup obj ->
-      objs << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs << obj.summary
       objs
     }) toBlocking() first()
   }
@@ -135,7 +133,7 @@ class SecurityGroupController {
       if (!objs.containsKey(obj.region)) {
         objs[obj.region] = sortedTreeSet
       }
-      objs[obj.region] << SecurityGroupSummary.fromSecurityGroup(obj)
+      objs[obj.region] << obj.summary
       objs
     }) toBlocking() first()
     }
@@ -155,19 +153,5 @@ class SecurityGroupController {
     new TreeSet<>({ SecurityGroupSummary a, SecurityGroupSummary b ->
       a.name.toLowerCase() <=> b.name.toLowerCase() ?: a.id <=> b.id
     } as Comparator)
-  }
-
-  @Immutable
-  @EqualsAndHashCode(includes = ['id', 'vpcId'], cache = true)
-  private static class SecurityGroupSummary  {
-    String name
-    String id
-    String vpcId
-
-    static SecurityGroupSummary fromSecurityGroup(SecurityGroup sg) {
-      (sg instanceof AmazonSecurityGroup) ?
-        new SecurityGroupSummary(sg.name, sg.id, sg.vpcId) :
-        new SecurityGroupSummary(sg.name, sg.id, null)
-    }
   }
 }
