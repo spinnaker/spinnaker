@@ -29,6 +29,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   int initialNumReplicas
   String zone
   List<String> networkLoadBalancers
+  Set<String> securityGroups
   Source source = new Source()
 
   @Canonical

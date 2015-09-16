@@ -1,4 +1,6 @@
 dependencies {
+  spinnaker.group('retrofitDefault')
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootDataRest')
   compile spinnaker.dependency('amos')

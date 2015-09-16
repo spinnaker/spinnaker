@@ -52,16 +52,16 @@ class AwsInfrastructureProviderConfig {
 
     allAccounts.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
-        agents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
-        agents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
-        agents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
+        agents << new AmazonElasticIpCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
+        agents << new AmazonInstanceTypeCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
+        agents << new AmazonKeyPairCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name)
         agents << new AmazonSecurityGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
-        agents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
-        agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
+        agents << new AmazonSubnetCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper)
+        agents << new AmazonVpcCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper)
       }
     }
 
-    new AwsInfrastructureProvider(agents)
+    new AwsInfrastructureProvider(amazonCloudProvider, agents)
   }
 
 }

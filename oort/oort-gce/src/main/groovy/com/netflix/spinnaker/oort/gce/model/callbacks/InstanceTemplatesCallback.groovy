@@ -21,6 +21,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.InstanceTemplate
 import com.netflix.frigga.ami.AppVersion
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import com.netflix.spinnaker.oort.gce.model.GoogleLoadBalancer
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
@@ -33,15 +34,18 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
 
   private GoogleServerGroup googleServerGroup
   private GoogleCluster googleCluster
+  private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
 
   public InstanceTemplatesCallback(GoogleServerGroup googleServerGroup,
                                    GoogleCluster googleCluster,
+                                   Set<GoogleSecurityGroup> googleSecurityGroups,
                                    Map<String, List<Map>> imageMap,
                                    String defaultBuildHost) {
     this.googleServerGroup = googleServerGroup
     this.googleCluster = googleCluster
+    this.googleSecurityGroups = googleSecurityGroups
     this.imageMap = imageMap
     this.defaultBuildHost = defaultBuildHost
   }
@@ -88,6 +92,24 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
           }
         }
       }
+    }
+
+    // Find all firewall rules with target tags matching the tags of this instance template.
+    def googleSecurityGroupMatches = [] as Set
+
+    instanceTemplate?.properties?.tags?.items.each { instanceTemplateTag ->
+      googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+        googleSecurityGroup.targetTags?.contains(instanceTemplateTag)
+      }
+    }
+
+    // Find all firewall rules with no target tags.
+    googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+      !googleSecurityGroup.targetTags
+    }
+
+    googleServerGroup.securityGroups = googleSecurityGroupMatches.flatten().collect { googleSecurityGroup ->
+      googleSecurityGroup.name
     }
 
     // Set all google-provided attributes for use by non-deck callers.

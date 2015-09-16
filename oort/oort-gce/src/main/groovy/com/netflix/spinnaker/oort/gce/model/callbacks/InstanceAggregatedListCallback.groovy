@@ -21,6 +21,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.HealthStatus
 import com.google.api.services.compute.model.InstanceAggregatedList
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleInstance
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.model.HealthState
@@ -31,13 +32,16 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
 
   private static final String GOOGLE_INSTANCE_TYPE = "gce"
 
+  private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private List<GoogleInstance> standaloneInstanceList
   private Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap
 
-  public InstanceAggregatedListCallback(Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
+  public InstanceAggregatedListCallback(Set<GoogleSecurityGroup> googleSecurityGroups,
+                                        Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
                                         List<GoogleInstance> standaloneInstanceList,
                                         Map<String, Map<String, List<HealthStatus>>> instanceNameToLoadBalancerHealthStatusMap) {
+    this.googleSecurityGroups = googleSecurityGroups
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.standaloneInstanceList = standaloneInstanceList
     this.instanceNameToLoadBalancerHealthStatusMap = instanceNameToLoadBalancerHealthStatusMap
@@ -75,6 +79,24 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
             if (!googleInstance.hasProperty(key)) {
               googleInstance[key] = instance[key]
             }
+          }
+
+          // Find all firewall rules with target tags matching the tags of this instance.
+          def googleSecurityGroupMatches = [] as Set
+
+          instance.tags?.items.each { instanceTag ->
+            googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+              googleSecurityGroup.targetTags?.contains(instanceTag)
+            }
+          }
+
+          // Find all firewall rules with no target tags.
+          googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+            !googleSecurityGroup.targetTags
+          }
+
+          googleInstance["securityGroups"] = googleSecurityGroupMatches.flatten().collect { googleSecurityGroup ->
+            [groupName: googleSecurityGroup.name, groupdId: googleSecurityGroup.name]
           }
 
           def googleServerGroup = instanceNameToGoogleServerGroupMap[instance.name]

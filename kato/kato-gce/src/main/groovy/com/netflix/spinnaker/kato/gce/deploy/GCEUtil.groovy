@@ -39,6 +39,8 @@ import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoad
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
+import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
@@ -241,6 +243,44 @@ class GCEUtil {
     }.flatten()
 
     allMIGSInRegion
+  }
+
+  static Set<String> querySecurityGroupTags(Set<String> securityGroupNames,
+                                            String accountName,
+                                            GoogleSecurityGroupProvider googleSecurityGroupProvider,
+                                            Task task,
+                                            String phase) {
+    if (!securityGroupNames) {
+      return null
+    }
+
+    task.updateStatus phase, "Looking up firewall rules $securityGroupNames..."
+
+    Set<GoogleSecurityGroup> securityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
+
+    Set<GoogleSecurityGroup> securityGroupMatches = securityGroups.findAll { securityGroup ->
+      securityGroupNames.contains(securityGroup.name)
+    }
+
+    if (securityGroupMatches.size() == securityGroupNames.size()) {
+      return securityGroupMatches.collect { securityGroupMatch ->
+        securityGroupMatch.targetTags
+      }.flatten() - null
+    } else {
+      def securityGroupNameMatches = securityGroupMatches.collect { it.name }
+
+      updateStatusAndThrowNotFoundException("Firewall rules ${securityGroupNames - securityGroupNameMatches} not found.", task, phase)
+    }
+
+    return securityGroups.findAll { securityGroup ->
+      securityGroupNames.contains(securityGroup.name)
+    }.collect { securityGroup ->
+      securityGroup.targetTags
+    }.flatten() - null
+  }
+
+  static List<String> mergeDescriptionAndSecurityGroupTags(List<String> tags, Set<String> securityGroupTags) {
+    return ((tags ?: []) + securityGroupTags).unique()
   }
 
   static String getRegionFromZone(String projectName, String zone, Compute compute) {
@@ -470,6 +510,10 @@ class GCEUtil {
 
     if (allowed) {
       firewall.allowed = allowed
+    }
+
+    if (firewallRuleDescription.description) {
+      firewall.description = firewallRuleDescription.description
     }
 
     if (firewallRuleDescription.sourceRanges) {

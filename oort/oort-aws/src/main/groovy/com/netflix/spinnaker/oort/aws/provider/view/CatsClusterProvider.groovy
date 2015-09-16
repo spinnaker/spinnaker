@@ -77,8 +77,8 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     String launchConfigKey = Keys.getLaunchConfigKey(serverGroupData?.attributes['launchConfigName'] as String, account, region )
     CacheData launchConfigs = cacheView.get(LAUNCH_CONFIGS.ns, launchConfigKey)
 
-    String imageKey = Keys.getImageKey(launchConfigs?.attributes['imageId'] as String, account, region)
-    CacheData imageConfigs = cacheView.get(IMAGES.ns, imageKey)
+    String imageId = launchConfigs?.attributes?.get('imageId')
+    CacheData imageConfigs = imageId ? cacheView.get(IMAGES.ns, Keys.getImageKey(imageId, account, region)) : null
 
     def serverGroup = new AmazonServerGroup(name: name, region: region)
     serverGroup.accountName = account
@@ -105,7 +105,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
     asg?.instances?.inject(new HashSet<String>()) { Set instances, Map instance ->
       instances.add(Keys.getInstanceKey(instance.instanceId, account, region))
       return instances
-    }
+    } ?: []
   }
 
   private static Map<String, AmazonLoadBalancer> translateLoadBalancers(Collection<CacheData> loadBalancerData) {
@@ -179,7 +179,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
           return null
         }
         instances.get(it)
-      }
+      } ?: []
       [(serverGroupEntry.id) : serverGroup]
     }
 
@@ -230,11 +230,11 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   private Map<String, AmazonInstance> translateInstances(Collection<CacheData> instanceData) {
-    Map<String, AmazonInstance> instances = instanceData.collectEntries { instanceEntry ->
+    Map<String, AmazonInstance> instances = instanceData?.collectEntries { instanceEntry ->
       AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
       instance.name = instanceEntry.attributes.instanceId.toString()
       [(instanceEntry.id): instance]
-    }
+    } ?: [:]
     addHealthToInstances(instanceData, instances)
 
     instances
@@ -262,7 +262,7 @@ class CatsClusterProvider implements ClusterProvider<AmazonCluster> {
   }
 
   private Collection<CacheData> resolveRelationshipDataForCollection(Collection<CacheData> sources, String relationship, CacheFilter cacheFilter = null) {
-    Collection<String> relationships = sources.findResults { it.relationships[relationship]?: [] }.flatten()
+    Collection<String> relationships = sources?.findResults { it.relationships[relationship]?: [] }?.flatten() ?: []
     relationships ? cacheView.getAll(relationship, relationships, cacheFilter) : []
   }
 

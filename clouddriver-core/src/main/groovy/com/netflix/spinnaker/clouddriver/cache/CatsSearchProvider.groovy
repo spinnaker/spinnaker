@@ -43,7 +43,7 @@ class CatsSearchProvider implements SearchProvider {
   private static class DefaultQueryIdentifierExtractor implements SearchableProvider.IdentifierExtractor {
     @Override
     Collection<String> getIdentifiers(Cache cacheView, String type, String query) {
-      return cacheView.filterIdentifiers(type, "${type}:*${query}*")
+      return cacheView.filterIdentifiers(type, "*:${type}:*${query}*")
     }
   }
 
@@ -90,6 +90,9 @@ class CatsSearchProvider implements SearchProvider {
 
   @Override
   SearchResultSet search(String query, List<String> types, Integer pageNumber, Integer pageSize, Map<String, String> filters) {
+    // ensure we're only searching for types supported by the backing providers
+    types = defaultCaches.intersect(types)
+
     List<String> matches = findMatches(query, types, filters)
     generateResultSet(query, matches, pageNumber, pageSize)
   }
@@ -112,7 +115,9 @@ class CatsSearchProvider implements SearchProvider {
       results: results
     )
     resultSet.results.each { Map<String, String> result ->
-      result.provider = getPlatform()
+      if (!result.provider) {
+        result.provider = getPlatform()
+      }
 
       if (urlMappings.containsKey(result.type)) {
         def binding = [:]

@@ -74,4 +74,5 @@ interface SecurityGroup {
 
   Set<Rule> getOutboundRules()
 
+  SecurityGroupSummary getSummary()
 }

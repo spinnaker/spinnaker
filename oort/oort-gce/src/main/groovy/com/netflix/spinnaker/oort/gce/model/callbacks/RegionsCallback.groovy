@@ -24,6 +24,7 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Region
 import com.google.api.services.replicapool.Replicapool
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import org.apache.log4j.Logger
@@ -37,6 +38,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
   private Compute compute
   private GoogleCredential.Builder credentialBuilder
   private Replicapool replicapool
+  private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
@@ -49,6 +51,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                          Compute compute,
                          GoogleCredential.Builder credentialBuilder,
                          Replicapool replicapool,
+                         Set<GoogleSecurityGroup> googleSecurityGroups,
                          Map<String, List<Map>> imageMap,
                          String defaultBuildHost,
                          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
@@ -60,6 +63,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
     this.compute = compute
     this.credentialBuilder = credentialBuilder
     this.replicapool = replicapool
+    this.googleSecurityGroups = googleSecurityGroups
     this.imageMap = imageMap
     this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
@@ -80,6 +84,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                                           project,
                                           compute,
                                           credentialBuilder,
+                                          googleSecurityGroups,
                                           imageMap,
                                           defaultBuildHost,
                                           instanceNameToGoogleServerGroupMap,

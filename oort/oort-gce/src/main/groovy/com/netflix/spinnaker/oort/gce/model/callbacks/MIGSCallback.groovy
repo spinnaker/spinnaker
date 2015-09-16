@@ -24,6 +24,7 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import com.netflix.spinnaker.oort.gce.model.ResourceViewsBuilder
@@ -39,6 +40,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
   private String project
   private Compute compute
   private GoogleCredential.Builder credentialBuilder
+  private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
@@ -51,6 +53,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                       String project,
                       Compute compute,
                       GoogleCredential.Builder credentialBuilder,
+                      Set<GoogleSecurityGroup> googleSecurityGroups,
                       Map<String, List<Map>> imageMap,
                       String defaultBuildHost,
                       Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
@@ -62,6 +65,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
     this.project = project
     this.compute = compute
     this.credentialBuilder = credentialBuilder
+    this.googleSecurityGroups = googleSecurityGroups
     this.imageMap = imageMap
     this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
@@ -95,7 +99,11 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                                                  resourceViewsCallback)
 
         def localInstanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
-        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup, cluster, imageMap, defaultBuildHost)
+        def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup,
+                                                                      cluster,
+                                                                      googleSecurityGroups,
+                                                                      imageMap,
+                                                                      defaultBuildHost)
         compute.instanceTemplates().get(project,
                                         localInstanceTemplateName).queue(resourceViewsBatch,
                                                                          instanceTemplatesCallback)

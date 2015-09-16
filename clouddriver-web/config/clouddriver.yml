@@ -6,6 +6,10 @@ server:
 redis:
   connection: redis://localhost:6379
 
+services:
+  front50:
+    baseUrl: http://localhost:8080
+
 swagger:
   enabled: true
   title: clouddriver

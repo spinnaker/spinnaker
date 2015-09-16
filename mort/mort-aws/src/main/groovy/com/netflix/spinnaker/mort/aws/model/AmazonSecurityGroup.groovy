@@ -18,13 +18,14 @@ package com.netflix.spinnaker.mort.aws.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.mort.model.SecurityGroup
+import com.netflix.spinnaker.mort.model.SecurityGroupSummary
 import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import groovy.transform.Immutable
 
 @Immutable
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 class AmazonSecurityGroup implements SecurityGroup {
-  final String type = "aws"
+  final String type
   final String id
   final String name
   final String vpcId
@@ -34,4 +35,9 @@ class AmazonSecurityGroup implements SecurityGroup {
   final String region
   final Set<Rule> inboundRules
   final Set<Rule> outboundRules
+
+  @Override
+  SecurityGroupSummary getSummary() {
+    new AmazonSecurityGroupSummary(name: name, id: id, vpcId: vpcId)
+  }
 }

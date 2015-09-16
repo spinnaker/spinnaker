@@ -191,9 +191,9 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent {
         new DescribeAutoScalingGroupsRequest().withAutoScalingGroupNames(asgName)
       ).autoScalingGroups
 
-      Map<String, Collection<Map>> scalingPolicies = loadScalingPolicies(clients, asgName)
+      Map<String, Collection<Map>> scalingPolicies = asgs ? loadScalingPolicies(clients, asgName) : [:]
 
-      Map<String, Collection<Map>> scheduledActions = loadScheduledActions(clients, asgName)
+      Map<String, Collection<Map>> scheduledActions = asgs ? loadScheduledActions(clients, asgName) : [:]
 
       Map<String, String> subnetMap = [:]
       asgs.each {
