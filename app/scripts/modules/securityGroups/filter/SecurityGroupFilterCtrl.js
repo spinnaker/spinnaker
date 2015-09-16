@@ -34,7 +34,7 @@ module.exports = angular.module('securityGroup.filter.controller', [
       ctrl.accountHeadings = getHeadingsForOption('account');
       ctrl.regionHeadings = getHeadingsForOption('region');
       ctrl.stackHeadings = getHeadingsForOption('stack');
-      ctrl.providerTypeHeadings = getHeadingsForOption('type');
+      ctrl.providerTypeHeadings = getHeadingsForOption('provider');
       ctrl.clearFilters = clearFilters;
       $scope.securityGroups = app.securityGroups;
     };
