@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../caches/deckCacheFactory.js'),
-  require('../../../account/accountService.js'),
+  require('../../../account/account.service.js'),
   require('../../../instance/instanceTypeService.js'),
   require('../../../naming/naming.service.js'),
   require('../../../utils/lodash.js'),

@@ -5,7 +5,7 @@ let angular = require('angular');
 // delete
 module.exports = angular
   .module('spinnaker.deleteFastProperty.controller', [
-    require('../../account/accountService.js'),
+    require('../../account/account.service.js'),
     require('../fastProperty.write.service.js'),
     require('../../utils/lodash.js'),
   ])

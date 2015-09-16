@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
-  require('../../../account/accountService.js'),
+  require('../../../account/account.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../instance/awsInstanceTypeService.js'),
   require('../../subnet/subnet.read.service.js'),

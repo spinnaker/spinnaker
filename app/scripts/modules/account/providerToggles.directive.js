@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.account.providerToggle.directive', [
-    require('./accountService.js')
+    require('./account.service.js')
   ])
   .directive('ifMultipleProviders', function(accountService) {
     return {

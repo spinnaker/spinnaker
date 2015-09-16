@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
-  require('../../../account/accountService'),
+  require('../../../account/account.service'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
