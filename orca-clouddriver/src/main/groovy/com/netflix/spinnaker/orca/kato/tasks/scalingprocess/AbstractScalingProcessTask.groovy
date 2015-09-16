@@ -57,7 +57,7 @@ abstract class AbstractScalingProcessTask extends AbstractCloudProviderAwareTask
     } else {
       // Statically resolved server groups should only resolve to a single server group at all times,
       // because each region desired should have been spun off its own ScalingProcess for that region.
-      targetServerGroup = resolver.resolve(TargetServerGroup.Params.fromStage(stage))[0]
+      targetServerGroup = resolver.resolve(stage)[0]
     }
     def asgName = targetServerGroup.serverGroup.name
 

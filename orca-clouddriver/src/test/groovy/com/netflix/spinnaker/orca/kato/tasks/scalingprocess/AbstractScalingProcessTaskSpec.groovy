@@ -18,8 +18,6 @@ package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
