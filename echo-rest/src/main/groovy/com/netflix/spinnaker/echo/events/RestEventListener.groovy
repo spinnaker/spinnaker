@@ -39,7 +39,7 @@ class RestEventListener implements EchoEventListener {
   @Autowired
   RestService restService
 
-  @Value('rest.eventName')
+  @Value('${rest.eventName:spinnaker_events}')
   String eventName
 
   @Override
