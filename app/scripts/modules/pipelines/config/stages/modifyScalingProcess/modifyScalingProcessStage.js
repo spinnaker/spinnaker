@@ -12,6 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessS
       controlelrAs: 'modifyScalingProcessStageCtrl',
       templateUrl: require('./modifyScalingProcessStage.html'),
       executionDetailsUrl: require('./modifyScalingProcessExecutionDetails.html'),
+      cloudProvider: 'aws',
     });
   }).controller('ModifyScalingProcessStageCtrl', function($scope, stage, accountService, stageConstants, _) {
     $scope.stage = stage;
@@ -55,6 +56,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessS
     stage.regions = stage.regions || [];
     stage.action = stage.action || $scope.actions[0].val;
     stage.target = stage.target || $scope.targets[0].val;
+    stage.cloudProvider = 'aws';
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;
