@@ -16,29 +16,14 @@
 
 package com.netflix.spinnaker.mort.gce.model
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.netflix.spinnaker.mort.model.SecurityGroup
 import com.netflix.spinnaker.mort.model.SecurityGroupSummary
-import com.netflix.spinnaker.mort.model.securitygroups.Rule
+import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
 @Immutable
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-class GoogleSecurityGroup implements SecurityGroup {
-  final String type
-  final String id
-  final String name
-  final String description
-  final String application
-  final String accountName
-  final String region
-  final String network
-  final List<String> targetTags
-  final Set<Rule> inboundRules
-  final Set<Rule> outboundRules
-
-  @Override
-  SecurityGroupSummary getSummary() {
-    new GoogleSecurityGroupSummary(name: name, id: id, targetTags: targetTags)
-  }
+@EqualsAndHashCode(includes = ['id'], cache = true)
+class GoogleSecurityGroupSummary implements SecurityGroupSummary {
+  String name
+  String id
+  String targetTags
 }
