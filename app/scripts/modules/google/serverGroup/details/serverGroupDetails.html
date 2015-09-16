@@ -166,7 +166,7 @@
     </collapsible-section>
     <collapsible-section heading="Security Groups">
       <ul>
-        <li ng-repeat="securityGroup in securityGroups">
+        <li ng-repeat="securityGroup in securityGroups | orderBy:'name'">
           <a ui-sref="^.securityGroupDetails({name: securityGroup.name, accountId: securityGroup.accountName, region: 'global', provider: serverGroup.type})">
             {{securityGroup.name}}
           </a>
