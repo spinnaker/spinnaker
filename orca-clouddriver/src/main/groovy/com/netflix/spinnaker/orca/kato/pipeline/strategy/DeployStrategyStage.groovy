@@ -36,6 +36,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
 import org.springframework.beans.factory.annotation.Autowired
+import retrofit.RetrofitError
 
 @CompileStatic
 abstract class DeployStrategyStage extends LinearStage {
@@ -104,15 +105,23 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
+  List<Map> getExistingAsgs(String application, String account, String cluster, String providerType) {
+    try {
+      return sourceResolver.getExistingAsgs(application, account, cluster, providerType)
+    } catch (RetrofitError re) {
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+        return []
+      }
+      throw re
+    }
+  }
+
   @VisibleForTesting
   @CompileDynamic
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = sourceResolver.getExistingAsgs(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
-    )
-
+    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
     if (existingAsgs) {
       for (entry in stageData.availabilityZones) {
         def region = entry.key
@@ -177,9 +186,7 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = sourceResolver.getExistingAsgs(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType
-    )
+    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
     if (existingAsgs) {
       for (entry in stageData.availabilityZones) {
         def region = entry.key
