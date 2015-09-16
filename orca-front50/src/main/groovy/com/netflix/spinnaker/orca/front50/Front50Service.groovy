@@ -45,4 +45,18 @@ interface Front50Service {
 
   @GET("/pipelines")
   List<Map<String, Object>> getAllPipelines()
+
+  @POST("/v2/projects")
+  Project createProject(@Body Map project)
+
+  @PUT("/v2/projects/{projectId}")
+  Project updateProject(@Path("projectId") String projectId, @Body Map project)
+
+  @DELETE("/v2/projects/{projectId}")
+  Response deleteProject(@Path("projectId") String projectId)
+
+  static class Project {
+    String id
+    String name
+  }
 }

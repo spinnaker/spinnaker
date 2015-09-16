@@ -216,8 +216,11 @@ class TaskTasklet implements Tasklet {
                             .withTag("executionType", stage.execution.class.simpleName)
                             .withTag("stageType", stage.type)
                             .withTag("taskName", taskName(chunkContext))
-                            .withTag("sourceApplication", stage.execution.application)
                             .withTag("isComplete", result.status.complete ? "true" : "false")
+
+    if (stage.execution.application) {
+      id = id.withTag("sourceApplication", stage.execution.application)
+    }
 
     extendedRegistry.counter(id).increment()
 

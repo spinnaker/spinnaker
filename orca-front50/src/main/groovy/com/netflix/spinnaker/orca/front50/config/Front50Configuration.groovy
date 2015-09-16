@@ -49,6 +49,7 @@ class Front50Configuration {
 
   @Autowired
   Client retrofitClient
+
   @Autowired
   RestAdapter.LogLevel retrofitLogLevel
 
