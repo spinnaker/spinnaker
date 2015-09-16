@@ -81,13 +81,18 @@ class InstanceAggregatedListCallback<InstanceAggregatedList> extends JsonBatchCa
             }
           }
 
-          // Find any firewall rules with target tags matching the tags of this instance.
+          // Find all firewall rules with target tags matching the tags of this instance.
           def googleSecurityGroupMatches = [] as Set
 
           instance.tags?.items.each { instanceTag ->
             googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
               googleSecurityGroup.targetTags?.contains(instanceTag)
             }
+          }
+
+          // Find all firewall rules with no target tags.
+          googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+            !googleSecurityGroup.targetTags
           }
 
           googleInstance["securityGroups"] = googleSecurityGroupMatches.flatten().collect { googleSecurityGroup ->

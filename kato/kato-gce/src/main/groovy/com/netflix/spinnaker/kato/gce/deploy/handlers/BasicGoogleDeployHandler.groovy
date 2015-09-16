@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -48,6 +49,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   private GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -105,9 +109,16 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     // We need the full url for each referenced network load balancer.
     if (description.networkLoadBalancers) {
       def forwardingRules =
-              GCEUtil.queryForwardingRules(project, region, description.networkLoadBalancers, compute, task, BASE_PHASE)
+        GCEUtil.queryForwardingRules(project, region, description.networkLoadBalancers, compute, task, BASE_PHASE)
 
       networkLoadBalancers = forwardingRules.collect { it.target }
+    }
+
+    def securityGroupTags = GCEUtil.querySecurityGroupTags(description.securityGroups, description.accountName,
+        googleSecurityGroupProvider, task, BASE_PHASE)
+
+    if (securityGroupTags) {
+      description.tags = GCEUtil.mergeDescriptionAndSecurityGroupTags(description.tags, securityGroupTags)
     }
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."

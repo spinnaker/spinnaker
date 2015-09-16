@@ -94,13 +94,18 @@ class InstanceTemplatesCallback<InstanceTemplate> extends JsonBatchCallback<Inst
       }
     }
 
-    // Find any firewall rules with target tags matching the tags of this instance template.
+    // Find all firewall rules with target tags matching the tags of this instance template.
     def googleSecurityGroupMatches = [] as Set
 
     instanceTemplate?.properties?.tags?.items.each { instanceTemplateTag ->
       googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
         googleSecurityGroup.targetTags?.contains(instanceTemplateTag)
       }
+    }
+
+    // Find all firewall rules with no target tags.
+    googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+      !googleSecurityGroup.targetTags
     }
 
     googleServerGroup.securityGroups = googleSecurityGroupMatches.flatten().collect { googleSecurityGroup ->

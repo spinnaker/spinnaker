@@ -27,6 +27,8 @@ import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.handlers.BasicGoogleDeployHandler
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
+import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 
 class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<DeploymentResult> {
@@ -41,6 +43,9 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
   @Autowired
   BasicGoogleDeployHandler basicGoogleDeployHandler
+
+  @Autowired
+  GoogleSecurityGroupProvider googleSecurityGroupProvider
 
   CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description,
                                            ReplicaPoolBuilder replicaPoolBuilder) {
@@ -102,6 +107,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
     def project = description.credentials.project
     def compute = description.credentials.compute
+    def accountName = description.accountName
     def ancestorInstanceTemplate =
         GCEUtil.queryInstanceTemplate(project, GCEUtil.getLocalName(ancestorServerGroup.instanceTemplate), compute)
 
@@ -132,6 +138,40 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
       if (tags != null) {
         newDescription.tags = description.tags != null ? description.tags : tags.items
+      }
+
+      Set<GoogleSecurityGroup> googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
+
+      // Find all firewall rules with target tags matching the tags of the ancestor instance template.
+      def googleSecurityGroupMatches = [] as Set
+
+      ancestorInstanceTemplate?.properties?.tags?.items.each { instanceTemplateTag ->
+        googleSecurityGroupMatches << googleSecurityGroups.findAll { googleSecurityGroup ->
+          googleSecurityGroup.targetTags?.contains(instanceTemplateTag)
+        }
+      }
+
+      Set<GoogleSecurityGroup> ancestorSecurityGroups = googleSecurityGroupMatches.flatten().collect { it.name }
+
+      if (newDescription.securityGroups == null) {
+        // Since no security groups were specified, use the security groups of the ancestor server group.
+        newDescription.securityGroups = ancestorSecurityGroups
+      } else {
+        // Since security groups were specified, we must back out the tags of the security groups that are associated
+        // with the ancestor server group but not with the cloned server group.
+        if (newDescription.tags) {
+          Set<String> elidedSecurityGroupNames = ancestorSecurityGroups - newDescription.securityGroups
+
+          if (elidedSecurityGroupNames) {
+            Set<String> elidedSecurityGroupsTargetTags = GCEUtil.querySecurityGroupTags(elidedSecurityGroupNames,
+                                                                                        newDescription.accountName,
+                                                                                        googleSecurityGroupProvider,
+                                                                                        task,
+                                                                                        BASE_PHASE)
+
+            newDescription.tags -= elidedSecurityGroupsTargetTags
+          }
+        }
       }
     }
 
