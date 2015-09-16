@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.applications.controller', [
   require('./applications.read.service.js'),
-  require('../account/accountService.js'),
+  require('../account/account.service.js'),
   require('../core/presentation/anyFieldFilter/anyField.filter.js'),
   require('../caches/viewStateCache.js'),
   require('../core/presentation/sortToggle/sorttoggle.directive.js'),

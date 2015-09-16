@@ -7,7 +7,7 @@ module.exports = angular
     require('angular-ui-router'),
     require('../../../tasks/monitor/taskMonitorService.js'),
     require('../../../securityGroups/securityGroup.write.service.js'),
-    require('../../../account/accountService.js'),
+    require('../../../account/account.service.js'),
     require('../../../modal/wizard/modalWizard.directive.js'),
     require('../../../utils/lodash.js'),
   ])

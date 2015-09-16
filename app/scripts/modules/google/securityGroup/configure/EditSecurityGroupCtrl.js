@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
   require('angular-ui-router'),
-  require('../../../account/accountService.js'),
+  require('../../../account/account.service.js'),
   require('../../../caches/infrastructureCaches.js'),
   require('../../../caches/cacheInitializer.js'),
   require('../../../tasks/monitor/taskMonitorService.js'),
