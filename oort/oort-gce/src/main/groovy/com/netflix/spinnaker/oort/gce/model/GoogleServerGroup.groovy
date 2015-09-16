@@ -34,6 +34,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
   Set health = new HashSet<>()
   Map<String, Object> launchConfig
   Map<String, Object> asg
+  Set<String> securityGroups
   Map buildInfo
   Boolean disabled = true
 
@@ -99,11 +100,6 @@ class GoogleServerGroup implements ServerGroup, Serializable {
       loadBalancerNames = (Set<String>) asg.loadBalancerNames
     }
     return loadBalancerNames
-  }
-
-  @Override
-  Set<String> getSecurityGroups() {
-    return null
   }
 
   @Override

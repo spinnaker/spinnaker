@@ -47,8 +47,8 @@ class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
-  String keyGroupA = Keys.getSecurityGroupKey(securityGroupA.groupName, securityGroupA.groupId, region, account, null)
-  String keyGroupB = Keys.getSecurityGroupKey(securityGroupB.groupName, securityGroupB.groupId, region, account, null)
+  String keyGroupA = Keys.getSecurityGroupKey(amazonCloudProvider, securityGroupA.groupName, securityGroupA.groupId, region, account, null)
+  String keyGroupB = Keys.getSecurityGroupKey(amazonCloudProvider, securityGroupB.groupName, securityGroupB.groupId, region, account, null)
 
   void "should add security groups on initial run"() {
     given:

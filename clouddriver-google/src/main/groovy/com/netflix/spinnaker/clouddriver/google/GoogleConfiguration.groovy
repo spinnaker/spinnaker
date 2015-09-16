@@ -14,34 +14,27 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.google.config
+package com.netflix.spinnaker.clouddriver.google
 
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
-import org.apache.log4j.Logger
-import org.springframework.beans.factory.annotation.Autowired
+import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableScheduling
-
-import javax.annotation.PostConstruct
 
 @Configuration
 @EnableConfigurationProperties
 @EnableScheduling
 @ConditionalOnProperty('google.enabled')
 @ComponentScan(["com.netflix.spinnaker.clouddriver.google"])
-class GoogleConfig {
-  private static final Logger log = Logger.getLogger(this.class.simpleName)
-
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
+@Import([ GoogleCredentialsInitializer ])
+class GoogleConfiguration {
   @Bean
   @ConfigurationProperties("google")
   GoogleConfigurationProperties googleConfigurationProperties() {
@@ -51,18 +44,6 @@ class GoogleConfig {
   @Bean
   GoogleHealthIndicator googleHealthIndicator() {
     new GoogleHealthIndicator()
-  }
-
-  @PostConstruct
-  void init() {
-    def config = googleConfigurationProperties()
-    for (managedAccount in config.accounts) {
-      try {
-        accountCredentialsRepository.save(managedAccount.name, new GoogleNamedAccountCredentials(config.kmsServer, managedAccount.name, managedAccount.project))
-      } catch (e) {
-        log.info "Could not load account ${managedAccount.name} for Google", e
-      }
-    }
   }
 }
 

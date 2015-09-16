@@ -18,7 +18,7 @@ package com.netflix.spinnaker.mort.aws.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.netflix.spinnaker.cats.agent.Agent
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 
@@ -29,9 +29,11 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   public static final String PROVIDER_NAME = AwsInfrastructureProvider.name
 
+  private final AmazonCloudProvider amazonCloudProvider
   private final Collection<Agent> agents
 
-  AwsInfrastructureProvider(Collection<Agent> agents) {
+  AwsInfrastructureProvider(AmazonCloudProvider amazonCloudProvider, Collection<Agent> agents) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.agents = Collections.unmodifiableCollection(agents)
   }
 
@@ -48,7 +50,7 @@ class AwsInfrastructureProvider implements SearchableProvider {
   final Set<String> defaultCaches = [SECURITY_GROUPS.ns].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [
-    (SECURITY_GROUPS.ns): '/securityGroups/$account/aws/$name?region=$region'
+    (SECURITY_GROUPS.ns): '/securityGroups/$account/$provider/$name?region=$region'
   ]
 
   final Map<String, SearchableProvider.SearchResultHydrator> searchResultHydrators = Collections.emptyMap()
@@ -57,10 +59,6 @@ class AwsInfrastructureProvider implements SearchableProvider {
 
   @Override
   Map<String, String> parseKey(String key) {
-    def result = Keys.parse(key)
-    if (result.size() == 1) {
-      return null
-    }
-    return result
+    return Keys.parse(amazonCloudProvider, key)
   }
 }

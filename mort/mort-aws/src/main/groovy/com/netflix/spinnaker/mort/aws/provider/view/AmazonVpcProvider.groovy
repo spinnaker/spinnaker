@@ -17,11 +17,11 @@
 package com.netflix.spinnaker.mort.aws.provider.view
 
 import com.amazonaws.services.ec2.model.Vpc
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonVpc
 import com.netflix.spinnaker.mort.model.VpcProvider
@@ -36,11 +36,13 @@ class AmazonVpcProvider implements VpcProvider<AmazonVpc> {
   private static final String NAME_TAG_KEY = 'Name'
   private static final String DEPRECATED_TAG_KEY = 'is_deprecated'
 
+  private final AmazonCloudProvider amazonCloudProvider
   private final Cache cacheView
   private final AmazonObjectMapper objectMapper
 
   @Autowired
-  AmazonVpcProvider(Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
+  AmazonVpcProvider(AmazonCloudProvider amazonCloudProvider, Cache cacheView, AmazonObjectMapper amazonObjectMapper) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.cacheView = cacheView
     this.objectMapper = amazonObjectMapper
   }
@@ -51,7 +53,7 @@ class AmazonVpcProvider implements VpcProvider<AmazonVpc> {
   }
 
   AmazonVpc fromCacheData(CacheData cacheData) {
-    def parts = Keys.parse(cacheData.id)
+    def parts = Keys.parse(amazonCloudProvider, cacheData.id)
     def vpc = objectMapper.convertValue(cacheData.attributes, Vpc)
     def tag = vpc.tags.find { it.key == NAME_TAG_KEY }
     def isDeprecated = vpc.tags.find { it.key == DEPRECATED_TAG_KEY }?.value

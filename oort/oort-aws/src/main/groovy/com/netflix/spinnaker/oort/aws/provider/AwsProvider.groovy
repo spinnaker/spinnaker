@@ -45,8 +45,8 @@ class AwsProvider implements SearchableProvider {
   ].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [
-    (SERVER_GROUPS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster/aws/serverGroups/$serverGroup?region=$region',
-    (LOAD_BALANCERS.ns): '/aws/loadBalancers/$loadBalancer',
+    (SERVER_GROUPS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster/$provider/serverGroups/$serverGroup?region=$region',
+    (LOAD_BALANCERS.ns): '/$provider/loadBalancers/$loadBalancer',
     (CLUSTERS.ns): '/applications/${application.toLowerCase()}/clusters/$account/$cluster'
   ].asImmutable()
 
@@ -84,11 +84,7 @@ class AwsProvider implements SearchableProvider {
 
   @Override
   Map<String, String> parseKey(String key) {
-    def result = Keys.parse(key)
-    if (result.size() == 1) { //got type only
-      return null
-    }
-    return result
+    return Keys.parse(key)
   }
 
   private static class InstanceSearchResultHydrator implements SearchableProvider.SearchResultHydrator {

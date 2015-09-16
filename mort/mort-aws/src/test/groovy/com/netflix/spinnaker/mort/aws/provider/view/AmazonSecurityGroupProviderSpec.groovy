@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import com.netflix.spinnaker.mort.aws.model.AmazonSecurityGroup
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
@@ -39,11 +40,12 @@ class AmazonSecurityGroupProviderSpec extends Specification {
   @Subject
   AmazonSecurityGroupProvider provider
 
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
   WriteableCache cache = new InMemoryCache()
   ObjectMapper mapper = new ObjectMapper()
 
   def setup() {
-    provider = new AmazonSecurityGroupProvider(cache, mapper)
+    provider = new AmazonSecurityGroupProvider(amazonCloudProvider, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 
@@ -158,7 +160,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
     String account = 'test'
     String region = 'us-east-1'
-    def key = Keys.getSecurityGroupKey(groupName, groupId, region, account, vpcId)
+    def key = Keys.getSecurityGroupKey(amazonCloudProvider, groupName, groupId, region, account, vpcId)
     Map<String, Object> attributes = mapper.convertValue(mixedRangedGroupA, AwsInfrastructureProvider.ATTRIBUTES)
     def cacheData = new DefaultCacheData(key, attributes, [:])
     cache.merge(Keys.Namespace.SECURITY_GROUPS.ns, cacheData)
@@ -193,7 +195,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
     ]
     String account = 'test'
     String region = 'us-east-1'
-    def key = Keys.getSecurityGroupKey('name-b', 'id-b', region, account, null)
+    def key = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-b', 'id-b', region, account, null)
     Map<String, Object> attributes = mapper.convertValue(securityGroupB, AwsInfrastructureProvider.ATTRIBUTES)
     def cacheData = new DefaultCacheData(key, attributes, [:])
     cache.merge(Keys.Namespace.SECURITY_GROUPS.ns, cacheData)
@@ -254,7 +256,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
           ipRanges: ['0.0.0.0/32', '0.0.0.1/31']
         )
       ])
-    def key = Keys.getSecurityGroupKey('name-a', 'id-a', region, account, null)
+    def key = Keys.getSecurityGroupKey(amazonCloudProvider, 'name-a', 'id-a', region, account, null)
     Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
     def cacheData = new DefaultCacheData(key, attributes, [:])
     cache.merge(Keys.Namespace.SECURITY_GROUPS.ns, cacheData)
@@ -302,7 +304,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
       regions.collect { String region, List<SecurityGroup> groups ->
         groups.collect { SecurityGroup group ->
           Map<String, Object> attributes = mapper.convertValue(group, AwsInfrastructureProvider.ATTRIBUTES)
-          new DefaultCacheData(Keys.getSecurityGroupKey(group.groupName, group.groupId, region, account, group.vpcId), attributes, [:])
+          new DefaultCacheData(Keys.getSecurityGroupKey(amazonCloudProvider, group.groupName, group.groupId, region, account, group.vpcId), attributes, [:])
         }
       }.flatten()
     }.flatten()

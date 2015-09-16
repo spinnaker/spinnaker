@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.model.DomainType
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import spock.lang.Shared
 import spock.lang.Specification
@@ -39,21 +40,25 @@ class AmazonElasticIpCachingAgentSpec extends Specification {
   ProviderCache providerCache = Mock(ProviderCache)
 
   @Shared
+  AmazonCloudProvider amazonCloudProvider
+
+  @Shared
   AmazonEC2 ec2
 
   @Shared
   Address eipA = new Address().withPublicIp("10.0.0.1").withDomain(DomainType.Standard).withInstanceId("i-123456")
 
   @Shared
-  String eipAKey = Keys.getElasticIpKey(eipA.publicIp, region, account)
+  String eipAKey = Keys.getElasticIpKey(new AmazonCloudProvider(), eipA.publicIp, region, account)
 
   @Shared
   Address eipB = new Address().withPublicIp("10.0.0.2").withDomain(DomainType.Vpc)
 
   @Shared
-  String eipBKey = Keys.getElasticIpKey(eipB.publicIp, region, account)
+  String eipBKey = Keys.getElasticIpKey(new AmazonCloudProvider(), eipB.publicIp, region, account)
 
   def setup() {
+    amazonCloudProvider = new AmazonCloudProvider()
     ec2 = Mock(AmazonEC2)
     def creds = Stub(NetflixAmazonCredentials) {
       getName() >> account
@@ -61,7 +66,7 @@ class AmazonElasticIpCachingAgentSpec extends Specification {
     def acp = Stub(AmazonClientProvider) {
       getAmazonEC2(creds, region) >> ec2
     }
-    agent = new AmazonElasticIpCachingAgent(acp, creds, region)
+    agent = new AmazonElasticIpCachingAgent(amazonCloudProvider, acp, creds, region)
   }
 
   void "should add elastic ips on initial run"() {

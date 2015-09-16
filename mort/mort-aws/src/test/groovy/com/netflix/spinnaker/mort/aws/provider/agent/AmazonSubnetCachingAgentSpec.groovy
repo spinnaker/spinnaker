@@ -24,6 +24,7 @@ import com.netflix.awsobjectmapper.AmazonObjectMapper
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
@@ -31,6 +32,8 @@ import spock.lang.Subject
 class AmazonSubnetCachingAgentSpec extends Specification {
   static final String account = 'test'
   static final String region = 'us-east-1'
+
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
 
@@ -47,7 +50,8 @@ class AmazonSubnetCachingAgentSpec extends Specification {
   AmazonObjectMapper amazonObjectMapper = new AmazonObjectMapper()
 
   @Subject
-  AmazonSubnetCachingAgent agent = new AmazonSubnetCachingAgent(amazonClientProvider, creds, region, amazonObjectMapper)
+  AmazonSubnetCachingAgent agent = new AmazonSubnetCachingAgent(
+      amazonCloudProvider, amazonClientProvider, creds, region, amazonObjectMapper)
 
   void "should add on initial run"() {
     when:
@@ -62,8 +66,8 @@ class AmazonSubnetCachingAgentSpec extends Specification {
 
     with (result.cacheResults.get(Keys.Namespace.SUBNETS.ns)) { List<CacheData> cd ->
       cd.size() == 2
-      cd.find { it.id == Keys.getSubnetKey('subnetId1', region, account)}
-      cd.find { it.id == Keys.getSubnetKey('subnetId2', region, account)}
+      cd.find { it.id == Keys.getSubnetKey(amazonCloudProvider, 'subnetId1', region, account)}
+      cd.find { it.id == Keys.getSubnetKey(amazonCloudProvider, 'subnetId2', region, account)}
     }
   }
 }
