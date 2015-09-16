@@ -86,7 +86,7 @@ class SourceResolverSpec extends Specification {
     "empty"                | "singleRegion"   || "test-v003"     || "test"          || "us-west-1"
     "empty"                | "mixedRegions"   || "test-v001"     || "test"          || "us-west-1"
     "useSourceCapacity"    | "singleRegion"   || "test-v000"     || "test"          || "us-west-1"
-    "useSourceCapacity"    | "allDisabled"    || null            || null            || null
+    "useSourceCapacity"    | "allDisabled"    || "test-v001"     || "test"          || "us-west-1"
   }
 
   void 'should sort oort server groups by createdTime'() {
