@@ -152,6 +152,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         healthCheckType: serverGroup.asg.healthCheckType,
         terminationPolicies: serverGroup.asg.terminationPolicies,
         loadBalancers: serverGroup.asg.loadBalancerNames,
+        securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
         capacity: {
           min: serverGroup.asg.minSize,

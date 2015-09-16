@@ -13,6 +13,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       templateSelection: require('./templateSelection.html'),
       basicSettings: require('./basicSettings.html'),
       loadBalancers: require('./loadBalancers.html'),
+      securityGroups: require('./securityGroups.html'),
       instanceArchetype: require('./instanceArchetype.html'),
       instanceType: require('./instanceType.html'),
       capacity: require('./capacity.html'),
@@ -58,6 +59,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           modalWizardService.getWizard().markComplete('location');
         }
         modalWizardService.getWizard().markComplete('load-balancers');
+        modalWizardService.getWizard().markComplete('security-groups');
         modalWizardService.getWizard().markComplete('instance-profile');
         modalWizardService.getWizard().markComplete('instance-type');
         modalWizardService.getWizard().markComplete('capacity');
