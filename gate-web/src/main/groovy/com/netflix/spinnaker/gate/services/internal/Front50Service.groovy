@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import com.fasterxml.jackson.annotation.JsonProperty
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -59,4 +61,15 @@ interface Front50Service {
   @POST('/notifications/{type}/{app}')
   Response saveNotificationConfig(@Path('type') String type, @Path('app') String app, @Body Map notificationConfig)
 
+  @GET('/v2/projects')
+  HalList getAllProjects()
+
+  @GET('/v2/projects/{projectId}')
+  Map getProject(@Path('projectId') String projectId)
+
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  static class HalList {
+    @JsonProperty("_embedded")
+    Map<String, List<Map>> embedded
+  }
 }

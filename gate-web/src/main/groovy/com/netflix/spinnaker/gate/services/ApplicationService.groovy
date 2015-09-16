@@ -122,22 +122,6 @@ class ApplicationService {
     } execute()
   }
 
-  Map bake(String application, String pkg, String baseOs, String baseLabel, String region) {
-    orcaService.doOperation([application: application, description: "Bake (Gate)",
-                             job        : [[type: "bake", "package": pkg, baseOs: baseOs, baseLabel: baseLabel,
-                                            region: region, user: "gate"]]])
-  }
-
-  Map delete(String account, String name) {
-    front50Service.delete(account, name)
-  }
-
-  Map create(Map<String, String> app) {
-    def account = app.remove("account")
-    orcaService.doOperation([application: app.name, description: "Create application (Gate)",
-                             job        : [[type: "createApplication", application: app, account: account]]])
-  }
-
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
     if (globalAccounts) {
