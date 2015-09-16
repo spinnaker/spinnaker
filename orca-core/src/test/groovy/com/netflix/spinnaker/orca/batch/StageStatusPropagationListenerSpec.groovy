@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.batch
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import org.springframework.batch.core.JobExecution
@@ -55,28 +56,48 @@ class StageStatusPropagationListenerSpec extends Specification {
   def "updates the stage status when a task execution completes"() {
     given: "a pipeline model"
     def pipeline = Pipeline.builder().withStage(stageType).build()
+    pipeline.stages[0].tasks << new DefaultTask(id: "task1")
+    pipeline.stages[0].tasks << new DefaultTask(id: "task2")
     executionRepository.store(pipeline)
 
     and: "a batch execution context"
     def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
     def stepExecution = new StepExecution("${pipeline.stages[0].id}.${stageType}.task1", jobExecution)
 
-    and: "a task has run"
-    executeTaskReturning taskStatus, stepExecution
+    and: "the first task runs"
+    executeTaskReturning ExecutionStatus.SUCCEEDED, stepExecution
+    pipeline.stages[0].tasks[0].status = ExecutionStatus.SUCCEEDED
+    executionRepository.storeStage(pipeline.stages[0])
 
     when: "the listener is triggered"
     def exitStatus = listener.afterStep stepExecution
+    def currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
 
-    then: "it updates the status of the stage"
-    executionRepository.retrievePipeline(pipeline.id).stages.first().status == taskStatus
+    then: "it updates the status of the stage to RUNNING because it is not the final task"
+    currentStage.status == ExecutionStatus.RUNNING
+    currentStage.endTime == null
+
+    and: "the exit status of the batch step is unchanged"
+    exitStatus == null
+
+    when: "the last task runs"
+    stepExecution = new StepExecution("${pipeline.stages[0].id}.${stageType}.task2", jobExecution)
+    executeTaskReturning ExecutionStatus.SUCCEEDED, stepExecution
+    pipeline.stages[0].tasks[-1].status = ExecutionStatus.SUCCEEDED
+    executionRepository.storeStage(pipeline.stages[0])
+
+    and: "the listener is triggered"
+    exitStatus = listener.afterStep stepExecution
+    currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
+
+    then: "it updates the status of the stage to SUCCEEDED because it is the final task"
+    currentStage.status == ExecutionStatus.SUCCEEDED
+    currentStage.endTime != null
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
 
     where:
-    taskStatus                | _
-    ExecutionStatus.SUCCEEDED | _
-
     id = random.nextLong()
     stageType = "foo"
   }
