@@ -28,6 +28,7 @@ import groovy.transform.Canonical
 import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 class ShrinkClusterStage extends ParallelStage {
@@ -74,7 +75,16 @@ class ShrinkClusterStage extends ParallelStage {
     def config = stage.mapTo(ShrinkConfig)
     def names = Names.parseName(config.cluster)
 
-    def response = oortService.getCluster(names.app, config.credentials, config.cluster, config.cloudProvider)
+
+    def response
+    try {
+      response = oortService.getCluster(names.app, config.credentials, config.cluster, config.cloudProvider)
+    } catch (RetrofitError re) {
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+        return []
+      }
+      throw re
+    }
     Map cluster = objectMapper.readValue(response.body.in(), Map)
 
     List<Map> serverGroups = cluster.serverGroups
