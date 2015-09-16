@@ -33,7 +33,7 @@ class CompleteCanaryTask implements Task {
     } else if (canary.canaryResult?.overallResult == 'SUCCESS') {
       new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
     } else {
-      new DefaultTaskResult(ExecutionStatus.FAILED)
+      new DefaultTaskResult(ExecutionStatus.TERMINAL)
     }
   }
 }
