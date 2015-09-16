@@ -19,8 +19,6 @@ package com.netflix.spinnaker.front50.config
 
 import com.netflix.astyanax.Keyspace
 import com.netflix.astyanax.connectionpool.exceptions.ConnectionException
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.front50.security.CassandraCredentials
 import com.netflix.spinnaker.kork.astyanax.AstyanaxKeyspaceFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -29,10 +27,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 
-import javax.annotation.PostConstruct
-
 @Configuration
-@ConditionalOnExpression('${spinnaker.cassandra.enabled:false}')
 class CassandraConfig {
   @Value('${spinnaker.cassandra.name:global}')
   String name
@@ -48,14 +43,6 @@ class CassandraConfig {
 
   @Autowired
   AstyanaxKeyspaceFactory factory
-
-  @Autowired
-  AccountCredentialsRepository accountCredentialsRepository
-
-  @PostConstruct
-  void init() {
-    accountCredentialsRepository.save(name, new CassandraCredentials(name: name))
-  }
 
   @Bean
   Keyspace keySpace() throws ConnectionException {

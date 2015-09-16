@@ -17,9 +17,7 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.amazonaws.AmazonServiceException
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
@@ -32,10 +30,7 @@ import java.util.concurrent.atomic.AtomicReference
 public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
-
-  @Autowired
-  List<ApplicationDAOProvider> applicationDAOProviders
+  ApplicationDAO applicationDAO
 
   private final AtomicReference<Health> lastHealth = new AtomicReference<>(null)
 
@@ -51,19 +46,14 @@ public class ApplicationDAOProviderHealthIndicator implements HealthIndicator {
   void pollForHealth() {
     def healthBuilder = new Health.Builder().up()
 
-    for (account in accountCredentialsProvider.all) {
-      applicationDAOProviders.findAll { it.supports(account.getClass()) }.each { provider ->
-        def providerId = "${provider.class.simpleName}-${account.name}"
-        try {
-          if (provider.getForAccount(account).healthly) {
-            healthBuilder.withDetail(providerId, "Healthy")
-          } else {
-            healthBuilder.down().withDetail(providerId, "Unhealthy")
-          }
-        } catch (RuntimeException e) {
-          healthBuilder.down().withDetail(providerId, "Unhealthy: `${e.message}`" as String)
-        }
+    try {
+      if (applicationDAO.healthly) {
+        healthBuilder.withDetail(applicationDAO.class.simpleName, "Healthy")
+      } else {
+        healthBuilder.down().withDetail(applicationDAO.class.simpleName, "Unhealthy")
       }
+    } catch (RuntimeException e) {
+      healthBuilder.down().withDetail(applicationDAO.class.simpleName, "Unhealthy: `${e.message}`" as String)
     }
 
     lastHealth.set(healthBuilder.build())
