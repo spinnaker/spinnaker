@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,25 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
+import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
-@Deprecated
-abstract class TargetReferenceLinearStageSupport extends LinearStage {
-  @Autowired
-  ObjectMapper objectMapper
+abstract class TargetServerGroupLinearStageSupport extends LinearStage {
 
   @Autowired
-  TargetReferenceSupport targetReferenceSupport
+  TargetServerGroupResolver resolver
 
   @Autowired
-  DetermineTargetReferenceStage determineTargetReferenceStage
+  DetermineTargetServerGroupStage determineTargetServerGroupStage
 
-  TargetReferenceLinearStageSupport(String name) {
+  TargetServerGroupLinearStageSupport(String name) {
     super(name)
   }
 
   void composeTargets(Stage stage) {
-    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+    if (TargetServerGroup.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage)
     } else {
       composeStaticTargets(stage)
@@ -57,20 +53,20 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   }
 
   private List<Map<String, Object>> buildStaticTargetDescriptions(Stage stage) {
-    def targets = targetReferenceSupport.getTargetAsgReferences(stage)
+    def targets = resolver.resolve(TargetServerGroup.Params.fromStage(stage))
 
     Map<String, Map<String, Object>> descriptions = [:]
     for (target in targets) {
-      def region = target.region
-      def asg = target.asg
+      def location = target.location
+      def serverGroup = target.serverGroup
 
       def description = new HashMap(stage.context)
-      if (descriptions.containsKey(asg.name)) {
-        ((List<String>) descriptions.get(asg.name).regions) << region
+      if (descriptions.containsKey(serverGroup.name)) {
+        ((List<String>) descriptions.get(serverGroup.name).locations) << location
       } else {
-        description.asgName = asg.name
-        description.regions = [region]
-        descriptions[asg.name as String] = description
+        description.asgName = serverGroup.name
+        description.locations = [location]
+        descriptions[serverGroup.name as String] = description
       }
     }
     descriptions.values().toList()
@@ -85,7 +81,7 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
       def configuredRegions = stage.context.regions
       Map injectedContext = new HashMap(stage.context)
       injectedContext.regions = new ArrayList(configuredRegions)
-      injectBefore(stage, "determineTargetReferences", determineTargetReferenceStage, injectedContext)
+      injectBefore(stage, determineTargetServerGroupStage.PIPELINE_CONFIG_TYPE, determineTargetServerGroupStage, injectedContext)
 
       if (configuredRegions.size() > 1) {
         stage.context.regions = [configuredRegions.remove(0)]

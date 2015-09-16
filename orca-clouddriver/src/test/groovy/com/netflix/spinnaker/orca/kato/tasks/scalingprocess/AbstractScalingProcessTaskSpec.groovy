@@ -20,6 +20,8 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
@@ -27,7 +29,7 @@ import spock.lang.Unroll
 
 class AbstractScalingProcessTaskSpec extends Specification {
   def katoService = Mock(KatoService) {
-    _ * requestOperations(_) >> {
+    _ * requestOperations(_, _) >> {
       return rx.Observable.from([new TaskId(id: "1")])
     }
   }
@@ -35,36 +37,36 @@ class AbstractScalingProcessTaskSpec extends Specification {
   @Unroll
   def "should only resume/suspend scaling processes that are not already in the target state"() {
     given:
-    def stage = new PipelineStage(new Pipeline(), null, context)
-    def targetReferenceSupport = Mock(TargetReferenceSupport) {
-      1 * getTargetAsgReferences(stage) >> {
-        return targetReferences
+      def stage = new PipelineStage(new Pipeline(), null, context)
+      def targetServerGroupResolver = Mock(TargetServerGroupResolver) {
+        1 * resolve(_) >> {
+          return targetServerGroups
+        }
       }
-    }
 
-    def task = isResume ?
-      new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService) :
-      new SuspendScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
+      def task = isResume ?
+        new ResumeScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService) :
+        new SuspendScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService)
 
     when:
-    def result = task.execute(stage)
-    def outputs = result.stageOutputs
-    def globalOutputs = result.globalOutputs
+      def result = task.execute(stage)
+      def outputs = result.stageOutputs
+      def globalOutputs = result.globalOutputs
 
     then:
-    outputs.processes == expectedScalingProcesses
-    outputs.containsKey("kato.last.task.id") == !expectedScalingProcesses.isEmpty()
-    globalOutputs["scalingProcesses.${context.asgName}" as String] == expectedScalingProcesses
+      outputs.processes == expectedScalingProcesses
+      outputs.containsKey("kato.last.task.id") == !expectedScalingProcesses.isEmpty()
+      globalOutputs["scalingProcesses.${context.asgName}" as String] == expectedScalingProcesses
 
     where:
-    isResume | context                         | targetReferences              || expectedScalingProcesses
-    true     | sD("targetAsg", ["Launch"])     | [tR("targetAsg", ["Launch"])] || ["Launch"]
-    true     | sD("targetAsg", [], ["Launch"]) | [tR("targetAsg", ["Launch"])] || ["Launch"]
-    true     | sD("targetAsg", ["Launch"])     | [tR("targetAsg", [])]         || []
-    true     | sD("targetAsg", ["Launch"])     | [tR("targetAsg", [])]         || []
-    false    | sD("targetAsg", ["Launch"])     | [tR("targetAsg", [])]         || ["Launch"]
-    false    | sD("targetAsg", [], ["Launch"]) | [tR("targetAsg", [])]         || ["Launch"]
-    false    | sD("targetAsg", ["Launch"])     | [tR("targetAsg", ["Launch"])] || []
+      isResume | context                         | targetServerGroups             || expectedScalingProcesses
+      true     | sD("targetAsg", ["Launch"])     | [tSG("targetAsg", ["Launch"])] || ["Launch"]
+      true     | sD("targetAsg", [], ["Launch"]) | [tSG("targetAsg", ["Launch"])] || ["Launch"]
+      true     | sD("targetAsg", ["Launch"])     | [tSG("targetAsg", [])]         || []
+      true     | sD("targetAsg", ["Launch"])     | [tSG("targetAsg", [])]         || []
+      false    | sD("targetAsg", ["Launch"])     | [tSG("targetAsg", [])]         || ["Launch"]
+      false    | sD("targetAsg", [], ["Launch"]) | [tSG("targetAsg", [])]         || ["Launch"]
+      false    | sD("targetAsg", ["Launch"])     | [tSG("targetAsg", ["Launch"])] || []
   }
 
   private Map<String, Object> sD(String asgName,
@@ -76,8 +78,8 @@ class AbstractScalingProcessTaskSpec extends Specification {
     ]
   }
 
-  private TargetReference tR(String name, List<String> suspendedProcesses, String region = "us-west-1") {
-    return new TargetReference(region: region, asg: [
+  private TargetServerGroup tSG(String name, List<String> suspendedProcesses, String region = "us-west-1") {
+    return new TargetServerGroup(location: region, serverGroup: [
       name: name,
       asg : [
         suspendedProcesses: suspendedProcesses.collect {
@@ -89,36 +91,40 @@ class AbstractScalingProcessTaskSpec extends Specification {
 
   def "should get target reference dynamically when stage is dynamic"() {
     given:
-    TargetReferenceSupport targetReferenceSupport = Mock()
+      GroovySpy(TargetServerGroup, global: true)
+      def resolver = GroovySpy(TargetServerGroupResolver, global: true)
 
-    def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
-    def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
+      def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
+      def task = new ResumeScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
-    task.execute(stage)
+      task.execute(stage)
 
     then:
-    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
-    1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> tR("targetAsg", ["Launch"])
+      TargetServerGroup.isDynamicallyBound(stage) >> true
+      TargetServerGroupResolver.fromPreviousStage(stage) >> [tSG("targetAsg", ["Launch"])]
   }
 
   def "should send asg name to kato when dynamic references configured"() {
     given:
-    TargetReferenceSupport targetReferenceSupport = Mock()
-    KatoService katoService = Mock(KatoService)
+      GroovySpy(TargetServerGroup, global: true)
+      def resolver = GroovySpy(TargetServerGroupResolver, global: true)
+      KatoService katoService = Mock(KatoService)
 
-    def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
-    def task = new ResumeScalingProcessTask(targetReferenceSupport: targetReferenceSupport, katoService: katoService)
+      def ctx = sD("targetAsg", ["Launch"])
+      ctx.cloudProvider = "abc"
+      def stage = new PipelineStage(new Pipeline(), null, ctx)
+      def task = new ResumeScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
-    task.execute(stage)
+      task.execute(stage)
 
     then:
-    1 * targetReferenceSupport.isDynamicallyBound(stage) >> true
-    1 * targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage) >> tR("targetAsg", ["Launch"])
-    1 * katoService.requestOperations({ Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg"}) >> {
-      return rx.Observable.from([new TaskId(id: "1")])
-    }
-    0 * katoService.requestOperations(_)
+      TargetServerGroup.isDynamicallyBound(stage) >> true
+      TargetServerGroupResolver.fromPreviousStage(stage) >> [tSG("targetAsg", ["Launch"])]
+      katoService.requestOperations("abc", { Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg" }) >> {
+        return rx.Observable.from([new TaskId(id: "1")])
+      }
+      0 * katoService.requestOperations(_)
   }
 }

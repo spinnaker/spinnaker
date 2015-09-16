@@ -109,23 +109,23 @@ class ResizeServerGroupStage extends LinearStage {
     if (stage.context.cloudProvider == "aws") {
       for (tsg in tsgs) {
         addScalingProcesses(stage, [
-          credentials: stage.context.credentials,
-          regions    : [tsg.location],
-          asgName    : tsg.serverGroup.name,
+          asgName      : tsg.serverGroup.name,
+          cloudProvider: stage.context.cloudProvider,
+          credentials  : stage.context.credentials,
+          regions      : [tsg.location],
         ])
       }
     }
   }
 
   void addScalingProcesses(Stage stage, Map<String, Object> baseContext) {
-    // TODO(ttomsu): Get ModifyScalingProcessStage working.
-//    injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, baseContext + [
-//      action   : "resume",
-//      processes: ["Launch", "Terminate"]
-//    ])
-//    injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, baseContext + [
-//      action: "suspend"
-//    ])
+    injectBefore(stage, "resumeScalingProcesses", modifyScalingProcessStage, baseContext + [
+      action   : "resume",
+      processes: ["Launch", "Terminate"]
+    ])
+    injectAfter(stage, "suspendScalingProcesses", modifyScalingProcessStage, baseContext + [
+      action: "suspend"
+    ])
   }
 
   /**

@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
 import org.springframework.stereotype.Component
 
 @Component
@@ -26,12 +23,12 @@ class SuspendScalingProcessTask extends AbstractScalingProcessTask {
   String type = "suspendAsgProcessesDescription"
 
   @Override
-  List<String> filterProcesses(TargetReference targetReference, List<String> processes) {
+  List<String> filterProcesses(TargetServerGroup targetServerGroup, List<String> processes) {
     if (!processes) {
       return []
     }
 
-    def targetAsgConfiguration = targetReference.asg.asg as Map<String, Object>
+    def targetAsgConfiguration = targetServerGroup.serverGroup.asg as Map<String, Object>
     if (targetAsgConfiguration.suspendedProcesses) {
       def suspendedProcesses = targetAsgConfiguration.suspendedProcesses*.processName as List<String>
       return processes - suspendedProcesses

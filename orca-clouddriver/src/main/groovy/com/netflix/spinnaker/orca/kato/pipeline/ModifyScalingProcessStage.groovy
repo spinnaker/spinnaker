@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeScalingProcessTask
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendScalingProcessTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
+class ModifyScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
   static final String PIPELINE_CONFIG_TYPE = "modifyScalingProcess"
 

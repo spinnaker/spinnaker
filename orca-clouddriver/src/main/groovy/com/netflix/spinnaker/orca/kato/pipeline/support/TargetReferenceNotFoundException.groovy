@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import groovy.transform.InheritConstructors
 
+@Deprecated
 @InheritConstructors
 class TargetReferenceNotFoundException extends RuntimeException {
 }
