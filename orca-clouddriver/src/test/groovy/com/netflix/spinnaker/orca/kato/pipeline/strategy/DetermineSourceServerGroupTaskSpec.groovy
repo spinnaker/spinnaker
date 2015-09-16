@@ -119,7 +119,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> { throw expected }
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.is expected
+    result.stageOutputs.lastException.contains(expected.message)
     result.stageOutputs.attempt == 2
     result.stageOutputs.consecutiveNotFound == 0
   }
@@ -142,7 +142,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> { throw expected }
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.is expected
+    result.stageOutputs.lastException.contains(expected.message)
     result.stageOutputs.attempt == 2
     result.stageOutputs.consecutiveNotFound == 0
   }
@@ -212,6 +212,6 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     1 * resolver.getSource(_) >> null
 
     result.status == ExecutionStatus.RUNNING
-    result.stageOutputs.lastException.message  == "useSourceCapacity requested, but unable to determine source for test/us-east-1/foo"
+    result.stageOutputs.lastException.contains("useSourceCapacity requested, but unable to determine source for test/us-east-1/foo")
   }
 }

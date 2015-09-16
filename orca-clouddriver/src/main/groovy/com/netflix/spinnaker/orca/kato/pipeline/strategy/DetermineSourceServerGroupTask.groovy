@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit
 class DetermineSourceServerGroupTask implements RetryableTask {
 
   static final int MAX_ATTEMPTS = 10
-  static final int MIN_CONSECUTIVE_404 = 5
+  static final int MIN_CONSECUTIVE_404 = 3
 
   final long backoffPeriod = TimeUnit.SECONDS.toMillis(5)
 
@@ -76,8 +76,12 @@ class DetermineSourceServerGroupTask implements RetryableTask {
     Boolean useSourceCapacity = useSourceCapacity(stage, null)
     boolean isNotFound = (lastException instanceof RetrofitError && lastException.kind == RetrofitError.Kind.HTTP && lastException.response.status == 404)
 
+    StringWriter sw = new StringWriter()
+    sw.append(lastException.message).append("\n")
+    new PrintWriter(sw).withWriter { lastException.printStackTrace(it as PrintWriter) }
+
     def ctx = [
-      lastException: lastException,
+      lastException: sw.toString(),
       attempt: (stage.context.attempt ?: 1) + 1,
       consecutiveNotFound: isNotFound ? (stage.context.consecutiveNotFound ?: 0) + 1 : 0
     ]
