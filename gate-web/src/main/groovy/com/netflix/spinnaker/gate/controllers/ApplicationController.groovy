@@ -49,11 +49,6 @@ class ApplicationController {
     applicationService.all
   }
 
-  @RequestMapping(method = RequestMethod.POST)
-  Map create(@RequestBody Map<String, String> app) {
-    applicationService.create(app)
-  }
-
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   Map show(@PathVariable("name") String name) {
     def result = applicationService.get(name)
@@ -65,22 +60,6 @@ class ApplicationController {
       result.name = name
     }
     result
-  }
-
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.DELETE)
-  Map delete(@RequestParam String account, @PathVariable String name) {
-    applicationService.delete(account, name)
-  }
-
-  @RequestMapping(value = "/{name}/bake", method = RequestMethod.POST)
-  Map bake(@PathVariable("name") String name, @RequestBody(required = false) BakeCommand bakeCommand) {
-    if (!bakeCommand) {
-      bakeCommand = new BakeCommand(pkg: name)
-    }
-    if (!bakeCommand.pkg) {
-      bakeCommand.pkg = name
-    }
-    applicationService.bake(name, bakeCommand.pkg, bakeCommand.baseOs, bakeCommand.baseLabel, bakeCommand.region)
   }
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
