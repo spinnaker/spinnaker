@@ -19,7 +19,7 @@ describe('Controller: LoadBalancerDetailsCtrl', function () {
 
   beforeEach(
     window.module(
-      require('./LoadBalancerDetailsCtrl')
+      require('./loadBalancerDetail.controller')
     )
   );
 

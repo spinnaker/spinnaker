@@ -6,7 +6,7 @@ describe('Controller: CreateSecurityGroup', function () {
     window.module(
       require('../../../utils/lodash.js'),
       require('./CreateSecurityGroupCtrl.js'),
-      require('./ConfigSecurityGroupMixin.controller.js')
+      require('./configSecurityGroup.mixin.controller.js')
     )
   );
 

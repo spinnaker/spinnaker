@@ -9,7 +9,7 @@ module.exports = angular
     'spinnaker.securityGroup.write.service',
     'spinnaker.vpc.read.service',
     require('../../../utils/lodash.js'),
-    require('../configure/ConfigSecurityGroupMixin.controller.js')
+    require('../configure/configSecurityGroup.mixin.controller.js')
   ])
   .controller('awsCloneSecurityGroupController', function($scope, $modalInstance, $controller, taskMonitorService, accountService, securityGroupWriter, vpcReader, securityGroup, application, _) {
     var vm = this;

@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.capacitySel
       scope: {
         command: '=',
       },
-      templateUrl: require('./serverGroupCapacityDirective.html'),
+      templateUrl: require('./serverGroupCapacitySelector.directive.html'),
       controller: 'ServerGroupCapacitySelectorCtrl as serverGroupCapacityCtrl',
     };
   })

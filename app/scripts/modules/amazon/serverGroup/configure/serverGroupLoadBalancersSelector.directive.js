@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.loadBalance
       scope: {
         command: '=',
       },
-      templateUrl: require('./serverGroupLoadBalancersDirective.html'),
+      templateUrl: require('./serverGroupLoadBalancersSelector.directive.html'),
       link: function(scope) {
 
         scope.getLoadBalancerRefreshTime = function() {
