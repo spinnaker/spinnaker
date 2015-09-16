@@ -1,4 +1,5 @@
 dependencies {
+  compile project(":clouddriver-core")
   spinnaker.group('google')
   compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('bootActuator')

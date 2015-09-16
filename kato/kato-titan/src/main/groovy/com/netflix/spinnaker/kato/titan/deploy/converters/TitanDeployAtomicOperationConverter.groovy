@@ -15,17 +15,17 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
-
+import com.netflix.spinnaker.clouddriver.titan.TitanOperation
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
-import org.springframework.stereotype.Component
 
 /**
  * @author sthadeshwar
  */
-@Component("titanDeployDescription")
+@TitanOperation(AtomicOperations.CREATE_SERVER_GROUP)
 class TitanDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   AtomicOperation convertOperation(Map input) {

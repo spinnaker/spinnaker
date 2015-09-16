@@ -112,7 +112,6 @@ class InstanceCachingAgent implements CachingAgent {
         break
       }
     }
-    log.info("Caching ${awsInstances.size()} items in ${agentType}")
 
     Closure<Map<String, CacheData>> cache = {
       [:].withDefault { String id -> new MutableCacheData(id) }
@@ -122,12 +121,19 @@ class InstanceCachingAgent implements CachingAgent {
     Map<String, CacheData> instances = cache()
     Map<String, CacheData> images = cache()
 
+    List<String> skipIds =  []
+
     for (Instance instance : awsInstances) {
       def data = new InstanceData(instance, account.name, region)
+      if (instances.containsKey(data.instanceId)) {
+        log.warn("Duplicate instance for ${data.instanceId}")
+      }
       if (data.cache) {
         cacheImage(data, images)
         cacheServerGroup(data, serverGroups)
         cacheInstance(data, instances)
+      } else {
+        skipIds.add(data.instance.instanceId)
       }
     }
 
@@ -135,6 +141,14 @@ class InstanceCachingAgent implements CachingAgent {
       long drift = new Date().time - start
       log.info("${agentType}/drift - $drift milliseconds")
     }
+
+    log.info("Caching ${instances.size()} instances in ${agentType}")
+    log.info("Caching ${serverGroups.size()} server groups in ${agentType}")
+    log.info("Caching ${images.size()} images in ${agentType}")
+
+    log.info("Skipping ${skipIds.size()} non-running instances in ${agentType}")
+    log.debug("Skipped instanceIds in ${agentType}: ${skipIds}")
+
     new DefaultCacheResult(
       (SERVER_GROUPS.ns): serverGroups.values(),
       (INSTANCES.ns): instances.values(),

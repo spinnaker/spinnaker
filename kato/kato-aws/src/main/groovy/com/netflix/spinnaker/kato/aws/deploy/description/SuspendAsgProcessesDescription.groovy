@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.kato.aws.deploy.description
 
-import groovy.transform.ToString
-
 class SuspendAsgProcessesDescription extends AbstractAmazonCredentialsDescription {
   List<AsgDescription> asgs = []
   List<String> processes
@@ -26,10 +24,4 @@ class SuspendAsgProcessesDescription extends AbstractAmazonCredentialsDescriptio
 
   @Deprecated
   List<String> regions = []
-
-  @ToString
-  static class AsgDescription {
-    String region
-    String asgName
-  }
 }

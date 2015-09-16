@@ -19,6 +19,7 @@ package com.netflix.spinnaker.kato.gce.deploy
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
+import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpHeaders
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
@@ -33,6 +34,7 @@ import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleFirewallRuleDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
@@ -122,12 +124,21 @@ class GCEUtil {
     }
   }
 
+  // If a forwarding rule with the specified name is found in any region, it is returned.
   static ForwardingRule queryRegionalForwardingRule(
-    String projectName, String region, String forwardingRuleName, Compute compute, Task task, String phase) {
+    String projectName, String forwardingRuleName, Compute compute, Task task, String phase) {
     task.updateStatus phase, "Checking for existing network load balancer (forwarding rule) $forwardingRuleName..."
 
-    return compute.forwardingRules().list(projectName, region).execute().items.find { existingForwardingRule ->
-      existingForwardingRule.name == forwardingRuleName
+    // Try to retrieve this forwarding rule in each region.
+    for (def region : compute.regions().list(projectName).execute().items) {
+      try {
+        return compute.forwardingRules().get(projectName, region.name, forwardingRuleName).execute()
+      } catch (GoogleJsonResponseException e) {
+        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
+        if (e.getStatusCode() != 404) {
+          throw e
+        }
+      }
     }
   }
 
@@ -441,5 +452,38 @@ class GCEUtil {
           name: name
       )
     }
+  }
+
+  static Firewall buildFirewallRule(String projectName,
+                                    UpsertGoogleFirewallRuleDescription firewallRuleDescription,
+                                    Compute compute,
+                                    Task task,
+                                    String phase) {
+    def network = queryNetwork(projectName, firewallRuleDescription.network, compute, task, phase)
+    def firewall = new Firewall(
+        name: firewallRuleDescription.firewallRuleName,
+        network: network.selfLink
+    )
+    def allowed = firewallRuleDescription.allowed.collect {
+      new Firewall.Allowed(IPProtocol: it.ipProtocol, ports: it.portRanges)
+    }
+
+    if (allowed) {
+      firewall.allowed = allowed
+    }
+
+    if (firewallRuleDescription.sourceRanges) {
+      firewall.sourceRanges = firewallRuleDescription.sourceRanges
+    }
+
+    if (firewallRuleDescription.sourceTags) {
+      firewall.sourceTags = firewallRuleDescription.sourceTags
+    }
+
+    if (firewallRuleDescription.targetTags) {
+      firewall.targetTags = firewallRuleDescription.targetTags
+    }
+
+    return firewall
   }
 }

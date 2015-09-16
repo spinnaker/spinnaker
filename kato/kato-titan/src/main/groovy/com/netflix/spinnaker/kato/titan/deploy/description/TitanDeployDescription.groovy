@@ -30,14 +30,8 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
   String subnetType
   String dockerImage
   Capacity capacity = new Capacity()
-  String entryPoint
-  int cpu
-  int memory
-  int disk
-  int[] ports
+  Resources resources = new Resources()
   Map env
-  int retries
-  boolean restartOnSuccess
 
   @Canonical
   static class Capacity {
@@ -50,5 +44,13 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
   static class Source {
     String account
     String region
+  }
+
+  @Canonical
+  static class Resources {
+    int cpu
+    int memory
+    int disk
+    int[] ports
   }
 }

@@ -33,4 +33,14 @@ class NoopOnDemandCacheUpdater implements OnDemandCacheUpdater {
   void handle(String type, Map<String, ? extends Object> data) {
 
   }
+
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    false
+  }
+
+  @Override
+  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+
+  }
 }

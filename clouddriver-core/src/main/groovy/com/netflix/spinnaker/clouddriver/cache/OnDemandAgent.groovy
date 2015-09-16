@@ -21,7 +21,12 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 
 interface OnDemandAgent {
-  String getOnDemandAgentType();
+
+  String getProviderName()
+
+  String getOnDemandAgentType()
+
+  OnDemandMetricsSupport getMetricsSupport()
 
   static class OnDemandResult {
     String sourceAgentType
@@ -30,7 +35,10 @@ interface OnDemandAgent {
     Map<String, Collection<String>> evictions = [:]
   }
 
+  @Deprecated
   boolean handles(String type)
+
+  boolean handles(String type, String cloudProvider)
 
   OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data)
 }

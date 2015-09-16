@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spectator.api.ExtendedRegistry
 import com.netflix.spectator.api.Id
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,25 +40,25 @@ class MetricInstrumentation implements ExecutionInstrumentation {
     }
   }
 
-  private final ExtendedRegistry extendedRegistry
+  private final Registry registry
 
   private final Id timingId
   private final Id counterId
 
   @Autowired
-  public MetricInstrumentation(ExtendedRegistry extendedRegistry) {
-    this.extendedRegistry = extendedRegistry
-    timingId = extendedRegistry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
-    counterId = extendedRegistry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
+  public MetricInstrumentation(Registry registry) {
+    this.registry = registry
+    timingId = registry.createId('executionTime').withTag('className', MetricInstrumentation.simpleName)
+    counterId = registry.createId('executionCount').withTag('className', MetricInstrumentation.simpleName)
   }
 
 
-  private static String agentName(CachingAgent agent) {
+  private static String agentName(Agent agent) {
     "$agent.providerName/$agent.agentType"
   }
 
   @Override
-  void executionStarted(CachingAgent agent) {
+  void executionStarted(Agent agent) {
     Long previous = timingsMap.get().put(agentName(agent), System.nanoTime())
     if (previous != null) {
       logger.warn("Metric value not cleared for ${agentName(agent)}")
@@ -66,18 +66,18 @@ class MetricInstrumentation implements ExecutionInstrumentation {
   }
 
   @Override
-  void executionCompleted(CachingAgent agent) {
+  void executionCompleted(Agent agent) {
     Long startTime = timingsMap.get().remove(agentName(agent))
     if (startTime != null) {
-      extendedRegistry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
+      registry.timer(timingId.withTag('agent', agentName(agent))).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS)
     }
-    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
+    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'success')).increment()
   }
 
   @Override
-  void executionFailed(CachingAgent agent, Throwable cause) {
+  void executionFailed(Agent agent, Throwable cause) {
     timingsMap.get().remove(agentName(agent))
-    extendedRegistry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
+    registry.counter(counterId.withTag('agent', agentName(agent)).withTag('status', 'failure')).increment()
   }
 }
 

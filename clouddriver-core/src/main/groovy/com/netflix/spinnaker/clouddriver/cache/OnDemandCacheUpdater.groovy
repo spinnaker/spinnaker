@@ -26,16 +26,32 @@ interface OnDemandCacheUpdater {
 
   /**
    * Indicates if the updater is able to handle this on-demand request.
-   *
    * @param type
    * @return
    */
+  @Deprecated
   boolean handles(String type)
 
   /**
    * The input for the updater to process this request.
-   *
    * @param data
    */
+  @Deprecated
   void handle(String type, Map<String, ? extends Object> data)
+
+  /**
+   * Indicates if the updater is able to handle this on-demand request given the type and cloudProvider
+   * @param type
+   * @param cloudProvider
+   * @return
+   */
+  boolean handles(String type, String cloudProvider)
+
+  /**
+   * Handles the update request
+   * @param type
+   * @param cloudProvider
+   * @param data
+   */
+  void handle(String type, String cloudProvider, Map<String, ? extends Object> data)
 }

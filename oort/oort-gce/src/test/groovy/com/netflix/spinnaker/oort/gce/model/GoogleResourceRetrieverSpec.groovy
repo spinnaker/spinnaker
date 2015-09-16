@@ -373,7 +373,8 @@ class GoogleResourceRetrieverSpec extends Specification {
                       description: null
                     ]
                   ]
-                ] as Set
+                ] as Set,
+                detachedInstances: ["roscoapp1-dev-v001-efgh"] as Set
               ]
             ],
             instanceNames: ["roscoapp1-dev-v001-abcd", "roscoapp1-dev-v001-ijkl"]

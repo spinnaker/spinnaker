@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class TerminateGoogleInstancesDescription  {
+  String managedInstanceGroupName
   String zone
   List<String> instanceIds
   String accountName

@@ -18,10 +18,12 @@ package com.netflix.spinnaker.mort.aws.provider.config
 
 import com.netflix.amazoncomponents.security.AmazonClientProvider
 import com.netflix.awsobjectmapper.AmazonObjectMapper
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.provider.AwsInfrastructureProvider
 import com.netflix.spinnaker.mort.aws.provider.agent.AmazonElasticIpCachingAgent
 import com.netflix.spinnaker.mort.aws.provider.agent.AmazonInstanceTypeCachingAgent
@@ -37,7 +39,11 @@ import org.springframework.context.annotation.DependsOn
 class AwsInfrastructureProviderConfig {
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsInfrastructureProvider awsInfrastructureProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, AmazonObjectMapper amazonObjectMapper) {
+  AwsInfrastructureProvider awsInfrastructureProvider(AmazonCloudProvider amazonCloudProvider,
+                                                      AmazonClientProvider amazonClientProvider,
+                                                      AccountCredentialsRepository accountCredentialsRepository,
+                                                      AmazonObjectMapper amazonObjectMapper,
+                                                      Registry registry) {
     List<CachingAgent> agents = []
 
     def allAccounts = accountCredentialsRepository.all.findAll {
@@ -49,7 +55,7 @@ class AwsInfrastructureProviderConfig {
         agents << new AmazonElasticIpCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonInstanceTypeCachingAgent(amazonClientProvider, credentials, region.name)
         agents << new AmazonKeyPairCachingAgent(amazonClientProvider, credentials, region.name)
-        agents << new AmazonSecurityGroupCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
+        agents << new AmazonSecurityGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, amazonObjectMapper, registry)
         agents << new AmazonSubnetCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
         agents << new AmazonVpcCachingAgent(amazonClientProvider, credentials, region.name, amazonObjectMapper)
       }

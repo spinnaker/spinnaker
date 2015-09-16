@@ -20,5 +20,10 @@ package com.netflix.spinnaker.kato.deploy
 import org.springframework.validation.Errors
 
 public abstract class DescriptionValidator<T> {
+
+  static String getValidatorName(String description) {
+    description + "Validator"
+  }
+
   abstract void validate(List priorDescriptions, T description, Errors errors)
 }

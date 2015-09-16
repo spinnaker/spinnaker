@@ -59,10 +59,4 @@ class CoreConfig {
   ElasticIpProvider noopElasticIpProvider() {
     new NoopElasticIpProvider()
   }
-
-  @Bean
-  @ConditionalOnMissingBean(CachingAgent)
-  CachingAgent noopCachingAgent() {
-    new NoopCachingAgent()
-  }
 }

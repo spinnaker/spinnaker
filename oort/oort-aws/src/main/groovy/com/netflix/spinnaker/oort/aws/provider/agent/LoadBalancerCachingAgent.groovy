@@ -19,11 +19,13 @@ package com.netflix.spinnaker.oort.aws.provider.agent
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -32,11 +34,12 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
 import groovy.util.logging.Slf4j
-import org.codehaus.jackson.annotate.JsonCreator
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
@@ -45,7 +48,13 @@ import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.ON_DEMAND
 
 @Slf4j
-class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
+class LoadBalancerCachingAgent implements CachingAgent, OnDemandAgent {
+
+  @Deprecated
+  private static final String LEGACY_ON_DEMAND_TYPE = 'AmazonLoadBalancer'
+
+  private static final String ON_DEMAND_TYPE = 'LoadBalancer'
+
   private static final TypeReference<Map<String, Object>> ATTRIBUTES = new TypeReference<Map<String, Object>>() {}
 
   private static final Collection<AgentDataType> types = Collections.unmodifiableCollection([
@@ -73,19 +82,27 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     types
   }
 
+  final AmazonCloudProvider amazonCloudProvider
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
   final ObjectMapper objectMapper
+  final Registry registry
+  final OnDemandMetricsSupport metricsSupport
 
-  LoadBalancerCachingAgent(AmazonClientProvider amazonClientProvider,
+  LoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
+                           AmazonClientProvider amazonClientProvider,
                            NetflixAmazonCredentials account,
                            String region,
-                           ObjectMapper objectMapper) {
+                           ObjectMapper objectMapper,
+                           Registry registry) {
+    this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+    this.registry = registry
+    this.metricsSupport = new OnDemandMetricsSupport(registry, this, amazonCloudProvider.id + ":" + ON_DEMAND_TYPE)
   }
 
   static class MutableCacheData implements CacheData {
@@ -109,7 +126,12 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
 
   @Override
   boolean handles(String type) {
-    type == "AmazonLoadBalancer"
+    type == LEGACY_ON_DEMAND_TYPE
+  }
+
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    type == ON_DEMAND_TYPE && cloudProvider == amazonCloudProvider.id
   }
 
   @Override
@@ -132,32 +154,30 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       return null
     }
 
-    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
-    def loadBalancers = []
-    try {
-      loadBalancers = loadBalancing.describeLoadBalancers(
-        new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
-      ).loadBalancerDescriptions
-    } catch (LoadBalancerNotFoundException ignored) {}
-
-    def cacheResult = buildCacheResult(loadBalancers, [:])
-    def cacheData = new DefaultCacheData(
-      Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
-      60 * 60,
-      [
-        cacheTime   : new Date(),
-        cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
-      ],
-      [:]
-    )
-    providerCache.putCacheData(ON_DEMAND.ns, cacheData)
-
-    cacheResult.cacheResults.values().each { Collection<CacheData> cacheDatas ->
-      cacheDatas.each {
-        ((MutableCacheData) it).ttlSeconds = 60
+    List<LoadBalancerDescription> loadBalancers = metricsSupport.readData {
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region, true)
+      try {
+        return loadBalancing.describeLoadBalancers(
+          new DescribeLoadBalancersRequest().withLoadBalancerNames(data.loadBalancerName as String)
+        ).loadBalancerDescriptions
+      } catch (LoadBalancerNotFoundException ignored) {
+        return []
       }
     }
 
+    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:]) }
+    metricsSupport.onDemandStore {
+      def cacheData = new DefaultCacheData(
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVPCId() : null),
+        10 * 60,
+        [
+          cacheTime   : new Date(),
+          cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+        ],
+        [:]
+      )
+      providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+    }
     Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
       (LOAD_BALANCERS.ns): [
         Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String)
@@ -180,11 +200,11 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(account, region)
     List<LoadBalancerDescription> allLoadBalancers = []
     def request = new DescribeLoadBalancersRequest()
-    Long start = null
+    Long start = account.eddaEnabled ? null : System.currentTimeMillis()
 
     while (true) {
       def resp = loadBalancing.describeLoadBalancers(request)
-      if (!start) {
+      if (account.eddaEnabled) {
         start = EddaSupport.parseLastModified(amazonClientProvider.lastResponseHeaders?.get("last-modified")?.get(0))
       }
 
@@ -194,6 +214,13 @@ class LoadBalancerCachingAgent  implements CachingAgent, OnDemandAgent {
       } else {
         break
       }
+    }
+
+    if (!start) {
+      if (account.eddaEnabled) {
+        log.warn("${agentType} did not receive last-modified header in response")
+      }
+      start = System.currentTimeMillis()
     }
 
     def evictableOnDemandCacheDatas = []

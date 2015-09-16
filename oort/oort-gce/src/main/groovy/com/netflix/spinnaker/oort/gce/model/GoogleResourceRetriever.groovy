@@ -107,14 +107,14 @@ class GoogleResourceRetriever {
           Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
           def regions = compute.regions().list(project).execute().getItems()
           def regionsCallback = new RegionsCallback(tempAppMap,
                                                     accountName,
                                                     project,
                                                     compute,
                                                     credentialBuilder,
-                                                    replicapool,
+                                                    replicaPool,
                                                     tempImageMap,
                                                     defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
@@ -219,45 +219,51 @@ class GoogleResourceRetriever {
             it.name == loadBalancerName
           }
 
-          def instances = [] as Set
+          if (loadBalancer) {
+            def instances = [] as Set
+            def detachedInstances = [] as Set
 
-          serverGroup.instances.each { instance ->
-            def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
+            serverGroup.instances.each { instance ->
+              def instanceNames = loadBalancer instanceof Map ? loadBalancer["instanceNames"] : loadBalancer.anyProperty()["instanceNames"]
 
-            // Only include the instances from the server group that are also registered with the load balancer.
-            if (instanceNames?.contains(instance.name)) {
-              // Only include the health returned by this load balancer.
-              def loadBalancerHealth = instance.health.find {
-                it.type == "LoadBalancer"
-              }?.loadBalancers?.find {
-                it.loadBalancerName == loadBalancerName
+              // Only include the instances from the server group that are also registered with the load balancer.
+              if (instanceNames?.contains(instance.name)) {
+                // Only include the health returned by this load balancer.
+                def loadBalancerHealth = instance.health.find {
+                  it.type == "LoadBalancer"
+                }?.loadBalancers?.find {
+                  it.loadBalancerName == loadBalancerName
+                }
+
+                def health = loadBalancerHealth ?
+                             [
+                               state      : loadBalancerHealth.state,
+                               description: loadBalancerHealth.description
+                             ] :
+                             [
+                               state      : "Unknown",
+                               description: "Unable to determine load balancer health."
+                             ]
+
+                instances << [
+                  id    : instance.name,
+                  zone  : Utils.getLocalName(instance.getZone()),
+                  health: health
+                ]
+              } else {
+                detachedInstances << instance.name
               }
-
-              def health = loadBalancerHealth ?
-                           [
-                             state      : loadBalancerHealth.state,
-                             description: loadBalancerHealth.description
-                           ] :
-                           [
-                             state      : "Unknown",
-                             description: "Unable to determine load balancer health."
-                           ]
-
-              instances << [
-                id    : instance.name,
-                zone  : Utils.getLocalName(instance.getZone()),
-                health: health
-              ]
             }
+
+            def serverGroupSummary = [
+              name      :        serverGroup.name,
+              isDisabled:        serverGroup.isDisabled(),
+              instances :        instances,
+              detachedInstances: detachedInstances
+            ]
+
+            loadBalancer.serverGroups << serverGroupSummary
           }
-
-          def serverGroupSummary = [
-            name      : serverGroup.name,
-            isDisabled: serverGroup.isDisabled(),
-            instances : instances
-          ]
-
-          loadBalancer?.serverGroups << serverGroupSummary
         }
       }
     }
@@ -321,7 +327,7 @@ class GoogleResourceRetriever {
           BatchRequest instancesBatch = buildBatchRequest(compute)
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicapool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
@@ -341,7 +347,7 @@ class GoogleResourceRetriever {
           InstanceGroupManager instanceGroupManager = null
 
           try {
-            instanceGroupManager = replicapool.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
+            instanceGroupManager = replicaPool.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
           } catch (GoogleJsonResponseException e) {
             // Nothing to do here except leave instanceGroupManager null. 404 can land us here.
           }

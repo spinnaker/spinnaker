@@ -32,6 +32,7 @@ import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -105,9 +106,15 @@ class UpsertGoogleNetworkLoadBalancerAtomicOperation implements AtomicOperation<
 
     // Check if there already exists a forwarding rule with the requested name.
     existingForwardingRule =
-      GCEUtil.queryRegionalForwardingRule(project, region, description.networkLoadBalancerName, compute, task, BASE_PHASE)
+      GCEUtil.queryRegionalForwardingRule(project, description.networkLoadBalancerName, compute, task, BASE_PHASE)
 
     if (existingForwardingRule) {
+      if (description.region != GCEUtil.getLocalName(existingForwardingRule.region)) {
+        throw new GoogleOperationException("There is already a network load balancer named " +
+          "$description.networkLoadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
+          "Please specify a different name.")
+      }
+
       // If any of these properties are different, we'll need to update the forwarding rule.
       needToUpdateForwardingRule =
         ((description.ipAddress && description.ipAddress != existingForwardingRule.IPAddress)

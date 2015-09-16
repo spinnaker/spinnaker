@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.frigga.Names
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.oort.model.ClusterProvider
@@ -38,7 +38,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   GoogleResourceRetriever googleResourceRetriever
 
   @Autowired
-  ExtendedRegistry extendedRegistry
+  Registry registry
 
   Timer allClusters
 
@@ -51,10 +51,10 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster> {
   @PostConstruct
   void init() {
     String[] tags = ['className', this.class.simpleName]
-    allClusters = extendedRegistry.timer('allClusters', tags)
-    clustersByApplication = extendedRegistry.timer('clustersByApplications', tags)
-    clustersByApplicationAndAccount = extendedRegistry.timer('clustersByApplicationAndAccount', tags)
-    clustersById = extendedRegistry.timer('clustersById', tags)
+    allClusters = registry.timer('allClusters', tags)
+    clustersByApplication = registry.timer('clustersByApplications', tags)
+    clustersByApplicationAndAccount = registry.timer('clustersByApplicationAndAccount', tags)
+    clustersById = registry.timer('clustersById', tags)
   }
 
   @Override

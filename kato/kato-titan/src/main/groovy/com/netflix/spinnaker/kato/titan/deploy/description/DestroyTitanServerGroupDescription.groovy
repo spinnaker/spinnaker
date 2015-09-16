@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.titan.deploy.description
 
+import groovy.transform.Canonical
+
 /**
  * @author sthadeshwar
  */
@@ -23,6 +25,7 @@ class DestroyTitanServerGroupDescription extends AbstractTitanCredentialsDescrip
 
   List<TitanServerGroupDescription> serverGroupDescriptions = []
 
+  @Canonical
   static class TitanServerGroupDescription {
     String region
     String serverGroupName

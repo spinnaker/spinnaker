@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.google.api.services.replicapool.ReplicapoolScopes
+import com.google.api.services.replicapool.model.InstanceGroupManagersRecreateInstancesRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 /**
- * Terminate and delete an instance.
+ * Terminate and delete instances. If the instances are in a managed instance group they will be recreated.
  *
- * This is an alternative to {@link RecreateGoogleReplicaPoolInstancesAtomicOperation} using
- * the API described in {@link https://cloud.google.com/compute/docs/instances#deleting_an_instance}
- * and {@link https://cloud.google.com/compute/docs/reference/latest/instances/delete}.
+ * If no managed instance group is specified, this operation only explicitly deletes and removes the instances. However,
+ * if the instances are in a managed instance group then the manager will automatically recreate and restart the
+ * instances once it sees that they are missing. The net effect is to recreate the instances. More information:
+ * {@link https://cloud.google.com/compute/docs/instances#deleting_an_instance}
  *
- * This operation only explicitly deletes and removes an instance. However, if the instance is in a
- * replica pool then the replica pool will automatically recreate and restart the instance once it sees
- * that it is missing. The net effect is to recreate the instance (if it was in a replica pool).
- *
- * If the intention is in fact to recreate the instance, consider {@link RecreateGoogleReplicaPoolInstancesAtomicOperation}.
- *
- * @see RecreateGoogleReplicaPoolInstancesAtomicOperation
- * @see TerminateAndDecrementGoogleServerGroupAtomicOperation
+ * If a managed instance group is specified, this becomes a first-class explicit operation on the managed instance
+ * group to terminate and recreate the instances. More information:
+ * {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/recreateInstances}
  */
 class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_INSTANCES"
@@ -44,55 +44,79 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   }
 
   private final TerminateGoogleInstancesDescription description
+  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  TerminateGoogleInstancesAtomicOperation(TerminateGoogleInstancesDescription description) {
+  TerminateGoogleInstancesAtomicOperation(TerminateGoogleInstancesDescription description,
+                                          ReplicaPoolBuilder replicaPoolBuilder) {
     this.description = description
+    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
-   * Attempt to terminate each of the specified instanceIds.
+   * Attempt to terminate each of the specified instances.
    *
-   * This will attempt to terminate each of the id's independent of one another. Should any of them throw
-   * an exception, the first one will be propagated from this method, but the other attempts will be allowed
-   * to complete first.
+   * If no managed instance group is specified, this will attempt to terminate each of the instances independent of one
+   * another. Should any of them throw an exception, the first one will be propagated from this method, but the other
+   * attempts will be allowed to complete first. Currently, if others also throw an exception then those exceptions will
+   * be lost (however, their failures will be logged in the status).
    *
-   * Currently, if others also throw an exception then those exceptions will be lost (however their failures will
-   * be logged in the status).
+   * If a managed instance group is specified, we rely on the manager to terminate and recreate the instances.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateGoogleInstancesDescription": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "managedInstanceGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")})."
+    task.updateStatus BASE_PHASE, "Initializing termination of instances [${description.instanceIds.join(", ")}]."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
+    def instanceIds = description.instanceIds
 
-    def firstFailure
-    def okIds = []
-    def failedIds = []
+    if (description.managedInstanceGroupName) {
+      task.updateStatus BASE_PHASE, "Recreating instances [${instanceIds.join(", ")}] in managed instance " +
+          "group $description.managedInstanceGroupName."
 
-    for (def instanceId : description.instanceIds) {
-      task.updateStatus BASE_PHASE, "Attempting to terminate id=${instanceId}..."
+      def managerName = description.managedInstanceGroupName
+      def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
+      def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME)
+      def instanceGroupManagers = replicapool.instanceGroupManagers()
 
-      try {
-        compute.instances().delete(project, zone, instanceId).execute()
-        okIds.add(instanceId)
-      } catch (Exception e) {
-        task.updateStatus BASE_PHASE, "Failed to terminate id=${instanceId} in zone=${zone}: ${e.message}."
-        failedIds.add(instanceId)
-        if (!firstFailure) {
-          firstFailure = e
+      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceIds)
+      instanceGroupManagers.recreateInstances(project, zone, managerName, request).execute()
+
+      task.updateStatus BASE_PHASE, "Done executing recreate of instances [${instanceIds.join(", ")}]."
+    } else {
+      def firstFailure
+      def okIds = []
+      def failedIds = []
+
+      for (def instanceId : instanceIds) {
+        task.updateStatus BASE_PHASE, "Terminating instance $instanceId..."
+
+        try {
+          compute.instances().delete(project, zone, instanceId).execute()
+          okIds.add(instanceId)
+        } catch (Exception e) {
+          task.updateStatus BASE_PHASE, "Failed to terminate instance $instanceId in zone $zone: $e.message."
+          failedIds.add(instanceId)
+
+          if (!firstFailure) {
+            firstFailure = e
+          }
         }
       }
+
+      if (firstFailure) {
+        task.updateStatus BASE_PHASE, "Failed to terminate instances [${failedIds.join(", ")}] but successfully " +
+            "terminated instances [${okIds.join(", ")}]."
+        throw firstFailure
+      }
+
+      task.updateStatus BASE_PHASE, "Successfully terminated all instances [${instanceIds.join(", ")}]."
     }
 
-    if (firstFailure) {
-      task.updateStatus BASE_PHASE, "Failed to terminate instances=${failedIds.join(", ")} but sucessfully terminated instances=${okIds.join(", ")}."
-      throw firstFailure
-    }
-    task.updateStatus BASE_PHASE, "Successfully terminated all instances=(${description.instanceIds.join(", ")})."
     null
   }
 }

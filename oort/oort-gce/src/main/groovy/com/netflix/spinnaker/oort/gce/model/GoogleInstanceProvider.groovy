@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.oort.model.InstanceProvider
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
 
   @Autowired
@@ -32,6 +33,8 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
 
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
+
+  String platform = "gce"
 
   @Override
   GoogleInstance getInstance(String account, String region, String id) {
@@ -63,6 +66,26 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance> {
           }
         }
       }
+    }
+
+    return null
+  }
+
+  @Override
+  String getConsoleOutput(String account, String region, String id) {
+    def accountCredentials = accountCredentialsProvider.getCredentials(account)
+
+    if (!(accountCredentials?.credentials instanceof GoogleCredentials)) {
+      throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
+    }
+
+    def credentials = accountCredentials.credentials
+    def project = credentials.project
+    def compute = credentials.compute
+    def googleInstance = getInstance(account, region, id)
+
+    if (googleInstance) {
+      return compute.instances().getSerialPortOutput(project, googleInstance.zone, id).execute().contents
     }
 
     return null

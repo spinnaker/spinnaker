@@ -31,12 +31,14 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     op = new DeregisterInstancesFromLoadBalancerAtomicOperation(description)
   }
 
-  void 'should deregister instances from load balancers'() {
-    setup:
+  def setup() {
     TaskRepository.threadLocalTask.set(Mock(Task) {
       _ * updateStatus(_,_)
     })
+  }
 
+  void 'should deregister instances from load balancers'() {
+    setup:
     def asg = Mock(AutoScalingGroup) {
       1 * getLoadBalancerNames() >> ["lb1"]
       1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
@@ -47,7 +49,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroups([description.asgName]) >> [asg]
+    1 * asgService.getAutoScalingGroup(description.asgName) >> asg
     1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
       assert req.instances*.instanceId == description.instanceIds
       assert req.loadBalancerName == "lb1"
@@ -56,13 +58,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
 
   void 'should noop task if no load balancers found'() {
     setup:
-    TaskRepository.threadLocalTask.set(Mock(Task) {
-      _ * updateStatus(_,_)
-      0 * fail()
-    })
-
     def asg = Mock(AutoScalingGroup) {
-      1 * getAutoScalingGroupName() >> "asg-123456"
       1 * getLoadBalancerNames() >> []
       1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
       0 * _._
@@ -72,7 +68,38 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     op.operate([])
 
     then:
-    1 * asgService.getAutoScalingGroups([description.asgName]) >> [asg]
+    1 * asgService.getAutoScalingGroup(description.asgName) >> asg
+    0 * loadBalancing.deregisterInstancesFromLoadBalancer(_)
+  }
+
+  void 'should use supplied loadBalancerNames if no ASG specified'() {
+    setup:
+    description.asgName = null
+    description.instanceIds = ['i-123456', 'i-234567']
+    description.loadBalancerNames = ['elb-1', 'elb-2']
+
+    when:
+    op.operate([])
+
+    then:
+    0 * asgService.getAutoScalingGroup(_)
+    2 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
+      assert req.instances*.instanceId == description.instanceIds
+      assert description.loadBalancerNames.contains(req.loadBalancerName)
+    }
+  }
+
+  void 'should noop task if no load balancer names supplied and no ASG specified'() {
+    setup:
+    description.asgName = null
+    description.instanceIds = ['i-123456', 'i-234567']
+    description.loadBalancerNames = null
+
+    when:
+    op.operate([])
+
+    then:
+    0 * asgService.getAutoScalingGroup(_)
     0 * loadBalancing.deregisterInstancesFromLoadBalancer(_)
   }
 }

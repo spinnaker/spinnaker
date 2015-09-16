@@ -18,14 +18,24 @@ package com.netflix.spinnaker.oort.aws.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.oort.aws.discovery.DiscoveryApiFactory
 import com.netflix.spinnaker.oort.aws.edda.EddaApiFactory
 import com.netflix.spinnaker.oort.aws.provider.AwsProvider
-import com.netflix.spinnaker.oort.aws.provider.agent.*
+import com.netflix.spinnaker.oort.aws.provider.agent.AmazonLoadBalancerInstanceStateCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.ClusterCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.DiscoveryCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.EddaLoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.ImageCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.InstanceCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.LaunchConfigCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.LoadBalancerCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.ReservationReportCachingAgent
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -36,7 +46,14 @@ class AwsProviderConfig {
 
   @Bean
   @DependsOn('netflixAmazonCredentials')
-  AwsProvider awsProvider(AmazonClientProvider amazonClientProvider, AccountCredentialsRepository accountCredentialsRepository, ObjectMapper objectMapper, DiscoveryApiFactory discoveryApiFactory, EddaApiFactory eddaApiFactory, ApplicationContext ctx) {
+  AwsProvider awsProvider(AmazonCloudProvider amazonCloudProvider,
+                          AmazonClientProvider amazonClientProvider,
+                          AccountCredentialsRepository accountCredentialsRepository,
+                          ObjectMapper objectMapper,
+                          DiscoveryApiFactory discoveryApiFactory,
+                          EddaApiFactory eddaApiFactory,
+                          ApplicationContext ctx,
+                          Registry registry) {
     Map<String, Map<String, List<NetflixAmazonCredentials>>> discoveryAccounts = [:].withDefault { [:].withDefault { [] } }
     List<CachingAgent> agents = []
 
@@ -46,11 +63,11 @@ class AwsProviderConfig {
 
     allAccounts.each { NetflixAmazonCredentials credentials ->
       for (AmazonCredentials.AWSRegion region : credentials.regions) {
-        agents << new ClusterCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new ClusterCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
         agents << new LaunchConfigCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new ImageCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         agents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
-        agents << new LoadBalancerCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
+        agents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
         if (credentials.eddaEnabled) {
           agents << new EddaLoadBalancerCachingAgent(eddaApiFactory.createApi(credentials.edda, region.name), credentials, region.name, objectMapper)
         } else {

@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.oort.aws.provider
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.cache.SearchableProvider
 import com.netflix.spinnaker.oort.aws.data.Keys
@@ -61,14 +60,14 @@ class AwsProvider implements SearchableProvider {
 
   final Map<String, SearchableProvider.IdentifierExtractor> identifierExtractors
 
-  final Collection<CachingAgent> cachingAgents
+  final Collection<Agent> agents
   private final Collection<HealthProvidingCachingAgent> healthAgents
 
   @Autowired(required = false)
   List<HealthProvidingCachingAgent> externalHealthProvidingCachingAgents = []
 
-  AwsProvider(AccountCredentialsRepository accountCredentialsRepository, Collection<CachingAgent> agents) {
-    this.cachingAgents = Collections.unmodifiableCollection(agents)
+  AwsProvider(AccountCredentialsRepository accountCredentialsRepository, Collection<Agent> agents) {
+    this.agents = Collections.unmodifiableCollection(agents)
     this.healthAgents = Collections.unmodifiableCollection(agents.findAll { it instanceof HealthProvidingCachingAgent } as List<HealthProvidingCachingAgent>)
     identifierExtractors = [
       (INSTANCES.ns): new InstanceIdentifierExtractor(accountCredentialsRepository)

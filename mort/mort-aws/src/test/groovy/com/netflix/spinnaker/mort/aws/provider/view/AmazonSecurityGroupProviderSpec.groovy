@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.mort.aws.provider.view
 
-import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.IpPermission
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.amazonaws.services.ec2.model.UserIdGroupPair
@@ -50,7 +49,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "getAll lists all"() {
     when:
-    def result = provider.getAll()
+    def result = provider.getAll(false)
 
     then:
     result.size() == 8
@@ -58,7 +57,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "getAllByRegion lists only those in supplied region"() {
     when:
-    def result = provider.getAllByRegion(region)
+    def result = provider.getAllByRegion(false, region)
 
     then:
     result.size() == 4
@@ -72,7 +71,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "getAllByAccount lists only those in supplied account"() {
     when:
-    def result = provider.getAllByAccount(account)
+    def result = provider.getAllByAccount(false, account)
 
     then:
     result.size() == 4
@@ -86,7 +85,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "getAllByAccountAndRegion lists only those in supplied account and region"() {
     when:
-    def result = provider.getAllByAccountAndRegion(account, region)
+    def result = provider.getAllByAccountAndRegion(false, account, region)
 
     then:
     result.size() == 2
@@ -102,7 +101,7 @@ class AmazonSecurityGroupProviderSpec extends Specification {
 
   void "getAllByAccountAndName lists only those in supplied account with supplied name"() {
     when:
-    def result = provider.getAllByAccountAndName(account, name)
+    def result = provider.getAllByAccountAndName(false, account, name)
 
     then:
     result.size() == 2

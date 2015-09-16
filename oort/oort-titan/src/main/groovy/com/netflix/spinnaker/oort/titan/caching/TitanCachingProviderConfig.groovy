@@ -20,9 +20,9 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
-import com.netflix.spinnaker.oort.titan.caching.agents.ClusterCachingAgent
-import com.netflix.spinnaker.oort.titan.caching.agents.ImageCachingAgent
-import com.netflix.spinnaker.oort.titan.caching.agents.InstanceCachingAgent
+import com.netflix.spinnaker.oort.titan.caching.agents.TitanClusterCachingAgent
+import com.netflix.spinnaker.oort.titan.caching.agents.TitanImageCachingAgent
+import com.netflix.spinnaker.oort.titan.caching.agents.TitanInstanceCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
@@ -42,9 +42,9 @@ class TitanCachingProviderConfig {
     def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitanCredentials } as Collection<NetflixTitanCredentials>
     allAccounts.each { NetflixTitanCredentials account ->
       account.regions.each { region ->
-        agents << new ClusterCachingAgent(titanClientProvider, account, region.name, objectMapper)
-        agents << new ImageCachingAgent(titanClientProvider, account, region.name, objectMapper)
-        agents << new InstanceCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanClusterCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanImageCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanInstanceCachingAgent(titanClientProvider, account, region.name, objectMapper)
       }
     }
     new TitanCachingProvider(agents)

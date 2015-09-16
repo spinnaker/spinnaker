@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-
 import com.netflix.spinnaker.cats.module.CatsModule
 import com.netflix.spinnaker.cats.provider.Provider
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.TimeUnit
+
 @Component
+@Slf4j
 class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private final List<Provider> providers
@@ -36,7 +39,7 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
 
   private Collection<OnDemandAgent> getOnDemandAgents() {
     providers.collect {
-      it.cachingAgents.findAll { it instanceof OnDemandAgent } as Collection<OnDemandAgent>
+      it.agents.findAll { it instanceof OnDemandAgent } as Collection<OnDemandAgent>
     }.flatten()
   }
 
@@ -46,20 +49,48 @@ class CatsOnDemandCacheUpdater implements OnDemandCacheUpdater {
   }
 
   @Override
+  boolean handles(String type, String cloudProvider) {
+    onDemandAgents.any { it.handles(type, cloudProvider) }
+  }
+
+  @Override
   void handle(String type, Map<String, ? extends Object> data) {
-    Collection<OnDemandAgent> handleAgents = onDemandAgents.findAll { it.handles(type) }
-    for (OnDemandAgent agent : handleAgents) {
-      def providerCache = catsModule.getProviderRegistry().getProviderCache(awsProvider.providerName)
-      OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
-      if (result) {
-        if (result.evictions) {
-          result.evictions.each { String evictType, Collection<String> ids ->
-            providerCache.evictDeletedItems(evictType, ids)
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type) }
+    handle(type, onDemandAgents, data)
+  }
+
+  @Override
+  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+    Collection<OnDemandAgent> onDemandAgents = onDemandAgents.findAll { it.handles(type, cloudProvider) }
+    handle(type, onDemandAgents, data)
+  }
+
+  void handle(String type, Collection<OnDemandAgent> onDemandAgents, Map<String, ? extends Object> data) {
+    for (OnDemandAgent agent : onDemandAgents) {
+      try {
+        final long startTime = System.nanoTime()
+        def providerCache = catsModule.getProviderRegistry().getProviderCache(agent.providerName)
+        OnDemandAgent.OnDemandResult result = agent.handle(providerCache, data)
+        if (result) {
+          if (result.evictions) {
+            agent.metricsSupport.cacheEvict {
+              result.evictions.each { String evictType, Collection<String> ids ->
+                providerCache.evictDeletedItems(evictType, ids)
+              }
+            }
           }
+          if (result.cacheResult) {
+            agent.metricsSupport.cacheWrite {
+              providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
+            }
+          }
+          final long elapsed = System.nanoTime() - startTime
+          agent.metricsSupport.recordTotalRunTimeNanos(elapsed)
+          log.info("$agent.providerName/$agent.onDemandAgentType handled $type in ${TimeUnit.NANOSECONDS.toMillis(elapsed)} millis. Payload: $data")
         }
-        if (result.cacheResult) {
-          providerCache.putCacheResult(result.sourceAgentType, result.authoritativeTypes, result.cacheResult)
-        }
+      } catch (e) {
+        agent.metricsSupport.countError()
+        log.warn("$agent.providerName/$agent.onDemandAgentType failed to handle on demand update for $type", e)
       }
     }
   }

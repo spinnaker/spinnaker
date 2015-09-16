@@ -18,6 +18,7 @@ package com.netflix.spinnaker.oort.gce.model
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
+import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import org.apache.log4j.Logger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -26,7 +27,10 @@ import org.springframework.stereotype.Component
 class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   protected final Logger log = Logger.getLogger(GoogleOnDemandCacheUpdater.class)
 
-  private static final String TYPE = "GoogleServerGroup"
+  @Deprecated
+  private static final String LEGACY_TYPE = "GoogleServerGroup"
+
+  private static final String TYPE = "ServerGroup"
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
@@ -34,13 +38,26 @@ class GoogleOnDemandCacheUpdater implements OnDemandCacheUpdater {
   @Autowired
   GoogleResourceRetriever googleResourceRetriever
 
+  @Autowired
+  GoogleCloudProvider googleCloudProvider
+
   @Override
   boolean handles(String type) {
-    type == TYPE
+    type == LEGACY_TYPE
   }
 
   @Override
   void handle(String type, Map<String, ? extends Object> data) {
     googleResourceRetriever.handleCacheUpdate(data)
+  }
+
+  @Override
+  boolean handles(String type, String cloudProvider) {
+    type == TYPE && cloudProvider == googleCloudProvider.id
+  }
+
+  @Override
+  void handle(String type, String cloudProvider, Map<String, ? extends Object> data) {
+    handle(type, data)
   }
 }

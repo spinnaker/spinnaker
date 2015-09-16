@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.description
 
-import groovy.transform.ToString
-
 class DestroyAsgDescription extends AbstractAmazonCredentialsDescription {
 
   List<AsgDescription> asgs = []
@@ -28,10 +26,4 @@ class DestroyAsgDescription extends AbstractAmazonCredentialsDescription {
 
   @Deprecated
   List<String> regions = []
-
-  @ToString
-  static class AsgDescription {
-    String region
-    String asgName
-  }
 }

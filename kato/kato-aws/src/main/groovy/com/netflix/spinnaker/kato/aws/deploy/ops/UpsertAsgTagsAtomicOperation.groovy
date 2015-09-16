@@ -47,7 +47,7 @@ class UpsertAsgTagsAtomicOperation implements AtomicOperation<Void> {
   Void operate(List priorOutputs) {
     boolean hasSucceeded = true
     String descriptor = description.asgName ?: description.asgs.collect { it.toString() }
-    task.updateStatus BASE_PHASE, "Initializing Upsert Asg Tags operation for $descriptor..."
+    task.updateStatus BASE_PHASE, "Initializing Upsert ASG Tags operation for $descriptor..."
     for (region in description.regions) {
       hasSucceeded = upsertAsgTags(description.asgName, region)
     }

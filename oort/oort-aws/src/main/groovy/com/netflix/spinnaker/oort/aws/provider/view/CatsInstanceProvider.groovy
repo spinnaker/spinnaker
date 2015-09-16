@@ -16,12 +16,18 @@
 
 package com.netflix.spinnaker.oort.aws.provider.view
 
+import com.amazonaws.services.ec2.model.GetConsoleOutputRequest
+import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spinnaker.amos.AccountCredentialsProvider
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.aws.model.AmazonInstance
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
@@ -37,6 +43,14 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
     this.cacheView = cacheView
   }
 
+  @Autowired
+  AmazonClientProvider amazonClientProvider
+
+  @Autowired
+  AccountCredentialsProvider accountCredentialsProvider
+
+  String platform = "aws"
+
   @Override
   AmazonInstance getInstance(String account, String region, String id) {
     CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region))
@@ -50,6 +64,14 @@ class CatsInstanceProvider implements InstanceProvider<AmazonInstance> {
     }
 
     instance
+  }
+
+  String getConsoleOutput(String account, String region, String id) {
+    def credentials = accountCredentialsProvider.getCredentials(account)
+    if (!(credentials instanceof NetflixAmazonCredentials)) {
+      throw new IllegalArgumentException("Invalid credentials: ${account}:${region}")
+    }
+    amazonClientProvider.getAmazonEC2(credentials, region, true).getConsoleOutput(new GetConsoleOutputRequest(id)).decodedOutput
   }
 
 }

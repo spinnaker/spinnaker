@@ -92,7 +92,7 @@ class GoogleSearchProvider implements SearchProvider {
     standaloneInstanceMap?.each { account, instanceList ->
       instanceList.each { instance ->
         if (instance.name.indexOf(normalizedSearchTerm) >= 0) {
-          def localZoneName = instance.placement.availabilityZone
+          def localZoneName = instance.zone
           def region = localZoneName.substring(0, localZoneName.lastIndexOf("-"))
 
           standaloneInstanceMatches << [type: INSTANCES_TYPE,

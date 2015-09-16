@@ -18,5 +18,13 @@ package com.netflix.spinnaker.oort.model
 
 public interface InstanceProvider<T extends Instance> {
 
+  /**
+   * Returns the platform the instance provider
+   * @return a String, e.g. 'aws', 'gce'
+   */
+  String getPlatform()
+
   T getInstance(String account, String region, String id)
+
+  String getConsoleOutput(String account, String region, String id)
 }

@@ -68,10 +68,10 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
 //      .withImageName(dockerImage.imageName)
       .withImageVersion(dockerImage.imageVersion)
       .withInstances(description.capacity.desired)
-      .withCpu(description.cpu)
-      .withMemory(description.memory)
-      .withDisk(description.disk)
-      .withPorts(description.ports)
+      .withCpu(description.resources.cpu)
+      .withMemory(description.resources.memory)
+      .withDisk(description.resources.disk)
+      .withPorts(description.resources.ports)
       .withEnv(description.env)
 
     task.updateStatus BASE_PHASE, "Submitting job request to Titan..."

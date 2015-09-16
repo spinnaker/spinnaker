@@ -50,46 +50,62 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
   Void operate(List priorOutputs) {
     def performingAction = isRegister() ? 'Registering' : 'Deregistering'
     def task = getTask()
+    def asg = null
 
     task.updateStatus phaseName, "Initializing ${performingAction} of Instances (${description.instanceIds.join(", ")}) in Load Balancer Operation..."
-    def amazonELB = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
-    def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
-    asgService.getAutoScalingGroups(description.asgName ? [description.asgName] : null).each { AutoScalingGroup asg ->
-      def asgInstanceIds = asg.instances*.instanceId as Set<String>
-      def instancesInAsg = description.instanceIds.findAll {
-        asgInstanceIds.contains(it)
-      }.collect { new Instance(it)}
 
-      if (!instancesInAsg) {
-        return
-      }
-
-      def loadBalancerNames = asg.loadBalancerNames
-      if (!loadBalancerNames) {
-        // instances exist in this ASG but there is no load balancer to act against
-        task.updateStatus phaseName, "${performingAction} instances not required for ASG ${asg.autoScalingGroupName}, no load balancers are associated with this ASG"
-        return
-      }
-
-      loadBalancerNames.each {
-        task.updateStatus phaseName, "${performingAction} instances (${instancesInAsg*.instanceId.join(", ")}) in ${it}."
-        if (isRegister()) {
-          amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
-              it,
-              instancesInAsg
-          ))
-        } else {
-          amazonELB.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(
-              it,
-              instancesInAsg
-          ))
-        }
-        task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instancesInAsg*.instanceId.join(", ")}) in ${it}."
-      }
+    if (description.asgName) {
+      def asgService = regionScopedProviderFactory.forRegion(description.credentials, description.region).asgService
+      asg = asgService.getAutoScalingGroup(description.asgName)
     }
+
+    def instances = getInstances(asg)
+    def loadBalancerNames = getLoadBalancerNames(asg)
+
+    if (!loadBalancerNames) {
+      // instances may exist there are no load balancers to act against
+      task.updateStatus phaseName, "${performingAction} instances not required for Instances ${description.instanceIds.join(", ")}, no load balancers are found"
+      return
+    }
+
+    operateOnInstances(loadBalancerNames, instances, performingAction)
 
     task.updateStatus phaseName, "${performingAction} completed."
     null
+  }
+
+  private List<Instance> getInstances(AutoScalingGroup asg) {
+    if (asg) {
+      def asgInstanceIds = asg.instances*.instanceId as Set<String>
+      return description.instanceIds.findAll {
+        asgInstanceIds.contains(it)
+      }.collect { new Instance(it)}
+    }
+    return description.instanceIds.collect { new Instance(it) }
+  }
+
+  private List<String> getLoadBalancerNames(AutoScalingGroup asg) {
+    return asg ? asg.loadBalancerNames : description.loadBalancerNames
+  }
+
+  private void operateOnInstances(List<String> loadBalancerNames, List<Instance> instances, String performingAction) {
+    def task = getTask()
+    def amazonELB = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, description.region, true)
+    loadBalancerNames.each {
+      task.updateStatus phaseName, "${performingAction} instances (${instances*.instanceId.join(", ")}) in ${it}."
+      if (isRegister()) {
+        amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
+            it,
+            instances
+        ))
+      } else {
+        amazonELB.deregisterInstancesFromLoadBalancer(new DeregisterInstancesFromLoadBalancerRequest(
+            it,
+            instances
+        ))
+      }
+      task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId.join(", ")}) in ${it}."
+    }
   }
 
   private Task getTask() {

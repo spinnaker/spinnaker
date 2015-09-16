@@ -50,11 +50,8 @@ class DestroyTitanServerGroupAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus PHASE, "Destroying server group: ${serverGroup.serverGroupName}..."
       TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, serverGroup.region)
       Job job = titanClient.findJobByName(serverGroup.serverGroupName)
-      for (com.netflix.titanclient.model.Task task in job.tasks) {
-        titanClient.terminateTask(task.id)
-      }
-      task.updateStatus PHASE,
-        "Issued terminate tasks request to titan for all ${job.tasks.size()} tasks of ${serverGroup.serverGroupName} job"
+      titanClient.terminateJob(job.id)
+      task.updateStatus PHASE, "Issued terminate job request to titan for ${job.id} which corresponds to ${serverGroup.serverGroupName}"
       task.updateStatus PHASE, "Completed destroy server group operation for ${serverGroup.serverGroupName}"
     }
 

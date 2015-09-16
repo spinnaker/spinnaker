@@ -17,16 +17,14 @@
 
 package com.netflix.spinnaker.kato.config
 
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.AccountCredentialsRepository
-import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
-import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.kato.data.task.InMemoryTaskRepository
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DefaultDeployHandlerRegistry
 import com.netflix.spinnaker.kato.deploy.DeployHandler
 import com.netflix.spinnaker.kato.deploy.DeployHandlerRegistry
 import com.netflix.spinnaker.kato.deploy.NullOpDeployHandler
+import com.netflix.spinnaker.kato.orchestration.AnnotationsBasedAtomicOperationsRegistry
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.DefaultOrchestrationProcessor
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -57,5 +55,10 @@ class CoreConfiguration {
   @ConditionalOnMissingBean(DeployHandler)
   DeployHandler nullOpDeployHandler() {
     new NullOpDeployHandler()
+  }
+
+  @Bean
+  AtomicOperationsRegistry atomicOperationsRegistry() {
+    new AnnotationsBasedAtomicOperationsRegistry()
   }
 }

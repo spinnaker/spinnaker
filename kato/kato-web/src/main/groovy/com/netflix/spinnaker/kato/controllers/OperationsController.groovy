@@ -17,71 +17,87 @@
 
 package com.netflix.spinnaker.kato.controllers
 
-import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.deploy.DescriptionValidationErrors
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.netflix.spinnaker.kato.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationException
 import com.netflix.spinnaker.kato.orchestration.AtomicOperationNotFoundException
+import com.netflix.spinnaker.kato.orchestration.AtomicOperationsRegistry
 import com.netflix.spinnaker.kato.orchestration.OrchestrationProcessor
 import com.netflix.spinnaker.kato.security.AllowedAccountsValidator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.ApplicationContext
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
 import org.springframework.validation.Errors
 import org.springframework.validation.ObjectError
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@RequestMapping("/ops")
 class OperationsController {
-  @Autowired
-  MessageSource messageSource
 
-  @Autowired
-  ApplicationContext applicationContext
+  @Autowired MessageSource messageSource
+  @Autowired OrchestrationProcessor orchestrationProcessor
+  @Autowired Registry registry
+  @Autowired (required = false) Collection<AllowedAccountsValidator> allowedAccountValidators = []
+  @Autowired AtomicOperationsRegistry atomicOperationsRegistry
 
-  @Autowired
-  OrchestrationProcessor orchestrationProcessor
+  /*
+   * APIs
+   * ----------------------------------------------------------------------------------------------------------------------------
+   */
 
-  @Autowired
-  ExtendedRegistry extendedRegistry
-
-  @Autowired(required = false)
-  Collection<AllowedAccountsValidator> allowedAccountValidators = []
-
-  @RequestMapping(method = RequestMethod.POST)
-  Map<String, String> deploy(@RequestBody List<Map<String, Map>> requestBody) {
-    def atomicOperations = collectAtomicOperations(requestBody)
-    start atomicOperations
+  /**
+   * @deprecated Use /{cloudProvider}/ops instead
+   */
+  @Deprecated
+  @RequestMapping(value = "/ops", method = RequestMethod.POST)
+  Map<String, String> operations(@RequestBody List<Map<String, Map>> requestBody) {
+    List<AtomicOperation> atomicOperations = collectAtomicOperations(requestBody)
+    start(atomicOperations)
   }
 
-  @RequestMapping(value = "/{name}", method = RequestMethod.POST)
-  Map<String, String> atomic(@PathVariable("name") String name, @RequestBody Map requestBody) {
-    def atomicOperations = collectAtomicOperations([[(name): requestBody]])
-    start atomicOperations
+  /**
+   * @deprecated Use /{cloudProvider}/ops/{name} instead
+   */
+  @Deprecated
+  @RequestMapping(value = "/ops/{name}", method = RequestMethod.POST)
+  Map<String, String> operation(@PathVariable("name") String name, @RequestBody Map requestBody) {
+    List<AtomicOperation> atomicOperations = collectAtomicOperations([[(name): requestBody]])
+    start(atomicOperations)
   }
 
-  private List<AtomicOperation> collectAtomicOperations(List<Map<String, Map>> inputs) {
-    def results = convert(inputs)
-    def atomicOperations = []
-    for (bindingResult in results) {
-      if (bindingResult.errors.hasErrors()) {
-        throw new ValidationException(bindingResult.errors)
-      } else {
-        atomicOperations.addAll(bindingResult.atomicOperations)
-      }
-    }
-    atomicOperations
+  @RequestMapping(value = "/{cloudProvider}/ops", method = RequestMethod.POST)
+  Map<String, String> cloudProviderOperations(@PathVariable("cloudProvider") String cloudProvider,
+                                              @RequestBody List<Map<String, Map>> requestBody) {
+    List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, requestBody)
+    start(atomicOperations)
   }
+
+  @RequestMapping(value = "/{cloudProvider}/ops/{name}", method = RequestMethod.POST)
+  Map<String, String> cloudProviderOperation(@PathVariable("cloudProvider") String cloudProvider,
+                                             @PathVariable("name") String name,
+                                             @RequestBody Map requestBody) {
+    List<AtomicOperation> atomicOperations = collectAtomicOperations(cloudProvider, [[(name): requestBody]])
+    start(atomicOperations)
+  }
+
+  /*
+   * Error handlers
+   * ----------------------------------------------------------------------------------------------------------------------------
+   */
 
   @ExceptionHandler(ValidationException)
   @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -94,7 +110,7 @@ class OperationsController {
         errorStrings << ((message != objectError.code) ? message : (objectError.defaultMessage ?: message))
       }
     }
-    [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
+    [error: "Validation Failed", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
   }
 
   @ExceptionHandler(AtomicOperationException)
@@ -103,24 +119,43 @@ class OperationsController {
     [error: e.error, errors: e.errors, status: HttpStatus.BAD_REQUEST]
   }
 
-  private Map<String, String> start(List<AtomicOperation> atomicOperations) {
-    Task task = orchestrationProcessor.process(atomicOperations)
-    [id: task.id, resourceUri: "/task/${task.id}".toString()]
+  /*
+   * ----------------------------------------------------------------------------------------------------------------------------
+   */
+
+  private List<AtomicOperation> collectAtomicOperations(List<Map<String, Map>> inputs) {
+    collectAtomicOperations(null, inputs)
   }
 
-  private List<AtomicOperationBindingResult> convert(List<Map<String, Map>> inputs) {
+  private List<AtomicOperation> collectAtomicOperations(String cloudProvider, List<Map<String, Map>> inputs) {
+    def results = convert(cloudProvider, inputs)
+    def atomicOperations = []
+    for (bindingResult in results) {
+      if (bindingResult.errors.hasErrors()) {
+        throw new ValidationException(bindingResult.errors)
+      } else {
+        atomicOperations.addAll(bindingResult.atomicOperations)
+      }
+    }
+    atomicOperations
+  }
+
+  private List<AtomicOperationBindingResult> convert(String cloudProvider, List<Map<String, Map>> inputs) {
     def username = AuthenticatedRequest.getSpinnakerUser().orElse("unknown")
     def allowedAccounts = AuthenticatedRequest.getSpinnakerAccounts().orElse("").split(",") as List<String>
 
     def descriptions = []
-    inputs.collectMany { input ->
-      input.collect { k, v ->
-        def converter = (AtomicOperationConverter) applicationContext.getBean(k)
+    inputs.collectMany { Map<String, Map> input ->
+      input.collect { String k, Map v ->
+        def converter = atomicOperationsRegistry.getAtomicOperationConverter(k, cloudProvider ?: v.cloudProvider)
         def description = converter.convertDescription(new HashMap(v))
         descriptions << description
         def errors = new DescriptionValidationErrors(description)
-        if (applicationContext.containsBean("${k}Validator")) {
-          def validator = (DescriptionValidator) applicationContext.getBean("${k}Validator")
+
+        def validator = atomicOperationsRegistry.getAtomicOperationDescriptionValidator(
+          DescriptionValidator.getValidatorName(k), cloudProvider ?: v.cloudProvider
+        )
+        if (validator) {
           validator.validate(descriptions, description, errors)
         }
 
@@ -133,12 +168,17 @@ class OperationsController {
           throw new AtomicOperationNotFoundException(k)
         }
         if (errors.hasErrors()) {
-          extendedRegistry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
+          registry.counter("validationErrors", "operation", atomicOperation.class.simpleName).increment()
         }
         new AtomicOperationBindingResult(atomicOperation, errors)
       }
     }
 
+  }
+
+  private Map<String, String> start(List<AtomicOperation> atomicOperations) {
+    Task task = orchestrationProcessor.process(atomicOperations)
+    [id: task.id, resourceUri: "/task/${task.id}".toString()]
   }
 
   @Canonical

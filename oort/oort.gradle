@@ -18,7 +18,9 @@ subprojects {
     compile spinnaker.dependency("groovy")
     compile spinnaker.dependency("rxJava")
     compile spinnaker.dependency('amos')
-    spinnaker.group("cats")
+
+    compile project(':cats:cats-core')
+    compile project(':cats:cats-redis')
   }
 }
 

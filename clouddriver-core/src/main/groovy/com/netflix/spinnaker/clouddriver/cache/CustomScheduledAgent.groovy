@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.netflix.spinnaker.cats.agent.CachingAgent
+import com.netflix.spinnaker.cats.agent.Agent
 
-interface CustomScheduledAgent extends CachingAgent {
+interface CustomScheduledAgent extends Agent {
   long getPollIntervalMillis()
   long getTimeoutMillis()
 }

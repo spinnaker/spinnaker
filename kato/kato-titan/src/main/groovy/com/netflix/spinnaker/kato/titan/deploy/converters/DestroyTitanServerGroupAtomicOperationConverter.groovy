@@ -15,18 +15,19 @@
  */
 
 package com.netflix.spinnaker.kato.titan.deploy.converters
-
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.titan.deploy.description.DestroyTitanServerGroupDescription
 import com.netflix.spinnaker.kato.titan.deploy.ops.DestroyTitanServerGroupAtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
+
 /**
  * @author sthadeshwar
  */
-@Component("destroyTitanServerGroupDescription")
+@TitanOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 class DestroyTitanServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final TitanClientProvider titanClientProvider

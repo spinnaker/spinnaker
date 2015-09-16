@@ -21,31 +21,29 @@ import com.amazonaws.services.ec2.model.DescribeSecurityGroupsResult
 import com.amazonaws.services.ec2.model.SecurityGroup
 import com.netflix.amazoncomponents.data.AmazonObjectMapper
 import com.netflix.amazoncomponents.security.AmazonClientProvider
+import com.netflix.spectator.api.Spectator
 import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
+import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.aws.cache.Keys
 import spock.lang.Specification
 import spock.lang.Subject
 
 class AmazonSecurityGroupCachingAgentSpec extends Specification {
 
-
   static final String region = 'region'
   static final String account = 'account'
 
   AmazonEC2 ec2 = Mock(AmazonEC2)
-  NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) {
-    getName() >> account
-  }
-  AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) {
-    getAmazonEC2(creds, region) >> ec2
-  }
-
+  NetflixAmazonCredentials creds = Stub(NetflixAmazonCredentials) { getName() >> account }
+  AmazonCloudProvider amazonCloudProvider = new AmazonCloudProvider()
+  AmazonClientProvider amazonClientProvider = Stub(AmazonClientProvider) { getAmazonEC2(creds, region) >> ec2 }
   ProviderCache providerCache = Mock(ProviderCache)
-
   AmazonObjectMapper mapper = new AmazonObjectMapper()
-  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(amazonClientProvider, creds, region, mapper)
+
+  @Subject AmazonSecurityGroupCachingAgent agent = new AmazonSecurityGroupCachingAgent(amazonCloudProvider,
+    amazonClientProvider, creds, region, mapper, Spectator.registry())
 
   SecurityGroup securityGroupA = new SecurityGroup(groupId: 'id-a', groupName: 'name-a', description: 'a')
   SecurityGroup securityGroupB = new SecurityGroup(groupId: 'id-b', groupName: 'name-b', description: 'b')
