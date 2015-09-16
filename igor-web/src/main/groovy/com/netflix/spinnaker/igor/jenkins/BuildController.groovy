@@ -87,27 +87,6 @@ class BuildController {
         masters.map[master].getBuilds(job).list
     }
 
-    @RequestMapping(value = '/jobs/{master}/{job}/{buildNumber}/lock', method = RequestMethod.PUT)
-    void lockBuild(@PathVariable String master, @PathVariable String job, @PathVariable Integer buildNumber) {
-        if (!masters.map.containsKey(master)) {
-            throw new MasterNotFoundException()
-        }
-        try {
-            if (masters.map[master].getBuild(job, buildNumber).keepLog == false) {
-                masters.map[master].lock(job, buildNumber)
-                log.info("${master} ${job} ${buildNumber} is now locked")
-            } else {
-                log.info("${master} ${job} ${buildNumber} already locked - doing nothing")
-            }
-        } catch(e){
-            log.error("could not lock ${master} ${job} ${buildNumber}", e)
-            false
-        } finally {
-            true
-        }
-    }
-
-
     @RequestMapping(value = '/masters/{name}/jobs/{job:.+}', method = RequestMethod.PUT)
     String build(
         @PathVariable("name") String master,
