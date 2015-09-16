@@ -31,7 +31,7 @@ import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentia
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 import com.netflix.titanclient.model.Task
-import org.codehaus.jackson.annotate.JsonCreator
+import com.fasterxml.jackson.annotation.JsonCreator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
