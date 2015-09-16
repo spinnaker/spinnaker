@@ -84,15 +84,6 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Groups">
-      <ul>
-        <li ng-repeat="securityGroup in securityGroups">
-          <a ui-sref="^.securityGroupDetails({name:securityGroup.name, accountId: loadBalancer.account, region: loadBalancer.region, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})">
-            {{securityGroup.name}} ({{securityGroup.id}})
-          </a>
-        </li>
-      </ul>
-    </collapsible-section>
     <collapsible-section heading="Health Checks">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal dl-wide'">
         <dt>Target</dt>
