@@ -18,12 +18,9 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spectator.api.ExtendedRegistry
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
-import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
-import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
+import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.validator.ApplicationValidator
 import com.wordnik.swagger.annotations.Api
 import com.wordnik.swagger.annotations.ApiOperation
@@ -40,17 +37,14 @@ import javax.servlet.http.HttpServletResponse
 
 @Slf4j
 @RestController
-@RequestMapping("/{account}/applications")
+@RequestMapping(["/default/applications", "/global/applications"])
 @Api(value = "application", description = "Application API")
 public class ApplicationsController {
   @Autowired
   MessageSource messageSource
 
   @Autowired
-  AccountCredentialsProvider accountCredentialsProvider
-
-  @Autowired
-  List<ApplicationDAOProvider> applicationDAOProviders
+  ApplicationDAO applicationDAO
 
   @Autowired
   List<ApplicationValidator> applicationValidators
@@ -67,20 +61,20 @@ public class ApplicationsController {
 - /search?email=my@email.com
 - /search?email=my@email.com&name=flex
 """)
-  Set<Application> search(@PathVariable String account, @RequestParam Map<String, String> params) {
-    return getApplication(account).search(params)
+  Set<Application> search(@RequestParam Map<String, String> params) {
+    return getApplication().search(params)
   }
 
   @ApiOperation(value = "", notes = "Fetch all applications within a specific `account`")
   @RequestMapping(method = RequestMethod.GET)
-  Set<Application> applications(@PathVariable String account) {
-    return getApplication(account).findAll()
+  Set<Application> applications() {
+    return getApplication().findAll()
   }
 
   @ApiOperation(value = "", notes = "Update an existing application within a specific `account`")
   @RequestMapping(method = RequestMethod.PUT)
-  Application put(@PathVariable String account, @RequestBody final Application app) {
-    def application = getApplication(account)
+  Application put(@RequestBody final Application app) {
+    def application = getApplication()
     Application existingApplication = application.findByName(app.getName())
     application.initialize(existingApplication).withName(app.getName()).update(app)
     return application
@@ -88,21 +82,21 @@ public class ApplicationsController {
 
   @ApiOperation(value = "", notes = "Create an application within a specific `account`")
   @RequestMapping(method = RequestMethod.POST, value = "/name/{application:.+}")
-  Application post(@PathVariable String account, @RequestBody final Application app) {
-    return getApplication(account).initialize(app).withName(app.getName()).save()
+  Application post(@RequestBody final Application app) {
+    return getApplication().initialize(app).withName(app.getName()).save()
   }
 
   @ApiOperation(value = "", notes = "Delete an application from a specific `account`")
   @RequestMapping(method = RequestMethod.DELETE, value = "/name/{application:.+}")
-  void delete(@PathVariable String account, @PathVariable String application, HttpServletResponse response) {
-    getApplication(account).initialize(new Application().withName(application)).delete()
+  void delete(@PathVariable String application, HttpServletResponse response) {
+    getApplication().initialize(new Application().withName(application)).delete()
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
 
   @ApiOperation(value = "", notes = "Fetch a single application by name within a specific `account`")
   @RequestMapping(method = RequestMethod.GET, value = "/name/{application:.+}")
-  Application getByName(@PathVariable String account, @PathVariable final String application) {
-    return getApplication(account).findByName(application)
+  Application getByName(@PathVariable final String application) {
+    return getApplication().findByName(application)
   }
 
   @ExceptionHandler(Application.ValidationException)
@@ -119,23 +113,11 @@ public class ApplicationsController {
     return [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
   }
 
-  private Application getApplication(String account) {
-    return getApplication(accountCredentialsProvider.getCredentials(account))
-  }
-
-  private Application getApplication(AccountCredentials accountCredentials) {
-    def dao = null
-    for (daoProvider in applicationDAOProviders) {
-      if (daoProvider.supports(accountCredentials.getClass())) {
-        dao = daoProvider.getForAccount(accountCredentials)
-        break
-      }
-    }
-
-    if (!dao) {
-      throw new NotFoundException("No account provider found")
-    }
-
-    return new Application(dao: dao, validators: applicationValidators, applicationEventListeners: applicationEventListeners)
+  private Application getApplication() {
+    return new Application(
+        dao: applicationDAO,
+        validators: applicationValidators,
+        applicationEventListeners: applicationEventListeners
+    )
   }
 }

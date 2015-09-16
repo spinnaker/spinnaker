@@ -19,12 +19,9 @@
 package com.netflix.spinnaker.front50.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import com.netflix.spinnaker.front50.validator.HasEmailValidator
 import com.netflix.spinnaker.front50.validator.HasNameValidator
 import org.springframework.context.support.StaticMessageSource
@@ -38,9 +35,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-/**
- * Created by aglover on 4/18/14.
- */
 class ApplicationsControllerSpec extends Specification {
 
   @Shared
@@ -50,20 +44,12 @@ class ApplicationsControllerSpec extends Specification {
   ApplicationsController controller
 
   @Shared
-  AccountCredentialsProvider accountCredentialsProvider
-
-  @Shared
   ApplicationDAO dao
 
   void setup() {
     dao = Mock(ApplicationDAO)
-    def daoProvider = Mock(ApplicationDAOProvider)
-    daoProvider.supports(_) >> true
-    daoProvider.getForAccount(_) >> dao
-    accountCredentialsProvider = Mock(AccountCredentialsProvider)
     this.controller = new ApplicationsController(
-        applicationDAOProviders: [daoProvider],
-        accountCredentialsProvider: accountCredentialsProvider,
+        applicationDAO: dao,
         applicationValidators: [new HasNameValidator(), new HasEmailValidator()],
         messageSource: new StaticMessageSource()
     )
@@ -76,11 +62,10 @@ class ApplicationsControllerSpec extends Specification {
       null, null, null, null, null, null, null, null, null, null, null, null)
 
     when:
-    def response = mockMvc.perform(put("/test/applications").
+    def response = mockMvc.perform(put("/default/applications").
       contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
     1 * dao.findByName(_) >> sampleApp
@@ -93,11 +78,10 @@ class ApplicationsControllerSpec extends Specification {
       null, null, null, null, null, null, null, null, null, null, null, null)
 
     when:
-    def response = mockMvc.perform(put("/test/applications").
+    def response = mockMvc.perform(put("/default/applications").
       contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     response.andExpect status().is4xxClientError()
   }
 
@@ -107,11 +91,10 @@ class ApplicationsControllerSpec extends Specification {
       "netflix.com application", "Standalone Application", null, null, null, null, null, null, null, null, null, null)
 
     when:
-    def response = mockMvc.perform(post("/test/applications/name/app").
+    def response = mockMvc.perform(post("/default/applications/name/app").
       contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     response.andExpect status().is4xxClientError()
   }
 
@@ -121,11 +104,10 @@ class ApplicationsControllerSpec extends Specification {
         "netflix.com application", "Standalone Application", null, null, null, null, null, null, null, null, null, null)
 
     when:
-    def response = mockMvc.perform(post("/test/applications/name/SAMPLEAPP").
+    def response = mockMvc.perform(post("/default/applications/name/SAMPLEAPP").
         contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     1 * dao.findByName("SAMPLEAPP") >> sampleApp
     response.andExpect status().is4xxClientError()
   }
@@ -137,11 +119,10 @@ class ApplicationsControllerSpec extends Specification {
     dao.create(_, _) >> sampleApp
 
     when:
-    def response = mockMvc.perform(post("/test/applications/name/SAMPLEAPP").
+    def response = mockMvc.perform(post("/default/applications/name/SAMPLEAPP").
       contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(sampleApp)))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     1 * dao.findByName(_) >> { throw new NotFoundException() }
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
@@ -153,31 +134,28 @@ class ApplicationsControllerSpec extends Specification {
       "netflix.com application", "Standalone Application", null, null, null, null, null, "1265752693581l", "1265752693581l", null, null, null)
 
     when:
-    def response = mockMvc.perform(get("/test/applications/name/SAMPLEAPP"))
+    def response = mockMvc.perform(get("/default/applications/name/SAMPLEAPP"))
 
     then:
     1 * dao.findByName(_) >> sampleApp
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApp))
   }
 
   void 'a get w/a invalid name should return 404'() {
     when:
-    def response = mockMvc.perform(get("/test/applications/name/blah"))
+    def response = mockMvc.perform(get("/default/applications/name/blah"))
 
     then:
     1 * dao.findByName(_) >> { throw new NotFoundException("not found!") }
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     response.andExpect status().is(404)
   }
 
   void 'delete should remove an app'() {
     when:
-    def response = mockMvc.perform(delete("/test/applications/name/SAMPLEAPP"))
+    def response = mockMvc.perform(delete("/default/applications/name/SAMPLEAPP"))
 
     then:
-    1 * accountCredentialsProvider.getCredentials("test") >> Stub(AccountCredentials)
     1 * dao.findByName("SAMPLEAPP") >> new Application(name: "SAMPLEAPP")
     1 * dao.delete("SAMPLEAPP")
     response.andExpect status().isAccepted()
@@ -196,12 +174,11 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     1 * dao.all() >> sampleApps
-    1 * accountCredentialsProvider.getCredentials(account) >> Stub(AccountCredentials)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
 
     where:
-    account = "test"
+    account = "default"
   }
 
   void "search hits the dao"() {
@@ -216,12 +193,11 @@ class ApplicationsControllerSpec extends Specification {
 
     then:
     1 * dao.search([q:"p"]) >> sampleApps
-    1 * accountCredentialsProvider.getCredentials(account) >> Stub(AccountCredentials)
     response.andExpect status().isOk()
     response.andExpect content().string(new ObjectMapper().writeValueAsString(sampleApps))
 
     where:
-    account = "test"
+    account = "default"
   }
 
 }

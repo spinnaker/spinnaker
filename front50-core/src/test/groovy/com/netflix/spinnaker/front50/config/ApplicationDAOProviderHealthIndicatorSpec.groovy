@@ -17,10 +17,7 @@
 
 package com.netflix.spinnaker.front50.config
 
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
-import com.netflix.spinnaker.front50.model.application.ApplicationDAOProvider
 import org.springframework.boot.actuate.health.Status
 import spock.lang.Shared
 import spock.lang.Specification
@@ -33,10 +30,8 @@ class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
   ApplicationDAO dao
 
   void setup() {
-    def accountCredentialsProvider = Stub(AccountCredentialsProvider)
-    accountCredentialsProvider.all >> [Stub(AccountCredentials)]
     dao = Mock(ApplicationDAO)
-    healthCheck = new ApplicationDAOProviderHealthIndicator(accountCredentialsProvider: accountCredentialsProvider, applicationDAOProviders: [new TestApplicationDAOProvider(dao: dao)])
+    healthCheck = new ApplicationDAOProviderHealthIndicator(applicationDAO: dao)
   }
 
   void 'health check should return 5xx error if dao is not working'() {
@@ -57,19 +52,5 @@ class ApplicationDAOProviderHealthIndicatorSpec extends Specification {
     then:
     1 * dao.isHealthly() >> true
     result.status == Status.UP
-  }
-
-  static class TestApplicationDAOProvider implements ApplicationDAOProvider<AccountCredentials> {
-    ApplicationDAO dao
-
-    @Override
-    boolean supports(Class credentialsClass) {
-      true
-    }
-
-    @Override
-    ApplicationDAO getForAccount(AccountCredentials credentials) {
-      dao
-    }
   }
 }

@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.front50.controllers
 
-import com.netflix.spinnaker.amos.AccountCredentials
-import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.front50.security.CassandraCredentials
 import org.springframework.http.MediaType
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import org.springframework.test.web.servlet.MockMvc
@@ -35,12 +32,8 @@ class CredentialsControllerSpec extends Specification {
   @Shared
   CredentialsController controller
 
-  @Shared
-  AccountCredentialsProvider accountCredentialsProvider
-
   void setup() {
-    accountCredentialsProvider = Mock(AccountCredentialsProvider)
-    controller = new CredentialsController(accountCredentialsProvider: accountCredentialsProvider)
+    controller = new CredentialsController(globalName: "default")
     mvc = MockMvcBuilders.standaloneSetup(controller).setMessageConverters(new MappingJackson2HttpMessageConverter()).build()
   }
 
@@ -49,16 +42,7 @@ class CredentialsControllerSpec extends Specification {
     def result = mvc.perform(MockMvcRequestBuilders.get("/credentials").accept(MediaType.APPLICATION_JSON)).andReturn()
 
     then:
-    1 * accountCredentialsProvider.getAll() >> {
-      def nonGlobalMock = Mock(AccountCredentials)
-      nonGlobalMock.getName() >> "test"
-
-      def globalMock = Mock(CassandraCredentials)
-      globalMock.getName() >> "global"
-
-      [nonGlobalMock, globalMock]
-    }
     result.response.status == 200
-    result.response.contentAsString == '[{"name":"test","global":false},{"name":"global","global":true}]'
+    result.response.contentAsString == '[{"name":"default","global":true}]'
   }
 }
