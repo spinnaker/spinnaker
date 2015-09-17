@@ -48,7 +48,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution.id != null
 
     where:
-    execution << [new Pipeline(), new Orchestration()]
+    execution << [new Pipeline(buildTime: 0), new Orchestration()]
 
   }
 
@@ -60,7 +60,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     execution.id == old(execution.id)
 
     where:
-    execution << [new Pipeline(id: "a-preassigned-id"), new Orchestration(id: "a-preassigned-id")]
+    execution << [new Pipeline(id: "a-preassigned-id", buildTime: 0), new Orchestration(id: "a-preassigned-id")]
   }
 
   def "a pipeline can be retrieved after being stored"() {
@@ -210,5 +210,33 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
     where:
     id = "some-pipeline-id"
+  }
+
+  def "storing/deleting a pipeline updates the executionsByPipeline set"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withStage("one", "one", [:])
+      .withApplication("someApp")
+      .build()
+
+    when:
+    repository.store(pipeline)
+
+    then:
+    jedis.zrange(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1) == [
+        pipeline.id
+    ] as Set<String>
+
+    when:
+    repository.deletePipeline(pipeline.id)
+    repository.retrievePipeline(pipeline.id)
+
+    then:
+    thrown ExecutionNotFoundException
+
+    and:
+    repository.retrievePipelines().toList().toBlocking().first() == []
+    jedis.zrange(JedisExecutionRepository.executionsByPipelineKey(pipeline.pipelineConfigId), 0, 1).isEmpty()
   }
 }
