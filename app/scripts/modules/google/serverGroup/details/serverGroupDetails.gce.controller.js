@@ -255,7 +255,11 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
     };
 
     this.getNetwork = function() {
-      if ($scope.serverGroup && $scope.serverGroup.launchConfig.instanceTemplate.properties) {
+      if ($scope.serverGroup &&
+          $scope.serverGroup.launchConfig &&
+          $scope.serverGroup.launchConfig.instanceTemplate &&
+          $scope.serverGroup.launchConfig.instanceTemplate.properties &&
+          $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces) {
         var networkInterfaces = $scope.serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
 
         if (networkInterfaces.length === 1) {

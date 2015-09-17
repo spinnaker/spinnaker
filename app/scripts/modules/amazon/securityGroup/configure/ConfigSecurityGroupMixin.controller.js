@@ -61,7 +61,7 @@ module.exports = angular
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
-        region: $scope.securityGroup.region,
+        region: $scope.securityGroup.regions[0],
         provider: 'aws',
       };
       if (!$state.includes('**.securityGroupDetails')) {
