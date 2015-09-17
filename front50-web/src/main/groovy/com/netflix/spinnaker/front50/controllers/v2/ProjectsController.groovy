@@ -88,7 +88,11 @@ public class ProjectsController {
   @ApiOperation(value = "", notes = "Fetch a single project")
   @RequestMapping(method = RequestMethod.GET, value = "/{projectId}")
   ProjectResource project(@PathVariable String projectId) {
-    return new ProjectResourceAssembler().toResource(projectDAO.findBy("id", projectId))
+    try {
+      return assembler.toResource(projectDAO.findBy("name", projectId))
+    } catch (NotFoundException e) {
+      return assembler.toResource(projectDAO.findBy("id", projectId))
+    }
   }
 
   @ApiOperation(value = "", notes = "Update an existing project")
