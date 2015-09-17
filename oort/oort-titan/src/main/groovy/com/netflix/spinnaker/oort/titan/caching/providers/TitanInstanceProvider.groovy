@@ -19,6 +19,7 @@ package com.netflix.spinnaker.oort.titan.caching.providers
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
@@ -34,10 +35,12 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
 
   private final Cache cacheView
   private final ObjectMapper objectMapper
+  private final TitanCloudProvider titanCloudProvider
 
   @Autowired
-  TitanInstanceProvider(Cache cacheView) {
+  TitanInstanceProvider(Cache cacheView, TitanCloudProvider titanCloudProvider) {
     this.cacheView = cacheView
+    this.titanCloudProvider = titanCloudProvider
   }
 
   @Override
@@ -56,4 +59,13 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
     instance
   }
 
+  @Override
+  String getPlatform() {
+    titanCloudProvider.id
+  }
+
+  @Override
+  String getConsoleOutput(String account, String region, String id) {
+    return null // TODO - TBD
+  }
 }

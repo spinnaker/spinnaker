@@ -60,12 +60,12 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
 
   @Override
   Map<String, Set<TitanCluster>> getClusterSummaries(String applicationName) {
-    getClusters0(applicationName, false)
+    getClustersInternal(applicationName, false)
   }
 
   @Override
   Map<String, Set<TitanCluster>> getClusterDetails(String applicationName) {
-    getClusters0(applicationName, true)
+    getClustersInternal(applicationName, true)
   }
 
   @Override
@@ -134,7 +134,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
     clusters
   }
 
-  private Map<String, Set<TitanCluster>> getClusters0(String applicationName, boolean includeDetails) {
+  private Map<String, Set<TitanCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) {
       return null

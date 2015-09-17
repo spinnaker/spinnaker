@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.oort.titan.model
 
 import com.netflix.spinnaker.oort.model.Application
+import groovy.transform.Canonical
 
 /**
  * @author sthadeshwar
  */
+@Canonical
 class TitanApplication implements Application, Serializable {
   String name
   Map<String, Set<String>> clusterNames = Collections.synchronizedMap(new HashMap<String, Set<String>>())

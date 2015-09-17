@@ -15,11 +15,10 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching
-
+import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
 import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
-import org.springframework.beans.factory.annotation.Autowired
 
 class TitanCachingProvider implements Provider {
 
@@ -27,9 +26,6 @@ class TitanCachingProvider implements Provider {
 
   private final Collection<CachingAgent> agents
   private final Collection<HealthProvidingCachingAgent> healthAgents
-
-  @Autowired(required = false)
-  List<HealthProvidingCachingAgent> externalHealthProvidingCachingAgents = []
 
   TitanCachingProvider(Collection<CachingAgent> agents) {
     this.agents = Collections.unmodifiableCollection(agents)
@@ -41,15 +37,14 @@ class TitanCachingProvider implements Provider {
     PROVIDER_NAME
   }
 
-  @Override
-  Collection<CachingAgent> getCachingAgents() {
-    agents
-  }
-
   Collection<HealthProvidingCachingAgent> getHealthAgents() {
     def allHealthAgents = []
     allHealthAgents.addAll(this.healthAgents)
-    allHealthAgents.addAll(this.externalHealthProvidingCachingAgents)
     Collections.unmodifiableCollection(allHealthAgents)
+  }
+
+  @Override
+  Collection<Agent> getAgents() {
+    agents
   }
 }

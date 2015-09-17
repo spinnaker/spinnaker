@@ -23,6 +23,7 @@ import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.oort.aws.data.Keys
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
+import com.netflix.spinnaker.oort.titan.model.TitanApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -57,7 +58,7 @@ class TitanApplicationProvider implements ApplicationProvider {
       return null
     }
     String name = Keys.parse(cacheData.id).application
-    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, CatsApplication.ATTRIBUTES)
+    Map<String, String> attributes = objectMapper.convertValue(cacheData.attributes, new TypeReference<Map<String, String>>() {})
     Map<String, Set<String>> clusterNames = [:].withDefault { new HashSet<String>() }
     for (String clusterId : cacheData.relationships[CLUSTERS.ns]) {
       Map<String, String> cluster = Keys.parse(clusterId)
@@ -65,19 +66,7 @@ class TitanApplicationProvider implements ApplicationProvider {
         clusterNames[cluster.account].add(cluster.cluster)
       }
     }
-    new CatsApplication(name, attributes, clusterNames)
+    new TitanApplication(name, clusterNames, attributes)
   }
 
-  private static class CatsApplication implements Application {
-    public static final TypeReference<Map<String, String>> ATTRIBUTES = new TypeReference<Map<String, String>>() {}
-    final String name
-    final Map<String, String> attributes
-    final Map<String, Set<String>> clusterNames
-
-    CatsApplication(String name, Map<String, String> attributes, Map<String, Set<String>> clusterNames) {
-      this.name = name
-      this.attributes = attributes
-      this.clusterNames = clusterNames
-    }
-  }
 }
