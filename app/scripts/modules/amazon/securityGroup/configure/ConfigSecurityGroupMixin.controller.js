@@ -217,7 +217,7 @@ module.exports = angular
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        var region = $scope.securityGroup.region;
+        var region = $scope.securityGroup.regions[0];
         var vpcId = $scope.securityGroup.vpcId || null;
 
         var availableGroups;
