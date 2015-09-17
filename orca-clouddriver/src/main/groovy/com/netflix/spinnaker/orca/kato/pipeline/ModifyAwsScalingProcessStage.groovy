@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupLinearStageSupport
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeScalingProcessTask
 import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendScalingProcessTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,12 +28,11 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-@Deprecated
-class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
+class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
-  static final String PIPELINE_CONFIG_TYPE = "modifyScalingProcess"
+  static final String PIPELINE_CONFIG_TYPE = "modifyAwsScalingProcess"
 
-  ModifyScalingProcessStage() {
+  ModifyAwsScalingProcessStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
-import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.LinearStage
@@ -142,7 +141,6 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage {
 
   protected List<Injectable> postDynamic(Map context) {}
 
-  @VisibleForTesting
   static class Injectable {
     String type
     StageBuilder stage

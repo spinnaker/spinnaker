@@ -41,7 +41,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
   public static final String TYPE = "resizeServerGroup"
 
   @Autowired
-  ModifyScalingProcessStage modifyScalingProcessStage
+  ModifyAwsScalingProcessStage modifyAwsScalingProcessStage
 
   ResizeServerGroupStage() {
     super(TYPE)
@@ -72,7 +72,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     }
     [new Injectable(
       type: "resumeScalingProcesses",
-      stage: modifyScalingProcessStage,
+      stage: modifyAwsScalingProcessStage,
       context: [
         asgName      : descriptor.asgName,
         cloudProvider: descriptor.cloudProvider,
@@ -91,7 +91,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     }
     [new Injectable(
       type: "suspendScalingProcesses",
-      stage: modifyScalingProcessStage,
+      stage: modifyAwsScalingProcessStage,
       context: [
         asgName      : descriptor.asgName,
         cloudProvider: descriptor.cloudProvider,
@@ -110,7 +110,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     context.remove("asgName")
     [new Injectable(
       type: "resumeScalingProcesses",
-      stage: modifyScalingProcessStage,
+      stage: modifyAwsScalingProcessStage,
       context: context + [
         action   : "resume",
         processes: ["Launch", "Terminate"]
@@ -126,7 +126,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     context.remove("asgName")
     [new Injectable(
       type: "suspendScalingProcesses",
-      stage: modifyScalingProcessStage,
+      stage: modifyAwsScalingProcessStage,
       context: context + [
         action: "suspend",
       ],
