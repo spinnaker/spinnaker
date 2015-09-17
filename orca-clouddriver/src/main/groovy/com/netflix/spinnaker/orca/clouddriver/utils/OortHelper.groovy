@@ -110,9 +110,6 @@ class OortHelper {
       instanceMap.put(instance.instanceId, instanceInfo)
     }
 
-    if(instanceMap.size() == 0) {
-      throw new RuntimeException("could not find any instances")
-    }
     return instanceMap
   }
 }

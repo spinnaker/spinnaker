@@ -68,6 +68,7 @@ class JedisExecutionRepository implements ExecutionRepository {
   void store(Pipeline pipeline) {
     withJedis { Jedis jedis ->
       storeExecutionInternal(jedis, pipeline)
+      jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
     }
   }
 
@@ -224,6 +225,12 @@ class JedisExecutionRepository implements ExecutionRepository {
       def appKey = appKey(type, item.application)
       jedis.srem(appKey, id)
 
+      if (item instanceof Pipeline) {
+        ((Pipeline) item).with {
+          jedis.zrem(executionsByPipelineKey(pipelineConfigId), item.id)
+        }
+      }
+
       item.stages.each { Stage stage ->
         def stageKey = "${type.simpleName.toLowerCase()}:stage:${stage.id}"
         jedis.hdel(stageKey, "config")
@@ -266,7 +273,7 @@ class JedisExecutionRepository implements ExecutionRepository {
           return Observable.empty()
         }
       }
-        .subscribeOn(scheduler)
+      .subscribeOn(scheduler)
     }
   }
 
@@ -276,6 +283,11 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   private String appKey(Class type, String app) {
     "${type.simpleName.toLowerCase()}:app:${app}"
+  }
+
+  static String executionsByPipelineKey(String pipelineConfigId) {
+    pipelineConfigId = pipelineConfigId ?: "---"
+    "pipeline:executions:$pipelineConfigId"
   }
 
   private <T> T withJedis(Function<Jedis, T> action) {
