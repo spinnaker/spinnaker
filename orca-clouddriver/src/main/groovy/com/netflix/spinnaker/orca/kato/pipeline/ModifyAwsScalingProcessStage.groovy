@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.kato.pipeline
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupLinearStageSupport
-import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeScalingProcessTask
-import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendScalingProcessTask
+import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.ResumeAwsScalingProcessTask
+import com.netflix.spinnaker.orca.kato.tasks.scalingprocess.SuspendAwsScalingProcessTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
@@ -31,6 +31,8 @@ import org.springframework.stereotype.Component
 class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
   static final String PIPELINE_CONFIG_TYPE = "modifyAwsScalingProcess"
+
+  String name = "Modify Scaling Process"
 
   ModifyAwsScalingProcessStage() {
     super(PIPELINE_CONFIG_TYPE)
@@ -44,13 +46,13 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
     switch (data.action) {
       case StageAction.suspend:
         return [
-          buildStep(stage, "suspend", SuspendScalingProcessTask),
+          buildStep(stage, "suspend", SuspendAwsScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
           buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
         ]
       case StageAction.resume:
         return [
-          buildStep(stage, "resume", ResumeScalingProcessTask),
+          buildStep(stage, "resume", ResumeAwsScalingProcessTask),
           buildStep(stage, "monitor", MonitorKatoTask),
           buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
         ]
