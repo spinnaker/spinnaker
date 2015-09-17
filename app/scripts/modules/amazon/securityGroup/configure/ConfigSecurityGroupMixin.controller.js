@@ -62,6 +62,7 @@ module.exports = angular
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
         region: $scope.securityGroup.regions[0],
+        vpcId: $scope.securityGroup.vpcId,
         provider: 'aws',
       };
       if (!$state.includes('**.securityGroupDetails')) {
