@@ -27,18 +27,18 @@
           </div>
           <div ng-if="preview.securityGroups.length">
             <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.awsReference.identity.groupName}}</div>
+            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
           </div>
           <div ng-if="preview.loadBalancers.length">
             <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.awsReference.identity.loadBalancerName}}</div>
+            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
             <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
               you will need to set that up in the AWS console.
             </p>
           </div>
           <div ng-if="preview.serverGroups.length">
             <h4><span class="small glyphicon glyphicon-th"></span> Server Groups</h4>
-            <div ng-repeat="serverGroup in preview.serverGroups" class="preview-entry">{{serverGroup.awsReference.identity.autoScalingGroupName}}</div>
+            <div ng-repeat="serverGroup in preview.serverGroups" class="preview-entry">{{serverGroup.mutationDetails.awsReference.identity.autoScalingGroupName}}</div>
             <p ng-if="!viewState.migrationComplete" class="note">Note: server groups will be started in a disabled state with zero instances.</p>
             <p ng-if="viewState.migrationComplete" class="note">Note: server group has been started in a disabled state with zero instances.</p>
           </div>

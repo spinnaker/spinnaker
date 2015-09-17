@@ -93,7 +93,7 @@ module.exports = angular
     }
 
     function mutationIs(mutation, field) {
-      return mutation.awsReference && mutation.awsReference.identity && mutation.awsReference.identity[field];
+      return mutation.mutationDetails && mutation.mutationDetails.awsReference && mutation.mutationDetails.awsReference.identity && mutation.mutationDetails.awsReference.identity[field];
     }
 
     return {

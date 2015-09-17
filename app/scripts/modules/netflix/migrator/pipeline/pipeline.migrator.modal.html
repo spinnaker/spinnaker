@@ -20,7 +20,7 @@
         <div class="col-md-10 col-md-offset-1">
           <div ng-if="!viewState.migrationComplete">
             <p>This will create new pipeline named
-              <strong>{{preview.pipelines[0].pipelineToCreate.name}}</strong>. All triggers will be disabled.</p>
+              <strong>{{preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong>. All triggers will be disabled.</p>
             <p ng-if="!preview.securityGroups.length && !preview.loadBalancers.length">
               All load balancers and security groups needed for server groups deployed in the pipeline have already
               been migrated to VPC0, so this will just create the new pipeline.
@@ -36,18 +36,18 @@
           </div>
           <div ng-if="preview.securityGroups.length">
             <h4><span class="glyphicon glyphicon-transfer small"></span> Security Groups</h4>
-            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.awsReference.identity.groupName}}</div>
+            <div ng-repeat="securityGroup in preview.securityGroups" class="preview-entry">{{securityGroup.mutationDetails.awsReference.identity.groupName}}</div>
           </div>
           <div ng-if="preview.loadBalancers.length">
             <h4><span class="small icon icon-elb"></span> Load Balancers</h4>
-            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.awsReference.identity.loadBalancerName}}</div>
+            <div ng-repeat="loadBalancer in preview.loadBalancers" class="preview-entry">{{loadBalancer.mutationDetails.awsReference.identity.loadBalancerName}}</div>
             <p class="note">Note: if Route53 or sticky session policies are configured for the current load balancer,
               you will need to set that up in the AWS console.
             </p>
           </div>
           <div ng-if="viewState.migrationComplete">
             <p>The new pipeline named
-              <strong>{{preview.pipelines[0].pipelineToCreate.name}}</strong> is available for review.</p>
+              <strong>{{preview.pipelines[0].mutationDetails.pipelineToCreate.name}}</strong> is available for review.</p>
           </div>
           <div ng-if="actionableDeployStages.length && viewState.migrationComplete" class="alert alert-warning">
             <h4 style="margin-top:0;">Important</h4>
