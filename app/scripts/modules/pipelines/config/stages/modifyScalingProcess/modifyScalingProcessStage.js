@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.modifyScalingProcessS
     pipelineConfigProvider.registerStage({
       label: 'Modify Scaling Process',
       description: 'Suspend/Resume Scaling Processes',
-      key: 'modifyScalingProcess',
+      key: 'modifyAwsScalingProcess',
       controller: 'ModifyScalingProcessStageCtrl',
       controlelrAs: 'modifyScalingProcessStageCtrl',
       templateUrl: require('./modifyScalingProcessStage.html'),
