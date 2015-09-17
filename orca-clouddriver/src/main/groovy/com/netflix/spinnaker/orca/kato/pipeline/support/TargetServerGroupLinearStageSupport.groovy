@@ -18,19 +18,22 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import com.netflix.spinnaker.orca.batch.StageBuilder
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.kato.pipeline.Nameable
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-abstract class TargetServerGroupLinearStageSupport extends LinearStage {
+abstract class TargetServerGroupLinearStageSupport extends LinearStage implements Nameable {
 
   @Autowired
   TargetServerGroupResolver resolver
 
   @Autowired
   DetermineTargetServerGroupStage determineTargetServerGroupStage
+
+  String name = this.type
 
   TargetServerGroupLinearStageSupport(String name) {
     super(name)
@@ -57,22 +60,22 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage {
     stage.context.putAll(first)
 
     preStatic(first).each {
-      injectBefore(stage, it.type, it.stage, it.context)
+      injectBefore(stage, it.name, it.stage, it.context)
     }
     postStatic(first).each {
-      injectAfter(stage, it.type, it.stage, it.context)
+      injectAfter(stage, it.name, it.stage, it.context)
     }
 
     for (description in descriptionList) {
       preStatic(description).each {
         // Operations done after the first iteration must all be added with injectAfter.
-        injectAfter(stage, it.type, it.stage, it.context)
+        injectAfter(stage, it.name, it.stage, it.context)
       }
-
-      injectAfter(stage, this.type, this, description)
+      log.info "~~~~ INJECTING {}", name
+      injectAfter(stage, name, this, description)
 
       postStatic(description).each {
-        injectAfter(stage, it.type, it.stage, it.context)
+        injectAfter(stage, it.name, it.stage, it.context)
       }
     }
   }
@@ -110,10 +113,10 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage {
     stage.context.regions = [configuredLocations.remove(0)]
 
     preDynamic(stage.context).each {
-      injectBefore(stage, it.type, it.stage, it.context)
+      injectBefore(stage, it.name, it.stage, it.context)
     }
     postDynamic(stage.context).each {
-      injectAfter(stage, it.type, it.stage, it.context)
+      injectAfter(stage, it.name, it.stage, it.context)
     }
 
     for (location in configuredLocations) {
@@ -121,11 +124,12 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage {
       ctx.regions = [location]
       preDynamic(ctx).each {
         // Operations done after the first iteration must all be added with injectAfter.
-        injectAfter(stage, it.type, it.stage, it.context)
+        injectAfter(stage, it.name, it.stage, it.context)
       }
-      injectAfter(stage, this.type, this, ctx)
+      log.info "~~~~ INJECTING {}", name
+      injectAfter(stage, name, this, ctx)
       postDynamic(ctx).each {
-        injectAfter(stage, it.type, it.stage, it.context)
+        injectAfter(stage, it.name, it.stage, it.context)
       }
     }
 
@@ -142,7 +146,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage {
   protected List<Injectable> postDynamic(Map context) {}
 
   static class Injectable {
-    String type
+    String name
     StageBuilder stage
     Map<String, Object> context
   }

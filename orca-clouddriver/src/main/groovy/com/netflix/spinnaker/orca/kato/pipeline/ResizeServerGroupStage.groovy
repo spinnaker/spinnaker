@@ -71,7 +71,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
       return []
     }
     [new Injectable(
-      type: "resumeScalingProcesses",
+      name: "resumeScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: [
         asgName      : descriptor.asgName,
@@ -90,7 +90,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
       return []
     }
     [new Injectable(
-      type: "suspendScalingProcesses",
+      name: "suspendScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: [
         asgName      : descriptor.asgName,
@@ -109,7 +109,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     }
     context.remove("asgName")
     [new Injectable(
-      type: "resumeScalingProcesses",
+      name: "resumeScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: context + [
         action   : "resume",
@@ -125,7 +125,7 @@ class ResizeServerGroupStage extends TargetServerGroupLinearStageSupport {
     }
     context.remove("asgName")
     [new Injectable(
-      type: "suspendScalingProcesses",
+      name: "suspendScalingProcesses",
       stage: modifyAwsScalingProcessStage,
       context: context + [
         action: "suspend",

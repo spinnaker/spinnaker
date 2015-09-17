@@ -32,10 +32,9 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
 
   static final String PIPELINE_CONFIG_TYPE = "modifyAwsScalingProcess"
 
-  String name = "Modify Scaling Process"
-
   ModifyAwsScalingProcessStage() {
     super(PIPELINE_CONFIG_TYPE)
+    name = "Modify Scaling Process"
   }
 
   @Override

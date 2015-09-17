@@ -100,12 +100,12 @@ class TargetServerGroupLinearStageSupportSpec extends Specification {
       def stage = new PipelineStage(new Pipeline(), "test", [target: target, regions: ["us-east-1", "us-west-1"]])
       def arbitraryStageBuilder = new ResizeServerGroupStage()
       supportStage.preInjectables = [new TargetServerGroupLinearStageSupport.Injectable(
-        type: "testPreInjectable",
+        name: "testPreInjectable",
         stage: arbitraryStageBuilder,
         context: ["abc": 123]
       )]
       supportStage.postInjectables = [new TargetServerGroupLinearStageSupport.Injectable(
-        type: "testPostInjectable",
+        name: "testPostInjectable",
         stage: arbitraryStageBuilder,
         context: ["abc": 123]
       )]
