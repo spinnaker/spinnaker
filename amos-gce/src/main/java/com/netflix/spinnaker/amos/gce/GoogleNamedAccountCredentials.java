@@ -11,6 +11,7 @@ import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.ComputeScopes;
 import com.google.api.services.compute.model.Region;
 import com.google.api.services.compute.model.RegionList;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.amos.AccountCredentials;
 
 import java.io.ByteArrayInputStream;
@@ -67,9 +68,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
     private GoogleCredentials buildCredentials() {
         JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
         HttpTransport httpTransport = buildHttpTransport();
-        Map<String, String> kmsConfig = getKmsConfiguration(kmsServer, accountName, httpTransport, JSON_FACTORY);
-
-        String jsonKey = kmsConfig.get("jsonKey");
+        String jsonKey = getJsonKey(kmsServer, accountName, httpTransport, JSON_FACTORY);
 
         try {
             if (jsonKey != null) {
@@ -101,12 +100,19 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         }
     }
 
-    //VisibleForTesting
-    static Map<String, String> getKmsConfiguration(String kmsServer, String accountName, HttpTransport transport, JsonFactory jsonFactory) {
+    @VisibleForTesting
+    @SuppressWarnings("unchecked")
+    static String getJsonKey(String kmsServer, String accountName, HttpTransport transport, JsonFactory jsonFactory) {
         try {
             URI credentialsUri = URI.create(kmsServer + "/credentials/" + accountName).normalize();
             HttpResponse keyResponse = transport.createRequestFactory().buildGetRequest(new GenericUrl(credentialsUri)).execute();
-            return (Map<String, String>) jsonFactory.createJsonParser(keyResponse.getContent()).parseAndClose(Map.class);
+            Map<String, Object> json = (Map<String, Object>) jsonFactory.createJsonParser(keyResponse.getContent()).parseAndClose(Map.class);
+            Object jsonKey = json.get("jsonKey");
+
+            if (jsonKey instanceof String) {
+                return (String) jsonKey;
+            }
+            return null;
         } catch (Exception ex) {
             throw new RuntimeException("Unable to load kms configuration", ex);
         }
@@ -117,7 +123,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         return convertToMap(regionList);
     }
 
-    //VisibleForTesting
+    @VisibleForTesting
     static Map<String, List<String>> convertToMap(RegionList regionList) {
         return regionList.getItems().stream()
                 .collect(Collectors.toMap(

@@ -24,25 +24,32 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GoogleNamedAccountCredentialsSpec extends Specification {
 
-    def 'should fetch JSON key using google client http transport and json parser'() {
-        setup:
+    static HttpServer createTestServerForAccountAndKey(final String account, final Optional<String> key) {
+        final byte[] json = (key == null ? '{}' : (key.isPresent() ? '{"jsonKey": "' + key.get() + '"}' : '{"jsonKey": null}')).bytes
         HttpServer server = HttpServer.create(new InetSocketAddress('127.0.0.1', 0), 0);
-        server.createContext("/credentials/foo", new HttpHandler() {
+        server.createContext("/credentials/$account", new HttpHandler() {
             @Override
             void handle(HttpExchange httpExchange) throws IOException {
-                def response = '{"jsonKey": "abcdefg"}'.bytes
                 if (httpExchange.getRequestMethod() == 'GET') {
                     httpExchange.getResponseHeaders().add("Content-Type", "application/json")
-                    httpExchange.sendResponseHeaders(200, response.length)
-                    httpExchange.getResponseBody().write(response)
+                    httpExchange.sendResponseHeaders(200, json.length)
+                    httpExchange.getResponseBody().write(json)
                     httpExchange.getResponseBody().flush()
                     httpExchange.close()
                 }
             }
         })
+        return server;
+    }
+
+    @Unroll
+    def 'should fetch JSON key #key using google client http transport and json parser'() {
+        setup:
+        def server = createTestServerForAccountAndKey(account, key)
         server.start()
 
         def transport = GoogleNetHttpTransport.newTrustedTransport()
@@ -52,13 +59,20 @@ class GoogleNamedAccountCredentialsSpec extends Specification {
         def kmsServer = "http://${addr.hostString}:${addr.port}"
 
         when:
-        def kmsConfig = GoogleNamedAccountCredentials.getKmsConfiguration(kmsServer, 'foo', transport, jsonFactory)
+        String jsonKey = GoogleNamedAccountCredentials.getJsonKey(kmsServer, account, transport, jsonFactory)
 
         then:
-        kmsConfig.jsonKey == "abcdefg"
+        jsonKey == expected
 
         cleanup:
         server?.stop(0)
+
+        where:
+        account | key | expected
+        'foo' | Optional.of('abcdefg') | 'abcdefg'
+        'bar' | Optional.empty() | null
+        'baz' | null | null
+
     }
 
     def 'regionlist should convert to map'() {
