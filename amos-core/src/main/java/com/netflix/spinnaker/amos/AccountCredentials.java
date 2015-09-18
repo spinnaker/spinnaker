@@ -50,7 +50,7 @@ public interface AccountCredentials<T> {
     /**
      * Provides the type for the account.
      *
-     * Account type is typically consistent among the set of credentials that represent related a sequence of environments.
+     * Account type is typically consistent among the set of credentials that represent a related set of environments.
      *
      * e.g.:
      * <ul>
