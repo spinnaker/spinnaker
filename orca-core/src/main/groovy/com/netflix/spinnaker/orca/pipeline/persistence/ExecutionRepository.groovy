@@ -30,6 +30,7 @@ interface ExecutionRepository {
   void deletePipeline(String id)
   rx.Observable<Pipeline> retrievePipelines()
   rx.Observable<Pipeline> retrievePipelinesForApplication(String application)
+  rx.Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, int limit)
   Orchestration retrieveOrchestration(String id)
   void deleteOrchestration(String id)
   rx.Observable<Orchestration> retrieveOrchestrations()
