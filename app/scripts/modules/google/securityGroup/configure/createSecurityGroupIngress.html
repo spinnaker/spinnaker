@@ -69,8 +69,8 @@
                     <tr ng-repeat="rule in securityGroup.ipIngress">
                       <td><select class="form-control input-sm" ng-model="rule.type"
                                   ng-options="protocol as protocol.toUpperCase() for protocol in ['tcp', 'udp', 'icmp', 'esp', 'ah', 'sctp']"></select></td>
-                      <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" ng-required="rule.type !== 'icmp'"/></td>
-                      <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" ng-required="rule.type !== 'icmp'"/></td>
+                      <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.startPort" ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"/></td>
+                      <td><input class="form-control input-sm" type="number" min="0" ng-model="rule.endPort" ng-required="rule.type === 'tcp' || rule.type === 'udp' || rule.type === 'sctp'"/></td>
                       <td><a class="btn btn-link sm-label"
                              ng-click="ctrl.removeRule(securityGroup.ipIngress, $index)">
                         <span class="glyphicon glyphicon-trash"></span></a></td>
