@@ -68,14 +68,8 @@ class UpsertGoogleFirewallRuleAtomicOperation implements AtomicOperation<Void> {
 
       task.updateStatus BASE_PHASE, "Updating existing firewall rule $firewallRuleName ..."
 
-      if (!firewall.targetTags) {
-        if (origFirewall.targetTags) {
-          firewall.targetTags = origFirewall.targetTags
-        } else {
-          task.updateStatus BASE_PHASE, "Generating target tag for firewall rule $firewallRuleName..."
-
-          firewall.targetTags = ["$firewallRuleName-${System.currentTimeMillis()}".toString()]
-        }
+      if (description.targetTags == null) {
+        firewall.targetTags = origFirewall.targetTags
       }
 
       // If the firewall rule already exists, update it.
@@ -85,7 +79,7 @@ class UpsertGoogleFirewallRuleAtomicOperation implements AtomicOperation<Void> {
         // If the firewall rule does not exist, insert a new one.
         task.updateStatus BASE_PHASE, "Inserting new firewall rule $firewallRuleName ..."
 
-        if (!firewall.targetTags) {
+        if (description.targetTags == null) {
           task.updateStatus BASE_PHASE, "Generating target tag for firewall rule $firewallRuleName..."
 
           firewall.targetTags = ["$firewallRuleName-${System.currentTimeMillis()}".toString()]
