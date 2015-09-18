@@ -13,7 +13,7 @@
           </strong>
         </div>
       </div>
-      <div class="row" ng-repeat="step in task.steps">
+      <div class="row" ng-repeat="step in task.steps | displayableTasks">
         <div class="col-md-7 col-md-offset-0">
           <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
         </div>
