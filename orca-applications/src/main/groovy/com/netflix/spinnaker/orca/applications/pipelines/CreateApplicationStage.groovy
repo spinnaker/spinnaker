@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
-import com.netflix.spinnaker.orca.applications.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
