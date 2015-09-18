@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.front50.tasks
+package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.DefaultTaskResult
@@ -23,10 +23,10 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.front50.pipeline.CreateApplicationStage
-import com.netflix.spinnaker.orca.front50.pipeline.DeleteApplicationStage
-import com.netflix.spinnaker.orca.front50.pipeline.UpdateApplicationStage
-import com.netflix.spinnaker.orca.front50.pipeline.UpsertApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.CreateApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.DeleteApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.UpdateApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.UpsertApplicationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired

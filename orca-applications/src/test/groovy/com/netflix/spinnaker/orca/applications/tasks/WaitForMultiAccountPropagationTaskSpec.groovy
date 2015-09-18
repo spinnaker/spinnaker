@@ -1,20 +1,3 @@
-package com.netflix.spinnaker.orca.front50.tasks
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.front50.model.Application
-import com.netflix.spinnaker.orca.front50.model.Front50Credential
-import com.netflix.spinnaker.orca.front50.pipeline.CreateApplicationStage
-import com.netflix.spinnaker.orca.front50.pipeline.DeleteApplicationStage
-import com.netflix.spinnaker.orca.front50.pipeline.UpdateApplicationStage
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
-import spock.lang.Specification
-import spock.lang.Subject
-import spock.lang.Unroll
-
-
 /*
  * Copyright 2014 Netflix, Inc.
  *
@@ -30,6 +13,22 @@ import spock.lang.Unroll
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.netflix.spinnaker.orca.applications.tasks
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.applications.pipelines.DeleteApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.CreateApplicationStage
+import com.netflix.spinnaker.orca.applications.pipelines.UpdateApplicationStage
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.front50.model.Application
+import com.netflix.spinnaker.orca.front50.model.Front50Credential
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 
 
 class WaitForMultiAccountPropagationTaskSpec extends Specification {
@@ -95,7 +94,7 @@ class WaitForMultiAccountPropagationTaskSpec extends Specification {
     taskResult.status == expectedStatus
 
     where:
-    stageType                               | testApplication   | globalApplication                 | expectedStatus
+    stageType                                   | testApplication   | globalApplication                 | expectedStatus
     CreateApplicationStage.PIPELINE_CONFIG_TYPE | null              | null                              | ExecutionStatus.RUNNING
     CreateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "prod") | ExecutionStatus.RUNNING
     CreateApplicationStage.PIPELINE_CONFIG_TYPE | new Application() | new Application(accounts: "test") | ExecutionStatus.SUCCEEDED
