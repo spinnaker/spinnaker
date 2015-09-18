@@ -18,7 +18,6 @@ package com.netflix.spinnaker.echo.config
 
 import static retrofit.Endpoints.newFixedEndpoint
 
-import com.netflix.spinnaker.config.OkHttpClientConfiguration
 import com.netflix.spinnaker.echo.rest.RestService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Value
@@ -45,8 +44,8 @@ class RestConfig {
 
   @Bean
   @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  Client retrofitClient(OkHttpClientConfiguration okHttpClientConfig) {
-    new OkClient(okHttpClientConfig.create())
+  Client retrofitClient() {
+    new OkClient()
   }
 
   @Bean
