@@ -35,7 +35,7 @@ class Project {
 
   static class ClusterConfig {
     String account
-    String cluster
+    String stack
   }
 
   static class PipelineConfig {
