@@ -21,11 +21,13 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
+import org.springframework.stereotype.Component
 
 /**
  * @author sthadeshwar
  */
 @TitanOperation(AtomicOperations.CREATE_SERVER_GROUP)
+@Component
 class TitanDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   AtomicOperation convertOperation(Map input) {
