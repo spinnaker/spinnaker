@@ -34,39 +34,45 @@ import java.util.List;
  * @author Dan Woods
  */
 public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
-    private static final String PROVIDER = "aws";
+    private static final String CLOUD_PROVIDER = "aws";
 
     private final String name;
+    private final String environment;
+    private final String accountType;
     private final String accountId;
     private final String defaultKeyPair;
     private final List<String> requiredGroupMembership;
     private final List<AWSRegion> regions;
     private final AWSCredentialsProvider credentialsProvider;
 
-    public static AmazonCredentials fromAWSCredentials(String name, AWSCredentialsProvider credentialsProvider) {
-        return fromAWSCredentials(name, null, credentialsProvider);
+    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, AWSCredentialsProvider credentialsProvider) {
+        return fromAWSCredentials(name, environment, accountType, null, credentialsProvider);
     }
 
-    public static AmazonCredentials fromAWSCredentials(String name, String defaultKeyPair, AWSCredentialsProvider credentialsProvider) {
+    public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, String defaultKeyPair, AWSCredentialsProvider credentialsProvider) {
         AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider);
         final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
-        return new AmazonCredentials(name, accountId, defaultKeyPair, regions, null, credentialsProvider);
+        return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, credentialsProvider);
     }
 
 
     public AmazonCredentials(@JsonProperty("name") String name,
+                             @JsonProperty("environment") String environment,
+                             @JsonProperty("accountType") String accountType,
                              @JsonProperty("accountId") String accountId,
                              @JsonProperty("defaultKeyPair") String defaultKeyPair,
                              @JsonProperty("regions") List<AWSRegion> regions,
                              @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership) {
-        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null);
     }
 
 
     public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
         this(
             source.getName(),
+            source.getEnvironment(),
+            source.getAccountType(),
             source.getAccountId(),
             source.getDefaultKeyPair(),
             source.getRegions(),
@@ -76,21 +82,17 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     }
 
     AmazonCredentials(String name,
+                      String environment,
+                      String accountType,
                       String accountId,
                       String defaultKeyPair,
                       List<AWSRegion> regions,
                       List<String> requiredGroupMembership,
                       AWSCredentialsProvider credentialsProvider) {
-        if (name == null) {
-            throw new NullPointerException("name");
-        }
-
-        if (accountId == null) {
-            throw new NullPointerException("accountId");
-        }
-
-        this.name = name;
-        this.accountId = accountId;
+        this.name = notNull(name, "name");
+        this.environment = notNull(environment, "environment");
+        this.accountType = notNull(accountType, "accountType");
+        this.accountId = notNull(accountId, "accountId");
         this.defaultKeyPair = defaultKeyPair;
         this.regions = regions == null ? Collections.<AWSRegion>emptyList() : Collections.unmodifiableList(regions);
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.<String>emptyList() : Collections.unmodifiableList(requiredGroupMembership);
@@ -100,6 +102,16 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getEnvironment() {
+        return environment;
+    }
+
+    @Override
+    public String getAccountType() {
+        return accountType;
     }
 
     public String getAccountId() {
@@ -166,10 +178,22 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     }
 
     @Override
-    public String getProvider() { return PROVIDER; }
+    public String getProvider() { return getCloudProvider(); }
+
+    @Override
+    public String getCloudProvider() {
+       return CLOUD_PROVIDER;
+    }
 
     @Override
     public List<String> getRequiredGroupMembership() {
         return requiredGroupMembership;
+    }
+
+    protected static <T> T notNull(T value, String name) {
+        if (value == null) {
+            throw new NullPointerException(name);
+        }
+        return value;
     }
 }

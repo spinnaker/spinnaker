@@ -169,11 +169,21 @@ public class CredentialsLoader<T extends AmazonCredentials> {
                 account.setAccountId(awsAccountInfoLookup.findAccountId());
             }
 
+            if (account.getEnvironment() == null) {
+                account.setEnvironment(account.getName());
+            }
+
+            if (account.getAccountType() == null) {
+                account.setAccountType(account.getName());
+            }
+
             account.setRegions(initRegions(defaultRegions, account.getRegions()));
 
             Map<String, String> templateContext = new HashMap<>(templateValues);
             templateContext.put("name", account.getName());
             templateContext.put("accountId", account.getAccountId().toString());
+            templateContext.put("environment", account.getEnvironment());
+            templateContext.put("accountType", account.getAccountType());
 
             account.setDefaultKeyPair(templateFirstNonNull(templateContext, account.getDefaultKeyPair(), config.getDefaultKeyPairTemplate()));
             account.setEdda(templateFirstNonNull(templateContext, account.getEdda(), config.getDefaultEddaTemplate()));

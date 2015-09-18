@@ -32,17 +32,8 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     static final String DEFAULT_SESSION_NAME = "Spinnaker";
 
     static AWSCredentialsProvider createSTSCredentialsProvider(AWSCredentialsProvider credentialsProvider, String accountId, String assumeRole, String sessionName) {
-        if (accountId == null) {
-            throw new NullPointerException("accountId");
-        }
-        if (assumeRole == null) {
-            throw new NullPointerException("assumeRole");
-        }
-        if (sessionName == null) {
-            throw new NullPointerException("sessionName");
-        }
         return credentialsProvider == null ? null : new STSAssumeRoleSessionCredentialsProvider(credentialsProvider,
-                String.format("arn:aws:iam::%s:%s", accountId, assumeRole), sessionName);
+                String.format("arn:aws:iam::%s:%s", notNull(accountId, "accountId"), notNull(assumeRole, "assumeRole")), notNull(sessionName, "sessionName"));
     }
 
     /**
@@ -52,21 +43,23 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
     private final String sessionName;
 
     public AssumeRoleAmazonCredentials(@JsonProperty("name") String name,
+                                       @JsonProperty("environment") String environment,
+                                       @JsonProperty("accountType") String accountType,
                                        @JsonProperty("accountId") String accountId,
                                        @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                        @JsonProperty("regions") List<AWSRegion> regions,
                                        @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
                                        @JsonProperty("assumeRole") String assumeRole,
                                        @JsonProperty("sessionName") String sessionName) {
-        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null, assumeRole, sessionName);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null, assumeRole, sessionName);
     }
 
     public AssumeRoleAmazonCredentials(AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
     }
 
-    AssumeRoleAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
-        super(name, accountId, defaultKeyPair, regions, null, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+    AssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     }
