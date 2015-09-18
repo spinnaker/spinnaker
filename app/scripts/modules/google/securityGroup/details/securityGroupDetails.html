@@ -47,41 +47,28 @@
         <dd>{{securityGroup.description}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="IP Range Rules ({{securityGroup.ipRangeRules.length || 0}})" expanded="{{!!(securityGroup.ipRangeRules && securityGroup.ipRangeRules.length)}}">
-      <div ng-if="!securityGroup.ipRangeRules.length">None</div>
+    <collapsible-section heading="IP Range Rules ({{securityGroup.sourceRanges.length || 0}})" expanded="{{!!(securityGroup.sourceRanges && securityGroup.sourceRanges.length)}}">
+      <div ng-if="!securityGroup.sourceRanges.length">None</div>
 
       <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="ipRangeRule in securityGroup.ipRangeRules | orderBy: 'range.ip'">
+          ng-repeat="sourceRange in securityGroup.sourceRanges">
         <dt>IP Range</dt>
-        <dd>{{ipRangeRule.range.ip}}{{ipRangeRule.range.cidr}}</dd>
-        <dt ng-if="ipRangeRule.portRanges.length === 0">Protocol</dt>
-        <dd ng-if="ipRangeRule.portRanges.length === 0">
-          {{ipRangeRule.protocol}}
-        </dd>
-        <dt ng-if="ipRangeRule.portRanges && ipRangeRule.portRanges[0].startPort">Port Ranges</dt>
-        <dd ng-repeat="portRange in ipRangeRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
-          {{ipRangeRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
-        </dd>
+        <dd>{{sourceRange}}</dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Security Group Rules ({{securityGroup.securityGroupRules.length || 0}})" expanded="{{!!securityGroup.securityGroupRules.length}}">
-      <div ng-if="!securityGroup.securityGroupRules.length">None</div>
+    <collapsible-section heading="Protocol/Port Ranges ({{securityGroup.protocolPortRangeCount || 0}})" expanded="{{!!(securityGroup.protocolPortRangeCount)}}">
+      <div ng-if="!securityGroup.ipIngressRules.length">None</div>
 
       <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
-          ng-repeat="rule in securityGroup.securityGroupRules | orderBy: 'securityGroup.name' ">
-        <dt>Security Group</dt>
-        <dd ng-if="rule.securityGroup.name">
-          <a a ui-sref="^.securityGroupDetails({name: rule.securityGroup.name, accountId: rule.securityGroup.accountName, region: rule.securityGroup.region, vpcId: securityGroup.vpcId, provider: 'gce'})">
-            {{rule.securityGroup.name}} ({{rule.securityGroup.id}})
-          </a>
+          ng-repeat="ipIngressRule in securityGroup.ipIngressRules">
+        <dt ng-if="ipIngressRule.portRanges.length === 0">Protocol</dt>
+        <dd ng-if="ipIngressRule.portRanges.length === 0">
+          {{ipIngressRule.protocol}}
         </dd>
-        <dt ng-if="rule.portRanges.length === 0">Protocol</dt>
-        <dd ng-if="rule.portRanges.length === 0">
-          {{rule.protocol}}
-        </dd>
-        <dt ng-if="rule.portRanges && rule.portRanges[0].startPort">Port Ranges</dt>
-        <dd ng-repeat="portRange in rule.portRanges" ng-if="portRange.startPort && portRange.endPort">
-          {{rule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        <dt ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length === 1 && ipIngressRule.portRanges[0].startPort">Port Range</dt>
+        <dt ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length > 1 && ipIngressRule.portRanges[0].startPort">Port Ranges</dt>
+        <dd ng-repeat="portRange in ipIngressRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{ipIngressRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
         </dd>
       </dl>
     </collapsible-section>

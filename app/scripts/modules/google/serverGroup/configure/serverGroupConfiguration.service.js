@@ -23,12 +23,32 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         images: gceImageReader.findImages({provider: 'gce'}),
-      }).then(function(loader) {
-        loader.accounts = _.keys(loader.regionsKeyedByAccount);
-        loader.filtered = {};
-        command.backingData = loader;
+      }).then(function(backingData) {
+        var loadBalancerReloader = $q.when(null);
+        var securityGroupReloader = $q.when(null);
+        backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
+        backingData.filtered = {};
+        command.backingData = backingData;
         configureImages(command);
-        attachEventHandlers(command);
+
+        if (command.loadBalancers && command.loadBalancers.length) {
+          // Verify all load balancers are accounted for; otherwise, try refreshing load balancers cache.
+          var loadBalancerNames = getLoadBalancerNames(command);
+          if (_.intersection(loadBalancerNames, command.loadBalancers).length < command.loadBalancers.length) {
+            loadBalancerReloader = refreshLoadBalancers(command, true);
+          }
+        }
+        if (command.securityGroups && command.securityGroups.length) {
+          // Verify all security groups are accounted for; otherwise, try refreshing security groups cache.
+          var securityGroupIds = _.pluck(getSecurityGroups(command), 'id');
+          if (_.intersection(command.securityGroups, securityGroupIds).length < command.securityGroups.length) {
+            securityGroupReloader = refreshSecurityGroups(command, true);
+          }
+        }
+
+        return $q.all([loadBalancerReloader, securityGroupReloader]).then(function() {
+          attachEventHandlers(command);
+        });
       });
     }
 
@@ -70,10 +90,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         command.backingData.regionsKeyedByAccount[command.credentials].regions[command.region];
     }
 
-    function configureLoadBalancerOptions(command) {
-      var results = { dirty: {} };
-      var current = command.loadBalancers;
-      var newLoadBalancers = _(command.backingData.loadBalancers)
+    function getLoadBalancerNames(command) {
+      return _(command.backingData.loadBalancers)
         .pluck('accounts')
         .flatten(true)
         .filter({name: command.credentials})
@@ -85,6 +103,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         .pluck('name')
         .unique()
         .valueOf();
+    }
+
+    function configureLoadBalancerOptions(command) {
+      var results = { dirty: {} };
+      var current = command.loadBalancers;
+      var newLoadBalancers = getLoadBalancerNames(command);
 
       if (current && command.loadBalancers) {
         var matched = _.intersection(newLoadBalancers, command.loadBalancers);
@@ -107,11 +131,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         .valueOf();
     }
 
-    function refreshLoadBalancers(command) {
+    function refreshLoadBalancers(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('loadBalancers').then(function() {
         return loadBalancerReader.listLoadBalancers('gce').then(function(loadBalancers) {
           command.backingData.loadBalancers = loadBalancers;
-          configureLoadBalancerOptions(command);
+          if (!skipCommandReconfiguration) {
+            configureLoadBalancerOptions(command);
+          }
         });
       });
     }

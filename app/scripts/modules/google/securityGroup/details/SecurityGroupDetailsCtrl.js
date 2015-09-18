@@ -51,6 +51,44 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
         } else {
           $scope.securityGroup = details;
 
+          $scope.securityGroup.sourceRanges = _.uniq(_.map(_.pluck($scope.securityGroup.ipRangeRules, 'range'), function(sourceRange) {
+            return sourceRange.ip + sourceRange.cidr;
+          }));
+
+          let ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
+            return {
+              protocol: ipRangeRule.protocol,
+              portRanges: ipRangeRule.portRanges,
+            };
+          });
+
+          let ipIngressRules = {};
+
+          ipIngress.forEach(function(ipIngressRule) {
+            if (_.has(ipIngressRules, ipIngressRule.protocol)) {
+              ipIngressRules[ipIngressRule.protocol] = ipIngressRules[ipIngressRule.protocol].concat(ipIngressRule.portRanges);
+
+              ipIngressRules[ipIngressRule.protocol] = _.uniq(ipIngressRules[ipIngressRule.protocol], function(portRange) {
+                return portRange.startPort + "->" + portRange.endPort;
+              });
+            } else {
+              ipIngressRules[ipIngressRule.protocol] = ipIngressRule.portRanges;
+            }
+          });
+
+          ipIngressRules = _.map(ipIngressRules, function(portRanges, protocol) {
+            return {
+              protocol: protocol,
+              portRanges: portRanges,
+            };
+          });
+
+          $scope.securityGroup.ipIngressRules = ipIngressRules;
+
+          $scope.securityGroup.protocolPortRangeCount = _.sum(ipIngressRules, function(ipIngressRule) {
+            return ipIngressRule.portRanges.length > 1  ? ipIngressRule.portRanges.length : 1;
+          });
+
           if ($scope.securityGroup.targetTags) {
             $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(", ");
           }

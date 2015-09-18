@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('./serverGroupConfiguration.service.js'),
   require('./wizard/ServerGroupBasicSettings.controller.js'),
   require('./wizard/ServerGroupLoadBalancers.controller.js'),
+  require('./wizard/ServerGroupSecurityGroups.controller.js'),
   require('./wizard/ServerGroupCapacity.controller.js'),
   require('./wizard/ServerGroupInstanceArchetype.controller.js'),
   require('./wizard/ServerGroupInstanceType.controller.js'),
