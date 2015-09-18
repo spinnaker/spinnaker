@@ -40,9 +40,15 @@ class StartPipelineTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
 
-    String application = stage.context.application
+    String application = stage.context.pipelineApplication ?: stage.context.application
+    String pipelineId = stage.context.pipelineId ?: stage.context.pipeline
+
     List pipelines = front50Service.getPipelines(application)
-    Map pipelineConfig = pipelines.find { it.id == stage.context.pipeline }
+    Map pipelineConfig = pipelines.find { it.id == pipelineId }
+
+    if (stage.context.pipelineConfig) {
+      pipelineConfig.appConfig = (pipelineConfig.appConfig ?: [:]) + stage.context.pipelineConfig
+    }
 
     def pipeline = dependentPipelineStarter.trigger(pipelineConfig, stage.context.user, stage.execution, stage.context.pipelineParameters)
 

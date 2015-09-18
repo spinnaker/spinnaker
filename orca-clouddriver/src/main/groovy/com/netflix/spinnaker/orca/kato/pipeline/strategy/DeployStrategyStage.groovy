@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -49,6 +50,7 @@ abstract class DeployStrategyStage extends LinearStage {
   @Autowired SourceResolver sourceResolver
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
+  @Autowired PipelineStage pipelineStage
 
   DeployStrategyStage(String name) {
     super(name)
@@ -171,6 +173,18 @@ abstract class DeployStrategyStage extends LinearStage {
 
     injectAfter(stage, "modifyLaunchConfiguration", modifyAsgLaunchConfigurationStage, modifyCtx)
     injectAfter(stage, "rollingPush", rollingPushStage, modifyCtx)
+  }
+
+  protected void composePipelineFlow(Stage stage) {
+    def modifyCtx = [
+      pipelineApplication: stage.context.application,
+      pipelineId: stage.context.pipeline,
+      pipelineConfig:[
+        parentPipelineId: stage.execution.id,
+        parentStageId: stage.id
+      ]
+    ]
+    injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
   }
 
   @CompileDynamic
