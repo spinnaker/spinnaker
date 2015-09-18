@@ -83,9 +83,20 @@ class JarDiffsTask implements DiffTask {
       String targetAsg = getTargetAsg(stage.context, region)
       String sourceAsg = getSourceAsg(stage.context, region)
 
-      // get healthy instances from each
-      Map targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false, false)
-      Map sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false, false)
+      def targetInstances = [:]
+      def sourceInstances = [:]
+      try {
+        // get healthy instances from each
+        targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false, false)
+        sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false, false)
+      } catch (Exception e) {
+        log.error("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg})", e)
+      }
+
+      if (!targetInstances || !sourceInstances) {
+        log.info("No instances found (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg})")
+        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      }
 
       // get jar json info
       List targetJarList = getJarList(targetInstances)

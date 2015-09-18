@@ -42,7 +42,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     }
   }
 
-  void "mapper should extract id, startTime and pipelineConfigId"() {
+  void "mapper should extract id, startTime, status, and pipelineConfigId"() {
     given:
     def stage = new PipelineStage(new Pipeline(), "Named Stage")
     stage.startTime = 1000
@@ -55,7 +55,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def mapper = new TopApplicationExecutionCleanupPollingNotificationAgent().mapper
 
     expect:
-    mapper.call(pipeline) == [id: "ID1", startTime: 1000, pipelineConfigId: "P1"]
+    mapper.call(pipeline) == [id: "ID1", startTime: 1000, pipelineConfigId: "P1", status: ExecutionStatus.NOT_STARTED]
   }
 
   void "tick should cleanup each application with > threshold # of executions"() {

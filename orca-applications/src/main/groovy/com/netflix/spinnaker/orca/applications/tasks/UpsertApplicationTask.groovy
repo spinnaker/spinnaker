@@ -31,31 +31,16 @@ class UpsertApplicationTask extends AbstractFront50Task {
   @Override
   Map<String, Object> performRequest(String account, Application application) {
     Map<String, Object> outputs = [:]
-    outputs.previousState = fetchApplication(account, application.name) ?: [:]
-
-    def allCredentials = front50Service.credentials
+    outputs.previousState = [:]
 
     /*
      * Upsert application to all global registries.
      */
-    def existingGlobalApplication = allCredentials.findAll {
-      it.global
-    }.collect {
+    front50Service.credentials.findAll { it.global }.each {
       def existingGlobalApplication = fetchApplication(it.name, application.name)
       if (existingGlobalApplication) {
-        existingGlobalApplication.listAccounts().each {
-          if (fetchApplication(it, application.name)) {
-            try {
-              // propagate updates to all other per-account registries that this global application is associated with
-              log.info("Updating application (name: ${application.name}, account: ${it})")
-              front50Service.update(it, application)
-            } catch (RetrofitError e) {
-              log.error("Unable to update application (name: ${application.name}, account: ${it})", e)
-            }
-          }
-        }
+        outputs.previousState = existingGlobalApplication
 
-        // ensure global and non-global account associations are merged prior to updating
         application.updateAccounts((existingGlobalApplication.listAccounts() << account) as Set)
 
         log.info("Updating application (name: ${application.name}, account: ${it.name})")
@@ -66,37 +51,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
         log.info("Creating application (name: ${application.name}, account: ${it.name})")
         front50Service.create(it.name, application.name, application)
       }
-
-      return existingGlobalApplication
     }.find { it }
 
-    // avoid propagating account associations to non-global application registries
-    application.accounts = null
-    if (existingGlobalApplication) {
-      existingGlobalApplication.accounts = null
-    }
-
-    if (allCredentials.find { it.name.equals(account) }) {
-      /*
-       * Upsert application to specific account registry.
-       *
-       * If the application does not exist, create it using details from the global registry where available.
-       */
-      def existingApplication = fetchApplication(account, application.name)
-      if (existingApplication) {
-        log.info("Updating application (name: ${application.name}, account: ${account})")
-        front50Service.update(account, application)
-      } else {
-        if (existingGlobalApplication) {
-          mergeApplicationProperties(existingGlobalApplication, application)
-        }
-
-        log.info("Creating application (name: ${application.name}, account: ${account})")
-        front50Service.create(account, application.name, application)
-      }
-    }
-
-    outputs.newState = fetchApplication(account, application.name) ?: [:]
+    outputs.newState = application ?: [:]
     outputs
   }
 

@@ -26,15 +26,15 @@ class DeleteApplicationTask extends AbstractFront50Task {
   @Override
   Map<String, Object> performRequest(String account, Application application) {
     Map<String, Object> outputs = [:]
-    outputs.previousState = fetchApplication(account, application.name) ?: [:]
 
-    def allCredentials = front50Service.credentials
-    allCredentials.findAll { it.global }.collect {
+    front50Service.credentials.findAll { it.global }.collect {
       it.name
     }.each { String globalAccountName ->
       try {
         def existingGlobalApplication = front50Service.get(globalAccountName, application.name)
         if (existingGlobalApplication) {
+          outputs.previousState = existingGlobalApplication
+
           existingGlobalApplication.updateAccounts(existingGlobalApplication.listAccounts() - account)
           if (existingGlobalApplication.listAccounts()) {
             // application still exists in at least one other account, do not delete.
@@ -50,10 +50,6 @@ class DeleteApplicationTask extends AbstractFront50Task {
         }
         throw e
       }
-    }
-
-    if (allCredentials.find { it.name.equalsIgnoreCase(account) && !it.global }) {
-      front50Service.delete(account, application.name)
     }
 
     outputs

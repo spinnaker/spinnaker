@@ -50,12 +50,12 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
   private Scheduler scheduler = Schedulers.io()
   private Subscription subscription
 
-  private Func1<Execution, Boolean> filter = {
-    Execution execution -> execution.status.complete
+  private Func1<Execution, Boolean> filter = { Execution execution ->
+    execution.status.complete || execution.buildTime < (new Date() - 31).time
   }
   private Func1<Execution, Map> mapper = { Execution execution ->
     def pipelineConfigId = execution instanceof Pipeline ? ((Pipeline) execution).pipelineConfigId : null
-    [id: execution.id, startTime: execution.startTime, pipelineConfigId: pipelineConfigId]
+    [id: execution.id, startTime: execution.startTime, pipelineConfigId: pipelineConfigId, status: execution.status]
   }
 
   @Autowired
@@ -154,7 +154,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
           return
         }
 
-        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application}, pipelineConfigId: ${it.pipelineConfigId})")
+        log.info("Deleting ${type} execution ${it.id} (startTime: ${new Date(startTime)}, application: ${application}, pipelineConfigId: ${it.pipelineConfigId}, status: ${it.status})")
         switch (type) {
           case "pipeline":
             executionRepository.deletePipeline(it.id as String)

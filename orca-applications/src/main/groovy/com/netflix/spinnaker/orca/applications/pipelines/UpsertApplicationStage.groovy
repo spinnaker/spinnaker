@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.netflix.spinnaker.orca.applications.tasks.UpsertApplicationTask
-import com.netflix.spinnaker.orca.applications.tasks.WaitForMultiAccountPropagationTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
@@ -35,8 +34,6 @@ class UpsertApplicationStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "upsertApplicationTask", UpsertApplicationTask)
-    def step2 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
-    [step1, step2]
+    [buildStep(stage, "upsertApplicationTask", UpsertApplicationTask)]
   }
 }

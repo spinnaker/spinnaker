@@ -46,10 +46,16 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
   void afterTask(Stage stage, StepExecution stepExecution) {
     def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     if (orcaTaskStatus) {
-      if (orcaTaskStatus.complete) {
-        stage.endTime = System.currentTimeMillis()
+      if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (stage.tasks && stage.tasks[-1].status != ExecutionStatus.SUCCEEDED)) {
+        // mark stage as RUNNING as not all tasks have completed
+        stage.status = ExecutionStatus.RUNNING
+      } else {
+        stage.status = orcaTaskStatus
+
+        if (orcaTaskStatus.complete) {
+          stage.endTime = System.currentTimeMillis()
+        }
       }
-      stage.status = orcaTaskStatus
     } else {
       stage.endTime = System.currentTimeMillis()
       stage.status = ExecutionStatus.TERMINAL

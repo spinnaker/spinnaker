@@ -35,8 +35,6 @@ class UpdateApplicationStage extends LinearStage {
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "updateApplication", UpsertApplicationTask)
-    def step2 = buildStep(stage, "waitForMultiAccountPropagation", WaitForMultiAccountPropagationTask)
-    [step1, step2]
+    [buildStep(stage, "updateApplication", UpsertApplicationTask)]
   }
 }

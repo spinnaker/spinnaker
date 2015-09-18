@@ -66,9 +66,16 @@ class TideTask {
 
   @Immutable
   static class Mutation {
+    MutationDetails mutationDetails
+    Map mutationType
     String taskId
-    Map awsReference
-    Map pipelineToCreate
-    String operation
   }
+
+  @Immutable
+  static class MutationDetails {
+    Map awsReference
+    Map referencedBy
+    Map objectToCreate
+  }
+
 }

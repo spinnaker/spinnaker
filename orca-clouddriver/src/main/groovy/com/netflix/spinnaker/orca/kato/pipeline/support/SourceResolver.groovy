@@ -16,22 +16,27 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.support
 
+import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
 
 @Component
 @CompileStatic
+@Slf4j
 class SourceResolver {
 
   @Autowired OortService oortService
   @Autowired ObjectMapper mapper
 
 
-  StageData.Source getSource(Stage stage) {
+  StageData.Source getSource(Stage stage) throws RetrofitError, JsonParseException, JsonMappingException {
     def stageData = stage.mapTo(StageData)
     if (stageData.source) {
       // has an existing source, return it
@@ -42,31 +47,38 @@ class SourceResolver {
       stageData.application, stageData.account, stageData.cluster, stageData.providerType
     )
 
-    if (!existingAsgs || !stageData.availabilityZones) {
+    if (!existingAsgs) {
       return null
     }
 
+    if (!stageData.availabilityZones) {
+      throw new IllegalStateException("no availabilityZones in stage context")
+    }
+
     def targetRegion = stageData.availabilityZones.keySet()[0]
-    def regionalAsgs = existingAsgs.findAll { it.region == targetRegion && it.disabled == false } as List<Map>
+    def regionalAsgs = existingAsgs.findAll { it.region == targetRegion } as List<Map>
     if (!regionalAsgs) {
       return null
     }
 
-    def latestAsg = stageData.useSourceCapacity ? regionalAsgs.sort { (it.instances as Collection).size() }.last() : regionalAsgs.last()
+    //prefer enabled ASGs but allow disabled in favour of nothing
+    def onlyEnabled = regionalAsgs.findAll { it.disabled == false }
+    if (onlyEnabled) {
+      regionalAsgs = onlyEnabled
+    }
+
+    //with useSourceCapacity prefer the largest ASG over the newest ASG
+    def latestAsg = stageData.useSourceCapacity ? regionalAsgs.sort { (it.instances as Collection)?.size() ?: 0 }.last() : regionalAsgs.last()
     return new StageData.Source(
       account: stageData.account, region: latestAsg["region"] as String, asgName: latestAsg["name"] as String
     )
   }
 
-  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) {
-    try {
-      def response = oortService.getCluster(app, account, cluster, providerType)
-      def json = response.body.in().text
-      def map = mapper.readValue(json, Map)
-      (map.serverGroups as List<Map>).sort { it.createdTime }
-    } catch (e) {
-      null
-    }
+  List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) throws RetrofitError, JsonParseException, JsonMappingException {
+    def response = oortService.getCluster(app, account, cluster, providerType)
+    def json = response.body.in().text
+    def map = mapper.readValue(json, Map)
+    (map.serverGroups as List<Map>).sort { it.createdTime }
   }
 
 }
