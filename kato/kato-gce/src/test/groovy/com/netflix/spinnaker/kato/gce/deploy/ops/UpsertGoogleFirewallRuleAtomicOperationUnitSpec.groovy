@@ -157,7 +157,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       }) >> firewallsInsertMock
   }
 
-  void "should update existing firewall rule and set generated target tag"() {
+  void "should update existing firewall rule and leave target tag unset"() {
     setup:
       def computeMock = Mock(Compute)
       def networksMock = Mock(Compute.Networks)
@@ -204,7 +204,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
-          it.targetTags?.get(0).startsWith("$FIREWALL_RULE_NAME-")
+          !it.targetTags
       }) >> firewallsUpdateMock
   }
 
