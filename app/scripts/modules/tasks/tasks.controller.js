@@ -179,12 +179,11 @@ module.exports = angular.module('spinnaker.tasks.main', [
     };
 
     controller.getRegion = function (task) {
-      return _(task.variables)
-        .chain()
-        .find({'key': 'source'})
-        .result('value')
-        .get('region')
-        .value();
+      var deployedServerGroups = _.find(task.variables, function(variable) {
+        return variable.key === 'deploy.server.groups';
+      }).value;
+
+      return _.keys(deployedServerGroups)[0];
     };
 
     controller.getProviderForServerGroupByTask = function(task) {
