@@ -49,7 +49,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -74,7 +74,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
                                                                 instanceIds: ALL_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
@@ -108,7 +108,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersRecreateMock = Mock(Replicapool.InstanceGroupManagers.RecreateInstances)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new TerminateGoogleInstancesDescription(managedInstanceGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 zone: ZONE,

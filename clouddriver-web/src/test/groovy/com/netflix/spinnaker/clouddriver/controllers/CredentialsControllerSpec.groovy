@@ -55,6 +55,8 @@ class CredentialsControllerSpec extends Specification {
   static class TestNamedAccountCredentials implements AccountCredentials<Map> {
 
     String name = "test"
+    String environment = "test"
+    String accountType = "test"
 
     @Override
     Map getCredentials() {
@@ -62,8 +64,13 @@ class CredentialsControllerSpec extends Specification {
     }
 
     @Override
-    String getProvider() {
+    String getCloudProvider() {
       "testProvider"
+    }
+
+    @Override
+    String getProvider() {
+      getCloudProvider()
     }
 
     @Override

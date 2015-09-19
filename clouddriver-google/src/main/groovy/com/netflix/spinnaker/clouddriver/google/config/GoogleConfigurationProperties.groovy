@@ -23,6 +23,8 @@ class GoogleConfigurationProperties {
 
   static class ManagedAccount {
     String name
+    String environment
+    String accountType
     String project
   }
 

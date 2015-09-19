@@ -35,7 +35,7 @@ import spock.lang.Unroll
 
 class CleanupDetachedInstancesAgentSpec extends Specification {
   @Shared
-  def test = new NetflixAmazonCredentials("test", '1', null, [
+  def test = new NetflixAmazonCredentials("test", "test", "test", '1', null, [
     new AmazonCredentials.AWSRegion('us-west-1', []), new AmazonCredentials.AWSRegion('us-east-1', [])
   ], null, null, false, null, false, null, false)
 

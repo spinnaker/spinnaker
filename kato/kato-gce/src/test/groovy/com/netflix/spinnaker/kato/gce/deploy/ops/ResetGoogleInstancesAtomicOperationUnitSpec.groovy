@@ -45,7 +45,7 @@ class ResetGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ResetGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: GOOD_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,
@@ -69,7 +69,7 @@ class ResetGoogleInstancesAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def instancesMock = Mock(Compute.Instances)
       def resetMock = Mock(Compute.Instances.Reset)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ResetGoogleInstancesDescription(zone: ZONE,
                                                             instanceIds: ALL_INSTANCE_IDS,
                                                             accountName: ACCOUNT_NAME,

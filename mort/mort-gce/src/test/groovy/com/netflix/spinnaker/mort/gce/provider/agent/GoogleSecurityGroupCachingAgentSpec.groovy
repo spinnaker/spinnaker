@@ -39,7 +39,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
     setup:
       def googleCloudProvider = new GoogleCloudProvider()
       def computeMock = Mock(Compute)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
       def securityGroupA = new Firewall(name: 'name-a')

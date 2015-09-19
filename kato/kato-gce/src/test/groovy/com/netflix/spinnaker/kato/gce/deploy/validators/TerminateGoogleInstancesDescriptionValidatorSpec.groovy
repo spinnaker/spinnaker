@@ -41,7 +41,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
     def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
     def credentials = Mock(GoogleNamedAccountCredentials)
     credentials.getName() >> ACCOUNT_NAME
-    credentials.getCredentials() >> new GoogleCredentials()
+    credentials.getCredentials() >> new GoogleCredentials(null, null, null, null, null)
     credentialsRepo.save(ACCOUNT_NAME, credentials)
     validator.accountCredentialsProvider = credentialsProvider
   }

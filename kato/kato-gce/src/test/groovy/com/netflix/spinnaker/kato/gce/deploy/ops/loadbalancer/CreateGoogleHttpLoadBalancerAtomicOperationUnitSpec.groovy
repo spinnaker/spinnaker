@@ -77,7 +77,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
@@ -171,7 +171,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def insertOp = new Operation(targetLink: "link")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new CreateGoogleHttpLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
           accountName: ACCOUNT_NAME,
