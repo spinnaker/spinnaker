@@ -22,4 +22,5 @@ import org.springframework.stereotype.Component
 @ConfigurationProperties("udf")
 class LocalFileUserDataProperties {
   String udfRoot = '/apps/nflx-udf'
+  boolean useAccountNameAsEnvironment = true
 }

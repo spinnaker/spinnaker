@@ -19,7 +19,7 @@ package com.netflix.spinnaker.kato.aws.deploy.userdata
 
 class NullOpUserDataProvider implements UserDataProvider {
   @Override
-  String getUserData(String asgName, String launchConfigName, String region, String environment) {
+  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
     ""
   }
 }
