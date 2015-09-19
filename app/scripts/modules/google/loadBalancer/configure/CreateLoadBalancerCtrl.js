@@ -212,6 +212,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       $scope.taskMonitor.submit(
         function() {
           let params = {
+            cloudProvider: 'gce',
             networkLoadBalancerName: $scope.loadBalancer.name,
           };
 

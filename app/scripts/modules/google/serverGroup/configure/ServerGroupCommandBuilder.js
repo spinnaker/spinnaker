@@ -104,6 +104,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         healthCheckGracePeriod: 600,
         instanceMonitoring: false,
         ebsOptimized: false,
+        cloudProvider: 'gce',
         providerType: 'gce',
         selectedProvider: 'gce',
         iamRole: 'BaseIAMRole',       // should not be hard coded here
@@ -163,6 +164,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         instanceMetadata: [],
         tags: [],
         availabilityZones: [],
+        cloudProvider: 'gce',
         providerType: 'gce',
         selectedProvider: 'gce',
         source: {

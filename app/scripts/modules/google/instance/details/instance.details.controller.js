@@ -264,6 +264,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var submitMethod = function () {
         return instanceWriter.registerInstanceWithLoadBalancer(instance, app, {
+          cloudProvider: 'gce',
           networkLoadBalancerNames: instance.loadBalancers,
         });
       };
@@ -289,6 +290,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       var submitMethod = function () {
         return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app, {
+          cloudProvider: 'gce',
           networkLoadBalancerNames: instance.loadBalancers,
         });
       };

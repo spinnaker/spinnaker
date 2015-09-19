@@ -99,6 +99,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
       var submitMethod = function () {
         return serverGroupWriter.destroyServerGroup(serverGroup, application, {
+          cloudProvider: 'gce',
           replicaPoolName: serverGroup.name,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
@@ -160,6 +161,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
       var submitMethod = function () {
         return serverGroupWriter.disableServerGroup(serverGroup, application, {
+          cloudProvider: 'gce',
           replicaPoolName: serverGroup.name,
           region: serverGroup.region,
           zone: serverGroup.zones[0],
@@ -189,6 +191,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
       var submitMethod = function () {
         return serverGroupWriter.enableServerGroup(serverGroup, application, {
+          cloudProvider: 'gce',
           replicaPoolName: serverGroup.name,
           region: serverGroup.region,
           zone: serverGroup.zones[0],

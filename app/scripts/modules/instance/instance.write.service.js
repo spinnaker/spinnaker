@@ -58,6 +58,7 @@ module.exports = angular
             region: instance.region,
             zone: instance.placement.availabilityZone,
             credentials: instance.account,
+            cloudProvider: instance.providerType,
             providerType: instance.providerType
           }
         ],
