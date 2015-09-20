@@ -112,7 +112,7 @@ module.exports = angular
     function clearInvalidSecurityGroups() {
       var removed = $scope.state.removedRules;
       $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
-        if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1) {
+        if (rule.name && $scope.existingSecurityGroupNames.indexOf(rule.name) === -1) {
           removed.push(rule.name);
           return false;
         }
@@ -139,15 +139,14 @@ module.exports = angular
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
-        var availableGroups;
+        var existingGroups;
         if(account) {
-          availableGroups = securityGroups[account].gce.global;
+          existingGroups = securityGroups[account].gce.global;
         } else {
-          availableGroups = securityGroups;
+          existingGroups = securityGroups;
         }
 
-        $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
-        $scope.existingSecurityGroupNames = $scope.availableSecurityGroups;
+        $scope.existingSecurityGroupNames = _.pluck(existingGroups, 'name');
       });
     };
 
