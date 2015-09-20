@@ -51,9 +51,9 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
         } else {
           $scope.securityGroup = details;
 
-          $scope.securityGroup.sourceRanges = _.uniq(_.map(_.pluck($scope.securityGroup.ipRangeRules, 'range'), function(sourceRange) {
-            return sourceRange.ip + sourceRange.cidr;
-          }));
+          $scope.securityGroup.sourceRanges = _.uniq(
+            _.map($scope.securityGroup.ipRangeRules, (rule) => rule.range.ip + rule.range.cidr)
+          );
 
           let ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
             return {
