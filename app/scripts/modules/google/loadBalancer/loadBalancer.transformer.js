@@ -84,7 +84,6 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [
       if (loadBalancer.elb) {
         var elb = loadBalancer.elb;
 
-        toEdit.securityGroups = elb.securityGroups;
         toEdit.vpcId = elb.vpcid;
 
         if (elb.listenerDescriptions) {

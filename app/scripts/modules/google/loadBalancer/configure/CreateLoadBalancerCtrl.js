@@ -7,7 +7,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   require('../../../loadBalancers/loadBalancer.read.service.js'),
   require('../../../account/account.service.js'),
   require('../loadBalancer.transformer.js'),
-  require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../modal/wizard/modalWizard.service.js'),
   require('../../../tasks/monitor/taskMonitorService.js'),
   require('../../../google/gceRegionSelectField.directive.js'),
@@ -15,7 +14,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $modalInstance, $state, $exceptionHandler,
                                                  application, loadBalancer, isNew, loadBalancerReader,
-                                                 accountService, gceLoadBalancerTransformer, securityGroupReader,
+                                                 accountService, gceLoadBalancerTransformer,
                                                  _, searchService, modalWizardService, loadBalancerWriter, taskMonitorService) {
 
     var ctrl = this;
@@ -24,13 +23,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
 
     $scope.pages = {
       location: require('./createLoadBalancerProperties.html'),
-      securityGroups: require('./securityGroups.html'),
       listeners: require('./listeners.html'),
       healthCheck: require('./healthCheck.html'),
     };
 
     $scope.state = {
-      securityGroupsLoaded: false,
       accountsLoaded: false,
       loadBalancerNamesLoaded: false,
       submitting: false
@@ -43,19 +40,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       modalInstance: $modalInstance,
     });
 
-    var allSecurityGroups = {},
-        allLoadBalancerNames = {};
+    var allLoadBalancerNames = {};
 
     function initializeEditMode() {
-      if ($scope.loadBalancer.vpcId) {
-        preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
-        });
-      }
     }
 
     function initializeCreateMode() {
-      preloadSecurityGroups();
       accountService.listAccounts('gce').then(function (accounts) {
         $scope.accounts = accounts;
         $scope.state.accountsLoaded = true;
@@ -66,13 +56,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
         }
 
         ctrl.accountUpdated();
-      });
-    }
-
-    function preloadSecurityGroups() {
-      return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
-        allSecurityGroups = securityGroups;
-        $scope.state.securityGroupsLoaded = true;
       });
     }
 
@@ -98,32 +81,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       });
     }
 
-    function updateAvailableSecurityGroups(availableVpcIds) {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
-
-      if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
-        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
-          return availableVpcIds.indexOf(securityGroup.vpcId) !== -1;
-        });
-        $scope.existingSecurityGroupNames = _.collect($scope.availableSecurityGroups, 'name');
-        var existingNames = ['nf-datacenter-vpc', 'nf-infrastructure-vpc'];
-        $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
-          if ($scope.existingSecurityGroupNames.indexOf(securityGroup) === -1) {
-            var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
-            if (matches.length) {
-              existingNames.push(matches[0].name);
-            }
-          } else {
-            existingNames.push(securityGroup);
-          }
-        });
-        $scope.loadBalancer.securityGroups = _.unique(existingNames);
-      } else {
-        clearSecurityGroups();
-      }
-    }
-
     function updateLoadBalancerNames() {
       var account = $scope.loadBalancer.credentials;
 
@@ -132,11 +89,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
       } else {
         $scope.existingLoadBalancerNames = [];
       }
-    }
-
-    function clearSecurityGroups() {
-      $scope.availableSecurityGroups = [];
-      $scope.existingSecurityGroupNames = [];
     }
 
     // initialize controller
@@ -167,7 +119,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     this.accountUpdated = function() {
       accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
         $scope.regions = Object.keys(regions);
-        clearSecurityGroups();
         ctrl.regionUpdated();
       });
     };
