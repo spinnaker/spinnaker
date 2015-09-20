@@ -87,6 +87,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       if (result.dirty.loadBalancers) {
         modalWizardService.getWizard().markDirty('load-balancers');
       }
+      if (result.dirty.securityGroups) {
+        modalWizardService.getWizard().markDirty('security-groups');
+      }
       if (result.dirty.availabilityZones) {
         modalWizardService.getWizard().markDirty('capacity');
       }

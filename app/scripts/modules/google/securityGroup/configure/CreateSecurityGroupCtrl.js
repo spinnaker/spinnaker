@@ -22,6 +22,9 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
 
     var ctrl = this;
 
+    securityGroup.sourceRanges = [];
+    securityGroup.ipIngress = [];
+
     angular.extend(this, $controller('gceConfigSecurityGroupMixin', {
       $scope: $scope,
       $modalInstance: $modalInstance,

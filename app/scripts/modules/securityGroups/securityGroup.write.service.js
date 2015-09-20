@@ -4,19 +4,23 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.securityGroup.write.service', [
+    require('../utils/lodash.js'),
     require('../caches/infrastructureCaches.js'),
     require('../tasks/taskExecutor.js')
   ])
-  .factory('securityGroupWriter', function (taskExecutor, infrastructureCaches) {
+  .factory('securityGroupWriter', function (_, taskExecutor, infrastructureCaches) {
 
-    function upsertSecurityGroup(command, application, descriptor) {
-      command.type = 'upsertSecurityGroup';
-      command.credentials = command.credentials || command.accountName;
+    function upsertSecurityGroup(command, application, descriptor, params={}) {
+      params.type = 'upsertSecurityGroup';
+      params.credentials = command.credentials || command.accountName;
+
+      // We want to extend params with all attributes from command, but only if they don't already exist.
+      _.assign(params, command, function(value, other) {
+        return _.isUndefined(value) ? other : value;
+      });
 
       var operation = taskExecutor.executeTask({
-        job: [
-          command
-        ],
+        job: [params],
         application: application,
         description: descriptor + ' Security Group: ' + command.name
       });

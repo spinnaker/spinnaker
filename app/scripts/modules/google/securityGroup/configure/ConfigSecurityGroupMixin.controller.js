@@ -12,17 +12,17 @@ module.exports = angular
     require('../../../utils/lodash.js'),
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
-                                                             $state,
-                                                             $modalInstance,
-                                                             taskMonitorService,
-                                                             application,
-                                                             securityGroup,
-                                                             securityGroupReader,
-                                                             securityGroupWriter,
-                                                             accountService,
-                                                             modalWizardService,
-                                                             cacheInitializer,
-                                                             _ ) {
+                                                       $state,
+                                                       $modalInstance,
+                                                       taskMonitorService,
+                                                       application,
+                                                       securityGroup,
+                                                       securityGroupReader,
+                                                       securityGroupWriter,
+                                                       accountService,
+                                                       modalWizardService,
+                                                       cacheInitializer,
+                                                       _ ) {
 
 
 
@@ -47,7 +47,7 @@ module.exports = angular
     $scope.taskMonitor = taskMonitorService.buildTaskMonitor({
       application: application,
       title: 'Creating your security group',
-      forceRefreshMessage: 'Getting your new security group from Amazon...',
+      forceRefreshMessage: 'Getting your new security group from Google...',
       modalInstance: $modalInstance,
       forceRefreshEnabled: true
     });
@@ -59,8 +59,8 @@ module.exports = angular
       var newStateParams = {
         name: $scope.securityGroup.name,
         accountId: $scope.securityGroup.credentials || $scope.securityGroup.accountName,
-        region: $scope.securityGroup.region,
-        provider: 'aws',
+        region: 'global',
+        provider: 'gce',
       };
       if (!$state.includes('**.securityGroupDetails')) {
         $state.go('.securityGroupDetails', newStateParams);
@@ -77,29 +77,42 @@ module.exports = angular
       );
     };
 
-    function configureFilteredSecurityGroups() {
-      var existingSecurityGroupNames = [];
-      var availableSecurityGroups = [];
-
-      $scope.availableSecurityGroups = availableSecurityGroups;
-      $scope.existingSecurityGroupNames = existingSecurityGroupNames;
-      clearInvalidSecurityGroups();
-    }
-
     ctrl.mixinUpsert = function (descriptor) {
       $scope.taskMonitor.submit(
         function() {
-          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor);
+          var allowed = _.map($scope.securityGroup.ipIngress, function(ipIngressRule) {
+            var rule = {
+              ipProtocol: ipIngressRule.type,
+            };
+
+            if (ipIngressRule.startPort && ipIngressRule.endPort) {
+              rule.portRanges = [ipIngressRule.startPort + '-' + ipIngressRule.endPort];
+            }
+
+            return rule;
+          });
+
+          return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
+            cloudProvider: 'gce',
+            providerType: 'gce',
+            firewallRuleName: $scope.securityGroup.name,
+            sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
+            allowed: allowed,
+            region: "global",
+          });
         }
       );
     };
 
-    ctrl.accountUpdated = configureFilteredSecurityGroups;
+    ctrl.accountUpdated = function() {
+      ctrl.initializeSecurityGroups();
+      ctrl.updateName();
+    };
 
     function clearInvalidSecurityGroups() {
       var removed = $scope.state.removedRules;
       $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
-        if (rule.name && $scope.availableSecurityGroups.indexOf(rule.name) === -1) {
+        if (rule.name && $scope.existingSecurityGroupNames.indexOf(rule.name) === -1) {
           removed.push(rule.name);
           return false;
         }
@@ -126,14 +139,14 @@ module.exports = angular
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
 
-        var availableGroups;
+        var existingGroups;
         if(account) {
-          availableGroups = securityGroups[account].gce.global;
+          existingGroups = securityGroups[account].gce.global;
         } else {
-          availableGroups = securityGroups;
+          existingGroups = securityGroups;
         }
 
-        $scope.availableSecurityGroups = _.pluck(availableGroups, 'name');
+        $scope.existingSecurityGroupNames = _.pluck(existingGroups, 'name');
       });
     };
 
@@ -161,6 +174,14 @@ module.exports = angular
       }
     };
 
+    ctrl.addSourceCIDR = function(sourceRanges) {
+      sourceRanges.push({value: '0.0.0.0/0'});
+    };
+
+    ctrl.removeSourceCIDR = function(sourceRanges, index) {
+      sourceRanges.splice(index, 1);
+    };
+
     ctrl.addRule = function(ruleset) {
       ruleset.push({
         type: 'tcp',
@@ -172,7 +193,6 @@ module.exports = angular
     ctrl.removeRule = function(ruleset, index) {
       ruleset.splice(index, 1);
     };
-
 
   })
   .name;
