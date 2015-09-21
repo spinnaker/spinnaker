@@ -52,11 +52,36 @@ interface Front50Service {
   @PUT("/v2/projects/{projectId}")
   Project updateProject(@Path("projectId") String projectId, @Body Map project)
 
+  @GET("/v2/projects/{projectId}")
+  Project getProject(@Path("projectId") String projectId)
+
   @DELETE("/v2/projects/{projectId}")
   Response deleteProject(@Path("projectId") String projectId)
 
   static class Project {
     String id
     String name
+    String email
+
+    ProjectConfig config = new ProjectConfig()
+
+    Long updateTs
+    Long createTs
+
+    static class ProjectConfig {
+      Collection<PipelineConfig> pipelineConfigs
+      Collection<String> applications
+      Collection<ClusterConfig> clusters
+    }
+
+    static class ClusterConfig {
+      String account
+      String cluster
+    }
+
+    static class PipelineConfig {
+      String application
+      String pipelineConfigId
+    }
   }
 }
