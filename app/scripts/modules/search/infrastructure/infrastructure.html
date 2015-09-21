@@ -45,7 +45,7 @@
       </div>
     </div>
     <div class="row infrastructure-section">
-      <div class="col-md-3" ng-if="recentProjects.length">
+      <div class="col-md-3" ng-if="projects.length">
         <div class="row">
           <div class="col-md-12">
             <h3>Related Projects</h3>
@@ -55,7 +55,7 @@
           <div class="col-md-12">
             <div class="no-results" ng-if="!projects.length || !projects[0].results.length">
               No projects found matching "{{query}}".<br/>
-              <a href ng-click="ctrl.createProject()">Create a new project.</a>
+              <a href ng-click="ctrl.createProject()">Create a new project</a>
             </div>
             <infrastructure-project ng-repeat="project in projects[0].results"
                                     project-name="project.name"
@@ -80,10 +80,6 @@
                    href="{{ result.href }}">
                   <search-result item="result"></search-result>
                 </a>
-                <div class="no-results" ng-if="!category.results.length && category.category === 'Applications'">
-                  No applications found matching "{{query}}". <br/>
-                  <a href ng-click="ctrl.createApplication()">Create a new application.</a>
-                </div>
               </div>
             </div>
           </div>

@@ -3,6 +3,16 @@
     <aws-server-group-capacity-selector command="command"></aws-server-group-capacity-selector>
     <hr/>
     <availability-zone-selector command="command"></availability-zone-selector>
+    <div class="form-group">
+      <div class="col-md-4 sm-label-left"><b>AZ Rebalance</b></div>
+      <div class="col-md-7 checkbox">
+        <label><input type="checkbox"
+                      ng-click="ctrl.toggleSuspendedProcess('AZRebalance')"
+                      ng-checked="!ctrl.processIsSuspended('AZRebalance')"/>
+          Keep instances evenly distributed across zones
+        </label>
+      </div>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-default pull-left"
