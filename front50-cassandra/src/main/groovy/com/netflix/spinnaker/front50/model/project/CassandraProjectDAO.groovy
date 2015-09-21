@@ -80,17 +80,15 @@ class CassandraProjectDAO implements ProjectDAO, ApplicationListener<ContextRefr
   }
 
   Project findBy(String fieldName, String fieldValue) throws NotFoundException {
-    if (fieldName != "id") {
-      fieldValue = "'${fieldValue}'"
+    def project = all().find {
+      it."${fieldName}"?.trim()?.toLowerCase() == fieldValue.trim().toLowerCase()
     }
 
-    def projects = unmarshallResults(runQuery("select * from project where ${fieldName}=${fieldValue};"))
-
-    if (!projects) {
+    if (!project) {
       throw new NotFoundException("No Project found (${fieldName}: ${fieldValue})")
     }
 
-    return projects[0]
+    return project
   }
 
   Set<Project> all() {
