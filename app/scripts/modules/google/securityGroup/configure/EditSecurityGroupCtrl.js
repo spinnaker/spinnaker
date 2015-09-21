@@ -33,44 +33,28 @@ module.exports = angular.module('spinnaker.google.securityGroup.edit.controller'
       forceRefreshEnabled: true
     });
 
-    securityGroup.securityGroupIngress = _(securityGroup.inboundRules)
-      .filter(function(rule) {
-        return rule.securityGroup;
-      }).map(function(rule) {
-        return rule.portRanges.map(function(portRange) {
-          return {
-            name: rule.securityGroup.name,
+    securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {
+      return {value: sourceRange};
+    });
+
+    securityGroup.ipIngress = _(securityGroup.ipIngressRules)
+      .map(function(rule) {
+        if (rule.portRanges && rule.portRanges.length > 0) {
+          return rule.portRanges.map(function (portRange) {
+            return {
+              type: rule.protocol,
+              startPort: portRange.startPort,
+              endPort: portRange.endPort,
+            };
+          });
+        } else {
+          return [{
             type: rule.protocol,
-            startPort: portRange.startPort,
-            endPort: portRange.endPort
-          };
-        });
+          }];
+        }
       })
       .flatten()
       .value();
-
-      securityGroup.sourceRanges = _.map(securityGroup.sourceRanges, function(sourceRange) {
-        return {value: sourceRange};
-      });
-
-      securityGroup.ipIngress = _(securityGroup.ipIngressRules)
-        .map(function(rule) {
-          if (rule.portRanges && rule.portRanges.length > 0) {
-            return rule.portRanges.map(function (portRange) {
-              return {
-                type: rule.protocol,
-                startPort: portRange.startPort,
-                endPort: portRange.endPort
-              };
-            });
-          } else {
-            return [{
-              type: rule.protocol,
-            }];
-          }
-        })
-        .flatten()
-        .value();
 
     this.getSecurityGroupRefreshTime = function() {
       return infrastructureCaches.securityGroups.getStats().ageMax;

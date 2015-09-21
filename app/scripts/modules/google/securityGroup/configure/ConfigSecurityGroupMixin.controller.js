@@ -109,20 +109,6 @@ module.exports = angular
       ctrl.updateName();
     };
 
-    function clearInvalidSecurityGroups() {
-      var removed = $scope.state.removedRules;
-      $scope.securityGroup.securityGroupIngress = $scope.securityGroup.securityGroupIngress.filter(function(rule) {
-        if (rule.name && $scope.existingSecurityGroupNames.indexOf(rule.name) === -1) {
-          removed.push(rule.name);
-          return false;
-        }
-        return true;
-      });
-      if (removed.length) {
-        modalWizardService.getWizard().markDirty('Ingress');
-      }
-    }
-
     ctrl.refreshSecurityGroups = function() {
       $scope.state.refreshingSecurityGroups = true;
       return cacheInitializer.refreshCache('securityGroups').then(function() {
