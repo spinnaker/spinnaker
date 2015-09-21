@@ -16,17 +16,22 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.CopyLastGoogleServerGroupAtomicOperation
-import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component("copyLastGoogleServerGroupDescription")
 class CopyLastGoogleServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
+  @Autowired
+  ReplicaPoolBuilder replicaPoolBuilder
+
   AtomicOperation convertOperation(Map input) {
-    new CopyLastGoogleServerGroupAtomicOperation(convertDescription(input), new ReplicaPoolBuilder())
+    new CopyLastGoogleServerGroupAtomicOperation(convertDescription(input), replicaPoolBuilder)
   }
 
   BasicGoogleDeployDescription convertDescription(Map input) {

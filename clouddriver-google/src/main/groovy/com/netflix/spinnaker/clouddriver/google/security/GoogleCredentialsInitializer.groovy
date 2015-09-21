@@ -20,12 +20,16 @@ import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import org.apache.log4j.Logger
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class GoogleCredentialsInitializer {
   private static final Logger log = Logger.getLogger(this.class.simpleName)
+
+  @Autowired
+  String applicationName
 
   @Bean
   List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(
@@ -35,6 +39,7 @@ class GoogleCredentialsInitializer {
 
     for (managedAccount in googleConfigurationProperties.accounts) {
       try {
+        // TODO(duftler): Pass applicationName to GoogleNamedAccountCredentials constructor.
         def googleAccount = new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.name, managedAccount.project)
 
         googleAccounts << accountCredentialsRepository.save(managedAccount.name, googleAccount)

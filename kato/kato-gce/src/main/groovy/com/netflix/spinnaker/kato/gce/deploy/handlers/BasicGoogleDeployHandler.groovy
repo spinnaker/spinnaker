@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManager
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -29,7 +30,6 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
-import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -53,14 +53,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   @Autowired
   GoogleSecurityGroupProvider googleSecurityGroupProvider
 
-  private static Task getTask() {
-    TaskRepository.threadLocalTask.get()
-  }
+  @Autowired
+  String applicationName
 
+  @Autowired
   ReplicaPoolBuilder replicaPoolBuilder
 
-  BasicGoogleDeployHandler() {
-    replicaPoolBuilder = new ReplicaPoolBuilder()
+  private static Task getTask() {
+    TaskRepository.threadLocalTask.get()
   }
 
   @Override
@@ -100,7 +100,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
-    def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE)
+    def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE, applicationName)
 
     def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
 
@@ -151,7 +151,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
 
     // Before building the managed instance group we must check and wait until the instance template is built.
     googleOperationPoller.waitForGlobalOperation(compute, project, instanceTemplateCreateOperation.getName(),

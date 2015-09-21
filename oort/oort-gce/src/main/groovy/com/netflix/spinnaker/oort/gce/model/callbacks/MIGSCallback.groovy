@@ -22,12 +22,11 @@ import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
-import com.google.api.services.replicapool.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
-import com.netflix.spinnaker.oort.gce.model.ResourceViewsBuilder
 import org.apache.log4j.Logger
 
 class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceGroupManagerList> {
@@ -45,6 +44,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
   private String defaultBuildHost
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private BatchRequest resourceViewsBatch
+  private ResourceViewsBuilder resourceViewsBuilder
 
   public MIGSCallback(HashMap<String, GoogleApplication> tempAppMap,
                       String region,
@@ -57,7 +57,8 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                       Map<String, List<Map>> imageMap,
                       String defaultBuildHost,
                       Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
-                      BatchRequest resourceViewsBatch) {
+                      BatchRequest resourceViewsBatch,
+                      ResourceViewsBuilder resourceViewsBuilder) {
     this.tempAppMap = tempAppMap
     this.region = region
     this.localZoneName = localZoneName
@@ -70,6 +71,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
     this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.resourceViewsBatch = resourceViewsBatch
+    this.resourceViewsBuilder = resourceViewsBuilder
   }
 
   @Override
@@ -87,7 +89,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
         googleServerGroup.setProperty(
           "launchConfig", [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)])
 
-        def resourceViews = new ResourceViewsBuilder().buildResourceViews(credentialBuilder, Utils.APPLICATION_NAME)
+        def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
         def resourceViewsCallback = new ResourceViewsCallback(localZoneName,
                                                               googleServerGroup,
                                                               project,

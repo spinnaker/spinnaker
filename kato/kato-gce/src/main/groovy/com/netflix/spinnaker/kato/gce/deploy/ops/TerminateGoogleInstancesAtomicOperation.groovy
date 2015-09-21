@@ -18,9 +18,9 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManagersRecreateInstancesRequest
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
@@ -80,7 +80,7 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
 
       def managerName = description.managedInstanceGroupName
       def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-      def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME)
+      def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
       def instanceGroupManagers = replicapool.instanceGroupManagers()
 
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceIds)

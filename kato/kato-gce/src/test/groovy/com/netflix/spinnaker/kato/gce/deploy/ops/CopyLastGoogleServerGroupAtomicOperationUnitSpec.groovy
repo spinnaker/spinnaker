@@ -24,6 +24,7 @@ import com.google.api.services.compute.model.Network
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -156,7 +157,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
@@ -198,7 +199,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
@@ -231,7 +232,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
@@ -268,7 +269,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager

@@ -21,6 +21,7 @@ import com.google.api.services.compute.Compute
 import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManagersAbandonInstancesRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
@@ -60,7 +61,7 @@ class AbandonAndDecrementGoogleReplicaPoolAtomicOperationUnitSpec extends Specif
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.abandonInstances(PROJECT_NAME,
                                                      ZONE,

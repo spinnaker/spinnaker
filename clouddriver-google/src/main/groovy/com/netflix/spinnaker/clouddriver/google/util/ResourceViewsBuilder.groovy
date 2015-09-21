@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.oort.gce.model
+package com.netflix.spinnaker.clouddriver.google.util
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.services.resourceviews.Resourceviews
 
 class ResourceViewsBuilder {
-  Resourceviews buildResourceViews(GoogleCredential.Builder credentialBuilder, String applicationName) {
+
+  private String applicationName
+
+  ResourceViewsBuilder(String applicationName) {
+    this.applicationName = applicationName
+  }
+
+  Resourceviews buildResourceViews(GoogleCredential.Builder credentialBuilder) {
     def credential = credentialBuilder.build()
     return new Resourceviews.Builder(credentialBuilder.transport,
                                      credentialBuilder.jsonFactory,

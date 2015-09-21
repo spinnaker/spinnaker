@@ -43,6 +43,7 @@ class GCEUtilSpec extends Specification {
   private static final INSTANCE_LOCAL_NAME_2 = "some-instance-name-2"
   private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
   private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
+  private static final String APPLICATION_NAME = "Spinnaker"
 
   @Shared
   def taskMock
@@ -94,7 +95,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, APPLICATION_NAME)
           }
         }
       }
@@ -143,7 +144,7 @@ class GCEUtilSpec extends Specification {
             def compute = new Compute.Builder(
                     httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, APPLICATION_NAME)
           }
         }
       }
