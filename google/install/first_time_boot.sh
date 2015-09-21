@@ -79,7 +79,7 @@ function replace_startup_script() {
   local original=$(get_instance_metadata_attribute "startup-script")
   echo "$original" > "$SPINNAKER_INSTALL_DIR/scripts/original_startup_script.sh"
   write_instance_metadata \
-      "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker"
+      "startup-script=$SPINNAKER_INSTALL_DIR/scripts/start_spinnaker.sh"
 }
 
 function extract_spinnaker_config() {

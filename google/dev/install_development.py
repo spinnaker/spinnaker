@@ -24,7 +24,6 @@ from install.install_utils import run
 from install.install_utils import run_or_die
 
 import install.install_runtime_dependencies
-import install.install_spinnaker
 
 
 NODE_VERSION = '0.12'

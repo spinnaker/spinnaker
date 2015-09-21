@@ -284,7 +284,60 @@ class Builder(object):
     finally:
       os.remove(temp_file)
 
+  def add_web_installer_zip(self):
+    """Build encapsulated python zip file for install_spinnaker.py
+
+    This is useful as an installer that can be pointed at a release somewhere,
+    and just pull and install it onto any machine. Unfortunately you cannot
+    directly run a zip through stdin so need to download the zip first, then
+    run it. The zip is packaged as part of the release for distribution
+    convienence.
+    """
+    temp_dir = tempfile.mkdtemp()
+    zip_file = os.path.join(temp_dir, 'install_spinnaker.zip')
+    with open(os.path.join(temp_dir, '__main__.py'), 'w') as f:
+      f.write("""
+from install_spinnaker import main
+import os
+import sys
+
+if __name__ == '__main__':
+  if len(sys.argv) == 1 and os.environ.get('RELEASE_PATH', ''):
+      sys.argv.extend('--release_path', os.environ['RELEASE_PATH'])
+  retcode = main()
+  sys.exit(retcode)
+""")
+    try:
+      deps = ['install_spinnaker.py',
+              'install_runtime_dependencies.py',
+              'google_install_loader.py',
+              'install_utils.py']
+      run_or_die_no_result(
+        'cd {install_dir}; zip {zip_file} {deps}'
+        .format(install_dir=os.path.join(self.__project_dir, 'install'),
+                zip_file=zip_file,
+                deps=' '.join(deps)),
+        echo=False)
+
+      run_or_die_no_result(
+            'cd {temp_dir}; zip -g {zip_file} __main__.py'
+            .format(temp_dir=temp_dir, zip_file=zip_file),
+            echo=False)
+      p = self.start_copy_file(
+          zip_file, os.path.join(self.__release_dir, 'install',
+                                 os.path.basename(zip_file)))
+      p.wait_or_die()
+    finally:
+      shutil.rmtree(temp_dir, ignore_errors=True)
+
+    
   def add_python_test_zip(self, test_name):
+    """Build encapsulated python zip file for the given test test_name.
+
+    This allows integration tests to be packaged with the release, at least
+    for the time being. This is useful for testing them, or validating the
+    initial installation and configuration.
+    """
     temp_dir = tempfile.mkdtemp()
     zip_file = os.path.join(temp_dir, test_name + '.zip')
     open(os.path.join(temp_dir, '__init__.py'), 'w').close()
@@ -367,6 +420,7 @@ if __name__ == '__main__':
     builder.copy_install_scripts()
     builder.copy_admin_scripts()
     builder.copy_config_files()
+    builder.add_web_installer_zip()
     builder.add_test_zip_files()
 
     print '\nFINISHED writing release to {dir}'.format(

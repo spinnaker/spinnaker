@@ -21,7 +21,6 @@ import sys
 import configure_util
 
 from install.install_utils import fetch
-from install.install_utils import fetch_or_die
 from install.google_install_loader import running_on_gce
 from install.google_install_loader import INSTANCE_METADATA_URL
 from install.google_install_loader import METADATA_URL
@@ -171,6 +170,11 @@ class ValidateConfig(object):
     return ok
 
   def verify_gce_provider(self):
+    code, project_id = fetch(METADATA_URL + '/project/project-id',
+                             google=True)
+    if code != 200:
+      project_id = None
+
     # https://cloud.google.com/compute/docs/reference/latest/instances
     # The * here could be further restricted to {0,61} because length
     # is bounded.
@@ -179,10 +183,15 @@ class ValidateConfig(object):
     # (e.g. adding a health check) for created components will push beyond GCE
     # limits.
     gce_name_regex = '^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$'
-    project_id = fetch_or_die(METADATA_URL + '/project/project-id', google=True)
     managed_project_id = self.__bindings.get('GOOGLE_MANAGED_PROJECT_ID', '')
     ok = True
-    if managed_project_id:
+    if not managed_project_id:
+      if not project_id:
+        self.__errors.append(
+            'GOOGLE_MANAGED_PROJECT_ID is not set, and it does not appear that'
+            ' you are running in a Google Cloud Platform project to default to.')
+        ok = False
+    else:
       if not re.match(gce_name_regex, managed_project_id):
         ok = False
         self.__errors.append(
