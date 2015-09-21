@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.scheduler', [
   require('../caches/deckCacheFactory.js'),
   require('../config/settings.js')
 ])
-  .factory('scheduler', function(RxService, settings, $q, $log, $window) {
+  .factory('scheduler', function(RxService, settings, $q, $log, $window, $timeout) {
     var scheduler = new RxService.Subject();
 
     let lastRun = new Date().getTime();
@@ -17,11 +17,12 @@ module.exports = angular.module('spinnaker.scheduler', [
       .repeat()
       .pausable(scheduler);
 
-      source
-        .subscribe(function() {
-          lastRun = new Date().getTime();
-          scheduler.onNext(true);
-        });
+    let runner = () => {
+      lastRun = new Date().getTime();
+      scheduler.onNext(true);
+    };
+
+    source.subscribe(runner);
 
     let suspendScheduler = () => {
       $log.debug('auto refresh suspended');
@@ -31,9 +32,10 @@ module.exports = angular.module('spinnaker.scheduler', [
     let resumeScheduler = () => {
       let now = new Date().getTime();
       $log.debug('auto refresh resumed');
-      source.resume();
       if (now - lastRun > settings.pollSchedule) {
-        scheduler.onNext(true);
+        runner();
+      } else {
+        $timeout(runner, settings.pollSchedule - (now - lastRun));
       }
     };
 
