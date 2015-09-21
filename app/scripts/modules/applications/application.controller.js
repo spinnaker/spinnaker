@@ -59,15 +59,6 @@ module.exports = angular.module('spinnaker.application.controller', [
 
     applicationHotkeys.forEach(hotkeyBind.add);
 
-    this.toggleRefresh = function() {
-      if (app.autoRefreshEnabled) {
-        app.disableAutoRefresh();
-      } else {
-        app.resumeAutoRefresh();
-        app.refreshImmediately();
-      }
-    };
-
     app.enableAutoRefresh($scope);
   }
 ).name;

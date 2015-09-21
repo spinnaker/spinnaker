@@ -36,79 +36,31 @@ module.exports = angular
 
       RestangularConfigurer.addElementTransformer('applications', false, function(application) {
 
-        function refreshApplication(forceRefresh) {
-          if (application.autoRefreshEnabled || forceRefresh) {
-            application.refreshing = true;
-            application.reloadTasks();
-            application.reloadExecutions();
-            return getApplication(application.name).then(function (newApplication) {
-              deepCopyApplication(application, newApplication);
-              application.autoRefreshHandlers.forEach(function (handler) {
-                handler.call();
-              });
-              newApplication = null;
-              application.refreshing = false;
+        function refreshApplication() {
+          application.refreshing = true;
+          application.reloadTasks();
+          application.reloadExecutions();
+          return getApplication(application.name).then(function (newApplication) {
+            deepCopyApplication(application, newApplication);
+            application.autoRefreshHandlers.forEach(function (handler) {
+              handler.call();
             });
-          }
+            newApplication = null;
+            application.refreshing = false;
+          });
         }
 
 
         function registerAutoRefreshHandler(method, scope) {
           application.autoRefreshHandlers.push(method);
           scope.$on('$destroy', function () {
-            application.autoRefreshHandlers = application.autoRefreshHandlers.filter(function (handler) {
-              return handler !== method;
-            });
+            application.autoRefreshHandlers = application.autoRefreshHandlers.filter((handler) => handler !== method);
           });
         }
 
-        function autoRefresh(scope) {
-          if (application.autoRefreshEnabled) {
-            var disposable = scheduler.subscribe(refreshApplication);
-            scope.$on('$destroy', function () {
-              application.disableAutoRefresh();
-              disposable.dispose();
-            });
-          }
-        }
-
-        function disableAutoRefresh () {
-          application.autoRefreshEnabled = false;
-          document.removeEventListener('visibilitychange', watchDocumentVisibility);
-          $window.removeEventListener('blur', suspendAutoRefresh);
-          $window.removeEventListener('focus', resumeAutoRefresh);
-        }
-
-        function suspendAutoRefresh() {
-          $log.debug('auto refresh suspended');
-          application.autoRefreshEnabled = false;
-        }
-
-        function resumeAutoRefresh() {
-          application.autoRefreshEnabled = true;
-          $log.debug('auto refresh resumed');
-          var now = new Date().getTime();
-          if (application.lastRefresh && now - application.lastRefresh > settings.pollSchedule) {
-            $log.debug('scheduling immediate refresh, last refresh was', now - application.lastRefresh, 'ms ago');
-            scheduler.scheduleImmediate(refreshApplication);
-          }
-        }
-
-        function watchDocumentVisibility() {
-          $log.debug('document visibilityState changed to: ', document.visibilityState);
-          if (document.visibilityState === 'visible') {
-            resumeAutoRefresh();
-          } else {
-            suspendAutoRefresh();
-          }
-        }
-
-        function enableAutoRefresh (scope) {
-          document.addEventListener('visibilitychange', watchDocumentVisibility);
-          $window.addEventListener('offline', suspendAutoRefresh);
-          $window.addEventListener('online', resumeAutoRefresh);
-          application.autoRefreshEnabled = true;
-          autoRefresh(scope);
+        function enableAutoRefresh(scope) {
+          let dataLoader = scheduler.subscribe(refreshApplication);
+          scope.$on('$destroy', () => dataLoader.dispose());
         }
 
         function reloadTasks() {
@@ -138,16 +90,15 @@ module.exports = angular
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.autoRefreshHandlers = [];
-        application.refreshImmediately = refreshApplication;
-        application.disableAutoRefresh = disableAutoRefresh;
+        application.refreshImmediately = () => scheduler.scheduleImmediate(refreshApplication);
         application.enableAutoRefresh = enableAutoRefresh;
-        application.resumeAutoRefresh = resumeAutoRefresh;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;
 
         if (application.fromServer && application.clusters) {
           application.accounts = Object.keys(application.clusters);
         }
+
         return application;
 
       });
