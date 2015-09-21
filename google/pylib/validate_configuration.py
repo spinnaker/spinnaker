@@ -237,11 +237,32 @@ class ValidateConfig(object):
 
   def verify_jenkins(self):
     ok = self.verify_host_port('JENKINS_ADDRESS', required=False)
-    if (self.__bindings.get('JENKINS_ADDRESS', '')
-        and not self.__bindings.get('JENKINS_USERNAME', '')):
-      ok = False
-      self.__errors.append('JENKINS_ADDRESS is provided,'
-                           ' but not JENKINS_USERNAME.')
+    if self.__bindings.get('JENKINS_ADDRESS', ''):
+        # TODO(ewiseblatt): 20140925
+        # Look into the IGOR_ENABLED flag (used at least in gate)
+        igor_enabled = self.__bindings.get('IGOR_ENABLED', '')
+        if igor_enabled == 'false':
+          # Dont bother checking other things since they dont matter.
+          print ('WARNING: JENKINS_ADDRESS is provided but'
+                 ' IGOR_ENABLED is false.'
+                 ' Therefore igor will not be available.')
+
+        if igor_enabled == '':
+          ok = False
+          self.__errors.append('JENKINS_ADDRESS is provided but IGOR_ENABLED'
+                               ' is not explicitly set to true or false.')
+
+        if not self.__bindings.get('JENKINS_USERNAME', ''):
+            ok = False
+            self.__errors.append('JENKINS_ADDRESS is provided,'
+                                 ' but not JENKINS_USERNAME.')
+
+        if not self.__bindings.get('JENKINS_PASSWORD', ''):
+            # igor will throw an exception if it does not have a password.
+            ok = False
+            self.__errors.append('JENKINS_ADDRESS is provided,'
+                                 ' but not JENKINS_PASSWORD.')
+
 
   def verify_external_dependencies(self):
     ok = self.verify_host('CASSANDRA_HOST', required=False)
