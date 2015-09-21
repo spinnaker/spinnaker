@@ -101,20 +101,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         },
         instanceMetadata: [],
         tags: [],
-        cooldown: 10,
-        healthCheckType: 'EC2',
-        healthCheckGracePeriod: 600,
-        instanceMonitoring: false,
-        ebsOptimized: false,
         cloudProvider: 'gce',
         providerType: 'gce',
         selectedProvider: 'gce',
-        iamRole: 'BaseIAMRole',       // should not be hard coded here
-
-        terminationPolicies: ['Default'],
-        vpcId: null,
         availabilityZones: [],
-        keyPair: 'nf-test-keypair-a', // should not be hard coded here
         viewState: {
           instanceProfile: null,
           allImageSelection: null,
@@ -150,10 +140,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
-        cooldown: serverGroup.asg.defaultCooldown,
-        healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
-        healthCheckType: serverGroup.asg.healthCheckType,
-        terminationPolicies: serverGroup.asg.terminationPolicies,
         loadBalancers: serverGroup.asg.loadBalancerNames,
         securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
@@ -188,12 +174,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (serverGroup.launchConfig) {
         angular.extend(command, {
           instanceType: serverGroup.launchConfig.instanceType,
-          iamRole: serverGroup.launchConfig.iamInstanceProfile,
-          keyPair: serverGroup.launchConfig.keyName,
-          associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
-          ramdiskId: serverGroup.launchConfig.ramdiskId,
-          instanceMonitoring: serverGroup.launchConfig.instanceMonitoring && serverGroup.launchConfig.instanceMonitoring.enabled,
-          ebsOptimized: serverGroup.launchConfig.ebsOptimized,
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
