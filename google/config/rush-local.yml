@@ -1,0 +1,11 @@
+server:
+  port: 8085
+
+cassandra:
+  embedded: false
+
+docker:
+  accounts:
+    - name: $GOOGLE_ACCOUNT_NAME
+      url: http://$DOCKER_ADDRESS
+      registry: http://localhost:5000

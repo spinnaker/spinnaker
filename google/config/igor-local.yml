@@ -1,0 +1,13 @@
+server:
+  port: 8088
+
+jenkins:
+  masters:
+    - name: jenkins1
+      address: http://$JENKINS_ADDRESS
+      username: $JENKINS_USERNAME
+      password: $JENKINS_PASSWORD
+
+services:
+  echo:
+    baseUrl: http://localhost:8089

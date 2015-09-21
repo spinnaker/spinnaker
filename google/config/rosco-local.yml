@@ -1,0 +1,17 @@
+server:
+  port: 8087
+
+aws:
+  enabled: false
+
+docker:
+  enabled: false
+
+google:
+  enabled: true
+  gce:
+    bakeryDefaults:
+      project: $GOOGLE_MANAGED_PROJECT_ID
+
+rush:
+  credentials: $GOOGLE_ACCOUNT_NAME
