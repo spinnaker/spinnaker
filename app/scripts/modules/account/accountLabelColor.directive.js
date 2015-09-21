@@ -4,24 +4,19 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.accountLabelColor.directive', [
-    require('../config/settings.js')
+    require('./account.service.js'),
   ])
   .directive('accountLabelColor', function () {
     return {
       restrict: 'E',
-      template: '<span class="account-tag account-tag-{{getAccountType()}}">{{account}}</span>',
+      template: '<span class="account-tag account-tag-{{accountType}}">{{account}}</span>',
       scope: {
         account: '@',
         provider: '@'
       },
-      controller: function ($scope, settings) {
-        var prodAccounts = [];
-        if (settings.providers[$scope.provider] && settings.providers[$scope.provider].challengeDestructiveActions) {
-          prodAccounts = settings.providers[$scope.provider].challengeDestructiveActions;
-        }
-        $scope.getAccountType = function() {
-          return prodAccounts.indexOf($scope.account) > -1 ? 'prod' : $scope.account;
-        };
+      controller: function ($scope, accountService) {
+        const isProdAccount = accountService.challengeDestructiveActions($scope.provider, $scope.account);
+        $scope.accountType = isProdAccount ? 'prod' : $scope.account;
       }
     };
   })

@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.serverGroups.basicSettings.controller', [
-    require('exports?"ui.bootstrap"!angular-bootstrap'),
+    require('angular-ui-bootstrap'),
     require('angular-ui-router'),
     require('../../../utils/rx.js'),
     require('../../../utils/lodash.js'),

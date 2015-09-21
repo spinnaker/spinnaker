@@ -950,6 +950,7 @@ body, html {
     display: -webkit-flex;
     flex: 1 1 auto;
     -webkit-flex: 1 1 auto;
+    overflow-y: auto;
     > .container {
       display: flex;
       display: -webkit-flex;
@@ -1025,4 +1026,13 @@ body > .select2-container.open {
 .tooltip, .popover {
   font-family: 'Source Sans Pro', sans-serif;
   z-index: 10004;
+}
+
+.btn-configure {
+  padding: 6px;
+  &:hover, &:active {
+    border: 1px solid @spinnaker-blue;
+    background-color: @lighter_grey;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s
+  }
 }

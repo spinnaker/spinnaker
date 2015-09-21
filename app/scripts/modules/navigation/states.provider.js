@@ -7,6 +7,9 @@ module.exports = angular.module('spinnaker.states', [
   require('./stateHelper.provider.js'),
   require('../delivery/states.js'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('../core/projects/project.controller.js'),
+  require('../core/projects/dashboard/dashboard.controller.js'),
+  require('../core/projects/service/project.read.service.js'),
 ])
   .provider('states', function($stateProvider, $urlRouterProvider, stateHelperProvider, deliveryStates) {
     this.setStates = function() {
@@ -17,6 +20,8 @@ module.exports = angular.module('spinnaker.states', [
       }]);
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
       $urlRouterProvider.when('/', '/applications');
+      $urlRouterProvider.when('/projects/{project}', '/projects/{project}/dashboard');
+      $urlRouterProvider.when('/projects/{project}/applications/{application}', '/projects/{project}/applications/{application}/clusters');
 
       // Handle legacy links to old security groups path
       $urlRouterProvider.when(
@@ -28,7 +33,7 @@ module.exports = angular.module('spinnaker.states', [
         name: 'instanceDetails',
         url: '/instanceDetails/:provider/:instanceId',
         views: {
-          'detail@home.applications.application.insight': {
+          'detail@../insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
@@ -59,7 +64,7 @@ module.exports = angular.module('spinnaker.states', [
         name: 'serverGroup',
         url: '/serverGroupDetails/:provider/:accountId/:region/:serverGroup',
         views: {
-          'detail@home.applications.application.insight': {
+          'detail@../insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
@@ -100,7 +105,7 @@ module.exports = angular.module('spinnaker.states', [
           },
         },
         views: {
-          'detail@home.applications.application.insight': {
+          'detail@../insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
@@ -142,7 +147,7 @@ module.exports = angular.module('spinnaker.states', [
           },
         },
         views: {
-          'detail@home.applications.application.insight': {
+          'detail@../insight': {
             templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry', function($templateCache, $stateParams, cloudProviderRegistry) {
               return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsTemplateUrl')); }],
             controllerProvider: ['$stateParams', 'cloudProviderRegistry', function($stateParams, cloudProviderRegistry) {
@@ -350,46 +355,47 @@ module.exports = angular.module('spinnaker.states', [
         }
       };
 
-
-      var application = {
-        name: 'application',
-        url: '/:application',
-        views: {
-          'main@': {
-            templateUrl: require('../applications/application.html'),
-            controller: 'ApplicationCtrl',
-            controllerAs: 'ctrl'
-          },
-        },
-        resolve: {
-          app: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
-            return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true})
-              .then(
+      function application(mainView, relativeUrl='') {
+        let applicationConfig = {
+          name: 'application',
+          url: `${relativeUrl}/:application`,
+          resolve: {
+            app: ['$stateParams', 'applicationReader', function($stateParams, applicationReader) {
+              return applicationReader.getApplication($stateParams.application, {tasks: true, executions: true})
+                .then(
                 function(app) {
                   return app;
                 },
                 function() { return {notFound: true, name: $stateParams.application}; }
               );
-          }]
-        },
-        data: {
-          pageTitleMain: {
-            field: 'application'
+            }]
           },
-          history: {
-            type: 'applications',
-            keyParams: ['application']
+          data: {
+            pageTitleMain: {
+              field: 'application'
+            },
+            history: {
+              type: 'applications',
+              keyParams: ['application']
+            },
           },
-        },
-        children: [
-          insight,
-          tasks,
-          deliveryStates.executions,
-          deliveryStates.configure,
-          config,
-          appFastProperties,
-        ],
-      };
+          children: [
+            insight,
+            tasks,
+            deliveryStates.executions,
+            deliveryStates.configure,
+            config,
+            appFastProperties,
+          ],
+        };
+        applicationConfig.views = {};
+        applicationConfig.views[mainView] = {
+            templateUrl: require('../applications/application.html'),
+            controller: 'ApplicationCtrl',
+            controllerAs: 'ctrl'
+          };
+        return applicationConfig;
+      }
 
       var applications = {
         name: 'applications',
@@ -407,7 +413,7 @@ module.exports = angular.module('spinnaker.states', [
           }
         },
         children: [
-          application
+          application('main@')
         ],
       };
 
@@ -446,6 +452,73 @@ module.exports = angular.module('spinnaker.states', [
         ]
       };
 
+      var dashboard = {
+        name: 'dashboard',
+        url: '/dashboard',
+        views: {
+          detail: {
+            templateUrl: require('../core/projects/dashboard/dashboard.html'),
+            controller: 'ProjectDashboardCtrl',
+            controllerAs: 'dashboardCtrl',
+          }
+        },
+        data: {
+          pageTitleSection: {
+            title: 'Dashboard'
+          }
+        },
+      };
+      //
+      //var configureProject = {
+      //  name: 'configureProject',
+      //  url: '/configure',
+      //  views: {
+      //    detail: {
+      //      templateUrl: require('../core/projects/configure/configure.html'),
+      //      controller: 'ConfigureProjectCtrl',
+      //      controllerAs: 'configureProjectCtrl',
+      //    }
+      //  },
+      //  data: {
+      //    pageTitleSection: {
+      //      title: 'Configure'
+      //    }
+      //  },
+      //};
+
+      var project = {
+        name: 'project',
+        //abstract: true,
+        url: '/projects/{project}',
+        resolve: {
+          projectConfiguration: ['$stateParams', 'projectReader', function($stateParams, projectReader) {
+            return projectReader.getProjectConfig($stateParams.project).then(
+              (projectConfig) => projectConfig,
+              () => { return { notFound: true, name: $stateParams.project }; }
+            );
+          }]
+        },
+        views: {
+          'main@': {
+            templateUrl: require('../core/projects/project.html'),
+            controller: 'ProjectCtrl',
+            controllerAs: 'ctrl',
+          },
+        },
+        data: {
+          pageTitleMain: {
+            field: 'project'
+          },
+          history: {
+            type: 'projects'
+          }
+        },
+        children: [
+          dashboard,
+          //configureProject,
+          application('detail', '/applications'),
+        ]
+      };
 
       var infrastructure = {
         name: 'infrastructure',
@@ -512,6 +585,7 @@ module.exports = angular.module('spinnaker.states', [
           applications,
           infrastructure,
           data,
+          project,
           standaloneInstance
         ],
       };

@@ -1,7 +1,7 @@
 <div class="row execution-status">
   <div class="col-md-7 execution-info">
-    <h5 ng-if="filter.execution.groupBy !== 'name'">{{execution.name}}</h5>
-    <span ng-switch="execution.trigger.type" ng-class="{subheading: filter.execution.groupBy !== 'name'}">
+    <h5 class="execution-name" ng-if="filter.execution.groupBy !== 'name'">{{execution.name}}</h5>
+    <span class="trigger-type" ng-switch="execution.trigger.type" ng-class="{subheading: filter.execution.groupBy !== 'name'}">
        <h5 ng-switch-when="jenkins">
          Triggered Build
        </h5>
@@ -17,33 +17,11 @@
       <h5 ng-switch-default>
         {{ execution.trigger.type }}
       </h5>
-      <h5>
-        <a ng-if="execution.buildInfo.number && !execution.trigger.buildInfo.url && !execution.trigger.buildInfo.lastBuild.url"
-           href="{{execution.buildInfo.host}}job/{{execution.buildInfo.name}}/{{execution.buildInfo.number}}"
-           target="_blank"
-           ng-click="$event.stopPropagation()">
-          Build #{{ execution.buildInfo.number}}
-        </a>
-        <a ng-if="execution.trigger.buildInfo.url"
-           href="{{ execution.trigger.buildInfo.url }}"
-           target="_blank"
-           ng-click="$event.stopPropagation()">
-          Build #{{ execution.trigger.buildInfo.number }}
-        </a>
-        <a ng-if="execution.trigger.buildInfo.lastBuild.url"
-           href="{{ execution.trigger.buildInfo.lastBuild.url }}"
-           target="_blank"
-           ng-click="$event.stopPropagation()">
-          Build #{{ execution.trigger.buildInfo.lastBuild.number }}
-        </a>
-        <a ng-if="execution.trigger.parentPipelineId"
-           href="/#/applications/{{execution.trigger.parentPipelineApplication}}/executions/{{execution.trigger.parentPipelineId}}"
-          >
-          {{execution.trigger.parentPipelineName}}
-        </a>
+      <h5 class="build-number">
+        <execution-build-number execution="execution"></execution-build-number>
       </h5>
     </span>
-    <ul>
+    <ul class="trigger-details">
       <li ng-if="execution.trigger.buildInfo.url">
         {{ execution.trigger.buildInfo | buildDisplayName }}
       </li>
@@ -63,7 +41,7 @@
       </span>
     </ul>
   </div>
-  <div class="col-md-5">
+  <div class="col-md-5 execution-status-info">
     <span ng-switch="execution.status.toLowerCase()">
       <span ng-switch-when="failed">
         <span>

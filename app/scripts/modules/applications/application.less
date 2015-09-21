@@ -22,7 +22,12 @@
   background-color: #f8f8f8;
   flex: 0 0 auto;
   -webkit-flex: 0 0 auto;
+  .application-name {
+    display: inline-block;
+  }
   h2 {
+    min-width: 200px;
+    margin-right: 50px;
     a {
       font-size: 75%;
       display: inline-block;
@@ -30,19 +35,10 @@
     }
     font-weight: 700;
     display: inline-block;
-    .glyphicon-refresh {
-      &.refresh-enabled {
-        color: @healthy_green_icon;
-      }
-      &.refresh-disabled {
-        opacity: 0.5;
-      }
-    }
   }
   ul {
     display: inline-block;
     vertical-align: bottom;
-    margin-left: 50px;
     text-transform: uppercase;
     font-size: 110%;
     & > li {
@@ -187,4 +183,13 @@
 .glyphicon-none:before{
   content:"\e113";
   color: transparent !important;
+}
+
+.glyphicon-refresh {
+  &.refresh-enabled {
+    color: @healthy_green_icon;
+  }
+  &.refresh-disabled {
+    opacity: 0.5;
+  }
 }

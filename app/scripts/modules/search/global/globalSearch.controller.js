@@ -65,7 +65,7 @@ module.exports = angular.module('spinnaker.search.global.controller', [
       search.query($scope.query).then(function (result) {
         $scope.$eval(function () {
           $scope.querying = false;
-          $scope.categories = result;
+          $scope.categories = result.filter((category) => category.results.length);
           $scope.showSearchResults = !!$scope.query;
         });
       });

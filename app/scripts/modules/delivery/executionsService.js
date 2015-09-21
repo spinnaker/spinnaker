@@ -60,14 +60,14 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
       });
     }
 
-    function cancelExecution(executionId) {
+    function cancelExecution(executionId, applicationName) {
       var deferred = $q.defer();
       $http({
         method: 'PUT',
         url: [
           settings.gateUrl,
           'applications',
-          $stateParams.application,
+          (applicationName || $stateParams.application), // TODO: remove stateParams
           'pipelines',
           executionId,
           'cancel',
@@ -108,6 +108,29 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
       return ['pipeline', groupBy, application, heading].join('#');
     }
 
+    function getProjectExecutions(project, limit=2) {
+      return $http({
+        method: 'GET',
+        transformResponse: appendTransform(function(executions) {
+          if (!executions || !executions.length) {
+            return [];
+          }
+          executions.forEach(function(execution) {
+            executionsTransformer.transformExecution(null, execution);
+          });
+          return executions;
+        }),
+        url: [
+          settings.gateUrl,
+          'projects',
+          project,
+          'pipelines'
+        ].join('/') + '?limitTo=' + limit
+      }).then((resp) => {
+        return resp.data.sort((a, b) => b.startTime - (a.startTime || new Date().getTime()));
+      });
+    }
+
     return {
       getAll: getExecutions,
       cancelExecution: cancelExecution,
@@ -115,5 +138,6 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
       forceRefresh: scheduler.scheduleImmediate,
       waitUntilNewTriggeredPipelineAppears: waitUntilNewTriggeredPipelineAppears,
       getSectionCacheKey: getSectionCacheKey,
+      getProjectExecutions: getProjectExecutions,
     };
   }).name;

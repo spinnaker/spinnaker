@@ -12,13 +12,71 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
     return function() {
       var deferred;
 
-      var categoryNameLookup = {
-        serverGroups: 'Server Groups',
-        instances: 'Instances',
-        clusters: 'Clusters',
-        applications: 'Applications',
-        loadBalancers: 'Load Balancers',
-        securityGroups: 'Security Groups'
+      let searchConfig = {
+        applications: {
+          displayName: 'Applications',
+          displayFormatter: simpleField('application'),
+          order: 0,
+          sublinks: [
+            { name: 'clusters', href: '/clusters' },
+            { name: 'pipelines', href: '/../executions' },
+            { name: 'tasks', href: '/../tasks' }
+          ],
+        },
+        projects: {
+          displayName: 'Projects',
+          displayFormatter: function(entry) {
+            let applications = entry.config && entry.config.applications ?
+              ' (' + entry.config.applications.join(', ') + ')':
+              '';
+            let project = entry.name || entry.project;
+            return $q.when(project + applications);
+          },
+          order: 1,
+        },
+        clusters: {
+          displayName: 'Clusters',
+          displayFormatter: simpleField('cluster'),
+          order: 2,
+          hideIfEmpty: true,
+        },
+        serverGroups: {
+          displayName: 'Server Groups',
+          displayFormatter: function(entry) {
+            return $q.when(entry.serverGroup + ' (' + entry.region + ')');
+          },
+          order: 3,
+          hideIfEmpty: true,
+        },
+        instances: {
+          displayName: 'Instances',
+          displayFormatter: function(entry) {
+            let serverGroup = entry.serverGroup || 'standalone instance';
+            return $q.when(entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')');
+          },
+          order: 4,
+          hideIfEmpty: true,
+        },
+        loadBalancers: {
+          displayName: 'Load Balancers',
+          displayFormatter: function(entry, fromRoute) {
+            let name = fromRoute ? entry.name : entry.loadBalancer;
+            return $q.when(name + ' (' + entry.region + ')');
+          },
+          order: 5,
+          hideIfEmpty: true,
+        },
+        securityGroups: {
+          displayName: 'Security Groups',
+          displayFormatter: function(entry) {
+            return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
+              let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
+              return entry.name + ' (' + region + ')';
+            });
+          },
+          order: 6,
+          hideIfEmpty: true,
+        }
       };
 
       function simpleField(field) {
@@ -27,55 +85,22 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
         };
       }
 
-      var sublinks = {
-        applications: [
-          { name: 'clusters', href: '/clusters' },
-          { name: 'pipelines', href: '/../executions' },
-          { name: 'tasks', href: '/../tasks' }
-        ]
-      };
-
       function applySublinks(entry) {
-        if (sublinks[entry.type]) {
-          entry.sublinks = sublinks[entry.type];
+        if (searchConfig[entry.type].sublinks) {
+          entry.sublinks = searchConfig[entry.type].sublinks;
           entry.href += entry.sublinks[0].href;
         }
       }
 
-      var displayNameFormatter = {
-        serverGroups: function(entry) {
-          return $q.when(entry.serverGroup + ' (' + entry.region + ')');
-        },
-        instances: function(entry) {
-          let serverGroup = entry.serverGroup || 'standalone instance';
-          return $q.when(entry.instanceId + ' (' + entry.region + ' - ' + serverGroup + ')');
-
-        },
-        clusters: function(entry) {
-          return $q.when(entry.cluster);
-        },
-        applications: simpleField('application'),
-        loadBalancers: function(entry, fromRoute) {
-          let name = fromRoute ? entry.name : entry.loadBalancer;
-          return $q.when(name + ' (' + entry.region + ')');
-        },
-        securityGroups: function(entry) {
-          return vpcReader.getVpcName(entry.vpcId).then(function (vpcName) {
-            let region = vpcName ? entry.region + ' - ' + vpcName.toLowerCase() : entry.region;
-            return entry.name + ' (' + region + ')';
-          });
-        }
-      };
-
-      function augmentSearchResultsWithApplications(searchResults, applications) {
-        applications.forEach((application) => {
-          if (searchResults.results.every((searchResult) => { return !angular.equals(application, searchResult); })) {
-            searchResults.results.push(application);
-          }
-        });
-      }
-
       var querySubject = new RxService.Subject();
+
+      let initializeCategories = () => {
+        let categories = {};
+        Object.keys(searchConfig).forEach((searchType) => {
+          categories[searchType] = [];
+        });
+        return categories;
+      };
 
       querySubject
         .flatMapLatest(function(query) {
@@ -85,25 +110,25 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
 
           return RxService.Observable.fromPromise(searchService.search({
            q: query,
-           type: ['applications', 'clusters', 'instances', 'serverGroups', 'loadBalancers', 'securityGroups'],
+           type: Object.keys(searchConfig),
           }));
         })
         .subscribe(function(result) {
           var tmp = result.results.reduce(function(categories, entry) {
-            var cat = entry.type;
-            displayNameFormatter[entry.type](entry).then((name) => { entry.displayName = name; });
+            var cat = entry.type,
+                config = searchConfig[cat];
+            config.displayFormatter(entry).then((name) => { entry.displayName = name; });
             entry.href = urlBuilderService.buildFromMetadata(entry);
             applySublinks(entry);
-            if (angular.isDefined(categories[cat])) {
-              categories[cat].push(entry);
-            } else {
-              categories[cat] = [entry];
-            }
+            categories[cat].push(entry);
             return categories;
-          }, {});
+          }, initializeCategories());
           deferred.resolve(Object.keys(tmp).map(function(cat) {
+            let config = searchConfig[cat];
             return {
-              category: categoryNameLookup[cat],
+              category: config.displayName,
+              order: config.order,
+              hideIfEmpty: config.hideIfEmpty,
               results: tmp[cat],
             };
           }));
@@ -116,7 +141,7 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           return deferred.promise;
         },
         formatRouteResult: function(type, params) {
-          return displayNameFormatter[type](params, true);
+          return searchConfig[type].displayFormatter(params, true);
         },
       };
     };

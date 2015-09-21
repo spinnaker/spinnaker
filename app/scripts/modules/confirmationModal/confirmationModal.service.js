@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.confirmationModal.service', [
   require('../tasks/monitor/taskMonitor.module.js'),
   require('../account/account.module.js'),
   require('angular-ui-router'),
-  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('angular-ui-bootstrap'),
 ])
   .factory('confirmationModalService', function($modal) {
     var defaults = {

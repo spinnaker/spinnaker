@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.securityGroup.all.controller', [
   require('../utils/lodash.js'),
   require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
   require('../config/settings.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('angular-ui-bootstrap'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllSecurityGroupsCtrl', function($scope, app, $modal, _, providerSelectionService, settings,

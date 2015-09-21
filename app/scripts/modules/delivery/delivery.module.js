@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./executionBar.controller.js'),
   require('./executionGroup.controller.js'),
   require('./executionStatus.controller.js'),
+  require('./executionBuildNumber.directive.js'),
 
   require('./executionGroups.filter.js'),
   require('./statusNames.filter.js'),

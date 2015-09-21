@@ -17,9 +17,21 @@
 @import "../../core/presentation/less/imports/commonImports.less";
 
 .infrastructure {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  .global-search-header {
+    flex: 0 0 auto;
+  }
   h3 {
     font-weight: 600;
-    margin-left: 15px;
+    margin-left: 0;
+  }
+  .no-results {
+    padding: 30px 0;
+    margin-top: 0;
+    border-bottom: 1px solid @mid_light_grey;
+    font-size: 180%;
   }
   .input-group {
     margin-bottom: 10px;
@@ -27,30 +39,53 @@
   .infrastructure-section {
     border-bottom: 1px solid @mid_light_grey;
   }
+  .summary {
+    background-color: @mid_grey;
+    color: @lightest_grey;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    font-weight: 600;
+  }
+  .projects-summary {
+    margin-bottom: 15px;
+  }
+  a {
+    .remove-result-link {
+      width: 20px;
+      opacity: 0;
+    }
+    &:hover, &:focus {
+      .remove-result-link {
+        opacity: 1;
+        transition: opacity 0.25s ease-in;
+        color: @mid_lighter_grey;
+        &:hover, &:active {
+          color: @link-color;
+        }
+      }
+    }
+  }
   .panel {
     box-shadow: none;
     border: 0;
-    .summary {
-      background-color: @mid_grey;
-      color: @lightest_grey;
-      text-transform: uppercase;
-      padding: 8px 12px;
-      font-weight: 600;
-    }
     .details-container {
       background-color: @lightest_grey;
       height: 200px;
       overflow-y: scroll;
+      search-result {
+        display: inline-block;
+        width: calc(~"100% - 20px");
+      }
       a {
+        padding-right: 0;
         background-color: @lightest_grey;
         &:hover, &:focus {
           background-color: #ffffff;
         }
       }
     }
-
   }
   .category {
-    margin: 15px;
+    margin: 0 0 15px 0;
   }
 }

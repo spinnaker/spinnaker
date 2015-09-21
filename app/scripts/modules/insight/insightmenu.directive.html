@@ -6,7 +6,7 @@
         Actions <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" ng-class="{'dropdown-menu-right': rightAlign}" role="menu">
-        <li ng-repeat="action in actions" style="float: right;">
+        <li ng-repeat="action in actions">
           <a href ng-click="action.action()" analytics-on="click" analytics-category="Application Events" analytics-label="{{action.displayName}} Clicked">{{ action.displayName }}</a>
         </li>
       </ul>

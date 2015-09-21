@@ -242,6 +242,10 @@ module.exports = angular.module('spinnaker.cluster.service', [
       updateLoadBalancers(application);
     }
 
+    function getCluster(application, account, cluster) {
+      return Restangular.one('applications', application).one('clusters', account).one(cluster).get();
+    }
+
     return {
       loadServerGroups: loadServerGroups,
       createServerGroupClusters: collateServerGroupsIntoClusters,
@@ -251,6 +255,7 @@ module.exports = angular.module('spinnaker.cluster.service', [
 
       //for testing purposes only
       extractRegionFromContext: extractRegionFromContext,
+      getCluster: getCluster,
     };
 
   }).name;

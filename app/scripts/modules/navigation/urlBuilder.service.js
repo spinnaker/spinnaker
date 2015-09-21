@@ -65,6 +65,13 @@ module.exports = angular.module('spinnaker.urlBuilder', [
       },
       // url for a single cluster
       'clusters': function(input) {
+        let filters = {
+          q: ['cluster:', input.cluster].join(''),
+          acct: input.account,
+        };
+        if (input.region) {
+          filters.reg = input.region;
+        }
         var href = $state.href(
           'home.applications.application.insight.clusters',
           {
@@ -72,10 +79,27 @@ module.exports = angular.module('spinnaker.urlBuilder', [
           },
           { inherit: false }
         );
-        return buildUrl(href, {q: ['cluster:', input.cluster].join(''), acct: input.account });
+        if (input.project) {
+          href = $state.href(
+            'home.project.application.insight.clusters',
+            {
+              application: input.application,
+              project: input.project,
+            },
+            { inherit: false }
+          );
+        }
+        return buildUrl(href, filters);
       },
       // url for a single application
       'applications': function(input) {
+        if (input.project) {
+          return $state.href(
+            'home.project.application.insight.clusters',
+            { application: input.application, project: input.project },
+            { inherit: false }
+          );
+        }
         return $state.href(
           'home.applications.application',
           {
@@ -99,6 +123,9 @@ module.exports = angular.module('spinnaker.urlBuilder', [
           { inherit: false }
         );
         return buildUrl(href, {q: input.loadBalancer, reg: input.region, acct: input.account });
+      },
+      'projects': function(input) {
+        return $state.href('home.project.dashboard', { project: input.name }, { inherit: false });
       },
       // url for application tasks
       'tasks': function(input) {

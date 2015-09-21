@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.loadBalancer.controller', [
   require('../utils/lodash.js'),
   require('../caches/deckCacheFactory.js'),
   require('../filterModel/filter.tags.directive.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('angular-ui-bootstrap'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllLoadBalancersCtrl', function($scope, $modal, _, providerSelectionService, cloudProviderRegistry,

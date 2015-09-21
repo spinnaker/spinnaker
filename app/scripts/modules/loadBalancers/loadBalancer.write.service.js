@@ -7,7 +7,6 @@ module.exports = angular
     require('../utils/lodash.js'),
     require('../tasks/taskExecutor.js'),
     require('../caches/infrastructureCaches.js'),
-    require('../caches/scheduledCache.js')
   ])
   .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 
