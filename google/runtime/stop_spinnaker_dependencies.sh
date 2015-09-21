@@ -18,4 +18,3 @@ SPINNAKER_SCRIPT_DIR=/opt/spinnaker/scripts
 
 $SPINNAKER_SCRIPT_DIR/stop_redis.sh
 $SPINNAKER_SCRIPT_DIR/stop_cassandra.sh
-$SPINNAKER_SCRIPT_DIR/stop_elasticsearch.sh

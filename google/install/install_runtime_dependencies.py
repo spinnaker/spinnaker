@@ -26,7 +26,6 @@ from install_utils import run_or_die
 
 APACHE2_VERSION='2.4.7-1ubuntu4.5'
 CASSANDRA_VERSION='2.1.9'
-ELASTICSEARCH_VERSION='1.4.5'
 OPENJDK_8_VERSION='8u45-b14-1~14.04'
 REDIS_SERVER_VERSION='2:2.8.4-2'
 
@@ -47,13 +46,6 @@ def init_argument_parser(parser, default_values={}):
                         action='store_true',
                         help='Install cassandra service.')
     parser.add_argument('--nocassandra', dest='cassandra',
-                        action='store_false')
-
-    parser.add_argument('--elasticsearch',
-                        default=default_values.get('elasticsearch', True),
-                        action='store_true',
-                        help='Install elasticsearch service.')
-    parser.add_argument('--noelasticsearch', dest='elasticsearch',
                         action='store_false')
 
     parser.add_argument('--jdk',
@@ -120,7 +112,6 @@ def install_runtime_dependencies(options):
     """
     install_java(options, which='jre')
     install_cassandra(options)
-    install_elasticsearch(options)
     install_redis(options)
     install_apache(options)
     install_os_updates(options)
@@ -251,51 +242,6 @@ def install_redis(options):
         return
     print 'Installing Redis...'
     install_package_or_die('redis-server', version=REDIS_SERVER_VERSION)
-
-
-def install_elasticsearch(options):
-    """Install ElasticSearch.
-
-    Args:
-      options: ArgumentParserNamespace options.
-    """
-    if not options.elasticsearch:
-        print '--noelasticsearch skips Elasticsearch install.'
-        return
-
-    print 'Installing Elasticsearch...'
-    family = (ELASTICSEARCH_VERSION[:ELASTICSEARCH_VERSION.find('.') + 2]
-              if ELASTICSEARCH_VERSION else '1.4')
-
-    if not options.package_manager:
-      root = 'https://download.elastic.co/elasticsearch/elasticsearch'
-      try:
-        os.mkdir('downloads')
-      except OSError:
-        pass
-
-      elasticsearch = 'elasticsearch-{ver}.deb'.format(
-          ver=ELASTICSEARCH_VERSION)
-      content = fetch_or_die('{url}/{elasticsearch}'
-                             .format(url=root, elasticsearch=elasticsearch))
-      with open('downloads/{elasticsearch}'
-                .format(elasticsearch=elasticsearch), 'w') as f:
-          f.write(content)
-      run_or_die('sudo dpkg -i downloads/' + elasticsearch, echo=True)
-    else:
-      result = fetch_or_die(
-        'https://packages.elasticsearch.org/GPG-KEY-elasticsearch')
-
-      run_or_die('sudo apt-key add -', input=result, echo=True)
-
-      run_or_die(
-          'sudo add-apt-repository "deb'
-          ' http://packages.elasticsearch.org/elasticsearch/{family}/debian'
-          ' stable main"'.format(family=family),
-          echo=True)
-
-    run_or_die('sudo apt-get -q -y update', echo=True)
-    install_package_or_die('elasticsearch', version=ELASTICSEARCH_VERSION)
 
 
 def install_apache(options):
