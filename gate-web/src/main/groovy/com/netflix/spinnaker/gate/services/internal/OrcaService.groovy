@@ -33,6 +33,10 @@ interface OrcaService {
   List getPipelines(@Path("application") String app)
 
   @Headers("Accept: application/json")
+  @GET("/projects/{projectId}/pipelines")
+  List<Map> getPipelinesForProject(@Path("projectId") String projectId, @Query("limit") int limit)
+
+  @Headers("Accept: application/json")
   @GET("/tasks/{id}")
   Map getTask(@Path("id") String id)
 
