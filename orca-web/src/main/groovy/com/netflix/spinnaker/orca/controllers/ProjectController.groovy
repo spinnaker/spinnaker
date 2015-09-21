@@ -1,0 +1,71 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+package com.netflix.spinnaker.orca.controllers
+
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import retrofit.RetrofitError
+import rx.schedulers.Schedulers
+
+@RestController
+class ProjectController {
+  @Autowired
+  ExecutionRepository executionRepository
+
+  @Autowired
+  Front50Service front50Service
+
+  @RequestMapping(value = "/projects/{projectId}/pipelines", method = RequestMethod.GET)
+  List<Pipeline> list(@PathVariable String projectId, @RequestParam(value="limit", defaultValue="5") int limit) {
+    if (!limit) {
+      return []
+    }
+
+    def pipelineConfigIds = []
+    try {
+      def project = front50Service.getProject(projectId)
+      pipelineConfigIds = project.config.pipelineConfigs*.pipelineConfigId
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        return []
+      }
+
+      throw e
+    }
+
+    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+      executionRepository.retrievePipelinesForPipelineConfigId(it, limit)
+    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    return allPipelines
+  }
+
+  private static Closure startTimeOrId = { a, b ->
+    def aStartTime = a.startTime ?: 0
+    def bStartTime = b.startTime ?: 0
+
+    return aStartTime.compareTo(bStartTime) ?: b.id <=> a.id
+  }
+}

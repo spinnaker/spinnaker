@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import rx.functions.Func1
+
 import java.util.function.Function
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -117,6 +119,19 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   Observable<Pipeline> retrievePipelinesForApplication(String application) {
     allForApplication(Pipeline, application)
+  }
+
+  @Override
+  @CompileDynamic
+  Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, int limit) {
+    return retrieveObservable(Pipeline, executionsByPipelineKey(pipelineConfigId), new Func1<String, Iterable<String>>() {
+      @Override
+      Iterable<String> call(String key) {
+        withJedis { Jedis jedis ->
+          return jedis.zrevrange(key, 0, (limit - 1))
+        }
+      }
+    }, queryByAppScheduler)
   }
 
   @Override
@@ -253,9 +268,21 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @CompileDynamic
   private <T extends Execution> Observable<T> retrieveObservable(Class<T> type, String lookupKey, Scheduler scheduler) {
+    return retrieveObservable(type, lookupKey, new Func1<String, Iterable<String>>() {
+      @Override
+      Iterable<String> call(String key) {
+        withJedis { Jedis jedis ->
+          return jedis.smembers(key)
+        }
+      }
+    }, scheduler)
+  }
+
+  @CompileDynamic
+  private <T extends Execution> Observable<T> retrieveObservable(Class<T> type, String lookupKey, Func1<String, Iterable<String>> lookupKeyFetcher, Scheduler scheduler) {
     Observable
       .just(lookupKey)
-      .flatMapIterable { String key -> withJedis { Jedis jedis -> jedis.smembers(lookupKey) } }
+      .flatMapIterable(lookupKeyFetcher)
       .buffer(chunkSize)
       .flatMap { Collection<String> ids ->
       Observable
