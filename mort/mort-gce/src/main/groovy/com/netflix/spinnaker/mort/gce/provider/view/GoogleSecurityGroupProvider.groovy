@@ -165,7 +165,7 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
       }
 
       // If ports are not specified, connections through any port are allowed.
-      if (!portRanges && (ipProtocol == "tcp" || ipProtocol == "udp")) {
+      if (!portRanges && ["tcp", "udp", "sctp"].contains(ipProtocol)) {
         portRanges << new Rule.PortRange(startPort: 1, endPort: 65535)
       }
 
