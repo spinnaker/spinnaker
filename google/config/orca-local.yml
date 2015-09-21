@@ -1,0 +1,36 @@
+server:
+  port: 8083
+
+oort:
+  baseUrl: http://localhost:7002
+front50:
+  baseUrl: http://localhost:8080
+mort:
+  baseUrl: http://localhost:7002
+kato:
+  baseUrl: http://localhost:7002
+rush:
+  baseUrl: http://localhost:8085
+bakery:
+  baseUrl: http://localhost:8087
+  extractBuildDetails: true
+  propagateCloudProviderType: true
+echo:
+  baseUrl: http://localhost:8089
+igor:
+  baseUrl: http://localhost:8088
+
+# TODO(duftler): Remove this once flex is conditionally-enabled in orca.
+flex:
+  baseUrl: http://not-a-host
+
+default:
+  bake:
+    account: default
+  securityGroups:
+  vpc:
+    securityGroups:
+
+redis:
+  connection: redis://localhost:6379
+

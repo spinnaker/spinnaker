@@ -1,0 +1,14 @@
+server:
+  port: 8089
+
+cassandra:
+  embedded: false
+
+front50:
+  baseUrl: http://localhost:8080
+
+orca:
+  baseUrl: http://localhost:8083
+  enabled: true
+
+endpoints.health.sensitive: false

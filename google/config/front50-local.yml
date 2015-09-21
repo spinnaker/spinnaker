@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+cassandra:
+  embedded: false
+
+aws:
+  simpleDBEnabled: false
+  defaultSimpleDBDomain: CLOUD_APPLICATIONS
+
+spinnaker:
+  cassandra:
+    enabled: true
+    cluster: CASS_SPINNAKER
+    keyspace: front50
+    name: $GOOGLE_ACCOUNT_NAME
