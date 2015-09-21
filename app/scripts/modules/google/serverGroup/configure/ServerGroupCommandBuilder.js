@@ -86,11 +86,13 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var defaultCredentials = defaults.account || settings.providers.gce.defaults.account;
       var defaultRegion = defaults.region || settings.providers.gce.defaults.region;
+      var defaultZone = defaults.zone || settings.providers.gce.defaults.zone;
 
       var command = {
         application: application.name,
         credentials: defaultCredentials,
         region: defaultRegion,
+        zone: defaultZone,
         strategy: '',
         capacity: {
           min: 0,
@@ -99,20 +101,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         },
         instanceMetadata: [],
         tags: [],
-        cooldown: 10,
-        healthCheckType: 'EC2',
-        healthCheckGracePeriod: 600,
-        instanceMonitoring: false,
-        ebsOptimized: false,
         cloudProvider: 'gce',
         providerType: 'gce',
         selectedProvider: 'gce',
-        iamRole: 'BaseIAMRole',       // should not be hard coded here
-
-        terminationPolicies: ['Default'],
-        vpcId: null,
         availabilityZones: [],
-        keyPair: 'nf-test-keypair-a', // should not be hard coded here
         viewState: {
           instanceProfile: null,
           allImageSelection: null,
@@ -148,10 +140,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         stack: serverGroupName.stack,
         freeFormDetails: serverGroupName.freeFormDetails,
         credentials: serverGroup.account,
-        cooldown: serverGroup.asg.defaultCooldown,
-        healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
-        healthCheckType: serverGroup.asg.healthCheckType,
-        terminationPolicies: serverGroup.asg.terminationPolicies,
         loadBalancers: serverGroup.asg.loadBalancerNames,
         securityGroups: serverGroup.securityGroups,
         region: serverGroup.region,
@@ -186,12 +174,6 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       if (serverGroup.launchConfig) {
         angular.extend(command, {
           instanceType: serverGroup.launchConfig.instanceType,
-          iamRole: serverGroup.launchConfig.iamInstanceProfile,
-          keyPair: serverGroup.launchConfig.keyName,
-          associatePublicIpAddress: serverGroup.launchConfig.associatePublicIpAddress,
-          ramdiskId: serverGroup.launchConfig.ramdiskId,
-          instanceMonitoring: serverGroup.launchConfig.instanceMonitoring && serverGroup.launchConfig.instanceMonitoring.enabled,
-          ebsOptimized: serverGroup.launchConfig.ebsOptimized,
         });
         command.viewState.imageId = serverGroup.launchConfig.imageId;
         return determineInstanceCategoryFromInstanceType(command).then(function() {
@@ -208,8 +190,9 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
       var pipelineCluster = _.cloneDeep(originalCluster);
       var region = Object.keys(pipelineCluster.availabilityZones)[0];
+      var zone = pipelineCluster.zone;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('gce', pipelineCluster.instanceType);
-      var commandOptions = { account: pipelineCluster.account, region: region };
+      var commandOptions = { account: pipelineCluster.account, region: region, zone: zone };
       var asyncLoader = $q.all({command: buildNewServerGroupCommand(application, commandOptions), instanceProfile: instanceTypeCategoryLoader});
 
       return asyncLoader.then(function(asyncData) {
