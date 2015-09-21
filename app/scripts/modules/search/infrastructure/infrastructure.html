@@ -1,17 +1,23 @@
 <div class="infrastructure">
   <div class="container infrastructure-section global-search-header">
     <div class="row">
-      <div class="col-md-12">
+      <div class="col-md-9 no-padding">
         <h2>Infrastructure Search</h2>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <h4>You may search for Applications, Clusters, Load Balancers, Security Groups, and Server Groups.</h4>
+      <div class="col-md-2 pull-right">
+        <insight-menu data-purpose="applications-menu"
+                      actions="ctrl.menuActions"
+                      >
+        </insight-menu>
       </div>
     </div>
     <div class="row">
-      <div class="col-md-4 col-sm-12">
+      <div class="col-md-12 no-padding">
+        <h4>You may search for Projects, Applications, Clusters, Load Balancers, Security Groups, and Server Groups.</h4>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 col-sm-12 no-padding">
         <form class="form form-horizontal">
           <div class="form-group">
             <div class="col-md-12">
@@ -33,26 +39,53 @@
     </div>
   </div>
   <div ng-if="ctrl.hasResults()">
-    <div class="row">
-      <div class="col-md-12">
-        <h3>Infrastructure matching "{{query}}"</h3>
-      </div>
-    </div>
     <div class="row" ng-if="moreResults">
       <div class="col-md-12">
         <p style="margin: 10px 20px 0">Only showing the first {{pageSize}} results found.</p>
       </div>
     </div>
     <div class="row infrastructure-section">
-      <div class="col-md-4 animated category-container" ng-repeat="category in categories | orderBy:'category'">
-        <div class="panel category row">
-          <div class="summary">{{ category.category }} ({{category.results.length}})</div>
-          <div class="details-container list-group">
-            <a class="list-group-item"
-               ng-repeat="result in category.results"
-               href="{{ result.href }}">
-              <search-result item="result"></search-result>
-            </a>
+      <div class="col-md-3" ng-if="recentProjects.length">
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Related Projects</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="no-results" ng-if="!projects.length || !projects[0].results.length">
+              No projects found matching "{{query}}".<br/>
+              <a href ng-click="ctrl.createProject()">Create a new project.</a>
+            </div>
+            <infrastructure-project ng-repeat="project in projects[0].results"
+                                    project-name="project.name"
+                                    applications="project.config.applications">
+            </infrastructure-project>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <div class="row">
+          <div class="col-md-12">
+            <h3>Infrastructure matching "{{query}}"</h3>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-4 category-container" ng-repeat="category in categories | orderBy:'order'">
+            <div class="panel category row">
+              <div class="summary">{{ category.category }} ({{category.results.length}})</div>
+              <div class="details-container list-group">
+                <a class="list-group-item"
+                   ng-repeat="result in category.results"
+                   href="{{ result.href }}">
+                  <search-result item="result"></search-result>
+                </a>
+                <div class="no-results" ng-if="!category.results.length && category.category === 'Applications'">
+                  No applications found matching "{{query}}". <br/>
+                  <a href ng-click="ctrl.createApplication()">Create a new application.</a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -64,26 +97,52 @@
   <div ng-if="ctrl.noMatches() && !viewState.searching">
     <div class="row">
       <div class="col-md-12">
-        <h4 class="text-center">No results matching {{ query }}.</h4>
+        <h4 class="text-center">No results matching "{{ query }}".</h4>
       </div>
     </div>
   </div>
-  <div ng-if="ctrl.hasRecentItems && !viewState.searching && !categories.length" class="infrastructure-section">
+  <div ng-if="ctrl.showRecentResults()" class="infrastructure-section">
     <div class="row recently-viewed-items">
       <div class="col-md-12">
         <h3>Recently viewed</h3>
       </div>
     </div>
     <div class="row">
-      <div class="col-md-4 animated category-container" ng-repeat="category in recentItems | orderBy:'category'">
-        <div class="panel category row">
-          <div class="summary">{{ category.category | robotToHuman }} ({{category.results.length}})</div>
-          <div class="details-container list-group">
-            <a class="list-group-item"
-               ng-repeat="result in category.results"
-               ui-sref="{{ result.state }}(result.params)">
-              <search-result item="result"></search-result>
-            </a>
+      <div class="col-md-3" ng-if="recentProjects.length">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="summary projects-summary">Projects ({{recentProjects.length}})</div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <infrastructure-project ng-repeat="project in recentProjects"
+                                    project-name="project.params.project"
+                                    applications="project.extraData.config.applications"
+                                    can-remove="true"
+                                    on-remove="ctrl.removeRecentProject(project.id, $index)">
+            </infrastructure-project>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <div class="row">
+          <div class="col-md-4 category-container" ng-repeat="category in recentItems | orderBy:'category'">
+            <div class="panel category row">
+              <div class="summary">{{ category.category | robotToHuman }} ({{category.results.length}})</div>
+              <div class="details-container list-group">
+                <a class="list-group-item"
+                   ng-repeat="result in category.results"
+                   ui-sref="{{ result.state }}(result.params)">
+                  <search-result item="result"></search-result>
+                  <span class="small clickable remove-result-link"
+                        ng-click="ctrl.removeRecentItem(category.category, result.id, $index); $event.preventDefault()">
+                    <span class="glyphicon glyphicon-remove"
+                          tooltip="remove from history" tooltip-popup-delay="300" tooltip-placement="left"></span>
+                  </span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

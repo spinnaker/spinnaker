@@ -1,0 +1,65 @@
+/*
+ * Copyright 2014 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@import "../../../core/presentation/less/imports/commonImports.less";
+
+infrastructure-project {
+  display: block;
+  border: 1px solid @dark_grey;
+  background-color: #ffffff;
+  margin-bottom: 15px;
+  a {
+    color: @text-color
+  }
+
+  .project-summary {
+    padding: 10px;
+    .remove-result-link {
+      opacity: 0;
+    }
+    &:hover {
+      .remove-result-link {
+        opacity: 1;
+        transition: opacity 0.25s ease-in;
+        color: @mid_lighter_grey;
+        &:hover, &:active {
+          color: @link-color;
+        }
+      }
+    }
+    .project-name {
+      text-transform: uppercase;
+      font-weight: 600;
+      font-size: 120%;
+      a {
+        display: inline-block;
+        width: calc(~"100% - 20px");
+      }
+    }
+  }
+  .application-list {
+    padding: 10px 15px;
+    margin-bottom: 0;
+    border-top: 1px solid @dark_grey;
+    background-color: @secondary_panel_grey;
+    li {
+      a {
+        color: @text-color;
+      }
+      list-style-type: none;
+    }
+  }
+}

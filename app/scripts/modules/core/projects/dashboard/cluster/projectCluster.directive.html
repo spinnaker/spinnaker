@@ -1,0 +1,93 @@
+<div class="row rollup-entry sub-group">
+  <div class="rollup-summary">
+    <div class="container-fluid no-padding">
+      <div class="row clickable" ng-click="vm.toggle()">
+        <div class="col-md-12">
+          <div class="rollup-title-cell">
+            <h5>
+              <collapsible-account-tag account="{{vm.cluster.account}}" state="vm.state"></collapsible-account-tag>
+              <span class="cluster-name">{{vm.cluster.stack}}</span>
+
+              <a href ng-click="vm.refreshImmediately(); $event.stopPropagation()">
+                <span class="small glyphicon glyphicon-refresh refresh-enabled"
+                      tooltip-placement="bottom"
+                      tooltip-html-unsafe="
+                        <p>{{vm.state.refreshing ? 'Cluster data is <strong>refreshing</strong>.'
+                        : '(click <span class=\'small glyphicon glyphicon-refresh\'></span> to refresh)'}}</p>
+                        <p>Last refresh: {{vm.state.lastRefresh | timestamp }} <br> ({{vm.state.lastRefresh | relativeTime }})</p>
+                        <p class='small'><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>"
+                      ng-class="{
+                      'glyphicon-spinning': vm.state.refreshing,
+                      }"></span>
+              </a>
+
+              <span class="pull-right" ng-if="vm.state.loaded">
+                <span class="cluster-health">
+                  {{vm.clusterData.applications.length}} Application<span ng-if="vm.clusterData.applications.length !== 1">s</span>
+                </span>
+                <span class="cluster-health">
+                  {{vm.clusterData.instanceCounts.totalCount}} Instances
+                </span>
+                <health-counts container="vm.clusterData.instanceCounts"></health-counts>
+              </span>
+            </h5>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="rollup-details" ng-if="vm.state.expanded">
+    <div ng-if="!vm.state.refreshing && !vm.clusterData.regions.length" class="text-center">
+      <p>No clusters found for any applications.</p>
+    </div>
+    <table class="table table-condensed" ng-if="vm.clusterData.applications.length">
+      <thead>
+        <tr>
+          <th width="18%"></th>
+          <th width="9%"></th>
+          <th width="73%" ng-if="!vm.state.loaded">(loading clusters...)</th>
+          <th ng-repeat="region in vm.clusterData.regions" width="{{72/vm.clusterData.regions.length}}%">
+            {{region}}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+      <tr ng-repeat="application in vm.clusterData.applications | orderBy: 'name'">
+        <td>
+          <a class="heavy" href="{{application.url}}" ng-class="application.inconsistentBuilds ? 'text-warning' : ''">
+            {{application.name | uppercase}}
+          </a>
+        </td>
+        <td>
+          <a class="heavy" ng-if="application.build.number > -1" href="{{application.build.url}}" target="_blank">
+            <span ng-if="vm.state.loaded">#</span>{{application.build.number}}
+          </a>
+          <span ng-if="application.inconsistentBuilds"
+                class="glyphicon glyphicon-warning-sign text-warning"></span>
+        </td>
+        <td ng-if="!vm.state.loaded">
+          <div class="text-center">
+            <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+          </div>
+        </td>
+        <td ng-repeat="region in vm.clusterData.regions">
+          <span ng-if="application.regions[region]">
+            <a ng-href="{{application.regions[region].url}}">
+              <health-counts container="application.regions[region].instanceCounts"
+                             additional-legend-text="(Click to view cluster in this region)"
+                             legend-placement="right"></health-counts>
+              <span class="text-warning"
+                    ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number">
+                (#{{application.regions[region].build.number}})
+              </span>
+            </a>
+          </span>
+          <span ng-if="!application.regions[region]">
+            -
+          </span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-router'),
-  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('angular-ui-bootstrap'),
   require('../../../instance/instance.write.service.js'),
   require('../../../instance/instance.read.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),

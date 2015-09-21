@@ -84,26 +84,6 @@ body, html {
       }
     }
 
-    .score {
-      font-size: 110%;
-      padding: 3px 6px;
-      display: inline-block;
-      height: 20px;
-      line-height: 14px;
-      &.label-failing {
-        background-color: @unhealthy_orange;
-      }
-      &.label-healthy {
-        background-color: @healthy_green_border;
-      }
-      &.label-unhealthy {
-        background-color: @unhealthy_red;
-      }
-      &.label-unknown {
-        background-color: @unknown-label-color;
-      }
-    }
-
     .canary-summary {
       .canary-deployment-row {
         td:first-child {
@@ -251,25 +231,6 @@ body, html {
         font-weight: 700;
       }
     }
-    .label-inverse {
-      .score {
-        background-color: transparent;
-        font-size: 100%;
-        padding: 0;
-        &.label-failing {
-          color: @unhealthy_orange;
-        }
-        &.label-healthy {
-          color: @healthy_green_border;
-        }
-        &.label-unhealthy {
-          color: @unhealthy_red;
-        }
-        &.label-unknown {
-          color: @unknown-label-color;
-        }
-      }
-    }
   }
   .execution-group-title {
     padding-left: 10px;
@@ -352,15 +313,6 @@ body, html {
       height: 8px;
       border-radius: 50%;
     }
-  }
-}
-
-.configure-pipelines-btn {
-  padding: 6px;
-  &:hover, &:active {
-    border: 1px solid @spinnaker-blue;
-    background-color: @lighter_grey;
-    transition: border-color 0.2s, background-color 0.2s, color 0.2s
   }
 }
 

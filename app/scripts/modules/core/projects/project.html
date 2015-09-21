@@ -1,0 +1,22 @@
+<div class="page-header project-header">
+  <div class="row" ng-if="!project.notFound">
+    <div class="col-md-8">
+      <h2>
+        <span class="project-name">{{project.name}} /</span>
+        <select class="input input-lg no-border"
+                ng-model="viewState.navSelection"
+                ng-options="option as option.title for option in navOptions" ng-change="ctrl.navigate()">
+        </select>
+      </h2>
+    </div>
+    <div class="col-md-4 text-right" ng-if="viewState.dashboard">
+      <a href ng-click="ctrl.configureProject()" class="btn btn-configure configure-project-link"><span class="glyphicon glyphicon-cog"></span> Project Configuration</a>
+    </div>
+  </div>
+  <div class="row" ng-if="project.notFound">
+    <h1 class="text-center">&lt;404&gt;</h1>
+
+    <p class="text-center">Please check your URL - we can't find any data for <em>{{project.name}}</em>.</p>
+  </div>
+</div>
+<div ng-if="!project.notFound" ui-view="detail" class="project-details flex-fill"></div>

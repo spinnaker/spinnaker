@@ -11,7 +11,7 @@ module.exports = angular.module('clusters.all', [
   require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
   require('../filterModel/filter.tags.directive.js'),
   require('../utils/waypoints/waypointContainer.directive.js'),
-  require('exports?"ui.bootstrap"!angular-bootstrap'),
+  require('angular-ui-bootstrap'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,

@@ -2,6 +2,8 @@
 
 let angular = require('angular');
 
+require('./canaryScore.directive.less');
+
 module.exports = angular.module('spinnaker.pipelines.stages.canary.score.directive', [])
   .directive('canaryScore', function() {
     return {
@@ -10,8 +12,9 @@ module.exports = angular.module('spinnaker.pipelines.stages.canary.score.directi
         score: '=',
         health: '=?',
         result: '=',
+        inverse: '=',
       },
-      template: '<span class="score label label-default label-{{healthLabel}}">{{score}}</span>',
+      template: '<span ng-class="{inverse: inverse}" class="score label label-default label-{{healthLabel}}">{{score}}</span>',
       link: function(scope) {
         function applyLabel() {
           scope.result = scope.result ? scope.result.toLowerCase() : '';

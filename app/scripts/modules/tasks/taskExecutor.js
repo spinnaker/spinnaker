@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
   require('../scheduler/scheduler.service.js'),
   require('../authentication/authentication.module.js'),
   require('../authentication/authenticationService.js'),
-  require('../caches/scheduledCache.js'),
   require('../caches/infrastructureCaches.js'),
   require('./tasks.read.service.js'),
   require('./tasks.write.service.js'),
@@ -17,8 +16,13 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
 
 
     function executeTask(taskCommand) {
-      var application = taskCommand.application;
-      taskCommand.application = application.name;
+      let owner = taskCommand.application || taskCommand.project || { name: 'ad-hoc'};
+      if (taskCommand.application) {
+        taskCommand.application = taskCommand.application.name;
+      }
+      if (taskCommand.project) {
+        taskCommand.project = taskCommand.project.name;
+      }
 
       if (taskCommand.job[0].providerType === 'aws') {
         delete taskCommand.job[0].providerType;
@@ -32,10 +36,10 @@ module.exports = angular.module('spinnaker.taskExecutor.service', [
         function(task) {
           var taskId = task.ref.substring(task.ref.lastIndexOf('/')+1);
 
-          if (application.reloadTasks) {
-            application.reloadTasks();
+          if (owner.reloadTasks) {
+            owner.reloadTasks();
           }
-          return tasksReader.getOneTaskForApplication(application.name, taskId);
+          return tasksReader.getOneTaskForApplication(owner.name, taskId);
         },
         function(response) {
           var error = {

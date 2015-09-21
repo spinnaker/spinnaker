@@ -8,7 +8,7 @@
   "dependencies": {
     "angular": "^1.4.1",
     "angular-animate": "^1.4.1",
-    "angular-bootstrap": "^0.12.0",
+    "angular-ui-bootstrap": "0.13.3",
     "angular-cache": "^4.2.2",
     "angular-filter": "^0.5.4",
     "angular-hotkeys": "^1.5.0",

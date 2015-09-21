@@ -7,8 +7,6 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
   require('angular-ui-router'),
 ])
   .controller('executionBar', function($scope, $filter, $stateParams, pipelineConfig, $state) {
-    var controller = this;
-
     function updateDetails(params) {
       var param = params.stage ? parseInt(params.stage) : 0;
       $scope.execution.stageSummaries.forEach(function(stage) {
@@ -16,7 +14,7 @@ module.exports = angular.module('spinnaker.delivery.executionBar.controller', [
       });
     }
 
-    controller.toggleDetails = function(executionId, stageIndex) {
+    this.toggleDetails = function(executionId, stageIndex) {
       var stageSummary = $scope.execution.stageSummaries[stageIndex],
           masterIndex = stageSummary.masterStageIndex;
       if ($state.includes('**.execution', {executionId: executionId, stage: stageIndex})) {

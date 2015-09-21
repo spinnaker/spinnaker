@@ -9,12 +9,18 @@ module.exports = angular.module('spinnaker.healthCounts.directive', [
       templateUrl: require('./healthCounts.html'),
       restrict: 'E',
       scope: {
-        container: '='
+        container: '=',
+        additionalLegendText: '@',
+        legendPlacement: '@',
       },
       link: function(scope) {
 
-
+        scope.legendPlacement = scope.legendPlacement || 'top';
         scope.legend = $templateCache.get(require('./healthLegend.html'));
+
+        if (scope.additionalLegendText) {
+          scope.legend += scope.additionalLegendText;
+        }
 
         function calculateHealthPercent() {
           var container = scope.container,
@@ -32,7 +38,7 @@ module.exports = angular.module('spinnaker.healthCounts.directive', [
 
         }
 
-        scope.$watch('container', calculateHealthPercent);
+        scope.$watch('container', calculateHealthPercent, true);
       }
     };
   }

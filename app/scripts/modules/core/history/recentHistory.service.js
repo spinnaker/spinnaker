@@ -5,12 +5,13 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.history.service', [
   require('../../caches/deckCacheFactory.js'),
   require('../../utils/lodash.js'),
+  require('../../utils/uuid.service.js'),
 ])
-  .factory('recentHistoryService', function (_, deckCacheFactory) {
+  .factory('recentHistoryService', function (_, deckCacheFactory, uuidService) {
     const maxItems = 15;
 
     deckCacheFactory.createCache('history', 'user', {
-      version: 2, // that was quick
+      version: 3,
       maxAge: 90 * 24 * 60 * 60 * 1000 // 90 days,
     });
 
@@ -34,7 +35,8 @@ module.exports = angular.module('spinnaker.core.history.service', [
             params: params,
             state: state,
             accessTime: new Date().getTime(),
-            extraData: {}
+            extraData: {},
+            id: uuidService.generateUuid(),
           };
       if (existing) {
         items.splice(items.indexOf(existing), 1);
@@ -44,6 +46,15 @@ module.exports = angular.module('spinnaker.core.history.service', [
       }
       items.push(entry);
       cache.put(type, items.reverse());
+    }
+
+    function removeItem(type, id) {
+      var items = getItems(type),
+        existing = items.find((item) => item.id === id);
+      if (existing) {
+        items.splice(items.indexOf(existing), 1);
+        cache.put(type, items.reverse());
+      }
     }
 
     function getItems(type) {
@@ -68,6 +79,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
     return {
       addItem: addItem,
       getItems: getItems,
+      removeItem: removeItem,
       addExtraDataToLatest: addExtraDataToLatest,
     };
   }).name;

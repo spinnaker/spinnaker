@@ -68,7 +68,7 @@ module.exports = angular.module('spinnaker', [
     require('exports?"cfp.hotkeys"!angular-hotkeys'),
     require('angular-animate'),
     require('angular-ui-router'),
-    require('exports?"ui.bootstrap"!angular-bootstrap'),
+    require('angular-ui-bootstrap'),
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('./modules/core/presentation/anyFieldFilter/anyField.filter.js'),
     require('./modules/core/presentation/robotToHumanFilter/robotToHuman.filter.js'),

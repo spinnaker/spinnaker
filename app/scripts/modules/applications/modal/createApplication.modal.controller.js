@@ -6,12 +6,22 @@ module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
     //require('angular-ui-router'),
     require('../applications.write.service.js'),
+    require('../applications.read.service.js'),
     require('../../utils/lodash.js'),
+    require('../../account/account.service.js'),
   ])
-  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, applicationWriter, _) {
+  .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService, applicationWriter, applicationReader, _) {
     var vm = this;
 
-    vm.appNameList = _.pluck($scope.applications, 'name');
+    let applicationLoader = applicationReader.listApplications();
+    applicationLoader.then((applications) => vm.appNameList = _.pluck(applications, 'name'));
+
+    let accountLoader = accountService.listAccounts();
+    accountLoader.then((accounts) => vm.accounts = accounts);
+
+    $q.all([accountLoader, applicationLoader]).then(() => vm.initializing = false);
+
+    vm.initializing = true;
     vm.submitting = false;
     vm.application = {};
     vm.errorMsgs = [];

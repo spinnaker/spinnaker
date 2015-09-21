@@ -22,7 +22,7 @@
   <ul class="dropdown-menu"
       role="menu"
       ng-if="!querying && showSearchResults">
-    <li ng-repeat-start="category in categories | orderBy: 'category'" class="category-heading">
+    <li ng-repeat-start="category in categories | orderBy: 'order'" class="category-heading">
       <div class="category-heading">{{ category.category }}</div>
     </li>
     <li ng-repeat="result in category.results.slice(0,5)"
@@ -37,8 +37,8 @@
         <search-result item="result"></search-result>
         <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">- {{result.sublinks[0].name}}</span>
       </a>
-      <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
-      <span ng-repeat-start="sublink in result.sublinks.slice(1)"
+      <span class="small sublink-label" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
+      <span class="sublink-label" ng-repeat-start="sublink in result.sublinks.slice(1)"
             ng-show="ctrl.focussedResult === result && $index > 0">|</span>
       <a class="sublink small" analytics-on="click"
          ng-show="ctrl.focussedResult === result"

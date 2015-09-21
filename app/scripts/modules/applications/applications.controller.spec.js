@@ -7,7 +7,7 @@ describe('Controller: Applications', function() {
   beforeEach(
     window.module(
       require('./applications.controller'),
-      require('exports?"ui.bootstrap"!angular-bootstrap')
+      require('angular-ui-bootstrap')
 
       //'spinnaker.application.controller',
       //'spinnaker.applications.read.service'

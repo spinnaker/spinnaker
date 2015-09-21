@@ -68,6 +68,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       execution.stageSummaries = stageSummaries;
       execution.currentStages = getCurrentStages(execution);
       addStageWidths(execution);
+      addBuildInfo(execution);
 
     }
 
@@ -231,6 +232,21 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
           stage.color = stageConfig.executionBarColorProvider(stage);
         }
         stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || executionBarLabelTemplate;
+      }
+    }
+
+    function addBuildInfo(execution) {
+      var deploymentDetails = _(execution.stages)
+        .chain()
+        .find(function(stage) {
+          return stage.type === 'deploy';
+        })
+        .get('context')
+        .get('deploymentDetails')
+        .value();
+
+      if (deploymentDetails && deploymentDetails.length) {
+        execution.buildInfo = deploymentDetails[0].jenkins;
       }
     }
 
