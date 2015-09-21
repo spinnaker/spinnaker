@@ -25,8 +25,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
         },
         {
           name: 'AZRebalance',
-          description: 'Controls whether instances in an Availability Zone should be rebalanced to another zone when ' +
-            'the AZ becomes unhealthy.',
+          description: 'Controls whether AWS should attempt to maintain an even distribution of instances across all ' +
+          'healthy Availability Zones configured for the ASG.',
         },
         {
           name: 'HealthCheck',
