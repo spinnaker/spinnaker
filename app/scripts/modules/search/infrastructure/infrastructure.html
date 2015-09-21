@@ -97,7 +97,7 @@
   <div ng-if="ctrl.noMatches() && !viewState.searching">
     <div class="row">
       <div class="col-md-12">
-        <h4 class="text-center">No results matching "{{ query }}".</h4>
+        <h4 class="no-results">No results matching "{{ query }}".</h4>
       </div>
     </div>
   </div>
@@ -109,11 +109,6 @@
     </div>
     <div class="row">
       <div class="col-md-3" ng-if="recentProjects.length">
-        <div class="row">
-          <div class="col-md-12">
-            <div class="summary projects-summary">Projects ({{recentProjects.length}})</div>
-          </div>
-        </div>
         <div class="row">
           <div class="col-md-12">
             <infrastructure-project ng-repeat="project in recentProjects"
