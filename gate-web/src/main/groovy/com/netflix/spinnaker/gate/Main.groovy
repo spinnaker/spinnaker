@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate
 
 import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet
+import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorConfig
 import org.springframework.boot.SpringApplication
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -28,11 +29,13 @@ import org.springframework.boot.context.web.SpringBootServletInitializer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 import org.springframework.scheduling.annotation.EnableAsync
 
 @EnableAsync
 @Configuration
 @EnableConfigurationProperties
+@Import([HystrixSpectatorConfig])
 @ComponentScan(["com.netflix.spinnaker.gate", "com.netflix.spinnaker.config"])
 @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
 class Main extends SpringBootServletInitializer {
