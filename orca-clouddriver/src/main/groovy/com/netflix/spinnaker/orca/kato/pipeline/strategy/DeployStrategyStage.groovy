@@ -15,8 +15,10 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
-
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
@@ -30,9 +32,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
@@ -40,7 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 @CompileStatic
-abstract class DeployStrategyStage extends LinearStage {
+abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
+
   Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
   @Autowired ObjectMapper mapper
@@ -107,9 +107,9 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
-  List<Map> getExistingAsgs(String application, String account, String cluster, String providerType) {
+  List<Map> getExistingServerGroups(String application, String account, String cluster, String cloudProvider) {
     try {
-      return sourceResolver.getExistingAsgs(application, account, cluster, providerType)
+      return sourceResolver.getExistingAsgs(application, account, cluster, cloudProvider)
     } catch (RetrofitError re) {
       if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
         return []
@@ -123,7 +123,9 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
+    def existingAsgs = getExistingServerGroups(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, getCloudProvider(stage)
+    )
     if (existingAsgs) {
       for (entry in stageData.availabilityZones) {
         def region = entry.key
@@ -200,16 +202,21 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
-    if (existingAsgs) {
+    def existingServerGroups = getExistingServerGroups(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, getCloudProvider(stage)
+    )
+    if (existingServerGroups) {
       for (entry in stageData.availabilityZones) {
         def region = entry.key
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
 
-        existingAsgs.findAll { it.region == region }.each { Map asg ->
-          def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
+        existingServerGroups.findAll { it.region == region }.each { Map sg ->
+          def nextContext = [
+            asgName: sg.name, credentials: cleanupConfig.account, regions: [region],
+            serverGroupName: sg.name, region: region
+          ]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
@@ -218,7 +225,7 @@ abstract class DeployStrategyStage extends LinearStage {
             }
           }
 
-          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
+          logger.info("Injecting destroyServerGroup stage (${sg.region}:${sg.name})")
           injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
         }
       }
