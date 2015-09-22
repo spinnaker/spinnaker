@@ -14,6 +14,10 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
 
     $scope.project = projectConfiguration;
 
+    if (projectConfiguration.notFound) {
+      return;
+    }
+
     this.state = {
       refreshing: false,
       lastRefresh: new Date().getTime(),
