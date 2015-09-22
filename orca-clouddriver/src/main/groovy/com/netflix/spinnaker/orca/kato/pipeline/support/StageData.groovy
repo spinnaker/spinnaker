@@ -30,8 +30,8 @@ class StageData {
   Map<String, List<String>> availabilityZones
   int maxRemainingAsgs
   Boolean useSourceCapacity
-
   Source source
+  Placement placement
 
   String getCluster() {
     def builder = new AutoScalingGroupNameBuilder()
@@ -49,10 +49,25 @@ class StageData {
     return account ?: credentials
   }
 
+  List<String> getRegions() {
+    if (availabilityZones) {
+      availabilityZones.keySet().toList()
+    } else if (placement) {
+      [placement.region]
+    } else {
+      []
+    }
+  }
+
   static class Source {
     String account
     String region
     String asgName
     Boolean useSourceCapacity
+  }
+
+  static class Placement {
+    String account
+    String region
   }
 }

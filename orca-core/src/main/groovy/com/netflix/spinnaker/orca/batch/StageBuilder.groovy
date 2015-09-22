@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionSt
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
+import groovy.util.logging.Slf4j
 import org.springframework.batch.core.Step
 import org.springframework.batch.core.StepExecutionListener
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory
@@ -49,6 +50,7 @@ import static java.util.Collections.EMPTY_LIST
  * {@link org.springframework.batch.core.job.flow.Flow}
  */
 @CompileStatic
+@Slf4j
 abstract class StageBuilder implements ApplicationContextAware {
   private static final int MAX_PARALLEL_CONCURRENCY = 25
 
@@ -92,10 +94,11 @@ abstract class StageBuilder implements ApplicationContextAware {
         throw e
       }
 
+      log.error("Exception occurred while building flow builder", e)
+
       def now = System.currentTimeMillis()
       stage.startTime = now
       stage.endTime = now
-
       stage.status = ExecutionStatus.TERMINAL
       stage.context.exception = exceptionHandler.handle("build", e)
 

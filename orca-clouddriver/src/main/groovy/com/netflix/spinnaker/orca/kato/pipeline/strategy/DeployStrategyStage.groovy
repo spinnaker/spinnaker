@@ -67,7 +67,7 @@ abstract class DeployStrategyStage extends LinearStage {
    */
   protected CleanupConfig determineClusterForCleanup(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    new CleanupConfig(stageData.account, stageData.cluster, stageData.availabilityZones.keySet().toList())
+    new CleanupConfig(stageData.account, stageData.cluster, stageData.regions)
   }
 
   /**
