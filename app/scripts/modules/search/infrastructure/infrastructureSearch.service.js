@@ -18,9 +18,9 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
           displayFormatter: simpleField('application'),
           order: 0,
           sublinks: [
-            { name: 'clusters', href: '/clusters' },
-            { name: 'pipelines', href: '/../executions' },
-            { name: 'tasks', href: '/../tasks' }
+            { name: 'clusters', href: '' },
+            { name: 'pipelines', href: '/../../executions' },
+            { name: 'tasks', href: '/../../tasks' }
           ],
         },
         projects: {
