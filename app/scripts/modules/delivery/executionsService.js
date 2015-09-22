@@ -108,7 +108,7 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
       return ['pipeline', groupBy, application, heading].join('#');
     }
 
-    function getProjectExecutions(project, limit=2) {
+    function getProjectExecutions(project, limit=1) {
       return $http({
         method: 'GET',
         transformResponse: appendTransform(function(executions) {

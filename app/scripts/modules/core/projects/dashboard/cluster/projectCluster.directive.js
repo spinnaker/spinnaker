@@ -52,7 +52,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         type: 'clusters',
         project: this.project.name,
         application: application.name,
-        cluster: [application.name, this.cluster.stack].join('-'),
+        cluster: this.cluster.stack ? [application.name, this.cluster.stack].join('-') : application.name,
         account: this.cluster.account,
       };
     };
