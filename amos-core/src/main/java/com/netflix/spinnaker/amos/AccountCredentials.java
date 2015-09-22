@@ -30,11 +30,38 @@ import java.util.List;
  */
 public interface AccountCredentials<T> {
     /**
-     * Provides the name of the account to be returned. May be an environment name, an account name, etc.
+     * Provides the name of the account to be returned.
+     *
+     * Uniquely identifies the account.
      *
      * @return the name of the account
      */
     String getName();
+
+    /**
+     * Provides the environment name for the account.
+     *
+     * Many accounts can share the same environment (e.g. dev, test, prod)
+     *
+     * @return the Environment name
+     */
+    String getEnvironment();
+
+    /**
+     * Provides the type for the account.
+     *
+     * Account type is typically consistent among the set of credentials that represent a related set of environments.
+     *
+     * e.g.:
+     * <ul>
+     *     <li>account name: maindev, environment: dev, accountType: main</li>
+     *     <li>account name: maintest, environment: test, accountType: main</li>
+     *     <li>account name: mainprod, environment: prod, accountType: main</li>
+     * </ul>
+     *
+     * @return the type for the account.
+     */
+    String getAccountType();
 
     /**
      * Returns an associated credentials object, which may be lazily initialized based off of some detail encapsulated
@@ -48,8 +75,17 @@ public interface AccountCredentials<T> {
      * Provides the name of the cloud provider. Typically something like 'aws', 'gce' or 'docker'.
      *
      * @return the name of the cloud provider
+     * @deprecated use getCloudProvider()
      */
+    @Deprecated
     String getProvider();
+
+    /**
+     * Provides the name of the cloud provider. Typically something like 'aws', 'gce' or 'docker'.
+     *
+     * @return the name of the cloud provider
+     */
+    String getCloudProvider();
 
     /**
      * A user in ANY required group should be allowed access to this account.

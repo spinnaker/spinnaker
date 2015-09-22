@@ -17,6 +17,8 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     private final boolean front50Enabled;
 
     public NetflixAmazonCredentials(@JsonProperty("name") String name,
+                                    @JsonProperty("environment") String environment,
+                                    @JsonProperty("accountType") String accountType,
                                     @JsonProperty("accountId") String accountId,
                                     @JsonProperty("defaultKeyPair") String defaultKeyPair,
                                     @JsonProperty("regions") List<AWSRegion> regions,
@@ -27,7 +29,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("discoveryEnabled") Boolean discoveryEnabled,
                                     @JsonProperty("front50") String front50,
                                     @JsonProperty("front50Enabled") Boolean front50Enabled) {
-        this(name, accountId, defaultKeyPair, regions, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled);
     }
 
     private static boolean flagValue(String serviceUrl, Boolean flag) {
@@ -35,11 +37,24 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public NetflixAmazonCredentials(NetflixAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getRequiredGroupMembership(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled());
     }
 
-    NetflixAmazonCredentials(String name, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> requiredGroupMembership, AWSCredentialsProvider credentialsProvider, String edda, Boolean eddaEnabled, String discovery, Boolean discoveryEnabled, String front50, Boolean front50Enabled) {
-        super(name, accountId, defaultKeyPair, regions, requiredGroupMembership, credentialsProvider);
+    NetflixAmazonCredentials(String name,
+                             String environment,
+                             String accountType,
+                             String accountId,
+                             String defaultKeyPair,
+                             List<AWSRegion> regions,
+                             List<String> requiredGroupMembership,
+                             AWSCredentialsProvider credentialsProvider,
+                             String edda,
+                             Boolean eddaEnabled,
+                             String discovery,
+                             Boolean discoveryEnabled,
+                             String front50,
+                             Boolean front50Enabled) {
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, requiredGroupMembership, credentialsProvider);
         this.edda = edda;
         this.eddaEnabled = flagValue(edda, eddaEnabled);
         this.discovery = discovery;

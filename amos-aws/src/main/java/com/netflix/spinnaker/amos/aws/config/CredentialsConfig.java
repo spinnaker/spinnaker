@@ -46,6 +46,8 @@ public class CredentialsConfig {
 
     public static class Account {
         private String name;
+        private String environment;
+        private String accountType;
         private String accountId;
         private String defaultKeyPair;
         private List<Region> regions;
@@ -65,6 +67,22 @@ public class CredentialsConfig {
 
         public void setName(String name) {
             this.name = name;
+        }
+
+        public String getEnvironment() {
+            return environment;
+        }
+
+        public void setEnvironment(String environment) {
+            this.environment = environment;
+        }
+
+        public String getAccountType() {
+            return accountType;
+        }
+
+        public void setAccountType(String accountType) {
+            this.accountType = accountType;
         }
 
         public String getAccountId() {

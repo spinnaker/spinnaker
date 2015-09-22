@@ -1,8 +1,5 @@
 dependencies {
   compile project(":amos-core")
-  compile spinnaker.dependency('groovy')
-  compile 'org.springframework:spring-web:4.1.4.RELEASE'
   spinnaker.group('gceApi')
 }
 
-tasks.compileGroovy.enabled = true
