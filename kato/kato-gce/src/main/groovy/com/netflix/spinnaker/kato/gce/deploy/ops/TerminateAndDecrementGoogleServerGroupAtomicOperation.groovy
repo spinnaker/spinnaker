@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.google.api.services.replicapool.ReplicapoolScopes
@@ -73,7 +73,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     deleteRequest.setInstances(description.instanceIds)
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
 
     replicapool.instanceGroupManagers().deleteInstances(project, zone, replicaPoolName, deleteRequest).execute()
     task.updateStatus BASE_PHASE, "Successfully terminated instances=(${description.instanceIds.join(", ")} and removed from ${replicaPoolName})."

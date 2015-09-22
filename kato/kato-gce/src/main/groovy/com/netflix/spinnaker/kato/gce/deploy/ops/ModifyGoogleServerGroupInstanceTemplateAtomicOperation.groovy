@@ -18,6 +18,7 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManagersSetInstanceTemplateRequest
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -48,6 +49,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   @Autowired
   private GoogleOperationPoller googleOperationPoller
 
+  @Autowired
+  String googleApplicationName
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -74,7 +78,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def replicaPoolName = description.replicaPoolName
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME)
+    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
     def instanceGroupManagers = replicaPool.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
 
@@ -125,7 +129,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
           || overriddenProperties.diskType
           || overriddenProperties.diskSizeGb
           || overriddenProperties.instanceType) {
-        def sourceImage = GCEUtil.querySourceImage(project, newDescription.image, compute, task, BASE_PHASE)
+        def sourceImage = GCEUtil.querySourceImage(project,
+                                                   newDescription.image,
+                                                   compute,
+                                                   task,
+                                                   BASE_PHASE,
+                                                   googleApplicationName)
         def attachedDisk = GCEUtil.buildAttachedDisk(project,
                                                      zone,
                                                      sourceImage,

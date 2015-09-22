@@ -29,6 +29,8 @@ import com.google.api.services.resourceviews.model.ListResourceResponseItem
 import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -125,7 +127,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -154,7 +156,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
 
       // Query the instance group's instances.
-      1 * resourceViewsBuilderMock.buildResourceViews(_, _) >> resourceViewsMock
+      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
       1 * resourceViewsMock.zoneViews() >> resourceViewsZoneViewsMock
       1 * resourceViewsZoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> resourceViewsZoneViewsListResourcesMock
       1 * resourceViewsZoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponseReal
@@ -233,7 +235,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -262,7 +264,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
 
       // Query the instance group's instances.
-      1 * resourceViewsBuilderMock.buildResourceViews(_, _) >> resourceViewsMock
+      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
       1 * resourceViewsMock.zoneViews() >> resourceViewsZoneViewsMock
       1 * resourceViewsZoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> resourceViewsZoneViewsListResourcesMock
       1 * resourceViewsZoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponseReal

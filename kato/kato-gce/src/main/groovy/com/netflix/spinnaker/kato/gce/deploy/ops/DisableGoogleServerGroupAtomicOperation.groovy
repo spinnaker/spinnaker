@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**

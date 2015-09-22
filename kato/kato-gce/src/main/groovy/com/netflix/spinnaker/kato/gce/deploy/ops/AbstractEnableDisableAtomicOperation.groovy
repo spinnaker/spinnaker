@@ -21,6 +21,8 @@ import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManagersSetTargetPoolsRequest
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -58,13 +60,12 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
     def replicaPoolName = description.replicaPoolName
     def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
     def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project,
                                                                  zone,
                                                                  replicaPoolName,
                                                                  credentials,
-                                                                 replicaPoolBuilder,
-                                                                 GCEUtil.APPLICATION_NAME);
+                                                                 replicaPoolBuilder);
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -100,7 +101,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering instances with load balancers..."
 
-      def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder, GCEUtil.APPLICATION_NAME)
+      def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
 
       def resourceItems = resourceViews.zoneViews().listResources(project,
                                                                   zone,

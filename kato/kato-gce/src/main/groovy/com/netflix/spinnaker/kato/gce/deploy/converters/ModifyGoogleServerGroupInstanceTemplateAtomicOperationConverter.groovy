@@ -17,17 +17,22 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.kato.gce.deploy.description.ModifyGoogleServerGroupInstanceTemplateDescription
-import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.ops.ModifyGoogleServerGroupInstanceTemplateAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component("modifyGoogleServerGroupInstanceTemplateDescription")
 class ModifyGoogleServerGroupInstanceTemplateAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
+  @Autowired
+  ReplicaPoolBuilder replicaPoolBuilder
+
   @Override
   AtomicOperation convertOperation(Map input) {
-    new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(convertDescription(input), new ReplicaPoolBuilder())
+    new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(convertDescription(input), replicaPoolBuilder)
   }
 
   @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.kato.gce.deploy.ops
+package com.netflix.spinnaker.clouddriver.google.util
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.services.replicapool.Replicapool
 
 class ReplicaPoolBuilder {
-  Replicapool buildReplicaPool(GoogleCredential.Builder credentialBuilder, String applicationName) {
+
+  private String googleApplicationName
+
+  ReplicaPoolBuilder(String googleApplicationName) {
+    this.googleApplicationName = googleApplicationName
+  }
+
+  Replicapool buildReplicaPool(GoogleCredential.Builder credentialBuilder) {
     def credential = credentialBuilder.build()
     return new Replicapool.Builder(credentialBuilder.transport,
                                    credentialBuilder.jsonFactory,
-                                   null).setApplicationName(applicationName)
+                                   null).setApplicationName(googleApplicationName)
                                         .setHttpRequestInitializer(credential)
                                         .build()
   }

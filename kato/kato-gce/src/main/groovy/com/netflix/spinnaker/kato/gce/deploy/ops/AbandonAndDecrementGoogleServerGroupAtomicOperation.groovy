@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
-import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.google.api.services.replicapool.ReplicapoolScopes
@@ -28,7 +28,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManagersAbandonIns
  * This is an alternative to {@link TerminateAndDecrementGoogleServerGroup}
  * where the instances are not deleted, rather are left as normal instances
  * that are not associated with a replica pool.
- * 
+ *
  * @see TerminateAndDecrementGoogleServerGroupAtomicOperation
  */
 class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
@@ -63,7 +63,7 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
     abandonRequest.setInstances(description.instanceIds)
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
 
     replicapool.instanceGroupManagers().abandonInstances(project, zone, replicaPoolName, abandonRequest).execute()
     task.updateStatus BASE_PHASE, "Successfully abandoned instances=(${description.instanceIds.join(", ")} and removed from ${replicaPoolName})."

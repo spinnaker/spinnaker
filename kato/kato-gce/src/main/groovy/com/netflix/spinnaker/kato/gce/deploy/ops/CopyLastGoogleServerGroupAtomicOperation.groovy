@@ -20,6 +20,7 @@ import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
@@ -85,8 +86,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
                                                                                  description.source.zone,
                                                                                  description.source.serverGroupName,
                                                                                  description.credentials,
-                                                                                 replicaPoolBuilder,
-                                                                                 GCEUtil.APPLICATION_NAME)
+                                                                                 replicaPoolBuilder)
 
     if (!ancestorServerGroup) {
       return newDescription
