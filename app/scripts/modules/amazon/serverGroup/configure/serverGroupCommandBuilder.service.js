@@ -181,7 +181,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             region: serverGroup.region,
             asgName: serverGroup.asg.autoScalingGroupName,
           },
-          suspendedProcesses: [],
+          suspendedProcesses: (serverGroup.asg.suspendedProcesses || []).map((process) => process.processName),
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             allImageSelection: null,
