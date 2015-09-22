@@ -22,11 +22,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredentials> {
-    public GoogleNamedAccountCredentials(String kmsServer, String accountName, String environment, String accountType, String projectName) {
-        this(kmsServer, accountName, environment, accountType, projectName, null);
+    public GoogleNamedAccountCredentials(String kmsServer, String accountName, String environment, String accountType, String projectName, String applicationName) {
+        this(kmsServer, accountName, environment, accountType, projectName, null, applicationName);
     }
 
-    public GoogleNamedAccountCredentials(String kmsServer, String accountName, String environment, String accountType, String projectName, List<String> requiredGroupMembership) {
+    public GoogleNamedAccountCredentials(String kmsServer, String accountName, String environment, String accountType, String projectName, List<String> requiredGroupMembership, String applicationName) {
         this.kmsServer = kmsServer;
         this.accountName = accountName;
         this.environment = environment;
@@ -35,6 +35,7 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
         this.credentials = (kmsServer != null) ? buildCredentials() : null;
         this.regionToZonesMap = (credentials != null && credentials.getCompute() != null) ? queryRegions(credentials.getCompute(), projectName) : Collections.emptyMap();
+        this.applicationName = applicationName;
     }
 
     @Override
@@ -76,14 +77,14 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
 
                     // JSON key was specified in matching config on key server.
                     GoogleCredential credential = GoogleCredential.fromStream(credentialStream, httpTransport, JSON_FACTORY).createScoped(Collections.singleton(ComputeScopes.COMPUTE));
-                    Compute compute = new Compute.Builder(httpTransport, JSON_FACTORY, null).setApplicationName(APPLICATION_NAME).setHttpRequestInitializer(credential).build();
+                    Compute compute = new Compute.Builder(httpTransport, JSON_FACTORY, null).setApplicationName(applicationName).setHttpRequestInitializer(credential).build();
 
                     return new GoogleCredentials(projectName, compute, httpTransport, JSON_FACTORY, jsonKey);
                 }
             } else {
                 // No JSON key was specified in matching config on key server, so use application default credentials.
                 GoogleCredential credential = GoogleCredential.getApplicationDefault();
-                Compute compute = new Compute.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(APPLICATION_NAME).build();
+                Compute compute = new Compute.Builder(httpTransport, JSON_FACTORY, credential).setApplicationName(applicationName).build();
 
                 return new GoogleCredentials(projectName, compute, httpTransport, JSON_FACTORY, null);
             }
@@ -150,19 +151,22 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         return getCloudProvider();
     }
 
-    public final String getAccountName() {
+    public String getAccountName() {
         return accountName;
     }
 
-    public final String getProjectName() {
+    public String getProjectName() {
         return projectName;
     }
 
-    public final List<String> getRequiredGroupMembership() {
+    public List<String> getRequiredGroupMembership() {
         return requiredGroupMembership;
     }
 
-    private static final String APPLICATION_NAME = "Spinnaker";
+    public String getApplicationName() {
+        return applicationName;
+    }
+
     private static final String CLOUD_PROVIDER = "gce";
     private final String kmsServer;
     private final Map<String, List<String>> regionToZonesMap;
@@ -172,4 +176,5 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
     private final String projectName;
     private final GoogleCredentials credentials;
     private final List<String> requiredGroupMembership;
+    private final String applicationName;
 }
