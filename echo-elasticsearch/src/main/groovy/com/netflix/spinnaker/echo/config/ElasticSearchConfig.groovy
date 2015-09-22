@@ -24,6 +24,7 @@ import io.searchbox.client.config.HttpClientConfig
 import org.elasticsearch.client.Client
 import org.elasticsearch.node.Node
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -31,6 +32,7 @@ import org.springframework.context.annotation.Configuration
  * Elastic Search configuration for Embedded Jest Client
  */
 @Configuration
+@ConditionalOnProperty('search.enabled')
 class ElasticSearchConfig {
 
     Client client

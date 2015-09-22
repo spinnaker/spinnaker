@@ -26,6 +26,7 @@ import io.searchbox.core.Search
 import io.searchbox.core.SearchResult
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Repository
 
 /**
@@ -33,6 +34,7 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 @SuppressWarnings(['CyclomaticComplexity', 'AbcMetric'])
+@ConditionalOnProperty('search.enabled')
 class SearchIndex {
 
     @Autowired

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.echo
 
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.RestController
  * Enables event search
  */
 @RestController
+@ConditionalOnProperty('search.enabled')
 class SearchController {
 
     @Autowired
