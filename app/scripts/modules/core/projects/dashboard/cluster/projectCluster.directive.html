@@ -78,7 +78,8 @@
                              legend-placement="right"></health-counts>
               <span class="text-warning"
                     ng-if="application.inconsistentBuilds && application.regions[region].build.number !== application.build.number">
-                (#{{application.regions[region].build.number}})
+                <span ng-if="application.regions[region].build.number > -1">(#{{application.regions[region].build.number}})</span>
+                <span ng-if="application.regions[region].build.number === -1">(N/A)</span>
               </span>
             </a>
           </span>
