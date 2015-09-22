@@ -38,7 +38,7 @@ module.exports = angular.module('spinnaker.healthCounts.directive', [
 
         }
 
-        scope.$watch('container', calculateHealthPercent, true);
+        scope.$watch('container', calculateHealthPercent);
       }
     };
   }
