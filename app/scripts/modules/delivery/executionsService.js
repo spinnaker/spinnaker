@@ -125,7 +125,7 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
           'projects',
           project,
           'pipelines'
-        ].join('/') + '?limitTo=' + limit
+        ].join('/') + '?limit=' + limit
       }).then((resp) => {
         return resp.data.sort((a, b) => b.startTime - (a.startTime || new Date().getTime()));
       });
