@@ -38,7 +38,7 @@ class TitanDeployHandlerSpec extends Specification {
   }
 
   NetflixTitanCredentials testCredentials = new NetflixTitanCredentials(
-    'test', [new TitanRegion('us-east-1', 'test', 'http://foo')]
+    'test', [new TitanRegion('us-east-1', 'test', 'http://foo', 'http://bar')]
   )
 
   @Subject
@@ -73,9 +73,9 @@ class TitanDeployHandlerSpec extends Specification {
     deploymentResult.serverGroupNames && deploymentResult.serverGroupNames.contains('api-test-v000')
     deploymentResult.serverGroupNameByRegion && deploymentResult.serverGroupNameByRegion['us-east-1'] == 'api-test-v000'
     1 * titanClient.submitJob({
-      it.name == 'api-test-v000' &&
-      it.applicationName == 'api.server' &&
-      it.imageVersion == 'master-201506020033-trusty-7366606' &&
+      it.jobName == 'api-test-v000' &&
+      it.dockerImageName == 'api.server' &&
+      it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
       it.instances == titanDeployDescription.capacity.desired &&
       it.cpu == titanDeployDescription.resources.cpu &&
       it.memory == titanDeployDescription.resources.memory &&

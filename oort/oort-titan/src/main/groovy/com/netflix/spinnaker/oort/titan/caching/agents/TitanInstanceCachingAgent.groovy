@@ -22,7 +22,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.cats.cache.Keys
+import com.netflix.spinnaker.oort.model.Keys
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
@@ -37,10 +37,10 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.SERVER_GROUPS
+import static Keys.Namespace.HEALTH
+import static Keys.Namespace.IMAGES
+import static Keys.Namespace.INSTANCES
+import static Keys.Namespace.SERVER_GROUPS
 
 class TitanInstanceCachingAgent implements CachingAgent {
 
