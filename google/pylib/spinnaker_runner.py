@@ -155,26 +155,44 @@ class Runner(object):
     pid = self.maybe_start_job(jobs, 'gate')
     self.wait_for_service('gate', pid=pid)
 
-  def get_all_java_jobs(self):
+  def get_all_java_subsystem_jobs(self):
     """Look up all the running java jobs.
 
     Returns:
        dictionary keyed by package name (spinnaker subsystem) with pid values.
     """
-    # ps can fail if we have not jobs. That's ok.
-    stdout, stderr = subprocess.Popen(
-        'ps -fwwwC java', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        shell=True, close_fds=True).communicate()
+    re_pid_and_subsystem = None
 
-    subsystem_name_regex = '{install_root}/([^/]+)'.format(
-        install_root=self.__installation.SUBSYSTEM_ROOT_DIR)
-    pid_regex = '([0-9]+)'
-    re_pid_and_subsystem = re.compile('[^ ]+ *{pid} .*{subsys}.*'.format(
-                                      pid=pid_regex,
-                                      subsys=subsystem_name_regex))
+    # If we use jps then some classnames dont match the subsystems we expect.
+    hack_java_package_to_subsystem = {'gcekms': 'gce-kms'}
+
+    # Try jps, but this is not currently available on openjdk-8-jre
+    # so depending on the JRE environment, this might not work.
+    p = subprocess.Popen(
+        'jps -l', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        shell=True, close_fds=True)
+    stdout, stderr = p.communicate()
+    if p.returncode == 0:
+      re_pid_and_subsystem = re.compile(
+          '([0-9]+) com\.netflix\.spinnaker\.([^\.]+)\.')
+    else:
+      # If jps did not work, then try using ps instead.
+      # ps can be flaky because it truncates the commandline to 4K, which
+      # is typically too short for the spinnaker classpath alone, never mind
+      # additional arguments. The reliable part of the command is in the
+      # truncated region, so we'll look for something in a potentially
+      # brittle part of the commandline.
+      stdout, stderr = subprocess.Popen(
+          'ps -fwwC java', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+          shell=True, close_fds=True).communicate()
+      re_pid_and_subsystem = re.compile(
+          '([0-9]+) .* -classpath {install_root}/([^/]+)/'
+          .format(install_root=self.__installation.SUBSYSTEM_ROOT_DIR))
+
     job_map = {}
     for match in re_pid_and_subsystem.finditer(stdout):
       name = self.program_to_subsystem(match.groups()[1])
+      name = hack_java_package_to_subsystem.get(name, name)
       pid = int(match.groups()[0])
       job_map[name] = pid
 
@@ -286,7 +304,7 @@ Proceeding anyway.
       pass
     self.start_dependencies()
 
-    jobs = self.get_all_java_jobs()
+    jobs = self.get_all_java_subsystem_jobs()
     pid = self.maybe_start_job(jobs, 'gce-kms')
     self.wait_for_service('gce-kms', pid)
 
@@ -310,7 +328,7 @@ Proceeding anyway.
     if not component:
       component = self.__SPINNAKER_COMPONENT
 
-    jobs = self.get_all_java_jobs()
+    jobs = self.get_all_java_subsystem_jobs()
     if component != self.__SPINNAKER_COMPONENT:
         if component == 'deck':
           self.stop_deck()
@@ -357,7 +375,7 @@ Proceeding anyway.
       if component == self.__SPINNAKER_COMPONENT:
         self.start_all(options)
       else:
-        self.maybe_start(self.get_all_java_jobs(), component)
+        self.maybe_start_job(self.get_all_java_subsystem_jobs(), component)
 
     if action == 'STOP':
       self.stop(options)
