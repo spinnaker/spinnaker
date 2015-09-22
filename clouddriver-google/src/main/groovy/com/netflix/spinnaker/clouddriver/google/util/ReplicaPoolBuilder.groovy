@@ -21,17 +21,17 @@ import com.google.api.services.replicapool.Replicapool
 
 class ReplicaPoolBuilder {
 
-  private String applicationName
+  private String googleApplicationName
 
-  ReplicaPoolBuilder(String applicationName) {
-    this.applicationName = applicationName
+  ReplicaPoolBuilder(String googleApplicationName) {
+    this.googleApplicationName = googleApplicationName
   }
 
   Replicapool buildReplicaPool(GoogleCredential.Builder credentialBuilder) {
     def credential = credentialBuilder.build()
     return new Replicapool.Builder(credentialBuilder.transport,
                                    credentialBuilder.jsonFactory,
-                                   null).setApplicationName(applicationName)
+                                   null).setApplicationName(googleApplicationName)
                                         .setHttpRequestInitializer(credential)
                                         .build()
   }

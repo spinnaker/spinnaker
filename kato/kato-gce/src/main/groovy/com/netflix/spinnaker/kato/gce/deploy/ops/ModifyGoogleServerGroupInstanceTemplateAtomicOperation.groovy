@@ -50,7 +50,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   private GoogleOperationPoller googleOperationPoller
 
   @Autowired
-  String applicationName
+  String googleApplicationName
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -134,7 +134,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
                                                    compute,
                                                    task,
                                                    BASE_PHASE,
-                                                   applicationName)
+                                                   googleApplicationName)
         def attachedDisk = GCEUtil.buildAttachedDisk(project,
                                                      zone,
                                                      sourceImage,

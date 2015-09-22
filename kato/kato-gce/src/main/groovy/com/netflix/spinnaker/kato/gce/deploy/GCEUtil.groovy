@@ -69,13 +69,13 @@ class GCEUtil {
                                 Compute compute,
                                 Task task,
                                 String phase,
-                                String applicationName) {
+                                String googleApplicationName) {
     task.updateStatus phase, "Looking up source image $sourceImageName..."
 
     def imageProjects = [projectName] + baseImageProjects
     def sourceImage = null
 
-    def imageListBatch = buildBatchRequest(compute, applicationName)
+    def imageListBatch = buildBatchRequest(compute, googleApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -105,12 +105,12 @@ class GCEUtil {
     }
   }
 
-  private static BatchRequest buildBatchRequest(def compute, def applicationName) {
+  private static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
     return compute.batch(
       new HttpRequestInitializer() {
         @Override
         void initialize(HttpRequest request) throws IOException {
-          request.headers.setUserAgent(applicationName);
+          request.headers.setUserAgent(googleApplicationName);
         }
       }
     )

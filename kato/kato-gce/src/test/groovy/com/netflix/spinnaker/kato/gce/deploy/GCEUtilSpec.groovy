@@ -43,7 +43,7 @@ class GCEUtilSpec extends Specification {
   private static final INSTANCE_LOCAL_NAME_2 = "some-instance-name-2"
   private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
   private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/some-instance-name-1"
-  private static final String APPLICATION_NAME = "Spinnaker"
+  private static final String GOOGLE_APPLICATION_NAME = "test"
 
   @Shared
   def taskMock
@@ -65,7 +65,7 @@ class GCEUtilSpec extends Specification {
       def httpRequestInitializer =
               new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def images = new Compute.Builder(
-              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
 
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
 
@@ -93,9 +93,9 @@ class GCEUtilSpec extends Specification {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(
-                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
           }
         }
       }
@@ -116,7 +116,7 @@ class GCEUtilSpec extends Specification {
       def httpRequestInitializer =
               new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def images = new Compute.Builder(
-              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
 
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
 
@@ -142,9 +142,9 @@ class GCEUtilSpec extends Specification {
         computeMock.use {
           listMock.use {
             def compute = new Compute.Builder(
-                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build()
+                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
 
-            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, APPLICATION_NAME)
+            sourceImage = GCEUtil.querySourceImage(PROJECT_NAME, IMAGE_NAME, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME)
           }
         }
       }

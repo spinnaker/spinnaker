@@ -21,17 +21,17 @@ import com.google.api.services.resourceviews.Resourceviews
 
 class ResourceViewsBuilder {
 
-  private String applicationName
+  private String googleApplicationName
 
-  ResourceViewsBuilder(String applicationName) {
-    this.applicationName = applicationName
+  ResourceViewsBuilder(String googleApplicationName) {
+    this.googleApplicationName = googleApplicationName
   }
 
   Resourceviews buildResourceViews(GoogleCredential.Builder credentialBuilder) {
     def credential = credentialBuilder.build()
     return new Resourceviews.Builder(credentialBuilder.transport,
                                      credentialBuilder.jsonFactory,
-                                     null).setApplicationName(applicationName)
+                                     null).setApplicationName(googleApplicationName)
                                           .setHttpRequestInitializer(credential)
                                           .build()
   }

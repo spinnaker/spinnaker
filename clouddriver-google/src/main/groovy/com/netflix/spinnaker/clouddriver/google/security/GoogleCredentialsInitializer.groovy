@@ -29,7 +29,7 @@ class GoogleCredentialsInitializer {
   private static final Logger log = Logger.getLogger(this.class.simpleName)
 
   @Autowired
-  String applicationName
+  String googleApplicationName
 
   @Bean
   List<? extends GoogleNamedAccountCredentials> googleNamedAccountCredentials(
@@ -39,7 +39,7 @@ class GoogleCredentialsInitializer {
 
     for (managedAccount in googleConfigurationProperties.accounts) {
       try {
-        // TODO(duftler): Pass applicationName to GoogleNamedAccountCredentials constructor.
+        // TODO(duftler): Pass googleApplicationName to GoogleNamedAccountCredentials constructor.
         def googleAccount = new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.name, managedAccount.project)
 
         googleAccounts << accountCredentialsRepository.save(managedAccount.name, googleAccount)

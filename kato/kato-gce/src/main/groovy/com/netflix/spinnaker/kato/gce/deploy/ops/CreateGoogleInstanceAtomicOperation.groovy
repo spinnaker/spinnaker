@@ -38,7 +38,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   private GceConfig.DeployDefaults gceDeployDefaults
 
   @Autowired
-  String applicationName
+  String googleApplicationName
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -67,7 +67,7 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     def machineType = GCEUtil.queryMachineType(project, zone, description.instanceType, compute, task, BASE_PHASE)
 
-    def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE, applicationName)
+    def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE, googleApplicationName)
 
     def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
 

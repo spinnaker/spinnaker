@@ -52,18 +52,18 @@ class GoogleConfiguration {
   }
 
   @Bean
-  String applicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
+  String googleApplicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
     "Spinnaker/$implementationVersion"
   }
 
   @Bean
-  ReplicaPoolBuilder replicaPoolBuilder(String applicationName) {
-    new ReplicaPoolBuilder(applicationName)
+  ReplicaPoolBuilder replicaPoolBuilder(String googleApplicationName) {
+    new ReplicaPoolBuilder(googleApplicationName)
   }
 
   @Bean
-  ResourceViewsBuilder resourceViewsBuilder(String applicationName) {
-    new ResourceViewsBuilder(applicationName)
+  ResourceViewsBuilder resourceViewsBuilder(String googleApplicationName) {
+    new ResourceViewsBuilder(googleApplicationName)
   }
 }
 
