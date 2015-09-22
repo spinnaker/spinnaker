@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.cats.cache.Keys
+import com.netflix.spinnaker.oort.model.Keys
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.model.ClusterProvider
@@ -33,11 +33,11 @@ import com.netflix.titanclient.model.Task
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.SERVER_GROUPS
+import static Keys.Namespace.APPLICATIONS
+import static Keys.Namespace.CLUSTERS
+import static Keys.Namespace.HEALTH
+import static Keys.Namespace.INSTANCES
+import static Keys.Namespace.SERVER_GROUPS
 
 @Component
 class TitanClusterProvider implements ClusterProvider<TitanCluster> {

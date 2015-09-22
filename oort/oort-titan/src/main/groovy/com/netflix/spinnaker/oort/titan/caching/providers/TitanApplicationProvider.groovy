@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.cats.cache.Keys
+import com.netflix.spinnaker.oort.model.Keys
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
@@ -28,8 +28,8 @@ import com.netflix.spinnaker.oort.titan.model.TitanApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.CLUSTERS
+import static Keys.Namespace.APPLICATIONS
+import static Keys.Namespace.CLUSTERS
 
 @Component
 class TitanApplicationProvider implements ApplicationProvider {

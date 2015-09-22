@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.cats.cache
-
+package com.netflix.spinnaker.oort.model
 import com.netflix.frigga.Names
-import groovy.transform.CompileStatic
 
 /**
  * @author sthadeshwar
  */
-@CompileStatic
 class Keys {
 
   static enum Namespace {

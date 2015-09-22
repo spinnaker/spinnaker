@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.agents
+import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
@@ -24,21 +25,23 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.cats.cache.Keys
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
-import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
+import com.netflix.spinnaker.oort.model.Keys
+import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Job
 import com.netflix.titanclient.model.Task
-import com.fasterxml.jackson.annotation.JsonCreator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.cats.cache.Keys.Namespace.*
+import static com.netflix.spinnaker.oort.model.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.oort.model.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.oort.model.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.oort.model.Keys.Namespace.SERVER_GROUPS
 
 class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
 
