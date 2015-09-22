@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.resizeAsgStage', 
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'resizeServerGroup',
-      key: 'resizeServerGroup',
+      alias: 'resizeAsg',
       cloudProvider: 'aws',
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
