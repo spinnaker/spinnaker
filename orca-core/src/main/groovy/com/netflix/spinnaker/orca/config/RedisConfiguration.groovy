@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.config
-
 import groovy.transform.CompileStatic
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
@@ -27,7 +26,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
-import redis.clients.jedis.Protocol
 import redis.clients.util.Pool
 
 import java.lang.reflect.Field
@@ -35,6 +33,7 @@ import java.lang.reflect.Field
 @Configuration
 @CompileStatic
 class RedisConfiguration {
+
   @Bean
   @ConfigurationProperties('redis')
   GenericObjectPoolConfig redisPoolConfig() {
@@ -45,17 +44,11 @@ class RedisConfiguration {
   Pool<Jedis> jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
                       @Value('${redis.timeout:2000}') int timeout,
                       GenericObjectPoolConfig redisPoolConfig) {
-    URI redisConnection = URI.create(connection)
 
-    String host = redisConnection.host
-    int port = redisConnection.port == -1 ? Protocol.DEFAULT_PORT : redisConnection.port
+    RedisConnectionInfo connectionInfo = RedisConnectionInfo.parseConnectionUri(connection)
 
-    String path = redisConnection.path ?: "/${Protocol.DEFAULT_DATABASE}"
-    int database = Integer.parseInt(path.split('/', 2)[1])
-
-    String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
-
-    new JedisPool(redisPoolConfig, host, port, timeout, password, database, null)
+    new JedisPool(redisPoolConfig, connectionInfo.host, connectionInfo.port, timeout, connectionInfo.password,
+        connectionInfo.database, null)
   }
 
   @Bean
