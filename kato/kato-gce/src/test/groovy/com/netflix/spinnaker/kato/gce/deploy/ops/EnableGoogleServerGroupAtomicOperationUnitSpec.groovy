@@ -28,6 +28,8 @@ import com.google.api.services.resourceviews.Resourceviews
 import com.google.api.services.resourceviews.model.ListResourceResponseItem
 import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
@@ -156,12 +158,12 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
       1 * zonesGetMock.execute() >> zone
 
-      2 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      2 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
-      1 * resourceViewsBuilderMock.buildResourceViews(_, _) >> resourceViewsMock
+      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
       1 * resourceViewsMock.zoneViews() >> zoneViewsMock
       1 * zoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> zoneViewsListResourcesMock
       1 * zoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponse
@@ -203,12 +205,12 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
       1 * zonesGetMock.execute() >> zone
 
-      2 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      2 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
-      1 * resourceViewsBuilderMock.buildResourceViews(_, _) >> resourceViewsMock
+      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
       1 * resourceViewsMock.zoneViews() >> zoneViewsMock
       1 * zoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> zoneViewsListResourcesMock
       1 * zoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponse

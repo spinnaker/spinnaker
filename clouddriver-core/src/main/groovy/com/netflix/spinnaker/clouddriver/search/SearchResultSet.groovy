@@ -50,6 +50,6 @@ class SearchResultSet {
   /**
    * The paginated list of objects matching the query
    */
-  List<Map<String, String>> results = []
+  List<Map<String, Object>> results = []
 
 }

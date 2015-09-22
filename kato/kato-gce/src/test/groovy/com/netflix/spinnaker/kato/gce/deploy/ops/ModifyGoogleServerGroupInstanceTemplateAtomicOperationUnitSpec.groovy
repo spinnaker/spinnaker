@@ -29,6 +29,7 @@ import com.google.api.services.replicapool.Replicapool
 import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -111,7 +112,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -176,7 +177,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -236,7 +237,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -289,7 +290,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
@@ -345,7 +346,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_, _) >> replicaPoolMock
+      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
       1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal

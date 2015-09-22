@@ -145,7 +145,7 @@ class UpsertSecurityGroupAtomicOperation implements AtomicOperation<Void> {
   }
 
   static IpPermission map(UpsertSecurityGroupDescription.Ingress ingress) {
-    new IpPermission().withIpProtocol(ingress.type.name()).withFromPort(ingress.startPort).withToPort(ingress.endPort)
+    new IpPermission().withIpProtocol(ingress.ipProtocol).withFromPort(ingress.startPort).withToPort(ingress.endPort)
   }
 
   @VisibleForTesting

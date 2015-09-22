@@ -49,7 +49,7 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
         name = "bar"
         startPort = 111
         endPort = 112
-        type = UpsertSecurityGroupDescription.IngressType.tcp
+        type = "tcp"
         it
       }
     ]
@@ -93,21 +93,21 @@ class UpsertSecurityGroupAtomicOperationUnitSpec extends Specification {
       name = "bar"
       startPort = 25
       endPort = 25
-      type = UpsertSecurityGroupDescription.IngressType.tcp
+      type = "tcp"
       it
     }
     description.securityGroupIngress << new SecurityGroupIngress().with {
       name = "bar"
       startPort = 80
       endPort = 81
-      type = UpsertSecurityGroupDescription.IngressType.tcp
+      type = "tcp"
       it
     }
     description.ipIngress = [new IpIngress().with {
       cidr = "10.0.0.1/32"
       startPort = 80
       endPort = 81
-      type = UpsertSecurityGroupDescription.IngressType.tcp
+      ipProtocol = "tcp"
       it
     }]
     op.operate([])

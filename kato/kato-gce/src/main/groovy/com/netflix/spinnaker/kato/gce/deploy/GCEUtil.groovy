@@ -30,6 +30,7 @@ import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
@@ -38,15 +39,12 @@ import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleFirewallRul
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
-import com.netflix.spinnaker.kato.gce.deploy.ops.ReplicaPoolBuilder
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 
 class GCEUtil {
   private static final String DISK_TYPE_PERSISTENT = "PERSISTENT"
 
-  public static final String APPLICATION_NAME = "Spinnaker"
-  public static final long OPERATIONS_POLLING_INTERVAL_FRACTION = 5
   public static final String TARGET_POOL_NAME_PREFIX = "tp"
 
   // TODO(duftler): This list should not be static, but should also not be built on each call.
@@ -66,13 +64,18 @@ class GCEUtil {
     }
   }
 
-  static Image querySourceImage(String projectName, String sourceImageName, Compute compute, Task task, String phase) {
+  static Image querySourceImage(String projectName,
+                                String sourceImageName,
+                                Compute compute,
+                                Task task,
+                                String phase,
+                                String googleApplicationName) {
     task.updateStatus phase, "Looking up source image $sourceImageName..."
 
     def imageProjects = [projectName] + baseImageProjects
     def sourceImage = null
 
-    def imageListBatch = buildBatchRequest(compute)
+    def imageListBatch = buildBatchRequest(compute, googleApplicationName)
     def imageListCallback = new JsonBatchCallback<ImageList>() {
       @Override
       void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
@@ -102,12 +105,12 @@ class GCEUtil {
     }
   }
 
-  private static BatchRequest buildBatchRequest(def compute) {
+  private static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
     return compute.batch(
       new HttpRequestInitializer() {
         @Override
         void initialize(HttpRequest request) throws IOException {
-          request.headers.setUserAgent(APPLICATION_NAME);
+          request.headers.setUserAgent(googleApplicationName);
         }
       }
     )
@@ -219,10 +222,9 @@ class GCEUtil {
                                                         String zone,
                                                         String serverGroupName,
                                                         GoogleCredentials credentials,
-                                                        ReplicaPoolBuilder replicaPoolBuilder,
-                                                        String applicationName) {
+                                                        ReplicaPoolBuilder replicaPoolBuilder) {
     def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
 
     replicapool.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
@@ -230,10 +232,9 @@ class GCEUtil {
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
                                                                String region,
                                                                GoogleCredentials credentials,
-                                                               ReplicaPoolBuilder replicaPoolBuilder,
-                                                               String applicationName) {
+                                                               ReplicaPoolBuilder replicaPoolBuilder) {
     def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, applicationName);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
     def zones = getZonesFromRegion(projectName, region, credentials.compute)
 
     def allMIGSInRegion = zones.findResults {
@@ -418,8 +419,7 @@ class GCEUtil {
     def managedInstanceGroups = queryManagedInstanceGroups(project,
                                                            region,
                                                            credentials,
-                                                           replicaPoolBuilder,
-                                                           APPLICATION_NAME)
+                                                           replicaPoolBuilder)
 
     for (def managedInstanceGroup : managedInstanceGroups) {
       def names = Names.parseName(managedInstanceGroup.getName())

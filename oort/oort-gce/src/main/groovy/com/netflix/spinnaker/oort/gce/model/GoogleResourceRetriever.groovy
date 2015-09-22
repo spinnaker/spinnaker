@@ -28,6 +28,8 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
@@ -56,6 +58,12 @@ class GoogleResourceRetriever {
 
   @Autowired
   GoogleSecurityGroupProvider googleSecurityGroupProvider
+
+  @Autowired
+  ReplicaPoolBuilder replicaPoolBuilder
+
+  @Autowired
+  ResourceViewsBuilder resourceViewsBuilder
 
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
@@ -111,7 +119,7 @@ class GoogleResourceRetriever {
           Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
           def regions = compute.regions().list(project).execute().getItems()
           def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
           def regionsCallback = new RegionsCallback(tempAppMap,
@@ -125,7 +133,8 @@ class GoogleResourceRetriever {
                                                     defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
                                                     migsBatch,
-                                                    resourceViewsBatch)
+                                                    resourceViewsBatch,
+                                                    resourceViewsBuilder)
 
           regions.each { region ->
             compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
@@ -334,7 +343,7 @@ class GoogleResourceRetriever {
           BatchRequest instancesBatch = buildBatchRequest(compute)
 
           def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicaPool = new ReplicaPoolBuilder().buildReplicaPool(credentialBuilder, Utils.APPLICATION_NAME)
+          def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
@@ -350,7 +359,8 @@ class GoogleResourceRetriever {
                                               imageMap,
                                               defaultBuildHost,
                                               instanceNameToGoogleServerGroupMap,
-                                              resourceViewsBatch)
+                                              resourceViewsBatch,
+                                              resourceViewsBuilder)
 
           // Handle 404 here (especially when this is called after destroying a replica pool).
           InstanceGroupManager instanceGroupManager = null

@@ -24,6 +24,7 @@ import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Region
 import com.google.api.services.replicapool.Replicapool
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
@@ -44,6 +45,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private BatchRequest migsBatch
   private BatchRequest resourceViewsBatch
+  private ResourceViewsBuilder resourceViewsBuilder
 
   public RegionsCallback(HashMap<String, GoogleApplication> tempAppMap,
                          String accountName,
@@ -56,7 +58,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                          String defaultBuildHost,
                          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
                          BatchRequest migsBatch,
-                         BatchRequest resourceViewsBatch) {
+                         BatchRequest resourceViewsBatch,
+                         ResourceViewsBuilder resourceViewsBuilder) {
     this.tempAppMap = tempAppMap
     this.accountName = accountName
     this.project = project
@@ -69,6 +72,7 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.migsBatch = migsBatch
     this.resourceViewsBatch = resourceViewsBatch
+    this.resourceViewsBuilder = resourceViewsBuilder
   }
 
   @Override
@@ -88,7 +92,8 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                                           imageMap,
                                           defaultBuildHost,
                                           instanceNameToGoogleServerGroupMap,
-                                          resourceViewsBatch)
+                                          resourceViewsBatch,
+                                          resourceViewsBuilder)
 
       replicapool.instanceGroupManagers().list(project, localZoneName).queue(migsBatch, migsCallback)
     }

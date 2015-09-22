@@ -17,10 +17,10 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.replicapool.ReplicapoolScopes
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
-import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -58,7 +58,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     def replicaPoolName = description.replicaPoolName
 
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME);
+    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
 
     def instanceGroupManager = replicapool.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
 

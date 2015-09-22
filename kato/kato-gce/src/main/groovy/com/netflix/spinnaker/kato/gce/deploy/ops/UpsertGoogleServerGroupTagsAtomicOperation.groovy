@@ -19,6 +19,8 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.model.Tags
 import com.google.api.services.replicapool.ReplicapoolScopes
 import com.google.api.services.replicapool.model.InstanceGroupManagersSetInstanceTemplateRequest
+import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -72,7 +74,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     def replicaPoolName = description.replicaPoolName
     def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder, GCEUtil.APPLICATION_NAME)
+    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
     def instanceGroupManagers = replicaPool.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
     def instances = compute.instances()
@@ -121,7 +123,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.group)
 
     // Retrieve the instances in the instance group.
-    def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder, GCEUtil.APPLICATION_NAME)
+    def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
     def resourceItems = resourceViews.zoneViews().listResources(project,
                                                                 zone,
                                                                 instanceGroupName).execute().items
