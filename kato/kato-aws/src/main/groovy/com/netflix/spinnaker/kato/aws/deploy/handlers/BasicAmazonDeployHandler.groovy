@@ -38,11 +38,7 @@ import com.netflix.spinnaker.kato.deploy.DeploymentResult
 import groovy.transform.PackageScope
 
 class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescription> {
-
   private static final String BASE_PHASE = "DEPLOY"
-  private static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
-  private static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
-  private static final String DEFAULT_KEYPAIR_TEMPLATE = "nf-{credentials}-keypair-a"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -65,35 +61,10 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     description instanceof BasicAmazonDeployDescription
   }
 
-  private void setDefaults(BasicAmazonDeployDescription description) {
-
-    // Security groups
-    Set<String> securityGroups = [] as Set
-    if (description.securityGroups) {
-      securityGroups.addAll(description.securityGroups)
-    }
-    // TODO: Remove this vpc special casing once we are moved out of vpc-main
-    if (description.subnetType && !description.subnetType.contains('vpc0')) {
-      securityGroups.addAll(DEFAULT_VPC_SECURITY_GROUPS)
-    } else {
-      securityGroups.addAll(DEFAULT_SECURITY_GROUPS)
-    }
-    description.securityGroups = securityGroups
-
-    // Key pair
-    if (!description.keyPair) {
-      description.keyPair = DEFAULT_KEYPAIR_TEMPLATE.replaceAll('\\{credentials\\}', description.credentials.name)
-    }
-  }
-
   @Override
   DeploymentResult handle(BasicAmazonDeployDescription description, List priorOutputs) {
     task.updateStatus BASE_PHASE, "Initializing handler..."
     def deploymentResult = new DeploymentResult()
-
-    task.updateStatus BASE_PHASE, "Setting deploy description defaults..."
-    setDefaults(description)
-
     task.updateStatus BASE_PHASE, "Preparing deployment to ${description.availabilityZones}..."
     for (Map.Entry<String, List<String>> entry : description.availabilityZones) {
       String region = entry.key
