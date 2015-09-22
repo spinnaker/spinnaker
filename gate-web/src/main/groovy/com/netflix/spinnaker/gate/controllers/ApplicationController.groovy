@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ApplicationService
+import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
@@ -37,6 +38,9 @@ class ApplicationController {
 
   @Autowired
   ApplicationService applicationService
+
+  @Autowired
+  ExecutionHistoryService executionHistoryService
 
   @Autowired
   TaskService taskService
@@ -64,12 +68,12 @@ class ApplicationController {
 
   @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
   List getTasks(@PathVariable("name") String name) {
-    applicationService.getTasks(name)
+    executionHistoryService.getTasks(name)
   }
 
   @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("name") String name) {
-    applicationService.getPipelines(name)
+    executionHistoryService.getPipelines(name)
   }
 
   /**

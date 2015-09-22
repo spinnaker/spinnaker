@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.internal.services.TagService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.internal.services.internal.FlapJackService
@@ -49,6 +50,7 @@ class FunctionalSpec extends Specification {
   Api api
 
   static ApplicationService applicationService
+  static ExecutionHistoryService executionHistoryService
   static ExecutorService executorService
   static Front50Service front50Service
   static MortService mortService
@@ -63,6 +65,7 @@ class FunctionalSpec extends Specification {
 
   void setup() {
     applicationService = Mock(ApplicationService)
+    executionHistoryService = Mock(ExecutionHistoryService)
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     oortService = Mock(OortService)
@@ -133,7 +136,7 @@ class FunctionalSpec extends Specification {
       api.getTasks(name)
 
     then:
-      1 * applicationService.getTasks(name) >> []
+      1 * executionHistoryService.getTasks(name) >> []
 
     where:
       name = "foo"
@@ -183,6 +186,11 @@ class FunctionalSpec extends Specification {
     @Bean
     ApplicationService applicationService() {
       applicationService
+    }
+
+    @Bean
+    ExecutionHistoryService executionHistoryService() {
+      executionHistoryService
     }
 
     @Bean

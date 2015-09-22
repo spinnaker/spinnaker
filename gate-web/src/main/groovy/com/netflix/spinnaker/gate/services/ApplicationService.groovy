@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.gate.services
 
-import com.google.common.base.Preconditions
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OortService
-import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -36,6 +34,7 @@ import retrofit.converter.ConversionException
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicReference
 
 @CompileStatic
 @Component
@@ -50,32 +49,34 @@ class ApplicationService {
   OortService oortService
 
   @Autowired
-  OrcaService orcaService
-
-  @Autowired
   Front50Service front50Service
-
-  @Autowired
-  CredentialsService credentialsService
 
   @Autowired
   ExecutorService executorService
 
+  private AtomicReference<List<Map>> allApplicationsCache = new AtomicReference<>([])
+
   List<Map> getAll() {
     def applicationListRetrievers = buildApplicationListRetrievers()
 
-    HystrixFactory.newListCommand(GROUP, "getAll", true) {
+    HystrixFactory.newListCommand(GROUP, "getAll", true, {
       List<Future<List<Map>>> futures = executorService.invokeAll(applicationListRetrievers)
       List<List<Map>> all = futures.collect { it.get() } // spread operator doesn't work here; no clue why.
       List<Map> flat = (List<Map>) all?.flatten()?.toList()
-      mergeApps(flat, serviceConfiguration.getService('front50')).collect { it.attributes }
-    } execute()
+      def mergedApplications = mergeApps(flat, serviceConfiguration.getService('front50')).collect {
+        it.attributes
+      } as List<Map>
+
+      allApplicationsCache.set(mergedApplications)
+
+      return mergedApplications
+    }, { return allApplicationsCache.get() }).execute()
   }
 
   Map get(String name) {
     def applicationRetrievers = buildApplicationRetrievers(name)
 
-    HystrixFactory.newMapCommand(GROUP, "getAppByName", true) {
+    HystrixFactory.newMapCommand(GROUP, "getAppByName", true, {
       try {
         def futures = executorService.invokeAll(applicationRetrievers)
         List<Map> applications = (List<Map>) futures.collect { it.get() }
@@ -86,21 +87,7 @@ class ApplicationService {
         log.error("Unable to retrieve application '${name}'", e)
         throw e
       }
-    } execute()
-  }
-
-  List getTasks(String app) {
-    Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand(GROUP, "getTasksForApp", true) {
-      orcaService.getTasks(app)
-    } execute()
-  }
-
-  List getPipelines(String app) {
-    Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand(GROUP, "getPipelinesForApp", true) {
-      orcaService.getPipelines(app)
-    } execute()
+    }, { allApplicationsCache.get().find { it.name.toString().equalsIgnoreCase(name) } }).execute()
   }
 
   List<Map> getPipelineConfigs(String app) {
@@ -124,34 +111,19 @@ class ApplicationService {
 
   private Collection<Callable<List<Map>>> buildApplicationListRetrievers() {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
-    if (globalAccounts) {
-      return globalAccounts.collectMany { String globalAccount ->
-        [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
-      } as Collection<Callable<List<Map>>>
-    }
-
-    return (credentialsService.accounts.collectMany {
-      [new ApplicationListRetriever((String) it.name, front50Service), new OortApplicationsRetriever(oortService)]
-    } as Collection<Callable<List<Map>>>)
+    return globalAccounts.collectMany { String globalAccount ->
+      [new ApplicationListRetriever(globalAccount, front50Service), new OortApplicationsRetriever(oortService)]
+    } as Collection<Callable<List<Map>>>
   }
 
   private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
     def globalAccounts = front50Service.credentials.findAll { it.global == true }.collect { it.name } as List<String>
-    if (globalAccounts) {
-      return globalAccounts.collectMany { String globalAccount ->
-        [
-          new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
-          new OortApplicationRetriever(applicationName, oortService)
-        ]
-      } as Collection<Callable<Map>>
-    }
-
-    return (credentialsService.accounts.collectMany {
+    return globalAccounts.collectMany { String globalAccount ->
       [
-        new Front50ApplicationRetriever((String) it.name, applicationName, front50Service),
+        new Front50ApplicationRetriever(globalAccount, applicationName, front50Service),
         new OortApplicationRetriever(applicationName, oortService)
       ]
-    } as Collection<Callable<Map>>)
+    } as Collection<Callable<Map>>
   }
 
   @CompileDynamic
@@ -165,7 +137,7 @@ class ApplicationService {
       }
       Map<String, Map<String, Object>> merged = [:]
       for (Map<String, Object> app in applications) {
-        if (!app) continue
+        if (!app || !app.name) continue
         String key = (app.name as String)?.toLowerCase()
         if (key && !merged.containsKey(key)) {
           merged[key] = [name: key, attributes: [:], clusters: [:]] as Map<String, Object>
