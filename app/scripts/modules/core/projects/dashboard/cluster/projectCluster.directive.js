@@ -151,6 +151,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
 
     let applyInconsistentBuildFlag = (application) => {
+      application.inconsistentBuilds = false;
       Object.keys(application.regions).forEach((regionName) => {
         let region = application.regions[regionName];
         if (region.build.number !== application.build.number) {
