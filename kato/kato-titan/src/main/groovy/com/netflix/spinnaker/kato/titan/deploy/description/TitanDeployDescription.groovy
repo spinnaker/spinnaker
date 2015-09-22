@@ -26,7 +26,6 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
   String application
   String stack
   String details
-  String subnetType
   String dockerImage
   Capacity capacity = new Capacity()
   Placement placement = new Placement()
