@@ -13,25 +13,20 @@ module.exports = angular.module('spinnaker.infrastructure.search.service', [
       var deferred;
 
       let searchConfig = {
-        applications: {
-          displayName: 'Applications',
-          displayFormatter: simpleField('application'),
-          order: 0,
-          sublinks: [
-            { name: 'clusters', href: '' },
-            { name: 'pipelines', href: '/../../executions' },
-            { name: 'tasks', href: '/../../tasks' }
-          ],
-        },
         projects: {
           displayName: 'Projects',
           displayFormatter: function(entry) {
             let applications = entry.config && entry.config.applications ?
-              ' (' + entry.config.applications.join(', ') + ')':
+            ' (' + entry.config.applications.join(', ') + ')':
               '';
             let project = entry.name || entry.project;
             return $q.when(project + applications);
           },
+          order: 0,
+        },
+        applications: {
+          displayName: 'Applications',
+          displayFormatter: simpleField('application'),
           order: 1,
         },
         clusters: {
