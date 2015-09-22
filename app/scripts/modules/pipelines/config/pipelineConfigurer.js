@@ -220,6 +220,7 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
       }
       $scope.pipeline.stages = original.stages;
       $scope.pipeline.triggers = original.triggers;
+      $scope.pipeline.notifications = original.notifications;
       // if we were looking at a stage that no longer exists, move to the last stage
       if ($scope.viewState.section === 'stage') {
         var lastStage = $scope.pipeline.stages.length - 1;
@@ -250,7 +251,8 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
         parallel: copy.parallel,
         limitConcurrent: copy.limitConcurrent,
         stageCounter: copy.stageCounter,
-        parameterConfig: copy.parameterConfig
+        parameterConfig: copy.parameterConfig,
+        notifications: copy.notifications,
       };
     }
 
