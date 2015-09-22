@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.gate
+
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spinnaker.gate.config.Service
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
@@ -33,42 +34,39 @@ class ApplicationServiceSpec extends Specification {
 
   void "should properly aggregate application data from Front50 and Oort"() {
     setup:
-      HystrixRequestContext.initializeContext()
+    HystrixRequestContext.initializeContext()
 
-      def service = new ApplicationService()
-      def front50 = Mock(Front50Service)
-      def credentialsService = Mock(CredentialsService)
-      def oort = Mock(OortService)
-      def config = new ServiceConfiguration(services: [front50: new Service()])
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def oort = Mock(OortService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
 
-      service.serviceConfiguration = config
-      service.front50Service = front50
-      service.oortService = oort
-      service.credentialsService = credentialsService
-      service.executorService = Executors.newFixedThreadPool(1)
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.oortService = oort
+    service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-      def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(account): [cluster]]]
-      def front50App = [name: name, email: email, owner: owner]
+    def oortApp = [name: name, attributes: [oortName: name, name: "bad"], clusters: [(account): [cluster]]]
+    def front50App = [name: name, email: email, owner: owner]
 
     when:
-      def app = service.get(name)
+    def app = service.get(name)
 
     then:
-      1 * front50.credentials >> { [] }
-      1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
-      1 * oort.getApplication(name) >> oortApp
-      1 * front50.getMetaData(account, name) >> front50App
+    1 * front50.credentials >> [[name: account, global: true]]
+    1 * oort.getApplication(name) >> oortApp
+    1 * front50.getMetaData(account, name) >> front50App
 
-      app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
+    app == [name: name, attributes: (oortApp.attributes + front50App), clusters: oortApp.clusters]
 
     where:
-      name = "foo"
-      email = "bar@baz.bz"
-      owner = "danw"
-      cluster = "cluster1"
-      account = "test"
-      providerType = "aws"
+    name = "foo"
+    email = "bar@baz.bz"
+    owner = "danw"
+    cluster = "cluster1"
+    account = "test"
+    providerType = "aws"
   }
 
   void "should include accounts from front50 and from oort clusters"() {
@@ -77,14 +75,12 @@ class ApplicationServiceSpec extends Specification {
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def credentialsService = Mock(CredentialsService)
     def oort = Mock(OortService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
     service.oortService = oort
-    service.credentialsService = credentialsService
     service.executorService = Executors.newFixedThreadPool(1)
 
     and:
@@ -95,8 +91,7 @@ class ApplicationServiceSpec extends Specification {
     def app = service.get(name)
 
     then:
-    1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: front50Account, type: providerType)]
+    1 * front50.credentials >> [[name: front50Account, global: true]]
     1 * oort.getApplication(name) >> oortApp
     1 * front50.getMetaData(front50Account, name) >> front50App
 
@@ -119,22 +114,19 @@ class ApplicationServiceSpec extends Specification {
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def credentialsService = Mock(CredentialsService)
     def oort = Mock(OortService)
     def config = new ServiceConfiguration(services: [front50: new Service(config: [includedAccounts: includedAccount])])
 
     service.serviceConfiguration = config
     service.front50Service = front50
     service.oortService = oort
-    service.credentialsService = credentialsService
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
     def app = service.get(name)
 
     then:
-    1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
+    1 * front50.credentials >> [[name: account, global: true]]
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> [name: name, foo: 'bar']
 
@@ -142,12 +134,12 @@ class ApplicationServiceSpec extends Specification {
 
     where:
     account | includedAccount | expectedNull
-    "test" | "test" | false
-    "prod" | "test" | true
-    "prod" | "prod,test" | false
-    "prod" | "test,dev" | true
-    "test" | null | false
-    "test" | "" | false
+    "test"  | "test"          | false
+    "prod"  | "test"          | true
+    "prod"  | "prod,test"     | false
+    "prod"  | "test,dev"      | true
+    "test"  | null            | false
+    "test"  | ""              | false
 
     name = "foo"
     providerType = "aws"
@@ -160,22 +152,19 @@ class ApplicationServiceSpec extends Specification {
 
     def service = new ApplicationService()
     def front50 = Mock(Front50Service)
-    def credentialsService = Mock(CredentialsService)
     def oort = Mock(OortService)
     def config = new ServiceConfiguration(services: [front50: new Service()])
 
     service.serviceConfiguration = config
     service.front50Service = front50
     service.oortService = oort
-    service.credentialsService = credentialsService
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
     def app = service.get(name)
 
     then:
-    1 * front50.credentials >> { [] }
-    1 * credentialsService.getAccounts() >> [new KatoService.Account(name: account, type: providerType)]
+    1 * front50.credentials >> [[name: account, global: true]]
     1 * oort.getApplication(name) >> null
     1 * front50.getMetaData(account, name) >> null
 
@@ -184,148 +173,91 @@ class ApplicationServiceSpec extends Specification {
     where:
     name = "foo"
     account = "test"
-    providerType = "google"
   }
 
-  void "should favor available global registries when building application list retrievers"() {
+  void "should build application list retrievers for global application registries"() {
     setup:
-      def credentialsService = Mock(CredentialsService)
-      def front50Service = Mock(Front50Service)
-      def config = new ServiceConfiguration(services: [front50: new Service()])
-      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service, serviceConfiguration: config)
+    def front50Service = Mock(Front50Service)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+    def service = new ApplicationService(front50Service: front50Service, serviceConfiguration: config)
 
     when:
-      def applicationListRetrievers = service.buildApplicationListRetrievers()
+    def applicationListRetrievers = service.buildApplicationListRetrievers()
 
     then:
-      1 * front50Service.credentials >> [[name: account, global: true]]
-      0 * credentialsService.getAccounts()
-      applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
-          .collect { it.@account }.unique() == [account]
+    1 * front50Service.credentials >> [[name: account, global: true]]
+    applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
+      .collect { it.@account }.unique() == [account]
 
     where:
-      account = "global"
+    account = "global"
   }
 
-  void "should favor available global registries when building application retrievers"() {
+  void "should build application retrievers for global application registries"() {
     setup:
-      def credentialsService = Mock(CredentialsService)
-      def front50Service = Mock(Front50Service)
-      def config = new ServiceConfiguration(services: [front50: new Service()])
-      def service = new ApplicationService(credentialsService: credentialsService, front50Service: front50Service, serviceConfiguration: config)
+    def front50Service = Mock(Front50Service)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+    def service = new ApplicationService(front50Service: front50Service, serviceConfiguration: config)
 
     when:
-      def applicationListRetrievers = service.buildApplicationListRetrievers()
+    def applicationListRetrievers = service.buildApplicationListRetrievers()
 
     then:
-      1 * front50Service.credentials >> [[name: account, global: true]]
-      applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
-          .collect { it.@account }.unique() == [account]
-
-
-    where:
-      account = "global"
-  }
-
-  void "should retrieve from both oort and front50 when global registry exists"() {
-    setup:
-      HystrixRequestContext.initializeContext()
-
-      def service = new ApplicationService()
-      def front50 = Mock(Front50Service)
-      def credentialsService = Mock(CredentialsService)
-      def oort = Mock(OortService)
-      def config = new ServiceConfiguration(services: [front50: new Service()])
-
-      service.serviceConfiguration = config
-      service.front50Service = front50
-      service.oortService = oort
-      service.credentialsService = credentialsService
-      service.executorService = Executors.newFixedThreadPool(1)
-
-    and:
-      def oortApp = [name: oortName]
-      def front50App = [name: name]
-
-    when:
-      def apps = service.getAll()
-
-    then:
-      1 * oort.getApplications() >> [oortApp]
-      1 * front50.getAll(account) >> [front50App]
-      1 * front50.credentials >> [globalAccount]
-
-      2 == apps.size()
-      apps*.name.containsAll(oortName, name)
-      0 * credentialsService.getAccounts()
+    1 * front50Service.credentials >> [[name: account, global: true]]
+    applicationListRetrievers.findAll { it.getMetaClass().getMetaProperty("account") != null }
+      .collect { it.@account }.unique() == [account]
 
     where:
-      oortName = "barapp"
-      name = "foo"
-      account = "global"
-      globalAccount = [name: account, global: true]
+    account = "global"
   }
 
   void "should properly merge retrieved apps from oort and front50"() {
     setup:
-      HystrixRequestContext.initializeContext()
+    HystrixRequestContext.initializeContext()
 
-      def service = new ApplicationService()
-      def front50 = Mock(Front50Service)
-      def credentialsService = Mock(CredentialsService)
-      def oort = Mock(OortService)
-      def config = new ServiceConfiguration(services: [front50: new Service()])
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def oort = Mock(OortService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
 
-      service.serviceConfiguration = config
-      service.front50Service = front50
-      service.oortService = oort
-      service.credentialsService = credentialsService
-      service.executorService = Executors.newFixedThreadPool(1)
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.oortService = oort
+    service.executorService = Executors.newFixedThreadPool(1)
 
     and:
-      def oortApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
-      def front50App = [name: name.toLowerCase(), email: email]
+    def oortApp = [name: name.toUpperCase(), attributes: [name: name], clusters: [prod: [[name: "cluster-name"]]]]
+    def front50App = [name: name.toLowerCase(), email: email]
 
     when:
-      def apps = service.getAll()
+    def apps = service.getAll()
 
     then:
-      1 * oort.getApplications() >> [oortApp]
-      1 * front50.getAll(account) >> [front50App]
-      1 * front50.credentials >> [globalAccount]
+    1 * oort.getApplications() >> [oortApp]
+    1 * front50.getAll(account) >> [front50App] >> { throw new SocketTimeoutException() }
+    1 * front50.credentials >> [globalAccount]
 
-      1 == apps.size()
-      apps[0].email == email
-      apps[0].name == name
-      apps[0].clusters == null
+    1 == apps.size()
+    apps[0].email == email
+    apps[0].name == name
+    apps[0].clusters == null
 
-    where:
-      name = "foo"
-      email = "foo@bar.bz"
-      account = "global"
-      globalAccount = [name: account, global: true]
-  }
+    when: "should return last known good values if an exception is thrown"
+    def allApps = service.getAll()
+    def singleApp = service.get(name)
 
-  @Unroll
-  def "should fall back to last known good result if Orca times out getting #list"() {
-    setup:
-      HystrixRequestContext.initializeContext()
+    then:
+    1 * front50.getMetaData(account, name) >> { throw new SocketTimeoutException() }
+    1 * front50.getAll(account) >> { throw new SocketTimeoutException() }
+    2 * front50.credentials >> [globalAccount]
 
-      def service = new ApplicationService()
-      service.orcaService = Mock(OrcaService)
-
-    and:
-      service.orcaService."$methodName"(app) >> [] >> { throw new SocketTimeoutException() }
-
-    expect:
-      service."$methodName"(app) == []
-
-    and:
-      service."$methodName"(app) == []
+    1 == allApps.size()
+    singleApp.name == allApps[0].name
 
     where:
-      app = "bivl"
-      list << ["tasks", "pipelines"]
-      methodName = "get" + list.capitalize()
+    name = "foo"
+    email = "foo@bar.bz"
+    account = "global"
+    globalAccount = [name: account, global: true]
   }
 }

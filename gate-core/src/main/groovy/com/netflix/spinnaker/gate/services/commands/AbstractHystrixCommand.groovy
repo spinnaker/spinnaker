@@ -29,10 +29,15 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
 
   protected final boolean withLastKnownGoodFallback
   protected final Closure work
+  protected final Closure fallback
   protected T lastKnownGood
 
-  public AbstractHystrixCommand(String groupKey, String commandKey, boolean withLastKnownGoodFallback, T defaultValue,
-                                Closure work) {
+  public AbstractHystrixCommand(String groupKey,
+                                String commandKey,
+                                boolean withLastKnownGoodFallback,
+                                T defaultValue,
+                                Closure work,
+                                Closure fallback) {
     super(HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
         .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
         .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()
@@ -40,6 +45,7 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
     this.withLastKnownGoodFallback = withLastKnownGoodFallback
     this.lastKnownGood = defaultValue
     this.work = work
+    this.fallback = fallback ?: { null }
   }
 
   @Override
@@ -52,6 +58,12 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
   }
 
   protected T getFallback() {
-    withLastKnownGoodFallback ? lastKnownGood : null
+    def lastKnownGoodValue = withLastKnownGoodFallback ? lastKnownGood : null
+    if (!lastKnownGoodValue) {
+      def fallback = fallback.call() as T
+      return fallback ?: lastKnownGoodValue
+    }
+
+    return lastKnownGoodValue
   }
 }
