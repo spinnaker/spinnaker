@@ -20,15 +20,15 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
-import com.netflix.spinnaker.oort.aws.data.Keys
+import com.netflix.spinnaker.cats.cache.Keys
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
 import com.netflix.titanclient.model.Task
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.HEALTH
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.cats.cache.Keys.Namespace.HEALTH
+import static com.netflix.spinnaker.cats.cache.Keys.Namespace.INSTANCES
 
 @Component
 class TitanInstanceProvider implements InstanceProvider<TitanInstance> {

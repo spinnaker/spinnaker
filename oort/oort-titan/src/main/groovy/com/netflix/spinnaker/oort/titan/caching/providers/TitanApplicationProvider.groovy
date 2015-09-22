@@ -28,8 +28,8 @@ import com.netflix.spinnaker.oort.titan.model.TitanApplication
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.CLUSTERS
+import static com.netflix.spinnaker.cats.cache.Keys.Namespace.APPLICATIONS
+import static com.netflix.spinnaker.cats.cache.Keys.Namespace.CLUSTERS
 
 @Component
 class TitanApplicationProvider implements ApplicationProvider {

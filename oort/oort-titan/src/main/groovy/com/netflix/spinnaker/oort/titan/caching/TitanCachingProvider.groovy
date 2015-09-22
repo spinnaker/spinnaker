@@ -18,7 +18,7 @@ package com.netflix.spinnaker.oort.titan.caching
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
-import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent
+import com.netflix.spinnaker.oort.aws.provider.agent.HealthProvidingCachingAgent // TODO - Move health agent to common module
 
 class TitanCachingProvider implements Provider {
 
