@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
       }
     ];
 
-    projectConfiguration.config.applications.forEach((application) => $scope.navOptions.push(
+    projectConfiguration.config.applications.sort().forEach((application) => $scope.navOptions.push(
       {
         title: application,
         view: 'home.project.application.insight.clusters',
