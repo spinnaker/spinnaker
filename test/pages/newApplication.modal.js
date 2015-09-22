@@ -4,10 +4,8 @@ module.exports = {
   header: element(by.css('[data-purpose="modal-header"]')),
   description: element(by.css('[data-purpose="application-description"]')),
   email: element(by.css('[data-purpose="application-email"]')),
-  name: element(by.css('[data-purpose="application-name"]')),
+  name: element(by.name('name')),
   uniqueNameWarning: element(by.css('.error-message')).element(by.tagName('span')),
-  //prod: element(by.css('[data-purpose="application-accounts"] [value="prod"]')),
-  prod: element(by.cssContainingText('option', 'prod')),
   submit: element(by.css('[data-purpose="submit"]')),
   accountSelectBox: element(by.css('.select2-input')),
 
@@ -22,10 +20,6 @@ module.exports = {
 
   typeDescription: function(description) {
     this.description.sendKeys(description) ;
-  },
-
-  selectProdAccount: function () {
-    return this.prod.click();
   },
 
   selectTestAccount: function () {
