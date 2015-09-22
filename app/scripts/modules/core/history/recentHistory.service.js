@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
         items.pop();
       }
       items.push(entry);
-      cache.put(type, items.reverse());
+      cache.put(type, items);
     }
 
     function removeItem(type, id) {
@@ -53,7 +53,15 @@ module.exports = angular.module('spinnaker.core.history.service', [
         existing = items.find((item) => item.id === id);
       if (existing) {
         items.splice(items.indexOf(existing), 1);
-        cache.put(type, items.reverse());
+        cache.put(type, items);
+      }
+    }
+
+    function removeLastItem(type) {
+      var items = getItems(type);
+      if (items.length) {
+        items.splice(0, 1);
+        cache.put(type, items);
       }
     }
 
@@ -80,6 +88,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
       addItem: addItem,
       getItems: getItems,
       removeItem: removeItem,
+      removeLastItem: removeLastItem,
       addExtraDataToLatest: addExtraDataToLatest,
     };
   }).name;

@@ -13,12 +13,17 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
 
     $scope.project = projectConfiguration;
 
-    recentHistoryService.addExtraDataToLatest('projects',
-      {
-        config: {
-          applications: projectConfiguration.config.applications
-        }
-      });
+    if (projectConfiguration.notFound) {
+      recentHistoryService.removeLastItem('projects');
+      return;
+    } else {
+      recentHistoryService.addExtraDataToLatest('projects',
+        {
+          config: {
+            applications: projectConfiguration.config.applications
+          }
+        });
+    }
 
     projectConfiguration.config.applications = projectConfiguration.config.applications || [];
 
