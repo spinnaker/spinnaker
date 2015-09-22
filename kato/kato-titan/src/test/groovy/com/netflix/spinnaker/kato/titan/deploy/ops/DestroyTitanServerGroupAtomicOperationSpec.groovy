@@ -42,8 +42,7 @@ class DestroyTitanServerGroupAtomicOperationSpec extends Specification {
   )
 
   DestroyTitanServerGroupDescription description = new DestroyTitanServerGroupDescription(
-    serverGroupDescriptions: [new DestroyTitanServerGroupDescription.TitanServerGroupDescription('us-east-1', 'api-test-v000')],
-    credentials: testCredentials
+    serverGroupName: 'api-test-v000', region: 'us-east-1', credentials: testCredentials
   )
 
   @Subject

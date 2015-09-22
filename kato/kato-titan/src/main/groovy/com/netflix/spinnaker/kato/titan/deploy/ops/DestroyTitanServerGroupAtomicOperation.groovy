@@ -43,19 +43,12 @@ class DestroyTitanServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   @Override
   Void operate(List priorOutputs) {
-    List<DestroyTitanServerGroupDescription.TitanServerGroupDescription> serverGroups = description.serverGroupDescriptions
-    task.updateStatus PHASE, "Starting destroy server groups operation for ${serverGroups.collect { it.serverGroupName }}"
-
-    for (serverGroup in serverGroups) {
-      task.updateStatus PHASE, "Destroying server group: ${serverGroup.serverGroupName}..."
-      TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, serverGroup.region)
-      Job job = titanClient.findJobByName(serverGroup.serverGroupName)
-      titanClient.terminateJob(job.id)
-      task.updateStatus PHASE, "Issued terminate job request to titan for ${job.id} which corresponds to ${serverGroup.serverGroupName}"
-      task.updateStatus PHASE, "Completed destroy server group operation for ${serverGroup.serverGroupName}"
-    }
-
-    task.updateStatus PHASE, "Completed destroy server groups operations for ${serverGroups.collect { it.serverGroupName }}"
+    task.updateStatus PHASE, "Destroying server group: ${description.serverGroupName}..."
+    TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, description.region)
+    Job job = titanClient.findJobByName(description.serverGroupName)
+    titanClient.terminateJob(job.id)
+    task.updateStatus PHASE, "Issued terminate job request to titan for ${job.id} which corresponds to ${description.serverGroupName}"
+    task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"
     null
   }
 

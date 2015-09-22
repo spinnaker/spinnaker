@@ -47,13 +47,13 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
   DeploymentResult handle(TitanDeployDescription description, List priorOutputs) {
 
     task.updateStatus BASE_PHASE, "Initializing handler..."
-    TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, description.source.region)
+    TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, description.placement.region)
     DeploymentResult deploymentResult = new DeploymentResult()
-    String account = description.source.account
-    String region = description.source.region
-    String subnetType = description.subnetType
+    String account = description.placement.account
+    String region = description.placement.region
+    String subnet = description.placement.subnet
 
-    task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}:${subnetType}..."
+    task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
     DockerImage dockerImage = DockerImage.DockerImageResolver.resolveImage(description.dockerImage)
 
     TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient)
@@ -79,7 +79,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     task.updateStatus BASE_PHASE, "Successfully submitted job request to Titan (Job URI: ${jobUri})"
 
     deploymentResult.serverGroupNames = [nextServerGroupName]
-    deploymentResult.serverGroupNameByRegion = [(description.source.region): nextServerGroupName]
+    deploymentResult.serverGroupNameByRegion = [(description.placement.region): nextServerGroupName]
     deploymentResult.messages = task.history.collect { "${it.phase} : ${it.status}".toString() }
 
     return deploymentResult
