@@ -15,8 +15,8 @@
  */
 
 package com.netflix.spinnaker.clouddriver
-
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.titan.TitanConfiguration
 import com.netflix.spinnaker.clouddriver.config.RetrofitConfig
 import com.netflix.spinnaker.clouddriver.core.CloudDriverConfig
 import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
@@ -41,12 +41,14 @@ import java.security.Security
   CloudDriverConfig,
   RetrofitConfig,
   AwsConfiguration,
+  TitanConfiguration,
   GoogleConfiguration,
   com.netflix.spinnaker.kato.Main,
   com.netflix.spinnaker.mort.Main,
-  com.netflix.spinnaker.oort.Main,
+  com.netflix.spinnaker.oort.Main
 ])
-@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration, ManagementSecurityAutoConfiguration])
+@EnableAutoConfiguration(exclude = [BatchAutoConfiguration, GroovyTemplateAutoConfiguration, SecurityAutoConfiguration,
+ManagementSecurityAutoConfiguration])
 @EnableScheduling
 class Main extends SpringBootServletInitializer {
 

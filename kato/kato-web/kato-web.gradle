@@ -27,6 +27,7 @@ dependencies {
   compile project(":kato:kato-gce")
   compile project(":kato:kato-docker")
   compile project(":kato:kato-jedis")
+  compile project(":kato:kato-titan")
   compile 'javax.ws.rs:jsr311-api:1.1.1'
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

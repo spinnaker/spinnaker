@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,28 @@
  * limitations under the License.
  */
 
-
-package com.netflix.spinnaker.kato.aws.deploy.converters
-
-import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
-import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
+package com.netflix.spinnaker.kato.titan.deploy.converters
+import com.netflix.spinnaker.clouddriver.titan.TitanOperation
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.kato.titan.deploy.description.TitanDeployDescription
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
-@Component("basicAmazonDeployDescription")
-class BasicAmazonDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+/**
+ * @author sthadeshwar
+ */
+@TitanOperation(AtomicOperations.CREATE_SERVER_GROUP)
+@Component
+class TitanDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+
   AtomicOperation convertOperation(Map input) {
     new DeployAtomicOperation(convertDescription(input))
   }
 
-  BasicAmazonDeployDescription convertDescription(Map input) {
-    def converted = objectMapper.convertValue(input, BasicAmazonDeployDescription)
+  TitanDeployDescription convertDescription(Map input) {
+    def converted = objectMapper.convertValue(input, TitanDeployDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

@@ -1,0 +1,11 @@
+dependencies {
+  compile project(":clouddriver-titan")
+  compile project(":oort:oort-core")
+  compile project(":oort:oort-aws")
+
+  spinnaker.group("bootWeb")
+  spinnaker.group('retrofitDefault')
+
+  compile spinnaker.dependency("frigga")
+  compile 'com.aestasit.infrastructure.sshoogr:sshoogr:0.9.15'
+}
