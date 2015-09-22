@@ -101,7 +101,7 @@ module.exports = angular.module('spinnaker.urlBuilder', [
           );
         }
         return $state.href(
-          'home.applications.application',
+          'home.applications.application.insight.clusters',
           {
             application: input.application,
           },
