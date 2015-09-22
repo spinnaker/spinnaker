@@ -47,7 +47,8 @@
     "build": "node ./node_modules/webpack/bin/webpack.js",
     "start": "node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js --devtool eval",
     "test": "./node_modules/karma/bin/karma start",
-    "preinstall": "npm install -g bower@1.4.1"
+    "preinstall": "npm install -g bower@1.4.1",
+    "int": "protractor protractor.conf.js"
   },
   "devDependencies": {
     "angular-mocks": "^1.4.1",
@@ -86,6 +87,7 @@
     "octicons": "^2.2.0",
     "phantomjs": "^1.9.17",
     "phantomjs-polyfill": "0.0.1",
+    "protractor": "^2.2.0",
     "select2": "git://github.com/select2/select2.git#3.4.8",
     "style-loader": "^0.12.3",
     "url-loader": "^0.5.6",

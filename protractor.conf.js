@@ -1,24 +1,22 @@
 exports.config = {
-  seleniumServerJar: './node_modules/selenium-server/lib/runner/selenium-server-standalone-2.44.0.jar',
-  chromeDriver: './node_modules/chromedriver/lib/chromedriver/chromedriver',
-  //seleniumAddress: 'http://localhost:4444/wd/hub',
-
   framework: 'jasmine',
-
-  baseUrl: 'http://0.0.0.0:9000',
+  troubleshoot: true,
+  baseUrl: 'http://localhost:9000',
   specs: 'test/e2e/**/*.js',
   getPageTimeout: 20000,
   allScriptsTimeout: 20000,
-  //directConnect:true,
   capabilities: {
     'browserName': 'chrome',
   },
-  onPrepare: function() {
-    //browser.driver.manage().window().setSize(1500, 800);
-
-    require('jasmine-reporters');
-    jasmine.getEnv().addReporter(
-      new jasmine.JUnitXmlReporter('xmloutput', true, true)
-    );
+  // ----- Options to be passed to minijasminenode -----
+  jasmineNodeOpts: {
+    // If true, display spec names.
+    isVerbose: true,
+    // If true, print colors to the terminal.
+    showColors: true,
+    // If true, include stack traces in failures.
+    includeStackTrace: true,
+    // Default time to wait in ms before a test fails.
+    defaultTimeoutInterval: 30000
   }
 };
