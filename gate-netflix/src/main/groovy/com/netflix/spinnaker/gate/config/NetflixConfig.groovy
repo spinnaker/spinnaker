@@ -24,6 +24,7 @@ import com.netflix.spinnaker.internal.services.internal.FlapJackService
 import com.netflix.spinnaker.internal.services.internal.FlexService
 import com.netflix.spinnaker.internal.services.internal.MaheService
 import com.netflix.spinnaker.internal.services.internal.MineService
+import com.netflix.spinnaker.internal.services.internal.TideService
 import com.squareup.okhttp.OkHttpClient
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -62,6 +63,24 @@ class NetflixConfig {
 
   @Autowired
   EurekaLookupService eurekaLookupService
+
+
+  @Bean
+  @ConditionalOnProperty('services.tide.enabled')
+  TideService tideService(OkHttpClient okHttpClient) {
+    createClient "tide", TideService, okHttpClient
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(TideService)
+  TideService noopTideService() {
+    new TideService() {
+      @Override
+      Map getServerGroupDiff(String account, String clusterName) {
+        [:]
+      }
+    }
+  }
 
   @Bean
   @ConditionalOnProperty('services.mahe.enabled')
