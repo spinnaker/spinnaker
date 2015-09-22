@@ -15,8 +15,6 @@
  */
 
 package com.netflix.spinnaker.orca.bakery.tasks
-
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -24,9 +22,9 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import retrofit.RetrofitError
 
 @Component
 @CompileStatic
@@ -44,6 +42,9 @@ class CompletedBakeTask implements Task {
     def results = [ami: bake.ami ?: bake.imageName]
     if (bake.imageName) {
       results.imageName = bake.imageName
+    }
+    if (stage.context.storeType == 'docker') {
+      results.dockerImage = bake.ami
     }
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results)
   }
