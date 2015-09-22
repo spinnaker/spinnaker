@@ -20,7 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.oort.aws.data.Keys
+import com.netflix.spinnaker.cats.cache.Keys
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.model.Application
 import com.netflix.spinnaker.oort.model.ApplicationProvider
 import com.netflix.spinnaker.oort.titan.model.TitanApplication
@@ -35,9 +36,11 @@ class TitanApplicationProvider implements ApplicationProvider {
 
   private final Cache cacheView
   private final ObjectMapper objectMapper
+  private final TitanCloudProvider titanCloudProvider
 
   @Autowired
-  TitanApplicationProvider(Cache cacheView, ObjectMapper objectMapper) {
+  TitanApplicationProvider(TitanCloudProvider titanCloudProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.titanCloudProvider = titanCloudProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -50,7 +53,7 @@ class TitanApplicationProvider implements ApplicationProvider {
 
   @Override
   Application getApplication(String name) {
-    translate(cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(name)))
+    translate(cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(titanCloudProvider.id, name)))
   }
 
   Application translate(CacheData cacheData) {

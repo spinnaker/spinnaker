@@ -15,10 +15,14 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching
+
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.oort.titan.caching.agents.TitanClusterCachingAgent
 import com.netflix.spinnaker.oort.titan.caching.agents.TitanImageCachingAgent
@@ -36,18 +40,26 @@ class TitanCachingProviderConfig {
   @Bean
   @DependsOn('netflixTitanCredentials')
   TitanCachingProvider titanCachingProvider(AccountCredentialsRepository accountCredentialsRepository,
+                                            TitanCloudProvider titanCloudProvider,
                                             TitanClientProvider titanClientProvider,
                                             ObjectMapper objectMapper) {
     List<CachingAgent> agents = []
     def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitanCredentials } as Collection<NetflixTitanCredentials>
     allAccounts.each { NetflixTitanCredentials account ->
       account.regions.each { region ->
-        agents << new TitanClusterCachingAgent(titanClientProvider, account, region.name, objectMapper)
-        agents << new TitanImageCachingAgent(titanClientProvider, account, region.name, objectMapper)
-        agents << new TitanInstanceCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanClusterCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanImageCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanInstanceCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
       }
     }
     new TitanCachingProvider(agents)
   }
 
+  @Bean
+  ObjectMapper objectMapper() {
+    ObjectMapper objectMapper = new ObjectMapper()
+    objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    objectMapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
+    objectMapper
+  }
 }

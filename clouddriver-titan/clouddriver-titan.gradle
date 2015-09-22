@@ -3,5 +3,5 @@ dependencies {
   compile spinnaker.dependency('amos')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
-  compile ('com.netflix:titan-client:0.22')
+  compile ('com.netflix:titan-client:0.24')
 }

@@ -19,6 +19,7 @@ import com.netflix.spinnaker.oort.model.HealthState
 import com.netflix.spinnaker.oort.model.Instance
 import com.netflix.spinnaker.oort.model.ServerGroup
 import com.netflix.titanclient.model.Job
+
 /**
  * Equivalent of a Titan {@link com.netflix.titanclient.model.Job}
  * @author sthadeshwar
@@ -27,100 +28,65 @@ class TitanServerGroup implements ServerGroup, Serializable {
 
   public static final String TYPE = "titan"
 
-  private Map<String, Object> image = Collections.emptyMap()
-  private Set<Instance> instances = Collections.emptySet()
+  String id
+  String name
+  String type = TYPE
+  Map env
+  Long submittedAt
+  String application
+  Map<String, Object> image = [:]
+  Set<Instance> instances = [] as Set
+  TitanServerGroupResources resources = new TitanServerGroupResources()
+  TitanServerGroupPlacement placement = new TitanServerGroupPlacement()
 
-  private String id
-  private String name
-  private String applicationName
-  private String imageName
-  private String imageVersion
-  private String version
-  private String entryPoint
-  private int cpu
-  private int memory
-  private int disk
-  private int[] ports
-  private Map env
-  private int retries
-  private boolean restartOnSuccess
-  private Long submittedAt
-
-  // Not in Titan API response, but used by clouddriver
-  private String application
-  private String account
-  private String region
-  private String subnetId
+  TitanServerGroup() {}
 
   TitanServerGroup(Job job) {
     id = job.id
     name = job.name
-    applicationName = job.applicationName
-    imageName = job.imageName
-    imageVersion = job.imageVersion
-    version = job.version
-    entryPoint = job.entryPoint
-    cpu = job.cpu
-    memory = job.memory
-    disk = job.disk
-    ports = job.ports
+    image << [dockerImageName: job.dockerImageName]
+    image << [dockerImageVersion: job.dockerImageVersion]
+    resources.cpu = job.cpu
+    resources.memory = job.memory
+    resources.disk = job.disk
+    resources.ports = job.ports ? Arrays.asList(job.ports) : []
     env = job.env
-    retries = job.retries
-    restartOnSuccess = job.restartOnSuccess
     submittedAt = job.submittedAt ? job.submittedAt.time : null
-
-    // Not in Titan API response, but used by clouddriver
     application = job.application
-    account = job.account
-    region = job.region
-    subnetId = job.subnetId
-
+    placement.account = job.account
+    placement.region = job.region
+    placement.subnetId = job.subnetId
     instances = job.tasks.findAll { it != null }.collect { new TitanInstance(it) } as Set
   }
 
   @Override
-  String getName() {
-    name
-  }
-
-  @Override
-  String getType() {
-    TYPE
-  }
-
-  @Override
   String getRegion() {
-    region // TODO
+    placement.region
   }
 
   @Override
   Boolean isDisabled() {
-    return false  // TODO
+    false
   }
 
   @Override
   Long getCreatedTime() {
-    return submittedAt
+    submittedAt
   }
 
   @Override
   Set<String> getLoadBalancers() {
-    Collections.emptySet()
+    [] as Set
   }
 
   @Override
   Set<String> getSecurityGroups() {
-    Collections.emptySet()
+    [] as Set
   }
 
   @Override
   Set<String> getZones() {
-    Collections.emptySet()  // TODO
-  }
-
-  @Override
-  Set<Instance> getInstances() {
-    instances
+    placement.zones as Set
   }
 
   @Override
@@ -144,159 +110,4 @@ class TitanServerGroup implements ServerGroup, Serializable {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
 
-  Map<String, Object> getImage() {
-    return image
-  }
-
-  void setImage(Map<String, Object> image) {
-    this.image = image
-  }
-
-  void setInstances(Set<Instance> instances) {
-    this.instances = instances
-  }
-
-  String getId() {
-    return id
-  }
-
-  void setId(String id) {
-    this.id = id
-  }
-
-  void setName(String name) {
-    this.name = name
-  }
-
-  String getApplicationName() {
-    return applicationName
-  }
-
-  void setApplicationName(String applicationName) {
-    this.applicationName = applicationName
-  }
-
-  String getImageName() {
-    return imageName
-  }
-
-  void setImageName(String imageName) {
-    this.imageName = imageName
-  }
-
-  String getImageVersion() {
-    return imageVersion
-  }
-
-  void setImageVersion(String imageVersion) {
-    this.imageVersion = imageVersion
-  }
-
-  String getVersion() {
-    return version
-  }
-
-  void setVersion(String version) {
-    this.version = version
-  }
-
-  String getEntryPoint() {
-    return entryPoint
-  }
-
-  void setEntryPoint(String entryPoint) {
-    this.entryPoint = entryPoint
-  }
-
-  int getCpu() {
-    return cpu
-  }
-
-  void setCpu(int cpu) {
-    this.cpu = cpu
-  }
-
-  int getMemory() {
-    return memory
-  }
-
-  void setMemory(int memory) {
-    this.memory = memory
-  }
-
-  int getDisk() {
-    return disk
-  }
-
-  void setDisk(int disk) {
-    this.disk = disk
-  }
-
-  int[] getPorts() {
-    return ports
-  }
-
-  void setPorts(int[] ports) {
-    this.ports = ports
-  }
-
-  Map getEnv() {
-    return env
-  }
-
-  void setEnv(Map env) {
-    this.env = env
-  }
-
-  int getRetries() {
-    return retries
-  }
-
-  void setRetries(int retries) {
-    this.retries = retries
-  }
-
-  boolean getRestartOnSuccess() {
-    return restartOnSuccess
-  }
-
-  void setRestartOnSuccess(boolean restartOnSuccess) {
-    this.restartOnSuccess = restartOnSuccess
-  }
-
-  Long getSubmittedAt() {
-    return submittedAt
-  }
-
-  void setSubmittedAt(Long submittedAt) {
-    this.submittedAt = submittedAt
-  }
-
-  String getApplication() {
-    return application
-  }
-
-  void setApplication(String application) {
-    this.application = application
-  }
-
-  String getAccount() {
-    return account
-  }
-
-  void setAccount(String account) {
-    this.account = account
-  }
-
-  void setRegion(String region) {
-    this.region = region
-  }
-
-  String getSubnetId() {
-    return subnetId
-  }
-
-  void setSubnetId(String subnetId) {
-    this.subnetId = subnetId
-  }
 }

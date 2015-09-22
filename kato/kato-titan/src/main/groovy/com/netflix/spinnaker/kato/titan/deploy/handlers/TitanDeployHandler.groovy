@@ -62,11 +62,10 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
-      .withName(nextServerGroupName)
+      .withJobName(nextServerGroupName)
       .withApplication(description.application)
-      .withApplicationName(dockerImage.imageName) // This changes in V3: .withImageName(description.application)
-//      .withImageName(dockerImage.imageName)
-      .withImageVersion(dockerImage.imageVersion)
+      .withDockerImageName(dockerImage.imageName)
+      .withDockerImageVersion(dockerImage.imageVersion)
       .withInstances(description.capacity.desired)
       .withCpu(description.resources.cpu)
       .withMemory(description.resources.memory)

@@ -24,8 +24,9 @@ import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.oort.aws.data.Keys
+import com.netflix.spinnaker.cats.cache.Keys
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanClient
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.oort.aws.data.Keys.Namespace.*
+import static com.netflix.spinnaker.cats.cache.Keys.Namespace.*
 
 class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
 
@@ -50,12 +51,18 @@ class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
     INFORMATIVE.forType(INSTANCES.ns)
   ] as Set)
 
-  final TitanClient titanClient
-  final NetflixTitanCredentials account
-  final String region
-  final ObjectMapper objectMapper
+  final TitanCloudProvider titanCloudProvider
+  private final TitanClient titanClient
+  private final NetflixTitanCredentials account
+  private final String region
+  private final ObjectMapper objectMapper
 
-  TitanClusterCachingAgent(TitanClientProvider titanClientProvider, NetflixTitanCredentials account, String region, ObjectMapper objectMapper) {
+  TitanClusterCachingAgent(TitanCloudProvider titanCloudProvider,
+                           TitanClientProvider titanClientProvider,
+                           NetflixTitanCredentials account,
+                           String region,
+                           ObjectMapper objectMapper) {
+    this.titanCloudProvider = titanCloudProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper
@@ -116,7 +123,7 @@ class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
 
     for (Job job : jobs) {
       try {
-        ServerGroupData data = new ServerGroupData(job, account.name, region)
+        ServerGroupData data = new ServerGroupData(titanCloudProvider.id, job, account.name, region)
         cacheApplication(data, applications)
         cacheCluster(data, clusters)
         cacheServerGroup(data, serverGroups)
@@ -163,7 +170,7 @@ class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
 
   private void cacheInstances(ServerGroupData data, Map<String, CacheData> instances) {
     for (Task task : data.job.tasks) {
-      instances[Keys.getInstanceKey(task.id, account.name, region)].with {
+      instances[Keys.getInstanceKey(titanCloudProvider.id, task.id, account.name, region)].with {
         relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       }
     }
@@ -177,13 +184,13 @@ class TitanClusterCachingAgent implements CachingAgent { //, OnDemandAgent {
     final String serverGroup
     final Set<String> instanceIds
 
-    public ServerGroupData(Job job, String account, String region) {
+    public ServerGroupData(String cloudProvider, Job job, String account, String region) {
       this.job = job
       name = Names.parseName(job.name)
-      appName = Keys.getApplicationKey(name.app)
-      cluster = Keys.getClusterKey(name.cluster, name.app, account)
-      serverGroup = Keys.getServerGroupKey(job.name, account, region)
-      instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
+      appName = Keys.getApplicationKey(cloudProvider, name.app)
+      cluster = Keys.getClusterKey(cloudProvider, name.cluster, name.app, account)
+      serverGroup = Keys.getServerGroupKey(cloudProvider, job.name, account, region)
+      instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(cloudProvider, it, account, region) } as Set).asImmutable()
     }
   }
 

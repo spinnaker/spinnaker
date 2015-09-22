@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.clouddriver.titan
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
+import com.netflix.titanclient.RegionScopedTitanClient
 import com.netflix.titanclient.TitanRegion
-import com.netflix.titanclient.test.MockedRegionScopedTitanClient
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -54,7 +54,7 @@ class TitanConfiguration {
                                                         AccountCredentialsRepository repository) {
     List<NetflixTitanCredentials> accounts = new ArrayList<>()
     for (TitanCredentialsConfig.Account account in titanCredentialsConfig.accounts) {
-      List<TitanRegion> regions = account.regions.collect { new TitanRegion(it.name, account.name, it.endpoint) }
+      List<TitanRegion> regions = account.regions.collect { new TitanRegion(it.name, account.name, it.endpoint, it.calypsoEndpoint) }
       NetflixTitanCredentials credentials = new NetflixTitanCredentials(account.name, regions)
       accounts.add(credentials)
       repository.save(account.name, credentials)
@@ -69,7 +69,7 @@ class TitanConfiguration {
     netflixTitanCredentials.each { credentials ->
       credentials.regions.each { region ->
         titanClientHolders << new TitanClientProvider.TitanClientHolder(
-          credentials.name, region.name, new MockedRegionScopedTitanClient(region)
+          credentials.name, region.name, new RegionScopedTitanClient(region, true)
         )
       }
     }
@@ -85,6 +85,7 @@ class TitanConfiguration {
     static class Region {
       String name
       String endpoint
+      String calypsoEndpoint
     }
   }
 }

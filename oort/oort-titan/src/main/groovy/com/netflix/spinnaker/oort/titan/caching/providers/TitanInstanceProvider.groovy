@@ -45,7 +45,7 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
 
   @Override
   TitanInstance getInstance(String account, String region, String id) {
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region))
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(titanCloudProvider.id, id, account, region))
     if (!instanceEntry) {
       return null
     }

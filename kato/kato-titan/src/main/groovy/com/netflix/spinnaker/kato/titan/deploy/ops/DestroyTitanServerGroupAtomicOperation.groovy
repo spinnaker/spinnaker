@@ -55,7 +55,7 @@ class DestroyTitanServerGroupAtomicOperation implements AtomicOperation<Void> {
       task.updateStatus PHASE, "Completed destroy server group operation for ${serverGroup.serverGroupName}"
     }
 
-    task.updateStatus PHASE, "Completed destroy server groups operation for ${serverGroups.collect { it.serverGroupName }}"
+    task.updateStatus PHASE, "Completed destroy server groups operations for ${serverGroups.collect { it.serverGroupName }}"
     null
   }
 

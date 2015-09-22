@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
+import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.titanclient.TitanClient
@@ -47,12 +48,18 @@ class TitanImageCachingAgent implements CachingAgent {
     INFORMATIVE.forType(NAMED_IMAGES.ns)
   ] as Set)
 
-  final TitanClient titanClient
-  final NetflixTitanCredentials account
-  final String region
-  final ObjectMapper objectMapper
+  private TitanCloudProvider titanCloudProvider
+  private final TitanClient titanClient
+  private final NetflixTitanCredentials account
+  private final String region
+  private final ObjectMapper objectMapper
 
-  TitanImageCachingAgent(TitanClientProvider titanClientProvider, NetflixTitanCredentials account, String region, ObjectMapper objectMapper) {
+  TitanImageCachingAgent(TitanCloudProvider titanCloudProvider,
+                         TitanClientProvider titanClientProvider,
+                         NetflixTitanCredentials account,
+                         String region,
+                         ObjectMapper objectMapper) {
+    this.titanCloudProvider = titanCloudProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper

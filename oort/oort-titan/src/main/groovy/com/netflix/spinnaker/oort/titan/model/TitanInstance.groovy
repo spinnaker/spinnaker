@@ -23,75 +23,47 @@ import com.netflix.titanclient.model.TaskState
 
 class TitanInstance implements Instance {
 
-  private List<Map<String, String>> health  // TODO
-  private boolean isHealthy
-
-  private String id
-  private String jobId
-  private TaskState state
-  private String applicationName
-  private int cpu
-  private int memory
-  private int disk
-  private Map<Integer, Integer> ports
-  private Map env
-  private String version
-  private String entryPoint
-  private Long submittedAt
-  private Long finishedAt
-  private String host
-
-  // Not in Titan API response
-  private String imageName
-  private String imageVersion
-  private String zone
-
-  // Not in Titan API response, but used by clouddriver
-  private String account
-  private String region
-  private String subnetId
-  private String jobName
-  private String application
+  String application
+  String id
+  String jobId
+  String jobName
+  Map image = [:]
+  TaskState state
+  Map env
+  Long submittedAt
+  Long finishedAt
+  List<Map<String, String>> health
+  TitanInstanceResources resources = new TitanInstanceResources()
+  TitanInstancePlacement placement = new TitanInstancePlacement()
 
   TitanInstance(Task task) {
     id = task.id
     jobId = task.jobId
-    state = task.state
-    applicationName = task.applicationName
-    cpu = task.cpu
-    memory = task.memory
-    disk = task.disk
-    ports = task.ports
-    env = task.env
-    version = task.version
-    entryPoint = task.entryPoint
-    submittedAt = task.submittedAt ? task.submittedAt.time : null
-    finishedAt = task.finishedAt ? task.finishedAt.time : null
-    host = task.host
-
-    imageName = task.imageName
-    imageVersion = task.imageVersion
-
-    account = task.account
-    region = task.region
-    zone = task.zone
-    subnetId = task.subnetId
     jobName = task.jobName
     application = task.application
+    image << [dockerImageName: task.dockerImageName]
+    image << [dockerImageVersion: task.dockerImageVersion]
+    state = task.state
+
+    placement.account = task.account
+    placement.region = task.region
+    placement.subnetId = task.subnetId
+    placement.zone = task.zone
+    placement.host = task.host
+
+    resources.cpu = task.cpu
+    resources.memory = task.memory
+    resources.disk = task.disk
+    resources.ports = task.ports
+
+    env = task.env
+    submittedAt = task.submittedAt ? task.submittedAt.time : null
+    finishedAt = task.finishedAt ? task.finishedAt.time : null
   }
 
   @Override
   String getName() {
     id
-  }
-
-  boolean isHealthy() {
-    isHealthy
-  }
-
-  @Override
-  List<Map<String, String>> getHealth() {
-    health
   }
 
   @Override
@@ -110,7 +82,16 @@ class TitanInstance implements Instance {
 
   @Override
   String getZone() {
-    zone  // TODO
+    placement.zone
+  }
+
+  @Override
+  List<Map<String, String>> getHealth() {
+    health
+  }
+
+  boolean getIsHealthy() {
+    health ? health.any { it.state == 'Up' } && health.every { it.state == 'Up' || it.state == 'Unknown' } : false
   }
 
   private static boolean anyDown(List<Map<String, String>> healthList) {
@@ -130,149 +111,13 @@ class TitanInstance implements Instance {
     healthList.any { it.state == HealthState.OutOfService.toString()}
   }
 
-  void setHealth(List<Map<String, String>> health) {
-    this.health = health
-  }
-
-  String getId() {
-    return id
-  }
-
-  void setId(String id) {
-    this.id = id
-  }
-
-  boolean getIsHealthy() {
-    return isHealthy
-  }
-
-  void setIsHealthy(boolean isHealthy) {
-    this.isHealthy = isHealthy
-  }
-
-  String getJobId() {
-    return jobId
-  }
-
-  void setJobId(String jobId) {
-    this.jobId = jobId
-  }
-
-  String getState() {
-    return state
-  }
-
-  void setState(String state) {
-    this.state = state
-  }
-
-  String getImageName() {
-    return imageName
-  }
-
-  void setImageName(String imageName) {
-    this.imageName = imageName
-  }
-
-  String getImageVersion() {
-    return imageVersion
-  }
-
-  void setImageVersion(String imageVersion) {
-    this.imageVersion = imageVersion
-  }
-
-  String getEntryPoint() {
-    return entryPoint
-  }
-
-  void setEntryPoint(String entryPoint) {
-    this.entryPoint = entryPoint
-  }
-
-  int getCpu() {
-    return cpu
-  }
-
-  void setCpu(int cpu) {
-    this.cpu = cpu
-  }
-
-  int getMemory() {
-    return memory
-  }
-
-  void setMemory(int memory) {
-    this.memory = memory
-  }
-
-  int getDisk() {
-    return disk
-  }
-
-  void setDisk(int disk) {
-    this.disk = disk
-  }
-
-  Map<Integer, Integer> getPorts() {
-    return ports
-  }
-
-  void setPorts(Map<Integer, Integer> ports) {
-    this.ports = ports
-  }
-
-  Map getEnv() {
-    return env
-  }
-
-  void setEnv(Map env) {
-    this.env = env
-  }
-
-  String getHost() {
-    return host
-  }
-
-  void setHost(String host) {
-    this.host = host
-  }
-
-  String getRegion() {
-    return region
-  }
-
-  void setRegion(String region) {
-    this.region = region
-  }
-
-  void setZone(String zone) {
-    this.zone = zone
-  }
-
-  Long getSubmittedAt() {
-    return submittedAt
-  }
-
-  void setSubmittedAt(Long submittedAt) {
-    this.submittedAt = submittedAt
-  }
-
-  Long getFinishedAt() {
-    return finishedAt
-  }
-
-  void setFinishedAt(Long finishedAt) {
-    this.finishedAt = finishedAt
-  }
-
   @Override
   boolean equals(Object o) {
-    o instanceof TitanInstance ? o.name.equals(name) : false
+    o instanceof TitanInstance ? o.id.equals(id) : false
   }
 
   @Override
   int hashCode() {
-    return name.hashCode()
+    return id.hashCode()
   }
 }
