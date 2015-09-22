@@ -25,14 +25,14 @@ class UpsertSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
   List<SecurityGroupIngress> securityGroupIngress
   List<IpIngress> ipIngress
 
-  enum IngressType {
-    tcp, udp, icmp
-  }
-
   static abstract class Ingress {
     Integer startPort
     Integer endPort
-    IngressType type
+    String ipProtocol
+
+    @Deprecated void setType(String ipProtocol) {
+      this.ipProtocol = ipProtocol
+    }
   }
 
   static class SecurityGroupIngress extends Ingress {

@@ -46,7 +46,7 @@ class UpsertSecurityGroupDescriptionValidatorSpec extends Specification {
         name = "bar"
         startPort = 111
         endPort = 111
-        type = UpsertSecurityGroupDescription.IngressType.tcp
+        type = "tcp"
         it
       }
     ]
