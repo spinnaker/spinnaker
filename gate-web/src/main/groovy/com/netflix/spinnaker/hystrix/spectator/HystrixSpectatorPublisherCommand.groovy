@@ -71,32 +71,32 @@ class HystrixSpectatorPublisherCommand implements HystrixMetricsPublisherCommand
     })
 
     // cumulative counts
-    createCumulativeCountForEvent("countCollapsedRequests", HystrixRollingNumberEvent.COLLAPSED);
-    createCumulativeCountForEvent("countExceptionsThrown", HystrixRollingNumberEvent.EXCEPTION_THROWN);
-    createCumulativeCountForEvent("countFailure", HystrixRollingNumberEvent.FAILURE);
-    createCumulativeCountForEvent("countFallbackFailure", HystrixRollingNumberEvent.FALLBACK_FAILURE);
-    createCumulativeCountForEvent("countFallbackRejection", HystrixRollingNumberEvent.FALLBACK_REJECTION);
-    createCumulativeCountForEvent("countFallbackSuccess", HystrixRollingNumberEvent.FALLBACK_SUCCESS);
-    createCumulativeCountForEvent("countResponsesFromCache", HystrixRollingNumberEvent.RESPONSE_FROM_CACHE);
-    createCumulativeCountForEvent("countSemaphoreRejected", HystrixRollingNumberEvent.SEMAPHORE_REJECTED);
-    createCumulativeCountForEvent("countShortCircuited", HystrixRollingNumberEvent.SHORT_CIRCUITED);
-    createCumulativeCountForEvent("countSuccess", HystrixRollingNumberEvent.SUCCESS);
-    createCumulativeCountForEvent("countThreadPoolRejected", HystrixRollingNumberEvent.THREAD_POOL_REJECTED);
-    createCumulativeCountForEvent("countTimeout", HystrixRollingNumberEvent.TIMEOUT);
+    createCumulativeCountForEvent("countCollapsedRequests", HystrixRollingNumberEvent.COLLAPSED)
+    createCumulativeCountForEvent("countExceptionsThrown", HystrixRollingNumberEvent.EXCEPTION_THROWN)
+    createCumulativeCountForEvent("countFailure", HystrixRollingNumberEvent.FAILURE)
+    createCumulativeCountForEvent("countFallbackFailure", HystrixRollingNumberEvent.FALLBACK_FAILURE)
+    createCumulativeCountForEvent("countFallbackRejection", HystrixRollingNumberEvent.FALLBACK_REJECTION)
+    createCumulativeCountForEvent("countFallbackSuccess", HystrixRollingNumberEvent.FALLBACK_SUCCESS)
+    createCumulativeCountForEvent("countResponsesFromCache", HystrixRollingNumberEvent.RESPONSE_FROM_CACHE)
+    createCumulativeCountForEvent("countSemaphoreRejected", HystrixRollingNumberEvent.SEMAPHORE_REJECTED)
+    createCumulativeCountForEvent("countShortCircuited", HystrixRollingNumberEvent.SHORT_CIRCUITED)
+    createCumulativeCountForEvent("countSuccess", HystrixRollingNumberEvent.SUCCESS)
+    createCumulativeCountForEvent("countThreadPoolRejected", HystrixRollingNumberEvent.THREAD_POOL_REJECTED)
+    createCumulativeCountForEvent("countTimeout", HystrixRollingNumberEvent.TIMEOUT)
 
     // rolling counts
-    createRollingCountForEvent("rollingCountCollapsedRequests", HystrixRollingNumberEvent.COLLAPSED);
-    createRollingCountForEvent("rollingCountExceptionsThrown", HystrixRollingNumberEvent.EXCEPTION_THROWN);
-    createRollingCountForEvent("rollingCountFailure", HystrixRollingNumberEvent.FAILURE);
-    createRollingCountForEvent("rollingCountFallbackFailure", HystrixRollingNumberEvent.FALLBACK_FAILURE);
-    createRollingCountForEvent("rollingCountFallbackRejection", HystrixRollingNumberEvent.FALLBACK_REJECTION);
-    createRollingCountForEvent("rollingCountFallbackSuccess", HystrixRollingNumberEvent.FALLBACK_SUCCESS);
-    createRollingCountForEvent("rollingCountResponsesFromCache", HystrixRollingNumberEvent.RESPONSE_FROM_CACHE);
-    createRollingCountForEvent("rollingCountSemaphoreRejected", HystrixRollingNumberEvent.SEMAPHORE_REJECTED);
-    createRollingCountForEvent("rollingCountShortCircuited", HystrixRollingNumberEvent.SHORT_CIRCUITED);
-    createRollingCountForEvent("rollingCountSuccess", HystrixRollingNumberEvent.SUCCESS);
-    createRollingCountForEvent("rollingCountThreadPoolRejected", HystrixRollingNumberEvent.THREAD_POOL_REJECTED);
-    createRollingCountForEvent("rollingCountTimeout", HystrixRollingNumberEvent.TIMEOUT);
+    createRollingCountForEvent("rollingCountCollapsedRequests", HystrixRollingNumberEvent.COLLAPSED)
+    createRollingCountForEvent("rollingCountExceptionsThrown", HystrixRollingNumberEvent.EXCEPTION_THROWN)
+    createRollingCountForEvent("rollingCountFailure", HystrixRollingNumberEvent.FAILURE)
+    createRollingCountForEvent("rollingCountFallbackFailure", HystrixRollingNumberEvent.FALLBACK_FAILURE)
+    createRollingCountForEvent("rollingCountFallbackRejection", HystrixRollingNumberEvent.FALLBACK_REJECTION)
+    createRollingCountForEvent("rollingCountFallbackSuccess", HystrixRollingNumberEvent.FALLBACK_SUCCESS)
+    createRollingCountForEvent("rollingCountResponsesFromCache", HystrixRollingNumberEvent.RESPONSE_FROM_CACHE)
+    createRollingCountForEvent("rollingCountSemaphoreRejected", HystrixRollingNumberEvent.SEMAPHORE_REJECTED)
+    createRollingCountForEvent("rollingCountShortCircuited", HystrixRollingNumberEvent.SHORT_CIRCUITED)
+    createRollingCountForEvent("rollingCountSuccess", HystrixRollingNumberEvent.SUCCESS)
+    createRollingCountForEvent("rollingCountThreadPoolRejected", HystrixRollingNumberEvent.THREAD_POOL_REJECTED)
+    createRollingCountForEvent("rollingCountTimeout", HystrixRollingNumberEvent.TIMEOUT)
 
     // the number of executionSemaphorePermits in use right now
     createGuageForMetrics(createMetricName("executionSemaphorePermitsInUse"), { Object ref ->

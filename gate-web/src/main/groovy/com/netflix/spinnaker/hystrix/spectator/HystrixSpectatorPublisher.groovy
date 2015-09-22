@@ -22,9 +22,12 @@ import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandKey
 import com.netflix.hystrix.HystrixCommandMetrics
 import com.netflix.hystrix.HystrixCommandProperties
-import com.netflix.hystrix.strategy.HystrixPlugins
+import com.netflix.hystrix.HystrixThreadPoolKey
+import com.netflix.hystrix.HystrixThreadPoolMetrics
+import com.netflix.hystrix.HystrixThreadPoolProperties
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisher
 import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherCommand
+import com.netflix.hystrix.strategy.metrics.HystrixMetricsPublisherThreadPool
 import com.netflix.spectator.api.ExtendedRegistry
 
 class HystrixSpectatorPublisher extends HystrixMetricsPublisher {
@@ -41,5 +44,12 @@ class HystrixSpectatorPublisher extends HystrixMetricsPublisher {
                                                                HystrixCircuitBreaker circuitBreaker,
                                                                HystrixCommandProperties properties) {
     return new HystrixSpectatorPublisherCommand(commandKey, commandGroupKey, metrics, circuitBreaker, properties, extendedRegistry)
+  }
+
+  @Override
+  HystrixMetricsPublisherThreadPool getMetricsPublisherForThreadPool(HystrixThreadPoolKey threadPoolKey,
+                                                                     HystrixThreadPoolMetrics metrics,
+                                                                     HystrixThreadPoolProperties properties) {
+    return new HystrixSpectatorPublisherThreadPool(threadPoolKey, metrics, properties, extendedRegistry)
   }
 }
