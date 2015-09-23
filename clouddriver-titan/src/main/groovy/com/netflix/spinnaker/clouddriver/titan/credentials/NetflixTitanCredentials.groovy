@@ -50,7 +50,6 @@ class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
     getCloudProvider()
   }
 
-  @Override
   String getCloudProvider() {
     CLOUD_PROVIDER
   }
