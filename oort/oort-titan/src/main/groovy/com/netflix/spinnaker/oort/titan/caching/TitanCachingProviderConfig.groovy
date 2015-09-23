@@ -15,14 +15,12 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching
-
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.amos.AccountCredentialsRepository
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
-import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.oort.titan.caching.agents.TitanClusterCachingAgent
 import com.netflix.spinnaker.oort.titan.caching.agents.TitanImageCachingAgent
@@ -30,7 +28,6 @@ import com.netflix.spinnaker.oort.titan.caching.agents.TitanInstanceCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.DependsOn
-
 /**
  * @author sthadeshwar
  */
@@ -40,16 +37,15 @@ class TitanCachingProviderConfig {
   @Bean
   @DependsOn('netflixTitanCredentials')
   TitanCachingProvider titanCachingProvider(AccountCredentialsRepository accountCredentialsRepository,
-                                            TitanCloudProvider titanCloudProvider,
                                             TitanClientProvider titanClientProvider,
                                             ObjectMapper objectMapper) {
     List<CachingAgent> agents = []
     def allAccounts = accountCredentialsRepository.all.findAll { it instanceof NetflixTitanCredentials } as Collection<NetflixTitanCredentials>
     allAccounts.each { NetflixTitanCredentials account ->
       account.regions.each { region ->
-        agents << new TitanClusterCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
-        agents << new TitanImageCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
-        agents << new TitanInstanceCachingAgent(titanCloudProvider, titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanClusterCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanImageCachingAgent(titanClientProvider, account, region.name, objectMapper)
+        agents << new TitanInstanceCachingAgent(titanClientProvider, account, region.name, objectMapper)
       }
     }
     new TitanCachingProvider(agents)

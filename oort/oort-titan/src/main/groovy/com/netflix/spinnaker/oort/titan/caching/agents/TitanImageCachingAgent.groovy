@@ -15,7 +15,6 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.agents
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
@@ -24,17 +23,15 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
-import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
-import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
+import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.titanclient.TitanClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.oort.model.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.oort.model.Keys.Namespace.NAMED_IMAGES
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.IMAGES
+import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.NAMED_IMAGES
 
 /**
  * TODO: This is a WIP. There needs to be docker registry APIs to support this agent
@@ -44,22 +41,18 @@ class TitanImageCachingAgent implements CachingAgent {
   private static final Logger log = LoggerFactory.getLogger(TitanImageCachingAgent)
 
   final Set<AgentDataType> types = Collections.unmodifiableSet([
-    AUTHORITATIVE.forType(IMAGES.ns),
-    INFORMATIVE.forType(NAMED_IMAGES.ns)
+    AUTHORITATIVE.forType(IMAGES.ns)
   ] as Set)
 
-  private TitanCloudProvider titanCloudProvider
   private final TitanClient titanClient
   private final NetflixTitanCredentials account
   private final String region
   private final ObjectMapper objectMapper
 
-  TitanImageCachingAgent(TitanCloudProvider titanCloudProvider,
-                         TitanClientProvider titanClientProvider,
+  TitanImageCachingAgent(TitanClientProvider titanClientProvider,
                          NetflixTitanCredentials account,
                          String region,
                          ObjectMapper objectMapper) {
-    this.titanCloudProvider = titanCloudProvider
     this.account = account
     this.region = region
     this.objectMapper = objectMapper

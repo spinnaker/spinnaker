@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
-import com.netflix.spinnaker.oort.model.Keys
+import com.netflix.spinnaker.oort.titan.caching.Keys
 import com.netflix.spinnaker.oort.model.InstanceProvider
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
 import com.netflix.titanclient.model.Task
@@ -45,7 +45,7 @@ class TitanInstanceProvider implements InstanceProvider<TitanInstance> {
 
   @Override
   TitanInstance getInstance(String account, String region, String id) {
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(titanCloudProvider.id, id, account, region))
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, account, region))
     if (!instanceEntry) {
       return null
     }

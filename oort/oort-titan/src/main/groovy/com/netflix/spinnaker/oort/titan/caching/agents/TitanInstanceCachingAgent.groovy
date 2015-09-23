@@ -15,19 +15,17 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.agents
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.agent.AgentDataType
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
-import com.netflix.spinnaker.oort.model.Keys
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.titan.TitanClientProvider
-import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.clouddriver.titan.credentials.NetflixTitanCredentials
 import com.netflix.spinnaker.oort.model.HealthState
+import com.netflix.spinnaker.oort.titan.caching.Keys
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.titanclient.TitanClient
 import com.netflix.titanclient.model.Task
@@ -35,12 +33,12 @@ import com.netflix.titanclient.model.TaskState
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 import static Keys.Namespace.HEALTH
 import static Keys.Namespace.IMAGES
 import static Keys.Namespace.INSTANCES
 import static Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
+import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
 
 class TitanInstanceCachingAgent implements CachingAgent {
 
@@ -52,18 +50,15 @@ class TitanInstanceCachingAgent implements CachingAgent {
     INFORMATIVE.forType(IMAGES.ns)
   ] as Set)
 
-  private final TitanCloudProvider titanCloudProvider
   private final TitanClientProvider titanClientProvider
   private final NetflixTitanCredentials account
   private final String region
   private final ObjectMapper objectMapper
 
-  TitanInstanceCachingAgent(TitanCloudProvider titanCloudProvider,
-                            TitanClientProvider titanClientProvider,
+  TitanInstanceCachingAgent(TitanClientProvider titanClientProvider,
                             NetflixTitanCredentials account,
                             String region,
                             ObjectMapper objectMapper) {
-    this.titanCloudProvider = titanCloudProvider
     this.titanClientProvider = titanClientProvider
     this.account = account
     this.region = region
@@ -109,7 +104,7 @@ class TitanInstanceCachingAgent implements CachingAgent {
     TitanClient titanClient = titanClientProvider.getTitanClient(account, region)
     List<Task> tasks = titanClient.getAllTasks()
     for (Task task : tasks) {
-      def data = new InstanceData(titanCloudProvider.id, task, account.name, region)
+      def data = new InstanceData(task, account.name, region)
       cacheImage(data, images)
       cacheServerGroup(data, serverGroups)
       cacheInstance(data, instances)
@@ -170,9 +165,9 @@ class TitanInstanceCachingAgent implements CachingAgent {
     private final String serverGroup
     private final String imageId
 
-    public InstanceData(String cloudProvider, Task task, String account, String region) {
+    public InstanceData(Task task, String account, String region) {
       this.task = task
-      this.instanceId = Keys.getInstanceKey(cloudProvider, task.id, account, region)
+      this.instanceId = Keys.getInstanceKey(task.id, account, region)
       this.serverGroup = task.jobName
       this.imageId = task.applicationName + ":" + task.version
     }

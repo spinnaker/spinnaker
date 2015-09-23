@@ -15,15 +15,13 @@
  */
 
 package com.netflix.spinnaker.oort.titan.caching.providers
-
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
-import com.netflix.spinnaker.oort.model.Keys
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
-import com.netflix.spinnaker.clouddriver.titan.TitanCloudProvider
 import com.netflix.spinnaker.oort.model.ClusterProvider
+import com.netflix.spinnaker.oort.titan.caching.Keys
 import com.netflix.spinnaker.oort.titan.caching.TitanCachingProvider
 import com.netflix.spinnaker.oort.titan.model.TitanCluster
 import com.netflix.spinnaker.oort.titan.model.TitanInstance
@@ -42,17 +40,14 @@ import static Keys.Namespace.SERVER_GROUPS
 @Component
 class TitanClusterProvider implements ClusterProvider<TitanCluster> {
 
-  private final TitanCloudProvider titanCloudProvider
   private final Cache cacheView
   private final TitanCachingProvider titanCachingProvider
   private final ObjectMapper objectMapper
 
   @Autowired
-  TitanClusterProvider(TitanCloudProvider titanCloudProvider,
-                       TitanCachingProvider titanCachingProvider,
+  TitanClusterProvider(TitanCachingProvider titanCachingProvider,
                        Cache cacheView,
                        ObjectMapper objectMapper) {
-    this.titanCloudProvider = titanCloudProvider
     this.cacheView = cacheView
     this.titanCachingProvider = titanCachingProvider
     this.objectMapper = objectMapper
@@ -100,7 +95,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
    */
   @Override
   Set<TitanCluster> getClusters(String applicationName, String account) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(titanCloudProvider.id, applicationName),
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName),
       RelationshipCacheFilter.include(CLUSTERS.ns))
     if (application == null) {
       return [] as Set
@@ -119,7 +114,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
    */
   @Override
   TitanCluster getCluster(String application, String account, String name) {
-    CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(titanCloudProvider.id, name, application, account))
+    CacheData cluster = cacheView.get(CLUSTERS.ns, Keys.getClusterKey(name, application, account))
     TitanCluster titanCluster = cluster ? translateClusters([cluster], true)[0] : null
     titanCluster
   }
@@ -133,7 +128,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
    */
   @Override
   TitanServerGroup getServerGroup(String account, String region, String name) {
-    String serverGroupKey = Keys.getServerGroupKey(titanCloudProvider.id, name, account, region)
+    String serverGroupKey = Keys.getServerGroupKey(name, account, region)
     CacheData serverGroupData = cacheView.get(SERVER_GROUPS.ns, serverGroupKey)
     if (serverGroupData == null) {
       return null
@@ -150,7 +145,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
   // Private methods
 
   private Map<String, Set<TitanCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
-    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(titanCloudProvider.id, applicationName))
+    CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) return null
     Collection<TitanCluster> clusters = translateClusters(resolveRelationshipData(application, CLUSTERS.ns), includeDetails)
     clusters.groupBy { it.accountName }.collectEntries { k, v -> [k, new HashSet(v)] }
@@ -221,7 +216,7 @@ class TitanClusterProvider implements ClusterProvider<TitanCluster> {
     instanceData.each { instanceEntry ->
       Map<String, String> instanceKey = Keys.parse(instanceEntry.id)
       titanCachingProvider.healthAgents.each {
-        def key = Keys.getInstanceHealthKey(titanCloudProvider.id, instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
+        def key = Keys.getInstanceHealthKey(instanceKey.instanceId, instanceKey.account, instanceKey.region, it.healthId)
         healthKeysToInstance.put(key, instanceEntry.id)
       }
     }
