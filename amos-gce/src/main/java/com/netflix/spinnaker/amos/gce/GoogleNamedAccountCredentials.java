@@ -33,9 +33,9 @@ public class GoogleNamedAccountCredentials implements AccountCredentials<GoogleC
         this.accountType = accountType;
         this.projectName = projectName;
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership);
+        this.applicationName = applicationName;
         this.credentials = (kmsServer != null) ? buildCredentials() : null;
         this.regionToZonesMap = (credentials != null && credentials.getCompute() != null) ? queryRegions(credentials.getCompute(), projectName) : Collections.emptyMap();
-        this.applicationName = applicationName;
     }
 
     @Override
