@@ -73,7 +73,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def setup() {
     computeMock = Mock(Compute)
-    credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+    credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
 
     replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
     replicaPoolMock = Mock(Replicapool)

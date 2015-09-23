@@ -38,7 +38,7 @@ class TitanDeployHandlerSpec extends Specification {
   }
 
   NetflixTitanCredentials testCredentials = new NetflixTitanCredentials(
-    'test', [new TitanRegion('us-east-1', 'test', 'http://foo', 'http://bar')]
+    'test', 'test', 'test', [new TitanRegion('us-east-1', 'test', 'http://foo', 'http://bar')]
   )
 
   @Subject

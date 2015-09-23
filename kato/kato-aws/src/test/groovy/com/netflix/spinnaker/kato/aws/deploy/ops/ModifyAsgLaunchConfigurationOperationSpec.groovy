@@ -69,7 +69,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
   void 'should not modify launch configuration if no changes would result'() {
     setup:
-    description.credentials = TestCredential.named(account)
+    def credential = TestCredential.named(account)
+    description.credentials = credential
     description.region = region
     description.asgName = asgName
     description.amiName = existingAmi
@@ -81,7 +82,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
-      assert act == account
+      assert act == credential
       assert region == region
       assert name == existingLc
 
@@ -101,6 +102,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     iamRole = 'BaseIAMRole'
     existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: account,
+      environment: 'test',
+      accountType: 'test',
       region: region,
       baseName: asgName,
       suffix: suffix,
@@ -116,7 +119,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
   void 'should apply description fields over existing settings'() {
     setup:
-    description.credentials = TestCredential.named(account)
+    def credential = TestCredential.named(account)
+    description.credentials = credential
     description.region = region
     description.asgName = asgName
     description.amiName = newAmi
@@ -127,7 +131,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
-      assert act == account
+      assert act == credential
       assert region == region
       assert name == existingLc
 
@@ -161,6 +165,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     newAmi = 'ami-f000fee'
     existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: account,
+      environment: 'test',
+      accountType: 'test',
       region: region,
       baseName: asgName,
       suffix: suffix,
@@ -176,7 +182,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
   void 'should disable monitoring if instance monitoring goes from enabled to disabled'() {
     setup:
-    description.credentials = TestCredential.named(account)
+    def credential = TestCredential.named(account)
+    description.credentials = credential
     description.region = region
     description.asgName = asgName
     description.instanceMonitoring = false
@@ -187,7 +194,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     then:
     1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
     1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
-      assert act == account
+      assert act == credential
       assert region == region
       assert name == existingLc
 
@@ -221,6 +228,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     iamRole = 'BaseIAMRole'
     existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
       account: account,
+      environment: 'test',
+      accountType: 'test',
       region: region,
       baseName: asgName,
       suffix: suffix,

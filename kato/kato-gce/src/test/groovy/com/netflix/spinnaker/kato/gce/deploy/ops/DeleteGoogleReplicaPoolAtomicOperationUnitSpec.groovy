@@ -60,7 +60,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
           status: DONE)
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,

@@ -48,7 +48,7 @@ class AbandonAndDecrementGoogleReplicaPoolAtomicOperationUnitSpec extends Specif
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersAbandonInstancesMock = Mock(Replicapool.InstanceGroupManagers.AbandonInstances)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new AbandonAndDecrementGoogleServerGroupDescription(
           replicaPoolName: REPLICA_POOL_NAME,
           zone: ZONE,

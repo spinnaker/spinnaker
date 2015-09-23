@@ -39,8 +39,7 @@ class GoogleCredentialsInitializer {
 
     for (managedAccount in googleConfigurationProperties.accounts) {
       try {
-        // TODO(duftler): Pass googleApplicationName to GoogleNamedAccountCredentials constructor.
-        def googleAccount = new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.name, managedAccount.project)
+        def googleAccount = new GoogleNamedAccountCredentials(googleConfigurationProperties.kmsServer, managedAccount.name, managedAccount.environment, managedAccount.accountType,  managedAccount.project, googleApplicationName)
 
         googleAccounts << accountCredentialsRepository.save(managedAccount.name, googleAccount)
       } catch (e) {

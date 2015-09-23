@@ -44,7 +44,7 @@ class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def replicaPoolMock = Mock(Replicapool)
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersResizeMock = Mock(Replicapool.InstanceGroupManagers.Resize)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ResizeGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                numReplicas: DESIRED_NUM_REPLICAS,
                                                                zone: ZONE,

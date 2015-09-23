@@ -25,10 +25,10 @@ class LocalFileUserDataProvider implements UserDataProvider {
   LocalFileUserDataProperties localFileUserDataProperties
 
   @Override
-  String getUserData(String asgName, String launchConfigName, String region, String environment) {
+  String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
     def names = Names.parseName(asgName)
-    def rawUserData = assembleUserData(names, region, environment)
-    replaceUserDataTokens names, launchConfigName, region, environment, rawUserData
+    def rawUserData = assembleUserData(names, region, account)
+    replaceUserDataTokens localFileUserDataProperties.useAccountNameAsEnvironment, names, launchConfigName, region, account, environment, accountType, rawUserData
   }
 
   String assembleUserData(Names names, String region, String environment) {
@@ -61,14 +61,16 @@ class LocalFileUserDataProvider implements UserDataProvider {
     udfPaths.collect { String path -> getContents(path) }.join('')
   }
 
-  static String replaceUserDataTokens(Names names, String launchConfigName, String region, String env, String rawUserData) {
+  static String replaceUserDataTokens(boolean useAccountNameAsEnvironment, Names names, String launchConfigName, String region, String account, String environment, String accountType, String rawUserData) {
     String stack = names.stack ?: ''
     String cluster = names.cluster ?: ''
 
     // Replace the tokens & return the result
     String result = rawUserData
+      .replace('%%account%%', account)
+      .replace('%%accounttype%%', accountType)
+      .replace('%%env%%', useAccountNameAsEnvironment ? account : environment)
       .replace('%%app%%', names.app)
-      .replace('%%env%%', env)
       .replace('%%region%%', region)
       .replace('%%group%%', names.group)
       .replace('%%autogrp%%', names.group)

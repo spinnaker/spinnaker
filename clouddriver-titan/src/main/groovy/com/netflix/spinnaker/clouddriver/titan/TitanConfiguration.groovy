@@ -55,7 +55,7 @@ class TitanConfiguration {
     List<NetflixTitanCredentials> accounts = new ArrayList<>()
     for (TitanCredentialsConfig.Account account in titanCredentialsConfig.accounts) {
       List<TitanRegion> regions = account.regions.collect { new TitanRegion(it.name, account.name, it.endpoint, it.calypsoEndpoint) }
-      NetflixTitanCredentials credentials = new NetflixTitanCredentials(account.name, regions)
+      NetflixTitanCredentials credentials = new NetflixTitanCredentials(account.name, account.environment, account.accountType, regions)
       accounts.add(credentials)
       repository.save(account.name, credentials)
     }
@@ -80,6 +80,8 @@ class TitanConfiguration {
     List<Account> accounts
     static class Account {
       String name
+      String environment
+      String accountType
       List<Region> regions
     }
     static class Region {

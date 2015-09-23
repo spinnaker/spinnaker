@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.kato.aws.deploy
 
+import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import groovy.transform.Immutable
 
@@ -24,6 +25,8 @@ interface LaunchConfigurationBuilder {
   @Immutable(copyWith = true, knownImmutableClasses = [AmazonBlockDevice])
   static class LaunchConfigurationSettings {
     String account
+    String environment
+    String accountType
     String region
     String baseName
     String suffix
@@ -49,7 +52,7 @@ interface LaunchConfigurationBuilder {
    * @param launchConfigurationName the name of the launch configuration
    * @return LaunchConfigurationSettings for the launch configuration
    */
-  LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(String account, String region, String launchConfigurationName)
+  LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(AccountCredentials<?> credentials, String region, String launchConfigurationName)
 
   /**
    * Constructs an LaunchConfiguration with the provided settings
