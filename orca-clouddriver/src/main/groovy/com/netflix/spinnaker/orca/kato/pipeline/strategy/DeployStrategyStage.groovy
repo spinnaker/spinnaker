@@ -201,7 +201,12 @@ abstract class DeployStrategyStage extends LinearStage {
 
         existingAsgs.findAll { it.region == region }.each { Map asg ->
           def nextContext = [
-            asgName: asg.name, credentials: cleanupConfig.account, regions: [region], serverGroupName: asg.name, region: region
+            asgName: asg.name,
+            credentials: cleanupConfig.account,
+            regions: [region],
+            serverGroupName: asg.name,
+            region: region,
+            cloudProvider: stageData.cloudProvider
           ]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
