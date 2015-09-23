@@ -82,8 +82,8 @@ class Keys {
     result
   }
 
-  static String getImageKey(String provider, String imageId, String account, String region) {
-    "${provider}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+  static String getImageKey(String imageId, String account, String region) {
+    "${PROVIDER}:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getServerGroupKey(String autoScalingGroupName, String account, String region) {
