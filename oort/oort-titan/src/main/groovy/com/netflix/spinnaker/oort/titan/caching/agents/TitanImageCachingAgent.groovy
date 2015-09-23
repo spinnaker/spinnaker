@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.NAMED_IMAGES
 
 /**
  * TODO: This is a WIP. There needs to be docker registry APIs to support this agent
