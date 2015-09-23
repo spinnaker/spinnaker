@@ -368,7 +368,7 @@ class DiscoverySupportUnitSpec extends Specification {
         Mock(com.netflix.spinnaker.oort.model.Instance) {
           1 * getHealth() >> {
             [
-                [discoveryStatus: discoveryStatus]
+              [discoveryStatus: discoveryStatus]
             ]
           }
           0 * _
@@ -416,7 +416,7 @@ class DiscoverySupportUnitSpec extends Specification {
     Set<String> securityGroups
     Map<String, Object> launchConfig
     ServerGroup.InstanceCounts instanceCounts
-    ServerGroup.Capacity capacity
+
     Boolean isDisabled() {
       return disabled
     }

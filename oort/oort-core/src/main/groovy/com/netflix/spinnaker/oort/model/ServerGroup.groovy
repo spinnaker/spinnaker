@@ -107,12 +107,6 @@ interface ServerGroup {
    */
   InstanceCounts getInstanceCounts()
 
-  /**
-   * The capacity (in terms of number of instances) required for the server group
-   * @return
-   */
-  Capacity getCapacity()
-
   static class InstanceCounts {
     /**
      * Total number of instances in the server group
@@ -143,24 +137,5 @@ interface ServerGroup {
      * Total number of "Starting" instances (where any health indicator reports "Starting" and none are "Down" or "OutOfService")
      */
     Integer starting
-  }
-
-  static class Capacity {
-    /**
-     * Minimum number of instances required in this server group. If provider specific {@code ServerGroup} does not have
-     * a notion of min then this should be same as {@code desired}
-     */
-    Integer min
-
-    /**
-     * Max number of instances required in this server group. If provider specific {@code ServerGroup} does not have
-     * a notion of max then this should be same as {@code desired}
-     */
-    Integer max
-
-    /**
-     * Desired number of instances required in this server group
-     */
-    Integer desired
   }
 }

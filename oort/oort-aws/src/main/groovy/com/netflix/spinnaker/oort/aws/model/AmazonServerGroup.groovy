@@ -106,18 +106,6 @@ class AmazonServerGroup implements ServerGroup, Serializable {
       outOfService: filterInstancesByHealthState(instances, HealthState.OutOfService)?.size() ?: 0)
   }
 
-  @Override
-  ServerGroup.Capacity getCapacity() {
-    if (asg) {
-      new ServerGroup.Capacity(
-        min: asg.minSize ? asg.minSize as Integer : null,
-        max: asg.maxSize ? asg.maxSize as Integer : null,
-        desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : null
-      )
-    }
-    return null
-  }
-
   static Collection<Instance> filterInstancesByHealthState(Set<Instance> instances, HealthState healthState) {
     instances.findAll { Instance it -> it.getHealthState() == healthState }
   }
