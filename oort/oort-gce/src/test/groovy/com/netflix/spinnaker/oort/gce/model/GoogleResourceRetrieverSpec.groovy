@@ -28,11 +28,21 @@ import spock.lang.Subject
 class GoogleResourceRetrieverSpec extends Specification {
   void "credentials are returned keyed by account name"() {
     setup:
-      def credentials1 = new GoogleCredentials()
-      def credentialsStub1 = new GoogleNamedAccountCredentials(null, null, null) {
+      def credentials1 = new GoogleCredentials(null, null, null, null, null)
+      def credentialsStub1 = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {
           return "account-1"
+        }
+
+        @Override
+        String getEnvironment() {
+          getName()
+        }
+
+        @Override
+        String getAccountType() {
+          getName()
         }
 
         @Override
@@ -41,11 +51,21 @@ class GoogleResourceRetrieverSpec extends Specification {
         }
       }
 
-      def credentials2a = new GoogleCredentials()
-      def credentialsStub2a = new GoogleNamedAccountCredentials(null, null, null) {
+      def credentials2a = new GoogleCredentials(null, null, null, null, null)
+      def credentialsStub2a = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {
           return "account-2"
+        }
+
+        @Override
+        String getEnvironment() {
+          getName()
+        }
+
+        @Override
+        String getAccountType() {
+          getName()
         }
 
         @Override
@@ -54,11 +74,21 @@ class GoogleResourceRetrieverSpec extends Specification {
         }
       }
 
-      def credentials2b = new GoogleCredentials()
-      def credentialsStub2b = new GoogleNamedAccountCredentials(null, null, null) {
+      def credentials2b = new GoogleCredentials(null, null, null, null, null)
+      def credentialsStub2b = new GoogleNamedAccountCredentials(null, null, null, null, null, null) {
         @Override
         String getName() {
           return "account-2"
+        }
+
+        @Override
+        String getEnvironment() {
+          getName()
+        }
+
+        @Override
+        String getAccountType() {
+          getName()
         }
 
         @Override

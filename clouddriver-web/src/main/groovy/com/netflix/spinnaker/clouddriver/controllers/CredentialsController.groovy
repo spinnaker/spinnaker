@@ -36,6 +36,9 @@ class CredentialsController {
     accountCredentialsProvider.all.collect {
       return [
         name                   : it.name,
+        environment            : it.environment,
+        accountType            : it.accountType,
+        cloudProvider          : it.cloudProvider,
         type                   : it.provider,
         requiredGroupMembership: it.requiredGroupMembership
       ]

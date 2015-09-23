@@ -52,7 +52,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
     def existingLc = regionScopedProvider.asgService.getAutoScalingGroup(description.asgName).launchConfigurationName
 
-    def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentialAccount, description.region, existingLc)
+    def settings = lcBuilder.buildSettingsFromLaunchConfiguration(description.credentials, description.region, existingLc)
 
     def props = [:] + description.properties
     def settingsKeys = settings.properties.keySet()

@@ -81,7 +81,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
       def targetPoolsMock = Mock(Compute.TargetPools)
       def removeInstanceMock = Mock(Compute.TargetPools.RemoveInstance)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeregisterInstancesFromGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerNames: [LOAD_BALANCER_NAME_1, LOAD_BALANCER_NAME_2],
           instanceIds: INSTANCE_IDS,
@@ -126,7 +126,7 @@ class DeregisterInstancesFromGoogleNetworkLoadBalancerAtomicOperationUnitSpec ex
         )
       ])
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeregisterInstancesFromGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerNames: [LOAD_BALANCER_NAME_1],
           instanceIds: INSTANCE_IDS,

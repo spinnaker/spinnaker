@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.CreateLaunchConfigurationRequest
 import com.amazonaws.services.autoscaling.model.Ebs
 import com.amazonaws.services.autoscaling.model.InstanceMonitoring
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
+import com.netflix.spinnaker.amos.AccountCredentials
 import com.netflix.spinnaker.kato.aws.deploy.LaunchConfigurationBuilder.LaunchConfigurationSettings
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
@@ -56,7 +57,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
    * @param launchConfigurationName the name of the launch configuration
    * @return LaunchConfigurationSettings for the launch configuration
    */
-  LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(String account, String region, String launchConfigurationName) {
+  LaunchConfigurationSettings buildSettingsFromLaunchConfiguration(AccountCredentials<?> account, String region, String launchConfigurationName) {
     LaunchConfiguration lc = asgService.getLaunchConfiguration(launchConfigurationName)
 
     String baseName = lc.launchConfigurationName
@@ -81,7 +82,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     }
 
     new LaunchConfigurationSettings(
-      account,
+      account.name,
+      account.environment,
+      account.accountType,
       region,
       baseName,
       suffix,
@@ -124,7 +127,7 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
     settings = settings.copyWith(securityGroups: securityGroupIds)
 
     String name = createName(settings)
-    String userData = getUserData(settings.baseName, name, settings.region, settings.account)
+    String userData = getUserData(settings.baseName, name, settings.region, settings.account, settings.environment, settings.accountType)
     createLaunchConfiguration(name, userData, settings)
   }
 
@@ -161,9 +164,9 @@ class DefaultLaunchConfigurationBuilder implements LaunchConfigurationBuilder {
 
   }
 
-  private String getUserData(String asgName, String launchConfigName, String region, String environment) {
+  private String getUserData(String asgName, String launchConfigName, String region, String account, String environment, String accountType) {
     String data = userDataProviders?.collect { udp ->
-      udp.getUserData(asgName, launchConfigName, region, environment)
+      udp.getUserData(asgName, launchConfigName, region, account, environment, accountType)
     }?.join("\n")
     if (data && data.startsWith("\n")) {
       data = data.substring(1)

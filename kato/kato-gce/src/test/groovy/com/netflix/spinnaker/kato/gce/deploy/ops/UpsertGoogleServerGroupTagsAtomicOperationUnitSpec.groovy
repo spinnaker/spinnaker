@@ -112,7 +112,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instancesSetTagsOperation1GetMock = Mock(Compute.ZoneOperations.Get)
       def instancesSetTagsOperation2GetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleServerGroupTagsDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,
@@ -220,7 +220,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def resourceViewsZoneViewsListResourcesMock = Mock(Resourceviews.ZoneViews.ListResources)
       def zoneViewsListResourcesResponseReal = new ZoneViewsListResourcesResponse()
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleServerGroupTagsDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,

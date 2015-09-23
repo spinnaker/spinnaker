@@ -58,7 +58,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleFirewallRuleDescription(
           firewallRuleName: FIREWALL_RULE_NAME,
           description: DESCRIPTION,
@@ -114,7 +114,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       GoogleJsonResponseException notFoundException =
         GoogleJsonResponseExceptionFactoryTesting.newMock(new MockJsonFactory(), 404, "not found");
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleFirewallRuleDescription(
           firewallRuleName: FIREWALL_RULE_NAME,
           network: NETWORK_NAME,
@@ -167,7 +167,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: FIREWALL_RULE_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleFirewallRuleDescription(firewallRuleName: FIREWALL_RULE_NAME,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
@@ -218,7 +218,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: FIREWALL_RULE_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleFirewallRuleDescription(firewallRuleName: FIREWALL_RULE_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],
@@ -270,7 +270,7 @@ class UpsertGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       def firewall = new Firewall(name: FIREWALL_RULE_NAME, targetTags: [ORIG_TARGET_TAG])
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleFirewallRuleDescription(firewallRuleName: FIREWALL_RULE_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],

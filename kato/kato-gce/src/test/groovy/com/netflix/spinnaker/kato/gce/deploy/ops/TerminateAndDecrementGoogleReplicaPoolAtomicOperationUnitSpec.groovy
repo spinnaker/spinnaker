@@ -48,7 +48,7 @@ class TerminateAndDecrementGoogleReplicaPoolAtomicOperationUnitSpec extends Spec
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersDeleteInstancesMock = Mock(Replicapool.InstanceGroupManagers.DeleteInstances)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new TerminateAndDecrementGoogleServerGroupDescription(
           replicaPoolName: REPLICA_POOL_NAME,
           zone: ZONE,

@@ -98,7 +98,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
@@ -161,7 +161,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                            status: DONE)
       def setInstanceTemplateOperationGetMock = Mock(Replicapool.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                instanceMetadata: METADATA_2,
@@ -223,7 +223,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
@@ -276,7 +276,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
@@ -332,7 +332,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
