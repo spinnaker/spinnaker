@@ -272,12 +272,13 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_payload(
       job=[{
           'cloudProvider': 'gce',
-          'providerType': 'gce',
           'replicaPoolName': group_name,
-          'type': 'destroyAsg',
           'region': bindings['TEST_GCE_REGION'],
           'zone': bindings['TEST_GCE_ZONE'],
+          'serverGroupName': group_name,
+          'type': 'destroyServerGroup',
           'regions': [bindings['TEST_GCE_REGION']],
+          'zones': [bindings['TEST_GCE_ZONE']],
           'credentials': bindings['GCE_CREDENTIALS'],
           'user': '[anonymous]'
           }],
