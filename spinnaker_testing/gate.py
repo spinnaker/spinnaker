@@ -152,8 +152,7 @@ class GateAgent(sk.SpinnakerAgent):
       application=application)
 
     return self.new_post_operation(
-            title='create_app', data=payload,
-            path='applications/{name}/tasks'.format(name=application))
+            title='create_app', data=payload, path='tasks')
 
   def make_delete_app_operation(self, bindings, application):
     """Create a Gate operation that will delete an existing application.
@@ -177,8 +176,7 @@ class GateAgent(sk.SpinnakerAgent):
       application=application)
 
     return self.new_post_operation(
-            title='delete_app', data=payload,
-            path='applications/{name}/tasks'.format(name=application))
+            title='delete_app', data=payload, path='tasks')
 
 
 def new_agent(bindings, port=8084):

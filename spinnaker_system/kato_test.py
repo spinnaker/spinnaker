@@ -22,14 +22,18 @@
 #
 # Sample Usage:
 #     Assuming you have created $PASSPHRASE_FILE (which you should chmod 400):
+#     and $CITEST_ROOT points to the root directory of this repository
+#     (which is . if you execute this from the root)
 #
-#   python test/kato_test.py \
+#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/kato_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
 #     --gce_instance=$INSTANCE
 # or
-#   python test/kato_test.py \
+#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/kato_test.py \
 #     --native_hostname=host-running-kato
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE

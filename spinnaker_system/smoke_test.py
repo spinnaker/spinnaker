@@ -21,15 +21,19 @@
 # the spinnaker account name to use when sending it commands.
 #
 # Sample Usage:
-#     Assuming you have created $PASSPHRASE_FILE (which you should chmod 400):
+#     Assuming you have created $PASSPHRASE_FILE (which you should chmod 400)
+#     and $CITEST_ROOT points to the root directory of this repository
+#     (which is . if you execute this from the root)
 #
-#   python test/smoke_test.py \
+#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/smoke_test.py \
 #     --gce_ssh_passphrase_file=$PASSPHRASE_FILE \
 #     --gce_project=$PROJECT \
 #     --gce_zone=$ZONE \
 #     --gce_instance=$INSTANCE
 # or
-#   python test/smoke_test.py \
+#   PYTHONPATH=$CITEST_ROOT:$CITEST_ROOT/spinnaker \
+#     python $CITEST_ROOT/spinnaker/spinnaker_system/smoke_test.py \
 #     --native_hostname=host-running-smoke-test
 #     --managed_gce_project=$PROJECT \
 #     --test_gce_zone=$ZONE
@@ -131,6 +135,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     payload = self.agent.make_payload(
       job=[{
+          'cloudProvider': 'gce',
           'provider': 'gce',
           'stack': bindings['TEST_STACK'],
           'detail': bindings['TEST_COMPONENT_DETAIL'],
@@ -173,8 +178,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_network_load_balancer', data=payload,
-            path='applications/%s/tasks' % self.TEST_APP_NAME),
+            title='create_network_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
 
   def delete_network_load_balancer(self):
@@ -183,12 +187,12 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_payload(
        job=[{
           'type': 'deleteLoadBalancer',
+          'cloudProvider': 'gce',
           'loadBalancerName': load_balancer_name,
           'networkLoadBalancerName': load_balancer_name,
           'region': bindings['TEST_GCE_REGION'],
           'regions': [bindings['TEST_GCE_REGION']],
           'credentials': bindings['GCE_CREDENTIALS'],
-          'providerType': 'gce',
           'user': '[anonymous]'
        }],
        description='Delete Load Balancer: {0} in {1}:{2}'.format(
@@ -210,8 +214,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_network_load_balancer', data=payload,
-            path='applications/%s/tasks' % self.TEST_APP_NAME),
+            title='delete_network_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
 
 
@@ -225,15 +228,20 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     bindings=self.bindings
     payload = self.agent.make_payload(
       job=[{
-          'application': bindings['TEST_APP_NAME'],
+          'cloudProvider': 'gce',
+          'application': self.TEST_APP_NAME,
+          'credentials': bindings['GCE_CREDENTIALS'],
           'strategy':'',
+          'capacity': {'min':2, 'max':2, 'desired':2},
           'initialNumReplicas': 2,
           'providerType': 'gce',
           'image': 'ubuntu-1404-trusty-v20150316',
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
           'instanceType': 'f1-micro',
           'type': 'linearDeploy',
-          'loadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
+          'networkLoadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
+          'availabilityZones': { bindings['TEST_GCE_REGION']:
+                                   [bindings['TEST_GCE_ZONE']] },
           'instanceMetadata': {
               'startup-script': 'sudo apt-get update'
                   ' && sudo apt-get install apache2 -y',
@@ -252,8 +260,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_server_group', data=payload,
-            path='applications/%s/tasks' % self.TEST_APP_NAME),
+            title='create_server_group', data=payload, path='tasks'),
         contract=builder.build())
 
   def delete_server_group(self):
@@ -264,12 +271,14 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     payload = self.agent.make_payload(
       job=[{
+          'cloudProvider': 'gce',
+          'providerType': 'gce',
           'replicaPoolName': group_name,
           'type': 'destroyAsg',
-          'regions': [bindings['TEST_GCE_REGION']],
+          'region': bindings['TEST_GCE_REGION'],
           'zone': bindings['TEST_GCE_ZONE'],
+          'regions': [bindings['TEST_GCE_REGION']],
           'credentials': bindings['GCE_CREDENTIALS'],
-          'providerType': 'gce',
           'user': '[anonymous]'
           }],
       application=bindings['TEST_APP_NAME'],
@@ -288,8 +297,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_server_group', data=payload,
-            path='applications/%s/tasks' % self.TEST_APP_NAME),
+            title='delete_server_group', data=payload, path='tasks'),
         contract=builder.build())
 
 
