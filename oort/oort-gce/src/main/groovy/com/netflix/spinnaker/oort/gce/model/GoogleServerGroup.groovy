@@ -118,7 +118,7 @@ class GoogleServerGroup implements ServerGroup, Serializable {
   @Override
   ServerGroup.Capacity getCapacity() {
     if (asg) {
-      new ServerGroup.Capacity(
+      return new ServerGroup.Capacity(
         min: asg.minSize ? asg.minSize as Integer : null,
         max: asg.maxSize ? asg.maxSize as Integer : null,
         desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : null
