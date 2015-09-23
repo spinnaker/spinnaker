@@ -24,18 +24,20 @@ import com.netflix.titanclient.security.TitanCredentials
  * @author sthadeshwar
  */
 class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
+  private static final String CLOUD_PROVIDER = "titan"
 
-  private final String name
+  final String name
+  final String environment
+  final String accountType
+  final List<String> requiredGroupMembership = Collections.emptyList()
+
   private final List<TitanRegion> regions
 
-  NetflixTitanCredentials(String name, List<TitanRegion> regions) {
+  NetflixTitanCredentials(String name, String environment, String accountType, List<TitanRegion> regions) {
     this.name = name
-    this.regions = regions
-  }
-
-  @Override
-  String getName() {
-    name
+    this.environment = environment
+    this.accountType = accountType
+    this.regions = regions?.asImmutable() ?: Collections.emptyList()
   }
 
   @Override
@@ -45,14 +47,16 @@ class NetflixTitanCredentials implements AccountCredentials<TitanCredentials> {
 
   @Override
   String getProvider() {
-    "titan"
+    getCloudProvider()
+  }
+
+  @Override
+  String getCloudProvider() {
+    CLOUD_PROVIDER
   }
 
   List<TitanRegion> getRegions() {
     regions
   }
 
-  List<String> getRequiredGroupMembership() {
-    []
-  }
 }

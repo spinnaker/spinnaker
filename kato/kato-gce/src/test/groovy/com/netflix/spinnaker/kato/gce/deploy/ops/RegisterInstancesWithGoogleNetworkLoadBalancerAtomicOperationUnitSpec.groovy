@@ -81,7 +81,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
       def targetPoolsMock = Mock(Compute.TargetPools)
       def addInstanceMock = Mock(Compute.TargetPools.AddInstance)
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new RegisterInstancesWithGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerNames: [LOAD_BALANCER_NAME_1, LOAD_BALANCER_NAME_2],
           instanceIds: INSTANCE_IDS,
@@ -126,7 +126,7 @@ class RegisterInstancesWithGoogleNetworkLoadBalancerAtomicOperationUnitSpec exte
         )
       ])
 
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new RegisterInstancesWithGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerNames: [LOAD_BALANCER_NAME_1],
           instanceIds: INSTANCE_IDS,

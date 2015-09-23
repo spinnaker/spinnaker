@@ -76,7 +76,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def healthChecksDeleteOp = new Operation(
           name: HEALTH_CHECK_DELETE_OP_NAME,
           status: "DONE")
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
@@ -133,7 +133,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
@@ -170,7 +170,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def computeMock = Mock(Compute)
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
@@ -207,7 +207,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,
@@ -250,7 +250,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
       def targetPools = Mock(Compute.TargetPools)
       def targetPoolsGet = Mock(Compute.TargetPools.Get)
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           deleteOperationTimeoutSeconds: 0,
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
@@ -302,7 +302,7 @@ class DeleteGoogleNetworkLoadBalancerAtomicOperationUnitSpec extends Specificati
           name: TARGET_POOL_DELETE_OP_NAME,
           status: "DONE")
       def targetPool = new TargetPool()
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleNetworkLoadBalancerDescription(
           networkLoadBalancerName: NETWORK_LOAD_BALANCER_NAME,
           region: REGION,

@@ -38,7 +38,7 @@ class DeleteGoogleFirewallRuleAtomicOperationUnitSpec extends Specification {
       def computeMock = Mock(Compute)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)
-      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock)
+      def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new DeleteGoogleFirewallRuleDescription(firewallRuleName: FIREWALL_RULE_NAME,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)

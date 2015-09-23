@@ -25,9 +25,11 @@ import org.cloudfoundry.client.lib.CloudCredentials
  */
 class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredentials> {
 
-  private static final String PROVIDER = "cf";
+  private static final String CLOUD_PROVIDER = "cf";
 
   String name
+  String environment
+  String accountType
   String password
 
   @Override
@@ -37,7 +39,12 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
 
   @Override
   String getProvider() {
-    PROVIDER
+    getCloudProvider()
+  }
+
+  @Override
+  String getCloudProvider() {
+    CLOUD_PROVIDER
   }
 
   @Override

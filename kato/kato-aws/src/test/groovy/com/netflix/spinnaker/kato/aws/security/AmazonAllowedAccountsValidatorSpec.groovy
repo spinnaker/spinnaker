@@ -9,7 +9,7 @@ import spock.lang.Unroll
 
 class AmazonAllowedAccountsValidatorSpec extends Specification {
   NetflixAmazonCredentials credentialsWithRequiredGroup = new NetflixAmazonCredentials(
-    "TestAccount", "1", null, null, ["targetAccount1"], null, null, null, null, null, null
+    "TestAccount", "test", "test", "1", null, null, ["targetAccount1"], null, null, null, null, null, null
   )
 
   @Unroll

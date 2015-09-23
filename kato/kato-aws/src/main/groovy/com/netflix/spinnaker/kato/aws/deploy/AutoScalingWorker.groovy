@@ -21,6 +21,7 @@ import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.DescribeSubnetsResult
 import com.amazonaws.services.ec2.model.Subnet
+import com.netflix.spinnaker.amos.aws.NetflixAmazonCredentials
 import com.netflix.spinnaker.kato.aws.deploy.userdata.UserDataProvider
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
@@ -43,7 +44,7 @@ class AutoScalingWorker {
 
   private String application
   private String region
-  private String environment
+  private NetflixAmazonCredentials credentials
   private String stack
   private String freeFormDetails
   private String ami
@@ -105,7 +106,9 @@ class AutoScalingWorker {
     String asgName = awsServerGroupNameResolver.resolveNextServerGroupName(application, stack, freeFormDetails, ignoreSequence)
 
     def settings = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
-      account: environment,
+      account: credentials.name,
+      environment: credentials.environment,
+      accountType: credentials.accountType,
       region: region,
       baseName: asgName,
       suffix: null,
