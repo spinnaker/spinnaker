@@ -393,21 +393,19 @@ class SpinnakerAgent(service_testing.HttpAgent):
 
     spinnaker_config = {
       # Assume the default name.
-      'ACCOUNT_NAME': 'my-account-name',
+      'GOOGLE_ACCOUNT_NAME': 'my-account-name',
       # Assume the default managed project is itself.
-      'MANAGED_PROJECT_ID': gcloud.project
+      'GOOGLE_MANAGED_PROJECT_ID': gcloud.project
     }
 
     logger = logging.getLogger(__name__)
-    for key in ['MANAGED_PROJECT_ID', 'ACCOUNT_NAME']:
+    for key in ['GOOGLE_MANAGED_PROJECT_ID', 'GOOGLE_ACCOUNT_NAME']:
       m = re.search(key + '=([-\w]+)', contents)
       if m:
         spinnaker_config[key] = m.group(1)
       else:
         logger.debug(
           'Seems to be using the default %s=%s', key, spinnaker_config[key])
-    spinnaker_config['MANAGED_GCE_PROJECT'] = (
-      spinnaker_config['MANAGED_PROJECT_ID'])
 
     logger.debug('Collected configuration %s', spinnaker_config)
     return spinnaker_config

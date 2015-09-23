@@ -140,9 +140,15 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     self._bindings['TEST_AWS_REGION'] = self._bindings['TEST_AWS_ZONE'][:-1]
     self._update_bindings_with_subsystem_configuration(agent)
 
-    if self._bindings.get('MANAGED_GCE_PROJECT'):
+    # !!! DEPRECATED(20150921)
+    if not self._bindings.get('GOOGLE_MANAGED_PROJECT_ID'):
+      self._bindings['GOOGLE_MANAGED_PROJECT_ID'] =  self._bindings.get('MANAGED_GCE_PROJECT', '')
+    if not self._bindings.get('GOOGLE_ACCOUNT_NAME'):
+      self._bindings['GOOGLE_ACCOUNT_NAME'] =  self._bindings.get('ACCOUNT_NAME', '')
+
+    if self._bindings.get('GOOGLE_MANAGED_PROJECT_ID'):
       self._gce_observer = gcp.GCloudAgent(
-          project=self._bindings['MANAGED_GCE_PROJECT'],
+          project=self._bindings['GOOGLE_MANAGED_PROJECT_ID'],
           zone=self._bindings['TEST_GCE_ZONE'],
           ssh_passphrase_file=self._bindings['GCE_SSH_PASSPHRASE_FILE'])
     else:
@@ -173,13 +179,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
     if not self._bindings['GCE_CREDENTIALS']:
       self._bindings['GCE_CREDENTIALS'] = self._bindings.get(
-          'ACCOUNT_NAME', None)
+          'GOOGLE_ACCOUNT_NAME', None)
 
-    if not self._bindings.get('MANAGED_GCE_PROJECT'):
+    if not self._bindings.get('GOOGLE_MANAGED_PROJECT_ID'):
       # Default to the project we are managing.
-      self._bindings['MANAGED_GCE_PROJECT'] = agent.runtime_config.get(
-          'MANAGED_PROJECT_ID')
-      if not self._bindings['MANAGED_GCE_PROJECT']:
+      self._bindings['GOOGLE_MANAGED_PROJECT_ID'] = agent.runtime_config.get(
+          'GOOGLE_MANAGED_PROJECT_ID')
+      if not self._bindings['GOOGLE_MANAGED_PROJECT_ID']:
         # But if that wasnt defined then default to the subsystem's project.
-        self._bindings['MANAGED_GCE_PROJECT'] = self._bindings['GCE_PROJECT']
+        self._bindings['GOOGLE_MANAGED_PROJECT_ID'] = self._bindings['GCE_PROJECT']
         
