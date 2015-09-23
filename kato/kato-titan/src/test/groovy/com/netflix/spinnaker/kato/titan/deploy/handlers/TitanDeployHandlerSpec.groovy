@@ -38,7 +38,7 @@ class TitanDeployHandlerSpec extends Specification {
   }
 
   NetflixTitanCredentials testCredentials = new NetflixTitanCredentials(
-    'test', [new TitanRegion('us-east-1', 'test', 'http://foo', 'http://bar')]
+    'test', 'test', 'test', [new TitanRegion('us-east-1', 'test', 'http://foo', 'http://bar')]
   )
 
   @Subject
@@ -55,9 +55,7 @@ class TitanDeployHandlerSpec extends Specification {
       application: 'api',
       stack: 'test',
       details: '',
-      account: 'test',
-      region: 'us-east-1',
-      subnet: 'vpc0',
+      placement: [account: 'test', region: 'us-east-1', subnet: 'vpc0'],
       dockerImage: 'api.server:master-201506020033-trusty-7366606',
       capacity: [desired: 1],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001]],
@@ -76,15 +74,15 @@ class TitanDeployHandlerSpec extends Specification {
     deploymentResult.serverGroupNameByRegion && deploymentResult.serverGroupNameByRegion['us-east-1'] == 'api-test-v000'
     1 * titanClient.submitJob({
       it.jobName == 'api-test-v000' &&
-      it.dockerImageName == 'api.server' &&
-      it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
-      it.instances == titanDeployDescription.capacity.desired &&
-      it.cpu == titanDeployDescription.resources.cpu &&
-      it.memory == titanDeployDescription.resources.memory &&
-      it.disk == titanDeployDescription.resources.disk &&
-      it.ports == titanDeployDescription.resources.ports &&
-      it.env == titanDeployDescription.env &&
-      it.application == titanDeployDescription.application
+        it.dockerImageName == 'api.server' &&
+        it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
+        it.instances == titanDeployDescription.capacity.desired &&
+        it.cpu == titanDeployDescription.resources.cpu &&
+        it.memory == titanDeployDescription.resources.memory &&
+        it.disk == titanDeployDescription.resources.disk &&
+        it.ports == titanDeployDescription.resources.ports &&
+        it.env == titanDeployDescription.env &&
+        it.application == titanDeployDescription.application
     } as SubmitJobRequest)
   }
 

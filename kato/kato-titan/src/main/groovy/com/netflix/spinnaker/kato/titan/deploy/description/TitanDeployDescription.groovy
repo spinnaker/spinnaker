@@ -28,10 +28,7 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
   String details
   String dockerImage
   Capacity capacity = new Capacity()
-  String account
-  String region
-  String subnet
-  List<String> zones
+  Placement placement = new Placement()
   Resources resources = new Resources()
   Map env
 
@@ -40,6 +37,14 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
     int min
     int max
     int desired
+  }
+
+  @Canonical
+  static class Placement {
+    String account
+    String region
+    String subnet
+    List<String> zones
   }
 
   @Canonical
