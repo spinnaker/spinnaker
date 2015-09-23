@@ -81,7 +81,7 @@ class ContextParameterProcessor {
             account    : deployStage.context.account,
             capacity   : deployStage.context.capacity,
             parentStage: deployStage.parentStageId,
-            region     : deployStage.context.availabilityZones.keySet().first(),
+            region     : deployStage.context.region ?: deployStage.context.availabilityZones.keySet().first(),
           ]
           deployDetails.putAll(deployStage.context.deploymentDetails.find { it.region == deployDetails.region } ?: [:])
           deployDetails.serverGroup = deployStage.context.'deploy.server.groups'."${deployDetails.region}".first()

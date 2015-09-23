@@ -15,7 +15,8 @@
  */
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
-
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
@@ -25,13 +26,11 @@ import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
+import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.Immutable
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.batch.core.Step
@@ -105,9 +104,9 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
-  List<Map> getExistingAsgs(String application, String account, String cluster, String providerType) {
+  List<Map> getExistingAsgs(String application, String account, String cluster, String cloudProvider) {
     try {
-      return sourceResolver.getExistingAsgs(application, account, cluster, providerType)
+      return sourceResolver.getExistingAsgs(application, account, cluster, cloudProvider)
     } catch (RetrofitError re) {
       if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
         return []
@@ -121,10 +120,14 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
+    def existingAsgs = getExistingAsgs(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider
+    )
     if (existingAsgs) {
-      for (entry in stageData.availabilityZones) {
-        def region = entry.key
+      if (stageData.regions?.size() > 1) {
+        log.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
+      }
+      for (String region in stageData.regions) {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
@@ -186,16 +189,20 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.providerType)
+    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
     if (existingAsgs) {
-      for (entry in stageData.availabilityZones) {
-        def region = entry.key
+      if (stageData.regions?.size() > 1) {
+        log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
+      }
+      for (String region in stageData.regions) {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
 
         existingAsgs.findAll { it.region == region }.each { Map asg ->
-          def nextContext = [asgName: asg.name, credentials: cleanupConfig.account, regions: [region]]
+          def nextContext = [
+            asgName: asg.name, credentials: cleanupConfig.account, regions: [region], serverGroupName: asg.name, region: region
+          ]
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {

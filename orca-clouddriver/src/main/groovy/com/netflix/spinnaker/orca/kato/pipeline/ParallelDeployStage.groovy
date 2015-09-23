@@ -82,8 +82,8 @@ class ParallelDeployStage extends ParallelStage {
       type += "_$cluster.providerType"
     }
 
-    String name = cluster.availabilityZones ? "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}" :
-      cluster.placement ? "Deploy in ${cluster.placement.region}" : "Deploy in ${cluster.region}"
+    String name = cluster.region ? "Deploy in ${cluster.region}" : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
+
     return defaultStageContext + [
       account: cluster.account ?: stage.context.account,
       cluster: cluster,

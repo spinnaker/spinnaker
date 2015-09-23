@@ -22,23 +22,23 @@ class StageData {
   String strategy
   String account
   String credentials
+  String region
   String freeFormDetails
   String application
   String stack
-  String providerType = "aws"
+  @Deprecated String providerType = "aws"
+  String cloudProvider = "aws"
   boolean scaleDown
   Map<String, List<String>> availabilityZones
   int maxRemainingAsgs
   Boolean useSourceCapacity
   Source source
-  Placement placement
 
   String getCluster() {
     def builder = new AutoScalingGroupNameBuilder()
     builder.appName = application
     builder.stack = stack
     builder.detail = freeFormDetails
-
     return builder.buildGroupName()
   }
 
@@ -49,14 +49,13 @@ class StageData {
     return account ?: credentials
   }
 
+  @Deprecated
   List<String> getRegions() {
-    if (availabilityZones) {
-      availabilityZones.keySet().toList()
-    } else if (placement) {
-      [placement.region]
-    } else {
-      []
-    }
+    availabilityZones ? availabilityZones.keySet().toList() : region ? [region] : []
+  }
+
+  String getRegion() {
+    region ?: availabilityZones.keySet().toList().get(0)
   }
 
   static class Source {
@@ -66,8 +65,4 @@ class StageData {
     Boolean useSourceCapacity
   }
 
-  static class Placement {
-    String account
-    String region
-  }
 }

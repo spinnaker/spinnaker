@@ -44,18 +44,18 @@ class SourceResolver {
     }
 
     def existingAsgs = getExistingAsgs(
-      stageData.application, stageData.account, stageData.cluster, stageData.providerType
+      stageData.application, stageData.account, stageData.cluster, stageData.cloudProvider
     )
 
     if (!existingAsgs) {
       return null
     }
 
-    if (!stageData.availabilityZones) {
-      throw new IllegalStateException("no availabilityZones in stage context")
+    if (!stageData.region && !stageData.availabilityZones) {
+      throw new IllegalStateException("No 'region' or 'availabilityZones' in stage context")
     }
 
-    def targetRegion = stageData.availabilityZones.keySet()[0]
+    def targetRegion = stageData.region
     def regionalAsgs = existingAsgs.findAll { it.region == targetRegion } as List<Map>
     if (!regionalAsgs) {
       return null

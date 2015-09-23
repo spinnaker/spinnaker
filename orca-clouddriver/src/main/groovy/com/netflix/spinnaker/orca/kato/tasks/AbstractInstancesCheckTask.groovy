@@ -95,14 +95,14 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
             newContext = [
               zeroDesiredCapacityCount: 0,
               capacitySnapshot: [
-                minSize: serverGroup.asg.minSize,
-                desiredCapacity: serverGroup.asg.desiredCapacity,
-                maxSize: serverGroup.asg.maxSize
+                minSize: serverGroup.capacity.min,
+                desiredCapacity: serverGroup.capacity.desired,
+                maxSize: serverGroup.capacity.max
               ]
             ]
           }
           if (seenServerGroup) {
-            if (serverGroup.asg.desiredCapacity == 0) {
+            if (serverGroup.capacity.desired == 0) {
               newContext.zeroDesiredCapacityCount = (stage.context.zeroDesiredCapacityCount ?: 0) + 1
             } else {
               newContext.zeroDesiredCapacityCount = 0

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -86,7 +87,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
       operation.putAll(context)
     }
 
-    def targetRegion = (operation.availabilityZones as Map<String, Object>).keySet()[0]
+    def targetRegion = operation.region ?: (operation.availabilityZones as Map<String, Object>).keySet()[0]
     def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
     if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
@@ -115,9 +116,11 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     List<Map<String, Object>> descriptions = []
 
     if (deployOperation.credentials != defaultBakeAccount) {
-      descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
-        [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
-      })
+      if (deployOperation.availabilityZones) {
+        descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
+          [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
+        })
+      }
     }
 
     descriptions.add([createServerGroup: deployOperation])
