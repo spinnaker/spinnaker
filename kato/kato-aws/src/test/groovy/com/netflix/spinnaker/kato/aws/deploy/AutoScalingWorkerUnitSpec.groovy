@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.kato.aws.deploy
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
+import com.netflix.spinnaker.kato.aws.TestCredential
 import com.netflix.spinnaker.kato.aws.services.AsgService
 import com.netflix.spinnaker.kato.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.kato.data.task.DefaultTask
@@ -40,6 +41,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('us-east-1', asgService)
+  def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
@@ -52,6 +54,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     def launchConfigName = "launchConfig"
     def mockAutoScalingWorker = Spy(AutoScalingWorker)
     mockAutoScalingWorker.application = "myasg"
+    mockAutoScalingWorker.credentials = credential
     mockAutoScalingWorker.regionScopedProvider = regionScopedProvider
 
     when:
@@ -67,6 +70,7 @@ class AutoScalingWorkerUnitSpec extends Specification {
     setup:
     def autoScalingWorker = new AutoScalingWorker(
       regionScopedProvider : regionScopedProvider,
+      credentials: credential,
       application : "myasg",
       region : "us-east-1"
     )

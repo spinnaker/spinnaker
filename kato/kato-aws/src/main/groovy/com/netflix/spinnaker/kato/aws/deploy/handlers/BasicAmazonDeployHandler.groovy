@@ -127,7 +127,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def autoScalingWorker = new AutoScalingWorker(
         application: description.application,
         region: region,
-        environment: description.credentials.name,
+        credentials: description.credentials,
         stack: description.stack,
         freeFormDetails: description.freeFormDetails,
         ami: ami.amiId,
