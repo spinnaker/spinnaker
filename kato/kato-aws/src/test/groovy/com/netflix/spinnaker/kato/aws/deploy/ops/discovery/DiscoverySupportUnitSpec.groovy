@@ -368,7 +368,7 @@ class DiscoverySupportUnitSpec extends Specification {
         Mock(com.netflix.spinnaker.oort.model.Instance) {
           1 * getHealth() >> {
             [
-              [discoveryStatus: discoveryStatus]
+                [discoveryStatus: discoveryStatus]
             ]
           }
           0 * _

@@ -36,7 +36,6 @@ class TitanServerGroup implements ServerGroup, Serializable {
   String application
   Map<String, Object> image = [:]
   Set<Instance> instances = [] as Set
-  ServerGroup.Capacity capacity
   TitanServerGroupResources resources = new TitanServerGroupResources()
   TitanServerGroupPlacement placement = new TitanServerGroupPlacement()
 
@@ -58,7 +57,6 @@ class TitanServerGroup implements ServerGroup, Serializable {
     placement.region = job.region
     placement.subnetId = job.subnetId
     instances = job.tasks.findAll { it != null }.collect { new TitanInstance(it) } as Set
-    capacity = new ServerGroup.Capacity(min: job.instances, max: job.instances, desired: job.instances)
   }
 
   @Override
