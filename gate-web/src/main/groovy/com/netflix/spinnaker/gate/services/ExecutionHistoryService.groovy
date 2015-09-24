@@ -29,21 +29,19 @@ import org.springframework.stereotype.Component
 @Component
 @Slf4j
 class ExecutionHistoryService {
-  private static final String GROUP = "executionHistory"
-
   @Autowired
   OrcaService orcaService
 
   List getTasks(String app) {
     Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand(GROUP, "getTasksForApp", true) {
+    HystrixFactory.newListCommand("taskExecutionHistory", "getTasksForApp", true) {
       orcaService.getTasks(app)
     } execute()
   }
 
   List getPipelines(String app) {
     Preconditions.checkNotNull(app)
-    HystrixFactory.newListCommand(GROUP, "getPipelinesForApp", true) {
+    HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp", true) {
       orcaService.getPipelines(app)
     } execute()
   }

@@ -53,47 +53,47 @@ class ApplicationController {
     applicationService.all
   }
 
-  @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
-  Map show(@PathVariable("name") String name) {
-    def result = applicationService.get(name)
+  @RequestMapping(value = "/{application:.+}", method = RequestMethod.GET)
+  Map show(@PathVariable("application") String application) {
+    def result = applicationService.get(application)
     if (!result) {
-      log.warn("Application ${name} not found")
-      throw new ApplicationNotFoundException("Application ${name} not found")
+      log.warn("Application ${application} not found")
+      throw new ApplicationNotFoundException("Application ${application} not found")
     } else if (!result.name) {
       // applicationService.get() doesn't set the name unless clusters are found. Deck requires the name.
-      result.name = name
+      result.name = application
     }
     result
   }
 
-  @RequestMapping(value = "/{name}/tasks", method = RequestMethod.GET)
-  List getTasks(@PathVariable("name") String name) {
-    executionHistoryService.getTasks(name)
+  @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
+  List getTasks(@PathVariable("application") String application) {
+    executionHistoryService.getTasks(application)
   }
 
-  @RequestMapping(value = "/{name}/pipelines", method = RequestMethod.GET)
-  List getPipelines(@PathVariable("name") String name) {
-    executionHistoryService.getPipelines(name)
+  @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
+  List getPipelines(@PathVariable("application") String application) {
+    executionHistoryService.getPipelines(application)
   }
 
   /**
    * @deprecated  There is no reason to provide an app name, use PipelineController instead for pipeline operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/pipelines/{id}/cancel", method = RequestMethod.PUT)
+  @RequestMapping(value = "/{application}/pipelines/{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id) {
     taskService.cancelPipeline(id)
   }
 
-  @RequestMapping(value = "/{name}/pipelineConfigs", method = RequestMethod.GET)
-  List getPipelineConfigs(@PathVariable("name") String name) {
-    applicationService.getPipelineConfigs(name)
+  @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)
+  List getPipelineConfigs(@PathVariable("application") String application) {
+    applicationService.getPipelineConfigs(application)
   }
 
-  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
-      @PathVariable("name") String name, @PathVariable("pipelineName") String pipelineName) {
-    applicationService.getPipelineConfigs(name).find {
+      @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
+    applicationService.getPipelineConfigs(application).find {
       it.name == pipelineName
     }
   }
@@ -102,8 +102,8 @@ class ApplicationController {
    * @deprecated  Use PipelineController instead for pipeline operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST)
-  HttpEntity invokePipelineConfig(@PathVariable("name") String application,
+  @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.POST)
+  HttpEntity invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineName") String pipelineName,
                                   @RequestBody(required = false) Map trigger,
                                   @RequestParam(required = false, value = "user") String user) {
@@ -128,7 +128,7 @@ class ApplicationController {
    * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/tasks/{id}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{application}/tasks/{id}", method = RequestMethod.GET)
   Map getTask(@PathVariable("id") String id) {
     taskService.getTask(id)
   }
@@ -137,7 +137,7 @@ class ApplicationController {
    * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/tasks/{id}/cancel", method = RequestMethod.PUT)
+  @RequestMapping(value = "/{application}/tasks/{id}/cancel", method = RequestMethod.PUT)
   Map cancelTask(@PathVariable("id") String id) {
     taskService.cancelTask(id)
   }
@@ -146,7 +146,7 @@ class ApplicationController {
    * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
+  @RequestMapping(value = "/{application}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
   Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
     taskService.getTaskDetails(taskDetailsId)
   }
@@ -155,9 +155,9 @@ class ApplicationController {
    * @deprecated  There is no reason to provide an app name, use TaskController instead for task operations.
    */
   @Deprecated
-  @RequestMapping(value = "/{name}/tasks", method = RequestMethod.POST)
-  Map task(@PathVariable String name, @RequestBody Map map) {
-    taskService.createAppTask(name, map)
+  @RequestMapping(value = "/{application}/tasks", method = RequestMethod.POST)
+  Map task(@PathVariable String application, @RequestBody Map map) {
+    taskService.createAppTask(application, map)
   }
 
   static class BakeCommand {
