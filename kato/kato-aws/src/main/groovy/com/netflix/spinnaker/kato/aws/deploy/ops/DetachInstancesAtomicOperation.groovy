@@ -20,6 +20,7 @@ package com.netflix.spinnaker.kato.aws.deploy.ops
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.DetachInstancesRequest
+import com.amazonaws.services.autoscaling.model.LifecycleState
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.model.CreateTagsRequest
 import com.amazonaws.services.ec2.model.Tag
@@ -29,11 +30,16 @@ import com.netflix.spinnaker.kato.aws.deploy.description.DetachInstancesDescript
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
+@Slf4j
 class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final int MAX_DETACH = 20
   private static final int SLEEP_MS_BETWEEN_DETACH = 5000
+  private static final Set<String> ALLOWED_LIFECYCLE_STATES = [
+    LifecycleState.InService.toString(), LifecycleState.Standby.toString()
+  ]
 
   private static final String BASE_PHASE = "DETACH_INSTANCES"
   private static final String TAG_DETACHED = "spinnaker:Detached"
@@ -62,6 +68,16 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
       if (!validInstanceIds) {
         // no work to do, no-op
         return
+      }
+
+      validInstanceIds = validInstanceIds.findAll { String instanceId ->
+        def instance = autoScalingGroup.instances.find { it.instanceId == instanceId }
+        if (ALLOWED_LIFECYCLE_STATES.contains(instance.lifecycleState)) {
+          return true
+        }
+
+        task.updateStatus BASE_PHASE, "Unable to detach instance ${instanceId} (lifecycleState: ${instance.lifecycleState}, asgName: ${description.asgName})"
+        return false
       }
 
       if ((autoScalingGroup.desiredCapacity - validInstanceIds.size()) < autoScalingGroup.minSize) {

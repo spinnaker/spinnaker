@@ -22,6 +22,7 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsResult
 import com.amazonaws.services.autoscaling.model.DetachInstancesRequest
 import com.amazonaws.services.autoscaling.model.Instance
+import com.amazonaws.services.autoscaling.model.LifecycleState
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.amazonaws.services.ec2.AmazonEC2
 import com.amazonaws.services.ec2.model.CreateTagsRequest
@@ -61,7 +62,9 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(2)]
+        [new AutoScalingGroup().withInstances(
+          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.Standby)
+        ).withMinSize(1).withDesiredCapacity(2)]
       )
     }
     1 * amazonEC2.createTags({ CreateTagsRequest request ->
@@ -99,7 +102,9 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     } as CreateTagsRequest)
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(2)]
+        [new AutoScalingGroup().withInstances(
+          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService)
+        ).withMinSize(1).withDesiredCapacity(2)]
       )
     }
     1 * amazonAutoScaling.detachInstances({ DetachInstancesRequest request ->
@@ -129,7 +134,9 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     1 * amazonClientProvider.getAmazonEC2(null, null, true) >> { amazonEC2 }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(1)]
+        [new AutoScalingGroup().withInstances(
+          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService)
+        ).withMinSize(1).withDesiredCapacity(1)]
       )
     }
     1 * amazonEC2.createTags({ CreateTagsRequest request ->
@@ -159,7 +166,11 @@ class DetachInstancesAtomicOperationSpec extends Specification {
     1 * amazonClientProvider.getAutoScaling(null, null, true) >> { amazonAutoScaling }
     1 * amazonAutoScaling.describeAutoScalingGroups(_) >> {
       new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-        [new AutoScalingGroup().withInstances(new Instance().withInstanceId("i-000001")).withMinSize(1).withDesiredCapacity(1)]
+        [new AutoScalingGroup().withInstances(
+          new Instance().withInstanceId("i-000001").withLifecycleState(LifecycleState.InService),
+          new Instance().withInstanceId("i-000002").withLifecycleState(LifecycleState.Pending)
+        ).withMinSize(1).withDesiredCapacity(1)
+        ]
       )
     }
     thrown(IllegalStateException)

@@ -20,7 +20,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.netflix.spinnaker.kato.data.task.Status
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskState
+import groovy.util.logging.Slf4j
 
+@Slf4j
 class JedisTask implements Task {
 
   @JsonIgnore
@@ -38,6 +40,7 @@ class JedisTask implements Task {
   @Override
   void updateStatus(String phase, String status) {
     repository.addToHistory(repository.currentState(this).update(phase, status), this)
+    log.info "[$phase] - $status"
   }
 
   @Override
