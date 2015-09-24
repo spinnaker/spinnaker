@@ -72,7 +72,7 @@ class TitanDeployHandlerSpec extends Specification {
     then:
     noExceptionThrown()
     deploymentResult != null
-    deploymentResult.serverGroupNames && deploymentResult.serverGroupNames.contains('api-test-v000')
+    deploymentResult.serverGroupNames && deploymentResult.serverGroupNames.contains('us-east-1:api-test-v000')
     deploymentResult.serverGroupNameByRegion && deploymentResult.serverGroupNameByRegion['us-east-1'] == 'api-test-v000'
     1 * titanClient.submitJob({
       it.jobName == 'api-test-v000' &&

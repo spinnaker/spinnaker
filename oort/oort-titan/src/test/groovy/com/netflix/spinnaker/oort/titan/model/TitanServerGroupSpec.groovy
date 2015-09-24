@@ -81,8 +81,8 @@ class TitanServerGroupSpec extends Specification {
     titanServerGroup.instances?.size() == 1
     titanServerGroup.instances[0] instanceof TitanInstance
     titanServerGroup.instances[0].name == job.tasks[0].id
-    titanServerGroup.capacity?.min == job.instances
-    titanServerGroup.capacity?.max == job.instances
-    titanServerGroup.capacity?.desired == job.instances
+//    titanServerGroup.capacity?.min == job.instances
+//    titanServerGroup.capacity?.max == job.instances
+//    titanServerGroup.capacity?.desired == job.instances
   }
 }
