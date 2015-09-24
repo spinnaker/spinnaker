@@ -76,15 +76,15 @@ class TitanDeployHandlerSpec extends Specification {
     deploymentResult.serverGroupNameByRegion && deploymentResult.serverGroupNameByRegion['us-east-1'] == 'api-test-v000'
     1 * titanClient.submitJob({
       it.jobName == 'api-test-v000' &&
-      it.dockerImageName == 'api.server' &&
-      it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
-      it.instances == titanDeployDescription.capacity.desired &&
-      it.cpu == titanDeployDescription.resources.cpu &&
-      it.memory == titanDeployDescription.resources.memory &&
-      it.disk == titanDeployDescription.resources.disk &&
-      it.ports == titanDeployDescription.resources.ports &&
-      it.env == titanDeployDescription.env &&
-      it.application == titanDeployDescription.application
+        it.dockerImageName == 'api.server' &&
+        it.dockerImageVersion == 'master-201506020033-trusty-7366606' &&
+        it.instances == titanDeployDescription.capacity.desired &&
+        it.cpu == titanDeployDescription.resources.cpu &&
+        it.memory == titanDeployDescription.resources.memory &&
+        it.disk == titanDeployDescription.resources.disk &&
+        it.ports == titanDeployDescription.resources.ports &&
+        it.env == titanDeployDescription.env &&
+        it.application == titanDeployDescription.application
     } as SubmitJobRequest)
   }
 

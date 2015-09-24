@@ -58,6 +58,17 @@ class AmazonServerGroupSpec extends Specification {
       HealthState.OutOfService  | _
   }
 
+  void 'server group capacity should use min/max/desired values from asg map'() {
+    given:
+    AmazonServerGroup amazonServerGroup = new AmazonServerGroup(asg: [minSize: 1, desiredCapacity: 2, maxSize: 3])
+
+    expect:
+    amazonServerGroup.capacity != null
+    amazonServerGroup.capacity.min == 1
+    amazonServerGroup.capacity.desired == 2
+    amazonServerGroup.capacity.max == 3
+  }
+
   Instance buildAmazonInstance(HealthState state) {
     def instance = Mock(AmazonInstance)
     instance.getHealthState() >> state
