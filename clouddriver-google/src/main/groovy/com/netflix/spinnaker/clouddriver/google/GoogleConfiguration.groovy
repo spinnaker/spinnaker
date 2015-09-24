@@ -19,8 +19,6 @@ package com.netflix.spinnaker.clouddriver.google
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.clouddriver.google.health.GoogleHealthIndicator
 import com.netflix.spinnaker.clouddriver.google.security.GoogleCredentialsInitializer
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
@@ -54,16 +52,6 @@ class GoogleConfiguration {
   @Bean
   String googleApplicationName(@Value('${Implementation-Version:Unknown}') String implementationVersion) {
     "Spinnaker/$implementationVersion"
-  }
-
-  @Bean
-  ReplicaPoolBuilder replicaPoolBuilder(String googleApplicationName) {
-    new ReplicaPoolBuilder(googleApplicationName)
-  }
-
-  @Bean
-  ResourceViewsBuilder resourceViewsBuilder(String googleApplicationName) {
-    new ResourceViewsBuilder(googleApplicationName)
   }
 }
 

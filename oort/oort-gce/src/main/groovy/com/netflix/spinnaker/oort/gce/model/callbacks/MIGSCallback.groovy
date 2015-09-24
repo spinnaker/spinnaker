@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
@@ -38,13 +37,11 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
   private String accountName
   private String project
   private Compute compute
-  private GoogleCredential.Builder credentialBuilder
   private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
-  private BatchRequest resourceViewsBatch
-  private ResourceViewsBuilder resourceViewsBuilder
+  private BatchRequest instanceGroupsBatch
 
   public MIGSCallback(HashMap<String, GoogleApplication> tempAppMap,
                       String region,
@@ -52,26 +49,22 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                       String accountName,
                       String project,
                       Compute compute,
-                      GoogleCredential.Builder credentialBuilder,
                       Set<GoogleSecurityGroup> googleSecurityGroups,
                       Map<String, List<Map>> imageMap,
                       String defaultBuildHost,
                       Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
-                      BatchRequest resourceViewsBatch,
-                      ResourceViewsBuilder resourceViewsBuilder) {
+                      BatchRequest instanceGroupsBatch) {
     this.tempAppMap = tempAppMap
     this.region = region
     this.localZoneName = localZoneName
     this.accountName = accountName
     this.project = project
     this.compute = compute
-    this.credentialBuilder = credentialBuilder
     this.googleSecurityGroups = googleSecurityGroups
     this.imageMap = imageMap
     this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
-    this.resourceViewsBatch = resourceViewsBatch
-    this.resourceViewsBuilder = resourceViewsBuilder
+    this.instanceGroupsBatch = instanceGroupsBatch
   }
 
   @Override
@@ -89,16 +82,16 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
         googleServerGroup.setProperty(
           "launchConfig", [createdTime: Utils.getTimeFromTimestamp(instanceGroupManager.creationTimestamp)])
 
-        def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
-        def resourceViewsCallback = new ResourceViewsCallback(localZoneName,
-                                                              googleServerGroup,
-                                                              project,
-                                                              compute,
-                                                              instanceNameToGoogleServerGroupMap)
-        resourceViews.zoneViews().listResources(project,
-                                                localZoneName,
-                                                instanceGroupManager.name).queue(resourceViewsBatch,
-                                                                                 resourceViewsCallback)
+        def instanceGroupsCallback = new InstanceGroupsCallback(localZoneName,
+                                                                googleServerGroup,
+                                                                project,
+                                                                compute,
+                                                                instanceNameToGoogleServerGroupMap)
+        compute.instanceGroups().listInstances(project,
+                                               localZoneName,
+                                               instanceGroupManager.name,
+                                               new InstanceGroupsListInstancesRequest()).queue(instanceGroupsBatch,
+                                                                                               instanceGroupsCallback)
 
         def localInstanceTemplateName = Utils.getLocalName(instanceGroupManager.instanceTemplate)
         def instanceTemplatesCallback = new InstanceTemplatesCallback(googleServerGroup,
@@ -107,7 +100,7 @@ class MIGSCallback<InstanceGroupManagerList> extends JsonBatchCallback<InstanceG
                                                                       imageMap,
                                                                       defaultBuildHost)
         compute.instanceTemplates().get(project,
-                                        localInstanceTemplateName).queue(resourceViewsBatch,
+                                        localInstanceTemplateName).queue(instanceGroupsBatch,
                                                                          instanceTemplatesCallback)
 
         // The isDisabled property of a server group is set based on whether there are associated target pools.
