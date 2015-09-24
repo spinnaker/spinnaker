@@ -46,6 +46,14 @@ class PipelineController {
 
     @RequestMapping(value = '', method = RequestMethod.POST)
     void save(@RequestBody Map pipeline) {
+        if (!pipeline.id) {
+            // ensure that cron triggers are assigned a unique identifier for new pipelines
+            def triggers = (pipeline.triggers ?: []) as List<Map>
+            triggers.findAll { it.type == "cron" }.each { Map trigger ->
+                trigger.id = UUID.randomUUID().toString()
+            }
+        }
+
         pipelineRepository.save(pipeline)
     }
 

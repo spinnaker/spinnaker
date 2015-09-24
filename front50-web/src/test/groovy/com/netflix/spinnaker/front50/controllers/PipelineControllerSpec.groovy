@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import spock.lang.Unroll
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -56,4 +58,30 @@ class PipelineControllerSpec extends Specification {
         1 * pipelineRepository.rename('test', 'old-pipeline-name', 'new-pipeline-name')
     }
 
+    @Unroll
+    void 'should only (re)generate cron trigger ids for new pipelines'() {
+        given:
+        def pipeline = [
+            id: pipelineId,
+            triggers: [
+                [type: "cron", id: "original-id"]
+            ]
+        ]
+
+        when:
+        def response = mockMvc.perform(post('/pipelines').
+            contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+            .andReturn().response
+
+        then:
+        response.status == OK
+        1 * pipelineRepository.save({
+          expectedTriggerCheck.call(it)
+        } as Map)
+
+        where:
+        pipelineId           || expectedTriggerCheck
+        null                 || { Map p -> p.triggers*.id != ["original-id"] }
+        "existingPipelineId" || { Map p -> p.triggers*.id == ["original-id"] }
+    }
 }
