@@ -20,7 +20,6 @@ import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.InheritConstructors
 import groovy.transform.ToString
-import groovy.util.logging.Slf4j
 
 /**
  * A TargetServerGroup is a ServerGroup that is dynamically resolved using a target like "current" or "oldest".
@@ -45,7 +44,6 @@ class TargetServerGroup {
    * A Params object is used to define the required parameters to resolve a TargetServerGroup.
    */
   @ToString(includeNames = true)
-  @Slf4j
   static class Params {
     /**
      * These are all lower case because we expect them to be defined in the pipeline as lowercase.
@@ -102,5 +100,5 @@ class TargetServerGroup {
   }
 
   @InheritConstructors
-  static class NotFoundException extends RuntimeException {}
+  static class NotFoundException extends RuntimeException{}
 }

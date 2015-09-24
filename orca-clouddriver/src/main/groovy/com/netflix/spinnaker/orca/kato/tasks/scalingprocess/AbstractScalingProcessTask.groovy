@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
-@Deprecated
 abstract class AbstractScalingProcessTask implements Task {
   @Autowired
   KatoService katoService

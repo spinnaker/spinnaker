@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 
 import groovy.transform.ToString
 
-@Deprecated
 @ToString(includeNames = true)
 class TargetReferenceConfiguration {
   enum Target {
