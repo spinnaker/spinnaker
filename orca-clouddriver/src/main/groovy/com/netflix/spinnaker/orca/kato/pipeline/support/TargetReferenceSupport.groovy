@@ -25,6 +25,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@Deprecated
 @Component
 @Slf4j
 class TargetReferenceSupport {

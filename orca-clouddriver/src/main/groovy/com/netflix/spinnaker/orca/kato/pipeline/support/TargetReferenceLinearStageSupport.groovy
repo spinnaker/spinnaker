@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
+@Deprecated
 abstract class TargetReferenceLinearStageSupport extends LinearStage {
   @Autowired
   ObjectMapper objectMapper
