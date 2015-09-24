@@ -187,12 +187,22 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   }
 
   protected void composePipelineFlow(Stage stage) {
+
+    def stageData = stage.mapTo(StageData)
+    def cleanupConfig = determineClusterForCleanup(stage)
+
     def modifyCtx = [
       pipelineApplication: stage.context.application,
       pipelineId: stage.context.pipeline,
       pipelineConfig:[
         parentPipelineId: stage.execution.id,
-        parentStageId: stage.id
+        parentStageId: stage.id,
+        deploymentDetails: [
+          account: cleanupConfig.account,
+          cluster: cleanupConfig.cluster,
+          region: cleanupConfig.regions.first(),
+          amiName: stage.context.amiName
+        ]
       ]
     ]
     injectAfter(stage, "pipeline", pipelineStage, modifyCtx)
