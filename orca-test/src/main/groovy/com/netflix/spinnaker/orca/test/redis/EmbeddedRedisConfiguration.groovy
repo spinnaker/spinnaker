@@ -37,7 +37,11 @@ class EmbeddedRedisConfiguration {
 
   @Bean
   EmbeddedRedis redisServer() {
-    EmbeddedRedis.embed()
+    def redis = EmbeddedRedis.embed()
+    def jedis = redis.jedis
+    jedis.flushAll()
+    jedis.close()
+    return redis
   }
 
   @Bean

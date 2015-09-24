@@ -79,6 +79,7 @@ class PipelineStatusSpec extends Specification {
         beanFactory.autowireBean(it)
       }
       beanFactory.autowireBean this
+
     }
   }
 
