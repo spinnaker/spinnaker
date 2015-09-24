@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersRecreateInstancesRequest
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
@@ -44,12 +43,9 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   }
 
   private final TerminateGoogleInstancesDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  TerminateGoogleInstancesAtomicOperation(TerminateGoogleInstancesDescription description,
-                                          ReplicaPoolBuilder replicaPoolBuilder) {
+  TerminateGoogleInstancesAtomicOperation(TerminateGoogleInstancesDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -79,11 +75,10 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
           "group $description.managedInstanceGroupName."
 
       def managerName = description.managedInstanceGroupName
-      def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-      def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
-      def instanceGroupManagers = replicapool.instanceGroupManagers()
+      def instanceGroupManagers = compute.instanceGroupManagers()
+      def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, managerName, instanceIds, description.credentials)
+      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
 
-      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceIds)
       instanceGroupManagers.recreateInstances(project, zone, managerName, request).execute()
 
       task.updateStatus BASE_PHASE, "Done executing recreate of instances [${instanceIds.join(", ")}]."

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleReplicaPoolDescription
@@ -32,12 +30,9 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   }
 
   private final ResizeGoogleReplicaPoolDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  ResizeGoogleReplicaPoolAtomicOperation(ResizeGoogleReplicaPoolDescription description,
-                                         ReplicaPoolBuilder replicaPoolBuilder) {
+  ResizeGoogleReplicaPoolAtomicOperation(ResizeGoogleReplicaPoolDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -48,15 +43,12 @@ class ResizeGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Initializing resize of replica pool $description.replicaPoolName in $description.zone..."
 
     def project = description.credentials.project
+    def compute = description.credentials.compute
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
-    replicapool.instanceGroupManagers().resize(project,
-                                               description.zone,
-                                               description.replicaPoolName,
-                                               description.numReplicas).execute()
+    compute.instanceGroupManagers().resize(project,
+                                           description.zone,
+                                           description.replicaPoolName,
+                                           description.numReplicas).execute()
 
     task.updateStatus BASE_PHASE, "Done resizing replica pool $description.replicaPoolName in $description.zone."
     null

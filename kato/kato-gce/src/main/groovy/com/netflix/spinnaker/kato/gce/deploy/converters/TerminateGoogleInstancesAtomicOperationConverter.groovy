@@ -17,25 +17,20 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.TerminateGoogleInstancesAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.TERMINATE_INSTANCES)
 @Component
 class TerminateGoogleInstancesAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new TerminateGoogleInstancesAtomicOperation(convertDescription(input), replicaPoolBuilder)
+    new TerminateGoogleInstancesAtomicOperation(convertDescription(input))
   }
 
   @Override

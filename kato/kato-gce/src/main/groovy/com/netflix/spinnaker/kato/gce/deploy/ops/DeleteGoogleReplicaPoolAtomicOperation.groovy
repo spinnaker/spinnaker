@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -37,12 +35,9 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   private GoogleOperationPoller googleOperationPoller
 
   private final DeleteGoogleReplicaPoolDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  DeleteGoogleReplicaPoolAtomicOperation(DeleteGoogleReplicaPoolDescription description,
-                                         ReplicaPoolBuilder replicaPoolBuilder) {
+  DeleteGoogleReplicaPoolAtomicOperation(DeleteGoogleReplicaPoolDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -57,10 +52,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     def zone = description.zone
     def replicaPoolName = description.replicaPoolName
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
-    def instanceGroupManager = replicapool.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
+    def instanceGroupManager = compute.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
 
     // We create a new instance template for each managed instance group. We need to delete it here.
     def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
@@ -68,13 +60,13 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Identified instance template."
 
     def instanceGroupManagerDeleteOperation =
-        replicapool.instanceGroupManagers().delete(project, zone, replicaPoolName).execute()
+        compute.instanceGroupManagers().delete(project, zone, replicaPoolName).execute()
     def instanceGroupOperationName = instanceGroupManagerDeleteOperation.getName()
 
     task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
-    googleOperationPoller.waitForReplicaPoolZonalOperation(replicapool, project, zone, instanceGroupOperationName, null, task,
+    googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceGroupOperationName, null, task,
         "instance group $replicaPoolName", BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleted instance group."

@@ -16,15 +16,11 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
-import com.google.api.services.compute.model.Region
-import com.google.api.services.replicapool.Replicapool
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
@@ -37,42 +33,33 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
   private String accountName
   private String project
   private Compute compute
-  private GoogleCredential.Builder credentialBuilder
-  private Replicapool replicapool
   private Set<GoogleSecurityGroup> googleSecurityGroups
   private Map<String, List<Map>> imageMap
   private String defaultBuildHost
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
   private BatchRequest migsBatch
-  private BatchRequest resourceViewsBatch
-  private ResourceViewsBuilder resourceViewsBuilder
+  private BatchRequest instanceGroupsBatch
 
   public RegionsCallback(HashMap<String, GoogleApplication> tempAppMap,
                          String accountName,
                          String project,
                          Compute compute,
-                         GoogleCredential.Builder credentialBuilder,
-                         Replicapool replicapool,
                          Set<GoogleSecurityGroup> googleSecurityGroups,
                          Map<String, List<Map>> imageMap,
                          String defaultBuildHost,
                          Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap,
                          BatchRequest migsBatch,
-                         BatchRequest resourceViewsBatch,
-                         ResourceViewsBuilder resourceViewsBuilder) {
+                         BatchRequest instanceGroupsBatch) {
     this.tempAppMap = tempAppMap
     this.accountName = accountName
     this.project = project
     this.compute = compute
-    this.credentialBuilder = credentialBuilder
-    this.replicapool = replicapool
     this.googleSecurityGroups = googleSecurityGroups
     this.imageMap = imageMap
     this.defaultBuildHost = defaultBuildHost
     this.instanceNameToGoogleServerGroupMap = instanceNameToGoogleServerGroupMap
     this.migsBatch = migsBatch
-    this.resourceViewsBatch = resourceViewsBatch
-    this.resourceViewsBuilder = resourceViewsBuilder
+    this.instanceGroupsBatch = instanceGroupsBatch
   }
 
   @Override
@@ -87,15 +74,13 @@ class RegionsCallback<Region> extends JsonBatchCallback<Region> {
                                           accountName,
                                           project,
                                           compute,
-                                          credentialBuilder,
                                           googleSecurityGroups,
                                           imageMap,
                                           defaultBuildHost,
                                           instanceNameToGoogleServerGroupMap,
-                                          resourceViewsBatch,
-                                          resourceViewsBuilder)
+                                          instanceGroupsBatch)
 
-      replicapool.instanceGroupManagers().list(project, localZoneName).queue(migsBatch, migsCallback)
+      compute.instanceGroupManagers().list(project, localZoneName).queue(migsBatch, migsCallback)
     }
   }
 

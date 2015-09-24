@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**
@@ -26,10 +24,8 @@ import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServ
 class EnableGoogleServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
   final String phaseName = "ENABLE_REPLICA_POOL"
 
-  EnableGoogleServerGroupAtomicOperation(EnableDisableGoogleServerGroupDescription description,
-                                         ReplicaPoolBuilder replicaPoolBuilder,
-                                         ResourceViewsBuilder resourceViewsBuilder) {
-    super(description, replicaPoolBuilder, resourceViewsBuilder)
+  EnableGoogleServerGroupAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
+    super(description)
   }
 
   @Override

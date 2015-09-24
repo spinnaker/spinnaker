@@ -19,17 +19,15 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.AttachedDisk
 import com.google.api.services.compute.model.AttachedDiskInitializeParams
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
 import com.google.api.services.compute.model.NetworkInterface
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -93,17 +91,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
           tags: new Tags(items: TAGS_1)
         )
       )
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
-      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -112,8 +108,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -149,17 +144,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceTemplateInsertionOperationReal = new Operation(targetLink: NEW_INSTANCE_TEMPLATE_NAME,
                                                                  name: INSTANCE_TEMPLATE_INSERTION_OP_NAME,
                                                                  status: DONE)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def replicaPoolZonalOperations = Mock(Replicapool.ZoneOperations)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def computeZonalOperations = Mock(Compute.ZoneOperations)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def setInstanceTemplateMock = Mock(Replicapool.InstanceGroupManagers.SetInstanceTemplate)
+      def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
       def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
-      def setInstanceTemplateOperationGetMock = Mock(Replicapool.ZoneOperations.Get)
+      def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
@@ -168,7 +161,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
                                                                                tags: TAGS_2,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
-      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -177,8 +170,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -203,8 +195,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
       1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal
-      1 * replicaPoolMock.zoneOperations() >> replicaPoolZonalOperations
-      1 * replicaPoolZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
+      1 * computeMock.zoneOperations() >> computeZonalOperations
+      1 * computeZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
       1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
 
       // Delete the original instance template.
@@ -218,17 +210,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
       def instanceTemplateReal = new InstanceTemplate(name: ORIG_INSTANCE_TEMPLATE_NAME)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
-      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -237,8 +227,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -271,17 +260,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
           tags: new Tags(items: TAGS_1)
         )
       )
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
-      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -290,8 +277,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -327,17 +313,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
           tags: new Tags(items: TAGS_1)
         )
       )
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
-      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ModifyGoogleServerGroupInstanceTemplateAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -346,8 +330,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock

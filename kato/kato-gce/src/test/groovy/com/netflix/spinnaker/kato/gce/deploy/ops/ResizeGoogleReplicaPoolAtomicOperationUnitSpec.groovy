@@ -17,9 +17,7 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.replicapool.Replicapool
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleReplicaPoolDescription
@@ -40,24 +38,21 @@ class ResizeGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   void "should resize replica pool"() {
     setup:
       def computeMock = Mock(Compute)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersResizeMock = Mock(Replicapool.InstanceGroupManagers.Resize)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersResizeMock = Mock(Compute.InstanceGroupManagers.Resize)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new ResizeGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                numReplicas: DESIRED_NUM_REPLICAS,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)
-      @Subject def operation = new ResizeGoogleReplicaPoolAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new ResizeGoogleReplicaPoolAtomicOperation(description)
 
     when:
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.resize(PROJECT_NAME,
                                            ZONE,
                                            REPLICA_POOL_NAME,

@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest
+import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.Tags
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersSetInstanceTemplateRequest
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -49,15 +47,9 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
   }
 
   private final UpsertGoogleServerGroupTagsDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
-  private final ResourceViewsBuilder resourceViewsBuilder
 
-  UpsertGoogleServerGroupTagsAtomicOperation(UpsertGoogleServerGroupTagsDescription description,
-                                             ReplicaPoolBuilder replicaPoolBuilder,
-                                             ResourceViewsBuilder resourceViewsBuilder) {
+  UpsertGoogleServerGroupTagsAtomicOperation(UpsertGoogleServerGroupTagsDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
-    this.resourceViewsBuilder = resourceViewsBuilder
   }
 
   /**
@@ -72,10 +64,8 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     def zone = description.zone
     def tagsDescription = description.tags ? "tags $description.tags" : "empty set of tags"
     def replicaPoolName = description.replicaPoolName
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
-    def instanceGroupManagers = replicaPool.instanceGroupManagers()
+    def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
     def instances = compute.instances()
 
@@ -116,25 +106,25 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
         project, zone, replicaPoolName, instanceGroupManagersSetInstanceTemplateRequest).execute()
 
     // Block on setting the instance template on the managed instance group.
-    googleOperationPoller.waitForReplicaPoolZonalOperation(replicaPool, project, zone,
+    googleOperationPoller.waitForZonalOperation(compute, project, zone,
         setInstanceTemplateOperation.getName(), null, task, "server group $replicaPoolName", BASE_PHASE)
 
     // Retrieve the name of the instance group being managed by the instance group manager.
-    def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.group)
+    def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.instanceGroup)
 
     // Retrieve the instances in the instance group.
-    def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
-    def resourceItems = resourceViews.zoneViews().listResources(project,
+    def groupInstances = compute.instanceGroups().listInstances(project,
                                                                 zone,
-                                                                instanceGroupName).execute().items
+                                                                instanceGroupName,
+                                                                new InstanceGroupsListInstancesRequest()).execute().items
 
     // Set the new tags on all instances in the group (in parallel).
     task.updateStatus BASE_PHASE, "Setting $tagsDescription on each instance in server group $replicaPoolName..."
 
     def instanceUpdateOperations = []
 
-    resourceItems.each { resourceItem ->
-      def localInstanceName = GCEUtil.getLocalName(resourceItem.resource)
+    groupInstances.each { groupInstance ->
+      def localInstanceName = GCEUtil.getLocalName(groupInstance.instance)
       def instance = instances.get(project, zone, localInstanceName).execute()
       def tagsFingerprint = instance.tags.fingerprint
 

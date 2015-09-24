@@ -18,13 +18,11 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Network
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -68,8 +66,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private def computeMock
   private def credentials
-  private def replicaPoolBuilderMock
-  private def replicaPoolMock
   private def instanceGroupManagersMock
   private def instanceGroupManagersGetMock
   private def instanceGroupManagersDeleteMock
@@ -93,11 +89,10 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def setup() {
     computeMock = Mock(Compute)
     credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-    replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-    replicaPoolMock = Mock(Replicapool)
-    instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-    instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
-    instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
+
+    instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+    instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+    instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
     instanceTemplatesMock = Mock(Compute.InstanceTemplates)
     instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
 
@@ -149,7 +144,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
       def newDescription = description.clone()
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
@@ -157,8 +152,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
@@ -191,7 +185,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
@@ -199,8 +193,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
@@ -224,7 +217,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
       def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
@@ -232,8 +225,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
@@ -261,7 +253,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def googleSecurityGroupProviderMock = Mock(GoogleSecurityGroupProvider)
       def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
-      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
       operation.googleSecurityGroupProvider = googleSecurityGroupProviderMock
       operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
 
@@ -269,8 +261,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, ANCESTOR_SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 

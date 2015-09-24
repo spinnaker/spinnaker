@@ -21,15 +21,12 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.model.HealthStatus
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.replicapool.model.InstanceGroupManagerList
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagerList
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.mort.gce.provider.view.GoogleSecurityGroupProvider
 import com.netflix.spinnaker.oort.gce.model.callbacks.ImagesCallback
 import com.netflix.spinnaker.oort.gce.model.callbacks.InstanceAggregatedListCallback
@@ -58,12 +55,6 @@ class GoogleResourceRetriever {
 
   @Autowired
   GoogleSecurityGroupProvider googleSecurityGroupProvider
-
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
-  @Autowired
-  ResourceViewsBuilder resourceViewsBuilder
 
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
@@ -114,27 +105,22 @@ class GoogleResourceRetriever {
 
           BatchRequest regionsBatch = buildBatchRequest(compute)
           BatchRequest migsBatch = buildBatchRequest(compute)
-          BatchRequest resourceViewsBatch = buildBatchRequest(compute)
+          BatchRequest instanceGroupsBatch = buildBatchRequest(compute)
           BatchRequest instancesBatch = buildBatchRequest(compute)
           Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
-          def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
           def regions = compute.regions().list(project).execute().getItems()
           def googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
           def regionsCallback = new RegionsCallback(tempAppMap,
                                                     accountName,
                                                     project,
                                                     compute,
-                                                    credentialBuilder,
-                                                    replicaPool,
                                                     googleSecurityGroups,
                                                     tempImageMap,
                                                     defaultBuildHost,
                                                     instanceNameToGoogleServerGroupMap,
                                                     migsBatch,
-                                                    resourceViewsBatch,
-                                                    resourceViewsBuilder)
+                                                    instanceGroupsBatch)
 
           regions.each { region ->
             compute.regions().get(project, region.getName()).queue(regionsBatch, regionsCallback)
@@ -169,13 +155,13 @@ class GoogleResourceRetriever {
                                                                               project,
                                                                               compute,
                                                                               migsBatch,
-                                                                              resourceViewsBatch)
+                                                                              instanceGroupsBatch)
 
           compute.forwardingRules().aggregatedList(project).queue(regionsBatch, networkLoadBalancersCallback)
 
           executeIfRequestsAreQueued(regionsBatch)
           executeIfRequestsAreQueued(migsBatch)
-          executeIfRequestsAreQueued(resourceViewsBatch)
+          executeIfRequestsAreQueued(instanceGroupsBatch)
 
           // Standalone instance maps are keyed by account in standaloneInstanceMap.
           if (!tempStandaloneInstanceMap[accountName]) {
@@ -339,11 +325,8 @@ class GoogleResourceRetriever {
           def project = credentials.project
           def compute = credentials.compute
 
-          BatchRequest resourceViewsBatch = buildBatchRequest(compute)
+          BatchRequest instanceGroupsBatch = buildBatchRequest(compute)
           BatchRequest instancesBatch = buildBatchRequest(compute)
-
-          def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-          def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
@@ -354,19 +337,17 @@ class GoogleResourceRetriever {
                                               data.account,
                                               project,
                                               compute,
-                                              credentialBuilder,
                                               googleSecurityGroups,
                                               imageMap,
                                               defaultBuildHost,
                                               instanceNameToGoogleServerGroupMap,
-                                              resourceViewsBatch,
-                                              resourceViewsBuilder)
+                                              instanceGroupsBatch)
 
           // Handle 404 here (especially when this is called after destroying a replica pool).
           InstanceGroupManager instanceGroupManager = null
 
           try {
-            instanceGroupManager = replicaPool.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
+            instanceGroupManager = compute.instanceGroupManagers().get(project, data.zone, data.serverGroupName).execute()
           } catch (GoogleJsonResponseException e) {
             // Nothing to do here except leave instanceGroupManager null. 404 can land us here.
           }
@@ -377,7 +358,7 @@ class GoogleResourceRetriever {
 
             migsCallback.onSuccess(instanceGroupManagerList, null)
 
-            executeIfRequestsAreQueued(resourceViewsBatch)
+            executeIfRequestsAreQueued(instanceGroupsBatch)
 
             // TODO(duftler): Would be more efficient to retrieve just the instances for the server group's zone.
             def instanceAggregatedListCallback =

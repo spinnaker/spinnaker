@@ -16,16 +16,14 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
-import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.Compute
-import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
 import com.netflix.spinnaker.oort.gce.model.GoogleServerGroup
 import org.apache.log4j.Logger
 
-class ResourceViewsCallback<ZoneViewsListResourcesResponse> extends JsonBatchCallback<ZoneViewsListResourcesResponse> {
+class InstanceGroupsCallback<InstanceGroupsListInstances> extends JsonBatchCallback<InstanceGroupsListInstances> {
   protected static final Logger log = Logger.getLogger(this)
 
   private String localZoneName
@@ -34,7 +32,7 @@ class ResourceViewsCallback<ZoneViewsListResourcesResponse> extends JsonBatchCal
   private Compute compute
   private Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap
 
-  public ResourceViewsCallback(String localZoneName,
+  public InstanceGroupsCallback(String localZoneName,
                                GoogleServerGroup googleServerGroup,
                                String project,
                                Compute compute,
@@ -47,9 +45,9 @@ class ResourceViewsCallback<ZoneViewsListResourcesResponse> extends JsonBatchCal
   }
 
   @Override
-  void onSuccess(ZoneViewsListResourcesResponse listResourcesResult, HttpHeaders responseHeaders) throws IOException {
-    for (def listResource : listResourcesResult.getItems()) {
-      def instanceName = Utils.getLocalName(listResource.resource)
+  void onSuccess(InstanceGroupsListInstances instanceGroupsListInstances, HttpHeaders responseHeaders) throws IOException {
+    for (def instanceWithNamedPorts : instanceGroupsListInstances.getItems()) {
+      def instanceName = Utils.getLocalName(instanceWithNamedPorts.instance)
 
       instanceNameToGoogleServerGroupMap[instanceName] = googleServerGroup
     }

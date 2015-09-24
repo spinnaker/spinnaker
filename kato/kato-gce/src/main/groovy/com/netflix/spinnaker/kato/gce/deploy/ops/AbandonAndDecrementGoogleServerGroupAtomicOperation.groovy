@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.google.api.services.compute.model.InstanceGroupManagersAbandonInstancesRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.AbandonAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersAbandonInstancesRequest
+
 /**
  * Abandon instances from a replica pool, and decrement the size of the replica pool.
  *
@@ -39,12 +40,9 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
   }
 
   private final AbandonAndDecrementGoogleServerGroupDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  AbandonAndDecrementGoogleServerGroupAtomicOperation(AbandonAndDecrementGoogleServerGroupDescription description,
-                                                      ReplicaPoolBuilder replicaPoolBuilder) {
+  AbandonAndDecrementGoogleServerGroupAtomicOperation(AbandonAndDecrementGoogleServerGroupDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -54,19 +52,18 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Attempting to abandon instances (${description.instanceIds.join(", ")} and remove from replica pool (${description.replicaPoolName})."
+    task.updateStatus BASE_PHASE, "Attempting to abandon instances (${description.instanceIds.join(", ")}) and remove from replica pool (${description.replicaPoolName})."
 
     def project = description.credentials.project
+    def compute = description.credentials.compute
     def zone = description.zone
     def replicaPoolName = description.replicaPoolName
-    def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest()
-    abandonRequest.setInstances(description.instanceIds)
+    def instanceIds = description.instanceIds
+    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, replicaPoolName, instanceIds, description.credentials)
+    def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
-    replicapool.instanceGroupManagers().abandonInstances(project, zone, replicaPoolName, abandonRequest).execute()
-    task.updateStatus BASE_PHASE, "Successfully abandoned instances=(${description.instanceIds.join(", ")} and removed from ${replicaPoolName})."
+    compute.instanceGroupManagers().abandonInstances(project, zone, replicaPoolName, abandonRequest).execute()
+    task.updateStatus BASE_PHASE, "Successfully abandoned instances=(${description.instanceIds.join(", ")}) and removed from (${replicaPoolName})."
     null
   }
 }
