@@ -37,7 +37,7 @@ public class GateWebConfig extends WebMvcConfigurerAdapter {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(
       new MetricsInterceptor(
-        extendedRegistry, "controller.invocations", ["account", "region"], ["BasicErrorController"]
+        extendedRegistry, "controller.invocations", ["account", "region", "application"], ["BasicErrorController"]
       )
     )
   }
