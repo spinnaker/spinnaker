@@ -125,7 +125,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       let clusterData = clusters[application];
       let serverGroups = clusterData.serverGroups || [];
       clusterData.serverGroups = serverGroups.filter((serverGroup) => serverGroup.instances.length > 0);
-      let applicationData = this.clusterData.applications.find((appData) => appData.name === application);
+      let applicationData = _.find(this.clusterData.applications, (appData) => appData.name === application);
       applicationData.build = makeBuildModel();
       let serverGroupsByRegion = _.groupBy(clusterData.serverGroups, 'region');
       Object.keys(serverGroupsByRegion).forEach((region) => {

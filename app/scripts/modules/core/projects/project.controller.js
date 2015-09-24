@@ -8,8 +8,9 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),
   require('./service/project.read.service.js'),
   require('../history/recentHistory.service.js'),
+  require('../../utils/lodash.js'),
 ])
-  .controller('ProjectCtrl', function ($scope, $modal, projectReader, $state, projectConfiguration, recentHistoryService) {
+  .controller('ProjectCtrl', function ($scope, $modal, projectReader, $state, projectConfiguration, recentHistoryService, _) {
 
     $scope.project = projectConfiguration;
 
@@ -33,7 +34,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
       selectedApplication = toParams.application;
       if (selectedApplication) {
-        $scope.viewState.navSelection = $scope.navOptions.find(option => option.title === selectedApplication);
+        $scope.viewState.navSelection = _.find($scope.navOptions, (option) => option.title === selectedApplication);
       }
       $scope.viewState.dashboard = !selectedApplication;
     });
@@ -59,7 +60,7 @@ module.exports = angular.module('spinnaker.core.projects.project.controller', [
     ));
 
     if (selectedApplication) {
-      $scope.viewState.navSelection = $scope.navOptions.find(option => option.title === selectedApplication);
+      $scope.viewState.navSelection = _.find($scope.navOptions, (option) => option.title === selectedApplication);
     } else {
       $scope.viewState.navSelection = $scope.navOptions[0];
     }
