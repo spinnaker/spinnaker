@@ -32,6 +32,9 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
+  private static final int MAX_DETACH = 20
+  private static final int SLEEP_MS_BETWEEN_DETACH = 5000
+
   private static final String BASE_PHASE = "DETACH_INSTANCES"
   private static final String TAG_DETACHED = "spinnaker:Detached"
   public static final String TAG_PENDING_TERMINATION = "spinnaker:PendingTermination"
@@ -83,14 +86,18 @@ class DetachInstancesAtomicOperation implements AtomicOperation<Void> {
       amazonEC2.createTags(new CreateTagsRequest().withResources(validInstanceIds).withTags(tags))
       task.updateStatus BASE_PHASE, "Tagged instances (${validInstanceIds.join(", ")})."
 
-      task.updateStatus BASE_PHASE, "Detaching instances (${validInstanceIds.join(", ")}) from ASG (${description.asgName})."
-      amazonAutoScaling.detachInstances(
-        new DetachInstancesRequest()
-          .withAutoScalingGroupName(description.asgName)
-          .withInstanceIds(validInstanceIds)
-          .withShouldDecrementDesiredCapacity(description.decrementDesiredCapacity)
-      )
-      task.updateStatus BASE_PHASE, "Detached instances (${validInstanceIds.join(", ")}) from ASG (${description.asgName})."
+      validInstanceIds.collate(MAX_DETACH).each {
+        // AWS has a restriction on the # of instances that can be detached at any one time, hence batching is required.
+        task.updateStatus BASE_PHASE, "Detaching instances (${it.join(", ")}) from ASG (${description.asgName})."
+        amazonAutoScaling.detachInstances(
+          new DetachInstancesRequest()
+            .withAutoScalingGroupName(description.asgName)
+            .withInstanceIds(it)
+            .withShouldDecrementDesiredCapacity(description.decrementDesiredCapacity)
+        )
+        task.updateStatus BASE_PHASE, "Detached instances (${it.join(", ")}) from ASG (${description.asgName})."
+        Thread.sleep(SLEEP_MS_BETWEEN_DETACH)
+      }
 
       if (description.terminateDetachedInstances) {
         task.updateStatus BASE_PHASE, "Terminating instances (${validInstanceIds.join(", ")})."
