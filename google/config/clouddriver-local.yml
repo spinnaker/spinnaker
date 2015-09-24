@@ -5,6 +5,9 @@ services:
   front50:
     baseUrl: http://localhost:8080
 
+aws:
+  enabled: ${AWS_ENABLED:false}
+
 google:
   enabled: ${GOOGLE_ENABLED:false}
 
