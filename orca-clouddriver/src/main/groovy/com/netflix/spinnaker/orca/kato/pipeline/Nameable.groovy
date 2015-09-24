@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline.support
+package com.netflix.spinnaker.orca.kato.pipeline
 
-import groovy.transform.InheritConstructors
-
-@Deprecated
-@InheritConstructors
-class TargetReferenceNotFoundException extends RuntimeException {
+interface Nameable {
+  String getName()
 }

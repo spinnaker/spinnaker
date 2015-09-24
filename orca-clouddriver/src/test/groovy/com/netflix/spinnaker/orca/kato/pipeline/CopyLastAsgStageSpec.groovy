@@ -106,7 +106,7 @@ class CopyLastAsgStageSpec extends Specification {
 
     and:
     stage.afterStages*.context == asgNames.collect { name ->
-      [asgName: name, credentials: account, regions: [region]]
+      [asgName: name, credentials: account, regions: [region], serverGroupName: name, region: region]
     }
 
     where:
