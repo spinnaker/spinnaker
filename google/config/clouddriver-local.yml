@@ -5,6 +5,9 @@ services:
   front50:
     baseUrl: http://localhost:8080
 
+redis:
+  connection: redis://$REDIS_HOST:6379
+
 aws:
   enabled: ${AWS_ENABLED:false}
 

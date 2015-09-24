@@ -41,6 +41,7 @@ class ValidateConfig(object):
     self.verify_aws_provider()
     self.verify_docker()
     self.verify_jenkins()
+    self.verify_external_dependencies()
     self.verify_security()
 
     if not self.__errors:
@@ -65,13 +66,36 @@ class ValidateConfig(object):
                         .format(name=name, value=value))
     return False
 
+  def verify_host(self, name, required):
+    if not name in self.__bindings:
+      self.__errors.append('Missing "{name}".'.format(name=name))
+      return False
+    value = self.__bindings[name]
+
+    host_regex = '^[-_\.a-z0-9]+$'
+    if not value:
+      if not required:
+        return True
+      else:
+        self.__errors.append(
+            'No host provided for "{name}".'.format(name=name))
+        return False
+
+    if re.match(host_regex, value):
+      return True
+
+    self.__errors.append(
+       'name="{value}" does not look like {regex}'.format(regex=host_regex))
+    return False
+
+
   def verify_host_port(self, name, required):
     if not name in self.__bindings:
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
     value = self.__bindings[name]
 
-    regex_address = '^[-_\.a-z0-9]+(:[0-9]+)?(/[-_a-zA-Z0-9\+%/]+)?$'
+    address_regex = '^[-_\.a-z0-9]+(:[0-9]+)?(/[-_a-zA-Z0-9\+%/]+)?$'
     if not value:
       if not required:
         return True
@@ -80,7 +104,7 @@ class ValidateConfig(object):
             'No address provided for "{name}".'.format(name=name))
         return False
 
-    if re.match(regex_address, value):
+    if re.match(address_regex, value):
       return True
 
     self.__errors.append(
@@ -209,6 +233,12 @@ class ValidateConfig(object):
       ok = False
       self.__errors.append('JENKINS_ADDRESS is provided,'
                            ' but not JENKINS_USERNAME.')
+
+  def verify_external_dependencies(self):
+    ok = self.verify_host('ELASTICSEARCH_HOST', required=False)
+    ok = self.verify_host('CASSANDRA_HOST', required=False) and ok
+    ok = self.verify_host('REDIS_HOST', required=False) and ok
+    return ok
 
   def verify_user_access_only(self, path):
     if not os.path.exists(path):

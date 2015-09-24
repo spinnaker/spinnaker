@@ -112,6 +112,9 @@ def init_argument_parser(parser):
     parser.add_argument(
         '--nodependencies', dest='dependencies', action='store_true')
 
+    parser.add_argument('--extra_install_flags', default='',
+                        help='Extra arguments to pass to --install_spinnaker'
+                             ' when setting up the prototype instance.')
     parser.add_argument('--create_image', dest='image')
     parser.add_argument('--image', default='', help='Name of image to create.')
     parser.add_argument('--image_project', default=default_project,
@@ -145,6 +148,8 @@ def create_prototype_instance(options):
         startup_command.append('--nodependencies')
     if options.update_os:
         startup_command.append('--update_os')
+    if options.extra_install_flags:
+        startup_command.extend(options.extra_install_flags.split())
 
     script_dir = os.path.dirname(sys.argv[0])
     install_dir = os.path.join(script_dir, '../install')

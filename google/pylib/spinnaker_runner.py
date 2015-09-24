@@ -54,7 +54,6 @@ class Runner(object):
       # injected through a yaml).
       os.environ[name] = value
 
-
   # These are all the spinnaker subsystems in total.
   @classmethod
   def get_all_subsystem_names(cls):
@@ -112,21 +111,31 @@ class Runner(object):
 
   def start_dependencies(self):
     run_dir = self.__installation.EXTERNAL_DEPENDENCY_SCRIPT_DIR
-    run_or_die('LOG_DIR={log_dir} {run_dir}/start_redis.sh'
-                   .format(log_dir=self.__installation.LOG_DIR,
-                           run_dir=run_dir),
-                echo=False)
 
-    out,err = run_or_die(
-              'CASSANDRA_DIR={install_dir}/cassandra '
-              '{run_dir}/start_cassandra.sh'
-                  .format(install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
-                          run_dir=run_dir),
-               echo=True)
+    run_or_die(
+        'REDIS_HOST={host}'
+        ' LOG_DIR={log_dir}'
+        ' {run_dir}/start_redis.sh'
+        .format(host=self.__bindings.get('REDIS_HOST', 'localhost'),
+                log_dir=self.__installation.LOG_DIR,
+                run_dir=run_dir),
+        echo=True)
 
-    run_or_die('{run_dir}/start_elasticsearch.sh'.format(run_dir=run_dir),
-               echo=False)
+    run_or_die(
+        'CASSANDRA_HOST={host}'
+        ' CASSANDRA_DIR={install_dir}/cassandra'
+        ' {run_dir}/start_cassandra.sh'
+        .format(host=self.__bindings.get('CASSANDRA_HOST', 'localhost'),
+                install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
+                run_dir=run_dir),
+         echo=True)
 
+    run_or_die(
+        'ELASTICSEARCH_HOST={host}'
+        ' {run_dir}/start_elasticsearch.sh'
+        .format(host=self.__bindings.get('ELASTICSEARCH_HOST', 'localhost'),
+                run_dir=run_dir),
+        echo=False)
 
   def maybe_start_job(self, jobs, subsystem):
       if subsystem in jobs:
@@ -149,7 +158,6 @@ class Runner(object):
          started_list.append(('rush', pid))
     else:
       print 'Not using rush because docker is not configured.'
-
 
     if self.__bindings.get('JENKINS_ADDRESS', ''):
         if self.__bindings.get('IGOR_ENABLED', 'false') == 'false':

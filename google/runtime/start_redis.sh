@@ -15,13 +15,25 @@
 # limitations under the License.
 
 REDIS_PORT=${REDIS_PORT:-6379}
+REDIS_HOST=${REDIS_HOST:-127.0.0.1}
 
-if nc -z localhost $REDIS_PORT; then
-    echo "Redis is already up."
-    exit 0
+function maybe_start_redis() {
+  if [[ "$REDIS_HOST" != "localhost" ]] && \
+      ! ifconfig | grep " inet addr:${REDIS_HOST} "  > /dev/null; then
+      echo "Using remote Redis from $REDIS_HOST:$REDIS_PORT"
+  else
+    echo "Starting Redis on $REDIS_HOST"
+    sudo service redis-server start
+  fi
+}
+
+
+if nc -z $REDIS_HOST $REDIS_PORT; then
+  echo "Redis is already up on $REDIS_HOST:$REDIS_PORT."
+else
+  maybe_start_redis
+  echo "Waiting for Redis to start accepting requests on" \
+       "$REDIS_HOST:$REDIS_PORT..."
+  while ! nc -z $REDIS_HOST $REDIS_PORT; do sleep 0.1; done
+  echo "Redis is up."
 fi
-
-echo "Starting Redis..."
-sudo service redis-server start
-echo "Waiting for Redis to start accepting requests on $REDIS_PORT..."
-while ! nc -z localhost $REDIS_PORT; do sleep 0.1; done; echo "Redis is up."

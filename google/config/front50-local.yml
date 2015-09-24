@@ -3,6 +3,7 @@ server:
 
 cassandra:
   embedded: false
+  host: $CASSANDRA_HOST
 
 aws:
   simpleDBEnabled: false
@@ -11,6 +12,8 @@ aws:
 spinnaker:
   cassandra:
     enabled: true
+    host: $CASSANDRA_HOST
+    port: 9042
     cluster: CASS_SPINNAKER
     keyspace: front50
     name: global

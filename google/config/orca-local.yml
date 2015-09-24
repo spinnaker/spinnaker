@@ -32,5 +32,5 @@ default:
     securityGroups:
 
 redis:
-  connection: redis://localhost:6379
+  connection: redis://$REDIS_HOST:6379
 
