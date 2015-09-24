@@ -59,7 +59,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     String cloudProvider = getCloudProvider(stage)
-    Map deployOperations = deployOperationFromContext(stage)
+    Map deployOperations = deployOperationFromContext(cloudProvider, stage)
     TaskId taskId = deploy(cloudProvider, deployOperations)
 
     Map outputs = [
@@ -77,7 +77,7 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  private Map deployOperationFromContext(Stage stage) {
+  private Map deployOperationFromContext(String cloudProvider, Stage stage) {
     def operation = [:]
     def context = stage.context
 
@@ -92,8 +92,11 @@ class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
     if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
+    if (!operation.dockerImage && deploymentDetails) {
+      operation.dockerImage = deploymentDetails.find { it.cloudProvider == cloudProvider }?.image
+    }
 
-    log.info("Deploying ${operation.amiName} to ${targetRegion}")
+    log.info("Deploying ${operation.amiName ?: operation.dockerImage} to ${targetRegion}")
 
     if (context.account && !operation.credentials) {
       operation.credentials = context.account
