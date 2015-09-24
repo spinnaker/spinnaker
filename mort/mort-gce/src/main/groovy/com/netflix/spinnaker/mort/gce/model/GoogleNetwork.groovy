@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.mort.gce.model
 
+import com.netflix.spinnaker.mort.model.Network
 
-package com.netflix.spinnaker.mort.model
-
-public interface VpcProvider<T extends Vpc> {
-  Set<T> getAll()
+class GoogleNetwork implements Network {
+  String cloudProvider
+  String id
+  String name
+  String account
+  String region
 }

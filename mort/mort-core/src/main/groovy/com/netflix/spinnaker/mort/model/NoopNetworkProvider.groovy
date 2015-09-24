@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.mort.model
 
+class NoopNetworkProvider implements NetworkProvider<Network> {
+  @Override
+  String getCloudProvider() {
+    'noop'
+  }
 
-package com.netflix.spinnaker.mort.aws.model
-
-import com.netflix.spinnaker.mort.model.Network
-
-class AmazonVpc implements Network {
-  String cloudProvider
-  String id
-  String name
-  String account
-  String region
-
-  boolean deprecated
+  @Override
+    Set<Network> getAll() {
+        Collections.emptySet()
+    }
 }
