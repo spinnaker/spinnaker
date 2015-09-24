@@ -36,6 +36,12 @@ class NetworkService {
     (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, true, work)
   }
 
+  Map getNetworks() {
+    command("networks") {
+      mortService.getNetworks()
+    } execute()
+  }
+
   List<Map> getNetworks(String cloudProvider) {
     command("networks") {
       mortService.getNetworks(cloudProvider)

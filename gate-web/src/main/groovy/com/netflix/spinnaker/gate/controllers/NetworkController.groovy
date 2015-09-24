@@ -30,6 +30,11 @@ class NetworkController {
   @Autowired
   NetworkService networkService
 
+  @RequestMapping(method = RequestMethod.GET)
+  Map all() {
+    networkService.getNetworks()
+  }
+
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
     networkService.getNetworks(cloudProvider)
