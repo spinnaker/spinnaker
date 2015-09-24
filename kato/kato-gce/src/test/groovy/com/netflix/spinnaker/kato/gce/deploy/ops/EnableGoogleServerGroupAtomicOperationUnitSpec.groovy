@@ -86,7 +86,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
- def setupSpec() {
+  def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 

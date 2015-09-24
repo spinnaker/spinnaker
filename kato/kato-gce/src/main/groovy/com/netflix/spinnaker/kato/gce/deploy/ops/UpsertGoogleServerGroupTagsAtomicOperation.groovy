@@ -113,18 +113,18 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
     def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.instanceGroup)
 
     // Retrieve the instances in the instance group.
-    def resourceItems = compute.instanceGroups().listInstances(project,
-                                                               zone,
-                                                               instanceGroupName,
-                                                               new InstanceGroupsListInstancesRequest()).execute().items
+    def groupInstances = compute.instanceGroups().listInstances(project,
+                                                                zone,
+                                                                instanceGroupName,
+                                                                new InstanceGroupsListInstancesRequest()).execute().items
 
     // Set the new tags on all instances in the group (in parallel).
     task.updateStatus BASE_PHASE, "Setting $tagsDescription on each instance in server group $replicaPoolName..."
 
     def instanceUpdateOperations = []
 
-    resourceItems.each { resourceItem ->
-      def localInstanceName = GCEUtil.getLocalName(resourceItem.instance)
+    groupInstances.each { groupInstance ->
+      def localInstanceName = GCEUtil.getLocalName(groupInstance.instance)
       def instance = instances.get(project, zone, localInstanceName).execute()
       def tagsFingerprint = instance.tags.fingerprint
 

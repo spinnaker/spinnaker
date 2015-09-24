@@ -87,15 +87,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering instances with load balancers..."
 
-      def resourceItems = compute.instanceGroups().listInstances(project,
-                                                                 zone,
-                                                                 replicaPoolName,
-                                                                 new InstanceGroupsListInstancesRequest()).execute().items
+      def groupInstances = compute.instanceGroups().listInstances(project,
+                                                                  zone,
+                                                                  replicaPoolName,
+                                                                  new InstanceGroupsListInstancesRequest()).execute().items
 
       def instanceReferencesToAdd = []
 
-      resourceItems.each { resourceItem ->
-        instanceReferencesToAdd << new InstanceReference(instance: resourceItem.instance)
+      groupInstances.each { groupInstance ->
+        instanceReferencesToAdd << new InstanceReference(instance: groupInstance.instance)
       }
 
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
