@@ -54,7 +54,7 @@ class MonitorJenkinsJobTaskSpec extends Specification {
     'ABORTED'  | ExecutionStatus.CANCELED
     'FAILURE'  | ExecutionStatus.TERMINAL
     'SUCCESS'  | ExecutionStatus.SUCCEEDED
-    'UNSTABLE' | ExecutionStatus.TERMINAL
+    'UNSTABLE' | ExecutionStatus.SUCCEEDED
     null       | ExecutionStatus.RUNNING
     'UNKNOWN'  | ExecutionStatus.RUNNING
   }

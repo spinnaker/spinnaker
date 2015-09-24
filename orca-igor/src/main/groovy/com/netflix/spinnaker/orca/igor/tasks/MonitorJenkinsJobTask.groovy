@@ -43,7 +43,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
     'ABORTED' : ExecutionStatus.CANCELED,
     'FAILURE' : ExecutionStatus.TERMINAL,
     'SUCCESS' : ExecutionStatus.SUCCEEDED,
-    'UNSTABLE': ExecutionStatus.TERMINAL
+    'UNSTABLE': ExecutionStatus.SUCCEEDED
   ]
 
   @Override
