@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.replicapool.model.Operation
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.Operation
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -46,15 +44,13 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   void "should delete replica pool"() {
     setup:
       def computeMock = Mock(Compute)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
-      def zoneOperations = Mock(Replicapool.ZoneOperations)
-      def zoneOperationsGet = Mock(Replicapool.ZoneOperations.Get)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def zoneOperations = Mock(Compute.ZoneOperations)
+      def zoneOperationsGet = Mock(Compute.ZoneOperations.Get)
       def instanceGroupManager = new InstanceGroupManager()
       instanceGroupManager.setInstanceTemplate(INSTANCE_TEMPLATE_NAME)
-      def instanceGroupManagersDeleteMock = Mock(Replicapool.InstanceGroupManagers.Delete)
+      def instanceGroupManagersDeleteMock = Mock(Compute.InstanceGroupManagers.Delete)
       def instanceGroupManagersDeleteOp = new Operation(
           name: INSTANCE_GROUP_OP_NAME,
           status: DONE)
@@ -65,7 +61,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)
-      @Subject def operation = new DeleteGoogleReplicaPoolAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new DeleteGoogleReplicaPoolAtomicOperation(description)
       operation.googleOperationPoller =
         new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -73,16 +69,15 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersDeleteMock
       1 * instanceGroupManagersDeleteMock.execute() >> instanceGroupManagersDeleteOp
 
-      1 * replicaPoolMock.zoneOperations() >> zoneOperations
+      1 * computeMock.zoneOperations() >> zoneOperations
       1 * zoneOperations.get(PROJECT_NAME, ZONE, INSTANCE_GROUP_OP_NAME) >> zoneOperationsGet
       1 * zoneOperationsGet.execute() >> instanceGroupManagersDeleteOp
 

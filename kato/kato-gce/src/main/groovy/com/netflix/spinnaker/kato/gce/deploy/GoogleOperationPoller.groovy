@@ -18,7 +18,6 @@ package com.netflix.spinnaker.kato.gce.deploy
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Operation
-import com.google.api.services.replicapool.Replicapool
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
@@ -60,15 +59,6 @@ class GoogleOperationPoller {
                                    Long timeoutSeconds, Task task, String resourceString, String basePhase) {
     return handleFinishedAsyncOperation(
         waitForOperation({compute.globalOperations().get(projectName, operationName).execute()},
-                         getTimeout(timeoutSeconds)), task, resourceString, basePhase)
-  }
-
-  // This method is like the two above except that it operates using a Replicapool object (rather than Compute), which
-  // is the base class for operations relating to managed instance groups.
-  void waitForReplicaPoolZonalOperation(Replicapool replicapool, String projectName, String zone, String operationName,
-                                        Long timeoutSeconds, Task task, String resourceString, String basePhase) {
-    handleFinishedAsyncOperation(
-        waitForOperation({replicapool.zoneOperations().get(projectName, zone, operationName).execute()},
                          getTimeout(timeoutSeconds)), task, resourceString, basePhase)
   }
 

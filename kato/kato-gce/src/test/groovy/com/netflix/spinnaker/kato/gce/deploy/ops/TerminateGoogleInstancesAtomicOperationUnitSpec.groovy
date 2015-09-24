@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManagersRecreateInstancesRequest
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagersRecreateInstancesRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateGoogleInstancesDescription
@@ -28,16 +27,22 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
-  private static final ID_GOOD_PREFIX = "my-app7-dev-v000-good";
-  private static final ID_BAD_PREFIX = "my-app7-dev-v000-bad";
+  private static final MANAGED_INSTANCE_GROUP_NAME = "my-app7-dev-v000"
+  private static final MANAGED_INSTANCE_GROUP_SELF_LINK =
+    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instanceGroupManagers/$MANAGED_INSTANCE_GROUP_NAME"
+  private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final ZONE = "us-central1-b"
-  private static final MANAGED_INSTANCE_GROUP_NAME = "my-app7-dev-v000"
+  private static final ID_GOOD_PREFIX = "my-app7-dev-v000-good";
+  private static final ID_BAD_PREFIX = "my-app7-dev-v000-bad";
   private static final GOOD_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_GOOD_PREFIX}2"]
   private static final BAD_INSTANCE_IDS = ["${ID_BAD_PREFIX}1", "${ID_BAD_PREFIX}2"]
   private static final ALL_INSTANCE_IDS = ["${ID_GOOD_PREFIX}1", "${ID_BAD_PREFIX}1",
                                            "${ID_GOOD_PREFIX}2", "${ID_BAD_PREFIX}2"]
+  private static final GOOD_INSTANCE_URLS = [
+    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}1",
+    "https://www.googleapis.com/compute/v1/projects/shared-spinnaker/zones/us-central1-f/instances/${ID_GOOD_PREFIX}2"
+  ]
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
@@ -46,7 +51,6 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   void "should terminate instances without managed instance group"() {
     setup:
       def computeMock = Mock(Compute)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
@@ -54,7 +58,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
-      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -71,7 +75,6 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   void "should terminate all known instances and fail on all unknown instances without managed instance group"() {
     setup:
       def computeMock = Mock(Compute)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
       def instancesMock = Mock(Compute.Instances)
       def deleteMock = Mock(Compute.Instances.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
@@ -79,7 +82,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
                                                                 instanceIds: ALL_INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
-      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -102,26 +105,28 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
   void "should recreate instances with managed instance group"() {
     setup:
       def computeMock = Mock(Compute)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_IDS)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def instanceGroupManager = new InstanceGroupManager(selfLink: MANAGED_INSTANCE_GROUP_SELF_LINK)
+      def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(GOOD_INSTANCE_URLS)
 
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersRecreateMock = Mock(Replicapool.InstanceGroupManagers.RecreateInstances)
+      def instanceGroupManagersRecreateMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new TerminateGoogleInstancesDescription(managedInstanceGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 zone: ZONE,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
-      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description, replicaPoolBuilderMock)
+      @Subject def operation = new TerminateGoogleInstancesAtomicOperation(description)
 
     when:
       operation.operate([])
 
     then:
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, MANAGED_INSTANCE_GROUP_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.recreateInstances(PROJECT_NAME,
                                                       ZONE,
                                                       MANAGED_INSTANCE_GROUP_NAME,

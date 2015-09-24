@@ -17,25 +17,20 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.ResizeGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.ResizeGoogleReplicaPoolAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.RESIZE_SERVER_GROUP)
 @Component("resizeGoogleReplicaPoolDescription")
 class ResizeGoogleReplicaPoolAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new ResizeGoogleReplicaPoolAtomicOperation(convertDescription(input), replicaPoolBuilder)
+    new ResizeGoogleReplicaPoolAtomicOperation(convertDescription(input))
   }
 
   @Override

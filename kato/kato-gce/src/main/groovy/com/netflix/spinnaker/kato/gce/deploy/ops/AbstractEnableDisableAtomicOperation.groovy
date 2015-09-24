@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
+import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
+import com.google.api.services.compute.model.InstanceGroupsListInstancesRequest
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.TargetPoolsAddInstanceRequest
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersSetTargetPoolsRequest
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
@@ -35,15 +33,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
   abstract String getPhaseName()
 
   EnableDisableGoogleServerGroupDescription description
-  ReplicaPoolBuilder replicaPoolBuilder
-  ResourceViewsBuilder resourceViewsBuilder
 
-  AbstractEnableDisableAtomicOperation(EnableDisableGoogleServerGroupDescription description,
-                                       ReplicaPoolBuilder replicaPoolBuilder,
-                                       ResourceViewsBuilder resourceViewsBuilder) {
+  AbstractEnableDisableAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
-    this.resourceViewsBuilder = resourceViewsBuilder
   }
 
   @Override
@@ -59,13 +51,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
     def replicaPoolName = description.replicaPoolName
-    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project,
-                                                                 zone,
-                                                                 replicaPoolName,
-                                                                 credentials,
-                                                                 replicaPoolBuilder);
+    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, replicaPoolName, credentials);
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -101,16 +87,15 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
     } else {
       task.updateStatus phaseName, "Registering instances with load balancers..."
 
-      def resourceViews = resourceViewsBuilder.buildResourceViews(credentialBuilder)
-
-      def resourceItems = resourceViews.zoneViews().listResources(project,
-                                                                  zone,
-                                                                  replicaPoolName).execute().items
+      def resourceItems = compute.instanceGroups().listInstances(project,
+                                                                 zone,
+                                                                 replicaPoolName,
+                                                                 new InstanceGroupsListInstancesRequest()).execute().items
 
       def instanceReferencesToAdd = []
 
       resourceItems.each { resourceItem ->
-        instanceReferencesToAdd << new InstanceReference(instance: resourceItem.resource)
+        instanceReferencesToAdd << new InstanceReference(instance: resourceItem.instance)
       }
 
       def instanceTemplateUrl = managedInstanceGroup.getInstanceTemplate()
@@ -154,10 +139,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     instanceGroupManagersSetTargetPoolsRequest.setFingerprint(managedInstanceGroup.getFingerprint())
 
-    replicapool.instanceGroupManagers().setTargetPools(project,
-                                                       zone,
-                                                       replicaPoolName,
-                                                       instanceGroupManagersSetTargetPoolsRequest).execute()
+    compute.instanceGroupManagers().setTargetPools(project,
+                                                   zone,
+                                                   replicaPoolName,
+                                                   instanceGroupManagersSetTargetPoolsRequest).execute()
 
     null
   }

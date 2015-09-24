@@ -18,19 +18,15 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupsListInstances
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.InstanceWithNamedPorts
 import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.Tags
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.resourceviews.Resourceviews
-import com.google.api.services.resourceviews.model.ListResourceResponseItem
-import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.GoogleOperationPoller
@@ -77,25 +73,22 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceTemplateInsertionOperationReal = new Operation(targetLink: NEW_INSTANCE_TEMPLATE_NAME,
                                                                  name: INSTANCE_TEMPLATE_INSERTION_OP_NAME,
                                                                  status: DONE)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def replicaPoolZonalOperations = Mock(Replicapool.ZoneOperations)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def setInstanceTemplateMock = Mock(Replicapool.InstanceGroupManagers.SetInstanceTemplate)
+      def computeZonalOperations = Mock(Compute.ZoneOperations)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL,
+                                                              instanceGroup: REPLICA_POOL_NAME)
+      def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
       def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
-      def setInstanceTemplateOperationGetMock = Mock(Replicapool.ZoneOperations.Get)
-      def resourceViewsBuilderMock = Mock(ResourceViewsBuilder)
-      def resourceViewsMock = Mock(Resourceviews)
-      def resourceViewsZoneViewsMock = Mock(Resourceviews.ZoneViews)
-      def resourceViewsZoneViewsListResourcesMock = Mock(Resourceviews.ZoneViews.ListResources)
-      def listResourceResponseItem1Real = new ListResourceResponseItem(resource: INSTANCE_1_URL)
-      def listResourceResponseItem2Real = new ListResourceResponseItem(resource: INSTANCE_2_URL)
-      def listResourceResponseItemsReal = [listResourceResponseItem1Real, listResourceResponseItem2Real]
-      def zoneViewsListResourcesResponseReal = new ZoneViewsListResourcesResponse(items: listResourceResponseItemsReal)
+      def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
+      def instanceGroupsMock = Mock(Compute.InstanceGroups)
+      def instanceGroupsListInstancesMock = Mock(Compute.InstanceGroups.ListInstances)
+      def instanceWithNamedPorts1Real = new InstanceWithNamedPorts(instance: INSTANCE_1_URL)
+      def instanceWithNamedPorts2Real = new InstanceWithNamedPorts(instance: INSTANCE_2_URL)
+      def listResourceResponseItemsReal = [instanceWithNamedPorts1Real, instanceWithNamedPorts2Real]
+      def instanceGroupsListInstancesReal = new InstanceGroupsListInstances(items: listResourceResponseItemsReal)
       def instancesMock = Mock(Compute.Instances)
       def instancesGet1Mock = Mock(Compute.Instances.Get)
       def instance1Real = new Instance(tags: new Tags())
@@ -118,7 +111,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME,
                                                                    credentials: credentials)
-      @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description, replicaPoolBuilderMock, resourceViewsBuilderMock)
+      @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -127,8 +120,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -151,15 +143,14 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
       1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal
-      1 * replicaPoolMock.zoneOperations() >> replicaPoolZonalOperations
-      1 * replicaPoolZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
+      1 * computeMock.zoneOperations() >> computeZonalOperations
+      1 * computeZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
       1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
 
       // Query the instance group's instances.
-      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
-      1 * resourceViewsMock.zoneViews() >> resourceViewsZoneViewsMock
-      1 * resourceViewsZoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> resourceViewsZoneViewsListResourcesMock
-      1 * resourceViewsZoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponseReal
+      1 * computeMock.instanceGroups() >> instanceGroupsMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstancesReal
 
       // Query the first instance.
       1 * computeMock.instances() >> instancesMock
@@ -203,22 +194,19 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceTemplateInsertionOperationReal = new Operation(targetLink: NEW_INSTANCE_TEMPLATE_NAME,
                                                                  name: INSTANCE_TEMPLATE_INSERTION_OP_NAME,
                                                                  status: DONE)
-      def replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-      def replicaPoolMock = Mock(Replicapool)
-      def replicaPoolZonalOperations = Mock(Replicapool.ZoneOperations)
-      def instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-      def instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
-      def setInstanceTemplateMock = Mock(Replicapool.InstanceGroupManagers.SetInstanceTemplate)
+      def computeZonalOperations = Mock(Compute.ZoneOperations)
+      def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+      def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL,
+                                                              instanceGroup: REPLICA_POOL_NAME)
+      def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
       def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
-      def setInstanceTemplateOperationGetMock = Mock(Replicapool.ZoneOperations.Get)
-      def resourceViewsBuilderMock = Mock(ResourceViewsBuilder)
-      def resourceViewsMock = Mock(Resourceviews)
-      def resourceViewsZoneViewsMock = Mock(Resourceviews.ZoneViews)
-      def resourceViewsZoneViewsListResourcesMock = Mock(Resourceviews.ZoneViews.ListResources)
-      def zoneViewsListResourcesResponseReal = new ZoneViewsListResourcesResponse()
+      def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
+      def instanceGroupsMock = Mock(Compute.InstanceGroups)
+      def instanceGroupsListInstancesMock = Mock(Compute.InstanceGroups.ListInstances)
+      def instanceGroupsListInstancesReal = new InstanceGroupsListInstances()
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleServerGroupTagsDescription(replicaPoolName: REPLICA_POOL_NAME,
@@ -226,7 +214,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME,
                                                                    credentials: credentials)
-      @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description, replicaPoolBuilderMock, resourceViewsBuilderMock)
+      @Subject def operation = new UpsertGoogleServerGroupTagsAtomicOperation(description)
       operation.googleOperationPoller =
           new GoogleOperationPoller(googleConfigurationProperties: new GoogleConfigurationProperties())
 
@@ -235,8 +223,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
     then:
       // Query the managed instance group and its instance template.
-      1 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -259,15 +246,14 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
       1 * setInstanceTemplateMock.execute() >> setInstanceTemplateOperationReal
-      1 * replicaPoolMock.zoneOperations() >> replicaPoolZonalOperations
-      1 * replicaPoolZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
+      1 * computeMock.zoneOperations() >> computeZonalOperations
+      1 * computeZonalOperations.get(PROJECT_NAME, ZONE, SET_INSTANCE_TEMPLATE_OP_NAME) >> setInstanceTemplateOperationGetMock
       1 * setInstanceTemplateOperationGetMock.execute() >> setInstanceTemplateOperationReal
 
       // Query the instance group's instances.
-      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
-      1 * resourceViewsMock.zoneViews() >> resourceViewsZoneViewsMock
-      1 * resourceViewsZoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> resourceViewsZoneViewsListResourcesMock
-      1 * resourceViewsZoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponseReal
+      1 * computeMock.instanceGroups() >> instanceGroupsMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstancesReal
 
       // Delete the original instance template.
       1 * instanceTemplatesMock.delete(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock

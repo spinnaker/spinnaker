@@ -16,27 +16,18 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleServerGroupTagsDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.UpsertGoogleServerGroupTagsAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component("upsertGoogleServerGroupTagsDescription")
 class UpsertGoogleServerGroupTagsAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
-  @Autowired
-  ResourceViewsBuilder resourceViewsBuilder
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new UpsertGoogleServerGroupTagsAtomicOperation(convertDescription(input), replicaPoolBuilder, resourceViewsBuilder)
+    new UpsertGoogleServerGroupTagsAtomicOperation(convertDescription(input))
   }
 
   @Override

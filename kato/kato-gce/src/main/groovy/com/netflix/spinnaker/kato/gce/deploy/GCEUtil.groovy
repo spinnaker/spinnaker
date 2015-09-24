@@ -25,12 +25,9 @@ import com.google.api.client.http.HttpRequest
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
@@ -221,26 +218,20 @@ class GCEUtil {
   static InstanceGroupManager queryManagedInstanceGroup(String projectName,
                                                         String zone,
                                                         String serverGroupName,
-                                                        GoogleCredentials credentials,
-                                                        ReplicaPoolBuilder replicaPoolBuilder) {
-    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
-    replicapool.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
+                                                        GoogleCredentials credentials) {
+    credentials.compute.instanceGroupManagers().get(projectName, zone, serverGroupName).execute()
   }
 
   static List<InstanceGroupManager> queryManagedInstanceGroups(String projectName,
                                                                String region,
-                                                               GoogleCredentials credentials,
-                                                               ReplicaPoolBuilder replicaPoolBuilder) {
-    def credentialBuilder = credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-    def zones = getZonesFromRegion(projectName, region, credentials.compute)
+                                                               GoogleCredentials credentials) {
+    def compute = credentials.compute
+    def zones = getZonesFromRegion(projectName, region, compute)
 
     def allMIGSInRegion = zones.findResults {
       def localZoneName = getLocalName(it)
 
-      replicapool.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
+      compute.instanceGroupManagers().list(projectName, localZoneName).execute().getItems()
     }.flatten()
 
     allMIGSInRegion
@@ -278,6 +269,18 @@ class GCEUtil {
     }.collect { securityGroup ->
       securityGroup.targetTags
     }.flatten() - null
+  }
+
+  static List<String> deriveInstanceUrls(String project,
+                                         String zone,
+                                         String managedInstanceGroupName,
+                                         List<String> instanceIds,
+                                         GoogleCredentials credentials) {
+    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, managedInstanceGroupName, credentials)
+    def baseUrl = managedInstanceGroup.selfLink.substring(0,
+        managedInstanceGroup.getSelfLink().lastIndexOf("/instanceGroupManagers/${managedInstanceGroupName}"))
+
+    instanceIds.collect { instanceId -> "$baseUrl/instances/$instanceId".toString() }
   }
 
   static List<String> mergeDescriptionAndSecurityGroupTags(List<String> tags, Set<String> securityGroupTags) {
@@ -413,13 +416,9 @@ class GCEUtil {
   static def getNextSequence(String clusterName,
                              String project,
                              String region,
-                             GoogleCredentials credentials,
-                             ReplicaPoolBuilder replicaPoolBuilder) {
+                             GoogleCredentials credentials) {
     def maxSeqNumber = -1
-    def managedInstanceGroups = queryManagedInstanceGroups(project,
-                                                           region,
-                                                           credentials,
-                                                           replicaPoolBuilder)
+    def managedInstanceGroups = queryManagedInstanceGroups(project, region, credentials)
 
     for (def managedInstanceGroup : managedInstanceGroups) {
       def names = Names.parseName(managedInstanceGroup.getName())

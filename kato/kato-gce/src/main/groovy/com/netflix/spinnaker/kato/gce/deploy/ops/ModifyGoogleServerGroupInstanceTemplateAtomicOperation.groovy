@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersSetInstanceTemplateRequest
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.google.api.services.compute.model.InstanceGroupManagersSetInstanceTemplateRequest
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -57,12 +55,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   }
 
   private final ModifyGoogleServerGroupInstanceTemplateDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  ModifyGoogleServerGroupInstanceTemplateAtomicOperation(ModifyGoogleServerGroupInstanceTemplateDescription description,
-                                                         ReplicaPoolBuilder replicaPoolBuilder) {
+  ModifyGoogleServerGroupInstanceTemplateAtomicOperation(ModifyGoogleServerGroupInstanceTemplateDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -76,10 +71,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def project = description.credentials.project
     def zone = description.zone
     def replicaPoolName = description.replicaPoolName
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
 
-    def replicaPool = replicaPoolBuilder.buildReplicaPool(credentialBuilder)
-    def instanceGroupManagers = replicaPool.instanceGroupManagers()
+    def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
 
     // Retrieve the managed instance group.
@@ -195,7 +188,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
           project, zone, replicaPoolName, instanceGroupManagersSetInstanceTemplateRequest).execute()
 
       // Block on setting the instance template on the managed instance group.
-      googleOperationPoller.waitForReplicaPoolZonalOperation(replicaPool, project, zone,
+      googleOperationPoller.waitForZonalOperation(compute, project, zone,
           setInstanceTemplateOperation.getName(), null, task, "server group $replicaPoolName", BASE_PHASE)
 
       // Delete the original instance template.

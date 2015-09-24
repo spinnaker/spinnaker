@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.handlers
 
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
@@ -56,9 +54,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   @Autowired
   String googleApplicationName
 
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -92,7 +87,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
 
-    def nextSequence = GCEUtil.getNextSequence(clusterName, project, region, description.credentials, replicaPoolBuilder)
+    def nextSequence = GCEUtil.getNextSequence(clusterName, project, region, description.credentials)
     task.updateStatus BASE_PHASE, "Found next sequence ${nextSequence}."
 
     def serverGroupName = "${clusterName}-v${nextSequence}".toString()
@@ -149,22 +144,18 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def instanceTemplateCreateOperation = compute.instanceTemplates().insert(project, instanceTemplate).execute()
     def instanceTemplateUrl = instanceTemplateCreateOperation.targetLink
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
     // Before building the managed instance group we must check and wait until the instance template is built.
     googleOperationPoller.waitForGlobalOperation(compute, project, instanceTemplateCreateOperation.getName(),
         null, task, "instance template " + GCEUtil.getLocalName(instanceTemplateUrl), BASE_PHASE)
 
-    replicapool.instanceGroupManagers().insert(project,
-                                               zone,
-                                               description.initialNumReplicas,
-                                               new InstanceGroupManager()
-                                                       .setName(serverGroupName)
-                                                       .setBaseInstanceName(serverGroupName)
-                                                       .setInstanceTemplate(instanceTemplateUrl)
-                                                       .setTargetPools(networkLoadBalancers)).execute()
+    compute.instanceGroupManagers().insert(project,
+                                           zone,
+                                           new InstanceGroupManager()
+                                               .setName(serverGroupName)
+                                               .setBaseInstanceName(serverGroupName)
+                                               .setInstanceTemplate(instanceTemplateUrl)
+                                               .setTargetSize(description.initialNumReplicas)
+                                               .setTargetPools(networkLoadBalancers)).execute()
 
     task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
 

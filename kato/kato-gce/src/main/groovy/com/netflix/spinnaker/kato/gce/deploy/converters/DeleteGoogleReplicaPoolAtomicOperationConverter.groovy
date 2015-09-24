@@ -17,25 +17,20 @@
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.google.GoogleOperation
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.gce.deploy.description.DeleteGoogleReplicaPoolDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.DeleteGoogleReplicaPoolAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @GoogleOperation(AtomicOperations.DESTROY_SERVER_GROUP)
 @Component("deleteGoogleReplicaPoolDescription")
 class DeleteGoogleReplicaPoolAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
-  @Autowired
-  ReplicaPoolBuilder replicaPoolBuilder
-
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DeleteGoogleReplicaPoolAtomicOperation(convertDescription(input), replicaPoolBuilder)
+    new DeleteGoogleReplicaPoolAtomicOperation(convertDescription(input))
   }
 
   @Override

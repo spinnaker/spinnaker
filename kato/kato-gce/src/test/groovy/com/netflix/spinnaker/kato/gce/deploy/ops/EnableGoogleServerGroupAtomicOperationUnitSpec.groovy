@@ -19,17 +19,13 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.ForwardingRule
 import com.google.api.services.compute.model.ForwardingRuleList
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupsListInstances
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
+import com.google.api.services.compute.model.InstanceWithNamedPorts
 import com.google.api.services.compute.model.Zone
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.resourceviews.Resourceviews
-import com.google.api.services.resourceviews.model.ListResourceResponseItem
-import com.google.api.services.resourceviews.model.ZoneViewsListResourcesResponse
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
-import com.netflix.spinnaker.clouddriver.google.util.ResourceViewsBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
@@ -64,16 +60,12 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final REGION = "us-central1"
 
   def computeMock
-  def replicaPoolBuilderMock
-  def replicaPoolMock
+  def instanceGroupsMock
+  def instanceGroupsListInstancesMock
   def zonesMock
   def zonesGetMock
   def instanceGroupManagersMock
   def instanceGroupManagersGetMock
-  def resourceViewsBuilderMock
-  def resourceViewsMock
-  def zoneViewsMock
-  def zoneViewsListResourcesMock
   def instanceTemplatesMock
   def instanceTemplatesGetMock
   def forwardingRulesMock
@@ -84,7 +76,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   def zone
   def instanceGroupManager
-  def zoneViewsListResourcesResponse
+  def instanceGroupsListInstances
   def instanceMetadata
   def instanceProperties
   def instanceTemplate
@@ -94,7 +86,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   def credentials
   def description
 
-  def setupSpec() {
+ def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
@@ -102,25 +94,19 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     computeMock = Mock(Compute)
     credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
 
-    replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-    replicaPoolMock = Mock(Replicapool)
-
     zonesMock = Mock(Compute.Zones)
     zonesGetMock = Mock(Compute.Zones.Get)
     zone = new Zone(region: REGION)
 
-    instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-    instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+    instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+    instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
     instanceGroupManager = new InstanceGroupManager(instanceTemplate: INSTANCE_TEMPLATE_NAME, targetPools: TARGET_POOL_URLS)
 
-    resourceViewsBuilderMock = Mock(ResourceViewsBuilder)
-    resourceViewsMock = Mock(Resourceviews)
-
-    zoneViewsMock = Mock(Resourceviews.ZoneViews)
-    zoneViewsListResourcesMock = Mock(Resourceviews.ZoneViews.ListResources)
-    items = [new ListResourceResponseItem(resource: INSTANCE_URL_1),
-             new ListResourceResponseItem(resource: INSTANCE_URL_2)]
-    zoneViewsListResourcesResponse = new ZoneViewsListResourcesResponse(items: items)
+    instanceGroupsMock = Mock(Compute.InstanceGroups)
+    instanceGroupsListInstancesMock = Mock(Compute.InstanceGroups.ListInstances)
+    items = [new InstanceWithNamedPorts(instance: INSTANCE_URL_1),
+             new InstanceWithNamedPorts(instance: INSTANCE_URL_2)]
+    instanceGroupsListInstances = new InstanceGroupsListInstances(items: items)
 
     instanceTemplatesMock = Mock(Compute.InstanceTemplates)
     instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
@@ -137,7 +123,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     targetPoolsMock = Mock(Compute.TargetPools)
     targetPoolsAddInstanceMock = Mock(Compute.TargetPools.AddInstance)
 
-    instanceGroupManagersSetTargetPoolsMock = Mock(Replicapool.InstanceGroupManagers.SetTargetPools)
+    instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
     description = new EnableDisableGoogleServerGroupDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                 zone: ZONE,
@@ -147,8 +133,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should add instances and attach load balancers"() {
     setup:
-      @Subject def operation =
-              new EnableGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock, resourceViewsBuilderMock)
+      @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -158,15 +143,13 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
       1 * zonesGetMock.execute() >> zone
 
-      2 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
-      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
-      1 * resourceViewsMock.zoneViews() >> zoneViewsMock
-      1 * zoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> zoneViewsListResourcesMock
-      1 * zoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponse
+      1 * computeMock.instanceGroups() >> instanceGroupsMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstances
 
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -182,7 +165,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * targetPoolsAddInstanceMock.execute()
       }
 
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.setTargetPools(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >>
               instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
@@ -194,8 +177,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                               new ForwardingRule(name: "${FORWARDING_RULE_2}_WRONG", target: TARGET_POOL_URL_2)]
       def forwardingRulesList2 = new ForwardingRuleList(items: forwardingRules2)
 
-      @Subject def operation =
-              new EnableGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock, resourceViewsBuilderMock)
+      @Subject def operation = new EnableGoogleServerGroupAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -205,15 +187,13 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
       1 * zonesGetMock.execute() >> zone
 
-      2 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
-      1 * resourceViewsBuilderMock.buildResourceViews(_) >> resourceViewsMock
-      1 * resourceViewsMock.zoneViews() >> zoneViewsMock
-      1 * zoneViewsMock.listResources(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> zoneViewsListResourcesMock
-      1 * zoneViewsListResourcesMock.execute() >> zoneViewsListResourcesResponse
+      1 * computeMock.instanceGroups() >> instanceGroupsMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstances
 
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock

@@ -17,13 +17,11 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.InstanceGroupManager
+import com.google.api.services.compute.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.google.api.services.compute.model.TargetPool
 import com.google.api.services.compute.model.Zone
-import com.google.api.services.replicapool.Replicapool
-import com.google.api.services.replicapool.model.InstanceGroupManager
-import com.google.api.services.replicapool.model.InstanceGroupManagersSetTargetPoolsRequest
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
@@ -49,8 +47,6 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final REGION = "us-central1"
 
   def computeMock
-  def replicaPoolBuilderMock
-  def replicaPoolMock
   def zonesMock
   def zonesGetMock
   def instanceGroupManagersMock
@@ -75,15 +71,12 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     computeMock = Mock(Compute)
     credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
 
-    replicaPoolBuilderMock = Mock(ReplicaPoolBuilder)
-    replicaPoolMock = Mock(Replicapool)
-
     zonesMock = Mock(Compute.Zones)
     zonesGetMock = Mock(Compute.Zones.Get)
     zone = new Zone(region: REGION)
 
-    instanceGroupManagersMock = Mock(Replicapool.InstanceGroupManagers)
-    instanceGroupManagersGetMock = Mock(Replicapool.InstanceGroupManagers.Get)
+    instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
+    instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
     instanceGroupManager = new InstanceGroupManager(targetPools: TARGET_POOL_URLS)
 
     targetPoolsMock = Mock(Compute.TargetPools)
@@ -91,7 +84,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     targetPoolsRemoveInstance = Mock(Compute.TargetPools.RemoveInstance)
     targetPool = new TargetPool(instances: [INSTANCE_URL_1, INSTANCE_URL_2])
 
-    instanceGroupManagersSetTargetPoolsMock = Mock(Replicapool.InstanceGroupManagers.SetTargetPools)
+    instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
     description = new EnableDisableGoogleServerGroupDescription(replicaPoolName: REPLICA_POOL_NAME,
                                                                 zone: ZONE,
@@ -101,8 +94,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   void "should remove instances and detach load balancers"() {
     setup:
-      @Subject def operation =
-              new DisableGoogleServerGroupAtomicOperation(description, replicaPoolBuilderMock, null)
+      @Subject def operation = new DisableGoogleServerGroupAtomicOperation(description)
 
     when:
       operation.operate([])
@@ -112,8 +104,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesMock.get(PROJECT_NAME, ZONE) >> zonesGetMock
       1 * zonesGetMock.execute() >> zone
 
-      2 * replicaPoolBuilderMock.buildReplicaPool(_) >> replicaPoolMock
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
@@ -129,12 +120,12 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
         1 * targetPoolsRemoveInstance.execute()
       }
 
-      1 * replicaPoolMock.instanceGroupManagers() >> instanceGroupManagersMock
+      1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
       1 * instanceGroupManagersMock.setTargetPools(
-              PROJECT_NAME,
-              ZONE,
-              REPLICA_POOL_NAME,
-              new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
+          PROJECT_NAME,
+          ZONE,
+          REPLICA_POOL_NAME,
+          new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
   }
 }

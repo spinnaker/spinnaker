@@ -15,13 +15,12 @@
  */
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
+import com.google.api.services.compute.model.InstanceGroupManagersDeleteInstancesRequest
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
+import com.netflix.spinnaker.kato.gce.deploy.GCEUtil
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
-import com.google.api.services.replicapool.ReplicapoolScopes
-import com.google.api.services.replicapool.model.InstanceGroupManagersDeleteInstancesRequest
 
 /**
  * Terminate and delete instances from a replica pool, and decrement the size of the replica pool.
@@ -49,12 +48,9 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
   }
 
   private final TerminateAndDecrementGoogleServerGroupDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
-  TerminateAndDecrementGoogleServerGroupAtomicOperation(TerminateAndDecrementGoogleServerGroupDescription description,
-                                                        ReplicaPoolBuilder replicaPoolBuilder) {
+  TerminateAndDecrementGoogleServerGroupAtomicOperation(TerminateAndDecrementGoogleServerGroupDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -67,15 +63,14 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
     task.updateStatus BASE_PHASE, "Attempting to terminate instances (${description.instanceIds.join(", ")} and remove from replica pool (${description.replicaPoolName})."
 
     def project = description.credentials.project
+    def compute = description.credentials.compute
     def zone = description.zone
     def replicaPoolName = description.replicaPoolName
-    def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest()
-    deleteRequest.setInstances(description.instanceIds)
+    def instanceIds = description.instanceIds
+    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, replicaPoolName, instanceIds, description.credentials)
+    def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
-    def credentialBuilder = description.credentials.createCredentialBuilder(ReplicapoolScopes.COMPUTE)
-    def replicapool = replicaPoolBuilder.buildReplicaPool(credentialBuilder);
-
-    replicapool.instanceGroupManagers().deleteInstances(project, zone, replicaPoolName, deleteRequest).execute()
+    compute.instanceGroupManagers().deleteInstances(project, zone, replicaPoolName, deleteRequest).execute()
     task.updateStatus BASE_PHASE, "Successfully terminated instances=(${description.instanceIds.join(", ")} and removed from ${replicaPoolName})."
     null
   }

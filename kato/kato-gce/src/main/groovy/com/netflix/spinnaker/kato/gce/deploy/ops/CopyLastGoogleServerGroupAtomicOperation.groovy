@@ -17,10 +17,9 @@
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.model.AttachedDisk
+import com.google.api.services.compute.model.InstanceGroupManager
 import com.google.api.services.compute.model.InstanceProperties
-import com.google.api.services.replicapool.model.InstanceGroupManager
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.google.util.ReplicaPoolBuilder
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.data.task.TaskRepository
 import com.netflix.spinnaker.kato.deploy.DeploymentResult
@@ -40,7 +39,6 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   }
 
   private final BasicGoogleDeployDescription description
-  private final ReplicaPoolBuilder replicaPoolBuilder
 
   @Autowired
   BasicGoogleDeployHandler basicGoogleDeployHandler
@@ -48,10 +46,8 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
   @Autowired
   GoogleSecurityGroupProvider googleSecurityGroupProvider
 
-  CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description,
-                                           ReplicaPoolBuilder replicaPoolBuilder) {
+  CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description) {
     this.description = description
-    this.replicaPoolBuilder = replicaPoolBuilder
   }
 
   /**
@@ -85,8 +81,7 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
     InstanceGroupManager ancestorServerGroup = GCEUtil.queryManagedInstanceGroup(description.credentials.project,
                                                                                  description.source.zone,
                                                                                  description.source.serverGroupName,
-                                                                                 description.credentials,
-                                                                                 replicaPoolBuilder)
+                                                                                 description.credentials)
 
     if (!ancestorServerGroup) {
       return newDescription
