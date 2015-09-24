@@ -23,6 +23,7 @@ import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.mort.gce.provider.GoogleInfrastructureProvider
+import com.netflix.spinnaker.mort.gce.provider.agent.GoogleNetworkCachingAgent
 import com.netflix.spinnaker.mort.gce.provider.agent.GoogleSecurityGroupCachingAgent
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -44,6 +45,7 @@ class GoogleInfrastructureProviderConfig {
 
     allAccounts.each { GoogleNamedAccountCredentials credentials ->
       agents << new GoogleSecurityGroupCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper, registry)
+      agents << new GoogleNetworkCachingAgent(googleCloudProvider, credentials.accountName, credentials.credentials, objectMapper)
     }
 
     new GoogleInfrastructureProvider(googleCloudProvider, agents)

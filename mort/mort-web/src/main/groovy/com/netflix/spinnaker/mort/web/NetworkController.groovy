@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,26 @@
  * limitations under the License.
  */
 
-
-
 package com.netflix.spinnaker.mort.web
 
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.model.Network
 import com.netflix.spinnaker.mort.model.NetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
-@Deprecated
-@RequestMapping("/vpcs")
+@RequestMapping("/networks")
 @RestController
-class VpcController {
-
-  @Autowired
-  AmazonCloudProvider amazonCloudProvider
-
+class NetworkController {
   @Autowired
   List<NetworkProvider> networkProviders
 
-  @RequestMapping(method = RequestMethod.GET)
-  Set<Network> list() {
+  @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}")
+  Set<Network> listByCloudProvider(@PathVariable String cloudProvider) {
     networkProviders.findAll { networkProvider ->
-      networkProvider.cloudProvider == amazonCloudProvider.id
+      networkProvider.cloudProvider == cloudProvider
     } collectMany {
       it.all
     }

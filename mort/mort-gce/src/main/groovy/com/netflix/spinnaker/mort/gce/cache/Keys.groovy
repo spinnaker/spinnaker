@@ -21,7 +21,8 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 
 class Keys {
   static enum Namespace {
-    SECURITY_GROUPS
+    SECURITY_GROUPS,
+    NETWORKS
 
     final String ns
 
@@ -54,6 +55,9 @@ class Keys {
         def names = Names.parseName(parts[2])
         result << [application: names.app, name: parts[2], id: parts[3], region: parts[4], account: parts[5]]
         break
+      case Namespace.NETWORKS.ns:
+        result << [id: parts[2], account: parts[3], region: parts[4]]
+        break
       default:
         return null
         break
@@ -68,5 +72,12 @@ class Keys {
                                     String region,
                                     String account) {
     "$googleCloudProvider.id:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
+  }
+
+  static String getNetworkKey(GoogleCloudProvider googleCloudProvider,
+                              String networkName,
+                              String region,
+                              String account) {
+    "$googleCloudProvider.id:${Namespace.NETWORKS}:${networkName}:${account}:${region}"
   }
 }

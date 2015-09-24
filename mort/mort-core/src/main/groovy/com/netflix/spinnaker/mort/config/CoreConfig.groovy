@@ -49,9 +49,9 @@ class CoreConfig {
   }
 
   @Bean
-  @ConditionalOnMissingBean(VpcProvider)
-  VpcProvider noopVpcProvider() {
-    new NoopVpcProvider()
+  @ConditionalOnMissingBean(NetworkProvider)
+  NetworkProvider noopVpcProvider() {
+    new NoopNetworkProvider()
   }
 
   @Bean

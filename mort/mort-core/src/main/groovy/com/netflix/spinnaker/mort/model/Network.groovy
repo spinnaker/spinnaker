@@ -18,6 +18,42 @@
 
 package com.netflix.spinnaker.mort.model
 
-public interface VpcProvider<T extends Vpc> {
-  Set<T> getAll()
+/**
+ * A representation of a network
+ */
+public interface Network {
+  /**
+   * The cloud provider associated with this network
+   *
+   * @return
+   */
+  String getCloudProvider()
+
+  /**
+   * The ID associated with this network
+   *
+   * @return
+   */
+  String getId()
+
+  /**
+   * The name for this network
+   *
+   * @return
+   */
+  String getName()
+
+  /**
+   * The account associated with this network
+   *
+   * @return
+   */
+  String getAccount()
+
+  /**
+   * The region associated with this network
+   *
+   * @return
+   */
+  String getRegion()
 }

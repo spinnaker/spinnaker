@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
+
+
 package com.netflix.spinnaker.mort.model
 
-class NoopVpcProvider implements VpcProvider<Vpc> {
-    @Override
-    Set<Vpc> getAll() {
-        Collections.emptySet()
-    }
+public interface NetworkProvider<T extends Network> {
+  String getCloudProvider()
+  Set<T> getAll()
 }
