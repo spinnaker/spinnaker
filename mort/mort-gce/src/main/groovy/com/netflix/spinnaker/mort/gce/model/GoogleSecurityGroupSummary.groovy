@@ -21,9 +21,10 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.Immutable
 
 @Immutable
-@EqualsAndHashCode(includes = ['id'], cache = true)
+@EqualsAndHashCode(includes = ['id', 'network'], cache = true)
 class GoogleSecurityGroupSummary implements SecurityGroupSummary {
   String name
   String id
+  String network
   String targetTags
 }

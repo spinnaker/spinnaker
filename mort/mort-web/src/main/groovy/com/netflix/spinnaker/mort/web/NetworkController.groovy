@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/networks")
 @RestController
 class NetworkController {
+
   @Autowired
   List<NetworkProvider> networkProviders
 
