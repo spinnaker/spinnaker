@@ -25,7 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AbstractScalingProcessTaskSpec extends Specification {
+class AbstractAwsScalingProcessTaskSpec extends Specification {
   def katoService = Mock(KatoService) {
     _ * requestOperations(_, _) >> {
       return rx.Observable.from([new TaskId(id: "1")])
@@ -43,8 +43,8 @@ class AbstractScalingProcessTaskSpec extends Specification {
       }
 
       def task = isResume ?
-        new ResumeScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService) :
-        new SuspendScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService)
+        new ResumeAwsScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService) :
+        new SuspendAwsScalingProcessTask(resolver: targetServerGroupResolver, katoService: katoService)
 
     when:
       def result = task.execute(stage)
@@ -93,7 +93,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
       def resolver = GroovySpy(TargetServerGroupResolver, global: true)
 
       def stage = new PipelineStage(new Pipeline(), null, sD("targetAsg", ["Launch"]))
-      def task = new ResumeScalingProcessTask(resolver: resolver, katoService: katoService)
+      def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
       task.execute(stage)
@@ -112,7 +112,7 @@ class AbstractScalingProcessTaskSpec extends Specification {
       def ctx = sD("targetAsg", ["Launch"])
       ctx.cloudProvider = "abc"
       def stage = new PipelineStage(new Pipeline(), null, ctx)
-      def task = new ResumeScalingProcessTask(resolver: resolver, katoService: katoService)
+      def task = new ResumeAwsScalingProcessTask(resolver: resolver, katoService: katoService)
 
     when:
       task.execute(stage)
@@ -123,6 +123,6 @@ class AbstractScalingProcessTaskSpec extends Specification {
       katoService.requestOperations("abc", { Map m -> m.resumeAsgProcessesDescription.asgName == "targetAsg" }) >> {
         return rx.Observable.from([new TaskId(id: "1")])
       }
-      0 * katoService.requestOperations(_)
+      0 * katoService.requestOperations(_, _)
   }
 }
