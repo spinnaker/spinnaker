@@ -25,5 +25,3 @@ if __name__ == '__main__':
     util.update_all_config_files(bindings)
   except SystemExit:
     sys.exit(-1)
-
-

@@ -3,6 +3,7 @@ server:
 
 cassandra:
   embedded: false
+  host: $CASSANDRA_HOST
 
 docker:
   accounts:

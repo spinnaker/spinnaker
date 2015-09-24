@@ -116,14 +116,10 @@ function extract_spinnaker_credentials() {
     # got in the way.
     sed -i s/^None$//g $json_path
     if [[ -s $json_path ]]; then
-      chmod 600 $json_path
+      chmod 400 $json_path
     else
        rm $json_path
     fi
-  elif clear_metadata_to_file "gce-kms-credentials" $json_path; then
-    # DEPRECATED, this is the old metadata value. We'll keep support around
-    # until the client scripts are updated.
-    chmod 600 $json_path
   else
     clear_instance_metadata "managed_project_credentials"
     json_path=""

@@ -21,3 +21,7 @@ services:
   igor:
     enabled: ${IGOR_ENABLED:false}
     baseUrl: http://localhost:8088
+
+redis:
+  connection: redis://$REDIS_HOST:6379      
+

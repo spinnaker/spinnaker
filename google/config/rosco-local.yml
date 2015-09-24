@@ -1,6 +1,9 @@
 server:
   port: 8087
 
+redis:
+  host: $REDIS_HOST
+
 aws:
   enabled: $AWS_ENABLED
 
