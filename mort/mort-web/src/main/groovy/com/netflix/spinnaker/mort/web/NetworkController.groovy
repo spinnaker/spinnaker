@@ -31,6 +31,21 @@ class NetworkController {
   @Autowired
   List<NetworkProvider> networkProviders
 
+  @RequestMapping(method = RequestMethod.GET)
+  Map<String, Set<Network>> list() {
+    rx.Observable.from(networkProviders).flatMap { networkProvider ->
+      rx.Observable.from(networkProvider.getAll())
+    } filter {
+      it != null
+    } reduce([:], { Map networks, Network network ->
+      if (!networks.containsKey(network.cloudProvider)) {
+        networks[network.cloudProvider] = sortedTreeSet
+      }
+      networks[network.cloudProvider] << network
+      networks
+    }) toBlocking() first()
+  }
+
   @RequestMapping(method = RequestMethod.GET, value = "/{cloudProvider}")
   Set<Network> listByCloudProvider(@PathVariable String cloudProvider) {
     networkProviders.findAll { networkProvider ->
@@ -38,5 +53,11 @@ class NetworkController {
     } collectMany {
       it.all
     }
+  }
+
+  private static Set<Network> getSortedTreeSet() {
+    new TreeSet<>({ Network a, Network b ->
+      a.name.toLowerCase() <=> b.name.toLowerCase() ?: a.id <=> b.id
+    } as Comparator)
   }
 }
