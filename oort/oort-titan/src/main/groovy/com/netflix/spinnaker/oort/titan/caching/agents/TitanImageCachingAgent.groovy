@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.oort.titan.caching.Keys.Namespace.NAMED_IMAGES
 
 /**
  * TODO: This is a WIP. There needs to be docker registry APIs to support this agent
@@ -78,8 +77,8 @@ class TitanImageCachingAgent implements CachingAgent {
   CacheResult loadData(ProviderCache providerCache) {
     List images = [] // TODO: Fetch a list of docker images - add specific constraints to this agent (via constructor) like account/region
     Collection<CacheData> imageCacheData = new ArrayList<>(images.size())
-    Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
     /*
+    Collection<CacheData> namedImageCacheData = new ArrayList<>(images.size())
     for (each image) {
       Map<String, Object> attributes = objectMapper.convertValue(image, new TypeReference<Map<String, Object>>() {})
       def imageId = Keys.getImageKey(_, _)
@@ -88,7 +87,7 @@ class TitanImageCachingAgent implements CachingAgent {
       namedImageCacheData.add(new DefaultCacheData(namedImageId, [name: image.name], [(IMAGES.ns):[imageId]]))
     }
     */
-    new DefaultCacheResult((IMAGES.ns): imageCacheData, (NAMED_IMAGES.ns): namedImageCacheData)
+    new DefaultCacheResult([(IMAGES.ns): imageCacheData])
   }
 
 }

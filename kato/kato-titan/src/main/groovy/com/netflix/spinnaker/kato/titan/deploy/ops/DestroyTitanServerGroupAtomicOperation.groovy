@@ -46,8 +46,26 @@ class DestroyTitanServerGroupAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus PHASE, "Destroying server group: ${description.serverGroupName}..."
     TitanClient titanClient = titanClientProvider.getTitanClient(description.credentials, description.region)
     Job job = titanClient.findJobByName(description.serverGroupName)
+
+    /**
+     * TODO: Remove this workaround once the bulk read APIs for tasks and jobs is available in titan api service
+     * Temporary workaround: findJobByName() hits a temporary calypso service endpoint which has significantly greater
+     * delay (~ 1 min) in surfacing newly launched jobs compared to the titan api service and hence these retries.
+     */
+    int i = 6
+    while (job == null && --i >= 0) {
+      Thread.sleep(15*1000L)
+      task.updateStatus PHASE, "Did NOT find titan server group named '${description.serverGroupName}'. Retrying..."
+      job = titanClient.findJobByName(description.serverGroupName)
+    }
+
+    if (!job) {
+      throw new IllegalArgumentException("No titan server group named '${description.serverGroupName}' found")
+    }
+
     titanClient.terminateJob(job.id)
-    task.updateStatus PHASE, "Issued terminate job request to titan for ${job.id} which corresponds to ${description.serverGroupName}"
+    task.updateStatus PHASE, "Successfully issued terminate job request to titan for ${job.id} which corresponds to ${description.serverGroupName}"
+
     task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"
     null
   }
