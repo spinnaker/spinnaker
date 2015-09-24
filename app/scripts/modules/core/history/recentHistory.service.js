@@ -50,7 +50,7 @@ module.exports = angular.module('spinnaker.core.history.service', [
 
     function removeItem(type, id) {
       var items = getItems(type),
-        existing = items.find((item) => item.id === id);
+        existing = _.find(items, (item) => item.id === id);
       if (existing) {
         items.splice(items.indexOf(existing), 1);
         cache.put(type, items);

@@ -5,8 +5,9 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.projects.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
+    require('../../../utils/lodash.js'),
   ])
-  .factory('projectReader', function ($q, Restangular) {
+  .factory('projectReader', function ($q, Restangular, _) {
 
     function listProjects() {
       if (!arguments.length) {
@@ -18,7 +19,7 @@ module.exports = angular
     function getProjectConfig(projectName) {
       if (arguments.length === 1) {
         return listProjects().then((projects) => {
-          let project = projects.find((test) => test.name.toLowerCase() === projectName.toLowerCase());
+          let project = _.find(projects, (test) => test.name.toLowerCase() === projectName.toLowerCase());
           if (project) {
             return Restangular.one('projects', project.id).get();
           } else {
