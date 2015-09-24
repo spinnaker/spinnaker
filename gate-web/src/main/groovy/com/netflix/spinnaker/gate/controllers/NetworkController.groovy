@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.controllers.aws
+package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.aws.InfrastructureService
+import com.netflix.spinnaker.gate.services.NetworkService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class AmazonInfrastructureController {
+@RequestMapping("/networks")
+class NetworkController {
 
   @Autowired
-  InfrastructureService infrastructureService
+  NetworkService networkService
 
-  @RequestMapping(value = "/instanceTypes", method = RequestMethod.GET)
-  List<Map> instanceTypes() {
-    infrastructureService.instanceTypes
-  }
-
-  @RequestMapping(value = "/keyPairs", method = RequestMethod.GET)
-  List<Map> keyPairs() {
-    infrastructureService.keyPairs
-  }
-
-  @RequestMapping(value = "/subnets", method = RequestMethod.GET)
-  List<Map> subnets() {
-    infrastructureService.subnets
-  }
-
-  @Deprecated
-  @RequestMapping(value = "/vpcs", method = RequestMethod.GET)
-  List<Map> vpcs() {
-    infrastructureService.vpcs
+  @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
+  List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
+    networkService.getNetworks(cloudProvider)
   }
 }

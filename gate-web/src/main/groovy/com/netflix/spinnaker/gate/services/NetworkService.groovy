@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.gate.services.aws
+package com.netflix.spinnaker.gate.services
 
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
@@ -25,9 +25,9 @@ import org.springframework.stereotype.Component
 
 @CompileStatic
 @Component
-class InfrastructureService {
+class NetworkService {
 
-  private static final String GROUP = "infrastructure"
+  private static final String GROUP = "networks"
 
   @Autowired
   MortService mortService
@@ -36,28 +36,9 @@ class InfrastructureService {
     (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, true, work)
   }
 
-  List<Map> getInstanceTypes() {
-    command("instanceTypes") {
-      mortService.instanceTypes
-    } execute()
-  }
-
-  List<Map> getKeyPairs() {
-    command("keyPairs") {
-      mortService.keyPairs
-    } execute()
-  }
-
-  List<Map> getSubnets() {
-    command("subnets") {
-      mortService.subnets
-    } execute()
-  }
-
-  @Deprecated
-  List<Map> getVpcs() {
-    command("vpcs") {
-      mortService.getNetworks('aws')
+  List<Map> getNetworks(String cloudProvider) {
+    command("networks") {
+      mortService.getNetworks(cloudProvider)
     } execute()
   }
 }

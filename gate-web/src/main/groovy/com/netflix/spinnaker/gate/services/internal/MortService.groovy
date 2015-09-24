@@ -54,6 +54,6 @@ interface MortService {
   @GET('/subnets')
   List<Map> getSubnets()
 
-  @GET('/vpcs')
-  List<Map> getVpcs()
+  @GET('/networks/{cloudProvider}')
+  List<Map> getNetworks(@Path("cloudProvider") String cloudProvider)
 }
