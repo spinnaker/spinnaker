@@ -40,6 +40,6 @@ class DetermineTargetServerGroupTask implements Task {
   }
 
   List<TargetServerGroup> getTargetServerGroups(Stage stage) {
-    resolver.resolve(stage)
+    resolver.resolve(TargetServerGroup.Params.fromStage(stage))
   }
 }

@@ -34,13 +34,9 @@ class TargetServerGroupResolver {
   @Autowired
   ObjectMapper mapper
 
-  List<TargetServerGroup> resolve(Stage stage) {
-    resolveByParams(TargetServerGroup.Params.fromStage(stage))
-  }
-
-  List<TargetServerGroup> resolveByParams(TargetServerGroup.Params params) {
+  List<TargetServerGroup> resolve(TargetServerGroup.Params params) {
     if (!params) {
-      log.warn "No TargetServerGroup.Params to resolveByParams"
+      log.warn "No TargetServerGroup.Params to resolve"
       return []
     }
 

@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 
 @Component
 @CompileStatic
-@Deprecated
 class ModifyScalingProcessStage extends TargetReferenceLinearStageSupport {
 
   static final String PIPELINE_CONFIG_TYPE = "modifyScalingProcess"

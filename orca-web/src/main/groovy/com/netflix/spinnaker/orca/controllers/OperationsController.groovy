@@ -169,15 +169,15 @@ class OperationsController {
 
   private Map<String, String> startPipeline(Map config) {
     def json = objectMapper.writeValueAsString(config)
-    log.info('requested pipeline: {}', json)
     def pipeline = pipelineStarter.start(json)
+    log.info('requested pipeline {}:{}', pipeline.id, json)
     [ref: "/pipelines/${pipeline.id}".toString()]
   }
 
   private Map<String, String> startTask(Map config) {
     def json = objectMapper.writeValueAsString(config)
-    log.info('requested task:{}', json)
     def pipeline = orchestrationStarter.start(json)
+    log.info('requested task {}:{}', pipeline.id, json)
     [ref: "/tasks/${pipeline.id}".toString()]
   }
 }

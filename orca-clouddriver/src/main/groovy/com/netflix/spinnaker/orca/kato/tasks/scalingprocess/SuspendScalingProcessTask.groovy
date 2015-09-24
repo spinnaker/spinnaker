@@ -21,7 +21,6 @@ package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
 import org.springframework.stereotype.Component
 
-@Deprecated
 @Component
 class SuspendScalingProcessTask extends AbstractScalingProcessTask {
   String type = "suspendAsgProcessesDescription"

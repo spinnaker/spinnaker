@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.support
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetServerGroupStage
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
@@ -28,15 +29,20 @@ import spock.lang.Subject
 
 class TargetServerGroupResolverSpec extends Specification {
 
+
+  @Subject
+  TargetServerGroupResolver subject
   OortService oort = Mock(OortService)
   ObjectMapper mapper = new ObjectMapper()
-  @Subject
-  TargetServerGroupResolver subject = new TargetServerGroupResolver(oortService: oort, mapper: mapper)
 
+
+  def setup() {
+    subject = new TargetServerGroupResolver(oortService: oort, mapper: mapper)
+  }
 
   def "should resolve to target server groups"() {
     when:
-      def tsgs = subject.resolveByParams(new TargetServerGroup.Params(
+      def tsgs = subject.resolve(new TargetServerGroup.Params(
         cloudProvider: "abc",
         cluster: "test-app",
         credentials: "testCreds",
@@ -56,7 +62,7 @@ class TargetServerGroupResolverSpec extends Specification {
       tsgs[0].serverGroup.data == 123
 
     when:
-      tsgs = subject.resolveByParams(new TargetServerGroup.Params(
+      tsgs = subject.resolve(new TargetServerGroup.Params(
         cloudProvider: "abc",
         asgName: "test-app-v010",
         credentials: "testCreds",
@@ -76,12 +82,12 @@ class TargetServerGroupResolverSpec extends Specification {
       tsgs[0].serverGroup.data == 123
 
     when: "null params returns empty list"
-      tsgs = subject.resolveByParams(null)
+      tsgs = subject.resolve(null)
     then:
       tsgs == []
 
     when: "non-null, empty params returns empty list"
-      tsgs = subject.resolveByParams(new TargetServerGroup.Params())
+      tsgs = subject.resolve(new TargetServerGroup.Params())
     then:
       tsgs == []
   }
