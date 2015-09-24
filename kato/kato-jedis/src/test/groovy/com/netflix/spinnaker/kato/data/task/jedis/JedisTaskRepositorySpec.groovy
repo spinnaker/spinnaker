@@ -16,17 +16,17 @@
 
 package com.netflix.spinnaker.kato.data.task.jedis
 
+import com.netflix.spinnaker.cats.redis.test.LocalRedisCheck
 import com.netflix.spinnaker.kato.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.kato.data.task.TaskState
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
+import spock.lang.IgnoreIf
 import spock.lang.Shared
 import spock.lang.Specification
 
+@IgnoreIf({ LocalRedisCheck.redisUnavailable() })
 class JedisTaskRepositorySpec extends Specification {
-
-  private static final String JEDIS_URI = 'redis://redistogo:9301e6a6073903ff02efc594420b83be@angelfish.redistogo.com:10439/0'
-
   @Shared
   JedisTaskRepository taskRepository
 
@@ -35,7 +35,7 @@ class JedisTaskRepositorySpec extends Specification {
 
   def setupSpec() {
     taskRepository = new JedisTaskRepository()
-    jedisPool = new JedisPool(URI.create(JEDIS_URI))
+    jedisPool = new JedisPool("localhost", 6379)
     taskRepository.jedisPool = jedisPool
   }
 
@@ -173,5 +173,4 @@ class JedisTaskRepositorySpec extends Specification {
     String name
     String value
   }
-
 }
