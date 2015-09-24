@@ -8,9 +8,9 @@ module.exports = angular.module('spinnaker.pipelines.stage.resizeAsgStage', [
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       useBaseProvider: true,
-      key: 'resizeAsg',
+      key: 'resizeServerGroup',
       label: 'Resize Server Group',
-      description: 'Resizes a server group',
+      description: 'Resizes a server group'
     });
   })
   .name;

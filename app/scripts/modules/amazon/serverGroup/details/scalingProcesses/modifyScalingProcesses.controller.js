@@ -38,6 +38,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
           asgName: serverGroup.name,
           regions: [serverGroup.region],
           credentials: serverGroup.account,
+          cloudProvider: 'aws',
         });
       }
       if (toSuspend.length) {
@@ -48,6 +49,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.p
           asgName: serverGroup.name,
           regions: [serverGroup.region],
           credentials: serverGroup.account,
+          cloudProvider: 'aws',
         });
       }
 

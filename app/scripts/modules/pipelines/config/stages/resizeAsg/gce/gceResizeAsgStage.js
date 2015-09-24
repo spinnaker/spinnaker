@@ -7,9 +7,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.gce.resizeAsgStage', 
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
-      provides: 'resizeAsg',
+      provides: 'resizeServerGroup',
       cloudProvider: 'gce',
-      key: 'resizeAsg_gce',
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
@@ -94,6 +93,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.gce.resizeAsgStage', 
     stage.target = stage.target || $scope.resizeTargets[0].val;
     stage.action = stage.action || $scope.scaleActions[0].val;
     stage.resizeType = stage.resizeType || $scope.resizeTypes[0].val;
+    stage.cloudProvider = 'gce';
 
     if (!stage.credentials && $scope.application.defaultCredentials) {
       stage.credentials = $scope.application.defaultCredentials;

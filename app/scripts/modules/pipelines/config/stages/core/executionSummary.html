@@ -14,7 +14,7 @@
         ng-repeat="step in stageSummary.stages"
         ng-class="{ info: ctrl.isStepCurrent($index) }"
         ng-click="ctrl.toggleDetails($index)">
-      <td><span ng-include="ctrl.getStepLabel(type)"></span></td>
+      <td><span ng-include="ctrl.getStepLabel(step)"></span></td>
       <td>{{ step.startTime | timestamp }}</td>
       <td>{{ step.runningTimeInMs | duration }}</td>
       <td>

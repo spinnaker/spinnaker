@@ -45,7 +45,6 @@ module.exports = angular.module('spinnaker.google.serverGroup.details.resize.con
 
       var submitMethod = function() {
         return serverGroupWriter.resizeServerGroup(serverGroup, application, {
-          cloudProvider: 'gce',
           capacity: capacity,
           replicaPoolName: serverGroup.name,
           numReplicas: capacity.desired,
