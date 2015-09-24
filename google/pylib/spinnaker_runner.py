@@ -44,6 +44,16 @@ class Runner(object):
   def __init__(self, installation_parameters=None):
     self.__installation = (installation_parameters
                            or configure_util.InstallationParameters())
+    self.__bindings = configure_util.ConfigureUtil(
+        self.__installation).load_bindings()
+
+    for name,value in self.__bindings.items():
+      # Add bindings as environment variables so they can be picked up by
+      # embedded YML files and maybe internal within the implementation
+      # (e.g. amos needs the AWS_*_KEY but isnt clear if that could be
+      # injected through a yaml)
+      os.environ[name] = value
+
 
   # These are all the spinnaker subsystems in total.
   @classmethod
@@ -133,8 +143,7 @@ class Runner(object):
         if pid:
           started_list.append((subsys, pid))
 
-    bindings = configure_util.ConfigureUtil(self.__installation).load_bindings()
-    if bindings.get('DOCKER_ADDRESS', ''):
+    if self.__bindings.get('DOCKER_ADDRESS', ''):
       pid = self.maybe_start_job(jobs, 'rush')
       if pid:
          started_list.append(('rush', pid))
@@ -142,12 +151,18 @@ class Runner(object):
       print 'Not using rush because docker is not configured.'
 
 
-    if bindings.get('JENKINS_ADDRESS', ''):
-      pid = self.maybe_start_job(jobs, 'igor')
-      if pid:
-         started_list.append(('igor', pid))
+    if self.__bindings.get('JENKINS_ADDRESS', ''):
+        if self.__bindings.get('IGOR_ENABLED', 'false') == 'false':
+            sys.stderr.write(
+                'WARNING: Not starting igor because IGOR_ENABLED=false'
+                ' even though JENKINS_ADDRESS="{address}"'.format(
+                      self.__bindings['JENKINS_ADDRESS']))
+        else:
+            pid = self.maybe_start_job(jobs, 'igor')
+            if pid:
+               started_list.append(('igor', pid))
     else:
-      print 'Not using igore because jenkins is not configured.'
+      print 'Not using igor because jenkins is not configured.'
 
     for subsystem in started_list:
       self.wait_for_service(subsystem[0], pid=subsystem[1])
