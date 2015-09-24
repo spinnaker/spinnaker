@@ -235,8 +235,7 @@ class ValidateConfig(object):
                            ' but not JENKINS_USERNAME.')
 
   def verify_external_dependencies(self):
-    ok = self.verify_host('ELASTICSEARCH_HOST', required=False)
-    ok = self.verify_host('CASSANDRA_HOST', required=False) and ok
+    ok = self.verify_host('CASSANDRA_HOST', required=False)
     ok = self.verify_host('REDIS_HOST', required=False) and ok
     return ok
 

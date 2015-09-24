@@ -130,13 +130,6 @@ class Runner(object):
                 run_dir=run_dir),
          echo=True)
 
-    run_or_die(
-        'ELASTICSEARCH_HOST={host}'
-        ' {run_dir}/start_elasticsearch.sh'
-        .format(host=self.__bindings.get('ELASTICSEARCH_HOST', 'localhost'),
-                run_dir=run_dir),
-        echo=False)
-
   def maybe_start_job(self, jobs, subsystem):
       if subsystem in jobs:
         print '{subsystem} already running as pid {pid}'.format(
