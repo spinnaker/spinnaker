@@ -60,7 +60,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
   private static final long DISK_SIZE_GB = 100
   private static final String DISK_TYPE = "pd-standard"
-  private static final String NETWORK_NAME = "default"
+  private static final String NETWORK_NAME_DEFAULT = "default"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
 
@@ -97,7 +97,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceTemplatesGetMock = Mock(Compute.InstanceTemplates.Get)
 
     sourceImage = new Image(selfLink: IMAGE)
-    network = new Network(selfLink: NETWORK_NAME)
+    network = new Network(selfLink: NETWORK_NAME_DEFAULT)
     attachedDisk = GCEUtil.buildAttachedDisk(PROJECT_NAME,
                                              ZONE,
                                              sourceImage,
@@ -134,6 +134,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
+                                                         network: "other-network",
                                                          networkLoadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
                                                          source: [zone: ZONE,
@@ -182,6 +183,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.zone = ZONE
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
+      newDescription.network = NETWORK_NAME_DEFAULT
       newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])

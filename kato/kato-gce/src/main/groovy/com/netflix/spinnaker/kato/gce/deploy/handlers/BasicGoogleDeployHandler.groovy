@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   private static final String BASE_PHASE = "DEPLOY"
 
   // TODO(duftler): These should be exposed/configurable.
-  private static final String networkName = "default"
-  private static final String accessConfigName = "External NAT"
-  private static final String accessConfigType = "ONE_TO_ONE_NAT"
+  private static final String DEFAULT_NETWORK_NAME = "default"
+  private static final String ACCESS_CONFIG_NAME = "External NAT"
+  private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
 
   @Autowired
   private GceConfig.DeployDefaults gceDeployDefaults
@@ -97,7 +97,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     def sourceImage = GCEUtil.querySourceImage(project, description.image, compute, task, BASE_PHASE, googleApplicationName)
 
-    def network = GCEUtil.queryNetwork(project, networkName, compute, task, BASE_PHASE)
+    def network = GCEUtil.queryNetwork(project, description.network ?: DEFAULT_NETWORK_NAME, compute, task, BASE_PHASE)
 
     def networkLoadBalancers = []
 
@@ -127,7 +127,7 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                  description.instanceType,
                                                  gceDeployDefaults)
 
-    def networkInterface = GCEUtil.buildNetworkInterface(network, accessConfigName, accessConfigType)
+    def networkInterface = GCEUtil.buildNetworkInterface(network, ACCESS_CONFIG_NAME, ACCESS_CONFIG_TYPE)
 
     def metadata = GCEUtil.buildMetadataFromMap(description.instanceMetadata)
 
