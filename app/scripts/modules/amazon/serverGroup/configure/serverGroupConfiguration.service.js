@@ -50,6 +50,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
+        var instanceTypeReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
         backingData.filtered = {};
         command.backingData = backingData;
@@ -68,8 +69,11 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
             securityGroupReloader = refreshSecurityGroups(command, true);
           }
         }
+        if (command.instanceType) {
+          instanceTypeReloader = refreshInstanceTypes(command, true);
+        }
 
-        return $q.all([loadBalancerReloader, securityGroupReloader]).then(function() {
+        return $q.all([loadBalancerReloader, securityGroupReloader, instanceTypeReloader]).then(function() {
           attachEventHandlers(command);
         });
       });
@@ -248,11 +252,13 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       });
     }
 
-    function refreshInstanceTypes(command) {
+    function refreshInstanceTypes(command, skipCommandReconfiguration) {
       return cacheInitializer.refreshCache('instanceTypes').then(function() {
         return awsInstanceTypeService.getAllTypesByRegion().then(function(instanceTypes) {
           command.backingData.instanceTypes = instanceTypes;
-          configureInstanceTypes(command);
+          if (!skipCommandReconfiguration) {
+            configureInstanceTypes(command);
+          }
         });
       });
     }

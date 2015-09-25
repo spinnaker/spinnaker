@@ -151,6 +151,37 @@ describe('Service: awsServerGroupConfiguration', function () {
 
     });
 
+    it ('attempts to reload instance types if previous selection is not found on initialization, but does not set dirty flag', function () {
+      spyOn(accountService, 'getRegionsKeyedByAccount').and.returnValue($q.when([]));
+      spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when([]));
+      spyOn(loadBalancerReader, 'listLoadBalancers').and.returnValue($q.when([]));
+      spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
+      spyOn(accountService, 'getPreferredZonesByAccount').and.returnValue($q.when([]));
+      spyOn(keyPairsReader, 'listKeyPairs').and.returnValue($q.when([]));
+      spyOn(awsInstanceTypeService, 'getAllTypesByRegion').and.returnValue($q.when([]));
+      spyOn(cacheInitializer, 'refreshCache').and.returnValue($q.when(null));
+
+      var command = {
+        credentials: 'test',
+        region: 'us-east-1',
+        securityGroups: [],
+        instanceType: 'm4.tiny',
+        vpcId: null,
+        viewState: {
+          disableImageSelection: true,
+        }
+      };
+
+      service.configureCommand({}, command);
+      $scope.$digest();
+      $scope.$digest();
+
+      expect(cacheInitializer.refreshCache).toHaveBeenCalledWith('instanceTypes');
+      expect(cacheInitializer.refreshCache.calls.count()).toBe(1);
+      expect(awsInstanceTypeService.getAllTypesByRegion.calls.count()).toBe(2);
+      expect(command.dirty).toBeUndefined();
+    });
+
   });
 
   describe('configureLoadBalancerOptions', function () {
