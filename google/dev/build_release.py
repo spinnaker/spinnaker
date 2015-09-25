@@ -313,14 +313,14 @@ if __name__ == '__main__':
               'google_install_loader.py',
               'install_utils.py']
       run_or_die_no_result(
-        'cd {install_dir}; zip {zip_file} {deps}'
+        'cd "{install_dir}"; zip "{zip_file}" {deps}'
         .format(install_dir=os.path.join(self.__project_dir, 'install'),
                 zip_file=zip_file,
                 deps=' '.join(deps)),
         echo=False)
 
       run_or_die_no_result(
-            'cd {temp_dir}; zip -g {zip_file} __main__.py'
+            'cd "{temp_dir}"; zip -g "{zip_file}" __main__.py'
             .format(temp_dir=temp_dir, zip_file=zip_file),
             echo=False)
       p = self.start_copy_file(
@@ -356,17 +356,17 @@ if __name__ == '__main__':
       # TODO(ewiseblatt): 20150810
       # Eventually this needs to be the transitive closure,
       # but there are currently no other dependencies.
-      run_or_die_no_result('cd citest; zip -R {zip_file} citest *.py'
+      run_or_die_no_result('cd citest; zip -R "{zip_file}" citest *.py'
                            .format(zip_file=zip_file),
                            echo=False)
       run_or_die_no_result('cd citest/spinnaker'
-                           '; zip -g {zip_file} spinnaker_testing *.py'
+                           '; zip -g "{zip_file}" spinnaker_testing *.py'
                            '; cd spinnaker_system'
-                           '; zip -g {zip_file} {test_name}.py'
+                           '; zip -g "{zip_file}" {test_name}.py'
                            .format(zip_file=zip_file, test_name=test_name),
                            echo=False)
       run_or_die_no_result(
-            'cd {temp_dir}; zip -g {zip_file} __init__.py __main__.py'
+            'cd "{temp_dir}"; zip -g "{zip_file}" __init__.py __main__.py'
             .format(temp_dir=temp_dir, zip_file=zip_file),
             echo=False)
       p = self.start_copy_file(
