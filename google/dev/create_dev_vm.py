@@ -149,7 +149,8 @@ def create_instance(options):
     os.write(fd, content)
     os.close(fd)
 
-    startup_command = 'install_development.py'
+    startup_command = ['install_development.py',
+                       '--package_manager']
 
     metadata_files = [
         'startup-script={install_dir}/google_install_loader.py'
@@ -165,7 +166,7 @@ def create_instance(options):
 
     metadata = ','.join([
         'startup_py_command={startup_command}'.format(
-            startup_command=startup_command),
+            startup_command='+'.join(startup_command)),
         'startup_loader_files='
         'py_install_utils'
         '+py_install_development'

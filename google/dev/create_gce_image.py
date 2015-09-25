@@ -141,6 +141,7 @@ def create_prototype_instance(options):
     """Create an instance and install spinnaker onto it."""
     print 'Creating prototype instance with spinnaker installation...'
     startup_command = ['install_spinnaker.py',
+                       '--package_manager',
                        '--release={0}'.format(options.release)]
     if not options.spinnaker:
         startup_command.append('--nospinnaker')

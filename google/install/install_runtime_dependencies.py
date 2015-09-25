@@ -19,17 +19,24 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 
 from install_utils import fetch_or_die
 from install_utils import run_or_die
 
 
-APACHE2_VERSION='2.4.7-1ubuntu4.5'
+APACHE2_VERSION=None   # Whatever is in the current release
 CASSANDRA_VERSION='2.1.9'
 OPENJDK_8_VERSION='8u45-b14-1~14.04'
 REDIS_SERVER_VERSION='2:2.8.4-2'
 
 DECK_PORT=9000
+
+
+def check_options(options):
+    if options.package_manager == None:
+      error = 'Must specify either --package_manager or --nopackage_manager'
+      raise SystemExit(error)
 
 
 def init_argument_parser(parser, default_values={}):
@@ -56,9 +63,12 @@ def init_argument_parser(parser, default_values={}):
 
     parser.add_argument(
         '--package_manager',
-        default=default_values.get('package_manager', True),
+        default=default_values.get('package_manager', None),
         action='store_true',
-        help='Allow modifications to package manager repository list')
+        help='Allow modifications to package manager repository list.'
+             ' If this is not permitted, then packages not part of the standard'
+             ' release will be installed directly rather than adding their'
+             ' sources to the package manager repository list.')
     parser.add_argument('--nopackage_manager',
                         dest='package_manager', action='store_false')
 
@@ -110,6 +120,7 @@ def install_runtime_dependencies(options):
     Args:
       options: ArgumentParserNamespace can turn off individual dependencies.
     """
+    check_options(options)
     install_java(options, which='jre')
     install_cassandra(options)
     install_redis(options)
@@ -119,19 +130,20 @@ def install_runtime_dependencies(options):
 
 def check_java_version():
     try:
-      p = subprocess.Popen('java -version', shell=True, stdout=subprocess.PIPE)
+      p = subprocess.Popen('java -version', shell=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
       stdout, stderr = p.communicate()
-      code = p.returncode()
+      code = p.returncode
     except OSError as error:
       return str(error)
 
-    info = stdout + stderr
+    info = stdout
     if code != 0:
       return 'Java does not appear to be installed.'
 
-    m = re.search(r'^openjdk version "(.*)"', info)
+    m = re.search(r'(?m)^openjdk version "(.*)"', info)
     if not m:
-      m = re.search(r'^java version "(.*)"', info)
+      m = re.search(r'(?m)^java version "(.*)"', info)
     if not m:
         return 'Unrecognized java version:\n{0}'.format(info)
     if m.group(1)[0:3] != '1.8':
@@ -160,6 +172,7 @@ def install_java(options, which='jre'):
     if which != 'jre' and which != 'jdk':
         raise ValueError('Expected which=(jdk|jre)')
 
+    check_options(options)
     if not options.package_manager:
         msg = check_java_version()
         if msg:
@@ -195,6 +208,7 @@ def install_cassandra(options):
         return
 
     print 'Installing Cassandra...'
+    check_options(options)
     if not options.package_manager:
         root = 'https://archive.apache.org/dist/cassandra/debian/pool/main/c'
         try:
@@ -266,9 +280,18 @@ def install_apache(options):
         content = f.read()
     print 'Changing default port to {0}'.format(DECK_PORT)
     content = content.replace('Listen 80\n', 'Listen {0}\n'.format(DECK_PORT))
-    run_or_die('sudo bash -c cat > /etc/apache2/ports.conf',
-               input=content, echo=False)
+    # write changes to a temp file so we can atomically replace the old one
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, content)
+    os.close(fd)
 
+    # Replace the file while preserving the original owner and protection bits.
+    run_or_die('sudo bash -c "'
+               'chmod --reference={etc} {temp}'
+               '; chown --reference={etc} {temp}'
+               '; mv {temp} {etc}"'
+               .format(etc='/etc/apache2/ports.conf', temp=temp_path),
+               echo=False)
     run_or_die('sudo apt-get install -f -y', echo=True)
 
 

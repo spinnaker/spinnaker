@@ -78,9 +78,8 @@ def get_config_template_dir(options):
 def get_spinnaker_dir(options):
     path = options.spinnaker_dir or '/opt/spinnaker'
     if not os.path.exists(path):
-        print 'Creating spinnaker_dir={dir}'.format(dir=path)
+        print 'Creating spinnaker_dir=' + path
         os.makedirs(path)
-
     return path
 
 
@@ -167,11 +166,17 @@ def get_release_metadata(options, bucket):
 
 
 def check_release_dir(options):
+  if not options.release_path:
+    error = ('--release_path cannot be empty.'
+             ' Either specify a --release or a --release_path.')
+    sys.stderr.write(error)
+    raise ValueError(error)
+      
   if os.path.exists(options.release_path):
       return
 
   if not options.release_path[0:3] == 'gs:':
-      error = 'Unknown path --release={dir}\n'.format(dir=options.release_path)
+      error = 'Unknown path --release_path={dir}\n'.format(dir=options.release_path)
       sys.stderr.write(error)
       raise ValueError(error)
 
@@ -196,6 +201,10 @@ ERROR: gsutil is required to retrieve the spinnaker release from GCS.
                ' Check the permissions.\n'.format(dir=options.release_path))
       sys.stderr.write(error)
       raise RuntimeError(error)
+
+def check_options(options):
+  install_runtime_dependencies.check_options(options)
+  check_release_dir(options)
 
 
 def install_spinnaker_packages(options, bucket):
@@ -310,32 +319,35 @@ def install_spinnaker(options):
 
   # Use chmod since +x is convienent.
   # Fork a shell to do the wildcard expansion.
-  run_or_die('sudo bash -c "chmod +x {files}"'
+  run_or_die('bash -c "sudo chmod +x {files}"'
              .format(files=os.path.join(spinnaker_dir, 'scripts/*.sh')))
-  run_or_die('sudo bash -c "chmod +x {files}"'
+  run_or_die('bash -c "sudo chmod +x {files}"'
              .format(files=os.path.join(spinnaker_dir, 'install/*.sh')))
 
 
+def main():
+  parser = argparse.ArgumentParser()
+  init_argument_parser(parser)
+  options = parser.parse_args()
+
+  check_options(options)
+
+  if options.dependencies:
+    install_runtime_dependencies.install_runtime_dependencies(options)
+  else:
+      if install_runtime_dependencies.check_java_version() is not None:
+          install_runtime_dependencies.install_java(options)
+      if options.update_os:
+          install_runtime_dependencies.install_os_updates(options)
+      if options.spinnaker:
+          install_runtime_dependencies.install_apache(options)
+
+  install_spinnaker(options)
+
+  # This is really just a signal
+  if google_install_loader.running_on_gce():
+    google_install_loader.write_instance_metadata(
+          'spinnaker-sentinal', 'READY')
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    init_argument_parser(parser)
-    options = parser.parse_args()
-
-    check_release_dir(options)
-
-    if options.dependencies:
-      install_runtime_dependencies.install_runtime_dependencies(options)
-    else:
-        if install_runtime_dependencies.check_java_version() is not None:
-            install_runtime_dependencies.install_java(options)
-        if options.update_os:
-            install_runtime_dependencies.install_os_updates(options)
-        if options.spinnaker:
-            install_runtime_dependencies.install_apache(options)
-
-    install_spinnaker(options)
-
-    # This is really just a signal
-    if google_install_loader.running_on_gce():
-      google_install_loader.write_instance_metadata(
-            'spinnaker-sentinal', 'READY')
+   main()
