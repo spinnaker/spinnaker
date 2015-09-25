@@ -65,6 +65,10 @@ interface OrcaService {
   Map deletePipeline(@Path("id") String id)
 
   @Headers("Accept: application/json")
+  @PUT("/pipelines/{executionId}/stages/{stageId}/restart")
+  Map restartPipelineStage(@Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map restartDetails)
+
+  @Headers("Accept: application/json")
   @POST("/orchestrate")
   Map startPipeline(@Body Map pipelineConfig, @Query("user") String user)
 

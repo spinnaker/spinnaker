@@ -39,9 +39,9 @@ class PipelineController {
   @Autowired
   PipelineService pipelineService
 
-  @RequestMapping(value = "/{applicationName}/{pipelineName:.+}", method = RequestMethod.DELETE)
-  void deletePipeline(@PathVariable String applicationName, @PathVariable String pipelineName) {
-    pipelineService.deleteForApplication(applicationName, pipelineName)
+  @RequestMapping(value = "/{application}/{pipelineName:.+}", method = RequestMethod.DELETE)
+  void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
+    pipelineService.deleteForApplication(application, pipelineName)
   }
 
   @RequestMapping(value = '', method = RequestMethod.POST)
@@ -67,6 +67,11 @@ class PipelineController {
   @RequestMapping(value = "/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.updatePipelineStage(id, stageId, context)
+  }
+
+  @RequestMapping(value = "/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
+  Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
+    pipelineService.restartPipelineStage(id, stageId, context)
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
