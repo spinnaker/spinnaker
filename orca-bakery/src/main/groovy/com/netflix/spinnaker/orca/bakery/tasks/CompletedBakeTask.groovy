@@ -39,10 +39,10 @@ class CompletedBakeTask implements Task {
     def bakeStatus = stage.context.status as BakeStatus
     def bake = bakery.lookupBake(region, bakeStatus.resourceId).toBlocking().first()
     // This treatment of ami allows both the aws and gce bake results to be propagated.
-    def results = [ami: bake.ami ?: bake.imageName, image: bake.ami ?: bake.imageName]
+    def results = [ami: bake.ami ?: bake.imageName, imageId: bake.ami ?: bake.imageName]
     /**
      * TODO:
-     * It would be good to standardize on the key here. "image" works for all providers.
+     * It would be good to standardize on the key here. "imageId" works for all providers.
      * Problem with "imageName" is that docker images have two components - imageName and imageVersion,
      * so "imageName" is not really a unique identifier. - sthadeshwar
      */
