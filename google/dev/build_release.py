@@ -129,7 +129,7 @@ class Builder(object):
       if is_gcs_path(target):
         return BackgroundProcess.spawn(
             'Copying {source}'.format,
-            'gsutil -q -m cp {source} {target}'
+            'gsutil -q -m cp "{source}" "{target}"'
             .format(source=source, target=target))
       else:
         try:
