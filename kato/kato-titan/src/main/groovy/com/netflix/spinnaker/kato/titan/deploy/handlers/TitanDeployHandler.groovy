@@ -61,6 +61,9 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
       description.application, description.stack, description.details, false)
     task.updateStatus BASE_PHASE, "Resolved server group name to ${nextServerGroupName}"
 
+    if (!description.env) description.env = [:]
+    description.env << [source: "spinnaker"]  // TODO: TEMPORARY param so that Titan calypso service can filter Spinnaker tasks/jobs out of millions launched by other systems (Dagobah, Meson, etc.)
+
     SubmitJobRequest submitJobRequest = new SubmitJobRequest()
       .withJobName(nextServerGroupName)
       .withApplication(description.application)
