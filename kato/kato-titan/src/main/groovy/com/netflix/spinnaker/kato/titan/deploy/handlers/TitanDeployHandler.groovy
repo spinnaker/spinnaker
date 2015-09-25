@@ -54,7 +54,7 @@ class TitanDeployHandler implements DeployHandler<TitanDeployDescription> {
     String subnet = description.subnet
 
     task.updateStatus BASE_PHASE, "Preparing deployment to ${account}:${region}${subnet ? ':' + subnet : ''}..."
-    DockerImage dockerImage = DockerImage.DockerImageResolver.resolveImage(description.dockerImage)
+    DockerImage dockerImage = new DockerImage(description.dockerImageId)
 
     TitanServerGroupNameResolver serverGroupNameResolver = new TitanServerGroupNameResolver(titanClient)
     String nextServerGroupName = serverGroupNameResolver.resolveNextServerGroupName(
