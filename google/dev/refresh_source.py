@@ -160,6 +160,11 @@ class Refresher(object):
       run_or_die_no_result('git -C {dir} push origin master'.format(dir=name),
                            echo=True)
 
+  def push_all_to_origin_if_master(self):
+    all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
+    for repository in all_repos:
+        self.push_to_origin_if_master(repository)
+
   def refresh_all_from_upstream_if_master(self):
     all_repos = self.__REQUIRED_REPOSITORIES + self.__OPTIONAL_REPOSITORIES
     for repository in all_repos:
@@ -265,7 +270,7 @@ bash -c "(npm start >> $LOG_DIR/{name}.log) 2>&1\
     if options.refresh_master_from_upstream:
         builder.refresh_all_from_upstream_if_master()
     if options.push_master_to_origin:
-        builder.push_all_origin_if_master()
+        builder.push_all_to_origin_if_master()
     if options.refresh_from_origin:
         builder.refresh_all_from_origin()
 
