@@ -31,8 +31,8 @@ import spock.lang.Subject
 class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
-  private static final INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-${System.currentTimeMillis()}"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
+  private static final INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-${System.currentTimeMillis()}"
   private static final INSTANCE_GROUP_OP_NAME = "spinnaker-test-v000-op"
   private static final ZONE = "us-central1-b"
   private static final DONE = "DONE"
@@ -57,7 +57,7 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
       def instanceTemplatesMock = Mock(Compute.InstanceTemplates)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new DeleteGoogleReplicaPoolDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME,
                                                                credentials: credentials)
@@ -70,11 +70,11 @@ class DeleteGoogleReplicaPoolAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersDeleteMock
+      1 * instanceGroupManagersMock.delete(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersDeleteMock
       1 * instanceGroupManagersDeleteMock.execute() >> instanceGroupManagersDeleteOp
 
       1 * computeMock.zoneOperations() >> zoneOperations

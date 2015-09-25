@@ -186,8 +186,13 @@ class StandardGceAttributeValidator {
     return result
   }
 
+  @Deprecated
   def validateReplicaPoolName(String replicaPoolName) {
     validateName(replicaPoolName, "replicaPoolName")
+  }
+
+  def validateServerGroupName(String serverGroupName) {
+    validateName(serverGroupName, "serverGroupName")
   }
 
   // TODO(duftler): Also validate against set of supported GCE images.

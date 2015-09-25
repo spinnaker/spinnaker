@@ -41,18 +41,18 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "destroyServerGroup": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing delete of replica pool $description.replicaPoolName in $description.zone..."
+    task.updateStatus BASE_PHASE, "Initializing delete of managed instance group $description.serverGroupName in $description.zone..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
-    def replicaPoolName = description.replicaPoolName
+    def serverGroupName = description.serverGroupName
 
-    def instanceGroupManager = compute.instanceGroupManagers().get(project, zone, replicaPoolName).execute()
+    def instanceGroupManager = compute.instanceGroupManagers().get(project, zone, serverGroupName).execute()
 
     // We create a new instance template for each managed instance group. We need to delete it here.
     def instanceTemplateName = getLocalName(instanceGroupManager.instanceTemplate)
@@ -60,14 +60,14 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus BASE_PHASE, "Identified instance template."
 
     def instanceGroupManagerDeleteOperation =
-        compute.instanceGroupManagers().delete(project, zone, replicaPoolName).execute()
+        compute.instanceGroupManagers().delete(project, zone, serverGroupName).execute()
     def instanceGroupOperationName = instanceGroupManagerDeleteOperation.getName()
 
     task.updateStatus BASE_PHASE, "Waiting on delete operation for managed instance group."
 
     // We must make sure the managed instance group is deleted before deleting the instance template.
     googleOperationPoller.waitForZonalOperation(compute, project, zone, instanceGroupOperationName, null, task,
-        "instance group $replicaPoolName", BASE_PHASE)
+        "instance group $serverGroupName", BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Deleted instance group."
 
@@ -75,7 +75,7 @@ class DeleteGoogleReplicaPoolAtomicOperation implements AtomicOperation<Void> {
 
     task.updateStatus BASE_PHASE, "Deleted instance template."
 
-    task.updateStatus BASE_PHASE, "Done deleting replica pool $replicaPoolName in $zone."
+    task.updateStatus BASE_PHASE, "Done deleting replica pool $serverGroupName in $zone."
     null
   }
 
