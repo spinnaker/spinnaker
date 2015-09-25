@@ -135,6 +135,9 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
         newDescription.tags = description.tags != null ? description.tags : tags.items
       }
 
+      newDescription.network =
+        GCEUtil.getLocalName(description.network ?: ancestorInstanceProperties.networkInterfaces?.getAt(0)?.network)
+
       Set<GoogleSecurityGroup> googleSecurityGroups = googleSecurityGroupProvider.getAllByAccount(false, accountName)
 
       // Find all firewall rules with target tags matching the tags of the ancestor instance template.

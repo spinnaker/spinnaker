@@ -29,7 +29,6 @@ class BaseGoogleInstanceDescription {
   Long diskSizeGb
   Map<String, String> instanceMetadata
   List<String> tags
-  // TODO(duftler): Add support to BasicGoogleDeployHandler for this property.
   String network
 
   String accountName
