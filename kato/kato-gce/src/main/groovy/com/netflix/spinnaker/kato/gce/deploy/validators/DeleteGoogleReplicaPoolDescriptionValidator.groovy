@@ -36,7 +36,7 @@ class DeleteGoogleReplicaPoolDescriptionValidator extends DescriptionValidator<D
     def helper = new StandardGceAttributeValidator("deleteGoogleReplicaPoolDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateServerGroupName(description.serverGroupName)
     helper.validateZone(description.zone)
   }
 }

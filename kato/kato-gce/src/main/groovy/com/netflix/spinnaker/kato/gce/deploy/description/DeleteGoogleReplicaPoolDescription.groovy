@@ -18,8 +18,9 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
+// TODO(duftler): Rename in order to retire 'ReplicaPool' naming.
 class DeleteGoogleReplicaPoolDescription {
-  String replicaPoolName
+  String serverGroupName
   String zone
   String accountName
   GoogleCredentials credentials

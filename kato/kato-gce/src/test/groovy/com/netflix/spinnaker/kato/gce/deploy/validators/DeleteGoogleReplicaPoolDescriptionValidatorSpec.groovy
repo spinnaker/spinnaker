@@ -26,7 +26,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -46,7 +46,7 @@ class DeleteGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new DeleteGoogleReplicaPoolDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new DeleteGoogleReplicaPoolDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                zone: ZONE,
                                                                accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
@@ -68,7 +68,7 @@ class DeleteGoogleReplicaPoolDescriptionValidatorSpec extends Specification {
 
     then:
       1 * errors.rejectValue('credentials', _)
-      1 * errors.rejectValue('replicaPoolName', _)
+      1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('zone', _)
   }
 }
