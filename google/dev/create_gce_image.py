@@ -29,6 +29,10 @@ from install.install_utils import run_or_die
 
 TIME_DECORATOR = time.strftime('%Y%m%d%H%M%S')
 
+# The root path to look up standard releases by name.
+RELEASE_REPOSITORY = 'gs://'
+
+
 def get_default_project():
     """Determine the default project name.
 
@@ -41,7 +45,7 @@ def get_default_project():
 def get_target_image(options):
    """Determine the specified target image name to create."""
    if not options.image:
-      options.image = options.release.replace('_', '-')
+      options.image = os.path.basename(options.release_path).replace('_', '-')
    return options.image
 
 
@@ -94,12 +98,24 @@ def check_for_image(options):
         sys.exit(-1)
 
 
+class SetReleaseName(argparse.Action):
+    def __call__(self, parser, namespace, values, options_string=None):
+        if isinstance(values, list):
+          raise ValueError(
+              'Did not expect multiple arguments for "--release"')
+        setattr(namespace, self.dest, '{release_root}{name}'.format(
+            release_root=RELEASE_REPOSITORY, name=values))
+
+
 def init_argument_parser(parser):
     """Initialize the command-line parameters."""
     user=os.environ['USER']
 
     default_project = get_default_project()
-    parser.add_argument('--release', default=None, required=True)
+    parser.add_argument(
+        '--release', action=SetReleaseName, dest='release_path',
+        help='A named release is implied to be a GCS bucket.')
+    parser.add_argument('--release_path', default=None)
 
     parser.add_argument('--spinnaker', default=True, action='store_true',
                         help='Add spinnaker subsystems to the image.')
@@ -142,7 +158,7 @@ def create_prototype_instance(options):
     print 'Creating prototype instance with spinnaker installation...'
     startup_command = ['install_spinnaker.py',
                        '--package_manager',
-                       '--release={0}'.format(options.release)]
+                       '--release_path={0}'.format(options.release_path)]
     if not options.spinnaker:
         startup_command.append('--nospinnaker')
     if not options.dependencies:
@@ -287,6 +303,12 @@ def monitor_serial_port_until_metadata_key(
 
 
 def create_image(options):
+    if not options.release_path:
+      error = ('--release_path cannot be empty.'
+               ' Either specify a --release or a --release_path.')
+      sys.stderr.write(error)
+      raise ValueError(error)      
+
     check_for_image(options)
     create_prototype_instance(options)
     monitor_serial_port_until_metadata_key(
