@@ -58,7 +58,7 @@ class TitanDeployHandlerSpec extends Specification {
       account: 'test',
       region: 'us-east-1',
       subnet: 'vpc0',
-      dockerImage: 'api.server:master-201506020033-trusty-7366606',
+      dockerImageId: 'api.server:master-201506020033-trusty-7366606',
       capacity: [desired: 1],
       resources: [cpu: 2, memory: 4, disk: 4000, ports: [7001]],
       env: ['netflix.environment': 'test'],

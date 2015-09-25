@@ -26,7 +26,7 @@ class TitanDeployDescription extends AbstractTitanCredentialsDescription impleme
   String application
   String stack
   String details
-  String dockerImage
+  String dockerImageId
   Capacity capacity = new Capacity()
   String account
   String region
