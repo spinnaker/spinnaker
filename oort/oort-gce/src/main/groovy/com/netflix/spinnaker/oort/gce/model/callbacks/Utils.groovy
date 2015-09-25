@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
+import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
@@ -110,5 +112,13 @@ class Utils {
     } else {
       return null
     }
+  }
+
+  static String getNetworkNameFromInstance(Instance instance) {
+    return getLocalName(instance?.networkInterfaces?.getAt(0)?.network)
+  }
+
+  static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {
+    return getLocalName(instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
   }
 }
