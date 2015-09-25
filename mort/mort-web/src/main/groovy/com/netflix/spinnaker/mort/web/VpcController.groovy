@@ -18,7 +18,6 @@
 
 package com.netflix.spinnaker.mort.web
 
-import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.mort.model.Network
 import com.netflix.spinnaker.mort.model.NetworkProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,15 +31,13 @@ import org.springframework.web.bind.annotation.RestController
 class VpcController {
 
   @Autowired
-  AmazonCloudProvider amazonCloudProvider
-
-  @Autowired
   List<NetworkProvider> networkProviders
 
   @RequestMapping(method = RequestMethod.GET)
   Set<Network> list() {
     networkProviders.findAll { networkProvider ->
-      networkProvider.cloudProvider == amazonCloudProvider.id
+      // Using the 'aws' constant directly here to avoid auto-wiring an AmazonCloudProvider.
+      networkProvider.cloudProvider == 'aws'
     } collectMany {
       it.all
     }
