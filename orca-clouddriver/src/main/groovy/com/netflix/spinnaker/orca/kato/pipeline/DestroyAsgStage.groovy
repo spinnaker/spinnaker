@@ -17,7 +17,16 @@
 package com.netflix.spinnaker.orca.kato.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDestroyedServerGroupTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.tasks.DestroyAwsServerGroupTask
+import com.netflix.spinnaker.orca.kato.tasks.DestroyServerGroupTask
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
+import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 /**
@@ -28,11 +37,26 @@ import org.springframework.stereotype.Component
 @Component
 @CompileStatic
 @Deprecated
-class DestroyAsgStage extends DestroyServerGroupStage {
+class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
   static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
 
   DestroyAsgStage() {
     super(PIPELINE_CONFIG_TYPE)
+  }
+
+  @Override
+  public List<Step> buildSteps(Stage stage) {
+    try {
+      composeTargets(stage)
+      [
+        buildStep(stage, "destroyServerGroup", DestroyAwsServerGroupTask),
+        buildStep(stage, "monitorServerGroup", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+        buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask),
+      ]
+    } catch (TargetServerGroup.NotFoundException ignored) {
+      [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)]
+    }
   }
 }

@@ -71,7 +71,6 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
         // Operations done after the first iteration must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
-      log.info "~~~~ INJECTING {}", name
       injectAfter(stage, name, this, description)
 
       postStatic(description).each {
@@ -126,7 +125,6 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
         // Operations done after the first iteration must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
-      log.info "~~~~ INJECTING {}", name
       injectAfter(stage, name, this, ctx)
       postDynamic(ctx).each {
         injectAfter(stage, it.name, it.stage, it.context)
