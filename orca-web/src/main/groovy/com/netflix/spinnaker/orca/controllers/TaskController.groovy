@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.security.AuthenticatedRequest
 
 import java.time.Clock
@@ -39,6 +42,12 @@ class TaskController {
 
   @Autowired
   PipelineStartTracker startTracker
+
+  @Autowired
+  PipelineStarter pipelineStarter
+
+  @Autowired
+  Collection<StageBuilder> stageBuilders
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -116,6 +125,19 @@ class TaskController {
       stage.context.putAll(context)
       stage.context["lastModifiedBy"] = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
       executionRepository.storeStage(stage)
+    }
+    pipeline
+  }
+
+  @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
+  Pipeline retryPipelineStage(@PathVariable String id, @PathVariable String stageId) {
+    def pipeline = executionRepository.retrievePipeline(id)
+    def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
+    if (stage) {
+      def stageBuilder = stageBuilders.find { it.type == stage.type }
+      stage = stageBuilder.prepareStageForRestart(stage)
+      executionRepository.storeStage(stage)
+      pipelineStarter.resume(pipeline)
     }
     pipeline
   }

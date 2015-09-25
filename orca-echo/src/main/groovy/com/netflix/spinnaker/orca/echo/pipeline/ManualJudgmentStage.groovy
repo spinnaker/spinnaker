@@ -44,6 +44,15 @@ class ManualJudgmentStage extends LinearStage {
     [buildStep(stage, "waitForJudgment", WaitForManualJudgmentTask)]
   }
 
+  @Override
+  Stage prepareStageForRestart(Stage stage) {
+    stage = super.prepareStageForRestart(stage)
+
+    stage.context.remove("judgmentStatus")
+    stage.context.remove("lastModifiedBy")
+    return stage
+  }
+
   @Slf4j
   @Component
   @VisibleForTesting
