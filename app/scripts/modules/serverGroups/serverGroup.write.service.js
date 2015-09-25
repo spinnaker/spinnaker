@@ -11,11 +11,11 @@ module.exports = angular
 
     function destroyServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
-      params.type = 'destroyAsg';
+      params.type = 'destroyServerGroup';
       params.regions = [serverGroup.region];
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
-      params.providerType = serverGroup.type;
+      params.cloudProvider = serverGroup.type;
 
       return taskExecutor.executeTask({
         job: [params],

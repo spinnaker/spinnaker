@@ -12,7 +12,7 @@
           <dt>Cluster</dt>
           <dd>{{stage.context.cluster}}</dd>
           <dt>Server Group</dt>
-          <dd ng-if="stage.context.targetReferences.length">{{stage.context.targetReferences[0].asg.name}}</dd>
+          <dd ng-if="stage.context.targetReferences.length">{{stage.context.targetReferences[0].serverGroup.name}}</dd>
           <dd ng-if="!stage.context.targetReferences.length">[n/a]</dd>
         </dl>
       </div>

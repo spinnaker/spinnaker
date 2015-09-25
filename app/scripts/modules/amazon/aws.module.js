@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.aws', [
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller.js'),
   require('./serverGroup/configure/serverGroup.configure.aws.module.js'),
   require('../pipelines/config/stages/bake/aws/awsBakeStage.js'),
+  require('../pipelines/config/stages/destroyAsg/aws/awsDestroyAsgStage.js'),
   require('../pipelines/config/stages/resizeAsg/aws/awsResizeAsgStage.js'),
   require('./instance/awsInstanceTypeService.js'),
   require('./loadBalancer/loadBalancer.transformer.js'),
