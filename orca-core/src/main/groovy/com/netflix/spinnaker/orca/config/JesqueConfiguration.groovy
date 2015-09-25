@@ -41,12 +41,20 @@ class JesqueConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(Config)
-  Config jesqueConfig(@Value('${redis.connection}') String connection) {
-    def jedisConnection = URI.create(connection)
-    new ConfigBuilder()
-      .withHost(jedisConnection.host)
-      .withPort(jedisConnection.port)
-      .build()
+  Config jesqueConfig(@Value('${redis.connection:redis://localhost:6379}') String connection) {
+
+    RedisConnectionInfo connectionInfo = RedisConnectionInfo.parseConnectionUri(connection)
+
+    ConfigBuilder builder = new ConfigBuilder()
+      .withHost(connectionInfo.host)
+      .withPort(connectionInfo.port)
+      .withDatabase(connectionInfo.database)
+
+    if (connectionInfo.hasPassword()) {
+      builder.withPassword(connectionInfo.password)
+    }
+
+    builder.build()
   }
 
   @Bean

@@ -98,7 +98,7 @@ class ContextParameterProcessor {
   static def transform(parameters, context) {
     if (parameters instanceof Map) {
       return parameters.collectEntries { k, v ->
-        [k, transform(v, context)]
+        [transform(k, context), transform(v, context)]
       }
     } else if (parameters instanceof List) {
       return parameters.collect {

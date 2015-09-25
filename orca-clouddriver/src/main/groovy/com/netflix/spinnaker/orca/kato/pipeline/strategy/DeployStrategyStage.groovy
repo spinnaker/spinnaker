@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
@@ -38,7 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import retrofit.RetrofitError
 
 @CompileStatic
-abstract class DeployStrategyStage extends LinearStage {
+abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
+
   Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
   @Autowired ObjectMapper mapper
@@ -104,7 +106,7 @@ abstract class DeployStrategyStage extends LinearStage {
     stage.context.remove("cluster")
   }
 
-  List<Map> getExistingAsgs(String application, String account, String cluster, String cloudProvider) {
+  List<Map> getExistingServerGroups(String application, String account, String cluster, String cloudProvider) {
     try {
       return sourceResolver.getExistingAsgs(application, account, cluster, cloudProvider)
     } catch (RetrofitError re) {
@@ -120,9 +122,10 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider
-    )
+
+    def existingAsgs = getExistingServerGroups(
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
+
     if (existingAsgs) {
       if (stageData.regions?.size() > 1) {
         log.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
@@ -189,17 +192,18 @@ abstract class DeployStrategyStage extends LinearStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingAsgs = getExistingAsgs(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
-    if (existingAsgs) {
+    def existingServerGroups = getExistingServerGroups(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
+    if (existingServerGroups) {
       if (stageData.regions?.size() > 1) {
         log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
       }
       for (String region in stageData.regions) {
+
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
 
-        existingAsgs.findAll { it.region == region }.each { Map asg ->
+        existingServerGroups.findAll { it.region == region }.each { Map asg ->
           def nextContext = [
             asgName: asg.name,
             credentials: cleanupConfig.account,
@@ -208,6 +212,7 @@ abstract class DeployStrategyStage extends LinearStage {
             region: region,
             cloudProvider: stageData.cloudProvider
           ]
+
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
@@ -216,7 +221,7 @@ abstract class DeployStrategyStage extends LinearStage {
             }
           }
 
-          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
+          logger.info("Injecting destroyServerGroup stage (${sg.region}:${sg.name})")
           injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
         }
       }

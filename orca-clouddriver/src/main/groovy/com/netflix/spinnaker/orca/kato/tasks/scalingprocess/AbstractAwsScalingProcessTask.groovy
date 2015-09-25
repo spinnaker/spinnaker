@@ -21,18 +21,20 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReference
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
-@Deprecated
-abstract class AbstractScalingProcessTask implements Task {
+@Slf4j
+abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareTask implements Task {
   @Autowired
   KatoService katoService
 
   @Autowired
-  TargetReferenceSupport targetReferenceSupport
+  TargetServerGroupResolver resolver
 
   abstract String getType()
 
@@ -41,19 +43,23 @@ abstract class AbstractScalingProcessTask implements Task {
    * @param processes Requested scaling processes to suspend/resume
    * @return Scaling processes that need modification based on current state of ASG (may be empty if scaling processes already exist)
    */
-  abstract List<String> filterProcesses(TargetReference targetReference, List<String> processes)
+  abstract List<String> filterProcesses(TargetServerGroup targetServerGroup, List<String> processes)
 
   @Override
   TaskResult execute(Stage stage) {
-    def targetReference
-    if (targetReferenceSupport.isDynamicallyBound(stage)) {
-      targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
-    } else {
-      targetReference = targetReferenceSupport.getTargetAsgReferences(stage).find {
-        it.asg.name == stage.context.asgName
+    TargetServerGroup targetServerGroup
+    if (TargetServerGroup.isDynamicallyBound(stage)) {
+      // Dynamically resolved server groups look back at previous stages to find the name
+      // of the server group based on *this task's region*
+      targetServerGroup = TargetServerGroupResolver.fromPreviousStage(stage).find {
+        it.location == stage.context.regions[0]
       }
+    } else {
+      // Statically resolved server groups should only resolve to a single server group at all times,
+      // because each region desired should have been spun off its own ScalingProcess for that region.
+      targetServerGroup = resolver.resolve(stage)[0]
     }
-    def asgName = targetReference.asg.name
+    def asgName = targetServerGroup.serverGroup.name
 
     /*
      * If scaling processes have been explicitly supplied (context.processes), use them.
@@ -61,12 +67,12 @@ abstract class AbstractScalingProcessTask implements Task {
      * Otherwise, use any scaling processes that were modified by a previous stage (context.scalingProcesses.ASG_NAME)
      */
     def processes = filterProcesses(
-      targetReference,
+      targetServerGroup,
       (stage.context.processes ?: stage.context["scalingProcesses.${asgName}" as String]) as List<String>
     )
     def stageContext = new HashMap(stage.context) + [
       processes: processes,
-      asgName: asgName
+      asgName  : asgName
     ]
 
     def stageData = stage.mapTo(StageData)
@@ -79,8 +85,9 @@ abstract class AbstractScalingProcessTask implements Task {
       "asgName"             : asgName
     ]
     if (stageContext.processes) {
-      def taskId = katoService.requestOperations([[(getType()): stageContext]])
-        .toBlocking().first()
+      def taskId = katoService.requestOperations(getCloudProvider(stage), [[(getType()): stageContext]])
+                              .toBlocking()
+                              .first()
 
       stageOutputs."kato.last.task.id" = taskId
     }
