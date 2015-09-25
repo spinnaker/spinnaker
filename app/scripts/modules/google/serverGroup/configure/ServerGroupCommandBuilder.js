@@ -30,6 +30,17 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       });
     }
 
+    function extractNetworkName(serverGroup) {
+      if (_.has(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces')) {
+        var networkInterfaces = serverGroup.launchConfig.instanceTemplate.properties.networkInterfaces;
+        if (networkInterfaces.length === 1) {
+          var networkUrl = networkInterfaces[0].network;
+          return _.last(networkUrl.split('/'));
+        }
+      }
+      return null;
+    }
+
     function populateCustomMetadata(metadataItems, command) {
       if (metadataItems) {
         if (angular.isArray(metadataItems)) {
@@ -93,6 +104,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         credentials: defaultCredentials,
         region: defaultRegion,
         zone: defaultZone,
+        network: 'default',
         strategy: '',
         capacity: {
           min: 0,
@@ -149,6 +161,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           desired: serverGroup.asg.desiredCapacity
         },
         zone: serverGroup.zones[0],
+        network: extractNetworkName(serverGroup),
         instanceMetadata: [],
         tags: [],
         availabilityZones: [],

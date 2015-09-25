@@ -9,6 +9,7 @@ module.exports = angular
     require('../../../securityGroups/securityGroup.write.service.js'),
     require('../../../account/account.service.js'),
     require('../../../modal/wizard/modalWizard.directive.js'),
+    require('../../../network/network.read.service.js'),
     require('../../../utils/lodash.js'),
   ])
   .controller('gceConfigSecurityGroupMixin', function ($scope,
@@ -22,6 +23,7 @@ module.exports = angular
                                                        accountService,
                                                        modalWizardService,
                                                        cacheInitializer,
+                                                       networkReader,
                                                        _ ) {
 
 
@@ -99,6 +101,7 @@ module.exports = angular
             sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
             region: "global",
+            network: $scope.securityGroup.network,
           });
         }
       );
@@ -106,6 +109,7 @@ module.exports = angular
 
     ctrl.accountUpdated = function() {
       ctrl.initializeSecurityGroups();
+      ctrl.updateNetworks();
       ctrl.updateName();
     };
 
@@ -136,8 +140,15 @@ module.exports = angular
       });
     };
 
-    ctrl.cancel = function () {
+    ctrl.cancel = function() {
       $modalInstance.dismiss();
+    };
+
+    ctrl.updateNetworks = function() {
+      networkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
+        var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
+        $scope.securityGroup.backingData.networks = _.pluck(_.filter(gceNetworks, { account: account }), 'name');
+      });
     };
 
     ctrl.getCurrentNamePattern = function() {
