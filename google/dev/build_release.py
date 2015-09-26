@@ -294,7 +294,7 @@ class Builder(object):
     convienence.
     """
     temp_dir = tempfile.mkdtemp()
-    zip_file = os.path.join(temp_dir, 'install_spinnaker.zip')
+    zip_file = os.path.join(temp_dir, 'install_spinnaker.py.zip')
     with open(os.path.join(temp_dir, '__main__.py'), 'w') as f:
       f.write("""
 from install_spinnaker import main
@@ -339,7 +339,7 @@ if __name__ == '__main__':
     initial installation and configuration.
     """
     temp_dir = tempfile.mkdtemp()
-    zip_file = os.path.join(temp_dir, test_name + '.zip')
+    zip_file = os.path.join(temp_dir, test_name + '.py.zip')
     open(os.path.join(temp_dir, '__init__.py'), 'w').close()
     with open(os.path.join(temp_dir, '__main__.py'), 'w') as f:
       f.write("""
