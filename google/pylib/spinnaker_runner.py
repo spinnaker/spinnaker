@@ -157,7 +157,7 @@ class Runner(object):
             sys.stderr.write(
                 'WARNING: Not starting igor because IGOR_ENABLED=false'
                 ' even though JENKINS_ADDRESS="{address}"'.format(
-                      self.__bindings['JENKINS_ADDRESS']))
+                      address=self.__bindings['JENKINS_ADDRESS']))
         else:
             pid = self.maybe_start_job(jobs, 'igor')
             if pid:
