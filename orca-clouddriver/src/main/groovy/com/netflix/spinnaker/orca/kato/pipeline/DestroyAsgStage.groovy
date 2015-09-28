@@ -41,6 +41,9 @@ class DestroyAsgStage extends TargetReferenceLinearStageSupport {
   static final String DESTROY_ASG_DESCRIPTIONS_KEY = "destroyAsgDescriptions"
   static final String PIPELINE_CONFIG_TYPE = "destroyAsg"
 
+  /**
+   * TODO(sthadeshwar): Track usage of deprecated stages.
+   */
   DestroyAsgStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
