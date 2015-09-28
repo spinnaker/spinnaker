@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
             return [];
           }
           executions.forEach(function(execution) {
-            executionsTransformer.transformExecution(null, execution);
+            executionsTransformer.transformExecution({}, execution);
           });
           return executions;
         }),
