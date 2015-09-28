@@ -142,6 +142,14 @@ class ConfigureUtil(object):
     bindings.update(
         self.load_config(installation.CONFIG_DIR + '/spinnaker_config.cfg'))
 
+    # Auto-define IGOR_ENABLED.
+    # It is unfortunate that we need this, but seems to be used internally.
+    # We dont start igor if we dont need it, so this is a safety mechanism.
+    if bindings.get('IGOR_ENABLED', '') == '':
+      bindings['IGOR_ENABLED'] = (
+          'true' if bindings.get('JENKINS_ADDRESS', '') != ''
+                 else 'false')
+
     managed_project = bindings.get('GOOGLE_MANAGED_PROJECT_ID', '')
     if not managed_project:
         code, managed_project = fetch(

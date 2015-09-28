@@ -134,6 +134,10 @@ class ValidateConfig(object):
                      os.path.basename(account), 'scopes'),
         google=True)
 
+      # cloud-platform scope implies all the other scopes.
+      if have.find('https://www.googleapis.com/auth/cloud-platform') >= 0:
+        found_scopes.extend(required_scopes)
+
       for scope in required_scopes:
         if have.find(scope) >= 0:
           found_scopes.append(scope)
