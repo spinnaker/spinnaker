@@ -124,13 +124,30 @@ function copy_artifact_repository() {
     echo "DIR $to"
   fi
 
+  # This doesnt work
+  # gsutil -q -m cp -R "$ORIGINAL_ARTIFACT_REPO_PATH/." \
+  #    "$PUBLISH_ARTIFACT_REPO_PATH"
+  # To ensure the directory exists, we'll add a dummy
+  # file to force its creation, then remove it when we're done.
+  # Otherwise we'll copy a nested directory, which is not our intention.
+  temp=$(mktemp)
+  gsutil -q cp $temp "$PUBLISH_ARTIFACT_REPO_PATH/__placeholder__"
+  rm $temp
   gsutil -q -m cp -R "$ORIGINAL_ARTIFACT_REPO_PATH/*" \
-      "$PUBLISH_ARTIFACT_REPO_PATH"  > /dev/null
+        "$PUBLISH_ARTIFACT_REPO_PATH"
+  gsutil -q rm "$PUBLISH_ARTIFACT_REPO_PATH/__placeholder__"
 }
 
 
 process_args "$@"
 validate_args
+
+if [[ "$PUBLISH_ARTIFACT_REPO_PATH" ]]; then
+  echo "Copying artifact repository"
+  copy_artifact_repository \
+      "$ORIGINAL_ARTIFACT_REPO_PATH" "$PUBLISH_ARTIFACT_REPO_PATH" 
+fi
+exit 0
 
 echo "Creating disk"
 gcloud compute disks create "$PUBLISH_IMAGE" \
