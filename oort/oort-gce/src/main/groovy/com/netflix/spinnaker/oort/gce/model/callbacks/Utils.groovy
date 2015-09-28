@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.oort.gce.model.callbacks
 
+import com.google.api.services.compute.model.Instance
+import com.google.api.services.compute.model.InstanceTemplate
 import com.google.api.services.compute.model.Metadata
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.oort.gce.model.GoogleApplication
 import com.netflix.spinnaker.oort.gce.model.GoogleCluster
 import org.springframework.util.ClassUtils
@@ -25,7 +26,6 @@ import org.springframework.util.ClassUtils
 import java.text.SimpleDateFormat
 
 class Utils {
-  public static final String APPLICATION_NAME = "Spinnaker"
   public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
   public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
@@ -110,5 +110,13 @@ class Utils {
     } else {
       return null
     }
+  }
+
+  static String getNetworkNameFromInstance(Instance instance) {
+    return getLocalName(instance?.networkInterfaces?.getAt(0)?.network)
+  }
+
+  static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {
+    return getLocalName(instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
   }
 }
