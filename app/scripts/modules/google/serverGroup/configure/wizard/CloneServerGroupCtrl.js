@@ -70,11 +70,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     function initializeWatches() {
       $scope.$watch('command.credentials', createResultProcessor($scope.command.credentialsChanged));
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
+      $scope.$watch('command.network', createResultProcessor($scope.command.networkChanged));
     }
 
     function initializeSelectOptions() {
       processCommandUpdateResult($scope.command.credentialsChanged());
       processCommandUpdateResult($scope.command.regionChanged());
+      processCommandUpdateResult($scope.command.networkChanged());
     }
 
     function createResultProcessor(method) {

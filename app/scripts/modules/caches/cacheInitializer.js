@@ -4,6 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.caches.initializer', [
   require('../account/account.service.js'),
+  require('../network/network.read.service.js'),
   require('../securityGroups/securityGroup.read.service.js'),
   require('../applications/applications.read.service.js'),
   require('../jenkins/igor.service.js'),
@@ -14,10 +15,11 @@ module.exports = angular.module('spinnaker.caches.initializer', [
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, securityGroupReader, cloudProviderRegistry,
-                                         igorService, infrastructureCacheConfig, serviceDelegate, _) {
+                                         igorService, infrastructureCacheConfig, serviceDelegate, networkReader, _) {
 
     var initializers = {
       credentials: [accountService.listAccounts],
+      networks: [networkReader.listNetworks],
       securityGroups: [securityGroupReader.getAllSecurityGroups],
       applications: [applicationReader.listApplications],
       buildMasters: [igorService.listMasters],

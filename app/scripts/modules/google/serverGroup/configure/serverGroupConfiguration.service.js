@@ -7,12 +7,13 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../caches/cacheInitializer.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
+  require('../../../network/network.read.service.js'),
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceTypeService.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
-                                                          $q, loadBalancerReader, _) {
+                                                          $q, loadBalancerReader, networkReader, _) {
 
 
     function configureCommand(command) {
@@ -20,12 +21,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return $q.all({
         regionsKeyedByAccount: accountService.getRegionsKeyedByAccount('gce'),
         securityGroups: securityGroupReader.getAllSecurityGroups(),
+        networks: networkReader.listNetworksByProvider('gce'),
         loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         images: gceImageReader.findImages({provider: 'gce'}),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
+        var networkReloader = $q.when(null);
         backingData.accounts = _.keys(backingData.regionsKeyedByAccount);
         backingData.filtered = {};
         command.backingData = backingData;
@@ -45,8 +48,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
             securityGroupReloader = refreshSecurityGroups(command, true);
           }
         }
+        if (command.network) {
+          // Verify network is accounted for; otherwise, try refreshing networks cache.
+          var networkNames = getNetworkNames(command);
+          if (networkNames.indexOf(command.network) === -1) {
+            networkReloader = refreshNetworks(command);
+          }
+        }
 
-        return $q.all([loadBalancerReloader, securityGroupReloader]).then(function() {
+        return $q.all([loadBalancerReloader, securityGroupReloader, networkReloader]).then(function() {
           attachEventHandlers(command);
         });
       });
@@ -144,7 +154,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
     function getSecurityGroups(command) {
       var newSecurityGroups = command.backingData.securityGroups[command.credentials] || { gce: {}};
-      return _(newSecurityGroups.gce.global)
+      newSecurityGroups = _.filter(newSecurityGroups.gce.global, function(securityGroup) {
+        return securityGroup.network === command.network;
+      });
+      return _(newSecurityGroups)
         .sortBy('name')
         .valueOf();
     }
@@ -200,6 +213,16 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       });
     }
 
+    function getNetworkNames(command) {
+      return _.pluck(_.filter(command.backingData.networks, { account: command.credentials }), 'name');
+    }
+
+    function refreshNetworks(command) {
+      networkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
+        command.backingData.networks = gceNetworks;
+      });
+    }
+
     function refreshInstanceTypes(command) {
       return cacheInitializer.refreshCache('instanceTypes').then(function() {
         return gceInstanceTypeService.getAllTypesByRegion().then(function(instanceTypes) {
@@ -242,11 +265,28 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           } else {
             angular.extend(result.dirty, command.regionChanged().dirty);
           }
-          // This will eventually move to something like 'networkChanged()'.
-          angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
+
+          backingData.filtered.networks = getNetworkNames(command);
+          if (backingData.filtered.networks.indexOf(command.network) === -1) {
+            command.network = null;
+            result.dirty.network = true;
+          } else {
+            angular.extend(result.dirty, command.networkChanged().dirty);
+          }
         } else {
           command.region = null;
         }
+
+        command.viewState.dirty = command.viewState.dirty || {};
+        angular.extend(command.viewState.dirty, result.dirty);
+
+        return result;
+      };
+
+      command.networkChanged = function networkChanged() {
+        var result = { dirty: {} };
+
+        angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
 
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);

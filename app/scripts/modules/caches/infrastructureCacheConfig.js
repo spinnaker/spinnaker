@@ -7,6 +7,9 @@ module.exports = angular.module('spinnaker.caches.infrastructure.config', [])
     credentials: {
       version: 2,
     },
+    networks: {
+      version: 2,
+    },
     vpcs: {
       version: 2,
     },

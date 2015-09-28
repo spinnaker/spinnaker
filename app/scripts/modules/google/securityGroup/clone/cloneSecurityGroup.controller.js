@@ -54,6 +54,8 @@ module.exports = angular
       .flatten()
       .value();
 
+    securityGroup.backingData = {};
+
     delete securityGroup.targetTags;
 
     vm.upsert = function () {

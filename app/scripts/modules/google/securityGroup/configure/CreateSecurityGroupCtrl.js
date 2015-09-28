@@ -22,6 +22,8 @@ module.exports = angular.module('spinnaker.gce.securityGroup.create.controller',
 
     var ctrl = this;
 
+    securityGroup.backingData = {};
+    securityGroup.network = 'default';
     securityGroup.sourceRanges = [];
     securityGroup.ipIngress = [];
 
