@@ -121,7 +121,7 @@ abstract class StageBuilder implements ApplicationContextAware {
     ] as Map<String, Object>
 
     if (stage.context.exception) {
-      stage.context.previousException = stage.context.exception
+      stage.context.restartDetails["previousException"] = stage.context.exception
       stage.context.remove("exception")
     }
     stage.status = ExecutionStatus.RUNNING
@@ -256,6 +256,7 @@ abstract class StageBuilder implements ApplicationContextAware {
   protected Step buildStep(Stage stage, String taskName, Task task, StepExecutionListener... listeners) {
     createStepWithListeners(stage, taskName, listeners)
       .tasklet(taskTaskletAdapter.decorate(task))
+      .allowStartIfComplete(this instanceof RestartableStage)
       .build()
   }
 

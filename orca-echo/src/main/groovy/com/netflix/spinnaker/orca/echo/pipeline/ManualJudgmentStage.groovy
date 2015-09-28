@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.batch.RestartableStage
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -32,7 +33,7 @@ import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
 @Component
-class ManualJudgmentStage extends LinearStage {
+class ManualJudgmentStage extends LinearStage implements RestartableStage {
   private static final String MAYO_CONFIG_NAME = "manualJudgment"
 
   ManualJudgmentStage() {
