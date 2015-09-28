@@ -5,13 +5,14 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../../../account/account.service.js'),
+  require('../../../diff/diff.service.js'),
   require('../../subnet/subnet.read.service.js'),
   require('../../../instance/instanceTypeService.js'),
   require('../../../naming/naming.service.js'),
   require('./serverGroupConfiguration.service.js'),
   require('../../../utils/lodash.js'),
 ])
-  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q,
+  .factory('awsServerGroupCommandBuilder', function (settings, Restangular, $exceptionHandler, $q, diffService,
                                                      accountService, subnetReader, namingService, instanceTypeService,
                                                      awsServerGroupConfigurationService, _) {
 
@@ -23,10 +24,12 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       var defaultRegion = defaults.region || application.defaultRegion || settings.providers.aws.defaults.region;
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
+      var clusterDiffLoader = diffService.getClusterDiffForAccount(defaultCredentials, application.name);
 
       return $q.all({
         preferredZones: preferredZonesLoader,
         regionsKeyedByAccount: regionsKeyedByAccountLoader,
+        clusterDiff: clusterDiffLoader,
       })
         .then(function (asyncData) {
           var availabilityZones = asyncData.preferredZones;
@@ -66,6 +69,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
               usePreferredZones: true,
               mode: defaults.mode || 'create',
               disableStrategySelection: true,
+              clusterDiff: asyncData.clusterDiff,
             },
           };
         });
@@ -139,14 +143,21 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       var preferredZonesLoader = accountService.getPreferredZonesByAccount();
       var subnetsLoader = subnetReader.listSubnets();
 
+      var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
+      var clusterDiffLoader = diffService.getClusterDiffForAccount(serverGroup.account,
+          namingService.getClusterName(application.name, serverGroupName.stack, serverGroupName.freeFormDetails));
+
       var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
 
-      var asyncLoader = $q.all({preferredZones: preferredZonesLoader, subnets: subnetsLoader, instanceProfile: instanceTypeCategoryLoader});
+      var asyncLoader = $q.all({
+        preferredZones: preferredZonesLoader,
+        subnets: subnetsLoader,
+        instanceProfile: instanceTypeCategoryLoader,
+        clusterDiff: clusterDiffLoader,
+      });
 
       return asyncLoader.then(function(asyncData) {
-        var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
-
         var zones = serverGroup.asg.availabilityZones.sort();
         var usePreferredZones = false;
         var preferredZonesForAccount = asyncData.preferredZones[serverGroup.account];
@@ -190,6 +201,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             usePreferredZones: usePreferredZones,
             mode: mode,
             isNew: false,
+            clusterDiff: asyncData.clusterDiff,
           },
         };
 

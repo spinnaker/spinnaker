@@ -82,6 +82,14 @@ module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
       $scope.$watch('command.region', createResultProcessor($scope.command.regionChanged));
       $scope.$watch('command.subnetType', createResultProcessor($scope.command.subnetChanged));
       $scope.$watch('command.viewState.usePreferredZones', createResultProcessor($scope.command.usePreferredZonesChanged));
+      $scope.$watch('command.stack', $scope.command.clusterChanged);
+      $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
+      $scope.$watch('command.viewState.securityGroupDiffs', function(newVal) {
+        if (newVal && newVal.length) {
+          modalWizardService.getWizard().markDirty('security-groups');
+        }
+      });
+      $scope.$watch('command.securityGroups', $scope.command.configureSecurityGroupDiffs);
     }
 
     // TODO: Move to service
