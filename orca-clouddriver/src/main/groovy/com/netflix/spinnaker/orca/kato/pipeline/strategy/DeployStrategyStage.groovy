@@ -221,7 +221,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
             }
           }
 
-          logger.info("Injecting destroyServerGroup stage (${sg.region}:${sg.name})")
+          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
           injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
         }
       }
