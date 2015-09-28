@@ -34,6 +34,7 @@ module.exports = angular.module('spinnaker.pipelines.config.actions.editJson', [
     this.updatePipeline = function() {
       try {
         var parsed = JSON.parse($scope.command.pipelineJSON);
+        parsed.appConfig = parsed.appConfig || {};
 
         removeImmutableFields(parsed);
         angular.extend(pipeline, parsed);
