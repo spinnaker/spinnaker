@@ -40,7 +40,6 @@ module.exports = angular.module('spinnaker.pipelines.stage.aws.destroyAsgStage',
     };
 
     accountService.listAccounts('aws').then(function (accounts) {
-      console.log("GOT ACCOUNTS: " + accounts.toString());
       $scope.accounts = accounts;
       $scope.state.accounts = true;
     });
