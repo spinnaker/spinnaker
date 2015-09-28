@@ -16,41 +16,36 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceLinearStageSupport
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceNotFoundException
-import com.netflix.spinnaker.orca.kato.tasks.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.WaitForDestroyedServerGroupTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupLinearStageSupport
+import com.netflix.spinnaker.orca.kato.tasks.DestroyServerGroupTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.CompileStatic
 import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
-class DestroyServerGroupStage extends TargetReferenceLinearStageSupport {
+class DestroyServerGroupStage extends TargetServerGroupLinearStageSupport {
   static final String PIPELINE_CONFIG_TYPE = "destroyServerGroup"
 
   DestroyServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
-  DestroyServerGroupStage(String type) {
-    super(type)
-  }
-
   @Override
   public List<Step> buildSteps(Stage stage) {
     try {
       composeTargets(stage)
-      def step1 = buildStep(stage, "destroyServerGroup", DestroyServerGroupTask)
-      def step2 = buildStep(stage, "monitorServerGroup", MonitorKatoTask)
-      def step3 = buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)
-      def step4 = buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask)
-      [step1, step2, step3, step4].flatten().toList()
-    } catch (TargetReferenceNotFoundException ignored) {
-      [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)].flatten().toList()
+      [
+        buildStep(stage, "destroyServerGroup", DestroyServerGroupTask),
+        buildStep(stage, "monitorServerGroup", MonitorKatoTask),
+        buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask),
+        buildStep(stage, "waitForDestroyedServerGroup", WaitForDestroyedServerGroupTask),
+      ]
+    } catch (TargetServerGroup.NotFoundException ignored) {
+      [buildStep(stage, "forceCacheRefresh", ServerGroupCacheForceRefreshTask)]
     }
   }
 }
