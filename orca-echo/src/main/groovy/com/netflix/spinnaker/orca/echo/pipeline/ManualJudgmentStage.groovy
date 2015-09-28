@@ -58,7 +58,7 @@ class ManualJudgmentStage extends LinearStage {
   @VisibleForTesting
   public static class WaitForManualJudgmentTask implements RetryableTask {
     long backoffPeriod = 1000
-    long timeout = TimeUnit.HOURS.toMillis(120)
+    long timeout = TimeUnit.DAYS.toMillis(3)
 
     @Autowired(required = false)
     EchoService echoService
