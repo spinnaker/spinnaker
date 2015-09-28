@@ -145,4 +145,16 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
   })
+  .controller('RestartStageCtrl', function($scope, $stateParams, $http, settings) {
+    this.restart = function () {
+      var targetUrl = [settings.gateUrl, 'pipelines', $stateParams.executionId, 'stages', $scope.stage.id, 'restart'].join('/');
+      $http({
+        method: 'PUT',
+        url: targetUrl,
+        data: angular.toJson({skip: false})
+      }).success(function() {
+        $scope.stage.isRestarting = true;
+      });
+    };
+  })
   .name;

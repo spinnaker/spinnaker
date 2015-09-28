@@ -9,6 +9,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.jenkinsStage', [])
       label: 'Jenkins',
       description: 'Runs a Jenkins job',
       key: 'jenkins',
+      restartable: true,
       controller: 'JenkinsStageCtrl',
       controllerAs: 'jenkinsStageCtrl',
       templateUrl: require('./jenkinsStage.html'),

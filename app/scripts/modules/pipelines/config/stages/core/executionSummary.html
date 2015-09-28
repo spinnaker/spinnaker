@@ -1,5 +1,18 @@
 <div>
-  <h4 class="execution-details-title">{{stageSummary.name || stageSummary.type }} Details</h4>
+  <h4 class="execution-details-title">
+    {{stageSummary.name || stageSummary.type }} Details
+
+    <div ng-if="stage.isFailed && ctrl.isRestartable(stage)" dropdown class="btn-group pull-right">
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" aria-expanded="false" dropdown-toggle>
+        Actions
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href ng-controller="RestartStageCtrl as restartCtrl" ng-click="restartCtrl.restart()">Restart Stage</a></li>
+      </ul>
+    </div>
+  </h4>
+
   <table class="table">
     <thead>
     <tr>
