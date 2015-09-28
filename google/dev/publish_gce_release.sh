@@ -142,13 +142,6 @@ function copy_artifact_repository() {
 process_args "$@"
 validate_args
 
-if [[ "$PUBLISH_ARTIFACT_REPO_PATH" ]]; then
-  echo "Copying artifact repository"
-  copy_artifact_repository \
-      "$ORIGINAL_ARTIFACT_REPO_PATH" "$PUBLISH_ARTIFACT_REPO_PATH" 
-fi
-exit 0
-
 echo "Creating disk"
 gcloud compute disks create "$PUBLISH_IMAGE" \
     --project "$PUBLISH_PROJECT_ID" \

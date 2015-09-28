@@ -48,8 +48,7 @@ This will leave you in a 'build' subdirectory. To run Spinnaker:
 """
 
 
-__NVM_SCRIPT = """
-#!/bin/bash
+__NVM_SCRIPT = """#!/bin/bash
 export NVM_DIR=/usr/local/nvm
 source /usr/local/nvm/nvm.sh
 
