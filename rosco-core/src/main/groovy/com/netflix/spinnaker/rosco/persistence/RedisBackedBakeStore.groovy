@@ -22,168 +22,162 @@ import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisPool
+import redis.clients.jedis.exceptions.JedisDataException
 
 class RedisBackedBakeStore implements BakeStore {
 
   @Autowired
   ObjectMapper mapper
 
-  private JedisPool jedisPool;
+  private JedisPool jedisPool
 
-  def acquireBakeLockSHA
-  def storeNewBakeStatusSHA
-  def updateBakeDetailsSHA
-  def updateBakeStatusSHA
-  def updateBakeStatusWithIncompleteRemovalSHA
-  def storeBakeErrorSHA
-  def deleteBakeByKeySHA
-  def cancelBakeByIdSHA
+  def scriptNameToSHAMap = [:]
 
   public RedisBackedBakeStore(JedisPool jedisPool) {
     this.jedisPool = jedisPool;
-
-    cacheAllScripts()
   }
 
   private void cacheAllScripts() {
     def jedis = jedisPool.getResource()
 
     jedis.withCloseable {
-      acquireBakeLockSHA = jedis.scriptLoad("""\
-        -- Set the lock key key if it's not already set.
-        if redis.call('SETNX', KEYS[1], 'locked') == 1 then
-          -- Set TTL of 5 seconds.
-          redis.call('PEXPIRE', KEYS[1], ARGV[1])
+      scriptNameToSHAMap.with {
+        acquireBakeLockSHA = jedis.scriptLoad("""\
+          -- Set the lock key key if it's not already set.
+          if redis.call('SETNX', KEYS[1], 'locked') == 1 then
+            -- Set TTL of 5 seconds.
+            redis.call('PEXPIRE', KEYS[1], ARGV[1])
 
-          -- Delete the bake key key.
+            -- Delete the bake key key.
+            redis.call('DEL', KEYS[2])
+
+            -- We acquired the lock.
+            return true
+          else
+            -- We failed to acquire the lock.
+            return false
+          end
+        """)
+        storeNewBakeStatusSHA = jedis.scriptLoad("""\
+          -- Delete the bake id key.
           redis.call('DEL', KEYS[2])
 
-          -- We acquired the lock.
-          return true
-        else
-          -- We failed to acquire the lock.
-          return false
-        end
-      """)
-      storeNewBakeStatusSHA = jedis.scriptLoad("""\
-        -- Delete the bake id key.
-        redis.call('DEL', KEYS[2])
+          -- Add bake key to set of bakes.
+          redis.call('ZADD', KEYS[1], ARGV[1], KEYS[3])
 
-        -- Add bake key to set of bakes.
-        redis.call('ZADD', KEYS[1], ARGV[1], KEYS[3])
+          -- If we lost a race to initiate a new bake, just return the race winner's bake status.
+          -- TODO(duftler): When rush supports cancelling an in-flight script execution, employ that here.
+          if redis.call('EXISTS', KEYS[3]) == 1 then
+            return redis.call('HMGET', KEYS[3], 'bakeStatus')
+          end
 
-        -- If we lost a race to initiate a new bake, just return the race winner's bake status.
-        -- TODO(duftler): When rush supports cancelling an in-flight script execution, employ that here.
-        if redis.call('EXISTS', KEYS[3]) == 1 then
-          return redis.call('HMGET', KEYS[3], 'bakeStatus')
-        end
+          -- Set bake id hash values.
+          redis.call('HMSET', KEYS[2],
+                     'bakeKey', KEYS[3],
+                     'region', ARGV[2],
+                     'bakeRequest', ARGV[3],
+                     'bakeStatus', ARGV[4],
+                     'creationTimestamp', ARGV[1])
 
-        -- Set bake id hash values.
-        redis.call('HMSET', KEYS[2],
-                   'bakeKey', KEYS[3],
-                   'region', ARGV[2],
-                   'bakeRequest', ARGV[3],
-                   'bakeStatus', ARGV[4],
-                   'creationTimestamp', ARGV[1])
+          -- Set bake key hash values.
+          redis.call('HMSET', KEYS[3],
+                     'id', KEYS[2],
+                     'region', ARGV[2],
+                     'bakeRequest', ARGV[3],
+                     'bakeStatus', ARGV[4],
+                     'creationTimestamp', ARGV[1])
 
-        -- Set bake key hash values.
-        redis.call('HMSET', KEYS[3],
-                   'id', KEYS[2],
-                   'region', ARGV[2],
-                   'bakeRequest', ARGV[3],
-                   'bakeStatus', ARGV[4],
-                   'creationTimestamp', ARGV[1])
+          -- Add bake id to set of incomplete bakes.
+          redis.call('SADD', KEYS[4], KEYS[2])
 
-        -- Add bake id to set of incomplete bakes.
-        redis.call('SADD', KEYS[4], KEYS[2])
+          -- Delete the lock key key instead of just allowing it to wait out the TTL.
+          redis.call('DEL', KEYS[5])
+        """)
+        updateBakeDetailsSHA = jedis.scriptLoad("""\
+          -- Retrieve the bake key associated with bake id.
+          local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
 
-        -- Delete the lock key key instead of just allowing it to wait out the TTL.
-        redis.call('DEL', KEYS[5])
-      """)
-      updateBakeDetailsSHA = jedis.scriptLoad("""\
-        -- Retrieve the bake key associated with bake id.
-        local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
+          -- Update the bake details set on the bake id hash.
+          redis.call('HSET', KEYS[1], 'bakeDetails', ARGV[1])
 
-        -- Update the bake details set on the bake id hash.
-        redis.call('HSET', KEYS[1], 'bakeDetails', ARGV[1])
+          -- Update the bake details set on the bake key hash.
+          redis.call('HSET', bake_key, 'bakeDetails', ARGV[1])
+        """)
+        def updateBakeStatusBaseScript = """\
+          -- Retrieve the bake key associated with bake id.
+          local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
 
-        -- Update the bake details set on the bake key hash.
-        redis.call('HSET', bake_key, 'bakeDetails', ARGV[1])
-      """)
-      def updateBakeStatusBaseScript = """\
-        -- Retrieve the bake key associated with bake id.
-        local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
-
-        -- Update the bake status and logs set on the bake id hash.
-        redis.call('HMSET', KEYS[1],
-                   'bakeStatus', ARGV[1],
-                   'bakeLogs', ARGV[2])
-
-        if bake_key then
-          -- Update the bake status and logs set on the bake key hash.
-          redis.call('HMSET', bake_key,
+          -- Update the bake status and logs set on the bake id hash.
+          redis.call('HMSET', KEYS[1],
                      'bakeStatus', ARGV[1],
                      'bakeLogs', ARGV[2])
-        end
-      """
-      updateBakeStatusSHA = jedis.scriptLoad(updateBakeStatusBaseScript)
-      def updateBakeStatusWithIncompleteRemovalScript = updateBakeStatusBaseScript + """\
-        -- Remove bake id from set of incomplete bakes.
-        redis.call('SREM', KEYS[2], KEYS[1])
-      """
-      updateBakeStatusWithIncompleteRemovalSHA = jedis.scriptLoad(updateBakeStatusWithIncompleteRemovalScript)
-      storeBakeErrorSHA = jedis.scriptLoad("""\
-        -- Retrieve the bake key associated with bake id.
-        local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
 
-        -- Update the error set on the bake id hash.
-        redis.call('HSET', KEYS[1], 'bakeError', ARGV[1])
+          if bake_key then
+            -- Update the bake status and logs set on the bake key hash.
+            redis.call('HMSET', bake_key,
+                       'bakeStatus', ARGV[1],
+                       'bakeLogs', ARGV[2])
+          end
+        """
+        updateBakeStatusSHA = jedis.scriptLoad(updateBakeStatusBaseScript)
+        def updateBakeStatusWithIncompleteRemovalScript = updateBakeStatusBaseScript + """\
+          -- Remove bake id from set of incomplete bakes.
+          redis.call('SREM', KEYS[2], KEYS[1])
+        """
+        updateBakeStatusWithIncompleteRemovalSHA = jedis.scriptLoad(updateBakeStatusWithIncompleteRemovalScript)
+        storeBakeErrorSHA = jedis.scriptLoad("""\
+          -- Retrieve the bake key associated with bake id.
+          local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
 
-        if bake_key then
-          -- Update the error set on the bake key hash.
-          redis.call('HSET', bake_key, 'bakeError', ARGV[1])
-        end
-      """)
-      deleteBakeByKeySHA = jedis.scriptLoad("""\
-        -- Retrieve the bake id associated with bake key.
-        local bake_id = redis.call('HGET', KEYS[1], 'id')
+          -- Update the error set on the bake id hash.
+          redis.call('HSET', KEYS[1], 'bakeError', ARGV[1])
 
-        -- Remove bake key from the set of bakes.
-        redis.call('ZREM', KEYS[2], KEYS[1])
+          if bake_key then
+            -- Update the error set on the bake key hash.
+            redis.call('HSET', bake_key, 'bakeError', ARGV[1])
+          end
+        """)
+        deleteBakeByKeySHA = jedis.scriptLoad("""\
+          -- Retrieve the bake id associated with bake key.
+          local bake_id = redis.call('HGET', KEYS[1], 'id')
 
-        -- Delete the bake key key.
-        local ret = redis.call('DEL', KEYS[1])
-
-        if bake_id then
-          -- Remove the bake id from the set of incomplete bakes.
-          redis.call('SREM', KEYS[3], bake_id)
-
-          -- Delete the bake id key.
-          redis.call('DEL', bake_id)
-        end
-
-        return ret
-      """)
-      cancelBakeByIdSHA = jedis.scriptLoad("""
-        -- Retrieve the bake key associated with bake id.
-        local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
-
-        -- Remove bake id from the set of incomplete bakes.
-        local ret = redis.call('SREM', KEYS[2], KEYS[1])
-
-        -- Update the bake status set on the bake id hash.
-        redis.call('HSET', KEYS[1], 'bakeStatus', ARGV[1])
-
-        if bake_key then
-          -- Remove the bake key from the set of bakes.
-          redis.call('ZREM', KEYS[3], bake_key)
+          -- Remove bake key from the set of bakes.
+          redis.call('ZREM', KEYS[2], KEYS[1])
 
           -- Delete the bake key key.
-          redis.call('DEL', bake_key)
-        end
+          local ret = redis.call('DEL', KEYS[1])
 
-        return ret
-      """)
+          if bake_id then
+            -- Remove the bake id from the set of incomplete bakes.
+            redis.call('SREM', KEYS[3], bake_id)
+
+            -- Delete the bake id key.
+            redis.call('DEL', bake_id)
+          end
+
+          return ret
+        """)
+        cancelBakeByIdSHA = jedis.scriptLoad("""
+          -- Retrieve the bake key associated with bake id.
+          local bake_key = redis.call('HGET', KEYS[1], 'bakeKey')
+
+          -- Remove bake id from the set of incomplete bakes.
+          local ret = redis.call('SREM', KEYS[2], KEYS[1])
+
+          -- Update the bake status set on the bake id hash.
+          redis.call('HSET', KEYS[1], 'bakeStatus', ARGV[1])
+
+          if bake_key then
+            -- Remove the bake key from the set of bakes.
+            redis.call('ZREM', KEYS[3], bake_key)
+
+            -- Delete the bake key key.
+            redis.call('DEL', bake_key)
+          end
+
+          return ret
+        """)
+      }
     }
   }
 
@@ -193,11 +187,8 @@ class RedisBackedBakeStore implements BakeStore {
     def ttlMilliseconds = "5000"
     def keyList = [lockKey.toString(), bakeKey]
     def argList = [ttlMilliseconds]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      return jedis.evalsha(acquireBakeLockSHA, keyList, argList)
-    }
+    return evalSHA("acquireBakeLockSHA", keyList, argList)
   }
 
   @Override
@@ -209,15 +200,11 @@ class RedisBackedBakeStore implements BakeStore {
     def creationTimestamp = System.currentTimeMillis()
     def keyList = ["allBakes", bakeId, bakeKey, "allBakes:incomplete", lockKey.toString()]
     def argList = [creationTimestamp.toString(), region, bakeRequestJson, bakeStatusJson]
-    def jedis = jedisPool.getResource()
+    def result = evalSHA("storeNewBakeStatusSHA", keyList, argList)
 
-    jedis.withCloseable {
-      def result = jedis.evalsha(storeNewBakeStatusSHA, keyList, argList)
-
-      // Check if the script returned a bake status set by the winner of a race.
-      if (result?.getAt(0)) {
-        bakeStatus = mapper.readValue(result[0], BakeStatus)
-      }
+    // Check if the script returned a bake status set by the winner of a race.
+    if (result?.getAt(0)) {
+      bakeStatus = mapper.readValue(result[0], BakeStatus)
     }
 
     return bakeStatus
@@ -228,41 +215,32 @@ class RedisBackedBakeStore implements BakeStore {
     def bakeDetailsJson = mapper.writeValueAsString(bakeDetails)
     def keyList = [bakeDetails.id]
     def argList = [bakeDetailsJson]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      jedis.evalsha(updateBakeDetailsSHA, keyList, argList)
-    }
+    evalSHA("updateBakeDetailsSHA", keyList, argList)
   }
 
   @Override
   public void updateBakeStatus(BakeStatus bakeStatus, Map<String, String> logsContent=[:]) {
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def bakeLogsJson = mapper.writeValueAsString(logsContent ?: [:])
-    def scriptSHA = updateBakeStatusSHA
+    def scriptSHA = "updateBakeStatusSHA"
 
     if (bakeStatus.state != BakeStatus.State.PENDING && bakeStatus.state != BakeStatus.State.RUNNING) {
-      scriptSHA = updateBakeStatusWithIncompleteRemovalSHA
+      scriptSHA = "updateBakeStatusWithIncompleteRemovalSHA"
     }
 
     def keyList = [bakeStatus.id, "allBakes:incomplete"]
     def argList = [bakeStatusJson, bakeLogsJson]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      jedis.evalsha(scriptSHA, keyList, argList)
-    }
+    evalSHA(scriptSHA, keyList, argList)
   }
 
   @Override
   public void storeBakeError(String bakeId, String error) {
     def keyList = [bakeId]
     def argList = [error]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      jedis.evalsha(storeBakeErrorSHA, keyList, argList)
-    }
+    evalSHA("storeBakeErrorSHA", keyList, argList)
   }
 
   @Override
@@ -321,11 +299,8 @@ class RedisBackedBakeStore implements BakeStore {
   @Override
   public boolean deleteBakeByKey(String bakeKey) {
     def keyList = [bakeKey, "allBakes", "allBakes:incomplete"]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      return jedis.evalsha(deleteBakeByKeySHA, keyList, []) == 1
-    }
+    return evalSHA("deleteBakeByKeySHA", keyList, []) == 1
   }
 
   @Override
@@ -337,11 +312,8 @@ class RedisBackedBakeStore implements BakeStore {
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def keyList = [bakeId, "allBakes:incomplete", "allBakes"]
     def argList = [bakeStatusJson]
-    def jedis = jedisPool.getResource()
 
-    jedis.withCloseable {
-      return jedis.evalsha(cancelBakeByIdSHA, keyList, argList) == 1
-    }
+    return evalSHA("cancelBakeByIdSHA", keyList, argList) == 1
   }
 
   @Override
@@ -353,4 +325,34 @@ class RedisBackedBakeStore implements BakeStore {
     }
   }
 
+  private Object evalSHA(String scriptName, List<String> keyList, List<String> argList) {
+    try {
+      def scriptSHA = scriptNameToSHAMap[scriptName]
+
+      if (!scriptSHA) {
+        cacheAllScripts()
+
+        scriptSHA = scriptNameToSHAMap[scriptName]
+      }
+
+      def jedis = jedisPool.getResource()
+
+      jedis.withCloseable {
+        return jedis.evalsha(scriptSHA, keyList, argList)
+      }
+    } catch (JedisDataException e) {
+      // If the redis server doesn't recognize the SHA1 hash, cache the scripts.
+      if (e.message?.startsWith("NOSCRIPT")) {
+        cacheAllScripts()
+
+        def jedis = jedisPool.getResource()
+
+        jedis.withCloseable {
+          return jedis.evalsha(scriptSHA, keyList, argList)
+        }
+      } else {
+        throw e
+      }
+    }
+  }
 }
