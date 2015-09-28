@@ -56,6 +56,9 @@ class GoogleResourceRetriever {
   @Autowired
   GoogleSecurityGroupProvider googleSecurityGroupProvider
 
+  @Autowired
+  String googleApplicationName
+
   @Value('${default.build.host:http://builds.netflix.com/}')
   String defaultBuildHost
 
@@ -103,10 +106,10 @@ class GoogleResourceRetriever {
           def project = credentials.project
           def compute = credentials.compute
 
-          BatchRequest regionsBatch = buildBatchRequest(compute)
-          BatchRequest migsBatch = buildBatchRequest(compute)
-          BatchRequest instanceGroupsBatch = buildBatchRequest(compute)
-          BatchRequest instancesBatch = buildBatchRequest(compute)
+          BatchRequest regionsBatch = buildBatchRequest(compute, googleApplicationName)
+          BatchRequest migsBatch = buildBatchRequest(compute, googleApplicationName)
+          BatchRequest instanceGroupsBatch = buildBatchRequest(compute, googleApplicationName)
+          BatchRequest instancesBatch = buildBatchRequest(compute, googleApplicationName)
           Map<String, GoogleServerGroup> instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
 
           def regions = compute.regions().list(project).execute().getItems()
@@ -277,12 +280,12 @@ class GoogleResourceRetriever {
     }
   }
 
-  private static BatchRequest buildBatchRequest(def compute) {
+  private static BatchRequest buildBatchRequest(def compute, def googleApplicationName) {
     return compute.batch(
       new HttpRequestInitializer() {
         @Override
         void initialize(HttpRequest request) throws IOException {
-          request.headers.setUserAgent(Utils.APPLICATION_NAME);
+          request.headers.setUserAgent(googleApplicationName);
         }
       }
     )
@@ -325,8 +328,8 @@ class GoogleResourceRetriever {
           def project = credentials.project
           def compute = credentials.compute
 
-          BatchRequest instanceGroupsBatch = buildBatchRequest(compute)
-          BatchRequest instancesBatch = buildBatchRequest(compute)
+          BatchRequest instanceGroupsBatch = buildBatchRequest(compute, googleApplicationName)
+          BatchRequest instancesBatch = buildBatchRequest(compute, googleApplicationName)
 
           def tempAppMap = new HashMap<String, GoogleApplication>()
           def instanceNameToGoogleServerGroupMap = new HashMap<String, GoogleServerGroup>()
