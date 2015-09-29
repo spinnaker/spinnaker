@@ -24,4 +24,8 @@ class DefaultTask implements Task, Serializable {
   Long startTime
   Long endTime
   ExecutionStatus status = ExecutionStatus.NOT_STARTED
+
+  static boolean isBookend(Task task) {
+    return task.name == "stageEnd" || task.name == "stageStart"
+  }
 }

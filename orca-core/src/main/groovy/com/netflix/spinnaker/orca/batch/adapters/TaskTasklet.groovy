@@ -72,10 +72,15 @@ class TaskTasklet implements Tasklet {
       if (stage.execution.canceled) {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         return cancel(stage)
-      } else if (task.status.complete) {
+      } else if (task.status.complete || task.status.halt) {
         // no-op
         log.warn "Skipping task $task.name because its status is $task.status"
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", task.status)
+
+        if (task.status.halt) {
+          setStopStatus(chunkContext, ExitStatus.FAILED, task.status)
+        }
+
         return RepeatStatus.FINISHED
       } else {
         // fetch the current stage (w/ global context merged in)

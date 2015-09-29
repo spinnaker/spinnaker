@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
@@ -48,7 +49,8 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
   void afterTask(Stage stage, StepExecution stepExecution) {
     def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     if (orcaTaskStatus) {
-      if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (stage.tasks && stage.tasks[-1].status != ExecutionStatus.SUCCEEDED)) {
+      def nonBookendTasks = stage.tasks.findAll { !DefaultTask.isBookend(it) }
+      if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (stage.tasks && nonBookendTasks[-1].status != ExecutionStatus.SUCCEEDED)) {
         // mark stage as RUNNING as not all tasks have completed
         stage.status = ExecutionStatus.RUNNING
       } else {
