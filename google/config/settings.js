@@ -1,16 +1,24 @@
 'use strict';
 
-let gateHost = 'localhost:8084';
+let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
+let gateHost = process.env.API_HOST || 'localhost:8084';
+let bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://localhost:8087/api/v1/global/logs/{{context.status.id}}?html=true';
+let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
+
+let protocol = process.env.PROTOCOL || 'http';
 
 window.spinnakerSettings = {
+  feedbackUrl: feedbackUrl,
   gateUrl: `http://${gateHost}`,
+  bakeryDetailUrl: bakeryDetailUrl,
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
     gce: {
       defaults: {
         account: '$GOOGLE_ACCOUNT_NAME',
-        region: 'us-central1'
+        region: 'us-central1',
+        zone: 'us-central1-f',
       },
       primaryAccounts: ['$GOOGLE_ACCOUNT_NAME'],
       challengeDestructiveActions: ['$GOOGLE_ACCOUNT_NAME'],
@@ -41,11 +49,11 @@ window.spinnakerSettings = {
     gistId: '32526cd608db3d811b38',
     fileName: 'news.md',
   },
-  authEnabled: false,
+  authEnabled: process.env.AUTH === 'enabled',
   feature: {
     pipelines: true,
     notifications: false,
-    canary: false,
+    canary: process.env.CANARY !== 'disabled',
     parallelPipelines: true,
     fastProperty: false,
     vpcMigrator: true,
