@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws.securityGro
       scope: {
         command: '=',
       },
-      templateUrl: require('./serverGroupSecurityGroupsDirective.html'),
+      templateUrl: require('./serverGroupSecurityGroupsSelector.directive.html'),
       link: function(scope) {
 
         scope.getSecurityGroupRefreshTime = function() {

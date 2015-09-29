@@ -5,7 +5,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(
     window.module(
-      require('./CreateLoadBalancerCtrl')
+      require('./createLoadBalancer.controller')
     )
   );
 

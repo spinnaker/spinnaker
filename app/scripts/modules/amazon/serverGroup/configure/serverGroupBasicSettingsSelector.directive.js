@@ -17,7 +17,7 @@ module.exports = angular
         application: '=',
         hideClusterNamePreview: '=',
       },
-      templateUrl: require('./serverGroupBasicSettingsDirective.html'),
+      templateUrl: require('./serverGroupBasicSettingsSelector.directive.html'),
       controller: 'ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl',
     };
   })

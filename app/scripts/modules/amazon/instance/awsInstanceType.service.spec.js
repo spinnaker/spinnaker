@@ -20,7 +20,7 @@ describe('Service: InstanceType', function () {
 
   beforeEach(function() {
       window.module(
-        require('./awsInstanceTypeService')
+        require('./awsInstanceType.service')
       );
   });
 
