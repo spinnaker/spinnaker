@@ -2,18 +2,36 @@
 
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
-var webpack = require('webpack');
-var IgnorePlugin = require("webpack/lib/IgnorePlugin");
+//var webpack = require('webpack');
+//var IgnorePlugin = require("webpack/lib/IgnorePlugin");
 var path = require('path');
 
 var nodeModulePath = path.join(__dirname, 'node_modules');
-var bowerModulePath = path.join(__dirname, 'bower_components');
+//var bowerModulePath = path.join(__dirname, 'bower_components');
 
 module.exports = {
   debug: true,
   entry: {
     settings: './settings.js',
     app: './app/scripts/app.js',
+    vendor: [
+      'jquery',
+      'lodash',
+      'angular',
+      'jquery-ui',
+      'source-sans-pro',
+      'Select2',
+      'angulartics',
+      'angular-animate',
+      'angular-ui-router',
+      'spin.js',
+      'exports?"ui.bootstrap"!angular-bootstrap',
+      'exports?"ui.select"!ui-select',
+      'exports?"restangular"!imports?_=lodash!restangular',
+      'exports?"angular.filter"!angular-filter',
+      'exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js',
+      'bootstrap/dist/css/bootstrap.css'
+    ],
   },
   output: {
     path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
@@ -69,11 +87,9 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    //new IgnorePlugin(
-    //  /\.spec/
-    //),
-    new webpack.optimize.CommonsChunkPlugin(
-      /* filename= */"init.js"
+    new CommonsChunkPlugin('vendor', 'vendor.js'),
+    new CommonsChunkPlugin(
+      /* filename= */'init.js'
     ),
     new HtmlWebpackPlugin({
       title: 'Spinnaker',
@@ -84,6 +100,6 @@ module.exports = {
   ],
   devServer: {
     port: process.env.DECK_PORT || 9000,
-    host: process.env.DECK_HOST || "localhost"
+    host: process.env.DECK_HOST || 'localhost'
   }
 };
