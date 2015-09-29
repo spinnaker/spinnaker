@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.security.AuthenticatedRequest
 
@@ -37,6 +37,9 @@ import rx.schedulers.Schedulers
 
 @RestController
 class TaskController {
+  @Autowired
+  Front50Service front50Service
+
   @Autowired
   ExecutionRepository executionRepository
 
@@ -173,6 +176,21 @@ class TaskController {
     }
 
     return allPipelines.sort(startTimeOrId)
+  }
+
+  @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
+  List<Pipeline> getPipelinesForApplication(@PathVariable String application,
+                                            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+    if (!limit) {
+      return []
+    }
+
+    def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
+    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+      executionRepository.retrievePipelinesForPipelineConfigId(it, limit)
+    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    return allPipelines
   }
 
   private static Closure startTimeOrId = { a, b ->
