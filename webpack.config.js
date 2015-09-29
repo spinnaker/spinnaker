@@ -14,24 +14,6 @@ module.exports = {
   entry: {
     settings: './settings.js',
     app: './app/scripts/app.js',
-    vendor: [
-      'jquery',
-      'lodash',
-      'angular',
-      'jquery-ui',
-      'source-sans-pro',
-      'Select2',
-      'angulartics',
-      'angular-animate',
-      'angular-ui-router',
-      'angular-ui-bootstrap',
-      'spin.js',
-      'exports?"ui.select"!ui-select',
-      'exports?"restangular"!imports?_=lodash!restangular',
-      'exports?"angular.filter"!angular-filter',
-      'exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js',
-      'bootstrap/dist/css/bootstrap.css'
-    ],
   },
   output: {
     path: path.join(__dirname, 'build', 'webpack', process.env.SPINNAKER_ENV || ''),
@@ -87,7 +69,6 @@ module.exports = {
     root: nodeModulePath
   },
   plugins: [
-    new CommonsChunkPlugin('vendor', 'vendor.js'),
     new CommonsChunkPlugin(
       /* filename= */'init.js'
     ),
