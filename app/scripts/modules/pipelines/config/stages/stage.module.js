@@ -7,6 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),
+  require('../../../confirmationModal/confirmationModal.service.js'),
 ])
   .directive('pipelineConfigStage', function() {
     return {
@@ -144,5 +145,22 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
     $scope.$on('pipeline-parallel-changed', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
+  })
+  .controller('RestartStageCtrl', function($scope, $stateParams, $http, Restangular, confirmationModalService, settings) {
+    var restartStage = function () {
+      return Restangular.one('pipelines', $stateParams.executionId).one('stages', $scope.stage.id).one('restart')
+        .customPUT({skip: false})
+        .then(function () {
+          $scope.stage.isRestarting = true;
+        });
+    };
+
+    this.restart = function () {
+      confirmationModalService.confirm({
+        header: 'Really restart ' + $scope.stage.name + '?',
+        buttonText: 'Restart ' + $scope.stage.name,
+        submitMethod: restartStage
+      });
+    };
   })
   .name;

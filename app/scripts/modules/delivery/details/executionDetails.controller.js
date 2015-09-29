@@ -98,4 +98,13 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       }
     };
 
+    controller.isRestartable = function(stage) {
+      var stageConfig = pipelineConfig.getStageConfig(stage);
+      if (!stageConfig || stage.isRestarting === true) {
+        return false;
+      }
+
+      return stageConfig.restartable || false;
+    };
+
   }).name;
