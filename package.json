@@ -21,7 +21,6 @@
     "angular-ui-sortable": "^0.13.4",
     "angular-wizard": "^0.5.3",
     "angulartics": "^0.18.0",
-    "baggage-loader": "^0.2.2",
     "bootstrap": "3.3.5",
     "d3": "^3.5.6",
     "jquery": "2.1.4",
