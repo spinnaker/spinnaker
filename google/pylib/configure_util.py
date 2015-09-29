@@ -23,6 +23,45 @@ from validate_configuration import ValidateConfig
 
 METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
 
+class Bindings(dict):
+  @property
+  def variables(self):
+    return self.__variable_bindings
+
+  def __init__(self):
+    self.__variable_bindings = {}
+
+  def clone(self):
+    copy = self.__class__()
+    copy.__variable_bindings.update(self.__variable_bindings)
+    return copy
+
+  def get_variable(self, name, default):
+    return self.__variable_bindings.get(name, default)
+
+  def add_variable(self, name, value):
+    self.__variable_bindings[name] = value
+
+  def replace_variables(self, content):
+    result = content
+    for name,value in self.__variable_bindings.items():
+        result = result.replace('$' + name, value)
+        result = re.sub('\${{{name}}}'.format(name=name), value, result)
+        result = re.sub('\${{{name}:[^}}]*}}'.format(name=name), value, result)
+    return result
+
+  def update_from_config(self, config_path):
+    """Load configuration file into the bindings.
+
+    Overrides anything already present.
+    """
+    with open(config_path, 'r') as f:
+      content = f.read()
+
+    for match in re.findall(r'^([A-Za-z]\w*)=(.*)', content, re.M):
+      self.__variable_bindings[match[0]] = match[1]
+
+
 class InstallationParameters(object):
   """Describes a standard release installation layout.
 
@@ -94,20 +133,17 @@ class ConfigureUtil(object):
     """Update all the derived configuration files using the given bindings.
 
     Args:
-      bindings: name/value dictionary of the templated variable bindings.
+      bindings: Bindings of the templated variable bindings.
     """
     installation = self.__installation
     print 'Updating configurations in ' + installation.CONFIG_DIR
 
-    binding_copy = {}
-    binding_copy.update(bindings)
-    bindings = binding_copy
-
+    bindings = bindings.clone()
     for cfg in glob.glob(installation.CONFIG_TEMPLATE_DIR + '/*.yml'):
       self.replace_variables_in_file(
           cfg,
           installation.CONFIG_DIR + '/' + os.path.basename(cfg),
-          bindings.items())
+          bindings)
 
     credential_path = bindings.get('GOOGLE_JSON_CREDENTIAL_PATH', '')
     with open(installation.CONFIG_DIR + '/gce-kms-local.yml', 'r') as f:
@@ -124,7 +160,7 @@ class ConfigureUtil(object):
         installation.CONFIG_TEMPLATE_DIR
             + '/' + installation.HACK_DECK_SETTINGS_FILENAME,
         installation.DECK_INSTALL_DIR + '/settings.js',
-        bindings.items())
+        bindings)
     return
 
   def load_bindings(self):
@@ -137,20 +173,27 @@ class ConfigureUtil(object):
 
     # Get default values and ensure required things are defined
     # so user config can leave them out before including user config.
-    bindings = self.load_config(
+    bindings = Bindings()
+    bindings.update_from_config(
         installation.CONFIG_TEMPLATE_DIR + '/default_spinnaker_config.cfg')
-    bindings.update(
-        self.load_config(installation.CONFIG_DIR + '/spinnaker_config.cfg'))
+
+    custom_config_path = installation.CONFIG_DIR + '/spinnaker_config.cfg'
+    if not os.path.exists(custom_config_path):
+      sys.stderr.write('WARNING: {path} does not exist.'
+                       ' There is no personal master configuration file.'
+                       .format(path=custom_config_path))
+    else:
+      bindings.update_from_config(custom_config_path)
 
     # Auto-define IGOR_ENABLED.
     # It is unfortunate that we need this, but seems to be used internally.
     # We dont start igor if we dont need it, so this is a safety mechanism.
-    if bindings.get('IGOR_ENABLED', '') == '':
+    if bindings.get_variable('IGOR_ENABLED', '') == '':
       bindings['IGOR_ENABLED'] = (
           'true' if bindings.get('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
-    managed_project = bindings.get('GOOGLE_MANAGED_PROJECT_ID', '')
+    managed_project = bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', '')
     if not managed_project:
         code, managed_project = fetch(
           METADATA_URL + '/project/project-id',
@@ -158,28 +201,12 @@ class ConfigureUtil(object):
         if code != 200:
           raise SystemExit('GOOGLE_MANAGED_PROJECT_ID is required if you are'
                            ' not running on Google Compute Engine.')
-        bindings['GOOGLE_MANAGED_PROJECT_ID'] = managed_project
+        bindings.add_variable('GOOGLE_MANAGED_PROJECT_ID', managed_project)
 
     return bindings
 
   @staticmethod
-  def load_config(config_path):
-    """Load configuration file into a dictionary.
-
-    Returns:
-      Dictionary of key/value pairs found only in the configuration file.
-      (no inherited values)
-    """
-    with open(config_path, 'r') as f:
-      content = f.read()
-
-    result = {}
-    for match in re.findall(r'^([A-Za-z]\w*)=(.*)', content, re.M):
-      result[match[0]] = match[1]
-    return result
-
-  @staticmethod
-  def replace_variables_in_file(source_path, target_path, binding_pairs):
+  def replace_variables_in_file(source_path, target_path, bindings):
     """Replace all the bound variables in the specified paths.
 
     For a given variable name, value pair replace occurances of the variable
@@ -192,15 +219,10 @@ class ConfigureUtil(object):
     Args:
       source_path: The file path containing variables to replace.
       target_path: The file path to write the replaced content into.
-      binding_pairs: A list of (name, value) pairs to replace.
+      bindings: The Bindings to use for replacement.
     """
     with open(source_path, 'r') as f:
       content = f.read()
-
-    for name,value in binding_pairs:
-      content = content.replace('$' + name, value)
-      content = re.sub('\${{{name}}}'.format(name=name), value, content)
-      content = re.sub('\${{{name}:[^}}]*}}'.format(name=name), value, content)
-
+    content = bindings.replace_variables(content)
     with open(target_path, 'w') as f:
       f.write(content)

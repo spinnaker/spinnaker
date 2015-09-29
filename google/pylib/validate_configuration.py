@@ -52,10 +52,10 @@ class ValidateConfig(object):
       return False
 
   def verify_true_false(self, name):
-    if not name in self.__bindings:
+    value = self.__bindings.get_variable(name, None)
+    if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
-    value = self.__bindings[name]
 
     if value in ['true', 'false']:
       return True
@@ -66,10 +66,10 @@ class ValidateConfig(object):
     return False
 
   def verify_host(self, name, required):
-    if not name in self.__bindings:
+    value = self.__bindings.get_variable(name, None)
+    if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
-    value = self.__bindings[name]
 
     host_regex = '^[-_\.a-z0-9]+$'
     if not value:
@@ -89,10 +89,10 @@ class ValidateConfig(object):
 
 
   def verify_host_port(self, name, required):
-    if not name in self.__bindings:
+    value = self.__bindings.get_variable(name, None)
+    if value is None:
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
-    value = self.__bindings[name]
 
     address_regex = '^[-_\.a-z0-9]+(:[0-9]+)?(/[-_a-zA-Z0-9\+%/]+)?$'
     if not value:
@@ -157,16 +157,18 @@ class ValidateConfig(object):
     # Without a source I'm being overly generous.
     aws_key_regex = '^[/a-zA-Z0-9]+$'
 
-    if self.__bindings['AWS_ENABLED'] != 'true':
+    if self.__bindings.get_variable('AWS_ENABLED', '') != 'true':
       return True
 
     # Intentionally keeping these values private in the errors.
     ok = True
-    if not re.match(aws_key_regex, self.__bindings.get('AWS_ACCESS_KEY', '')):
+    if not re.match(
+          aws_key_regex, self.__bindings.get_variable('AWS_ACCESS_KEY', '')):
       self.__errors.append('AWS_ACCESS_KEY does not look like {regex}.'
                            .format(regex=aws_key_regex))
       ok = False
-    if not re.match(aws_key_regex, self.__bindings.get('AWS_SECRET_KEY', '')):
+    if not re.match(
+          aws_key_regex, self.__bindings.get_variable('AWS_SECRET_KEY', '')):
       self.__errors.append('AWS_SECRET does not look like {regex}.'
                            .format(regex=aws_key_regex))
       ok = False
@@ -187,7 +189,8 @@ class ValidateConfig(object):
     # (e.g. adding a health check) for created components will push beyond GCE
     # limits.
     gce_name_regex = '^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$'
-    managed_project_id = self.__bindings.get('GOOGLE_MANAGED_PROJECT_ID', '')
+    managed_project_id = self.__bindings.get_variable(
+        'GOOGLE_MANAGED_PROJECT_ID', '')
     ok = True
     if not managed_project_id:
       if not project_id:
@@ -202,7 +205,7 @@ class ValidateConfig(object):
             'GOOGLE_MANAGED_PROJECT_ID="{id}" does not look like {regex}.'
             .format(id=managed_project_id, regex=gce_name_regex))
       if managed_project_id != project_id:
-        path = self.__bindings.get('GOOGLE_JSON_CREDENTIAL_PATH', '')
+        path = self.__bindings.get_variable('GOOGLE_JSON_CREDENTIAL_PATH', '')
         if not path:
           ok = False
           self.__errors.append(
@@ -216,7 +219,7 @@ class ValidateConfig(object):
               .format(path=path))
 
     # Verify account name.
-    account_name = self.__bindings.get('GOOGLE_ACCOUNT_NAME', '')
+    account_name = self.__bindings.get_variable('GOOGLE_ACCOUNT_NAME', '')
     account_name_regex = '^[-_a-zA-Z0-9]+$'
 
     if not re.match(account_name_regex, account_name):
@@ -232,8 +235,8 @@ class ValidateConfig(object):
           and ok)
 
     if self.verify_true_false('DOCKER_ENABLED'):
-      if (self.__bindings['DOCKER_ENABLED'] == 'true'
-          and not self.__bindings.get('DOCKER_TARGET_REPOSITORY', '')):
+      if (self.__bindings.get_variable('DOCKER_ENABLED', '') == 'true'
+          and not self.__bindings.get_variable('DOCKER_TARGET_REPOSITORY', '')):
         ok = False
         self.__errors.append('DOCKER_ENABED but DOCKER_TARGET_REPOSITORY'
                              ' is not provided.')
@@ -241,10 +244,10 @@ class ValidateConfig(object):
 
   def verify_jenkins(self):
     ok = self.verify_host_port('JENKINS_ADDRESS', required=False)
-    if self.__bindings.get('JENKINS_ADDRESS', ''):
+    if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
         # TODO(ewiseblatt): 20140925
         # Look into the IGOR_ENABLED flag (used at least in gate)
-        igor_enabled = self.__bindings.get('IGOR_ENABLED', '')
+        igor_enabled = self.__bindings.get_variable('IGOR_ENABLED', '')
         if igor_enabled == 'false':
           # Dont bother checking other things since they dont matter.
           print ('WARNING: JENKINS_ADDRESS is provided but'
@@ -256,12 +259,12 @@ class ValidateConfig(object):
           self.__errors.append('JENKINS_ADDRESS is provided but IGOR_ENABLED'
                                ' is not explicitly set to true or false.')
 
-        if not self.__bindings.get('JENKINS_USERNAME', ''):
+        if not self.__bindings.get_variable('JENKINS_USERNAME', ''):
             ok = False
             self.__errors.append('JENKINS_ADDRESS is provided,'
                                  ' but not JENKINS_USERNAME.')
 
-        if not self.__bindings.get('JENKINS_PASSWORD', ''):
+        if not self.__bindings.get_variable('JENKINS_PASSWORD', ''):
             # igor will throw an exception if it does not have a password.
             ok = False
             self.__errors.append('JENKINS_ADDRESS is provided,'
@@ -287,7 +290,7 @@ class ValidateConfig(object):
 
   def verify_security(self):
     ok = self.verify_user_access_only(
-      self.__bindings.get('GOOGLE_JSON_CREDENTIAL_PATH', ''))
+      self.__bindings.get_variable('GOOGLE_JSON_CREDENTIAL_PATH', ''))
     ok = self.verify_user_access_only(
         os.path.join(self.__config_dir, 'spinnaker_config.cfg')) and ok
     return ok
