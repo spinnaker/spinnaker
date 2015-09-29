@@ -20,6 +20,9 @@ module.exports = angular.module('spinnaker.account.service', [
         if (defaults[accountName] && defaults[accountName][regionName]) {
           return {preferredZones: defaults[accountName][regionName]};
         }
+        if (!defaults[accountName] && defaults.default && defaults.default[regionName]) {
+          return {preferredZones: defaults.default[regionName]};
+        }
         return {preferredZones: []};
       })
       .then(function(zonesCollection) {
