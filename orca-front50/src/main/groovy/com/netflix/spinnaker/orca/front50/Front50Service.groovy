@@ -61,22 +61,11 @@ interface Front50Service {
   static class Project {
     String id
     String name
-    String email
 
     ProjectConfig config = new ProjectConfig()
 
-    Long updateTs
-    Long createTs
-
     static class ProjectConfig {
       Collection<PipelineConfig> pipelineConfigs
-      Collection<String> applications
-      Collection<ClusterConfig> clusters
-    }
-
-    static class ClusterConfig {
-      String account
-      String cluster
     }
 
     static class PipelineConfig {
