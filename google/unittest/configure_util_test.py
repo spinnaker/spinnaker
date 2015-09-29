@@ -73,9 +73,9 @@ declaration_c={c}
 # Another reference to {a} {b} and {c}.
 """
     bindings = configure_util.Bindings()
-    bindings.add_variable('VARIABLE_A', 'A')
-    bindings.add_variable('VARIABLE_B', 'B')
-    bindings.add_variable('VARIABLE_C', 'C')
+    bindings.set_variable('VARIABLE_A', 'A')
+    bindings.set_variable('VARIABLE_B', 'B')
+    bindings.set_variable('VARIABLE_C', 'C')
 
     original = template_data.format(
         a='$VARIABLE_A',
@@ -101,7 +101,7 @@ declaration_c={c}
     os.close(fd)
 
     bindings = configure_util.Bindings()
-    bindings.add_variable('VARIABLE_A', 'A')
+    bindings.set_variable('VARIABLE_A', 'A')
 
     configure_util.ConfigureUtil.replace_variables_in_file(
         source_path, target_path, bindings)
@@ -133,8 +133,11 @@ declaration_c={c}
     finally:
       shutil.rmtree(root)
 
-    self.assertEqual(4, len(bindings.variables))
+    # VARIABLE_(A|B|C) and added IGOR_ENABLED and GOOGLE_MANAGED_PROJECT_ID
+    self.assertEqual(3 + 2, len(bindings.variables))
     self.assertEqual('1', bindings.get_variable('VARIABLE_B', ''))
+    self.assertEqual('false',
+                        bindings.get_variable('IGOR_ENABLED', ''))
     self.assertNotEqual('',
                         bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', ''))
 

@@ -39,7 +39,10 @@ class Bindings(dict):
   def get_variable(self, name, default):
     return self.__variable_bindings.get(name, default)
 
-  def add_variable(self, name, value):
+  def get_yaml(self, name, default):
+    return self.__yaml_bindings.get(name, default)
+
+  def set_variable(self, name, value):
     self.__variable_bindings[name] = value
 
   def replace_variables(self, content):
@@ -189,20 +192,16 @@ class ConfigureUtil(object):
     # It is unfortunate that we need this, but seems to be used internally.
     # We dont start igor if we dont need it, so this is a safety mechanism.
     if bindings.get_variable('IGOR_ENABLED', '') == '':
-      bindings['IGOR_ENABLED'] = (
-          'true' if bindings.get('JENKINS_ADDRESS', '') != ''
+      bindings.set_variable('IGOR_ENABLED',
+          'true' if bindings.get_variable('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
     managed_project = bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', '')
     if not managed_project:
-        code, managed_project = fetch(
-          METADATA_URL + '/project/project-id',
-          google=True)
-        if code != 200:
-          raise SystemExit('GOOGLE_MANAGED_PROJECT_ID is required if you are'
-                           ' not running on Google Compute Engine.')
-        bindings.add_variable('GOOGLE_MANAGED_PROJECT_ID', managed_project)
-
+      error_msg = ('GOOGLE_MANAGED_PROJECT_ID is required if you are'
+                   ' not running on Google Compute Engine.')
+      bindings.set_variable('GOOGLE_MANAGED_PROJECT_ID',
+                            fetch_my_project_or_die(error_msg))
     return bindings
 
   @staticmethod
