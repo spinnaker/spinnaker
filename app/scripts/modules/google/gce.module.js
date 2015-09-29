@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.gce', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
         cloneServerGroupController: 'gceCloneServerGroupCtrl',
         commandBuilder: 'gceServerGroupCommandBuilder',
+        configurationService: 'gceServerGroupConfigurationService',
       },
       instance: {
         instanceTypeService: 'gceInstanceTypeService',
