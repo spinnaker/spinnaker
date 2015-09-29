@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.aws', [
         cloneServerGroupTemplateUrl: require('./serverGroup/configure/wizard/serverGroupWizard.html'),
         cloneServerGroupController: 'awsCloneServerGroupCtrl',
         commandBuilder: 'awsServerGroupCommandBuilder',
+        configurationService: 'awsServerGroupConfigurationService',
       },
       instance: {
         instanceTypeService: 'awsInstanceTypeService',

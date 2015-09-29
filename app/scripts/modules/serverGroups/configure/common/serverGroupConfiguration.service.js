@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common.configur
 .factory('serverGroupConfigurationService', function(serviceDelegate) {
 
   function getDelegate(provider) {
-    return serviceDelegate.getDelegate(provider, 'ServerGroupConfigurationService');
+    return serviceDelegate.getDelegate(provider, 'serverGroup.configurationService');
   }
 
   function refreshInstanceTypes(provider, command) {
