@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DebugSupport
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
@@ -25,19 +24,21 @@ import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.kato.pipeline.support.TargetServerGroupResolver
+import com.netflix.spinnaker.orca.kato.pipeline.support.TargetReferenceSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import static com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage.DESTROY_ASG_DESCRIPTIONS_KEY
 
 /**
  * TODO: This task can be moved to clouddriver.tasks package once the convert() method has been cleaned up using the new oort APIs
  */
 @Component
-@Slf4j
-class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+@CompileStatic
+@Deprecated
+class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 
   @Autowired
   KatoService kato
@@ -45,39 +46,41 @@ class DestroyServerGroupTask extends AbstractCloudProviderAwareTask implements T
   @Autowired
   ObjectMapper mapper
 
+  @Autowired
+  TargetReferenceSupport targetReferenceSupport
+
   @Override
   TaskResult execute(Stage stage) {
     Map context = convert(stage)
     String cloudProvider = getCloudProvider(stage)
     TaskId taskId = kato.requestOperations(cloudProvider, [[destroyServerGroup: context]])
-      .toBlocking()
-      .first()
+                     .toBlocking()
+                     .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"   : "destroyservergroup",
-      "deploy.account.name" : context.credentials,
-      "kato.last.task.id"   : taskId,
-      "asgName"             : context.serverGroupName,  // TODO: Retire asgName
-      "serverGroupName"     : context.serverGroupName,
-      "deploy.server.groups": context.regions.collectEntries { [(it): [context.serverGroupName]] }
+        "notification.type"   : "destroyservergroup",
+        "deploy.account.name" : context.credentials,
+        "kato.last.task.id"   : taskId,
+        "asgName"             : context.serverGroupName,  // TODO: Retire asgName
+        "serverGroupName"     : context.serverGroupName,
+        "deploy.server.groups": ((Iterable) context.regions).collectEntries { [(it): [context.serverGroupName]] }
     ])
   }
 
   Map convert(Stage stage) {
-    def context = new HashMap(stage.context)
+    def input = stage.context
+    // TODO: Remove this if-block
+    if (stage.context.containsKey(DESTROY_ASG_DESCRIPTIONS_KEY) &&
+        stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]) {
+      input = ((List) stage.context[DESTROY_ASG_DESCRIPTIONS_KEY]).pop()
+    }
+
+    Map context = mapper.convertValue(input, Map)
     context.serverGroupName = (context.serverGroupName ?: context.asgName) as String
 
-    if (TargetServerGroup.isDynamicallyBound(stage)) {
-      def tsg = TargetServerGroupResolver.fromPreviousStage(stage).find {
-        (context.regions && context.regions.contains(it.location)) ||
-          (context.zones && context.zones.contains(it.location))
-      }
-      context.asgName = tsg.cluster
-      context.serverGroupName = tsg.cluster
-
-      if (context.zones && context.zones.contains(tsg.location)) {
-        context.zone = tsg.location
-        context.remove("zones")
-      }
+    if (targetReferenceSupport.isDynamicallyBound(stage)) {
+      def targetReference = targetReferenceSupport.getDynamicallyBoundTargetAsgReference(stage)
+      context.asgName = targetReference.asg.name
+      context.serverGroupName = targetReference.asg.name
     }
 
     context

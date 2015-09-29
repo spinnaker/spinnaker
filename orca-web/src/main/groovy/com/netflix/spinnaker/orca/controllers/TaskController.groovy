@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.batch.StageBuilder
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.PipelineStarter
 import com.netflix.spinnaker.security.AuthenticatedRequest
 
 import java.time.Clock
@@ -35,10 +38,19 @@ import rx.schedulers.Schedulers
 @RestController
 class TaskController {
   @Autowired
+  Front50Service front50Service
+
+  @Autowired
   ExecutionRepository executionRepository
 
   @Autowired
   PipelineStartTracker startTracker
+
+  @Autowired
+  PipelineStarter pipelineStarter
+
+  @Autowired
+  Collection<StageBuilder> stageBuilders
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -120,6 +132,19 @@ class TaskController {
     pipeline
   }
 
+  @RequestMapping(value = "/pipelines/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
+  Pipeline retryPipelineStage(@PathVariable String id, @PathVariable String stageId) {
+    def pipeline = executionRepository.retrievePipeline(id)
+    def stage = pipeline.stages.find { it.id == stageId } as PipelineStage
+    if (stage) {
+      def stageBuilder = stageBuilders.find { it.type == stage.type }
+      stage = stageBuilder.prepareStageForRestart(stage)
+      executionRepository.storeStage(stage)
+      pipelineStarter.resume(pipeline)
+    }
+    pipeline
+  }
+
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> getPipelines() {
     def allPipelines = executionRepository.retrievePipelines().toBlocking().iterator.toList()
@@ -151,6 +176,21 @@ class TaskController {
     }
 
     return allPipelines.sort(startTimeOrId)
+  }
+
+  @RequestMapping(value = "/v2/applications/{application}/pipelines", method = RequestMethod.GET)
+  List<Pipeline> getPipelinesForApplication(@PathVariable String application,
+                                            @RequestParam(value = "limit", defaultValue = "5") int limit) {
+    if (!limit) {
+      return []
+    }
+
+    def pipelineConfigIds = front50Service.getPipelines(application)*.id as List<String>
+    def allPipelines = rx.Observable.merge(pipelineConfigIds.collect {
+      executionRepository.retrievePipelinesForPipelineConfigId(it, limit)
+    }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
+
+    return allPipelines
   }
 
   private static Closure startTimeOrId = { a, b ->

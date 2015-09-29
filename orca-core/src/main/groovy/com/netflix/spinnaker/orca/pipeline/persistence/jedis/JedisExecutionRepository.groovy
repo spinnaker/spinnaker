@@ -293,7 +293,11 @@ class JedisExecutionRepository implements ExecutionRepository {
             return Observable.just(retrieveInternal(jedis, type, executionId))
           } catch (ExecutionNotFoundException ignored) {
             log.info("Execution (${executionId}) does not exist")
-            jedis.srem(lookupKey, executionId)
+            if (jedis.type(lookupKey) == "zset") {
+              jedis.zrem(lookupKey, executionId)
+            } else {
+              jedis.srem(lookupKey, executionId)
+            }
           } catch (Exception e) {
             log.error("Failed to retrieve execution '${executionId}', message: ${e.message}", e)
           }

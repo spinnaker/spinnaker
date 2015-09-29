@@ -31,6 +31,8 @@ interface Task {
 
   Long getStartTime()
 
+  void setStartTime(Long time)
+
   Long getEndTime()
 
   void setEndTime(Long time)

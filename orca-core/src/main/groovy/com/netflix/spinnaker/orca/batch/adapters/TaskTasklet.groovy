@@ -72,19 +72,27 @@ class TaskTasklet implements Tasklet {
       if (stage.execution.canceled) {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         return cancel(stage)
-      } else if (task.status.complete) {
+      } else if (task.status.complete || task.status.halt) {
         // no-op
         log.warn "Skipping task $task.name because its status is $task.status"
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", task.status)
+
+        if (task.status.halt) {
+          setStopStatus(chunkContext, ExitStatus.FAILED, task.status)
+        }
+
         return RepeatStatus.FINISHED
       } else {
+        // fetch the current stage (w/ global context merged in)
+        stage = currentStage(chunkContext, true)
+
         def result = executeTask(stage, chunkContext)
         logResult(result, stage, chunkContext)
 
         // we should reload the execution now, in case it has been affected
         // by a parallel process
         long scheduledTime = stage.scheduledTime
-        stage = currentStage(chunkContext)
+        stage = currentStage(chunkContext, true)
         // Setting the scheduledTime if it has been set by the task
         stage.scheduledTime = scheduledTime
 
@@ -187,10 +195,10 @@ class TaskTasklet implements Tasklet {
     stage.tasks.find { TaskModel it -> it.id == taskId(chunkContext) }
   }
 
-  private Stage currentStage(ChunkContext chunkContext) {
+  private Stage currentStage(ChunkContext chunkContext, boolean includeGlobalContext = false) {
     def execution = currentExecution(chunkContext)
     def stage = execution.stages.find { it.id == stageId(chunkContext) }
-    return ExecutionContextManager.retrieve(stage, chunkContext)
+    return includeGlobalContext ? ExecutionContextManager.retrieve(stage, chunkContext) : stage
   }
 
   private static void storeExecutionResults(TaskResult taskResult, Stage stage, ChunkContext chunkContext) {

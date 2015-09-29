@@ -78,31 +78,37 @@ class PipelineJobBuilder extends ExecutionJobBuilder<Pipeline> {
   }
 
   private JobFlowBuilder buildFlowParallel(JobFlowBuilder jobBuilder, Pipeline pipeline) {
-    def initializationStage = StageBuilder.newStage(
-      pipeline,
-      PipelineInitializationStage.PIPELINE_CONFIG_TYPE,
-      "Initialize",
-      [:],
-      null as Stage,
-      null as Stage.SyntheticStageOwner
-    )
+    Stage initializationStage
+    if (pipeline.stages[0].id == "${pipeline.id}-initialize" as String) {
+      // already initialized, no need to do it again
+      initializationStage = pipeline.stages[0]
+    } else {
+      initializationStage = StageBuilder.newStage(
+        pipeline,
+        PipelineInitializationStage.PIPELINE_CONFIG_TYPE,
+        "Initialize",
+        [:],
+        null as Stage,
+        null as Stage.SyntheticStageOwner
+      )
 
-    ((AbstractStage)initializationStage).id = "${pipeline.id}-initialize"
-    initializationStage.initializationStage = true
-    initializationStage.refId = "*"
+      ((AbstractStage) initializationStage).id = "${pipeline.id}-initialize"
+      initializationStage.initializationStage = true
+      initializationStage.refId = "*"
 
-    def stages = [] as List<Stage>
-    stages.addAll(pipeline.stages.findAll {
-      // only consider non-synthetic non-child stages when building the root flow
-      return !it.parentStageId && !it.requisiteStageRefIds && it.refId != initializationStage.refId
-    })
-    stages.each { Stage stage ->
-      // add the initialization stage as a requisite, this ensures that each root will be executed in parallel
-      stage.requisiteStageRefIds = [initializationStage.refId]
+      def stages = [] as List<Stage>
+      stages.addAll(pipeline.stages.findAll {
+        // only consider non-synthetic non-child stages when building the root flow
+        return !it.parentStageId && !it.requisiteStageRefIds && it.refId != initializationStage.refId
+      })
+      stages.each { Stage stage ->
+        // add the initialization stage as a requisite, this ensures that each root will be executed in parallel
+        stage.requisiteStageRefIds = [initializationStage.refId]
+      }
+
+      // the initialization stage should be injected at the beginning of the pipeline
+      pipeline.stages.add(0, initializationStage)
     }
-
-    // the initialization stage should be injected at the beginning of the pipeline
-    pipeline.stages.add(0, initializationStage)
 
     def initializationBuilder = new FlowBuilder<Flow>("Initialization.${pipeline.id}")
     createStage(initializationBuilder, initializationStage)

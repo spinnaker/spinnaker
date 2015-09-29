@@ -47,6 +47,9 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
 
   private void composeStaticTargets(Stage stage) {
     def descriptionList = buildStaticTargetDescriptions(stage)
+    if (descriptionList.empty) {
+      throw new TargetReferenceNotFoundException("Could not find any server groups for specified target")
+    }
     def first = descriptionList.remove(0)
     stage.context.putAll(first)
     if (descriptionList.size()) {
