@@ -23,6 +23,14 @@ from validate_configuration import ValidateConfig
 
 METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
 
+def fetch_my_project_or_die(error_msg_if_not_found):
+  code, managed_project = fetch(
+      METADATA_URL + '/project/project-id', google=True)
+  if code != 200:
+      raise SystemExit(error_msg_if_not_found)
+  return managed_project
+
+
 class Bindings(dict):
   @property
   def variables(self):
@@ -148,7 +156,7 @@ class ConfigureUtil(object):
           installation.CONFIG_DIR + '/' + os.path.basename(cfg),
           bindings)
 
-    credential_path = bindings.get('GOOGLE_JSON_CREDENTIAL_PATH', '')
+    credential_path = bindings.get_variable('GOOGLE_JSON_CREDENTIAL_PATH', '')
     with open(installation.CONFIG_DIR + '/gce-kms-local.yml', 'r') as f:
       content = f.read()
     if credential_path:
@@ -202,6 +210,10 @@ class ConfigureUtil(object):
                    ' not running on Google Compute Engine.')
       bindings.set_variable('GOOGLE_MANAGED_PROJECT_ID',
                             fetch_my_project_or_die(error_msg))
+<<<<<<< HEAD
+=======
+
+>>>>>>> e42dedf... Support configuring multiple credentials using master spinnaker_config.
     return bindings
 
   @staticmethod
