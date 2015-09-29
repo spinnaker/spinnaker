@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -51,6 +51,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   @Autowired SourceResolver sourceResolver
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
+  @Autowired DeprecationRegistry deprecationRegistry
 
   DeployStrategyStage(String name) {
     super(name)
@@ -128,6 +129,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
     if (existingAsgs) {
       if (stageData.regions?.size() > 1) {
+        deprecationRegistry.logDeprecatedUsage("deprecatedMultiRegionRedBlack", stageData.application)
         log.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
       }
       for (String region in stageData.regions) {
@@ -195,6 +197,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     def existingServerGroups = getExistingServerGroups(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
     if (existingServerGroups) {
       if (stageData.regions?.size() > 1) {
+        deprecationRegistry.logDeprecatedUsage("deprecatedMultiRegionHighlander", stageData.application)
         log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
       }
       for (String region in stageData.regions) {

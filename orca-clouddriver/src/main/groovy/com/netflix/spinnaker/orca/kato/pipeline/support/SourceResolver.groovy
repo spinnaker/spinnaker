@@ -75,10 +75,17 @@ class SourceResolver {
   }
 
   List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) throws RetrofitError, JsonParseException, JsonMappingException {
-    def response = oortService.getCluster(app, account, cluster, providerType)
-    def json = response.body.in().text
-    def map = mapper.readValue(json, Map)
-    (map.serverGroups as List<Map>).sort { it.createdTime }
+    try {
+      def response = oortService.getCluster(app, account, cluster, providerType)
+      def json = response.body.in().text
+      def map = mapper.readValue(json, Map)
+      (map.serverGroups as List<Map>).sort { it.createdTime }
+    } catch (RetrofitError re) {
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+        return []
+      }
+      throw re
+    }
   }
 
 }
