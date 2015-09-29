@@ -57,7 +57,7 @@ class NetworkController {
 
   private static Set<Network> getSortedTreeSet() {
     new TreeSet<>({ Network a, Network b ->
-      a.name.toLowerCase() <=> b.name.toLowerCase() ?:
+      a.name?.toLowerCase() <=> b.name?.toLowerCase() ?:
         a.id <=> b.id ?:
         a.account <=> b.account ?:
         a.region <=> b.region
