@@ -91,6 +91,22 @@ class TargetReferenceLinearStageSupportSpec extends Specification {
     ]
   }
 
+  void "should throw a TargetReferenceNotFoundException when no static targets are found"() {
+    given:
+    def targetReferenceSupport = Mock(TargetReferenceSupport)
+    def supportStage = new TargetReferenceLinearStageSupportStage()
+    def stage = new PipelineStage(new Pipeline(), "test", [:])
+    supportStage.targetReferenceSupport = targetReferenceSupport
+
+    when:
+    supportStage.composeTargets(stage)
+
+    then:
+    thrown TargetReferenceNotFoundException
+    1 * targetReferenceSupport.isDynamicallyBound(stage) >> false
+    1 * targetReferenceSupport.getTargetAsgReferences(stage) >> []
+  }
+
   class TargetReferenceLinearStageSupportStage extends TargetReferenceLinearStageSupport {
 
     TargetReferenceLinearStageSupportStage() {
