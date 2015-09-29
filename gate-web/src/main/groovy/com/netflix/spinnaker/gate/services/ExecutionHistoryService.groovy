@@ -39,10 +39,10 @@ class ExecutionHistoryService {
     } execute()
   }
 
-  List getPipelines(String app) {
+  List getPipelines(String app, int limit) {
     Preconditions.checkNotNull(app)
     HystrixFactory.newListCommand("pipelineExecutionHistory", "getPipelinesForApp", true) {
-      orcaService.getPipelines(app)
+      orcaService.getPipelinesV2(app, limit)
     } execute()
   }
 }

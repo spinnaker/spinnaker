@@ -72,8 +72,9 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
-  List getPipelines(@PathVariable("application") String application) {
-    executionHistoryService.getPipelines(application)
+  List getPipelines(@PathVariable("application") String application,
+                    @RequestParam(value = "limit", defaultValue = "10") int limit) {
+    executionHistoryService.getPipelines(application, limit)
   }
 
   /**
