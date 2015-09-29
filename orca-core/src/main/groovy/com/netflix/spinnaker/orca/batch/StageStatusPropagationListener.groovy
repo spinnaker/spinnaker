@@ -35,9 +35,11 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
 
   @Override
   void beforeTask(Stage stage, StepExecution stepExecution) {
-    if (!stage.startTime) {
-      stage.startTime = System.currentTimeMillis()
+    if (stage.status?.complete) {
+      return
     }
+
+    stage.startTime = stage.startTime ?: System.currentTimeMillis()
     stage.status = ExecutionStatus.RUNNING
     saveStage stage
   }
@@ -53,7 +55,7 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
         stage.status = orcaTaskStatus
 
         if (orcaTaskStatus.complete) {
-          stage.endTime = System.currentTimeMillis()
+          stage.endTime = stage.endTime ?: System.currentTimeMillis()
         }
       }
     } else {
