@@ -1,0 +1,40 @@
+<div modal-page>
+  <modal-close></modal-close>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">Edit Precondition</h3>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="editPreconditionForm">
+    <div class="modal-body">
+      <precondition-selector precondition="editPrecondition.precondition"></precondition-selector>
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-left">Notify when</div>
+        <div class="col-sm-9">
+          <label class="col-sm-9" ng-repeat="wo in editPrecondition.whenOptions">
+            <input
+              type="checkbox"
+              name="when"
+              value="{{wo}}"
+              ng-model="selectedWhenOptions[wo]"
+              ng-checked="editPrecondition.precondition.when.indexOf(wo) > -1">
+            {{wo|preconditionWhen:level}}
+
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span ng-show="editApp.submitting" us-spinner="{radius:20, width:6, length: 12}"></span>
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <button type="submit"
+              class="btn btn-primary"
+              data-purpose="submit"
+              ng-click="editPrecondition.submit()"
+              ng-disabled="editPreconditionForm.$invalid || !editPrecondition.hasSelectedWhen"
+        >
+        <span class="glyphicon glyphicon-ok-circle"></span> Update
+      </button>
+    </div>
+  </form>
+</div>

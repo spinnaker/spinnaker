@@ -1,0 +1,38 @@
+<div class="row">
+    <div ng-class="col-md-11 col-md-offset-1">
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Details</th>
+                <th>Notify When</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="precondition in preconditions">
+                <td>
+                    {{precondition.type|preconditionType}}
+                </td>
+                <td>
+                    {{precondition.context}}
+                </td>
+                <td>
+                    <a class="btn btn-xs btn-link" href ng-click="preconditionListCtrl.editPrecondition(precondition)">Edit</a>
+                    <a class="btn btn-xs btn-link pad-left" href
+                       ng-click="preconditionListCtrl.removePrecondition(precondition)">Remove</a>
+                </td>
+            </tr>
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="7">
+                    <button class="btn btn-block add-new" ng-click="preconditionListCtrl.addPrecondition()">
+                        <span class="glyphicon glyphicon-plus-sign"></span> Add Precondition Preference
+                    </button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,41 @@
+<div class="form-horizontal">
+  <div class="form-group">
+    <div class="col-md-2 col-md-offset-1 sm-label-left">
+      Preconditions
+    </div>
+    <div class="col-md-6">
+      <table class="table table-condensed">
+        <thead>
+        <tr>
+          <th>Type</th>
+          <th>Details</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="precondition in stage.preconditions">
+          <td>
+            {{precondition.preconditionType}}
+          </td>
+          <td>
+            {{precondition.description}}
+          </td>
+          <td>
+            <a class="btn btn-xs btn-link pad-left" href
+               ng-click="checkPreconditionsStageCtrl.removePrecondition($index)">Remove</a>
+          </td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="7">
+            <button class="btn btn-block btn-sm add-new" ng-click="checkPreconditionsStageCtrl.addPrecondition()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add precondition
+            </button>
+          </td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</div>
