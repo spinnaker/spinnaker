@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.transform.PackageScope
@@ -101,6 +102,31 @@ abstract class StageBuilder implements ApplicationContextAware {
 
       return jobBuilder
     }
+  }
+
+  /**
+   * Prepares a stage for restarting by:
+   * - marking the halted task as NOT_STARTED and resetting it's start and end times
+   * - marking the stage as RUNNING
+   */
+  Stage prepareStageForRestart(Stage stage) {
+    stage.tasks.find { it.status.halt }.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
+      task.startTime = null
+      task.endTime = null
+      task.status = ExecutionStatus.NOT_STARTED
+    }
+    stage.context["restartDetails"] = [
+      "restartedBy": AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
+      "restartTime": System.currentTimeMillis()
+    ] as Map<String, Object>
+
+    if (stage.context.exception) {
+      stage.context.restartDetails["previousException"] = stage.context.exception
+      stage.context.remove("exception")
+    }
+    stage.status = ExecutionStatus.RUNNING
+
+    return stage
   }
 
   @Deprecated
@@ -230,6 +256,7 @@ abstract class StageBuilder implements ApplicationContextAware {
   protected Step buildStep(Stage stage, String taskName, Task task, StepExecutionListener... listeners) {
     createStepWithListeners(stage, taskName, listeners)
       .tasklet(taskTaskletAdapter.decorate(task))
+      .allowStartIfComplete(this instanceof RestartableStage)
       .build()
   }
 

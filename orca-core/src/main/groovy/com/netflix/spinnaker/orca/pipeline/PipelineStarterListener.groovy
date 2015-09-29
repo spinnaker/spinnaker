@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.pipeline
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.batch.core.JobExecution
@@ -58,6 +59,8 @@ class PipelineStarterListener implements JobExecutionListener {
         ]) {
           processPipelines(execution)
         }
+      } catch (ExecutionNotFoundException ignored) {
+        log.warn("Unable to update pipeline status for missing execution (executionId: ${startedExecution})")
       } catch (Exception e) {
         log.error('failed to update pipeline status', e)
       }

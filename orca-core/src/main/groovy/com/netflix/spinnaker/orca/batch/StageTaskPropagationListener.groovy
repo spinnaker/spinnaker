@@ -52,7 +52,7 @@ class StageTaskPropagationListener extends AbstractStagePropagationListener {
     def taskId = taskId(stepExecution)
     def task = stage.tasks.find { it.id == taskId }
     task.status = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
-    task.endTime = System.currentTimeMillis()
+    task.endTime = task.endTime ?: System.currentTimeMillis()
     saveStage stage
   }
 }
