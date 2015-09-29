@@ -183,19 +183,25 @@
 
 running-tasks-tag {
   position: relative;
+  top: 2px;
+  right: 5px;
+  .icon-spinner {
+    color: @link-color;
+  }
 }
 
 .menu-running-tasks {
   text-align: left;
   position: absolute;
   z-index: 3;
-  right: -10px;
+  top: 20px;
+  right: -12px;
   background-color: #ffffff;
   margin-top: 12px;
   border: 1px solid #777777;
   padding: 5px 10px;
   border-radius: 3px;
-  box-shadow: 0px 0px 5px 2px #eeeeee;
+  box-shadow: 0 0 2px 1px #eeeeee;
   text-transform: none;
   color: @text-color;
   font-weight: 400;
@@ -364,11 +370,6 @@ load-balancers-tag {
           background-color: @active_pod_blue;
         }
       }
-      &.disabled {
-        &:hover, &.active {
-          opacity: 0.7;
-        }
-      }
     }
     .table {
       margin-top: -5px;
@@ -408,9 +409,17 @@ load-balancers-tag {
   }
 
   .disabled {
-    opacity: 0.4;
-    .glyphicon-th {
+    opacity: 1;
+    .section-title, health-counts, load-balancers-tag, instances {
+      opacity: 0.4;
+    }
+    .icon-server-group {
       color: @mid_grey;
+    }
+    &:hover {
+      .section-title, health-counts, load-balancers-tag, instances {
+        opacity: 0.7;
+      }
     }
   }
 
@@ -437,6 +446,10 @@ load-balancers-tag {
     text-align: center;
     color: @mid_grey;
   }
+}
+
+instances {
+  display: block;
 }
 
 .row {
