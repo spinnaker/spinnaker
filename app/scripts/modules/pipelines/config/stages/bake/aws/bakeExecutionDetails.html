@@ -32,9 +32,7 @@
     <div class="row" ng-if="stage.context.package && stage.context.region && stage.context.status.resourceId">
       <div class="col-md-12">
         <div class="well alert alert-info">
-          <!-- TODO: Move this to config -->
-          <a target="_blank"
-             href="http://bakery.test.netflix.net/#/?region={{stage.context.region}}&package={{stage.context.package}}&detail=bake:{{stage.context.status.resourceId}}">
+          <a target="_blank" href="{{ bakeryDetailUrl(stage) }}">
             View Bakery Details
           </a>
         </div>

@@ -7,7 +7,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake.aws.executionDet
   require('../../../../../delivery/details/executionDetailsSection.service.js'),
   require('../../../../../delivery/details/executionDetailsSectionNav.directive.js'),
 ])
-  .controller('awsBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout) {
+  .controller('awsBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, $timeout,
+                                                       $interpolate, settings) {
 
     $scope.configSections = ['bakeConfig', 'taskStatus'];
 
@@ -20,6 +21,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.bake.aws.executionDet
       $timeout(function() {
         $scope.provider = $scope.stage.context.cloudProviderType || 'aws';
       });
+
+      $scope.bakeryDetailUrl = $interpolate(settings.bakeryDetailUrl);
     }
 
     initialize();
