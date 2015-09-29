@@ -8,18 +8,12 @@ module.exports = angular
   ])
   .factory('appListExtractorService', function(_) {
 
-    let popUndefinedValues = (list) => {
-      list.forEach( (i) => {
-        if (typeof i === 'undefined') { list.pop(); }
-      });
-    };
-
     let getRegions = (appList) => {
       return _(appList)
         .map('clusters').flatten()
         .map('serverGroups').flatten()
         .map('region')
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value();
     };
@@ -32,7 +26,7 @@ module.exports = angular
         .map('serverGroups').flatten()
         .filter( regionFilter )
         .map('stack').flatten()
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value()
         .sort();
@@ -45,7 +39,7 @@ module.exports = angular
         .map('clusters').flatten()
         .filter(clusterFilter)
         .map('name').flatten()
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value()
         .sort();
@@ -57,7 +51,7 @@ module.exports = angular
         .filter(clusterFilter)
         .map('serverGroups').flatten()
         .map('name')
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value()
         .sort()
@@ -75,7 +69,7 @@ module.exports = angular
         .filter( serverGroupFilter )
         .map('instances').flatten()
         .map('availabilityZone').flatten()
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value();
     };
@@ -90,7 +84,7 @@ module.exports = angular
         .filter( serverGroupFilter )
         .map('instances').flatten()
         .filter( availabilityZoneFilter )
-        .tap(popUndefinedValues)
+        .compact()
         .unique()
         .value();
     };
