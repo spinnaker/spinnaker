@@ -48,7 +48,9 @@ class BakeryController {
   BakeRequest.CloudProviderType defaultCloudProviderType
 
   @RequestMapping(value = '/{region}/bake', method = RequestMethod.POST)
-  BakeStatus createBake(@PathVariable("region") String region, @RequestBody BakeRequest bakeRequest) {
+  BakeStatus createBake(@PathVariable("region") String region,
+                        @RequestBody BakeRequest bakeRequest,
+                        @RequestParam(value = "rebake", defaultValue = "3") String rebake) {
     if (!bakeRequest.cloud_provider_type) {
       bakeRequest = bakeRequest.copyWith(cloud_provider_type: defaultCloudProviderType)
     }
@@ -58,10 +60,14 @@ class BakeryController {
     if (cloudProviderBakeHandler) {
       def bakeKey = cloudProviderBakeHandler.produceBakeKey(region, bakeRequest)
 
-      def existingBakeStatus = queryExistingBakes(bakeKey)
+      if (rebake == "1") {
+        bakeStore.deleteBakeByKey(bakeKey)
+      } else {
+        def existingBakeStatus = queryExistingBakes(bakeKey)
 
-      if (existingBakeStatus) {
-        return existingBakeStatus
+        if (existingBakeStatus) {
+          return existingBakeStatus
+        }
       }
 
       def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
