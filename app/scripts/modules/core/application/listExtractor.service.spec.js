@@ -16,7 +16,7 @@ describe('appListExtractorService', function () {
     })
   );
 
-  it('should have the sevice instanciated', function () {
+  it('should have the service instantiated', function () {
     expect(service).toBeDefined();
   });
 
