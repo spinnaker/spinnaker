@@ -19,7 +19,7 @@ module.exports = angular.module('spinnaker.states', [
         return '/' + $match.path;
       }]);
       $urlRouterProvider.when('/applications/{application}', '/applications/{application}/clusters');
-      $urlRouterProvider.when('/', '/applications');
+      $urlRouterProvider.when('/', '/infrastructure');
       $urlRouterProvider.when('/projects/{project}', '/projects/{project}/dashboard');
       $urlRouterProvider.when('/projects/{project}/applications/{application}', '/projects/{project}/applications/{application}/clusters');
 
