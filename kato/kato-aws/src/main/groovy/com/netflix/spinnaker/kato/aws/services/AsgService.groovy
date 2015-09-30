@@ -53,7 +53,7 @@ class AsgService {
         }
       }
     }.retrieve(new DescribeAutoScalingGroupsRequest()).max { a, b ->
-      a.autoScalingGroupName <=> b.autoScalingGroupName
+      a.createdTime <=> b.createdTime
     } ?: null
   }
 

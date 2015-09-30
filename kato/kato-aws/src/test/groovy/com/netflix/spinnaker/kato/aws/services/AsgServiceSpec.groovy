@@ -26,6 +26,7 @@ import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.netflix.spinnaker.kato.aws.model.AutoScalingProcessType
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class AsgServiceSpec extends Specification {
 
@@ -129,20 +130,16 @@ class AsgServiceSpec extends Specification {
     0 * _
   }
 
-  /*
-    Removed the getAncestorAsg() method so this test may not be needed - sthadeshwar
-
   @Unroll
   void "should consider app, stack, and details in determining ancestor ASG"() {
 
     when:
-    AutoScalingGroup ancestor = asgService.getAncestorAsg('app', stack, freeFormDetails)
+    AutoScalingGroup ancestor = asgService.getAncestorAsg(cluster)
 
     then:
     ancestor?.autoScalingGroupName == expected
     1 * mockAmazonAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
       autoScalingGroups: [
-        new AutoScalingGroup(autoScalingGroupName: 'app'),
         new AutoScalingGroup(autoScalingGroupName: 'app-v001'),
         new AutoScalingGroup(autoScalingGroupName: 'app-new'),
         new AutoScalingGroup(autoScalingGroupName: 'app-dev-v005'),
@@ -155,16 +152,30 @@ class AsgServiceSpec extends Specification {
     )
 
     where:
-    stack   | freeFormDetails  || expected
-    null    | null             || 'app-v001'
-    'new'   | null             || 'app-new'
-    'dev'   | null             || 'app-dev-v005'
-    'test'  | null             || 'app-test-v010'
-    'dev'   | 'detail'         || 'app-dev-detail-v015'
-    'dev'   | 'detail2'        || 'app-dev-detail2-v020'
-    'dev'   | 'c0usca'         || 'app-dev-c0usca-v000'
-    'none'  | null             || null
-    'dev'   | 'none'           || null
+    cluster           || expected
+    'app'             || 'app-v001'
+    'app-new'         || 'app-new'
+    'app-dev'         || 'app-dev-v005'
+    'app-test'        || 'app-test-v010'
+    'app-dev-detail'  || 'app-dev-detail-v015'
+    'app-dev-detail2' || 'app-dev-detail2-v020'
+    'app-dev-c0usca'  || 'app-dev-c0usca-v000'
+    'app-none'        || null
+    'app-dev-none'    || null
   }
-  */
+
+  void "should consider createdTime in determining ancestor ASG"() {
+    when:
+    AutoScalingGroup ancestor = asgService.getAncestorAsg('app')
+
+    then:
+    ancestor?.autoScalingGroupName == 'app-v000'
+    1 * mockAmazonAutoScaling.describeAutoScalingGroups(_) >> new DescribeAutoScalingGroupsResult(
+        autoScalingGroups: [
+            new AutoScalingGroup(autoScalingGroupName: 'app-v999', createdTime: new Date(1)),
+            new AutoScalingGroup(autoScalingGroupName: 'app-v000', createdTime: new Date(3)),
+            new AutoScalingGroup(autoScalingGroupName: 'app-v001', createdTime: new Date(2)),
+        ]
+    )
+  }
 }
