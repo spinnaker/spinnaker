@@ -6,7 +6,7 @@
           <div class="rollup-title-cell">
             <h5>
               <collapsible-account-tag account="{{vm.cluster.account}}" state="vm.state"></collapsible-account-tag>
-              <span class="cluster-name">{{vm.cluster.stack}}</span>
+              <span class="cluster-name">{{vm.clusterLabel}}</span>
 
               <a href ng-click="vm.refreshImmediately(); $event.stopPropagation()">
                 <span class="small glyphicon glyphicon-refresh refresh-enabled"
@@ -63,7 +63,8 @@
             <span ng-if="vm.state.loaded">#</span>{{application.build.number}}
           </a>
           <span ng-if="application.inconsistentBuilds"
-                class="glyphicon glyphicon-warning-sign text-warning"></span>
+                class="glyphicon glyphicon-warning-sign text-warning"
+                tooltip="Some server groups are deployed with an older build."></span>
         </td>
         <td ng-if="!vm.state.loaded">
           <div class="text-center">

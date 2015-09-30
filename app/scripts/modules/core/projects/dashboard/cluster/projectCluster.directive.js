@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../../utils/lodash.js'),
   require('../../../../caches/collapsibleSectionStateCache.js'),
   require('../../../../scheduler/scheduler.service.js'),
-  require('../../../../config/settings.js'),
+  require('../../../../naming/naming.service.js'),
 ])
   .directive('projectCluster', function () {
     return {
@@ -27,8 +27,8 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       controllerAs: 'vm',
     };
   })
-  .controller('ProjectClusterCtrl', function($scope, $log, $window, urlBuilderService, clusterService, $q, _,
-                                             collapsibleSectionStateCache, scheduler) {
+  .controller('ProjectClusterCtrl', function($scope, urlBuilderService, clusterService, $q, _,
+                                             collapsibleSectionStateCache, namingService, scheduler) {
 
     let stateCache = collapsibleSectionStateCache;
 
@@ -48,11 +48,19 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     };
 
     let getMetadata = (application) => {
+      let stack = this.cluster.stack,
+          detail = this.cluster.detail,
+          clusterParam = !stack && !detail ? application.name : null,
+          stackParam = stack && stack !== '*' ? stack : null,
+          detailParam = detail && detail !== '*' ? detail : null;
+
       return {
         type: 'clusters',
         project: this.project.name,
         application: application.name,
-        cluster: this.cluster.stack ? [application.name, this.cluster.stack].join('-') : application.name,
+        cluster: clusterParam,
+        stack: stackParam,
+        detail: detailParam,
         account: this.cluster.account,
       };
     };
@@ -124,7 +132,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     let applyRegionsAndInstanceCounts = (clusters, application) => {
       let clusterData = clusters[application];
       let serverGroups = clusterData.serverGroups || [];
-      clusterData.serverGroups = serverGroups.filter((serverGroup) => serverGroup.instances.length > 0);
+      clusterData.serverGroups = serverGroups.filter((serverGroup) => serverGroup && serverGroup.instances.length > 0);
       let applicationData = _.find(this.clusterData.applications, (appData) => appData.name === application);
       applicationData.build = makeBuildModel();
       let serverGroupsByRegion = _.groupBy(clusterData.serverGroups, 'region');
@@ -160,17 +168,51 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       });
     };
 
+
+    let getClusterMatches = (clusters) => {
+      let stack = this.cluster.stack,
+        detail = this.cluster.detail,
+        targetClusters = clusters[this.cluster.account] || [];
+      return targetClusters.filter((cluster) => {
+        let clusterParts = namingService.parseServerGroupName(cluster);
+        if (stack !== '*' && clusterParts.stack !== stack) {
+          return false;
+        }
+        if (detail !== '*' && clusterParts.freeFormDetails !== detail) {
+          return false;
+        }
+        return true;
+      });
+    };
+
+    let buildDataLoader = (application) => {
+      if (this.cluster.stack === '*' || this.cluster.detail === '*') {
+        return clusterService.getClusters(application).then((clusters) => {
+          let clustersToLoad = getClusterMatches(clusters);
+          return $q.all(clustersToLoad.map((cluster) => {
+            return clusterService.getCluster(application, this.cluster.account, cluster);
+          })).then((clusterResults) => {
+            let megaCluster = { serverGroups: [] };
+            clusterResults.forEach((clusterResult => {
+              megaCluster.serverGroups = megaCluster.serverGroups.concat(clusterResult.serverGroups);
+            }));
+            return megaCluster;
+          });
+        });
+      } else {
+        return clusterService.getCluster(
+          application,
+          this.cluster.account,
+          this.cluster.stack ? [application, this.cluster.stack].join('-') : application);
+      }
+    };
+
     let loadData = () => {
       this.state.refreshing = true;
 
       this.project.config.applications.map((application) => {
-        clusterLoaders[application] = clusterService.getCluster(
-          application,
-          this.cluster.account,
-          this.cluster.stack ? [application, this.cluster.stack].join('-') : application
-        );
+        clusterLoaders[application] = buildDataLoader(application);
       });
-
       $q.all(clusterLoaders).then((clusters) => {
         addInstanceCounts(this.clusterData);
         Object.keys(clusters).forEach((application) => {
@@ -194,4 +236,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     this.refreshImmediately = () => scheduler.scheduleImmediate(loadData);
 
     loadData();
+
+    this.clusterLabel = this.cluster.detail ? [this.cluster.stack, this.cluster.detail].join('-') : this.cluster.stack;
+
   }).name;

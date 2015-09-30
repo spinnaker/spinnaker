@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
 ])
   .controller('ConfigureProjectModalCtrl', function ($scope, projectConfig, $modalInstance, $q,
                                                      pipelineConfigService, applicationReader, projectWriter,
-                                                     projectReader, accountService, taskMonitorService) {
+                                                     projectReader, accountService, taskMonitorService,
+                                                     modalWizardService, $timeout) {
 
     if (!projectConfig.name) {
       projectConfig.name = '';
@@ -21,6 +22,19 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
         clusters: []
       };
     }
+
+    this.pages = {
+      config: require('./projectConfig.modal.html'),
+      applications: require('./projectApplications.modal.html'),
+      clusters: require('./projectClusters.modal.html'),
+      pipelines: require('./projectPipelines.modal.html'),
+    };
+
+    $timeout(() => {
+      if (projectConfig.name) {
+        Object.keys(this.pages).forEach(modalWizardService.getWizard().markComplete);
+      }
+    });
 
     this.addApplication = (application) => {
       $scope.viewState.pipelinesLoaded = false;
@@ -154,6 +168,7 @@ module.exports = angular.module('spinnaker.core.projects.configure.modal.control
       $scope.taskMonitor.submit(submitMethod);
     };
 
+    this.showSubmitButton = () => modalWizardService.getWizard().allPagesVisited();
 
 
     this.cancel = $modalInstance.dismiss;

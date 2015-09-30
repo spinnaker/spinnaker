@@ -187,4 +187,6 @@ module.exports = angular.module('spinnaker.help.contents', [])
       '<p>A gray icon indicates the instance is currently detached from the load balancer.</p>',
     'loadBalancers.filter.onlyUnhealthy': '<p>Filters the list of load balancers and server groups (if enabled) ' +
       'to only show load balancers with instances failing the health check for the load balancer.</p>',
+    'project.cluster.stack': '<p>(Optional field)</p><p>Filters displayed clusters by stack.</p><p>Enter <samp>*</samp> to include all stacks; leave blank to omit any clusters with a stack.</p>',
+    'project.cluster.detail': '<p>(Optional field)</p><p>Filters displayed clusters by detail.</p><p>Enter <samp>*</samp> to include all details; leave blank to omit any clusters with a detail.</p>',
   }).name;

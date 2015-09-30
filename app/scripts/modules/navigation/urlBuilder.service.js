@@ -66,9 +66,17 @@ module.exports = angular.module('spinnaker.urlBuilder', [
       // url for a single cluster
       'clusters': function(input) {
         let filters = {
-          q: ['cluster:', input.cluster].join(''),
           acct: input.account,
         };
+        if (input.cluster) {
+          filters.q = ['cluster:', input.cluster].join('');
+        }
+        if (input.stack) {
+          filters.stack = input.stack;
+        }
+        if (input.detail) {
+          filters.q = ['detail:', input.detail].join('');
+        }
         if (input.region) {
           filters.reg = input.region;
         }

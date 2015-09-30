@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.cluster.service', [
     function addStackToServerGroup(serverGroup) {
       var nameParts = namingService.parseServerGroupName(serverGroup.name);
       serverGroup.stack = nameParts.stack;
+      serverGroup.detail = nameParts.freeFormDetails;
     }
 
     function addHealthStatusCheck(serverGroup) {
@@ -246,6 +247,10 @@ module.exports = angular.module('spinnaker.cluster.service', [
       return Restangular.one('applications', application).one('clusters', account).one(cluster).get();
     }
 
+    function getClusters(application) {
+      return Restangular.one('applications', application).one('clusters').get();
+    }
+
     return {
       loadServerGroups: loadServerGroups,
       createServerGroupClusters: collateServerGroupsIntoClusters,
@@ -256,6 +261,7 @@ module.exports = angular.module('spinnaker.cluster.service', [
       //for testing purposes only
       extractRegionFromContext: extractRegionFromContext,
       getCluster: getCluster,
+      getClusters: getClusters,
     };
 
   }).name;
