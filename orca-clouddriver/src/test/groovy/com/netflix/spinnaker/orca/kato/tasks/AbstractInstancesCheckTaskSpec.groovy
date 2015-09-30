@@ -95,6 +95,9 @@ class AbstractInstancesCheckTaskSpec extends Specification {
             "asg": {
                 "minSize": 1
             },
+            "capacity": {
+                "min": 1
+            },
             "instances": [
                 {
                     "name": "i-12345678"
@@ -143,6 +146,10 @@ class AbstractInstancesCheckTaskSpec extends Specification {
                 "minSize": 1,
                 "desiredCapacity": ''' + desiredCapacity + '''
             },
+            "capacity": {
+                "min": 1,
+                "desired": ''' + desiredCapacity + '''
+            },
             "instances": [
                 {
                     "name": "i-12345678"
@@ -188,6 +195,10 @@ class AbstractInstancesCheckTaskSpec extends Specification {
             "asg": {
                 "minSize": 1,
                 "desiredCapacity": 0
+            },
+            "capacity": {
+                "min": 1,
+                "desired": 0
             },
             "instances": [
                 {

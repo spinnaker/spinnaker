@@ -29,7 +29,7 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
   static final int MIN_ZERO_INSTANCE_RETRY_COUNT = 12
 
   static boolean allInstancesMatch(Stage stage, Map serverGroup, List<Map> instances, Collection<String> interestingHealthProviderNames) {
-    if (!(serverGroup?.asg)) {
+    if (!(serverGroup?.capacity)) {
       return false
     }
     int targetDesiredSize = calculateTargetDesiredSize(stage, serverGroup)
@@ -72,8 +72,8 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
 
   private static int calculateTargetDesiredSize(Stage stage, Map serverGroup) {
     // favor using configured target capacity whenever available (rather than in-progress asg's desiredCapacity)
-    Map asg = (Map) serverGroup.asg
-    Integer targetDesiredSize = asg.desiredCapacity as Integer
+    Map capacity = (Map) serverGroup.capacity
+    Integer targetDesiredSize = capacity.desired as Integer
 
     if (stage.context.capacitySnapshot) {
       Integer snapshotCapacity = ((Map) stage.context.capacitySnapshot).desiredCapacity as Integer

@@ -109,10 +109,10 @@ class BakeStage extends ParallelStage implements StepProvider {
 
         def globalContext = [
           deploymentDetails: stage.execution.stages.findAll {
-            it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && it.context.ami
+            it.type == PIPELINE_CONFIG_TYPE && bakeInitializationStages*.id.contains(it.parentStageId) && (it.context.ami || it.context.imageId)
           }.collect { Stage bakeStage ->
             def deploymentDetails = [:]
-            ["ami", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType"].each {
+            ["ami", "imageId", "amiSuffix", "baseLabel", "baseOs", "storeType", "vmType", "region", "package", "cloudProviderType", "cloudProvider"].each {
               if (bakeStage.context.containsKey(it)) {
                 deploymentDetails.put(it, bakeStage.context.get(it))
               }

@@ -70,6 +70,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
             ],
             asg: [
               desiredCapacity: 3
+            ],
+            capacity: [
+              desired: 3
             ]
           ]
         ]
@@ -93,6 +96,10 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           asg: [
             minSize: 3,
             desiredCapacity: 3
+          ],
+          capacity: [
+            min: 3,
+            desired: 3
           ]
         ]
       ],
@@ -166,6 +173,9 @@ class WaitForCapacityMatchTaskSpec extends Specification {
           ],
           asg: [
             desiredCapacity: 1
+          ],
+          capacity: [
+            desired: 1
           ]
         ]
       ]
