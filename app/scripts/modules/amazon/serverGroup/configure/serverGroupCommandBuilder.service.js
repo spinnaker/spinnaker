@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
 
-      var clusterDiffLoader = function() { return [] };
+      var clusterDiffLoader = function() { return []; };
       if (application.name) {
         clusterDiffLoader = diffService.getClusterDiffForAccount(defaultCredentials, application.name);
       }

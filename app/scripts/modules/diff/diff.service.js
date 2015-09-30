@@ -49,6 +49,7 @@ module.exports = angular.module('spinnaker.diff.service', [
                             }
                             return true;
                         })
+                        .sortByAll('account', 'region', 'autoScalingGroupName')
                         .value()
                 };
             })
