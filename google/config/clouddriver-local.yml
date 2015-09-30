@@ -16,5 +16,5 @@ google:
 
   kmsServer: http://localhost:7909
   accounts:
-    - name: $GOOGLE_ACCOUNT_NAME  # A spinnaker account used for GCE
-      project: $GOOGLE_MANAGED_PROJECT_ID
+    $GOOGLE_CREDENTIALS_REFERENCE
+

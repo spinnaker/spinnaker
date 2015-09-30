@@ -16,12 +16,23 @@ import glob
 import os
 import re
 import sys
+import yaml
 
 from install.install_utils import fetch
 from install.install_utils import run
 from validate_configuration import ValidateConfig
 
 METADATA_URL = 'http://metadata.google.internal/computeMetadata/v1'
+
+def fetch_my_project_or_die(error_msg):
+    code, project = fetch(
+      METADATA_URL + '/project/project-id',
+      google=True)
+    if code != 200:
+      if not error_msg:
+        raise SystemExit(error_msg)
+    return project
+
 
 class Bindings(dict):
   @property
@@ -30,25 +41,26 @@ class Bindings(dict):
 
   def __init__(self):
     self.__variable_bindings = {}
+    self.__yaml_bindings = {}
 
   def clone(self):
     copy = self.__class__()
     copy.__variable_bindings.update(self.__variable_bindings)
+    copy.__yaml_bindings.update(self.__yaml_bindings)
     return copy
 
   def get_variable(self, name, default):
     return self.__variable_bindings.get(name, default)
 
-  def add_variable(self, name, value):
+  def get_yaml(self, name, default):
+    return self.__yaml_bindings.get(name, default)
+
+  def set_variable(self, name, value):
     self.__variable_bindings[name] = value
 
   def replace_variables(self, content):
-    result = content
-    for name,value in self.__variable_bindings.items():
-        result = result.replace('$' + name, value)
-        result = re.sub('\${{{name}}}'.format(name=name), value, result)
-        result = re.sub('\${{{name}:[^}}]*}}'.format(name=name), value, result)
-    return result
+    result = self.__just_replace_yaml(content)
+    return self.__just_replace_variables(result)
 
   def update_from_config(self, config_path):
     """Load configuration file into the bindings.
@@ -60,6 +72,109 @@ class Bindings(dict):
 
     for match in re.findall(r'^([A-Za-z]\w*)=(.*)', content, re.M):
       self.__variable_bindings[match[0]] = match[1]
+
+    for match in re.findall(r'^@([A-Za-z]\w*)=(.*)', content, re.M):
+      self.__add_yaml_variable(match[0], match[1])
+
+  def __add_yaml_variable(self, name, value):
+    if name != 'GOOGLE_CREDENTIALS':
+      raise ValueError('@ Can only be used for GOOGLE_CREDENTIALS')
+    substituted_value = self.__just_replace_variables(value)
+    parts = substituted_value.split(':')
+    if len(parts) != 3:
+      raise ValueError('@{0}={1} is not in the form <account>:<project>:<path>'
+                       .format(name, value))
+    if not parts[1]:
+      error_msg = (
+        'An account must be associated with a Google Cloud Platform'
+        ' project id if you are not running on Google Compute Engine.')
+      parts[1] = fetch_my_project_or_die(error_msg)
+
+    account_info_decl = {'name': parts[0], 'project': parts[1]}
+    account_info_ref  = dict(account_info_decl)
+    if parts[2]:
+      if parts[2].startswith('~/'):
+          parts[2] = os.path.join(os.environ['HOME'], parts[2][2:])
+      elif parts[2].startswith('$HOME/'):
+          parts[2] = os.path.join(os.environ['HOME'], parts[2][6:])
+      account_info_decl['jsonPath'] = parts[2]
+
+    if not 'GOOGLE_CREDENTIALS_DECLARATION' in self.__yaml_bindings:
+      self.__yaml_bindings['GOOGLE_CREDENTIALS_REFERENCE'] = []
+      self.__yaml_bindings['GOOGLE_CREDENTIALS_DECLARATION'] = []
+    self.__yaml_bindings['GOOGLE_CREDENTIALS_DECLARATION'].append(
+        account_info_decl)
+    self.__yaml_bindings['GOOGLE_CREDENTIALS_REFERENCE'].append(
+        account_info_ref)
+
+  def __rotate_yaml_bindings(self, key):
+    value = self.__yaml_bindings[key]
+    self.__yaml_bindings[key] = value[-1:] + value[:-1]
+
+  def maybe_inject_primary_google_credentials(self):
+    creds = self.__yaml_bindings.get('GOOGLE_CREDENTIALS_DECLARATION', [])
+    primary_account = self.__variable_bindings.get(
+        'GOOGLE_ACCOUNT_NAME', '')
+    primary_project = self.__variable_bindings.get(
+        'GOOGLE_MANAGED_PROJECT_ID', '')
+    primary_json = self.__variable_bindings.get(
+        'GOOGLE_JSON_CREDENTIAL_PATH', '')
+
+    for cred in creds:
+      if cred['name'] == primary_account:
+        if (cred['project'] != primary_project
+            or ('jsonPath' in cred and cred.get('jsonPath', '') != primary_json)
+            or ('jsonPath' not in cred and cred.get('jsonPath', '')
+                and primary_json)):
+          raise ValueError('Primary google credentials differ from'
+                           ' explicit @GOOGLE_CREDENTIALS')
+        return
+
+    self.__add_yaml_variable(
+        'GOOGLE_CREDENTIALS', '{name}:{project}:{json}'.format(
+            name=primary_account, project=primary_project, json=primary_json))
+    self.__rotate_yaml_bindings('GOOGLE_CREDENTIALS_DECLARATION')
+    self.__rotate_yaml_bindings('GOOGLE_CREDENTIALS_REFERENCE')
+
+  def __just_replace_variables(self, content):
+    result = content
+    for name,value in self.__variable_bindings.items():
+        result = re.sub(r'\${name}(\W|$)'.format(name=name),
+                        r'{value}\1'.format(value=value),
+                        result)
+        result = re.sub(r'\${{{name}}}'.format(name=name), value, result)
+        result = re.sub(r'\${{{name}:[^}}]*}}'.format(name=name), value, result)
+    return result
+
+  def __just_replace_yaml(self, content):
+    for name,value in self.__yaml_bindings.items():
+       result = []
+       last_offset = 0
+       for match in re.finditer(r'\${name}(\W|$)'.format(name=name), content):
+          result.append(content[last_offset:match.start()])
+          last_offset = match.end() - 1  # without word break
+          text = yaml.dump(value, default_flow_style=False)
+          result.append(
+              self.__fix_yaml_formatting(text, content, match.start()))
+       result.append(content[last_offset:])
+       content = ''.join(result)
+
+    return content
+
+  @staticmethod
+  def __fix_yaml_formatting(yaml, original, offset):
+    begin_line = original.rfind('\n', 0, offset)
+    # if not found, begin_line is -1
+    # whether found or not, next char is start of line.
+    segment = original[begin_line + 1:offset]
+
+    # match the line indentation, however it was specified
+    indent = re.match(r'^(\s+)', segment).group(1)
+    if len(indent) != len(segment):
+      # we're starting to replace on an existing line
+      # so subsequent lines, if any, should have extra indentation.
+      indent += '  '
+    return yaml.replace('\n', '\n' + indent)
 
 
 class InstallationParameters(object):
@@ -145,17 +260,6 @@ class ConfigureUtil(object):
           installation.CONFIG_DIR + '/' + os.path.basename(cfg),
           bindings)
 
-    credential_path = bindings.get('GOOGLE_JSON_CREDENTIAL_PATH', '')
-    with open(installation.CONFIG_DIR + '/gce-kms-local.yml', 'r') as f:
-      content = f.read()
-    if credential_path:
-        content = content.replace('$GOOGLE_JSON_CREDENTIAL_PATH',
-                                  credential_path)
-    else:
-        content = content.replace('jsonPath:', '#jsonPath:')
-    with open(installation.CONFIG_DIR + '/gce-kms-local.yml', 'w') as f:
-        f.write(content)
-
     self.replace_variables_in_file(
         installation.CONFIG_TEMPLATE_DIR
             + '/' + installation.HACK_DECK_SETTINGS_FILENAME,
@@ -189,20 +293,18 @@ class ConfigureUtil(object):
     # It is unfortunate that we need this, but seems to be used internally.
     # We dont start igor if we dont need it, so this is a safety mechanism.
     if bindings.get_variable('IGOR_ENABLED', '') == '':
-      bindings['IGOR_ENABLED'] = (
-          'true' if bindings.get('JENKINS_ADDRESS', '') != ''
+      bindings.set_variable('IGOR_ENABLED',
+          'true' if bindings.get_variable('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
     managed_project = bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', '')
     if not managed_project:
-        code, managed_project = fetch(
-          METADATA_URL + '/project/project-id',
-          google=True)
-        if code != 200:
-          raise SystemExit('GOOGLE_MANAGED_PROJECT_ID is required if you are'
-                           ' not running on Google Compute Engine.')
-        bindings.add_variable('GOOGLE_MANAGED_PROJECT_ID', managed_project)
+      error_msg = ('GOOGLE_MANAGED_PROJECT_ID is required if you are'
+                   ' not running on Google Compute Engine.')
+      bindings.set_variable('GOOGLE_MANAGED_PROJECT_ID',
+                            fetch_my_project_or_die(error_msg))
 
+    bindings.maybe_inject_primary_google_credentials()
     return bindings
 
   @staticmethod

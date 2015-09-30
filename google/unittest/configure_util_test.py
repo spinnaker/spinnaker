@@ -32,6 +32,60 @@ VARIABLE_B=2
 VARIABLE_C=value for c
 """
 
+CREDENTIALS_CONFIG_DATA="""
+@GOOGLE_CREDENTIALS=test-default-account::
+@GOOGLE_CREDENTIALS=test-full-account:test-project:/test/path/credentials
+"""
+
+
+# The YAML produced from the above config.
+# Note there are two projects here. The first just specifies a name and project.
+# The second also includes a path.
+# TODO(ewiseblatt): 2015930
+# This is brittle/sensitive to the order that the yaml library
+# is sorting into (it uses a dictionary so fields are not ordered).
+# The string here is used for both input to load YAML and output to dump it.
+# This might be fixable configuring the yaml dumper, but it isnt clear.
+# So this string reflects what the yaml.dump will produce for the dicts we want.
+CREDENTIALS_YAML = """- name: test-default-account
+  project: {my_project}
+- jsonPath: /test/path/credentials
+  name: test-full-account
+  project: test-project
+""".format(
+    my_project=configure_util.fetch_my_project_or_die('Must test on GCE'))
+
+CREDENTIALS_LIST = [
+    {'name': 'test-default-account',
+     'project': configure_util.fetch_my_project_or_die('Must test on GCE')},
+
+    {'name': 'test-full-account',
+     'project': 'test-project',
+     'jsonPath': '/test/path/credentials'}]
+
+
+PARAMETERIZED_CREDENTIALS_CONFIG_DATA="""
+ACCOUNT=parameterized-account
+PROJECT=parameterized-project
+PATH=/parameterized/path
+@GOOGLE_CREDENTIALS=$ACCOUNT:$PROJECT:$PATH
+"""
+
+
+# The YAML produced from the above config
+PARAMETERIZED_CREDENTIALS_YAML = """- jsonPath: /parameterized/path
+  name: parameterized-account
+  project: parameterized/project
+
+"""
+
+
+PARAMETERIZED_CREDENTIALS_LIST = [
+    {'name': 'parameterized-account',
+    'project': 'parameterized-project',
+    'jsonPath': '/parameterized/path'}]
+
+
 class TestInstallationParameters(configure_util.InstallationParameters):
     pass
 
@@ -64,8 +118,41 @@ class ConfigureUtilTest(unittest.TestCase):
     self.assertEqual('2', bindings.get_variable('VARIABLE_B', None))
     self.assertEqual('value for c', bindings.get_variable('VARIABLE_C', None))
 
-   # Show we can replace variables the different ways the occur.
-  def test_replace_content(self):
+  def test_parse_credentials(self):
+    bindings = configure_util.Bindings()
+    fd,path = tempfile.mkstemp()
+    os.write(fd, CREDENTIALS_CONFIG_DATA)
+    os.close(fd)
+    bindings.update_from_config(path)
+    os.remove(path)
+    self.assertEqual(
+        CREDENTIALS_LIST,
+        bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
+
+  def test_render_credentials(self):
+    bindings = configure_util.Bindings()
+    fd,path = tempfile.mkstemp()
+    os.write(fd, CREDENTIALS_CONFIG_DATA)
+    os.close(fd)
+    bindings.update_from_config(path)
+    os.remove(path)
+
+    template_data="""
+  # before
+  credentials:
+      {credentials}
+  # after
+"""
+
+    original = template_data.format(credentials='$GOOGLE_CREDENTIALS_DECLARATION')
+    expect = template_data.format(
+          credentials=CREDENTIALS_YAML.replace('\n', '\n      '))
+    got = bindings.replace_variables(original)
+    self.assertEqual(expect, got)
+
+
+   # Show we can replace variables the different ways they occur.
+  def test_replace_variable_content(self):
     template_data="""
 declaration_a={a}
 declaration_b={b}
@@ -73,9 +160,9 @@ declaration_c={c}
 # Another reference to {a} {b} and {c}.
 """
     bindings = configure_util.Bindings()
-    bindings.add_variable('VARIABLE_A', 'A')
-    bindings.add_variable('VARIABLE_B', 'B')
-    bindings.add_variable('VARIABLE_C', 'C')
+    bindings.set_variable('VARIABLE_A', 'A')
+    bindings.set_variable('VARIABLE_B', 'B')
+    bindings.set_variable('VARIABLE_C', 'C')
 
     original = template_data.format(
         a='$VARIABLE_A',
@@ -101,7 +188,7 @@ declaration_c={c}
     os.close(fd)
 
     bindings = configure_util.Bindings()
-    bindings.add_variable('VARIABLE_A', 'A')
+    bindings.set_variable('VARIABLE_A', 'A')
 
     configure_util.ConfigureUtil.replace_variables_in_file(
         source_path, target_path, bindings)
@@ -133,8 +220,10 @@ declaration_c={c}
     finally:
       shutil.rmtree(root)
 
-    self.assertEqual(4, len(bindings.variables))
+    # VARIABLE_[A|B|C] + 2 dynamically injected bindings
+    self.assertEqual(5, len(bindings.variables))
     self.assertEqual('1', bindings.get_variable('VARIABLE_B', ''))
+    self.assertEqual('false', bindings.get_variable('IGOR_ENABLED', ''))
     self.assertNotEqual('',
                         bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', ''))
 
