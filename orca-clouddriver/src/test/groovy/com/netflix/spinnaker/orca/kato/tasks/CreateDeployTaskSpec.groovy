@@ -70,7 +70,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations.addAll(it.flatten())
+        operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
     }
@@ -85,8 +85,8 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     operations.find {
-      it.containsKey("basicAmazonDeployDescription")
-    }.basicAmazonDeployDescription == expected
+      it.containsKey("createServerGroup")
+    }.createServerGroup == expected
   }
 
   def "requests an allowLaunch operation for each region"() {
@@ -97,7 +97,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations.addAll(it.flatten())
+        operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
     }
@@ -125,7 +125,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations.addAll(it.flatten())
+        operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
     }
@@ -145,7 +145,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations.addAll(it.flatten())
+        operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
     }
@@ -157,8 +157,8 @@ class CreateDeployTaskSpec extends Specification {
     then:
     operations.size() == 2
     operations.find {
-      it.containsKey("basicAmazonDeployDescription")
-    }.basicAmazonDeployDescription == [
+      it.containsKey("createServerGroup")
+    }.createServerGroup == [
       amiName          : 'hodor-ubuntu-1',
       application      : 'hodor',
       availabilityZones: ['us-east-1': ['a', 'd']],
@@ -182,7 +182,7 @@ class CreateDeployTaskSpec extends Specification {
     def operations = []
     task.kato = Mock(KatoService) {
       1 * requestOperations(*_) >> {
-        operations.addAll(it.flatten())
+        operations.addAll(it[1].flatten())
         Observable.from(taskId)
       }
     }
@@ -197,8 +197,8 @@ class CreateDeployTaskSpec extends Specification {
 
     then:
     operations.find {
-      it.containsKey("basicAmazonDeployDescription")
-    }.basicAmazonDeployDescription.amiName == amiName
+      it.containsKey("createServerGroup")
+    }.createServerGroup.amiName == amiName
 
     where:
     amiName = "ami-name-from-bake"

@@ -130,7 +130,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     if (existingAsgs) {
       if (stageData.regions?.size() > 1) {
         deprecationRegistry.logDeprecatedUsage("multiRegionRedBlack", stageData.application)
-        log.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
+        logger.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
       }
       for (String region in stageData.regions) {
         if (!cleanupConfig.regions.contains(region)) {

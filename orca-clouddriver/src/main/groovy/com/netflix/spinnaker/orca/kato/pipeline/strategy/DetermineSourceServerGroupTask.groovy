@@ -99,7 +99,6 @@ class DetermineSourceServerGroupTask implements RetryableTask {
   }
 
   Boolean useSourceCapacity(Stage stage, StageData.Source source) {
-    if (!source) return null
     if (source?.useSourceCapacity != null) return source.useSourceCapacity
     if (stage.context.useSourceCapacity != null) return (stage.context.useSourceCapacity as Boolean)
     return null

@@ -86,7 +86,23 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
     true | null | true
   }
 
-  void 'should fail if there is no availabilityZones in context'() {
+  void 'should NOT fail if there is region and no availabilityZones in context'() {
+    given:
+    Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
+      account    : 'test',
+      region    : 'us-east-1',
+      application: 'foo'])
+
+    def resolver = Mock(SourceResolver)
+
+    when:
+    new DetermineSourceServerGroupTask(sourceResolver: resolver).execute(stage)
+
+    then:
+    notThrown(IllegalStateException)
+  }
+
+  void 'should fail if there is no availabilityZones and no region in context'() {
     given:
     Stage stage = new PipelineStage(new Pipeline(), 'deploy', 'deploy', [
       account    : 'test',
@@ -99,7 +115,7 @@ class DetermineSourceServerGroupTaskSpec extends Specification {
 
     then:
     def ex = thrown(IllegalStateException)
-    ex.message == "missing 'availabilityZones' in stage context"
+    ex.message == "No 'region' or 'availabilityZones' in stage context"
   }
 
   void 'should retry on exception from source resolver'() {

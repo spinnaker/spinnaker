@@ -55,7 +55,7 @@ class StageData {
   }
 
   String getRegion() {
-    region ?: availabilityZones.keySet().toList().get(0)
+    region ?: availabilityZones ? availabilityZones.keySet().toList().get(0): null
   }
 
   static class Source {
