@@ -129,7 +129,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
 
     if (existingAsgs) {
       if (stageData.regions?.size() > 1) {
-        deprecationRegistry.logDeprecatedUsage("deprecatedMultiRegionRedBlack", stageData.application)
+        deprecationRegistry.logDeprecatedUsage("multiRegionRedBlack", stageData.application)
         log.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
       }
       for (String region in stageData.regions) {
@@ -197,7 +197,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
     def existingServerGroups = getExistingServerGroups(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
     if (existingServerGroups) {
       if (stageData.regions?.size() > 1) {
-        deprecationRegistry.logDeprecatedUsage("deprecatedMultiRegionHighlander", stageData.application)
+        deprecationRegistry.logDeprecatedUsage("multiRegionHighlander", stageData.application)
         log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
       }
       for (String region in stageData.regions) {

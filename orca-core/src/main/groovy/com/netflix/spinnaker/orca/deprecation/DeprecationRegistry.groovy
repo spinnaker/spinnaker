@@ -31,7 +31,9 @@ import org.springframework.stereotype.Component
 @Slf4j
 class DeprecationRegistry {
 
+  private static final String METRIC_NAME = "orca.deprecation"
   private static final String APPLICATION_TAG_KEY = "application"
+  private static final String DEPRECATION_TAG_KEY = "deprecationName"
 
   private final ExtendedRegistry extendedRegistry
 
@@ -40,16 +42,14 @@ class DeprecationRegistry {
     this.extendedRegistry = extendedRegistry
   }
 
-  void logDeprecatedUsage(String metricName, String application) {
-    if (!metricName) {
-      log.warn("Ignoring publish of deprecated usage metric as the metric name is null")
+  void logDeprecatedUsage(String tagName, String application) {
+    if (!tagName || !application) {
+      log.warn("No deprecation tag name (${tagName}) or application (${application}) provided - ignoring publish of deprecated usage")
       return
     }
-    if (!application) {
-      log.warn("Ignoring publish of deprecated usage metric as the application name is null")
-      return
-    }
-    Id id = extendedRegistry.createId(metricName).withTag(APPLICATION_TAG_KEY, application)
+    Id id = extendedRegistry.createId(METRIC_NAME)
+      .withTag(DEPRECATION_TAG_KEY, tagName)
+      .withTag(APPLICATION_TAG_KEY, application)
     extendedRegistry.counter(id).increment()
   }
 
