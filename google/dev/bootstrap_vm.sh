@@ -105,7 +105,7 @@ if [[ -f ~/.git-credentials ]]; then
   GITHUB_USER=$(sed 's/https:\/\/\([^:]\+\):.*@github.com/\1/' ~/.git-credentials)
 else
   read -p 'Please enter your GitHub User ID: ' GITHUB_USER
-  read -p 'Please enter your GitHub Acess Token: ' ACCESS_TOKEN
+  read -p 'Please enter your GitHub Access Token: ' ACCESS_TOKEN
   cat <<EOF > ~/.git-credentials
 https://$GITHUB_USER:$ACCESS_TOKEN@github.com
 EOF
