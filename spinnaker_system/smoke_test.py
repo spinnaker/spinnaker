@@ -269,13 +269,14 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
         app=self.TEST_APP_NAME,
         stack=bindings['TEST_STACK'])
 
+    # TODO(ttomsu): Change this back from asgName to serverGroupName once it is fixed in orca.
     payload = self.agent.make_payload(
       job=[{
           'cloudProvider': 'gce',
           'replicaPoolName': group_name,
           'region': bindings['TEST_GCE_REGION'],
           'zone': bindings['TEST_GCE_ZONE'],
-          'serverGroupName': group_name,
+          'asgName': group_name,
           'type': 'destroyServerGroup',
           'regions': [bindings['TEST_GCE_REGION']],
           'zones': [bindings['TEST_GCE_ZONE']],
