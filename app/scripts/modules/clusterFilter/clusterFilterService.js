@@ -56,6 +56,11 @@ module.exports = angular
         return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
       }
 
+      if (filter.indexOf('detail:') !== -1) {
+        let [, detailName] = /detail:([\w-]*)/.exec(filter);
+        return serverGroup.detail === detailName.toLowerCase();
+      }
+
       if(filter.indexOf('cluster:') !== -1) {
         var clusterName = /cluster:([\w-]*)/.exec(filter);
         return serverGroup.cluster === clusterName[1];
