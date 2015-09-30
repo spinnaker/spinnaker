@@ -61,7 +61,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -92,7 +92,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -124,7 +124,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -157,7 +157,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      bakeryController.createBake(REGION, bakeRequest)
+      bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -183,7 +183,7 @@ class BakeryControllerSpec extends Specification {
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock)
 
     when:
-      bakeryController.createBake(REGION, bakeRequest)
+      bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> null
@@ -207,7 +207,7 @@ class BakeryControllerSpec extends Specification {
                                                   bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -234,7 +234,7 @@ class BakeryControllerSpec extends Specification {
                                                   bakeStore: bakeStoreMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -262,7 +262,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -295,7 +295,7 @@ class BakeryControllerSpec extends Specification {
                                                   rushService: rushServiceMock)
 
     when:
-      def bakeStatus = bakeryController.createBake(REGION, bakeRequest)
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, null)
 
     then:
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
@@ -309,6 +309,38 @@ class BakeryControllerSpec extends Specification {
 
     where:
       bakeState << [BakeStatus.State.SUSPENDED, BakeStatus.State.CANCELLED]
+  }
+
+  void 'create bake with rebake deletes existing status, issues script command and returns new status no matter the pre-existing status'() {
+    setup:
+      def cloudProviderBakeHandlerRegistryMock = Mock(CloudProviderBakeHandlerRegistry)
+      def cloudProviderBakeHandlerMock = Mock(CloudProviderBakeHandler)
+      def bakeStoreMock = Mock(RedisBackedBakeStore)
+      def rushServiceMock = Mock(RushService)
+      def runScriptObservable = Observable.from(new ScriptId(id: SCRIPT_ID))
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGE_NAME,
+                                        base_os: BakeRequest.OperatingSystem.ubuntu,
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+
+      @Subject
+      def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
+                                                  baseScriptRequest: new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME),
+                                                  bakeStore: bakeStoreMock,
+                                                  rushService: rushServiceMock)
+
+    when:
+      def bakeStatus = bakeryController.createBake(REGION, bakeRequest, "1")
+
+    then:
+      1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
+      1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
+      1 * bakeStoreMock.deleteBakeByKey(BAKE_KEY)
+      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> ["packer build ..."]
+      1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
+      1 * rushServiceMock.runScript(new ScriptRequest(credentials: CREDENTIALS, image: IMAGE_NAME, tokenizedCommand: ["packer build ..."])) >> runScriptObservable
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, SCRIPT_ID) >> new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
+      bakeStatus == new BakeStatus(id: SCRIPT_ID, resource_id: SCRIPT_ID, state: BakeStatus.State.PENDING)
   }
 
   void 'lookup status queries bake store and returns bake status'() {
