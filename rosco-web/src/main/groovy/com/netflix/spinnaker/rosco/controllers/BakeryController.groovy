@@ -50,7 +50,7 @@ class BakeryController {
   @RequestMapping(value = '/{region}/bake', method = RequestMethod.POST)
   BakeStatus createBake(@PathVariable("region") String region,
                         @RequestBody BakeRequest bakeRequest,
-                        @RequestParam(value = "rebake", defaultValue = "3") String rebake) {
+                        @RequestParam(value = "rebake", defaultValue = "0") String rebake) {
     if (!bakeRequest.cloud_provider_type) {
       bakeRequest = bakeRequest.copyWith(cloud_provider_type: defaultCloudProviderType)
     }
