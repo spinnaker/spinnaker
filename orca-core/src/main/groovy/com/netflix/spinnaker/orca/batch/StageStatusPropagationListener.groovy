@@ -50,7 +50,7 @@ class StageStatusPropagationListener extends AbstractStagePropagationListener {
     def orcaTaskStatus = stepExecution.executionContext.get("orcaTaskStatus") as ExecutionStatus
     if (orcaTaskStatus) {
       def nonBookendTasks = stage.tasks.findAll { !DefaultTask.isBookend(it) }
-      if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (stage.tasks && nonBookendTasks[-1].status != ExecutionStatus.SUCCEEDED)) {
+      if (orcaTaskStatus == ExecutionStatus.SUCCEEDED && (nonBookendTasks && nonBookendTasks[-1].status != ExecutionStatus.SUCCEEDED)) {
         // mark stage as RUNNING as not all tasks have completed
         stage.status = ExecutionStatus.RUNNING
       } else {
