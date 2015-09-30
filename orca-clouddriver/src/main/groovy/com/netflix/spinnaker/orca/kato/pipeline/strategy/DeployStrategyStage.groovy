@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -43,7 +43,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
   @Autowired ObjectMapper mapper
-  @Autowired ResizeAsgStage resizeAsgStage
+  @Autowired ResizeServerGroupStage resizeServerGroupStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyServerGroupStage destroyServerGroupStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
@@ -147,7 +147,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
         }
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
+          injectAfter(stage, "scaleDown", resizeServerGroupStage, nextStageContext)
         }
         injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
