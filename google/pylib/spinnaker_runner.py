@@ -47,7 +47,7 @@ class Runner(object):
     self.__bindings = configure_util.ConfigureUtil(
         self.__installation).load_bindings()
 
-    for name,value in self.__bindings.items():
+    for name,value in self.__bindings.variables.items():
       # Add bindings as environment variables so they can be picked up by
       # embedded YML files and maybe internally within the implementation
       # (e.g. amos needs the AWS_*_KEY but isnt clear if that could be
@@ -116,7 +116,7 @@ class Runner(object):
         'REDIS_HOST={host}'
         ' LOG_DIR={log_dir}'
         ' {run_dir}/start_redis.sh'
-        .format(host=self.__bindings.get('REDIS_HOST', 'localhost'),
+        .format(host=self.__bindings.get_variable('REDIS_HOST', 'localhost'),
                 log_dir=self.__installation.LOG_DIR,
                 run_dir=run_dir),
         echo=True)
@@ -125,7 +125,7 @@ class Runner(object):
         'CASSANDRA_HOST={host}'
         ' CASSANDRA_DIR={install_dir}/cassandra'
         ' {run_dir}/start_cassandra.sh'
-        .format(host=self.__bindings.get('CASSANDRA_HOST', 'localhost'),
+        .format(host=self.__bindings.get_variable('CASSANDRA_HOST', 'localhost'),
                 install_dir=self.__installation.SPINNAKER_INSTALL_DIR,
                 run_dir=run_dir),
          echo=True)
@@ -145,19 +145,19 @@ class Runner(object):
         if pid:
           started_list.append((subsys, pid))
 
-    if self.__bindings.get('DOCKER_ADDRESS', ''):
+    if self.__bindings.get_variable('DOCKER_ADDRESS', ''):
       pid = self.maybe_start_job(jobs, 'rush')
       if pid:
          started_list.append(('rush', pid))
     else:
       print 'Not using rush because docker is not configured.'
 
-    if self.__bindings.get('JENKINS_ADDRESS', ''):
-        if self.__bindings.get('IGOR_ENABLED', 'false') == 'false':
+    if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
+        if self.__bindings.get_variable('IGOR_ENABLED', 'false') == 'false':
             sys.stderr.write(
                 'WARNING: Not starting igor because IGOR_ENABLED=false'
                 ' even though JENKINS_ADDRESS="{address}"'.format(
-                      address=self.__bindings['JENKINS_ADDRESS']))
+                      address=self.__bindings.get_variable('JENKINS_ADDRESS')))
         else:
             pid = self.maybe_start_job(jobs, 'igor')
             if pid:
