@@ -24,7 +24,11 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       var defaultRegion = defaults.region || application.defaultRegion || settings.providers.aws.defaults.region;
 
       var preferredZonesLoader = accountService.getAvailabilityZonesForAccountAndRegion('aws', defaultCredentials, defaultRegion);
-      var clusterDiffLoader = diffService.getClusterDiffForAccount(defaultCredentials, application.name);
+
+      var clusterDiffLoader = function() { return [] };
+      if (application.name) {
+        clusterDiffLoader = diffService.getClusterDiffForAccount(defaultCredentials, application.name);
+      }
 
       return $q.all({
         preferredZones: preferredZonesLoader,
@@ -144,8 +148,8 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
       var subnetsLoader = subnetReader.listSubnets();
 
       var serverGroupName = namingService.parseServerGroupName(serverGroup.asg.autoScalingGroupName);
-      var clusterDiffLoader = diffService.getClusterDiffForAccount(serverGroup.account,
-          namingService.getClusterName(application.name, serverGroupName.stack, serverGroupName.freeFormDetails));
+      var clusterName = namingService.getClusterName(application.name, serverGroupName.stack, serverGroupName.freeFormDetails);
+      var clusterDiffLoader = diffService.getClusterDiffForAccount(serverGroup.account, clusterName);
 
       var instanceType = serverGroup.launchConfig ? serverGroup.launchConfig.instanceType : null;
       var instanceTypeCategoryLoader = instanceTypeService.getCategoryForInstanceType('aws', instanceType);
