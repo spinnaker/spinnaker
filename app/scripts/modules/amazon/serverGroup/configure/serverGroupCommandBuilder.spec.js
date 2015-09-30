@@ -10,7 +10,7 @@ describe('awsServerGroupCommandBuilder', function() {
     )
   );
 
-  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, $q, $rootScope, subnetReader, instanceTypeService) {
+  beforeEach(window.inject(function(awsServerGroupCommandBuilder, accountService, diffService, $q, $rootScope, subnetReader, instanceTypeService) {
     this.awsServerGroupCommandBuilder = awsServerGroupCommandBuilder;
     this.$scope = $rootScope;
     this.instanceTypeService = instanceTypeService;
@@ -20,6 +20,9 @@ describe('awsServerGroupCommandBuilder', function() {
     spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([]));
     spyOn(accountService, 'getAvailabilityZonesForAccountAndRegion').and.returnValue(
       this.$q.when(['a', 'b', 'c'])
+    );
+    spyOn(diffService, 'getClusterDiffForAccount').and.returnValue(
+        this.$q.when({})
     );
   }));
 

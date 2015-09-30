@@ -5,6 +5,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   require('../../../account/account.service.js'),
+  require('../../../diff/diff.service.js'),
+  require('../../../naming/naming.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../amazon/instance/awsInstanceType.service.js'),
   require('../../subnet/subnet.read.service.js'),
@@ -15,6 +17,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,
                                                           awsInstanceTypeService, cacheInitializer,
+                                                          diffService, namingService,
                                                           subnetReader, keyPairsReader, loadBalancerReader, _) {
 
 
@@ -210,7 +213,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function configureSecurityGroupOptions(command) {
-      var results = { dirty: {} };
+      var result = { dirty: {} };
       var currentOptions = command.backingData.filtered.securityGroups;
       var newRegionalSecurityGroups = getRegionalSecurityGroups(command);
       if (currentOptions && command.securityGroups) {
@@ -234,11 +237,21 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         var removed = _.xor(currentGroupNames, matchedGroupNames);
         command.securityGroups = _.pluck(matchedGroups, 'id');
         if (removed.length) {
-          results.dirty.securityGroups = removed;
+          result.dirty.securityGroups = removed;
         }
       }
       command.backingData.filtered.securityGroups = newRegionalSecurityGroups;
-      return results;
+      return result;
+    }
+
+    function configureSecurityGroupDiffs(command) {
+      var currentOptions = command.backingData.filtered.securityGroups;
+      var currentSecurityGroupNames = command.securityGroups.map(function(groupId) {
+        var match = _(currentOptions).find({id: groupId});
+        return match ? match.name : groupId;
+      });
+      var result = diffService.diffSecurityGroups(currentSecurityGroupNames, command.viewState.clusterDiff, command.source);
+      command.viewState.securityGroupDiffs = result;
     }
 
     function refreshSecurityGroups(command, skipCommandReconfiguration) {
@@ -281,7 +294,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
     }
 
     function configureLoadBalancerOptions(command) {
-      var results = { dirty: {} };
+      var result = { dirty: {} };
       var current = command.loadBalancers;
       var newLoadBalancers = getLoadBalancerNames(command);
 
@@ -290,11 +303,11 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         var removed = _.xor(matched, current);
         command.loadBalancers = matched;
         if (removed.length) {
-          results.dirty.loadBalancers = removed;
+          result.dirty.loadBalancers = removed;
         }
       }
       command.backingData.filtered.loadBalancers = newLoadBalancers;
-      return results;
+      return result;
     }
 
     function refreshLoadBalancers(command, skipCommandReconfiguration) {
@@ -323,6 +336,10 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
     function attachEventHandlers(command) {
 
+      command.configureSecurityGroupDiffs = function () {
+        configureSecurityGroupDiffs(command);
+      };
+
       command.usePreferredZonesChanged = function usePreferredZonesChanged() {
         var currentZoneCount = command.availabilityZones ? command.availabilityZones.length : 0;
         var result = { dirty: {} };
@@ -340,12 +357,12 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
       };
 
       command.subnetChanged = function subnetChanged() {
-        var results =configureVpcId(command);
-        angular.extend(results.dirty, configureSecurityGroupOptions(command).dirty);
-        angular.extend(results.dirty, configureLoadBalancerOptions(command).dirty);
+        var result = configureVpcId(command);
+        angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
+        angular.extend(result.dirty, configureLoadBalancerOptions(command).dirty);
         command.viewState.dirty = command.viewState.dirty || {};
-        angular.extend(command.viewState.dirty, results.dirty);
-        return results;
+        angular.extend(command.viewState.dirty, result.dirty);
+        return result;
       };
 
       command.regionChanged = function regionChanged() {
@@ -380,10 +397,22 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
           } else {
             angular.extend(result.dirty, command.regionChanged().dirty);
           }
+          command.clusterChanged();
         } else {
           command.region = null;
         }
         return result;
+      };
+
+      command.clusterChanged = function clusterChanged() {
+        if (!command.application) {
+          return;
+        }
+        diffService.getClusterDiffForAccount(command.credentials,
+            namingService.getClusterName(command.application, command.stack, command.freeFormDetails)).then((diff) => {
+              command.viewState.clusterDiff = diff;
+              configureSecurityGroupDiffs(command);
+        });
       };
     }
 

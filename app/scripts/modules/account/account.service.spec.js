@@ -28,14 +28,14 @@ describe('Service: accountService ', function () {
 
   it('should filter the list of accounts by provider when supplied', function () {
     $http.expectGET('/credentials').respond(200, [
-      { name: 'test', type: 'aws' },
-      { name: 'prod', type: 'aws' },
-      { name: 'prod', type: 'gce' },
-      { name: 'gce-test', type: 'gce' },
+      {name: 'test', type: 'aws'},
+      {name: 'prod', type: 'aws'},
+      {name: 'prod', type: 'gce'},
+      {name: 'gce-test', type: 'gce'},
     ]);
 
     var accounts = null;
-    accountService.listAccounts('aws').then(function(results) {
+    accountService.listAccounts('aws').then(function (results) {
       accounts = results;
     });
 
@@ -61,7 +61,7 @@ describe('Service: accountService ', function () {
 
       $http.whenGET('/credentials/' + accountName).respond(200,
         {
-          regions:[
+          regions: [
             {
               name: regionName,
               availabilityZones: [
@@ -76,7 +76,7 @@ describe('Service: accountService ', function () {
         }
       );
 
-      var test = function(result) {
+      var test = function (result) {
         expect(result).toEqual(['us-east-1c', 'us-east-1d', 'us-east-1e']);
       };
 
@@ -99,7 +99,7 @@ describe('Service: accountService ', function () {
 
       $http.whenGET('/credentials/' + accountName).respond(200,
         {
-          regions:[
+          regions: [
             {
               name: regionName,
               availabilityZones: [
@@ -110,7 +110,7 @@ describe('Service: accountService ', function () {
         }
       );
 
-      var test = function(result) {
+      var test = function (result) {
         expect(result).toEqual(['us-east-1a']);
       };
 
@@ -132,7 +132,7 @@ describe('Service: accountService ', function () {
 
       $http.whenGET('/credentials/' + accountName).respond(200,
         {
-          regions:[
+          regions: [
             {
               name: regionName,
               availabilityZones: ['us-east-1a', 'us-east-1b', 'us-east-1c']
@@ -141,7 +141,7 @@ describe('Service: accountService ', function () {
         }
       );
 
-      var test = function(result) {
+      var test = function (result) {
         expect(result).toEqual(['us-east-1a', 'us-east-1b', 'us-east-1c']);
       };
 
@@ -163,7 +163,7 @@ describe('Service: accountService ', function () {
 
       $http.whenGET('/credentials/' + accountName).respond(200,
         {
-          regions:[
+          regions: [
             {
               name: regionName,
               availabilityZones: ['us-east-1d', 'us-east-1e']
@@ -172,7 +172,7 @@ describe('Service: accountService ', function () {
         }
       );
 
-      var test = function(result) {
+      var test = function (result) {
         expect(result).toEqual([]);
       };
 
@@ -198,7 +198,7 @@ describe('Service: accountService ', function () {
 
       $http.whenGET('/credentials/' + accountName).respond(500);
 
-      var test = function(result) {
+      var test = function (result) {
         expect(result).toEqual(settings.providers.aws.preferredZonesByAccount.default[regionName]);
       };
 
