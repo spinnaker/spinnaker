@@ -406,9 +406,9 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
 
       command.clusterChanged = function clusterChanged() {
         if (!command.application) {
-          return [];
+          return;
         }
-        return diffService.getClusterDiffForAccount(command.credentials,
+        diffService.getClusterDiffForAccount(command.credentials,
             namingService.getClusterName(command.application, command.stack, command.freeFormDetails)).then((diff) => {
               command.viewState.clusterDiff = diff;
               configureSecurityGroupDiffs(command);
