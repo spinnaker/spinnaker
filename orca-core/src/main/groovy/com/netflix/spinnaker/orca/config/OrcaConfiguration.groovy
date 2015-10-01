@@ -154,6 +154,11 @@ class OrcaConfiguration {
   }
 
   @Bean
+  ExecutionStatusPropagationListener pipelineStatusPropagationListener(ExecutionRepository executionRepository) {
+    new ExecutionStatusPropagationListener(executionRepository)
+  }
+
+  @Bean
   PipelineStarterListener pipelineStarterListener() {
     new PipelineStarterListener()
   }
