@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
@@ -58,7 +60,7 @@ class ResizeAsgStageSpec extends Specification {
   def targetReferenceSupport = Mock(TargetReferenceSupport)
   def resizeSupport = new ResizeSupport(targetReferenceSupport: targetReferenceSupport)
   def stageBuilder = new ResizeAsgStage(targetReferenceSupport: targetReferenceSupport, resizeSupport: resizeSupport)
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
 
   def setup() {
     stageBuilder.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -49,7 +51,7 @@ class StageStatusPropagationListenerSpec extends Specification {
   Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   def mapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   @Subject listener = new StageStatusPropagationListener(executionRepository)
   @Shared random = Random.newInstance()
 

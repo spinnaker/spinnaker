@@ -73,7 +73,7 @@ class RetryableTaskTaskletSpec extends BatchExecutionSpec {
 
   def sleeper = Mock(Sleeper)
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   def taskFactory = new TaskTaskletAdapter(executionRepository, [], new ExtendedRegistry(new NoopRegistry()), sleeper)
   Pipeline pipeline
 

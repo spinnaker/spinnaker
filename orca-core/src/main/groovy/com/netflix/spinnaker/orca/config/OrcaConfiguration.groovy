@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.config
 
+import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -90,25 +91,7 @@ class OrcaConfiguration {
   @ConditionalOnMissingBean(TaskExecutor)
   TaskExecutor getTaskExecutor(ExtendedRegistry extendedRegistry) {
     def executor = new ThreadPoolTaskExecutor(maxPoolSize: 150, corePoolSize: 150)
-
-    def createGuage = { String name, Closure valueCallback ->
-      def id = extendedRegistry
-        .createId("threadpool.${name}" as String)
-        .withTag("id", "TaskExecutor")
-
-      extendedRegistry.gauge(id, executor, new ValueFunction() {
-        @Override
-        double apply(Object ref) {
-          valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)
-        }
-      })
-    }
-
-    createGuage.call("activeCount", { ThreadPoolExecutor e -> e.activeCount })
-    createGuage.call("maximumPoolSize", { ThreadPoolExecutor e -> e.maximumPoolSize })
-    createGuage.call("corePoolSize", { ThreadPoolExecutor e -> e.corePoolSize })
-    createGuage.call("poolSize", { ThreadPoolExecutor e -> e.poolSize })
-    createGuage.call("blockingQueueSize", { ThreadPoolExecutor e -> e.queue.size() })
+    applyThreadPoolMetrics(extendedRegistry, executor, "TaskExecutor")
     return executor
   }
 
@@ -179,5 +162,31 @@ class OrcaConfiguration {
   @ConditionalOnProperty(value = 'jarDiffs.enabled', matchIfMissing = false)
   ComparableLooseVersion comparableLooseVersion() {
     new DefaultComparableLooseVersion()
+  }
+
+  @CompileDynamic
+  public static ThreadPoolTaskExecutor applyThreadPoolMetrics(ExtendedRegistry extendedRegistry,
+                                                          ThreadPoolTaskExecutor executor,
+                                                          String threadPoolName) {
+    def createGuage = { String name, Closure valueCallback ->
+      def id = extendedRegistry
+        .createId("threadpool.${name}" as String)
+        .withTag("id", threadPoolName)
+
+      extendedRegistry.gauge(id, executor, new ValueFunction() {
+        @Override
+        double apply(Object ref) {
+          valueCallback(((ThreadPoolTaskExecutor) ref).threadPoolExecutor)
+        }
+      })
+    }
+
+    createGuage.call("activeCount", { ThreadPoolExecutor e -> e.activeCount })
+    createGuage.call("maximumPoolSize", { ThreadPoolExecutor e -> e.maximumPoolSize })
+    createGuage.call("corePoolSize", { ThreadPoolExecutor e -> e.corePoolSize })
+    createGuage.call("poolSize", { ThreadPoolExecutor e -> e.poolSize })
+    createGuage.call("blockingQueueSize", { ThreadPoolExecutor e -> e.queue.size() })
+
+    return executor
   }
 }

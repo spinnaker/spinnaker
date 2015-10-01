@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -192,7 +194,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   @Override
   JedisExecutionRepository createExecutionRepository() {
-    new JedisExecutionRepository(jedisPool, 1, 50)
+    new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   }
 
   def "cleans up indexes of non-existent executions"() {
