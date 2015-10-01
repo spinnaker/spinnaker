@@ -38,6 +38,7 @@
         <a target="_blank" ng-href="{{ctrl.pipelinesUrl + execution.id}}">Source</a>
         |
         <a target="_blank" ng-href="{{$location.absUrl()}}">Permalink</a>
+        <copy-to-clipboard text="{{$location.absUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
       </div>
     </div>
   </div>

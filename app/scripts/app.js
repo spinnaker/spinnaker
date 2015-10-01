@@ -24,7 +24,7 @@ require('ui-select/dist/select.css');
 require('angular-wizard/dist/angular-wizard.css');
 
 require('source-sans-pro');
-
+require('clipboard');
 
 // likely that some of these can be moved to the modules that support them
 require('./modules/applications/application.less');
@@ -246,6 +246,11 @@ module.exports = angular.module('spinnaker', [
   })
   .config(function(RestangularProvider, settings) {
     RestangularProvider.setBaseUrl(settings.gateUrl);
+  })
+  .config(function($tooltipProvider) {
+    /*eslint-disable */
+    new Clipboard('.clipboard-btn');
+    /*eslint-enable*/
   })
   .config(function($provide) {
     $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
