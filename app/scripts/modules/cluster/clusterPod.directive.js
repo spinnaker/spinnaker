@@ -19,6 +19,8 @@ module.exports = angular.module('spinnaker.cluster.pod', [
       },
       templateUrl: require('./clusterPod.html'),
       link: function(scope) {
+        // using location.host here b/c it provides the port, $location.host() does not.
+        // Easy way to get this to work in both dev(where we have a port) and prod(where we do not).
         scope.host = location.host;
         scope.permalink = urlBuilderService.buildFromMetadata(
           {
