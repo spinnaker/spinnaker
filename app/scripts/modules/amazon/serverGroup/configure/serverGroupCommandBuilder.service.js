@@ -65,6 +65,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             availabilityZones: availabilityZones,
             keyPair: keyPair,
             suspendedProcesses: [],
+            securityGroups: [],
             viewState: {
               instanceProfile: 'custom',
               allImageSelection: null,
