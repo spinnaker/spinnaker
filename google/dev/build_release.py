@@ -356,11 +356,11 @@ if __name__ == '__main__':
       # TODO(ewiseblatt): 20150810
       # Eventually this needs to be the transitive closure,
       # but there are currently no other dependencies.
-      run_or_die_no_result('cd citest; zip -R "{zip_file}" citest *.py'
+      run_or_die_no_result('cd citest; zip -r "{zip_file}" citest'
                            .format(zip_file=zip_file),
                            echo=False)
       run_or_die_no_result('cd citest/spinnaker'
-                           '; zip -g "{zip_file}" spinnaker_testing *.py'
+                           '; zip -r -g "{zip_file}" spinnaker_testing'
                            '; cd spinnaker_system'
                            '; zip -g "{zip_file}" {test_name}.py'
                            .format(zip_file=zip_file, test_name=test_name),
