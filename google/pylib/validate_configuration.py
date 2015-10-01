@@ -57,7 +57,7 @@ class ValidateConfig(object):
       self.__errors.append('Missing "{name}".'.format(name=name))
       return False
 
-    if value in ['true', 'false']:
+    if value.lower() in ['true', 'false']:
       return True
 
     self._errors.append('{name}="{value}" is not valid.'
@@ -157,7 +157,7 @@ class ValidateConfig(object):
     # Without a source I'm being overly generous.
     aws_key_regex = '^[/a-zA-Z0-9]+$'
 
-    if self.__bindings.get_variable('AWS_ENABLED', '') != 'true':
+    if self.__bindings.get_variable('AWS_ENABLED', '').lower() != 'true':
       return True
 
     # Intentionally keeping these values private in the errors.
@@ -189,6 +189,8 @@ class ValidateConfig(object):
     # (e.g. adding a health check) for created components will push beyond GCE
     # limits.
     gce_name_regex = '^[a-z]([-a-z0-9]{0,61}[a-z0-9])?$'
+    gce_project_with_domain_regex = ('^[a-z]+\.[a-z]+'
+                                     ':[a-z]([-a-z0-9]{0,61}[a-z0-9])?$')
     managed_project_id = self.__bindings.get_variable(
         'GOOGLE_MANAGED_PROJECT_ID', '')
     ok = True
@@ -199,7 +201,8 @@ class ValidateConfig(object):
             ' you are running in a Google Cloud Platform project to default to.')
         ok = False
     else:
-      if not re.match(gce_name_regex, managed_project_id):
+      if (not re.match(gce_name_regex, managed_project_id)
+          and not re.match(gce_project_with_domain_regex, managed_project_id)):
         ok = False
         self.__errors.append(
             'GOOGLE_MANAGED_PROJECT_ID="{id}" does not look like {regex}.'
@@ -235,7 +238,7 @@ class ValidateConfig(object):
           and ok)
 
     if self.verify_true_false('DOCKER_ENABLED'):
-      if (self.__bindings.get_variable('DOCKER_ENABLED', '') == 'true'
+      if (self.__bindings.get_variable('DOCKER_ENABLED', '').lower() == 'true'
           and not self.__bindings.get_variable('DOCKER_TARGET_REPOSITORY', '')):
         ok = False
         self.__errors.append('DOCKER_ENABED but DOCKER_TARGET_REPOSITORY'
@@ -247,7 +250,7 @@ class ValidateConfig(object):
     if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
         # TODO(ewiseblatt): 20140925
         # Look into the IGOR_ENABLED flag (used at least in gate)
-        igor_enabled = self.__bindings.get_variable('IGOR_ENABLED', '')
+        igor_enabled = self.__bindings.get_variable('IGOR_ENABLED', '').lower()
         if igor_enabled == 'false':
           # Dont bother checking other things since they dont matter.
           print ('WARNING: JENKINS_ADDRESS is provided but'

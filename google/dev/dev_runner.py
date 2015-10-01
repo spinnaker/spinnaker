@@ -82,7 +82,7 @@ class DevRunner(spinnaker_runner.Runner):
     match = re.search('(?m)^[^ ]+ +([0-9]+) .* {program}'.format(
         program=program), stdout)
     return int(match.groups()[0]) if match else None
-    
+
   def start_deck(self):
     pid = self.get_deck_pid()
     if pid:
@@ -148,7 +148,7 @@ class DevRunner(spinnaker_runner.Runner):
     deck_port = self.__installation.DECK_PORT
     print 'Waiting for deck to start on port {port}'.format(port=deck_port)
 
-    # Dont just wait for port to be ready,  but for deck to repsond
+    # Dont just wait for port to be ready,  but for deck to respond
     # because it takes a long time to startup once port is ready.
     while True:
       code, ignore = fetch('http://localhost:{port}/'.format(port=deck_port))

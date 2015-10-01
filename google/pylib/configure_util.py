@@ -81,6 +81,16 @@ class Bindings(dict):
       raise ValueError('@ Can only be used for GOOGLE_CREDENTIALS')
     substituted_value = self.__just_replace_variables(value)
     parts = substituted_value.split(':')
+    if len(parts) == 4:
+        # Sometimes project names can be in the form <domain>:project
+        # since we're using ':' to separate, there is a conflct.
+        # We could consider using a different separator, but the obvious
+        # ones are also taken or awkward for other reasons.
+        # The domain case is rare. We'll join them together if it exists.
+
+        if re.match('^[a-z]+\.[a-z]+$', parts[1]):
+            parts = [parts[0], parts[1] + ':' + parts[2], parts[3]]
+
     if len(parts) != 3:
       raise ValueError('@{0}={1} is not in the form <account>:<project>:<path>'
                        .format(name, value))
