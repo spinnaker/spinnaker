@@ -84,7 +84,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
     # Local test
     parser.add_argument(
         '--test_image_name',
-        default='ubuntu-1404-trusty-v20150316',
+        default='ubuntu-1404-trusty-v20150909a',
         help='Image name to use when creating test instance.')
     parser.add_argument(
         '--test_stack', default='awstest', help='Spinnaker stack decorator.')
@@ -201,9 +201,9 @@ class AwsKatoIntegrationTest(st.AgentTestCase):
 
 
 def main():
-    AwsKatoIntegrationTest.main(AwsKatoTestScenario)
+  return AwsKatoIntegrationTest.main(AwsKatoTestScenario)
 
 
 if __name__ == '__main__':
-  main()
-  sys.exit(0)
+  result = main()
+  sys.exit(result)
