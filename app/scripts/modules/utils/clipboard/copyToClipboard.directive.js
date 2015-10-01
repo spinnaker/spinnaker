@@ -31,7 +31,6 @@ module.exports = angular
       controllerAs: 'cb',
       link: function(scope, element, attrs, controller) {
         element.on('click', function(event) {
-          console.log('click event', event);
           controller.isOpen = true;
           controller.toggleToolTipToCopied();
           scope.$digest();
