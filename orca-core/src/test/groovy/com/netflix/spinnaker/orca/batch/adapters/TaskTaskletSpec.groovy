@@ -58,7 +58,7 @@ class TaskTaskletSpec extends Specification {
   Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)

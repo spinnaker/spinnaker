@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
@@ -66,7 +68,7 @@ class PipelineJobBuilderSpec extends Specification {
   @Autowired AbstractApplicationContext applicationContext
 
   def mapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
 
   def pipelineInitializationStage = new PipelineInitializationStage()
   def waitForRequisiteCompletionStage = new WaitForRequisiteCompletionStage()
