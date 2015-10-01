@@ -1,16 +1,11 @@
 'use strict';
 
-let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
-let gateHost = process.env.API_HOST || 'localhost:8084';
-let bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://localhost:8087/api/v1/global/logs/{{context.status.id}}?html=true';
-let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
-
-let protocol = process.env.PROTOCOL || 'http';
+let gateHost = 'localhost:8084';
 
 window.spinnakerSettings = {
   feedbackUrl: feedbackUrl,
   gateUrl: `http://${gateHost}`,
-  bakeryDetailUrl: bakeryDetailUrl,
+  bakeryDetailUrl: 'http://localhost:8087/api/v1/global/logs/{{context.status.id}}?html=true',
   pollSchedule: 30000,
   defaultTimeZone: 'America/New_York', // see http://momentjs.com/timezone/docs/#/data-utilities/
   providers: {
@@ -49,11 +44,11 @@ window.spinnakerSettings = {
     gistId: '32526cd608db3d811b38',
     fileName: 'news.md',
   },
-  authEnabled: process.env.AUTH === 'enabled',
+  authEnabled: false,
   feature: {
     pipelines: true,
     notifications: false,
-    canary: process.env.CANARY !== 'disabled',
+    canary: false,
     parallelPipelines: true,
     fastProperty: false,
     vpcMigrator: true,
