@@ -24,7 +24,7 @@ require('ui-select/dist/select.css');
 require('angular-wizard/dist/angular-wizard.css');
 
 require('source-sans-pro');
-require('clipboard');
+let Clipboard = require('clipboard');
 
 // likely that some of these can be moved to the modules that support them
 require('./modules/applications/application.less');
@@ -249,7 +249,19 @@ module.exports = angular.module('spinnaker', [
   })
   .config(function($tooltipProvider) {
     /*eslint-disable */
-    new Clipboard('.clipboard-btn');
+    let clipboard = new Clipboard('.clipboard-btn');
+    clipboard.on('success', function(e) {
+      console.info('Action:', e.action);
+      console.info('Text:', e.text);
+      console.info('Trigger:', e.trigger);
+
+      e.clearSelection();
+    });
+
+    clipboard.on('error', function(e) {
+      console.error('Action:', e.action);
+      console.error('Trigger:', e.trigger);
+    });
     /*eslint-enable*/
   })
   .config(function($provide) {
