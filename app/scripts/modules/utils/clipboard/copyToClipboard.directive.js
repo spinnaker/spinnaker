@@ -10,16 +10,17 @@ module.exports = angular
       restrict: 'E',
       scope: {},
       template: `
-      <button class="btn btn-xs btn-link" aria-label="Copy to clipboard">
-        <span
-          class="clipboard-btn glyphicon glyphicon-copy"
-          tooltip="{{cb.toolTip}}"
-          tooltip-trigger="mouseenter"
-          tooltip-placement="top"
-          tooltip-enable="true"
-          tooltip-is-open="cb.isOpen"
-          data-clipboard-text="{{cb.text}}">
-        </span>
+      <button
+        class="btn btn-xs btn-default clipboard-btn"
+        tooltip="{{cb.toolTip}}"
+        tooltip-trigger="mouseenter"
+        tooltip-placement="top"
+        tooltip-enable="true"
+        tooltip-is-open="cb.isOpen"
+        data-clipboard-action="copy"
+        data-clipboard-text="{{cb.text}}"
+        aria-label="Copy to clipboard">
+        <span class="glyphicon glyphicon-copy"></span>
       </button>`,
 
       bindToController: {
@@ -29,7 +30,8 @@ module.exports = angular
       controller: 'copyToClipboardController',
       controllerAs: 'cb',
       link: function(scope, element, attrs, controller) {
-        element.on('click', () => {
+        element.on('click', function(event) {
+          console.log('click event', event);
           controller.isOpen = true;
           controller.toggleToolTipToCopied();
           scope.$digest();
