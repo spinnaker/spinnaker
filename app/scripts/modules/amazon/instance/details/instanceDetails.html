@@ -23,11 +23,14 @@
       <h3 select-on-dbl-click>
         {{instance.instanceId}}
       </h3>
+
       <copy-to-clipboard
+          ng-if="instance.provider === 'aws'"
           class="copy-to-clipboard"
-          text="ssh -t aws{{instance.account}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
+          text="ssh -t aws.{{instance.account}}.netflix.net 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
           tool-tip="Copy SSH command to clipboard">
       </copy-to-clipboard>
+
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
