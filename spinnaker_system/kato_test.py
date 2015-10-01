@@ -103,7 +103,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     # TODO(ewiseblatt): Move this image name somewhere.
     parser.add_argument(
         '--test_gce_image_name',
-        default='ubuntu-1404-trusty-v20150805',
+        default='ubuntu-1404-trusty-v20150909a',
         help='Image name to use when creating test instance on GCE.')
 
   def __init__(self, bindings, agent):
@@ -581,9 +581,10 @@ class KatoIntegrationTest(st.AgentTestCase):
 
 
 def main():
-  KatoIntegrationTest.main(KatoTestScenario)
+  return KatoIntegrationTest.main(KatoTestScenario)
 
 
 if __name__ == '__main__':
-  main()
-  sys.exit(0)
+  result = main()
+  sys.exit(result)
+

@@ -235,7 +235,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'capacity': {'min':2, 'max':2, 'desired':2},
           'initialNumReplicas': 2,
           'providerType': 'gce',
-          'image': 'ubuntu-1404-trusty-v20150316',
+          'image': 'ubuntu-1404-trusty-v20150909a',
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
           'instanceType': 'f1-micro',
           'type': 'linearDeploy',
@@ -332,9 +332,9 @@ class SmokeTest(st.AgentTestCase):
 
 
 def main():
-  SmokeTest.main(SmokeTestScenario)
+  return SmokeTest.main(SmokeTestScenario)
 
 
 if __name__ == '__main__':
-  main()
-  sys.exit(0)
+  result = main()
+  sys.exit(result)

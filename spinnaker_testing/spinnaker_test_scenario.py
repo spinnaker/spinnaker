@@ -26,12 +26,13 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     return http_agent.HttpPostOperation(title=title, data=data, path=path)
 
   @classmethod
-  def initArgumentParser(cls, parser, subsystem_name):
+  def initArgumentParser(cls, parser, subsystem_name='the server'):
     """Initialize command line argument parser.
 
     Args:
       parser: argparse.ArgumentParser
-      subsystem_name: The name of the subsystem we're testing.
+      subsystem_name: The name of the subsystem we're testing is used to
+         customize help messages for the argument parser.
     """
     super(SpinnakerTestScenario, cls).initArgumentParser(parser)
 
