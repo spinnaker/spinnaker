@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.authentication.interceptor.service', [
-  require('../config/settings.js'),
-  require('./authenticationService.js')
+  require('../../config/settings.js'),
+  require('./authentication.service.js')
 ])
   .factory('authenticationInterceptor', function ($q, settings, authenticationService) {
 

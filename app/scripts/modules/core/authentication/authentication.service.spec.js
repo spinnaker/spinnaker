@@ -4,7 +4,7 @@ describe('authenticationService', function() {
 
   beforeEach(
     window.module(
-      require('./authenticationService.js')
+      require('./authentication.service')
     )
   );
 

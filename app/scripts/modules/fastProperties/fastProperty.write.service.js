@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.fastProperty.write.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
     require('../utils/lodash.js'),
-    require('../authentication/authenticationService.js')
+    require('../core/authentication/authentication.service.js')
   ])
   .factory('fastPropertyWriter', function (Restangular, authenticationService, _) {
 
