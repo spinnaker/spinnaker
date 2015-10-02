@@ -285,6 +285,8 @@ module.exports = angular.module('spinnaker.pipelines.config.pipelineConfigurer',
       configViewStateCache.put(buildCacheKey(), toCache);
     }
 
+    $scope.$on('toggle-expansion', (event, expanded) => $scope.viewState.expanded = expanded);
+
     $scope.$watch('pipeline', pipelineUpdated, true);
     $scope.$watch('viewState.original', markDirty, true);
     $scope.$watch('viewState', cacheViewState, true);

@@ -31,6 +31,10 @@ module.exports = angular.module('spinnaker.pipelines.config.controller', [
       });
     };
 
+    ctrl.toggleExpansion = (expand) => {
+      $scope.$broadcast('toggle-expansion', expand);
+    };
+
     $scope.pipelineSortOptions = {
       axis: 'y',
       delay: 150,
