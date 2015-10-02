@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.account.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../utils/lodash.js'),
-  require('../caches/infrastructureCaches.js'),
+  require('../core/cache/infrastructureCaches.js'),
   require('../config/settings.js'),
 ])
   .factory('accountService', function(settings, _, Restangular, $q, infrastructureCaches) {

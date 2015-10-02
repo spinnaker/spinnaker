@@ -7,8 +7,8 @@ module.exports = angular.module('spinnaker.pipelines', [
   require('exports?"ui.sortable"!angular-ui-sortable'),
   require('../utils/lodash.js'),
   require('./config/pipelineConfig.module.js'),
-  require('../caches/viewStateCache.js'),
+  require('../core/cache/viewStateCache.js'),
   require('../authentication/authentication.module.js'),
   require('../notifications/notifications.module.js'),
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
 ]).name;

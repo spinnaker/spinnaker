@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('insight.filter.state.model', [
-    require('../caches/collapsibleSectionStateCache.js'),
+    require('../core/cache/collapsibleSectionStateCache.js'),
   ])
   .factory('InsightFilterStateModel', function($rootScope, $timeout, collapsibleSectionStateCache) {
 

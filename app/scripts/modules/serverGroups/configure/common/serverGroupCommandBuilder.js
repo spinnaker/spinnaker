@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.common.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../../caches/deckCacheFactory.js'),
+  require('../../../core/cache/deckCacheFactory.js'),
   require('../../../core/cloudProvider/serviceDelegate.service.js'),
   require('../../../config/settings.js')
 ])

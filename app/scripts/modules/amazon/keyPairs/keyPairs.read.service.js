@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.keyPairs.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../caches/infrastructureCacheConfig.js')
+    require('../../core/cache/infrastructureCacheConfig.js')
   ])
   .factory('keyPairsReader', function ($q, Restangular, infrastructureCaches) {
 

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.loadBalancer.read.service', [
     require('../core/naming/naming.service.js'),
-    require('../caches/infrastructureCaches.js'),
+    require('../core/cache/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
   ])
   .factory('loadBalancerReader', function ($q, Restangular, searchService, namingService,
