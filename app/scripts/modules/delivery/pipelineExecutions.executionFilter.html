@@ -1,4 +1,12 @@
 <form class="form-inline execution-filters">
+  <div class="form-group" is-visible="filter.execution.groupBy">
+    <a class="btn btn-sm btn-default" href ng-click="ctrl.toggleExpansion(true)" tooltip="expand all">
+      <span class="glyphicon glyphicon-plus"></span>
+    </a>
+    <a class="btn btn-sm btn-default" href ng-click="ctrl.toggleExpansion(false)" tooltip="collapse all">
+      <span class="glyphicon glyphicon-minus"></span>
+    </a>
+  </div>
   <div class="form-group">
     <label>Group by</label>
     <select class="form-control" ng-model="filter.execution.groupBy">
