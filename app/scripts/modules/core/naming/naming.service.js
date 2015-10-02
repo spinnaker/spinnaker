@@ -2,7 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.naming', [])
+module.exports = angular
+  .module('spinnaker.core.naming.service', [])
   .factory('namingService', function() {
     var versionPattern = /(v\d{3})/;
 

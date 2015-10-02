@@ -4,7 +4,7 @@ describe('Service: pageTitleService', function() {
 
   beforeEach(
     window.module(
-      require('./pageTitleService')
+      require('./pageTitle.service')
     )
   );
 

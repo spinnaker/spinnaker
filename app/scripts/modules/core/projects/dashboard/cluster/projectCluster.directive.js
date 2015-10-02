@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../../utils/lodash.js'),
   require('../../../../caches/collapsibleSectionStateCache.js'),
   require('../../../../scheduler/scheduler.service.js'),
-  require('../../../../naming/naming.service.js'),
+  require('../../../../core/naming/naming.service.js'),
 ])
   .directive('projectCluster', function () {
     return {

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.pipelines.config.controller', [
   require('angular-ui-router'),
   require('./services/pipelineConfigService.js'),
   require('../../utils/lodash.js'),
-  require('../../pageTitle/pageTitleService.js'),
+  require('../../core/pageTitle/pageTitle.service.js'),
   require('./services/dirtyPipelineTracker.service.js'),
 ])
   .controller('PipelineConfigCtrl', function($scope, $rootScope, $timeout, $stateParams, _, $q, $window,

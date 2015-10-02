@@ -18,7 +18,7 @@
 
 describe('Directives: helpField', function () {
 
-  require('./helpField.html');
+  require('./helpField.directive.html');
 
   beforeEach(function() {
     window.module(
