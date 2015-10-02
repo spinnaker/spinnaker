@@ -59,14 +59,19 @@ class AmazonServerGroupSpec extends Specification {
   }
 
   void 'server group capacity should use min/max/desired values from asg map'() {
-    given:
-    AmazonServerGroup amazonServerGroup = new AmazonServerGroup(asg: [minSize: 1, desiredCapacity: 2, maxSize: 3])
+    when:
+    AmazonServerGroup amazonServerGroup = new AmazonServerGroup(asg: [minSize: minSize, desiredCapacity: desiredCapacity, maxSize: maxSize])
 
-    expect:
+    then:
     amazonServerGroup.capacity != null
-    amazonServerGroup.capacity.min == 1
-    amazonServerGroup.capacity.desired == 2
-    amazonServerGroup.capacity.max == 3
+    amazonServerGroup.capacity.min == expectedMin
+    amazonServerGroup.capacity.desired == expectedDesired
+    amazonServerGroup.capacity.max == expectedMax
+
+    where:
+    minSize | desiredCapacity | maxSize || expectedMin | expectedDesired | expectedMax
+    0       | 0               | 0       || 0           | 0               | 0
+    1       | 2               | 3       || 1           | 2               | 3
   }
 
   Instance buildAmazonInstance(HealthState state) {

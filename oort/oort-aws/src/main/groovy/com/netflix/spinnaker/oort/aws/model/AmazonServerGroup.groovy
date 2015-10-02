@@ -110,9 +110,9 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   ServerGroup.Capacity getCapacity() {
     if (asg) {
       return new ServerGroup.Capacity(
-        min: asg.minSize ? asg.minSize as Integer : null,
-        max: asg.maxSize ? asg.maxSize as Integer : null,
-        desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : null
+        min: asg.minSize ? asg.minSize as Integer : 0,
+        max: asg.maxSize ? asg.maxSize as Integer : 0,
+        desired: asg.desiredCapacity ? asg.desiredCapacity as Integer : 0
       )
     }
     return null
