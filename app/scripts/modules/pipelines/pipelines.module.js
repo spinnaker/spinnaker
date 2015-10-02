@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.pipelines', [
   require('../utils/lodash.js'),
   require('./config/pipelineConfig.module.js'),
   require('../core/cache/viewStateCache.js'),
-  require('../authentication/authentication.module.js'),
+  require('../core/authentication/authentication.module.js'),
   require('../notifications/notifications.module.js'),
   require('../core/cache/deckCacheFactory.js'),
 ]).name;

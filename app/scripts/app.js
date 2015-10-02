@@ -81,7 +81,6 @@ module.exports = angular.module('spinnaker', [
 
     require('exports?"angular.filter"!angular-filter'),
     require('./modules/navigation/states.provider.js'),
-    require('./modules/caches/cacheInitializer.js'),
     require('./modules/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 
@@ -92,7 +91,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/amazon/aws.module.js'),
     require('./modules/google/gce.module.js'),
     require('./modules/utils/utils.module.js'),
-    require('./modules/caches/caches.module.js'),
+    require('./modules/core/cache/caches.module.js'),
     require('./modules/core/naming/naming.service.js'),
     require('./modules/core/cloudProvider/serviceDelegate.service.js'),
     require('./modules/healthCounts/healthCounts.directive.js'),
@@ -133,7 +132,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/pipelines/config/stages/shrinkCluster/shrinkClusterStage.module.js'),
     require('./modules/pipelines/config/stages/wait/waitStage.module.js'),
     require('./modules/pipelines/config/stages/determineTargetReference/determineTargetReference.module.js'),
-    require('./modules/authentication/authentication.module.js'),
+    require('./modules/core/authentication/authentication.module.js'),
     require('./modules/search/search.module.js'),
     require('./modules/notifications/notifications.module.js'),
     require('./modules/notifications/types/email/email.notification.type.module.js'),
