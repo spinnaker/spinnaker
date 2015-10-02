@@ -171,7 +171,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-east-1", "autoScalingGroupName": "helloclay--test-v003"}
           ]
@@ -186,7 +186,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-east-1", "autoScalingGroupName": "helloclay--test-v003"}
           ]
@@ -216,6 +216,27 @@ describe('Service: diffService ', function () {
       ]);
     });
 
+    it('should filter multi diff for matching security groups in any order', function () {
+      var securityGroups = ["default", "helloworld"];
+
+      var result = diffService.diffSecurityGroups(securityGroups, severalSecurityGroupPermutationsDiff);
+
+      expect(result).toEqual([
+        {
+          "commonSecurityGroups": ["helloworld"],
+          "serverGroups": [
+            {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v005"}
+          ]
+        },
+        {
+          "commonSecurityGroups": [],
+          "serverGroups": [
+            {"account": "test", "region": "us-east-1", "autoScalingGroupName": "helloclay--test-v003"}
+          ]
+        }
+      ]);
+    });
+
     it('should filter multi diff for partially matching security groups', function () {
       var securityGroups = ["helloworld"];
 
@@ -223,7 +244,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v003"},
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
@@ -245,7 +266,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v003"},
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
@@ -273,7 +294,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v003"},
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
@@ -300,7 +321,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v003"},
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
@@ -327,7 +348,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
           ]
@@ -353,7 +374,7 @@ describe('Service: diffService ', function () {
 
       expect(result).toEqual([
         {
-          "commonSecurityGroups": ["helloworld", "default"],
+          "commonSecurityGroups": ["default", "helloworld"],
           "serverGroups": [
             {"account": "test", "region": "us-west-1", "autoScalingGroupName": "helloclay--test-v003"},
             {"account": "test", "region": "us-west-2", "autoScalingGroupName": "helloclay--test-v010"}
