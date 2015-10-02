@@ -288,16 +288,16 @@ availability-zone-selector, server-group-capacity-selector {
     }
 
     g {
-      circle {
+      circle, rect {
         fill: @mid_light_grey;
       }
       &.connected {
-        circle {
+        circle, rect {
           fill: @mid_lighter_grey;
         }
       }
       &.active, &.highlighted {
-        circle {
+        circle, rect {
           fill: @healthy_green_border;
           transition: fill .2s;
         }
