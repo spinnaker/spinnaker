@@ -32,7 +32,7 @@
  */
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.modal.wizard.wizardPage.directive', [
+module.exports = angular.module('spinnaker.core.modal.wizard.wizardPage.directive', [
 ])
   .directive('wizardPage', function () {
     return {

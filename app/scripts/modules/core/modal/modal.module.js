@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.modal', [
+module.exports = angular.module('spinnaker.core.modal', [
     require('./modalOverlay.directive.js'),
     require('./modalPage.directive.js'),
     require('./buttons/modalClose.directive.js'),

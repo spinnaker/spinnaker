@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.modal.buttons.submitButton.directive', [
+module.exports = angular.module('spinnaker.core.modal.buttons.submitButton.directive', [
 ])
   .directive('submitButton', function () {
     return {

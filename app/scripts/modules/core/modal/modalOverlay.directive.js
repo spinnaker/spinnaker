@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.modal.modalOverlay.directive', [
+module.exports = angular.module('spinnaker.core.modal.modalOverlay.directive', [
 ])
   .directive('modalOverlay', function($timeout) {
     return {

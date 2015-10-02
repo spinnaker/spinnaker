@@ -8,7 +8,7 @@ module.exports = angular
     require('../../../tasks/monitor/taskMonitorService.js'),
     require('../../../securityGroups/securityGroup.write.service.js'),
     require('../../../account/account.service.js'),
-    require('../../../modal/wizard/modalWizard.directive.js'),
+    require('../../../core/modal/wizard/modalWizard.service.js'),
     require('../../../network/network.read.service.js'),
     require('../../../utils/lodash.js'),
   ])

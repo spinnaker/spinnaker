@@ -34,7 +34,7 @@ require('./modules/core/presentation/details.less');
 require('./modules/fastProperties/fastProperties.less');
 require('./modules/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
-require('./modules/modal/modals.less');
+require('./modules/core/modal/modals.less');
 require('./modules/navigation/navigation.less');
 require('./modules/applications/newapplication.less');
 require('./modules/pipelines/pipelines.less');
@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker', [
 
     require('./modules/core/presentation/presentation.module.js'),
     require('./modules/core/forms/forms.module.js'),
-    require('./modules/modal/modal.module.js'),
+    require('./modules/core/modal/modal.module.js'),
 
     require('exports?"angular.filter"!angular-filter'),
     require('./modules/navigation/states.provider.js'),
