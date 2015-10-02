@@ -1,0 +1,84 @@
+/*
+ * Copyright 2015 Netflix, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.netflix.spinnaker.orca.kato.pipeline.support
+
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.PipelineStage
+import spock.lang.Specification
+import spock.lang.Unroll
+
+import java.util.concurrent.atomic.AtomicInteger
+
+class ScaleExactResizeStrategySpec extends Specification {
+
+  OortHelper oortHelper = Mock(OortHelper)
+  ScaleExactResizeStrategy strategy = new ScaleExactResizeStrategy(oortHelper: oortHelper)
+
+  @Unroll
+  def "should derive capacity from ASG (#current) when partial values supplied in context (#specifiedCap)"() {
+
+    setup:
+    def context = [
+      capacity: specifiedCap
+    ]
+    def stage = new PipelineStage(new Pipeline(), "resizeServerGroup", context)
+
+    when:
+    def cap = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
+
+    then:
+    cap == expected
+    1 * oortHelper.getTargetServerGroup(account, serverGroupName, region, cloudProvider) >> targetServerGroup
+    0 * _
+
+    where:
+    specifiedCap                       | current                                      || expected
+    [min: 0]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 0, max: 1, desired: 1)
+    [max: 0]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 0, max: 0, desired: 0)
+    [max: 1]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 1, max: 1, desired: 1)
+    [min: 2]                           | [min: 1, max: 1, desired: 1] || new Capacity(min: 2, max: 2, desired: 2)
+    [min: 2]                           | [min: 1, max: 3, desired: 1] || new Capacity(min: 2, max: 3, desired: 2)
+    [min: 0, max: 2]                   | [min: 1, max: 1, desired: 1] || new Capacity(min: 0, max: 2, desired: 1)
+    [min: 0, max: 2]                   | [min: 1, max: 3, desired: 3] || new Capacity(min: 0, max: 2, desired: 2)
+    [min: "0", max: "2"]               | [min: 1, max: 3, desired: 3] || new Capacity(min: 0, max: 2, desired: 2)
+    [min: "0", max: "2", desired: "3"] | [min: 1, max: 3, desired: 3] || new Capacity(min: 0, max: 2, desired: 3)
+    [:]                                | [min: 1, max: 3, desired: 3] || new Capacity(min: 1, max: 3, desired: 3)
+    serverGroupName = asgName()
+    targetServerGroup = Optional.of(new TargetServerGroup(serverGroup: [name: serverGroupName, region: region, type: cloudProvider, capacity: current]))
+  }
+
+  static final AtomicInteger asgSeq = new AtomicInteger(100)
+  static final String cloudProvider = 'aws'
+  static final String application = 'foo'
+  static final String region = 'us-east-1'
+  static final String account = 'test'
+  static final String clusterName = application + '-main'
+  static final Location location = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, region)
+  static final OptionalConfiguration resizeConfig = new OptionalConfiguration(action: ResizeStrategy.ResizeAction.scale_exact)
+
+
+  static String asgName() {
+    clusterName + '-v' + asgSeq.incrementAndGet()
+  }
+
+
+}

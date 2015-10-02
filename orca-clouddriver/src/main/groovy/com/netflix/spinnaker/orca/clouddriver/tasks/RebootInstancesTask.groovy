@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@CompileStatic
 class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task {
   static final String CLOUD_OPERATION_TYPE = "rebootInstances"
 

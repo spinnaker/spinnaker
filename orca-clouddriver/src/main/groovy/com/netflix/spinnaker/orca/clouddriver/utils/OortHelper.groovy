@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.orca.clouddriver.utils
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -37,9 +39,29 @@ class OortHelper {
   ObjectMapper objectMapper
 
   Optional<Map> getCluster(String application, String account, String cluster, String type) {
+    return convertedResponse(Map) { oortService.getCluster(application, account, cluster, type) }
+  }
+
+  Optional<TargetServerGroup> getTargetServerGroup(String account,
+                                                   String serverGroupName,
+                                                   String location,
+                                                   String cloudProvider) {
+    def targetLocation = TargetServerGroup.Support.locationFromCloudProviderValue(cloudProvider, location)
+    def name = Names.parseName(serverGroupName)
+    return convertedResponse(List) { oortService.getServerGroup(name.app, account, name.cluster, serverGroupName, null, cloudProvider) }
+    .map({ List<Map> serverGroups ->
+      serverGroups.find {
+        TargetServerGroup.Support.locationFromServerGroup(it) == targetLocation
+      }
+    }).map({ Map serverGroup ->
+      new TargetServerGroup(serverGroup: serverGroup)
+    })
+  }
+
+  public <T> Optional<T> convertedResponse(Class<T> type, Closure<Response> request) {
     Response r
     try {
-      r = oortService.getCluster(application, account, cluster, type)
+      r = request.call()
     } catch (RetrofitError re) {
       if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
         return Optional.empty()
@@ -48,9 +70,9 @@ class OortHelper {
     }
     JacksonConverter converter = new JacksonConverter(objectMapper)
     try {
-      return Optional.of((Map) converter.fromBody(r.body, Map))
+      return Optional.<T>of((T) converter.fromBody(r.body, type))
     } catch (ConversionException ce) {
-      throw RetrofitError.conversionError(r.url, r, converter, Map, ce)
+      throw RetrofitError.conversionError(r.url, r, converter, type, ce)
     }
   }
 

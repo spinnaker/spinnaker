@@ -73,6 +73,13 @@ class TargetServerGroup {
       return new Location(type: Location.Type.REGION, value: serverGroup.region)
     }
 
+    static Location locationFromOperation(Map<String, Object> operation) {
+      if (!operation.targetLocation) {
+        return null
+      }
+      new Location(type: Location.Type.valueOf(operation.targetLocation.type), value: operation.targetLocation.value)
+    }
+
     static Location locationFromStageData(StageData stageData) {
       if (stageData.cloudProvider == "gce") {
         def zones = stageData.availabilityZones.values().flatten().toArray()

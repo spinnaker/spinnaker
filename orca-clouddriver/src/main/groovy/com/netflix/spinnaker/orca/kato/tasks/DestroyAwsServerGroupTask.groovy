@@ -36,7 +36,6 @@ import static com.netflix.spinnaker.orca.kato.pipeline.DestroyAsgStage.DESTROY_A
  * TODO: This task can be moved to clouddriver.tasks package once the convert() method has been cleaned up using the new oort APIs
  */
 @Component
-@CompileStatic
 @Deprecated
 class DestroyAwsServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
 

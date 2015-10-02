@@ -16,50 +16,55 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.ResizeServerGroupStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroup
-import com.netflix.spinnaker.orca.clouddriver.pipeline.support.TargetServerGroupResolver
-import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeSupport
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.Capacity
+import com.netflix.spinnaker.orca.kato.pipeline.support.ResizeStrategy.OptionalConfiguration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 @Slf4j
 class ResizeServerGroupTask extends AbstractServerGroupTask {
-
   String serverGroupAction = ResizeServerGroupStage.TYPE
 
-  @Override
-  TaskResult execute(Stage stage) {
-    String cloudProvider = getCloudProvider(stage)
-    String account = getCredentials(stage)
+  @Autowired
+  List<ResizeStrategy> resizeStrategies
 
-    def operation = convert(stage)
-    def taskId = kato.requestOperations(cloudProvider, [[resizeServerGroup: operation]])
-                     .toBlocking()
-                     .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-        "notification.type"   : "resizeasg", // TODO(someone on NFLX side): Rename to 'resizeservergroup'?
-        "deploy.account.name" : account,
-        "kato.last.task.id"   : taskId,
-        "asgName"             : operation.asgName,
-        "capacity"            : operation.capacity,
-        "deploy.server.groups": deployServerGroups(operation)
-    ])
+  Map getAdditionalStageOutputs(Stage stage, Map operation) {
+    [capacity: operation.capacity]
   }
 
   Map convert(Stage stage) {
-    if (TargetServerGroup.isDynamicallyBound(stage)) {
-      def tsg = TargetServerGroupResolver.fromPreviousStage(stage)
-      def descriptors = ResizeSupport.createResizeDescriptors(stage, [tsg])
-      return descriptors?.get(0)
+    Map operation = super.convert(stage)
+    String serverGroupName = operation.serverGroupName
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+    Location location = TargetServerGroup.Support.locationFromOperation(operation)
+    def resizeConfig = stage.mapTo(OptionalConfiguration)
+
+    ResizeStrategy strategy = resizeStrategies.find { it.handles(resizeConfig.actualAction) }
+    if (!strategy) {
+      throw new IllegalStateException("$resizeConfig.actualAction not implemented")
+    }
+    Capacity newCapacity = strategy.capacityForOperation(stage, account, serverGroupName, cloudProvider, location, resizeConfig)
+
+    operation.capacity = [min: newCapacity.min, desired: newCapacity.desired, max: newCapacity.max]
+
+    // TODO(ttomsu): Remove cloud provider-specific operation.
+    if (cloudProvider == "gce") {
+      augmentDescriptionForGCE(operation, location)
     }
 
-    // Statically bound resize operations put the descriptor as the context.
-    return stage.context
+    return operation
+  }
+
+  static void augmentDescriptionForGCE(Map description, Location location) {
+    description.zone = location.value
+    description.targetSize = description.capacity.desired
   }
 }
