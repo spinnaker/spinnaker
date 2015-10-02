@@ -18,13 +18,14 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.help.helpField', [
-  require('./helpContents.js')
-])
+module.exports = angular
+  .module('spinnaker.core.help.helpField.directive', [
+    require('./helpContents.js')
+  ])
   .directive('helpField', function (helpContents) {
     return {
       restrict: 'E',
-      templateUrl: require('./helpField.html'),
+      templateUrl: require('./helpField.directive.html'),
       scope: {
         key: '@',
         fallback: '@',

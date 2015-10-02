@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('./infrastructureSearch.service.js'),
   require('../../core/history/recentHistory.service.js'),
   require('../searchResult/searchResult.directive.js'),
-  require('../../pageTitle/pageTitleService.js'),
+  require('../../core/pageTitle/pageTitle.service.js'),
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
 ])

@@ -2,7 +2,10 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.pageTitle', [require('angular-ui-router')])
+module.exports = angular
+  .module('spinnaker.core.pageTitle.service',
+    [require('angular-ui-router')]
+  )
   .factory('pageTitleService', function($rootScope, $stateParams) {
 
     function handleRoutingStart() {
@@ -27,7 +30,6 @@ module.exports = angular.module('spinnaker.pageTitle', [require('angular-ui-rout
       $rootScope.routing = false;
       $rootScope.pageTitle = title;
     }
-
 
     function resolveStateParams(config) {
       if (!config) {

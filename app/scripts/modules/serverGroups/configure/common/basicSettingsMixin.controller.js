@@ -8,7 +8,7 @@ module.exports = angular
     require('angular-ui-router'),
     require('../../../utils/rx.js'),
     require('../../../utils/lodash.js'),
-    require('../../../naming/naming.service.js'),
+    require('../../../core/naming/naming.service.js'),
     require('../../../image/image.reader.js')
   ])
   .controller('BasicSettingsMixin', function ($scope, RxService, imageReader, namingService, $modalStack, $state, _) {

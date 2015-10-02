@@ -5,7 +5,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cluster.service', [
-  require('../naming/naming.service.js'),
+  require('../core/naming/naming.service.js'),
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../utils/lodash.js'),
   require('../serverGroups/serverGroup.transformer.js'),

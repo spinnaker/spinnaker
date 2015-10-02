@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.loadBalancer.read.service', [
-    require('../naming/naming.service.js'),
+    require('../core/naming/naming.service.js'),
     require('../caches/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
   ])
