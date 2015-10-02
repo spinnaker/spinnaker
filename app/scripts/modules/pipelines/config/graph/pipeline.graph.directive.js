@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
          *  - does not set phase, position, or create links between nodes
          */
         function createNodes() {
-          var triggersNode = {
+          var configNode = {
               name: 'Configuration',
               phase: 0,
               id: -1,
@@ -86,10 +86,11 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
               children: [],
               parentLinks: [],
               childLinks: [],
+              root: true,
               isActive: scope.viewState.section === 'triggers',
               isHighlighted: false,
             },
-            nodes = [triggersNode];
+            nodes = [configNode];
 
           scope.pipeline.stages.forEach(function(stage, idx) {
             var node = {
@@ -106,7 +107,7 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
               isHighlighted: false,
             };
             if (!node.parentIds.length) {
-              node.parentIds.push(triggersNode.id);
+              node.parentIds.push(configNode.id);
             }
             nodes.push(node);
           });
@@ -156,6 +157,7 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
             nodes.forEach(function(node) {
               node.children = _.uniq(node.children);
               node.parents = _.uniq(node.parents);
+              node.leaf = node.children.length === 0;
             });
 
             var grouped = _.groupBy(nodes, 'phase');

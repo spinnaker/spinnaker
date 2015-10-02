@@ -13,8 +13,24 @@
             ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
             ng-click="nodeClicked(node)"></circle>
 
+    <rect ng-if="node.root"
+          ng-attr-width="{{nodeRadius}}"
+          ng-attr-height="{{nodeRadius*2}}"
+          ng-attr-transform="translate({{nodeRadius*-1}},{{nodeRadius*-1}})"
+          class="clickable"
+          ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+          ng-click="nodeClicked(node)"></rect>
+
+    <rect ng-if="node.leaf"
+          ng-attr-width="{{nodeRadius}}"
+          ng-attr-height="{{nodeRadius*2}}"
+          ng-attr-transform="translate(0,{{nodeRadius*-1}})"
+          class="clickable"
+          ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
+          ng-click="nodeClicked(node)"></rect>
+
     <foreignobject ng-attr-width="{{maxLabelWidth}}" height="100"
-                   ng-attr-transform="translate({{labelOffsetX}}, -{{labelOffsetY}})">
+                   ng-attr-transform="translate({{labelOffsetX}}, {{node.leaf ? -8 : labelOffsetY*-1}})">
         <div class="label-body node"
              ng-mouseenter="highlight(node)" ng-mouseleave="removeHighlight(node)"
              ng-click="nodeClicked(node)"><a href>{{node.name}}</a></div>
