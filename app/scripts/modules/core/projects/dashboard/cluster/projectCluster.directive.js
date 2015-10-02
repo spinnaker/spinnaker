@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   require('../../../../navigation/urlBuilder.service.js'),
   require('../../../../cluster/clusterService.js'),
   require('../../../../utils/lodash.js'),
-  require('../../../../caches/collapsibleSectionStateCache.js'),
+  require('../../../../core/cache/collapsibleSectionStateCache.js'),
   require('../../../../scheduler/scheduler.service.js'),
   require('../../../../core/naming/naming.service.js'),
 ])

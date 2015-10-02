@@ -25,7 +25,7 @@ describe('Directives: regionSelectField', function () {
   beforeEach(function() {
     window.module(
       require('./regionSelectField.directive.js'),
-      require('../caches/cacheInitializer.js'),
+      require('../core/cache/cacheInitializer.js'),
       function($provide) {
         $provide.decorator('cacheInitializer', function() {
           return {

@@ -6,8 +6,8 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
   require('./executionsService.js'),
   require('../pipelines/config/services/pipelineConfigService.js'),
   require('../utils/scrollTo/scrollTo.service.js'),
-  require('../caches/collapsibleSectionStateCache.js'),
-  require('../caches/viewStateCache.js'),
+  require('../core/cache/collapsibleSectionStateCache.js'),
+  require('../core/cache/viewStateCache.js'),
 ])
   .controller('pipelineExecutions', function($scope, $state,
                                              pipelineConfigService, scrollToService, executionsService,

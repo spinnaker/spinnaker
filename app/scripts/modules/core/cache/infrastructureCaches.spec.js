@@ -1,6 +1,6 @@
 'use strict';
 
-describe('spinnaker.caches.infrastructure', function() {
+describe('spinnaker.core.cache.infrastructure', function() {
 
   var infrastructureCaches, deckCacheFactory;
 

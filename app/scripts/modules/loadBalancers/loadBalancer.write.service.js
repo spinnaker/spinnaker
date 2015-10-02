@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.loadBalancer.write.service', [
     require('../utils/lodash.js'),
     require('../tasks/taskExecutor.js'),
-    require('../caches/infrastructureCaches.js'),
+    require('../core/cache/infrastructureCaches.js'),
   ])
   .factory('loadBalancerWriter', function(_, infrastructureCaches, taskExecutor) {
 

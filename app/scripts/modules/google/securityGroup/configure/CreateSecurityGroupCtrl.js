@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.securityGroup.create.controller', [
   require('angular-ui-router'),
   require('../../../account/account.service.js'),
-  require('../../../caches/infrastructureCaches.js'),
-  require('../../../caches/cacheInitializer.js'),
+  require('../../../core/cache/infrastructureCaches.js'),
+  require('../../../core/cache/cacheInitializer.js'),
   require('../../../tasks/monitor/taskMonitorService.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
 ])

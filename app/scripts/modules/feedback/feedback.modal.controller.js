@@ -2,7 +2,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.feedback.modal.controller', [
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
   require('../authentication/authenticationService.js'),
   require('../config/settings.js'),
 ])

@@ -4,7 +4,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.delivery.executions.service', [
   require('angular-ui-router'),
   require('../scheduler/scheduler.service.js'),
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
   require('../utils/appendTransform.js'),
   require('./executions.transformer.service.js')
 ])

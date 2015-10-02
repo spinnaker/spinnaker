@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 /* jshint newcap: false */
-module.exports = angular.module('spinnaker.caches.viewStateCache', [
+module.exports = angular.module('spinnaker.core.cache.viewStateCache', [
   require('./deckCacheFactory.js'),
 
 ]).factory('viewStateCache', function(deckCacheFactory) {

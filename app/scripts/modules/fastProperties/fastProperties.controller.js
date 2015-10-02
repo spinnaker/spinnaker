@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.fastProperties.controller', [
     require('../applications/applications.read.service.js'),
-    require('../caches/deckCacheFactory.js'),
+    require('../core/cache/deckCacheFactory.js'),
   ])
   .controller('FastPropertiesController', function ($filter, applicationReader, settings) {
     var vm = this;

@@ -4,7 +4,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.whatsNew.read.service', [
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
   require('../config/settings.js')
 ])
   .factory('whatsNewReader', function ($http, settings, $log) {

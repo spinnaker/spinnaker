@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../subnet/subnet.read.service.js'),
   require('../../keyPairs/keyPairs.read.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
-  require('../../../caches/cacheInitializer.js'),
+  require('../../../core/cache/cacheInitializer.js'),
   require('../../../utils/lodash.js'),
 ])
   .factory('awsServerGroupConfigurationService', function($q, awsImageReader, accountService, securityGroupReader,

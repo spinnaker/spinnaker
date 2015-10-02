@@ -10,7 +10,7 @@ module.exports = angular
     require('../loadBalancers/loadBalancer.read.service.js'),
     require('../loadBalancers/loadBalancer.transformer.js'),
     require('../securityGroups/securityGroup.read.service.js'),
-    require('../caches/infrastructureCaches.js'),
+    require('../core/cache/infrastructureCaches.js'),
     require('../scheduler/scheduler.service.js'),
     require('../delivery/executionsService.js'),
   ])

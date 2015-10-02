@@ -5,12 +5,12 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.tasks.main', [
   require('../utils/lodash.js'),
   require('./taskProgressBar.directive.js'),
-  require('../caches/viewStateCache.js'),
+  require('../core/cache/viewStateCache.js'),
   require('../tasks/tasks.write.service.js'),
   require('../confirmationModal/confirmationModal.service.js'),
   require('../pipelines/config/stages/core/displayableTasks.filter.js'),
   require('angular-ui-router'),
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
 ])
   .controller('TasksCtrl', function ($scope, $state, settings, app, _, viewStateCache, tasksWriter, confirmationModalService) {
     var controller = this;

@@ -30,7 +30,7 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./stageFailureMessage/stageFailureMessage.directive.js'),
   require('./manualPipelineExecution.controller.js'),
 
-  require('../caches/deckCacheFactory.js'),
+  require('../core/cache/deckCacheFactory.js'),
   require('../utils/appendTransform.js'),
   require('../utils/lodash.js'),
   require('../utils/moment.js'),

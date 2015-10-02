@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches.core', [
+module.exports = angular.module('spinnaker.core.cache.deckCacheFactory', [
   require('angular-cache'),
 ])
 .factory('deckCacheFactory', function(CacheFactory, $log) {

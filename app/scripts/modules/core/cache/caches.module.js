@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches', [
+module.exports = angular.module('spinnaker.core.cache', [
     require('./deckCacheFactory.js'),
     require('./cacheInitializer.js'),
     require('./collapsibleSectionStateCache.js'),

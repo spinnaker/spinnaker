@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches.infrastructure.config', [])
+module.exports = angular.module('spinnaker.core.cache.infrastructure.config', [])
   .constant('infrastructureCacheConfig', {
     credentials: {
       version: 2,

@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
   require('../utils/lodash.js'),
   require('../pipelines/config/services/pipelineConfigService.js'),
   require('./executionsService.js'),
-  require('../caches/collapsibleSectionStateCache.js'),
+  require('../core/cache/collapsibleSectionStateCache.js'),
   require('./manualPipelineExecution.controller.js'),
   require('../confirmationModal/confirmationModal.service.js'),
 ])

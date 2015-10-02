@@ -15,7 +15,7 @@ module.exports = angular
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
     require('../../../pipelines/config/services/pipelineConfigService.js'),
     require('../../../utils/scrollTo/scrollTo.service.js'),
-    require('../../../caches/cacheInitializer.js'),
+    require('../../../core/cache/cacheInitializer.js'),
   ])
   .directive('pipelineMigrator', function () {
     return {

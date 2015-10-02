@@ -2,16 +2,16 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.caches.initializer', [
-  require('../account/account.service.js'),
-  require('../network/network.read.service.js'),
-  require('../securityGroups/securityGroup.read.service.js'),
-  require('../applications/applications.read.service.js'),
-  require('../jenkins/igor.service.js'),
+module.exports = angular.module('spinnaker.core.cache.initializer', [
+  require('../../account/account.service.js'),
+  require('../../network/network.read.service.js'),
+  require('../../securityGroups/securityGroup.read.service.js'),
+  require('../../applications/applications.read.service.js'),
+  require('../../jenkins/igor.service.js'),
   require('./infrastructureCaches.js'),
   require('./infrastructureCacheConfig.js'),
-  require('../utils/lodash.js'),
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('../../utils/lodash.js'),
+  require('../cloudProvider/cloudProvider.registry.js'),
 ])
   .factory('cacheInitializer', function ($q, applicationReader, infrastructureCaches,
                                          accountService, securityGroupReader, cloudProviderRegistry,

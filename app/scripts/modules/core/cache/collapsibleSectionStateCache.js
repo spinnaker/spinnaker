@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 /* jshint newcap: false */
-module.exports = angular.module('spinnaker.caches.collapsibleSectionState', [
+module.exports = angular.module('spinnaker.core.cache.collapsibleSectionState', [
   require('angular-cache'),
 ])
   .factory('collapsibleSectionStateCache', function(CacheFactory) {
