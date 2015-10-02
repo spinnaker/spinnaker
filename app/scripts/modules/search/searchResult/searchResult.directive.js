@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.search.searchResult.directive', [
-    require('../../account/accountTag.directive.js')
+    require('../../core/account/accountTag.directive.js')
   ])
   .directive('searchResult', function () {
     return {

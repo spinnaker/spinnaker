@@ -5,7 +5,6 @@ describe('awsServerGroupCommandBuilder', function() {
 
   beforeEach(
     window.module(
-      require('../../../account/account.service'),
       require('./serverGroupCommandBuilder.service.js')
     )
   );

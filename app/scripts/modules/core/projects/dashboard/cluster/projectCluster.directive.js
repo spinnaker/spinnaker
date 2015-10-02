@@ -5,7 +5,7 @@ let angular = require('angular');
 require('./projectCluster.less');
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
-  require('../../../../account/collapsibleAccountTag.directive.js'),
+  require('../../../../core/account/collapsibleAccountTag.directive.js'),
   require('../../../../navigation/urlBuilder.service.js'),
   require('../../../../cluster/clusterService.js'),
   require('../../../../utils/lodash.js'),

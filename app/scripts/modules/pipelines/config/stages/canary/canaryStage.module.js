@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary', [
   require('./canaryStage.transformer.js'),
   require('./canaryScore.directive.js'),
   require('./canaryStatus.directive.js'),
-  require('../../../../account/account.service.js'),
+  require('../../../../core/account/account.service.js'),
   require('../../../../core/naming/naming.service.js')
 ])
   .run(function(pipelineConfig, canaryStageTransformer) {

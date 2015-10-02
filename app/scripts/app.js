@@ -145,7 +145,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
-    require('./modules/account/accountLabelColor.directive.js'),
+    require('./modules/core/account/accountLabelColor.directive.js'),
     require('./modules/core/history/recentHistory.service.js'),
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings, recentHistoryService) {

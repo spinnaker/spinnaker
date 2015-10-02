@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.cache.initializer', [
-  require('../../account/account.service.js'),
+  require('../../core/account/account.service.js'),
   require('../../network/network.read.service.js'),
   require('../../securityGroups/securityGroup.read.service.js'),
   require('../../core/application/service/applications.read.service.js'),

@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.controller', [
-  require('../../../../account/account.service.js'),
+  require('../../../../core/account/account.service.js'),
   require('./elasticIp.write.service.js'),
   require('../../../../tasks/monitor/taskMonitorService.js')
 ])

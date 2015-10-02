@@ -20,7 +20,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.gce.details.controller', [
   require('angular-ui-router'),
-  require('../../../account/account.service.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../securityGroups/securityGroup.write.service.js'),
   require('../../../confirmationModal/confirmationModal.service.js'),

@@ -8,7 +8,7 @@ module.exports = angular
     require('../service/applications.write.service.js'),
     require('../service/applications.read.service.js'),
     require('../../../utils/lodash.js'),
-    require('../../../account/account.service.js'),
+    require('../../../core/account/account.service.js'),
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $modalInstance, accountService, applicationWriter, applicationReader, _) {
     var vm = this;

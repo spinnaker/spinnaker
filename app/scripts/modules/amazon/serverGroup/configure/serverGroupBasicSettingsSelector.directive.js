@@ -6,7 +6,7 @@ module.exports = angular
   .module('spinnaker.serverGroup.configure.aws.awsServerGroupBasicSettingsSelector', [
     require('../../../serverGroups/configure/common/basicSettingsMixin.controller.js'),
     require('../../../region/regionSelectField.directive.js'),
-    require('../../../account/accountSelectField.directive.js'),
+    require('../../../core/account/accountSelectField.directive.js'),
     require('../../subnet/subnetSelectField.directive.js'),
   ])
   .directive('awsServerGroupBasicSettingsSelector', function() {

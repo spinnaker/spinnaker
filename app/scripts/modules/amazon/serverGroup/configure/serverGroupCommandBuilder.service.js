@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
-  require('../../../account/account.service.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../diff/diff.service.js'),
   require('../../subnet/subnet.read.service.js'),
   require('../../../instance/instanceTypeService.js'),
