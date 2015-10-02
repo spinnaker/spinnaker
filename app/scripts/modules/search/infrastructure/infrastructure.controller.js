@@ -8,6 +8,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   require('../searchResult/searchResult.directive.js'),
   require('../../pageTitle/pageTitleService.js'),
   require('./project/infrastructureProject.directive.js'),
+  require('../searchRank.filter.js'),
 ])
   .controller('InfrastructureCtrl', function($scope, infrastructureSearchService, $stateParams, $location, searchService,
                                              pageTitleService, _, recentHistoryService, $modal, $state) {

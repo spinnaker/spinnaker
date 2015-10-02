@@ -25,7 +25,7 @@
     <li ng-repeat-start="category in categories | orderBy: 'order'" class="category-heading">
       <div class="category-heading">{{ category.category }}</div>
     </li>
-    <li ng-repeat="result in category.results.slice(0,5)"
+    <li ng-repeat="result in category.results.slice(0,5) | searchRank: query"
         ng-repeat-end
         ng-mouseover="ctrl.focussedResult = result"
         class="result">

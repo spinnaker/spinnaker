@@ -76,7 +76,7 @@
               <div class="summary">{{ category.category }} ({{category.results.length}})</div>
               <div class="details-container list-group">
                 <a class="list-group-item"
-                   ng-repeat="result in category.results"
+                   ng-repeat="result in category.results | searchRank: query"
                    href="{{ result.href }}">
                   <search-result item="result"></search-result>
                 </a>
