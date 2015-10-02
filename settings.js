@@ -109,5 +109,6 @@ window.spinnakerSettings = {
     parallelPipelines: true,
     fastProperty: true,
     vpcMigrator: true,
+    clusterDiff: true,
   },
 };
