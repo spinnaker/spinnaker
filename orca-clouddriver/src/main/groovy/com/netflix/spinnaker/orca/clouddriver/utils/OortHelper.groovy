@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.converter.ConversionException
+import retrofit.converter.JacksonConverter
 
 /**
  * Helper methods for filtering Cluster/ASG/Instance information from Oort
@@ -31,6 +35,24 @@ class OortHelper {
 
   @Autowired
   ObjectMapper objectMapper
+
+  Optional<Map> getCluster(String application, String account, String cluster, String type) {
+    Response r
+    try {
+      r = oortService.getCluster(application, account, cluster, type)
+    } catch (RetrofitError re) {
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+        return Optional.empty()
+      }
+      throw re
+    }
+    JacksonConverter converter = new JacksonConverter(objectMapper)
+    try {
+      return Optional.of((Map) converter.fromBody(r.body, Map))
+    } catch (ConversionException ce) {
+      throw RetrofitError.conversionError(r.url, r, converter, Map, ce)
+    }
+  }
 
   Map getInstancesForCluster(Map context, String expectedAsgName = null, boolean expectOneAsg = false, boolean failIfAnyInstancesUnhealthy = false) {
     // infer the app from the cluster prefix since this is used by quip and we want to be able to quick patch different apps from the same pipeline
