@@ -129,4 +129,8 @@ module.exports = angular.module('spinnaker.delivery.pipelineExecutions.controlle
     $scope.$on('executions-reloaded', updateExecutions);
     $scope.$watch('filter', cacheViewState, true);
 
+    this.toggleExpansion = (expand) => {
+      $scope.$broadcast('toggle-expansion', expand);
+    };
+
   }).name;

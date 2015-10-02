@@ -81,6 +81,12 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
         }
       }).result.then(startPipeline);
     };
+
+    $scope.$on('toggle-expansion', (event, expanded) => {
+      if ($scope.viewState.open !== expanded) {
+        controller.toggle();
+      }
+    });
   })
   .name;
 
