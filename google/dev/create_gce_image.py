@@ -235,10 +235,10 @@ Try something like:
         --metadata=startup-script=/opt/spinnaker/install/first_time_boot.sh \\
         --metadata-from-file=\\
   spinnaker_config=$SPINNAKER_CONFIG_PATH,\\
-  managed_project_credentials=$GOOGLE_JSON_CREDENTIALS_PATH
+  managed_project_credentials=$GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH
 
   You can leave off the managed_project_credentials metadata if
-  $SPINNAKER_PROJECT is the same as the GOOGLE_MANAGED_PROJECT_ID
+  $SPINNAKER_PROJECT is the same as the GOOGLE_PRIMARY_MANAGED_PROJECT_ID
   in the spinnaker_config.
 """.format(
     image=get_target_image(options),

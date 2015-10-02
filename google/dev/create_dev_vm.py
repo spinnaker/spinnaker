@@ -205,12 +205,12 @@ def copy_master_config(options):
                          stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     p.communicate()
 
-    # Extract out right hand side of GOOGLE_JSON_CREDENTIAL_PATH if any.
+    # Extract out right hand side of GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH if any.
     # Replace ~ with $HOME to get the actual path.
     with open(options.master_config, 'r') as f:
         content = f.read()
 
-    match = re.search(r'(?m)^GOOGLE_JSON_CREDENTIAL_PATH=(.*)$', content)
+    match = re.search(r'(?m)^GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=(.*)$', content)
     if match:
        json_credential_path = match.groups()[0].replace('~', os.environ['HOME'])
        json_credential_path = json_credential_path.replace(
@@ -234,7 +234,7 @@ def copy_master_config(options):
        target_location = '/home/{gcp_user}/.spinnaker/credentials.json'.format(
            gcp_user=gcp_user)
 
-       content = re.sub('(?m)(GOOGLE_JSON_CREDENTIAL_PATH=).*',
+       content = re.sub('(?m)(GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=).*',
                         r'\1{path}'.format(path=target_location),
                         content)
        fd, temp_path = tempfile.mkstemp()

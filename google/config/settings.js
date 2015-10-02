@@ -10,12 +10,12 @@ window.spinnakerSettings = {
   providers: {
     gce: {
       defaults: {
-        account: '$GOOGLE_ACCOUNT_NAME',
+        account: '$GOOGLE_PRIMARY_ACCOUNT_NAME',
         region: 'us-central1',
         zone: 'us-central1-f',
       },
-      primaryAccounts: ['$GOOGLE_ACCOUNT_NAME'],
-      challengeDestructiveActions: ['$GOOGLE_ACCOUNT_NAME'],
+      primaryAccounts: ['$GOOGLE_PRIMARY_ACCOUNT_NAME'],
+      challengeDestructiveActions: ['$GOOGLE_PRIMARY_ACCOUNT_NAME'],
     },
     aws: {
       defaults: {

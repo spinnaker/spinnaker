@@ -192,43 +192,46 @@ class ValidateConfig(object):
     gce_project_with_domain_regex = ('^[a-z]+\.[a-z]+'
                                      ':[a-z]([-a-z0-9]{0,61}[a-z0-9])?$')
     managed_project_id = self.__bindings.get_variable(
-        'GOOGLE_MANAGED_PROJECT_ID', '')
+        'GOOGLE_PRIMARY_MANAGED_PROJECT_ID', '')
     ok = True
     if not managed_project_id:
       if not project_id:
         self.__errors.append(
-            'GOOGLE_MANAGED_PROJECT_ID is not set, and it does not appear that'
-            ' you are running in a Google Cloud Platform project to default to.')
+            'GOOGLE_PRIMARY_MANAGED_PROJECT_ID is not set, and it does not appear'
+            ' that you are running in a Google Cloud Platform project to'
+            ' to use as the default.')
         ok = False
     else:
       if (not re.match(gce_name_regex, managed_project_id)
           and not re.match(gce_project_with_domain_regex, managed_project_id)):
         ok = False
         self.__errors.append(
-            'GOOGLE_MANAGED_PROJECT_ID="{id}" does not look like {regex}.'
+            'GOOGLE_PRIMARY_MANAGED_PROJECT_ID="{id}" does not look like {regex}.'
             .format(id=managed_project_id, regex=gce_name_regex))
       if managed_project_id != project_id:
-        path = self.__bindings.get_variable('GOOGLE_JSON_CREDENTIAL_PATH', '')
+        path = self.__bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH',
+                                            '')
         if not path:
           ok = False
           self.__errors.append(
-              'GOOGLE_JSON_CREDENTIAL_PATH is required because'
-              ' GOOGLE_MANAGED_PROJECT_ID="{mid}" is not this project "{pid}".'
+              'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH is required because'
+              ' GOOGLE_PRIMARY_MANAGED_PROJECT_ID="{mid}"'
+              ' is not this project "{pid}".'
               .format(mid=managed_project_id, pid=project_id))
         elif not os.path.exists(path):
           ok = False
           self.__errors.append(
-              'GOOGLE_JSON_CREDENTIAL_PATH="{path}" does not exist.'
+              'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH="{path}" does not exist.'
               .format(path=path))
 
     # Verify account name.
-    account_name = self.__bindings.get_variable('GOOGLE_ACCOUNT_NAME', '')
+    account_name = self.__bindings.get_variable('GOOGLE_PRIMARY_ACCOUNT_NAME', '')
     account_name_regex = '^[-_a-zA-Z0-9]+$'
 
     if not re.match(account_name_regex, account_name):
       ok = False
       self.__errors.append(
-          'GOOGLE_ACCOUNT_NAME="{value}" does not look like {regex}.'
+          'GOOGLE_PRIMARY_ACCOUNT_NAME="{value}" does not look like {regex}.'
           .format(value=account_name, regex=account_name_regex))
     return ok
 
@@ -293,7 +296,7 @@ class ValidateConfig(object):
 
   def verify_security(self):
     ok = self.verify_user_access_only(
-      self.__bindings.get_variable('GOOGLE_JSON_CREDENTIAL_PATH', ''))
+      self.__bindings.get_variable('GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', ''))
     ok = self.verify_user_access_only(
         os.path.join(self.__config_dir, 'spinnaker_config.cfg')) and ok
     return ok

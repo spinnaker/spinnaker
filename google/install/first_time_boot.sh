@@ -130,9 +130,9 @@ function extract_spinnaker_credentials() {
   # Remove the old line, if one existed, and replace it with a new one.
   # This way it does not matter whether the user supplied it or not
   # (and might have had it point to something client side).
-  sed -i -e '/^GOOGLE_JSON_CREDENTIAL_PATH=/d' \
+  sed -i -e '/^GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=/d' \
       "$CONFIG_DIR/spinnaker_config.cfg"
-  echo "GOOGLE_JSON_CREDENTIAL_PATH=$json_path" \
+  echo "GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH=$json_path" \
       >> "$CONFIG_DIR/spinnaker_config.cfg"
 }
 

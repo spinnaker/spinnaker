@@ -124,11 +124,11 @@ class Bindings(dict):
   def maybe_inject_primary_google_credentials(self):
     creds = self.__yaml_bindings.get('GOOGLE_CREDENTIALS_DECLARATION', [])
     primary_account = self.__variable_bindings.get(
-        'GOOGLE_ACCOUNT_NAME', '')
+        'GOOGLE_PRIMARY_ACCOUNT_NAME', '')
     primary_project = self.__variable_bindings.get(
-        'GOOGLE_MANAGED_PROJECT_ID', '')
+        'GOOGLE_PRIMARY_MANAGED_PROJECT_ID', '')
     primary_json = self.__variable_bindings.get(
-        'GOOGLE_JSON_CREDENTIAL_PATH', '')
+        'GOOGLE_PRIMARY_JSON_CREDENTIAL_PATH', '')
 
     for cred in creds:
       if cred['name'] == primary_account:
@@ -307,11 +307,12 @@ class ConfigureUtil(object):
           'true' if bindings.get_variable('JENKINS_ADDRESS', '') != ''
                  else 'false')
 
-    managed_project = bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', '')
+    managed_project = bindings.get_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
+                                            '')
     if not managed_project:
-      error_msg = ('GOOGLE_MANAGED_PROJECT_ID is required if you are'
+      error_msg = ('GOOGLE_PRIMARY_MANAGED_PROJECT_ID is required if you are'
                    ' not running on Google Compute Engine.')
-      bindings.set_variable('GOOGLE_MANAGED_PROJECT_ID',
+      bindings.set_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID',
                             fetch_my_project_or_die(error_msg))
 
     bindings.maybe_inject_primary_google_credentials()
