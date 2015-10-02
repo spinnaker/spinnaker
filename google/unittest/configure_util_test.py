@@ -248,8 +248,8 @@ declaration_c={c}
     self.assertEqual(5, len(bindings.variables))
     self.assertEqual('1', bindings.get_variable('VARIABLE_B', ''))
     self.assertEqual('false', bindings.get_variable('IGOR_ENABLED', ''))
-    self.assertNotEqual('',
-                        bindings.get_variable('GOOGLE_MANAGED_PROJECT_ID', ''))
+    self.assertNotEqual(
+        '', bindings.get_variable('GOOGLE_PRIMARY_MANAGED_PROJECT_ID', ''))
 
 
 if __name__ == '__main__':

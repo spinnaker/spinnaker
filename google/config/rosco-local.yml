@@ -14,7 +14,7 @@ google:
   enabled: $GOOGLE_ENABLED
   gce:
     bakeryDefaults:
-      project: $GOOGLE_MANAGED_PROJECT_ID
+      project: $GOOGLE_PRIMARY_MANAGED_PROJECT_ID
 
 rush:
-  credentials: $GOOGLE_ACCOUNT_NAME
+  credentials: $GOOGLE_PRIMARY_ACCOUNT_NAME
