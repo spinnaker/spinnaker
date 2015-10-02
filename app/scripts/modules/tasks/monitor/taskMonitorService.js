@@ -4,10 +4,9 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.monitor.service', [
   require('../../utils/lodash.js'),
-  require('exports?"angulartics"!angulartics'),
   require('./taskMonitor.directive.js'),
 ])
-  .factory('taskMonitorService', function($exceptionHandler, $analytics, _) {
+  .factory('taskMonitorService', function($exceptionHandler, _) {
 
     /**
      * Either provide an onApplicationRefresh method OR an onTaskComplete method in the params!
@@ -63,7 +62,6 @@ module.exports = angular.module('spinnaker.tasks.monitor.service', [
         monitor.error = true;
         monitor.errorMessage = monitor.task.failureMessage || monitor.task.lastKatoMessage || 'There was an unknown server error.';
         if (monitor.errorMessage === 'There was an unknown server error.') {
-          $analytics.eventTrack('Task Unknown Error:', {category: 'Task Error', label: JSON.stringify(task), noninteraction: true});
           debugger;
         }
         $exceptionHandler('Error with task:', monitor.task);

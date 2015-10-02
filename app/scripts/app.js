@@ -52,7 +52,6 @@ require('Select2');
 let angular = require('angular');
 
 require('bootstrap/dist/js/bootstrap.js');
-require('angulartics');
 
 // load all templates into the $templateCache
 var templates = require.context('../', true, /\.html$/);
@@ -64,7 +63,6 @@ module.exports = angular.module('spinnaker', [
     require('angular-sanitize'),
     require('angular-messages'),
     require('exports?"ui.select"!ui-select'),
-    require('exports?"angulartics"!angulartics'),
     require('exports?"cfp.hotkeys"!angular-hotkeys'),
     require('angular-animate'),
     require('angular-ui-router'),
@@ -99,7 +97,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/scheduler/scheduler.service.js'),
     require('./modules/clusterFilter/cluster.filter.module.js'),
     require('./modules/confirmationModal/confirmationModal.service.js'),
-    require('./modules/common/ajaxError.interceptor.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
     require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
     require('./modules/deploymentStrategy/strategies/none/none.strategy.module.js'),
@@ -147,6 +144,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/fastProperties/fastProperties.module.js'),
     require('./modules/core/account/accountLabelColor.directive.js'),
     require('./modules/core/history/recentHistory.service.js'),
+    require('./config.js'),
 ])
   .run(function($state, $rootScope, $log, $exceptionHandler, cacheInitializer, $modalStack, pageTitleService, settings, recentHistoryService) {
     // This can go away when the next version of ui-router is available (0.2.11+)
@@ -208,62 +206,10 @@ module.exports = angular.module('spinnaker', [
 
     $rootScope.feature = settings.feature;
   })
-  .config(function($animateProvider) {
-    $animateProvider.classNameFilter(/animated/);
-
-  })
-  .config(function ($logProvider, statesProvider ) {
-    statesProvider.setStates();
-    $logProvider.debugEnabled(true);
-  })
-  .config(function($modalProvider) {
-    $modalProvider.options.backdrop = 'static';
-    $modalProvider.options.keyboard = false;
-  })
-  .config(function($httpProvider){
-    $httpProvider.interceptors.push('ajaxErrorInterceptor');
-    $httpProvider.defaults.headers.patch = {
-      'Content-Type': 'application/json;charset=utf-8'
-    };
-  })
-  .config(require('./modules/core/uiSelect.decorator.js'))
-  //.config(function ($compileProvider) {
-  //  $compileProvider.debugInfoEnabled(false);
-  //})
-  .config(function(uiSelectConfig) {
-    uiSelectConfig.theme = 'select2';
-    uiSelectConfig.appendToBody = true;
-  })
-  .config(function($tooltipProvider) {
-    $tooltipProvider.options({
-      appendToBody: true
-    });
-    $tooltipProvider.setTriggers({
-      'mouseenter focus': 'mouseleave blur'
-    });
-  })
-  .config(function(RestangularProvider, settings) {
-    RestangularProvider.setBaseUrl(settings.gateUrl);
-  })
   .config(function() {
     /*eslint-disable */
     let clipboard = new Clipboard('.clipboard-btn');
     /*eslint-enable*/
-  })
-  .config(function($provide) {
-    $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
-      return function (exception, cause) {
-        try {
-          var action = 'msg: ' + exception.message + ' url: ' + window.location;
-          var label = exception.stack;
-
-          $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
-          $delegate(exception, cause);
-        } catch(e) {
-          // eat it to prevent an endless exception loop from happening
-        }
-      };
-    });
   })
   .config(function(hotkeysProvider) {
     hotkeysProvider.template =

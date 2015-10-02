@@ -8,7 +8,6 @@
           ng-model="query"
           ng-focus="ctrl.displayResults()"
           ng-keyup="ctrl.dispatchQueryInput($event)"
-          analytics-on="focus" analytics-category="Global Search" analytics-label="Focus"
           />
         <span class="glyphicon glyphicon-search form-control-feedback"   tooltip-html-unsafe="Keyboard shortcut: <span class='keyboard-key'>/</span>" tooltip-placement="right"></span>
       </div>
@@ -29,21 +28,18 @@
         ng-repeat-end
         ng-mouseover="ctrl.focussedResult = result"
         class="result">
-      <a ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)" href="{{ result.href }}" analytics-on="click"
-         analytics-category="Global Search"
+      <a ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)" href="{{ result.href }}"
          ng-class="{sublinked: result.sublinks}"
-         ng-focus="ctrl.focussedResult = result"
-         analytics-label="{{result.name}}">
+         ng-focus="ctrl.focussedResult = result">
         <search-result item="result"></search-result>
         <span class="small" ng-if="result.sublinks && ctrl.focussedResult === result">- {{result.sublinks[0].name}}</span>
       </a>
       <span class="small sublink-label" ng-if="result.sublinks && ctrl.focussedResult === result">jump to: </span>
       <span class="sublink-label" ng-repeat-start="sublink in result.sublinks.slice(1)"
             ng-show="ctrl.focussedResult === result && $index > 0">|</span>
-      <a class="sublink small" analytics-on="click"
+      <a class="sublink small"
          ng-show="ctrl.focussedResult === result"
          ng-repeat-end
-         analytics-category="Global Search - sublink"
          ng-keydown="ctrl.navigateResults($event)" ng-click="ctrl.clearFilters(result)"
          href="{{ result.href + sublink.href }}">
         {{sublink.name}}
@@ -54,7 +50,7 @@
     <a href="#/infrastructure?q={{ query }}"
          class="expand-results"
          ng-keydown="ctrl.navigateResults($event)"
-         ng-show="categories.length" analytics-on="click" analytics-category="Global Search" analytics-label="See more results">
+         ng-show="categories.length">
            See more results
       </a>
     </li>
