@@ -4,10 +4,10 @@ var angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
-    'spinnaker.account.service',
-    'spinnaker.tasks.monitor.service',
-    'spinnaker.securityGroup.write.service',
-    'spinnaker.vpc.read.service',
+    require('../../../core/account/account.service.js'),
+    require('../../../tasks/monitor/taskMonitorService.js'),
+    require('../../../securityGroups/securityGroup.write.service.js'),
+    require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../utils/lodash.js'),
     require('../configure/configSecurityGroup.mixin.controller.js')
   ])

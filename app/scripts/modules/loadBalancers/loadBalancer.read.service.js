@@ -8,7 +8,7 @@ module.exports = angular
     require('../core/cache/infrastructureCaches.js'),
     require('./loadBalancer.transformer.js'),
   ])
-  .factory('loadBalancerReader', function ($q, Restangular, searchService, namingService,
+  .factory('loadBalancerReader', function ($q, Restangular, namingService,
                                            loadBalancerTransformer, infrastructureCaches) {
 
     function loadLoadBalancers(applicationName) {

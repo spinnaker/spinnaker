@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy', [
   require('./clusterName.filter.js'),
   require('../core/stage.core.module.js'),
   require('../../../../deploymentStrategy/deploymentStrategy.module.js'),
-  require('../../../../account/providerToggles.directive.js'),
+  require('../../../../core/account/providerToggles.directive.js'),
 ])
   .run(function(pipelineConfig, deployStageTransformer) {
     pipelineConfig.registerTransformer(deployStageTransformer);

@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.account.accountTag.directive', [
+module.exports = angular.module('spinnaker.core.account.accountTag.directive', [
 ])
   .directive('accountTag', function () {
     return {

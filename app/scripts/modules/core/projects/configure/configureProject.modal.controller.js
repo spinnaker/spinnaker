@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.projects.configure.modal.controller', [
   require('../service/project.write.service.js'),
   require('../service/project.read.service.js'),
-  require('../../../account/account.service.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../pipelines/config/services/pipelineConfigService.js'),
   require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 ])

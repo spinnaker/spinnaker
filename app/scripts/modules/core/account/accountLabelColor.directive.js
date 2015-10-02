@@ -3,24 +3,24 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.account.collapsibleAccountTag.directive', [
+  .module('spinnaker.core.account.accountLabelColor.directive', [
     require('./account.service.js'),
   ])
-  .directive('collapsibleAccountTag', function () {
+  .directive('accountLabelColor', function () {
     return {
       restrict: 'E',
-      templateUrl: require('./collapsibleAccountTag.directive.html'),
+      template: '<span class="account-tag account-tag-{{accountType}}">{{account}}</span>',
       scope: {
         account: '@',
-        provider: '@',
-        state: '=',
+        provider: '@'
       },
       controller: function ($scope, accountService) {
         const isProdAccount = accountService.challengeDestructiveActions($scope.provider, $scope.account);
         $scope.accountType = isProdAccount ? 'prod' : $scope.account;
-
-        $scope.getIcon = () => $scope.state.expanded ? 'down' : 'up';
       }
     };
   })
   .name;
+
+
+

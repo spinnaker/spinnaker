@@ -6,7 +6,7 @@ module.exports = angular.module('clusters.all', [
   require('../clusterFilter/clusterFilterService.js'),
   require('../clusterFilter/clusterFilterModel.js'),
   require('./clusterPod.directive.js'),
-  require('../account/account.module.js'),
+  require('../core/account/account.module.js'),
   require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
   require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
   require('../filterModel/filter.tags.directive.js'),

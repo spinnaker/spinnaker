@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
   require('../../../loadBalancers/loadBalancer.write.service.js'),
   require('../../../loadBalancers/loadBalancer.read.service.js'),
-  require('../../../account/account.service.js'),
+  require('../../../core/account/account.service.js'),
   require('../loadBalancer.transformer.js'),
   require('../../../core/modal/wizard/modalWizard.service.js'),
   require('../../../tasks/monitor/taskMonitorService.js'),
