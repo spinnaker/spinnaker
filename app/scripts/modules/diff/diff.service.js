@@ -39,7 +39,8 @@ module.exports = angular.module('spinnaker.diff.service', [
           };
         })
         .filter((attributeGroup) => {
-          return attributeGroup.commonSecurityGroups && !_.isEqual(attributeGroup.commonSecurityGroups, securityGroups);
+          return attributeGroup.commonSecurityGroups && !_.isEqual(attributeGroup.commonSecurityGroups.sort(),
+              securityGroups.sort());
         })
         .map((attributeGroup) => {
           return {
