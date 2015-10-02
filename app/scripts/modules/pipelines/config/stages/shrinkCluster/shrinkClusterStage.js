@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.shrinkClusterStage', 
       controller: 'ShrinkClusterStageCtrl',
       controllerAs: 'shrinkClusterStageCtrl',
       templateUrl: require('./shrinkClusterStage.html'),
+      executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
       validators: [
         {
           type: 'requiredField',
