@@ -253,6 +253,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
     function transformStageSummary(summary) {
       summary.stages = flattenAndFilter(summary);
       summary.stages.forEach(transformStage);
+      summary.stages.forEach((stage) => delete stage.stages);
       summary.masterStageIndex = summary.stages.indexOf(summary.masterStage) === -1 ? 0 : summary.stages.indexOf(summary.masterStage);
       transformStage(summary);
       styleStage(summary);
