@@ -7,6 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.search.global.controller', [
   require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
+  require('../searchRank.filter.js'),
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, $window, infrastructureSearchService, ClusterFilterModel, $stateParams, _, $, clusterFilterService) {
     var ctrl = this;
