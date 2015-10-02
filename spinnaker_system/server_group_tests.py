@@ -323,7 +323,7 @@ class ServerGroupIntegrationTest(st.AgentTestCase):
   def test_h_destroy_server_group_v001(self):
     self.run_test_case(self.scenario.destroy_server_group('v001'))
 
-  def test_i_delete_load_balancer(self):
+  def test_z_delete_load_balancer(self):
     self.run_test_case(self.scenario.delete_load_balancer())
 
 
