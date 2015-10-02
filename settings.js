@@ -1,7 +1,7 @@
 'use strict';
 
 let feedbackUrl = process.env.FEEDBACK_URL || 'http://hootch.test.netflix.net/submit';
-let gateHost = process.env.API_HOST || 'spinnaker-api-prestaging.prod.netflix.net';
+let gateHost = process.env.API_HOST || 'spinnaker-api.prod.netflix.net';
 let bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || 'http://bakery.test.netflix.net/#/?region={{context.region}}&package={{context.package}}&detail=bake:{{context.status.resourceId}}';
 let authEndpoint = process.env.AUTH_ENDPOINT || 'spinnaker-api-prestaging.prod.netflix.net/auth/info';
 

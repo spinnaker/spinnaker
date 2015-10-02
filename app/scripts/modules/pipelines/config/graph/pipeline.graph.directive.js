@@ -321,10 +321,10 @@ module.exports = angular.module('spinnaker.pipelines.config.graph.directive', [
 
         scope.$watch('pipeline', updateGraph, true);
         scope.$watch('viewState', updateGraph, true);
-        $($window).bind('resize.pipelineGraph-' + scope.pipeline.name, handleWindowResize);
+        $($window).bind('resize.pipelineGraph-' + scope.pipeline.id, handleWindowResize);
 
         scope.$on('$destroy', function() {
-          $($window).unbind('resize.pipelineGraph-' + scope.pipeline.name);
+          $($window).unbind('resize.pipelineGraph-' + scope.pipeline.id);
         });
 
       },
