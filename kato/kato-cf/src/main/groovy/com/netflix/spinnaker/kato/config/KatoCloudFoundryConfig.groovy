@@ -46,7 +46,7 @@ class KatoCloudFoundryConfig {
   // TODO Add other critical beans needed at the top (cloudfoundry beans?)
 
   @Bean
-  CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties() {
+  CloudFoundryConfigurationProperties cfConfigurationProperties() {
     new CloudFoundryConfigurationProperties();
   }
 
@@ -74,14 +74,14 @@ class KatoCloudFoundryConfig {
 
   static class CloudFoundryCredentialsInitializer {
     @Autowired
-    CloudFoundryConfigurationProperties cloudFoundryConfigurationProperties
+    CloudFoundryConfigurationProperties cfConfigurationProperties
 
     @Autowired
     AccountCredentialsRepository accountCredentialsRepository
 
     @PostConstruct
     void init() {
-      cloudFoundryConfigurationProperties?.accounts?.each { account ->
+      cfConfigurationProperties?.accounts?.each { account ->
         accountCredentialsRepository?.save(account.name, account)
       }
     }

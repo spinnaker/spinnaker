@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2014-2015 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.netflix.spinnaker.oort.documentation.Nullable
  * known applications.
  *
  * @author Dan Woods
+ * @author Greg Turnquist
  */
 interface ApplicationProvider {
   /**
@@ -32,7 +33,7 @@ interface ApplicationProvider {
    * @return a set of applications or an empty set if none are known to this provider
    */
   @Empty
-  Set<Application> getApplications()
+  Set<? extends Application> getApplications()
 
   /**
    * Looks up a particular application by name
