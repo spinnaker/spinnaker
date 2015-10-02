@@ -3,7 +3,6 @@
 let gateHost = 'localhost:8084';
 
 window.spinnakerSettings = {
-  feedbackUrl: feedbackUrl,
   gateUrl: `http://${gateHost}`,
   bakeryDetailUrl: 'http://localhost:8087/api/v1/global/logs/{{context.status.id}}?html=true',
   pollSchedule: 30000,
