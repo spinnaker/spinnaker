@@ -7,12 +7,21 @@
         Pipeline Executions
       </a>
     </div>
-    <div class="col-md-7 text-right">
+    <div class="col-md-4 text-center">
       <p class="form-control-static">
         <strong>Tip:</strong>
         Pipelines are sortable - just drag them into the desired position.
       </p>
     </div>
+    <div class="col-md-3 text-right">
+      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(true)" tooltip="expand all">
+        <span class="glyphicon glyphicon-plus"></span>
+      </a>
+      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(false)" tooltip="collapse all">
+        <span class="glyphicon glyphicon-minus"></span>
+      </a>
+    </div>
+
   </div>
   <div class="row" ng-if="application.pipelines.length">
     <div class="row">
