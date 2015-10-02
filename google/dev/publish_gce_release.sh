@@ -103,7 +103,7 @@ function process_args() {
            shift
            ;;
          *)
-           echo "ERROR: Unknown argument '$1'"
+           echo "ERROR: Unknown argument '$key'"
            exit -1
       esac
   done

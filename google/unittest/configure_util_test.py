@@ -64,6 +64,19 @@ CREDENTIALS_LIST = [
      'jsonPath': '/test/path/credentials'}]
 
 
+CONSTRAINED_CREDENTIALS_CONFIG_DATA="""
+@GOOGLE_CREDENTIALS=test-nopath-account:google.com:test-project:
+@GOOGLE_CREDENTIALS=test-full-account:google.com:test-project:/test/path/credentials
+"""
+
+CONSTRAINED_CREDENTIALS_LIST = [
+    {'name': 'test-nopath-account',
+     'project': 'google.com:test-project'},
+    {'name': 'test-full-account',
+     'project': 'google.com:test-project',
+     'jsonPath': '/test/path/credentials'}]
+
+
 PARAMETERIZED_CREDENTIALS_CONFIG_DATA="""
 ACCOUNT=parameterized-account
 PROJECT=parameterized-project
@@ -127,6 +140,17 @@ class ConfigureUtilTest(unittest.TestCase):
     os.remove(path)
     self.assertEqual(
         CREDENTIALS_LIST,
+        bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
+
+  def test_parse_constrained_credentials(self):
+    bindings = configure_util.Bindings()
+    fd,path = tempfile.mkstemp()
+    os.write(fd, CONSTRAINED_CREDENTIALS_CONFIG_DATA)
+    os.close(fd)
+    bindings.update_from_config(path)
+    os.remove(path)
+    self.assertEqual(
+        CONSTRAINED_CREDENTIALS_LIST,
         bindings.get_yaml('GOOGLE_CREDENTIALS_DECLARATION', None))
 
   def test_render_credentials(self):

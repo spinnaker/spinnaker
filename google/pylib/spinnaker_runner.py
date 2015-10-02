@@ -153,7 +153,8 @@ class Runner(object):
       print 'Not using rush because docker is not configured.'
 
     if self.__bindings.get_variable('JENKINS_ADDRESS', ''):
-        if self.__bindings.get_variable('IGOR_ENABLED', 'false') == 'false':
+        if self.__bindings.get_variable('IGOR_ENABLED',
+                                        'false').lower() == 'false':
             sys.stderr.write(
                 'WARNING: Not starting igor because IGOR_ENABLED=false'
                 ' even though JENKINS_ADDRESS="{address}"'.format(
