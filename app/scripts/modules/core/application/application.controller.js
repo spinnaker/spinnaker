@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.application.controller', [
   require('exports?"cfp.hotkeys"!angular-hotkeys'),
   require('angular-ui-router'),
-  require('../core/history/recentHistory.service.js'),
+  require('../history/recentHistory.service.js'),
 ])
   .controller('ApplicationCtrl', function($scope, $state, hotkeys, app, recentHistoryService) {
     $scope.application = app;

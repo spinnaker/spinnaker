@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.application.listExtractor.service', [
-    require('../../utils/lodash')
+    require('../../../utils/lodash.js')
   ])
   .factory('appListExtractorService', function(_) {
 

@@ -27,7 +27,7 @@ require('source-sans-pro');
 let Clipboard = require('clipboard');
 
 // likely that some of these can be moved to the modules that support them
-require('./modules/applications/application.less');
+require('./modules/core/application/application.less');
 require('./modules/healthCounts/counters.less');
 require('./modules/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
@@ -36,7 +36,7 @@ require('./modules/instance/instanceSelection.less');
 require('./modules/core/presentation/main.less');
 require('./modules/core/modal/modals.less');
 require('./modules/navigation/navigation.less');
-require('./modules/applications/newapplication.less');
+require('./modules/core/application/newapplication.less');
 require('./modules/pipelines/pipelines.less');
 require('./modules/cluster/rollups.less');
 require('./modules/tasks/tasks.less');
@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker', [
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 
     require('./modules/insight/insight.module.js'),
-    require('./modules/applications/application.module.js'),
+    require('./modules/core/application/application.module.js'),
     require('./modules/feedback/feedback.module.js'),
 
     require('./modules/amazon/aws.module.js'),
@@ -142,7 +142,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/tasks/monitor/taskMonitor.module.js'),
     require('./modules/validation/validation.module.js'),
     require('./modules/loadBalancers/loadBalancers.module.js'),
-    require('./modules/config/config.module.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),

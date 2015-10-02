@@ -309,7 +309,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/config',
         views: {
           'insight': {
-            templateUrl: require('../config/applicationConfig.view.html'),
+            templateUrl: require('../core/application/applicationConfig.view.html'),
             controller: 'ApplicationConfigController',
             controllerAs: 'config'
           },
@@ -390,7 +390,7 @@ module.exports = angular.module('spinnaker.states', [
         };
         applicationConfig.views = {};
         applicationConfig.views[mainView] = {
-            templateUrl: require('../applications/application.html'),
+            templateUrl: require('../core/application/application.html'),
             controller: 'ApplicationCtrl',
             controllerAs: 'ctrl'
           };
@@ -402,7 +402,7 @@ module.exports = angular.module('spinnaker.states', [
         url: '/applications',
         views: {
           'main@': {
-            templateUrl: require('../applications/applications.html'),
+            templateUrl: require('../core/application/applications.html'),
             controller: 'ApplicationsCtrl',
             controllerAs: 'ctrl'
           }
