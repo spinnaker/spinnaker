@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.pipelines.stage.canary.transformer', 
     function getDeployTaskName(stage) {
       if (stage.context.freeFormDetails) {
         var nameParts = stage.name.split(' ');
-        if (stage.context.freeFormDetails.indexOf('-canary') !== -1) {
+        if (_.endsWith(stage.context.freeFormDetails, 'canary')) {
           nameParts.splice(1, 0, 'canary');
         } else {
           nameParts.splice(1, 0, 'baseline');
