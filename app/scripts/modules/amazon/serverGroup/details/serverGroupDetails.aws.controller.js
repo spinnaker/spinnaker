@@ -21,7 +21,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingActivities/scalingActivities.controller.js'),
   require('./networking/networking.module.js'),
   require('./resize/resizeServerGroup.controller'),
-  require('../../../modal/closeable/closeable.modal.controller.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup, InsightFilterStateModel,

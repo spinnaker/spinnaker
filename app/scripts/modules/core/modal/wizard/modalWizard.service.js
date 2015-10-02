@@ -4,7 +4,7 @@
 let angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.modalWizard.service', [])
+  .module('spinnaker.core.modalWizard.service', [])
   .factory('modalWizardService', function(_) {
     var modalWizard;
 
