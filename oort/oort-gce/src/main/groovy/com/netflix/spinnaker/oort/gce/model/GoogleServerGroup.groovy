@@ -53,7 +53,8 @@ class GoogleServerGroup implements ServerGroup, Serializable {
         originalGoogleServerGroup.instances.each { originalInstance ->
           copyGoogleServerGroup.instances << GoogleInstance.newInstance((GoogleInstance) originalInstance)
         }
-      } else {
+      } else if (!["loadBalancers", "instanceCounts", "capacity"].contains(propertyName)) {
+        // We only want to clone the properties that are not calculated on-demand.
         def valueCopy = Utils.getImmutableCopy(originalGoogleServerGroup.getProperty(propertyName))
 
         if (valueCopy) {
