@@ -2,8 +2,9 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker')
-  .config(function ($logProvider, statesProvider ) {
+module.exports = angular
+  .module('spinnaker.config', [])
+  .config(function ($logProvider, statesProvider) {
     statesProvider.setStates();
     $logProvider.debugEnabled(true);
   })
@@ -30,7 +31,6 @@ module.exports = angular.module('spinnaker')
     RestangularProvider.setBaseUrl(settings.gateUrl);
   })
   .config(function($httpProvider){
-    $httpProvider.interceptors.push('ajaxErrorInterceptor');
     $httpProvider.defaults.headers.patch = {
       'Content-Type': 'application/json;charset=utf-8'
     };
@@ -38,19 +38,8 @@ module.exports = angular.module('spinnaker')
   .config(function($compileProvider) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat):/);
   })
-  .config(function($provide) {
-    $provide.decorator('$exceptionHandler', function ($delegate, $analytics) {
-      return function (exception, cause) {
-        try {
-          var action = 'msg: ' + exception.message + ' url: ' + window.location;
-          var label = exception.stack;
-
-          $analytics.eventTrack(action, {category: 'JavaScript Error', label: label, noninteraction: true});
-          $delegate(exception, cause);
-        } catch(e) {
-          // eat it to permit a endless exception loop from happening
-        }
-      };
-    });
+  .config(function($animateProvider) {
+    $animateProvider.classNameFilter(/animated/);
   })
-.name;
+  .config(require('./modules/core/uiSelect.decorator.js'))
+  .name;

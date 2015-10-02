@@ -23,7 +23,6 @@
     <ul class="nav nav-pills" ng-if="!application.notFound">
       <li ng-if="feature.pipelines">
         <a ui-sref=".executions"
-           analytics-on="click" analytics-category="Application View" analytics-label="Pipelines tab selected"
            ng-class="{active: $state.includes('**.executions.**') || $state.includes('**.pipelineConfig')}">
           Pipelines <span class="badge"
                          ng-if="( application.executions | filter:{isActive:true}).length > 0">
@@ -33,35 +32,30 @@
       </li>
       <li>
         <a ui-sref=".insight.clusters"
-           analytics-on="click" analytics-category="Application View" analytics-label="Clusters tab selected"
            ng-class="{active: $state.includes('**.clusters.**')}">
           Clusters
         </a>
       </li>
       <li>
         <a ui-sref=".insight.loadBalancers"
-           analytics-on="click" analytics-category="Application View" analytics-label="Load Balancers tab selected"
            ng-class="{active: $state.includes('**.loadBalancers.**') || $state.includes('*.loadBalancer')}">
           Load Balancers
         </a>
       </li>
       <li>
         <a ui-sref=".insight.securityGroups"
-           analytics-on="click" analytics-category="Application View" analytics-label="Security Groups tab selected"
            ng-class="{active: $state.includes('**.securityGroups.**')}">
           Security Groups
         </a>
       <li>
       <li ng-if="feature.fastProperty">
         <a ui-sref=".properties"
-           analytics-on="click" analytics-category="Application View" analytics-label="Properties tab selected"
            ng-class="{active: $state.includes('**.properties')}">
           Properties
         </a>
       <li>
       <li>
         <a ui-sref=".tasks"
-           analytics-on="click" analytics-category="Application View" analytics-label="Tasks tab selected"
            ng-class="{active: $state.includes('**.tasks.**')}">
           Tasks <span class="badge"
                       ng-if="( application.tasks | filter:{isActive:true}).length > 0">
@@ -71,7 +65,6 @@
       </li>
       <li>
         <a ui-sref=".config"
-           analytics-on="click" analytics-category="Application View" analytics-label="Config tab selected"
            ng-class="{active: $state.includes('**.config.**')}">
           Config
         </a>
