@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.pipelines.config.trigger.pipeline', [
   require('../../services/pipelineConfigService.js'),
   require('../../pipelineConfigProvider.js'),
-  require('../../../../applications/applications.read.service.js'),
+  require('../../../../core/application/service/applications.read.service.js'),
   require('../trigger.directive.js'),
   require('../../../../utils/lodash.js'),
 ])

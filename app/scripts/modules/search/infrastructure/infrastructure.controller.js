@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     this.createApplication = () => {
       $modal.open({
         scope: $scope,
-        templateUrl: require('../../applications/modal/newapplication.html'),
+        templateUrl: require('../../core/application/modal/newapplication.html'),
         controller: 'CreateApplicationModalCtrl',
         controllerAs: 'newAppModal'
       }).result.then(routeToApplication);

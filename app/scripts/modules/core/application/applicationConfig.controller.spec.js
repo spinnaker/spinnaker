@@ -10,22 +10,16 @@ describe('Controller: Config', function () {
   var application;
 
   beforeEach(window.module(
-    require('./applicationConfig.controller.js'),
-    require('../notifications/notification.service.js')
+    require('./applicationConfig.controller.js')
   ));
 
   beforeEach(
-    window.inject(function (_$rootScope_, _$controller_, _$modal_, _notificationService_) {
+    window.inject(function (_$rootScope_, _$controller_, _$modal_) {
       $rootScope = _$rootScope_;
       $controller = _$controller_;
       $modal = _$modal_;
-      notificationService = _notificationService_;
     })
   );
-
-  beforeEach(function() {
-    spyOn(notificationService, 'getNotificationsForApplication').and.returnValue({then: angular.noop});
-  });
 
   describe('edit application ', function () {
     beforeEach( function() {
@@ -38,7 +32,6 @@ describe('Controller: Config', function () {
         configController = $controller('ApplicationConfigController', {
           app: application,
           $modal: $modal,
-          notificationService: notificationService,
         });
       }
     );
