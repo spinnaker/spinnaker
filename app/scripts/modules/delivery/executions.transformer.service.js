@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
   require('../utils/lodash.js'),
   require('../pipelines/config/pipelineConfigProvider.js'),
 ])
-  .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig) {
+  .factory('executionsTransformer', function(orchestratedItemTransformer, _, pipelineConfig, $log) {
 
     var hiddenStageTypes = ['pipelineInitialization', 'waitForRequisiteCompletion'];
 
@@ -69,7 +69,11 @@ module.exports = angular.module('spinnaker.delivery.executionTransformer.service
       execution.currentStages = getCurrentStages(execution);
       addStageWidths(execution);
       addBuildInfo(execution);
-
+      try {
+        execution.stringVal = JSON.stringify(execution);
+      } catch (e) {
+        $log.warn('Could not stringify execution:', execution.id);
+      }
     }
 
     function flattenStages(stages, stage) {
