@@ -112,8 +112,9 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
     };
 
     this.getName = function() {
-      var elb = $scope.loadBalancer;
-      return [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
+      var loadBalancer = $scope.loadBalancer;
+      var loadBalancerName = [application.name, (loadBalancer.stack || ''), (loadBalancer.detail || '')].join('-');
+      return _.trimRight(loadBalancerName, "-");
     };
 
     this.accountUpdated = function() {
