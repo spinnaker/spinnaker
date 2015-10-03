@@ -23,17 +23,27 @@ enum TargetServerGroup {
   /**
    * The most recent Server Group.
    */
-  CURRENT,
+  CURRENT(),
 
   /**
    * The second most recent Server Group. Useful for referencing the Server Group to which to roll back.
    */
-  PREVIOUS,
+  PREVIOUS(['ancestor']),
 
   /**
    * The oldest Server Group.
    */
-  OLDEST,
+  OLDEST(),
+
+  private final List<String> aliases
+
+  private TargetServerGroup() {
+    this(Collections.emptyList())
+  }
+
+  private TargetServerGroup(Collection<String> aliases) {
+    this.aliases = Collections.unmodifiableList([name()] + aliases)
+  }
 
   // Legacy suffixes - used to determine when targets were resolved (during setup or execution, respectively).
   @Deprecated private static String asg = "_asg"
@@ -41,11 +51,12 @@ enum TargetServerGroup {
 
   public static TargetServerGroup fromString(String s) {
     for (TargetServerGroup t : TargetServerGroup.values()) {
-      def n = t.name()
-      if (n.equalsIgnoreCase(s) ||
+      for (String n : t.aliases) {
+        if (n.equalsIgnoreCase(s) ||
           "${n}${asg}".equalsIgnoreCase(s) ||
           "${n}${asgDynamic}".equalsIgnoreCase(s)) {
-        return t
+          return t
+        }
       }
     }
     throw new IllegalArgumentException("No TargetServerGroup enum matched '${s}'")
