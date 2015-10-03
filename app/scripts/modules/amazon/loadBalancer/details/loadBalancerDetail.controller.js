@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
-                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader) {
+                                                   securityGroupReader, _, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
 
     $scope.state = {
       loading: true
@@ -33,7 +33,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
 
       if ($scope.loadBalancer) {
         var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
-        detailsLoader.then(function(details) {
+        return detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var securityGroups = [];
           var filtered = details.filter(function(test) {
@@ -60,6 +60,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
       if (!$scope.loadBalancer) {
         $state.go('^');
       }
+
+      return $q.when(null);
     }
 
     extractLoadBalancer();

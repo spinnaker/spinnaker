@@ -16,7 +16,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
                                                instanceWriter, confirmationModalService, recentHistoryService,
-                                               instanceReader, _, instance, app) {
+                                               instanceReader, _, instance, app, $q) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = require('./instanceDetails.html');
@@ -119,7 +119,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
         extraData.account = account;
         extraData.region = region;
         recentHistoryService.addExtraDataToLatest('instances', extraData);
-        instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
+        return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           details = details.plain();
           $scope.state.loading = false;
           extractHealthMetrics(instanceSummary, details);
@@ -146,6 +146,8 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       if (!instanceSummary) {
         $state.go('^');
       }
+
+      return $q.when(null);
     }
 
     this.canDeregisterFromLoadBalancer = function() {
@@ -366,9 +368,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
       );
     };
 
-    retrieveInstance();
-
-    app.registerAutoRefreshHandler(retrieveInstance, $scope);
+    retrieveInstance().then(() => app.registerAutoRefreshHandler(retrieveInstance, $scope));
 
     $scope.account = instance.account;
 

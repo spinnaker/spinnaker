@@ -52,6 +52,9 @@ module.exports = angular
 
 
         function registerAutoRefreshHandler(method, scope) {
+          if (scope.$$destroyed) {
+            return;
+          }
           application.autoRefreshHandlers.push(method);
           scope.$on('$destroy', function () {
             application.autoRefreshHandlers = application.autoRefreshHandlers.filter((handler) => handler !== method);

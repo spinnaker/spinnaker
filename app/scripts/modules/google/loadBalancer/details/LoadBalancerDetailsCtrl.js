@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $modal, loadBalancer, app, InsightFilterStateModel,
-                                                      _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader) {
+                                                      _, confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {
 
     let application = app;
 
@@ -31,7 +31,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
       if ($scope.loadBalancer) {
         var detailsLoader = loadBalancerReader.getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, loadBalancer.region, loadBalancer.name);
-        detailsLoader.then(function(details) {
+        return detailsLoader.then(function(details) {
           $scope.state.loading = false;
           var filtered = details.filter(function(test) {
             return test.vpcid === loadBalancer.vpcId || (!test.vpcid && !loadBalancer.vpcId);
@@ -44,23 +44,19 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
               $scope.loadBalancer.elb.availabilityZones = regionsKeyedByAccount[loadBalancer.accountId].regions[loadBalancer.region].sort();
             });
           }
-        });
-
-        accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
-          $scope.loadBalancer.logsLink =
-            'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
+          accountService.getAccountDetails(loadBalancer.accountId).then(function(accountDetails) {
+            $scope.loadBalancer.logsLink =
+              'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.loadBalancer.name;
+          });
         });
       }
       if (!$scope.loadBalancer) {
         $state.go('^');
       }
+      return $q.when(null);
     }
 
-    extractLoadBalancer();
-
-    application.registerAutoRefreshHandler(extractLoadBalancer, $scope);
-
-    //BEN_TODO
+    extractLoadBalancer().then(() => application.registerAutoRefreshHandler(extractLoadBalancer, $scope));
 
     this.editLoadBalancer = function editLoadBalancer() {
       $modal.open({

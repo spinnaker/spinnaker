@@ -70,7 +70,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
 
     function retrieveServerGroup() {
       var summary = extractServerGroupSummary();
-      serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+      return serverGroupReader.getServerGroup(app.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
         cancelLoader();
 
         var restangularlessDetails = details.plain();
@@ -124,9 +124,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       $scope.state.loading = false;
     }
 
-    retrieveServerGroup();
-
-    app.registerAutoRefreshHandler(retrieveServerGroup, $scope);
+    retrieveServerGroup().then(() => app.registerAutoRefreshHandler(retrieveServerGroup, $scope));
 
     this.destroyServerGroup = function destroyServerGroup() {
       var serverGroup = $scope.serverGroup;
