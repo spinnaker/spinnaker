@@ -13,12 +13,12 @@ module.exports = angular.module('spinnaker.scheduler', [
     let lastRun = new Date().getTime();
 
     let source = RxService.Observable
-      .timer(settings.pollSchedule)
-      .repeat()
+      .timer(0, settings.pollSchedule)
       .pausable(scheduler);
 
     let runner = () => {
       lastRun = new Date().getTime();
+      $log.debug('refreshing');
       scheduler.onNext(true);
     };
 
@@ -33,9 +33,9 @@ module.exports = angular.module('spinnaker.scheduler', [
       let now = new Date().getTime();
       $log.debug('auto refresh resumed');
       if (now - lastRun > settings.pollSchedule) {
-        runner();
+        source.resume();
       } else {
-        $timeout(runner, settings.pollSchedule - (now - lastRun));
+        $timeout(() => source.resume(), settings.pollSchedule - (now - lastRun));
       }
     };
 
@@ -51,7 +51,7 @@ module.exports = angular.module('spinnaker.scheduler', [
     let scheduleImmediate = () => {
       runner();
       source.pause();
-      $timeout(runner, settings.pollSchedule);
+      $timeout(() => source.resume(), settings.pollSchedule);
     };
 
     document.addEventListener('visibilitychange', watchDocumentVisibility);

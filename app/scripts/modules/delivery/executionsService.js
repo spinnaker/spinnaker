@@ -11,7 +11,7 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
   .factory('executionsService', function($stateParams, $http, $timeout, $q, $log,
                                          scheduler, settings, appendTransform, executionsTransformer) {
 
-    function getExecutions(application) {
+    function getExecutions(application, transformAll) {
 
       var deferred = $q.defer();
       $http({
@@ -21,12 +21,13 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
             return [];
           }
           executions.forEach(function(execution) {
-            try {
-              execution.stringVal = JSON.stringify(execution);
-            } catch (e) {
-              $log.warn('Could not stringify execution:', execution.id);
+            let stringVal = JSON.stringify(execution);
+            // do not transform if it hasn't changed unless requested
+            let match = (application.executions || []).filter((test) => test.id === execution.id);
+            if (transformAll || !match.length || !match[0].stringVal || match[0].stringVal !== stringVal) {
+              execution.stringVal = stringVal;
+              executionsTransformer.transformExecution(application, execution);
             }
-            executionsTransformer.transformExecution(application, execution);
           });
           return executions;
         }),
