@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.oort.cf.model
 
-import com.netflix.spinnaker.oort.model.LoadBalancer
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.mort.model.SecurityGroup
+import com.netflix.spinnaker.mort.model.securitygroups.Rule
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudService
 
@@ -26,13 +26,30 @@ import org.cloudfoundry.client.lib.domain.CloudService
  *
  * @author Greg Turnquist
  */
-@CompileStatic
-@EqualsAndHashCode(includes = ["name"])
-class CloudFoundryService implements LoadBalancer, Serializable {
+@EqualsAndHashCode(includes = ["id"])
+class CloudFoundryService implements SecurityGroup {
 
-  String name
   String type
-  Set<String> serverGroups = new HashSet<>()
+  String id
+  String name
+  String application
+  String accountName
+  String region
 
   CloudService nativeService
+
+  @Override
+  com.netflix.spinnaker.oort.cf.model.CloudFoundryServiceSummary getSummary() {
+    new com.netflix.spinnaker.oort.cf.model.CloudFoundryServiceSummary(name: name, id: id)
+  }
+
+  @Override
+  Set<Rule> getInboundRules() {
+    Collections.emptySet()
+  }
+
+  @Override
+  Set<Rule> getOutboundRules() {
+    Collections.emptySet()
+  }
 }

@@ -171,8 +171,24 @@ cf:
   enabled: false
   accounts:
     -
-      name: ${CF_ACCOUNT_NAME}
+      name: demos
+      org: FrameworksAndRuntimes
+      space: development
+      username: ${CF_ACCOUNT_NAME}
       password: ${CF_PASSWORD}
+    -
+      name: prod
+      org: spring.io
+      space: production
+      username: ${CF_ACCOUNT_NAME}
+      password: ${CF_PASSWORD}
+    -
+      name: staging
+      org: spring.io
+      space: staging
+      username: ${CF_ACCOUNT_NAME}
+      password: ${CF_PASSWORD}
+
 
 ---
 

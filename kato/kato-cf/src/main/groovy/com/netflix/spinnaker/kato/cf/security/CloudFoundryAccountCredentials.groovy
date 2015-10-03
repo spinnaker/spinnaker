@@ -17,7 +17,6 @@ package com.netflix.spinnaker.kato.cf.security
 
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import org.cloudfoundry.client.lib.CloudCredentials
-
 /**
  * Capture {@link AccountCredentials} for a Cloud Foundry instance
  *
@@ -28,13 +27,17 @@ class CloudFoundryAccountCredentials implements AccountCredentials<CloudCredenti
   private static final String CLOUD_PROVIDER = "cf";
 
   String name
+  String api
+  String org
+  String space
+  String username
   String environment
   String accountType
   String password
 
   @Override
   CloudCredentials getCredentials() {
-    new CloudCredentials(name, password)
+    new CloudCredentials(username, password)
   }
 
   @Override

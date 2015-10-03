@@ -22,8 +22,6 @@ import com.netflix.spinnaker.oort.model.ServerGroup
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.cloudfoundry.client.lib.domain.CloudApplication
-import org.cloudfoundry.client.lib.domain.CloudService
-
 /**
  * A Cloud Foundry application combined with its org/space coordinates.
  *
@@ -38,12 +36,9 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
   CloudApplication nativeApplication
   Boolean disabled = false
   Set<CloudFoundryApplicationInstance> instances = new HashSet<>()
-  Set<String> services = new HashSet<>()
-  Set<String> securityGroups = new HashSet<>()
+  Set<CloudFoundryService> services = [] as Set<CloudFoundryService>
   Map<String, Object> envVariables = new HashMap<>()
   Map<String, Object> cfSettings = new HashMap<>() // scaling, memory, etc.
-
-  Set<CloudService> nativeServices = new HashSet<>()
 
   @Override
   String getRegion() {
@@ -64,7 +59,7 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
     if (this.instances.size() > 0) {
       this.instances.first().launchTime
     } else {
-      nativeApplication.meta.updated.time
+      nativeApplication?.meta?.updated?.time
     }
   }
 
@@ -75,7 +70,7 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   @Override
   Set<String> getLoadBalancers() {
-    services
+    Collections.emptySet()
   }
 
   @Override
@@ -98,7 +93,16 @@ class CloudFoundryServerGroup implements ServerGroup, Serializable {
 
   @Override
   ServerGroup.Capacity getCapacity() {
-    return null
+    new ServerGroup.Capacity([
+        min: nativeApplication.instances,
+        max: nativeApplication.instances,
+        desired: nativeApplication.instances
+    ])
+  }
+
+  @Override
+  Set<String> getSecurityGroups() {
+    services.collect {it.name} as Set<String>
   }
 
   static Collection<Instance> filterInstancesByHealthState(Set<CloudFoundryApplicationInstance> instances,
