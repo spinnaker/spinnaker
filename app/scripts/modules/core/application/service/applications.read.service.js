@@ -149,8 +149,33 @@ module.exports = angular
       return [];
     }
 
-    function addExecutionsToApplication(application, executions) {
-      application.executions = determineExecutionsToAdd(application, executions);
+    function addExecutionsToApplication(application, executions=[]) {
+      if (application.executions) {
+
+        // remove any that have dropped off, update any that have changed
+        let toRemove = [];
+        application.executions.forEach((execution, idx) => {
+          let matches = executions.filter((test) => test.id === execution.id);
+          if (!matches.length) {
+            toRemove.push(idx);
+          } else {
+            if (execution.stringVal && matches[0].stringVal && execution.stringVal !== matches[0].stringVal) {
+              application.executions[idx] = matches[0];
+            }
+          }
+        });
+
+        toRemove.forEach((idx) => application.executions.splice(idx, 1));
+
+        // add any new ones
+        executions.forEach((execution) => {
+          if (!application.executions.filter((test) => test.id === execution.id).length) {
+            application.executions.push(execution);
+          }
+        });
+      } else {
+        application.executions = executions;
+      }
       clusterService.addExecutionsToServerGroups(application);
     }
 
