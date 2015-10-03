@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
     $scope.InsightFilterStateModel = InsightFilterStateModel;
 
     function extractSecurityGroup() {
-      securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
+      return securityGroupReader.getSecurityGroupDetails(application, securityGroup.accountId, securityGroup.provider, securityGroup.region, securityGroup.vpcId, securityGroup.name).then(function (details) {
         $scope.state.loading = false;
 
         if (!details || _.isEmpty( details.plain())) {
@@ -108,9 +108,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
       $state.go('^');
     }
 
-    extractSecurityGroup();
-
-    application.registerAutoRefreshHandler(extractSecurityGroup, $scope);
+    extractSecurityGroup().then(() => application.registerAutoRefreshHandler(extractSecurityGroup, $scope));
 
     this.editInboundRules = function editInboundRules() {
       $modal.open({
