@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Creates an image in the default project named with the release name.
 # python create_gce_image.py --release $RELEASE_NAME
+
 
 import argparse
 import os
@@ -112,6 +114,11 @@ def init_argument_parser(parser):
     user=os.environ['USER']
 
     default_project = get_default_project()
+    parser.add_argument(
+        '--write_tarball_path', default=None,
+        help='If non-empty, write a tarball image to the specified'
+             ' Google Cloud Storage bucket or path within one.')
+
     parser.add_argument(
         '--release', action=SetReleaseName, dest='release_path',
         help='A named release is implied to be a GCS bucket.')
@@ -294,38 +301,134 @@ def monitor_serial_port_until_metadata_key(
   # Emit the remainder of the log file before we return.
   if options.trace:
       stdout, stderr = run_or_die(
-          ['gcloud', 'compute', '--project', project, 'instances',
-           'get-serial-port-output', '--zone', zone, '--format', 'text',
-           instance_name])
+          'gcloud compute --project project instances'
+          ' get-serial-port-output --format text --zone {zone} {name}'
+          .format(zone=zone, name=instance_name))
       print stdout[offset:]
 
   print ''
 
 
+def make_image_resource(options):
+  """Create a GCE image from the instance specified by the options."""
+  extract_image_from_instance(options)
+
+  print 'Cleaning up extracted boot disk.'
+  command = ['gcloud', 'compute', 'disks',
+             'delete', options.tmp_instance_name,
+             '--project', get_target_project(options),
+             '--zone', options.zone, '--quiet']
+  run_or_die(' '.join(command), echo=False)
+
+
+def __do_make_image_tarball(options, project, disk_name):
+  """Helper function for make_image_tarball that does the work.
+
+  Note that the work happens on the instance itself. So this function
+  builds a remote command that it then executes on the prototype instance.
+  """
+  print 'Creating image tarball.'
+  set_excludes_bash_command = (
+      'EXCLUDES=`python -c'
+      ' "import glob; print \',\'.join(glob.glob(\'/home/*\'))"`')
+
+  tar_name = os.path.basename(options.write_tarball_path)
+  remote_script = [
+      'sudo mkdir /mnt/tmp',
+      'sudo /usr/share/google/safe_format_and_mount -m'
+          ' "mkfs.ext4 -F" /dev/sdb /mnt/tmp',
+      set_excludes_bash_command,
+      'sudo gcimagebundle -d /dev/sda -o /mnt/tmp'
+          ' --log_file=/tmp/export.log --output_file_name={tar_name}'
+          ' --excludes=/tmp,\\$EXCLUDES'.format(tar_name=tar_name),
+      'gsutil -q cp /mnt/tmp/{tar_name} {output_path}'.format(
+          tar_name=tar_name, output_path=options.write_tarball_path)]
+
+  command = '; '.join(remote_script)
+  run_or_die('gcloud compute ssh --command="{command}"'
+             ' --project {project} --zone {zone} {instance}'
+             .format(command=command.replace('"', r'\"'),
+                     project=project, zone=options.zone,
+                     instance=options.tmp_instance_name))
+
+
+def make_image_tarball(options):
+  """Create a tar.gz file from the instance specified by the options.
+
+  The file will be written to options.write_tarball_path.
+  It can be later turned into a GCE image by passing it as the --source-uri
+  to gcloud images create.
+  """
+  project = get_target_project(options)
+  disk_name = '{name}-export'.format(name=options.image)
+  print 'Attaching an external disk to extract image tarball.'
+  # TODO(ewiseblatt): 20151002
+  # Add an option to reuse an existing disk to reduce the cycle time.
+  # Then guard the create/format/destroy around this option.
+  # Still may want/need to attach/detach it here to reduce race conditions
+  # on its use since it can only be bound to once instance at a time.
+  run_or_die('gcloud compute disks create '
+             ' {disk_name} --project {project} --zone {zone} --size=10'
+             .format(disk_name=disk_name,
+                     project=project,
+                     zone=options.zone),
+             echo=False)
+  run_or_die('gcloud compute instances attach-disk {instance}'
+             ' --disk={disk_name} --device-name=export-disk'
+             ' --project={project} --zone={zone}'
+             .format(
+                 instance=options.tmp_instance_name,
+                 disk_name=disk_name, project=project, zone=options.zone),
+             echo=False)
+  try:
+      __do_make_image_tarball(options, project, disk_name)
+  finally:
+      print 'Detaching and deleting external disk.'
+      run('gcloud compute instances detach-disk -q {instance}'
+          ' --disk={disk_name} --project={project} --zone={zone}'
+          .format(instance=options.tmp_instance_name,
+                  disk_name=disk_name, project=project, zone=options.zone),
+          echo=False)
+      run('gcloud compute disks delete -q {disk_name}'
+          ' --project={project} --zone={zone}'
+          .format(disk_name=disk_name, project=project, zone=options.zone),
+          echo=False)
+
+
 def create_image(options):
-    if not options.release_path:
-      error = ('--release_path cannot be empty.'
-               ' Either specify a --release or a --release_path.')
-      sys.stderr.write(error)
-      raise ValueError(error)      
+  """Creates a GCE image or .tar.gz that can be used to create one later.
 
-    check_for_image(options)
-    create_prototype_instance(options)
-    monitor_serial_port_until_metadata_key(
-        options,
-        get_target_project(options),
-        options.zone,
-        options.tmp_instance_name,
-        'spinnaker-sentinal')
+  If --wreite_tarball_path was specified then this will produce the specified
+  tarball. That tarball can then be used later as the --source-uri parameter
+  to "gcloud compute images create".
 
-    extract_image_from_instance(options)
+  Args:
+    options: ArgumentParser Namespace specifying how to create the
+        image and where to create it.
+  """
+  if not options.release_path:
+    error = ('--release_path cannot be empty.'
+             ' Either specify a --release or a --release_path.')
+    raise ValueError(error)      
 
-    print 'Cleaning up extracted boot disk.'
-    command = ['gcloud', 'compute', 'disks',
-               'delete', options.tmp_instance_name,
-               '--project', get_target_project(options),
-               '--zone', options.zone, '--quiet']
-    run_or_die(' '.join(command), echo=False)
+  if (options.write_tarball_path
+      and not options.write_tarball_path.startswith('gs://')):
+      error = '--write_tarball_path must be a gs:// path.'
+      raise ValueError(error)
+
+  check_for_image(options)
+  create_prototype_instance(options)
+  monitor_serial_port_until_metadata_key(
+      options,
+      get_target_project(options),
+      options.zone,
+      options.tmp_instance_name,
+      'spinnaker-sentinal')
+
+  if options.write_tarball_path:
+      make_image_tarball(options)
+  else:
+      make_image_resource(options)
 
 
 if __name__ == '__main__':
