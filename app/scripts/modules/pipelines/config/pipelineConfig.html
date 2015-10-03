@@ -2,9 +2,11 @@
   <div class="execution-groups">
   <div class="row" ng-if="application.pipelines.length">
     <div class="col-md-3 col-md-offset-1">
-      <a class="btn btn-link" ui-sref="^.executions">
-        <span class="small glyphicon glyphicon glyphicon-circle-arrow-left"></span>
-        Pipeline Executions
+      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(true)" tooltip="expand all">
+        <span class="glyphicon glyphicon-plus"></span>
+      </a>
+      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(false)" tooltip="collapse all">
+        <span class="glyphicon glyphicon-minus"></span>
       </a>
     </div>
     <div class="col-md-4 text-center">
@@ -14,14 +16,11 @@
       </p>
     </div>
     <div class="col-md-3 text-right">
-      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(true)" tooltip="expand all">
-        <span class="glyphicon glyphicon-plus"></span>
-      </a>
-      <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(false)" tooltip="collapse all">
-        <span class="glyphicon glyphicon-minus"></span>
+      <a class="btn btn-link" ui-sref="^.executions">
+        <span class="small glyphicon glyphicon glyphicon-circle-arrow-left"></span>
+        Pipeline Executions
       </a>
     </div>
-
   </div>
   <div class="row" ng-if="application.pipelines.length">
     <div class="row">
