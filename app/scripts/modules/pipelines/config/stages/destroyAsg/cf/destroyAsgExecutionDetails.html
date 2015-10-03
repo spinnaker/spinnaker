@@ -1,0 +1,62 @@
+<!--
+  ~ Copyright 2015 Netflix, Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<div ng-controller="cfDestroyAsgExecutionDetailsCtrl">
+  <execution-details-section-nav sections="configSections"></execution-details-section-nav>
+  <div class="step-section-details" ng-if="detailsSection === 'destroyServerGroupConfig'">
+    <div class="row">
+      <div class="col-md-9">
+        <dl class="dl-narrow dl-horizontal">
+          <dt>Account</dt>
+          <dd>
+            <account-tag account="stage.context.credentials"></account-tag>
+          </dd>
+          <dt>Region</dt>
+          <dd>{{stage.context.regions.join(', ')}}</dd>
+          <dt>Server Group</dt>
+          <dd>{{stage.context.asgName}}</dd>
+        </dl>
+      </div>
+    </div>
+    <stage-failure-message is-failed="stage.isFailed" message="ctrl.getException(stage)"></stage-failure-message>
+
+    <div class="row" ng-if="stage.isCompleted && stage.context.asgName">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <strong>Destroyed:</strong>
+          {{stage.context.asgName}}
+        </div>
+      </div>
+    </div>
+
+    <div class="row" ng-if="stage.context.execution.logs">
+      <div class="col-md-12">
+        <div class="well alert alert-info">
+          <!-- TODO: Move this to config -->
+          <a target="_blank" href="{{stage.context.execution.logs}}">
+            View Execution Logs
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
+    </div>
+  </div>
+</div>

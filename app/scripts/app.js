@@ -91,6 +91,7 @@ module.exports = angular.module('spinnaker', [
 
     require('./modules/amazon/aws.module.js'),
     require('./modules/google/gce.module.js'),
+    require('./modules/cloudfoundry/cf.module.js'),
     require('./modules/utils/utils.module.js'),
     require('./modules/caches/caches.module.js'),
     require('./modules/naming/naming.service.js'),
