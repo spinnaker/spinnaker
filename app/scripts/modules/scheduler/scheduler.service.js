@@ -48,6 +48,12 @@ module.exports = angular.module('spinnaker.scheduler', [
       }
     };
 
+    let scheduleImmediate = () => {
+      runner();
+      source.pause();
+      $timeout(runner, settings.pollSchedule);
+    };
+
     document.addEventListener('visibilitychange', watchDocumentVisibility);
     $window.addEventListener('offline', suspendScheduler);
     $window.addEventListener('online', resumeScheduler);
@@ -56,7 +62,7 @@ module.exports = angular.module('spinnaker.scheduler', [
     return {
       get: function() { return scheduler; },
       subscribe: scheduler.subscribe.bind(scheduler),
-      scheduleImmediate: scheduler.onNext.bind(scheduler),
+      scheduleImmediate: scheduleImmediate,
       scheduleOnCompletion: function(promise) {
         var deferred = $q.defer();
         promise.then(
