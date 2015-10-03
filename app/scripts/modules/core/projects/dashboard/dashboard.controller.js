@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
 
     $scope.$on('$destroy', () => dataLoader.dispose());
 
-    this.refreshImmediately = () => scheduler.scheduleImmediate(getExecutions);
+    this.refreshImmediately = scheduler.scheduleImmediate;
 
     this.refreshImmediately();
 

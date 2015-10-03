@@ -93,7 +93,7 @@ module.exports = angular
 
         application.registerAutoRefreshHandler = registerAutoRefreshHandler;
         application.autoRefreshHandlers = [];
-        application.refreshImmediately = refreshApplication;
+        application.refreshImmediately = scheduler.scheduleImmediate;
         application.enableAutoRefresh = enableAutoRefresh;
         application.reloadTasks = reloadTasks;
         application.reloadExecutions = reloadExecutions;

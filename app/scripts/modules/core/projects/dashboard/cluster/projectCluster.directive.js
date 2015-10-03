@@ -233,7 +233,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
 
     $scope.$on('$destroy', () => dataLoader.dispose());
 
-    this.refreshImmediately = () => scheduler.scheduleImmediate(loadData);
+    this.refreshImmediately = scheduler.scheduleImmediate;
 
     loadData();
 
