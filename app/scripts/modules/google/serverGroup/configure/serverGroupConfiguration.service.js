@@ -79,7 +79,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
     function configureImages(command) {
       var result = { dirty: {} };
-      // TODO(duftler): Dynamically populate this field with the correct set of images based on region/zone/project
       if (command.viewState.disableImageSelection) {
         return result;
       }

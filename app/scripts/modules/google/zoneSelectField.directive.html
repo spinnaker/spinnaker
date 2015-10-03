@@ -2,7 +2,6 @@
   <div class="col-md-{{labelColumns}} sm-label-left">Zone</div>
   <div class="col-md-7" ng-if="!account">(Select an account)</div>
   <div class="col-md-7">
-    <!-- TODO(duftler): Once GoogleResourceRetriever or whatever replaces it queries all zones, this should be dynamically populated with the full list of zones for the selected project. -->
     <select class="form-control input-sm"
             ng-if="account"
             ng-model="component.zone"
