@@ -24,58 +24,57 @@ describe('Service: applicationReader', function () {
     expect(applicationReader).toBeDefined();
   });
 
-  describe('adding exceptions to applications', function () {
-    it('should add executions if they are an array', function () {
+  describe('adding executions to applications', function () {
+    it('should add all executions if there are none on application', function () {
       let execs = [{a:1}];
 
       applicationReader.addExecutionsToApplication(application, execs);
 
-      expect(application.executions).toEqual(execs);
+      expect(application.executions).toBe(execs);
     });
 
-    it('should add and empty array if the execution is not an array', function () {
-      let execs = {a:1};
+    it('should add new executions', function () {
+      let original = {id:1, stringVal: 'ac'};
+      let newOne = {id:2, stringVal: 'ab'};
+      let execs = [original, newOne];
+      application.executions = [original];
+
+      applicationReader.addExecutionsToApplication(application, execs);
+
+      expect(application.executions).toEqual([original, newOne]);
+    });
+
+    it('should replace an existing execution if stringVal has changed', function () {
+      let original = {id:1, stringVal: 'ac'};
+      let updated = {id:1, stringVal: 'ab'};
+      let execs = [updated];
+      application.executions = [original];
+
+      applicationReader.addExecutionsToApplication(application, execs);
+
+      expect(application.executions).toEqual([updated]);
+    });
+
+    it('should remove an execution if it is not in the new set', function () {
+      let transient = {id:1, stringVal: 'ac'};
+      let persistent = {id:2, stringVal: 'ab'};
+      let execs = [persistent];
+      application.executions = [transient];
+
+      applicationReader.addExecutionsToApplication(application, execs);
+
+      expect(application.executions).toEqual([persistent]);
+    });
+
+    it('should replace the existing executions if application has executions comes back empty', function () {
+      let execs = [];
+      application.executions = [{a:1}];
 
       applicationReader.addExecutionsToApplication(application, execs);
 
       expect(application.executions).toEqual([]);
     });
 
-    it('should not replace the existing executions if application has executions and the reloaded one is bad', function () {
-      let execs = {a:2};
-      application.executions = [{a:1}];
-
-      applicationReader.addExecutionsToApplication(application, execs);
-
-      expect(application.executions).not.toEqual([]);
-      expect(application.executions).toEqual([{a:1}]);
-    });
-
-    it('should not replace the existing executions if application has executions comes back empty', function () {
-      let execs = [];
-      application.executions = [{a:1}];
-
-      applicationReader.addExecutionsToApplication(application, execs);
-
-      expect(application.executions).not.toEqual([]);
-      expect(application.executions).toEqual([{a:1}]);
-    });
-
-    it('should set the executions after a bad set', function () {
-      let execs = [];
-      application.executions = [{a:1}];
-
-      applicationReader.addExecutionsToApplication(application, execs);
-
-      expect(application.executions).not.toEqual([]);
-      expect(application.executions).toEqual([{a:1}]);
-
-      let newExecs = [{a:2}];
-      applicationReader.addExecutionsToApplication(application, newExecs);
-
-      expect(application.executions).toEqual([{a:2}]);
-
-    });
   });
 });
 
