@@ -15,9 +15,9 @@
       <div ng-repeat="serverGroup in securityGroup.usages.serverGroups | orderBy:'-name'"
            class="rollup-row" ng-class="{disabled: serverGroup.isDisabled}">
         <a
-            ui-sref=".serverGroup({region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: serverGroup.type})"
+            ui-sref=".serverGroup({region: securityGroup.region, accountId: securityGroup.account, serverGroup: serverGroup.name, provider: securityGroup.provider})"
             ui-sref-active="active">
-          <span class="icon icon-server-group icon-{{serverGroup.type}} small"></span> {{serverGroup.name}}
+          <span class="icon icon-server-group icon-{{securityGroup.provider}} small"></span> {{serverGroup.name}}
         </a>
       </div>
     </div>
@@ -28,7 +28,7 @@
       <div ng-repeat="loadBalancer in securityGroup.usages.loadBalancers | orderBy:'-name'"
            class="rollup-row">
         <a
-            ui-sref=".loadBalancerDetails({region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.provider})"
+            ui-sref=".loadBalancerDetails({region: securityGroup.region, accountId: securityGroup.account, name: loadBalancer.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})"
             ui-sref-active="active">
           <span class="icon icon-elb"></span> {{loadBalancer.name}}
         </a>

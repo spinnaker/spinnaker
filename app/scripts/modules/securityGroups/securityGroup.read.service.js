@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
             try {
               var securityGroup = resolve(indexedSecurityGroups, loadBalancer, securityGroupId);
               attachUsageFields(securityGroup);
-              securityGroup.usages.loadBalancers.push(loadBalancer);
+              securityGroup.usages.loadBalancers.push({name: loadBalancer.name});
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
               $log.warn('could not attach security group to load balancer:', loadBalancer.name, securityGroupId, e);
@@ -106,7 +106,7 @@ module.exports = angular.module('spinnaker.securityGroup.read.service', [
             try {
               var securityGroup = resolve(indexedSecurityGroups, serverGroup, securityGroupId);
               attachUsageFields(securityGroup);
-              securityGroup.usages.serverGroups.push(serverGroup);
+              securityGroup.usages.serverGroups.push({name: serverGroup.name, isDisabled: serverGroup.isDisabled});
               applicationSecurityGroups.push(securityGroup);
             } catch (e) {
               $log.warn('could not attach security group to server group:', serverGroup.name, securityGroupId);

@@ -21,12 +21,12 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
             return [];
           }
           executions.forEach(function(execution) {
-            executionsTransformer.transformExecution(application, execution);
             try {
               execution.stringVal = JSON.stringify(execution);
             } catch (e) {
               $log.warn('Could not stringify execution:', execution.id);
             }
+            executionsTransformer.transformExecution(application, execution);
           });
           return executions;
         }),
