@@ -65,7 +65,7 @@ describe('Service: securityGroupReader', function () {
     $scope.$digest();
     var group = application.securityGroups[0];
     expect(group.name).toBe('not-cached');
-    expect(group.usages.loadBalancers[0]).toBe(application.loadBalancers[0]);
+    expect(group.usages.loadBalancers[0]).toEqual({name: application.loadBalancers[0].name});
   });
 
   it('should clear cache, then reload security groups and try again if a security group is not found', function () {
@@ -98,7 +98,7 @@ describe('Service: securityGroupReader', function () {
     $http.flush();
     var group = application.securityGroups[0];
     expect(group.name).toBe('not-cached');
-    expect(group.usages.loadBalancers[0]).toBe(application.loadBalancers[0]);
+    expect(group.usages.loadBalancers[0]).toEqual({name:application.loadBalancers[0].name});
 
   });
 });
