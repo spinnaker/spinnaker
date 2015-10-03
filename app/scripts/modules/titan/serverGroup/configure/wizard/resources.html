@@ -1,0 +1,46 @@
+<form ng-controller="titanInstanceResourcesCtrl as ctrl" class="container-fluid form-horizontal" name="form" novalidate>
+  <div class="modal-body">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left"><b>CPU(s)</b></div>
+      <div class="col-md-2">
+        <input type="text" class="form-control input-sm" name="cpu" ng-model="command.resources.cpu" required/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left"><b>Memory (MB)</b></div>
+      <div class="col-md-3">
+        <input type="text" class="form-control input-sm" name="cpu" ng-model="command.resources.memory" required/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left"><b>Disk (MB)</b></div>
+      <div class="col-md-3">
+        <input type="text" class="form-control input-sm" name="cpu" ng-model="command.resources.disk" required/>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-left"><b>Ports</b></div>
+      <div class="col-md-5">
+        <input type="text" class="form-control input-sm" name="cpu" ng-model="command.resources.ports" required/>
+      </div>
+      <div class="col-md-4">
+        (Comma separated)
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-default pull-left"
+            ng-click="wizard.previousPage(form.$valid)">
+      <span class="glyphicon glyphicon-chevron-left"></span> Back
+    </button>
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
+                   label="command.viewState.submitButtonLabel"
+                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+    <button class="btn btn-primary"
+            ng-disabled="form.$invalid"
+            ng-click="wizard.nextPage(form.$valid)">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>

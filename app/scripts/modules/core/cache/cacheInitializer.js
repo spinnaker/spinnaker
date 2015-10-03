@@ -39,8 +39,8 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
         setConfigDefaults(key, cacheConfig[key]);
       });
       cloudProviderRegistry.listRegisteredProviders().forEach((provider) => {
-        let providerConfig = serviceDelegate.getDelegate(provider, 'cache.configurer');
-        if (providerConfig) {
+        if (serviceDelegate.hasDelegate(provider, 'cache.configurer')) {
+          let providerConfig = serviceDelegate.getDelegate(provider, 'cache.configurer');
           Object.keys(providerConfig).forEach(function(key) {
             setConfigDefaults(key, providerConfig[key]);
             if (!cacheConfig[key]) {
@@ -50,7 +50,6 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
             cacheConfig[key].onReset = _.uniq((cacheConfig[key].onReset).concat(providerConfig[key].onReset));
             cacheConfig[key].version = Math.max(cacheConfig[key].version, providerConfig[key].version);
             cacheConfig[key].maxAge = Math.min(cacheConfig[key].maxAge, providerConfig[key].maxAge);
-
           });
         }
       });

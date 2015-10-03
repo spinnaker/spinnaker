@@ -1,0 +1,15 @@
+<form name="form" class="container-fluid form-horizontal" ng-controller="ServerGroupBasicSettingsSelectorCtrl as basicSettingsCtrl" novalidate>
+  <div class="modal-body">
+    <titan-server-group-basic-settings-selector command="command" application="application"></titan-server-group-basic-settings-selector>
+  </div>
+
+  <div class="modal-footer">
+    <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel</button>
+    <submit-button ng-if="ctrl.showSubmitButton()" is-disabled="form.$invalid || !ctrl.isValid() || taskMonitor.submitting"
+                   label="command.viewState.submitButtonLabel"
+                   submitting="taskMonitor.submitting" on-click="ctrl.clone()" is-new="true"></submit-button>
+    <button type="button" class="btn btn-primary" ng-click="wizard.nextPage(form.$valid)" ng-disabled="form.$invalid">
+      Next <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</form>

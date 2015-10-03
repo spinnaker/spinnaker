@@ -11,8 +11,10 @@ module.exports = angular
 
     function destroyServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
+      params.serverGroupName = serverGroup.name;
       params.type = 'destroyServerGroup';
       params.regions = [serverGroup.region];
+      params.region = serverGroup.region;
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;
@@ -26,8 +28,10 @@ module.exports = angular
 
     function disableServerGroup(serverGroup, applicationName, params={}) {
       params.asgName = serverGroup.name;
+      params.serverGroupName = serverGroup.name;
       params.type = 'disableAsg';
       params.regions = [serverGroup.region];
+      params.region = serverGroup.region;
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.providerType = serverGroup.type;
@@ -41,8 +45,10 @@ module.exports = angular
 
     function enableServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
+      params.serverGroupName = serverGroup.name;
       params.type = 'enableAsg';
       params.regions = [serverGroup.region];
+      params.region = serverGroup.region;
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.providerType = serverGroup.type;
@@ -56,8 +62,10 @@ module.exports = angular
 
     function resizeServerGroup(serverGroup, application, params={}) {
       params.asgName = serverGroup.name;
+      params.serverGroupName = serverGroup.name;
       params.type = 'resizeServerGroup';
       params.regions = [serverGroup.region];
+      params.region = serverGroup.region;
       params.zones = serverGroup.zones;
       params.credentials = serverGroup.account;
       params.cloudProvider = serverGroup.type;

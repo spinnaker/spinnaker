@@ -1,0 +1,23 @@
+<div>
+  <div ng-if="state.requiresTemplateSelection">
+    <ng-include src="pages.templateSelection"></ng-include>
+  </div>
+  <div ng-if="!state.loaded" style="height: 200px">
+    <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+  </div>
+  <modal-wizard ng-show="state.loaded && !state.requiresTemplateSelection" heading="{{title}}">
+    <wizard-page key="location" label="Basic Settings">
+      <ng-include src="pages.basicSettings"></ng-include>
+    </wizard-page>
+    <wizard-page key="resources" label="Resources">
+      <ng-include src="pages.resources"></ng-include>
+    </wizard-page>
+    <wizard-page key="capacity" label="Capacity">
+      <ng-include src="pages.capacity"></ng-include>
+    </wizard-page>
+    <wizard-page key="parameters" label="Parameters" mandatory="false">
+      <ng-include src="pages.parameters"></ng-include>
+    </wizard-page>
+  </modal-wizard>
+
+</div>

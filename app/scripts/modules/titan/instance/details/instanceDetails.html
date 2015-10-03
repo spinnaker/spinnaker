@@ -1,0 +1,134 @@
+<div class="details-panel">
+  <div class="header" ng-if="state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
+      <h3 select-on-dbl-click>
+        {{instance.id}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
+        <div class="dropdown" dropdown>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" dropdown-toggle>
+            Titan Task Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href ng-click="ctrl.enableInstanceInDiscovery()" ng-if="ctrl.canRegisterWithDiscovery()">Enable in Discovery</a></li>
+            <li><a href ng-click="ctrl.disableInstanceInDiscovery()" ng-if="ctrl.hasHealthState('Discovery', 'Up')">Disable in Discovery</a></li>
+            <!--<li><a href ng-click="ctrl.registerInstanceWithLoadBalancer()" ng-if="ctrl.canRegisterWithLoadBalancer()">Register with Load Balancer</a></li>-->
+            <!--<li><a href ng-click="ctrl.deregisterInstanceFromLoadBalancer()" ng-if="ctrl.canDeregisterFromLoadBalancer()">Deregister from Load Balancer</a></li>-->
+            <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
+            <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="instance.insightActions.length > 0" dropdown>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li ng-repeat="action in instance.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Titan Task Information" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Task Id:</dt>
+        <dd>{{instance.id}}</dd>
+        <dt>Job Id:</dt>
+        <dd>{{instance.jobId}}</dd>
+        <dt ng-if="instance.serverGroup">Job Name:</dt>
+        <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
+        <dt>Launched:</dt>
+        <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+        <dd ng-if="!instance.launchTime">(Unknown)</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Task Placement" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>Account:</dt>
+        <dd><account-tag account="instance.account" provider="instance.provider" pad="right"></account-tag></dd>
+        <dt>Region:</dt>
+        <dd>{{instance.placement.region}}</dd>
+        <dt>Host:</dt>
+        <dd>{{instance.placement.host}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Task Resources" expanded="true">
+      <dl class="dl-horizontal" ng-class="InsightFilterStateModel.filtersExpanded ? 'dl-narrow' : 'dl-wide'">
+        <dt>CPU(s):</dt>
+        <dd>{{instance.resources.cpu}}</dd>
+        <dt>Memory:</dt>
+        <dd>{{instance.resources.memory}} MB</dd>
+        <dt>Disk:</dt>
+        <dd>{{instance.resources.disk}} MB</dd>
+        <dt>Port(s):</dt>
+        <dd>
+          <div ng-repeat="(key, val) in instance.resources.ports">
+            {{key}} -> {{val}}
+          </div>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Status" expanded="true">
+      <p ng-if="instance.healthState !== 'Starting' && !healthMetrics.length">
+        No health metrics found for this instance
+      </p>
+      <p ng-if="instance.healthState === 'Starting' && !healthMetrics.length">
+        <span class="glyphicon glyphicon-Starting-triangle"></span> <strong>Starting</strong>
+      </p>
+      <dl ng-class="InsightFilterStateModel.filtersExpanded ? '': 'dl-horizontal'">
+        <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
+        <dd ng-repeat-end>
+          <span tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+            <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>{{metric.state | robotToHuman}}
+          </span>
+          <span class="pad-left small">
+            (<span ng-if="instance.state"><strong>Task State:  </strong></span>{{instance.state | uppercase }})
+          </span>
+        </dd>
+      </dl>
+    </collapsible-section>
+    <div class="content-section" ng-if="instance.notFound">
+      <div class="content-body">
+        <p>Could not find the instance. No other details provided.</p>
+      </div>
+    </div>
+    <!--<collapsible-section heading="SSH" ng-if="!instance.notFound">-->
+      <!--<dl>-->
+        <!--<dt ng-if="instance.sshLink">SSH into this docker container:</dt>-->
+        <!--<dd ng-if="instance.sshLink"><a href="{{instance.sshLink}}" target="_blank">SSH</a></dd>-->
+      <!--</dl>-->
+    <!--</collapsible-section>-->
+    <collapsible-section heading="Logs">
+      <ul>
+        <li>Console Output (TBD)</li>
+      </ul>
+    </collapsible-section>
+    <collapsible-section heading="Netflix Configuration" ng-if="baseIpAddress">
+      <ul>
+        <li>Properties Console (TBD)</li>
+        <li>Machine Readable Properties (TBD)</li>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>
