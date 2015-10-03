@@ -8,7 +8,8 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
   require('../utils/appendTransform.js'),
   require('./executions.transformer.service.js')
 ])
-  .factory('executionsService', function($stateParams, $http, $timeout, $q, scheduler, settings, appendTransform, executionsTransformer) {
+  .factory('executionsService', function($stateParams, $http, $timeout, $q, $log,
+                                         scheduler, settings, appendTransform, executionsTransformer) {
 
     function getExecutions(application) {
 
@@ -21,6 +22,11 @@ module.exports = angular.module('spinnaker.delivery.executions.service', [
           }
           executions.forEach(function(execution) {
             executionsTransformer.transformExecution(application, execution);
+            try {
+              execution.stringVal = JSON.stringify(execution);
+            } catch (e) {
+              $log.warn('Could not stringify execution:', execution.id);
+            }
           });
           return executions;
         }),
