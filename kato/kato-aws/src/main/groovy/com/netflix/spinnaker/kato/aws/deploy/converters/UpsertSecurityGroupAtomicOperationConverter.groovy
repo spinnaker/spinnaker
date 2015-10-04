@@ -18,12 +18,15 @@ package com.netflix.spinnaker.kato.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.UpsertSecurityGroupDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.UpsertSecurityGroupAtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.UPSERT_SECURITY_GROUP)
 @Component("upsertSecurityGroupDescription")
 class UpsertSecurityGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Autowired

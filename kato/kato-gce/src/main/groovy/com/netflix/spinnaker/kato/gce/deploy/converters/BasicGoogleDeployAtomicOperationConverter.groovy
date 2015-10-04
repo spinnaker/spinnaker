@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.deploy.DeployAtomicOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.CREATE_SERVER_GROUP)
 @Component("basicGoogleDeployDescription")
 class BasicGoogleDeployAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   AtomicOperation convertOperation(Map input) {
