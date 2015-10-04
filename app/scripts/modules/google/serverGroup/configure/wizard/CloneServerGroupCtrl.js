@@ -155,8 +155,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       });
       $scope.command.tags = transformedTags;
 
-      $scope.command.initialNumReplicas = $scope.command.capacity.desired;
-      $scope.command.networkLoadBalancers = $scope.command.loadBalancers;
+      $scope.command.targetSize = $scope.command.capacity.desired;
+      $scope.command.loadBalancers = $scope.command.loadBalancers;
 
       // We want min/max set to the same value as desired.
       $scope.command.capacity.min = $scope.command.capacity.desired;

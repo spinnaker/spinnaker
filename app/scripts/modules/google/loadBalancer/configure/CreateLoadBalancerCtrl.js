@@ -165,7 +165,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
         function() {
           let params = {
             cloudProvider: 'gce',
-            networkLoadBalancerName: $scope.loadBalancer.name,
+            loadBalancerName: $scope.loadBalancer.name,
           };
 
           if ($scope.loadBalancer.listeners && $scope.loadBalancer.listeners.length > 0) {
