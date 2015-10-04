@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
@@ -27,9 +26,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Specification {
+  private static final SERVER_GROUP_NAME = "server-group-name"
   private static final ACCOUNT_NAME = "auto"
   private static final ZONE = "us-central1-b"
-  private static final REPLICA_POOL_NAME = "replica-pool-name"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-instance1", "my-app7-dev-v000-instance2"]
 
   @Shared
@@ -49,7 +48,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
   void "pass validation with proper description inputs"() {
     setup:
       def description = new TerminateAndDecrementGoogleServerGroupDescription(
-          zone: ZONE, replicaPoolName: REPLICA_POOL_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
+          zone: ZONE, serverGroupName: SERVER_GROUP_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -61,7 +60,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
 
   void "invalid instanceIds fail validation"() {
     setup:
-      def description = new TerminateAndDecrementGoogleServerGroupDescription(instanceIds: [""], replicaPoolName: REPLICA_POOL_NAME)
+      def description = new TerminateAndDecrementGoogleServerGroupDescription(instanceIds: [""], serverGroupName: SERVER_GROUP_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -82,7 +81,7 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Spe
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('zone', _)
-      1 * errors.rejectValue('replicaPoolName', _)
+      1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('instanceIds', _)
   }
 }

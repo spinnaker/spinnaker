@@ -346,7 +346,7 @@ class GoogleResourceRetriever {
                                               instanceNameToGoogleServerGroupMap,
                                               instanceGroupsBatch)
 
-          // Handle 404 here (especially when this is called after destroying a replica pool).
+          // Handle 404 here (especially when this is called after destroying a managed instance group).
           InstanceGroupManager instanceGroupManager = null
 
           try {

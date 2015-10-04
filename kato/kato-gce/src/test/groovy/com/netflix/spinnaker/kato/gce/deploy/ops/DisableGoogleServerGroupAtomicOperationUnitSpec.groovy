@@ -31,7 +31,7 @@ import spock.lang.Subject
 class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final REPLICA_POOL_NAME = "mjdapp-dev-v009"
+  private static final SERVER_GROUP_NAME = "mjdapp-dev-v009"
   private static final TARGET_POOL_NAME_1 = "testlb-target-pool-1417967954401";
   private static final TARGET_POOL_NAME_2 = "testlb2-target-pool-1417963107058";
   private static final TARGET_POOL_URL_1 =
@@ -86,7 +86,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
-    description = new EnableDisableGoogleServerGroupDescription(replicaPoolName: REPLICA_POOL_NAME,
+    description = new EnableDisableGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 zone: ZONE,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
@@ -105,7 +105,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesGetMock.execute() >> zone
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
       [TARGET_POOL_NAME_1, TARGET_POOL_NAME_2].each { targetPoolLocalName ->
@@ -124,7 +124,7 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceGroupManagersMock.setTargetPools(
           PROJECT_NAME,
           ZONE,
-          REPLICA_POOL_NAME,
+          SERVER_GROUP_NAME,
           new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
   }

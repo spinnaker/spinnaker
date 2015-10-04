@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.ops
 
 import com.google.api.services.compute.model.InstanceGroupManagersDeleteInstancesRequest
@@ -23,25 +24,23 @@ import com.netflix.spinnaker.kato.gce.deploy.description.TerminateAndDecrementGo
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 /**
- * Terminate and delete instances from a replica pool, and decrement the size of the replica pool.
+ * Terminate and delete instances from a managed instance group, and decrement the size of the managed instance group.
  *
- * This operation explicitly deletes and removes specific instances from
- * managed instance group, decreasing the size of the group by the number of
- * instances removed. The basic {@link TerminateGoogleInstancesAtomicOperation}
- * will delete the instances as this does, however since the managed instance
- * group was not changed, it will create new instances to satisfy its size
- * requirements.
+ * This operation explicitly deletes and removes specific instances from a managed instance group, decreasing the size
+ * of the group by the number of instances removed. The basic {@link TerminateGoogleInstancesAtomicOperation} will
+ * delete the instances as this does, however since the managed instance group was not changed, it will create new
+ * instances to satisfy its size requirements.
  *
- * This is an alternative to {@link TerminateGoogleInstancesAtomicOperation} using
- * the API described in {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/deleteInstances}.
+ * This is an alternative to {@link TerminateGoogleInstancesAtomicOperation} using the API described in
+ * {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/deleteInstances}.
  *
- * This is also an alternative to {@link AbandonAndDecrementGoogleServerGroupAtomicOperation}
- * where the instances are also deleted once removed from the replica pool.
+ * This is also an alternative to {@link AbandonAndDecrementGoogleServerGroupAtomicOperation} where the instances are
+ * also deleted once removed from the managed instance group.
  *
  * @see TerminateGoogleInstancesAtomicOperation
  */
 class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "TERMINATE_INSTANCES"
+  private static final String BASE_PHASE = "TERMINATE_AND_DEC_INSTANCES"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -54,24 +53,27 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
   }
 
   /**
-   * Attempt to terminate the specified instanceIds and remove from the specified replica pool.
+   * Attempt to terminate the specified instances and remove them from the specified managed instance group.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateAndDecrementGoogleServerGroupDescription": { "replicaPoolName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateAndDecrementGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Attempting to terminate instances (${description.instanceIds.join(", ")} and remove from replica pool (${description.replicaPoolName})."
+    task.updateStatus BASE_PHASE, "Initializing terminate and decrement of instances " +
+      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName} in $description.zone..."
 
     def project = description.credentials.project
     def compute = description.credentials.compute
     def zone = description.zone
-    def replicaPoolName = description.replicaPoolName
+    def serverGroupName = description.serverGroupName
     def instanceIds = description.instanceIds
-    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, replicaPoolName, instanceIds, description.credentials)
+    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
     def deleteRequest = new InstanceGroupManagersDeleteInstancesRequest().setInstances(instanceUrls)
 
-    compute.instanceGroupManagers().deleteInstances(project, zone, replicaPoolName, deleteRequest).execute()
-    task.updateStatus BASE_PHASE, "Successfully terminated instances=(${description.instanceIds.join(", ")} and removed from ${replicaPoolName})."
+    compute.instanceGroupManagers().deleteInstances(project, zone, serverGroupName, deleteRequest).execute()
+
+    task.updateStatus BASE_PHASE, "Done terminating and decrementing instances " +
+      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName} in $zone."
     null
   }
 }

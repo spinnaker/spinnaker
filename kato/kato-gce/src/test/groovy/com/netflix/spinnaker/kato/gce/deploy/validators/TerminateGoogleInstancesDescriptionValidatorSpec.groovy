@@ -63,7 +63,7 @@ class TerminateGoogleInstancesDescriptionValidatorSpec extends Specification {
   void "pass validation with proper description inputs with managed instance group"() {
     setup:
       def description = new TerminateGoogleInstancesDescription(zone: ZONE,
-                                                                managedInstanceGroupName: MANAGED_INSTANCE_GROUP_NAME,
+                                                                serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: INSTANCE_IDS,
                                                                 accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)

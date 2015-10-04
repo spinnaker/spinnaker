@@ -28,7 +28,7 @@ class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specific
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final FREE_FORM_DETAILS = "detail"
-  private static final INITIAL_NUM_REPLICAS = 3
+  private static final TARGET_SIZE = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
@@ -53,7 +53,7 @@ class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specific
     setup:
       def input = [application: APPLICATION,
                    stack: STACK,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,
@@ -77,7 +77,7 @@ class CopyLastGoogleServerGroupAtomicOperationConverterUnitSpec extends Specific
       def input = [application: APPLICATION,
                    stack: STACK,
                    freeFormDetails: FREE_FORM_DETAILS,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,

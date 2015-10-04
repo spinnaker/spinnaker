@@ -30,7 +30,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final FREE_FORM_DETAILS = "detail"
-  private static final INITIAL_NUM_REPLICAS = 3
+  private static final TARGET_SIZE = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final DISK_TYPE = "pd-standard"
@@ -57,7 +57,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     setup:
     def description = new BasicGoogleDeployDescription(application: APPLICATION,
                                                        stack: STACK,
-                                                       initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                       targetSize: TARGET_SIZE,
                                                        image: IMAGE,
                                                        instanceType: INSTANCE_TYPE,
                                                        diskType: DISK_TYPE,
@@ -78,7 +78,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     def description = new BasicGoogleDeployDescription(application: APPLICATION,
                                                        stack: STACK,
                                                        freeFormDetails: FREE_FORM_DETAILS,
-                                                       initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                       targetSize: TARGET_SIZE,
                                                        image: IMAGE,
                                                        instanceType: INSTANCE_TYPE,
                                                        zone: ZONE,
@@ -97,7 +97,7 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     def description = new BasicGoogleDeployDescription(application: APPLICATION,
       stack: STACK,
       freeFormDetails: FREE_FORM_DETAILS,
-      initialNumReplicas: INITIAL_NUM_REPLICAS,
+      targetSize: TARGET_SIZE,
       image: IMAGE,
       instanceType: INSTANCE_TYPE,
       zone: ZONE,
@@ -112,16 +112,16 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
     0 * errors._
   }
 
-  void "invalid initialNumReplicas fails validation"() {
+  void "invalid targetSize fails validation"() {
     setup:
-    def description = new BasicGoogleDeployDescription(initialNumReplicas: -1)
+    def description = new BasicGoogleDeployDescription(targetSize: -1)
     def errors = Mock(Errors)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("initialNumReplicas", "basicGoogleDeployDescription.initialNumReplicas.negative")
+    1 * errors.rejectValue("targetSize", "basicGoogleDeployDescription.targetSize.negative")
   }
 
   void "invalid diskSizeGb fails validation"() {

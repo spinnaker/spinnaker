@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,12 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 /**
- * Description for "enabling" a supplied Google Server Group. "Enabling" means setting a network load balancer's target
- * pool on the server group.
+ * "Enabling" means adding a server group to the target pool of each of its network load balancers.
  *
- * Description for "disabling" a supplied Google Server Group. "Disabling" means removing all target pool associations
- * from the server group.
+ * "Disabling" means removing a server group from the target pool of each of its network load balancers.
  */
 class EnableDisableGoogleServerGroupDescription {
-  String replicaPoolName
+  String serverGroupName
   String zone
   String accountName
   GoogleCredentials credentials

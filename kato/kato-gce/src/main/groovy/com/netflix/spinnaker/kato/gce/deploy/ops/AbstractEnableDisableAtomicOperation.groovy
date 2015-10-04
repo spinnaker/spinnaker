@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,18 +40,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
   @Override
   Void operate(List priorOutputs) {
-    String verb = disable ? 'Disable' : 'Enable'
+    String verb = disable ? 'disable' : 'enable'
     String presentParticipling = disable ? 'Disabling' : 'Enabling'
 
-    task.updateStatus phaseName, "Initializing $verb Google Server Group operation for $description.replicaPoolName..."
+    task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in " +
+      "$description.zone..."
 
     def credentials = description.credentials
     def compute = credentials.compute
     def project = credentials.project
     def zone = description.zone
     def region = GCEUtil.getRegionFromZone(project, zone, compute)
-    def replicaPoolName = description.replicaPoolName
-    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, replicaPoolName, credentials);
+    def serverGroupName = description.serverGroupName
+    def managedInstanceGroup = GCEUtil.queryManagedInstanceGroup(project, zone, serverGroupName, credentials);
     def currentTargetPoolUrls = managedInstanceGroup.getTargetPools()
     def newTargetPoolUrls = []
 
@@ -70,7 +71,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         instanceUrls.each { instanceUrl ->
           def instanceLocalName = GCEUtil.getLocalName(instanceUrl)
 
-          if (instanceLocalName.startsWith("$replicaPoolName-")) {
+          if (instanceLocalName.startsWith("$serverGroupName-")) {
             instanceReferencesToRemove << new InstanceReference(instance: instanceUrl)
           }
         }
@@ -89,7 +90,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       def groupInstances = compute.instanceGroups().listInstances(project,
                                                                   zone,
-                                                                  replicaPoolName,
+                                                                  serverGroupName,
                                                                   new InstanceGroupsListInstancesRequest()).execute().items
 
       def instanceReferencesToAdd = []
@@ -132,7 +133,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
     }
 
-    task.updateStatus phaseName, "$presentParticipling Google Server Group $description.replicaPoolName in $zone..."
+    task.updateStatus phaseName, "$presentParticipling server group $description.serverGroupName in $zone..."
 
     def instanceGroupManagersSetTargetPoolsRequest =
             new InstanceGroupManagersSetTargetPoolsRequest(targetPools: newTargetPoolUrls)
@@ -141,9 +142,10 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
     compute.instanceGroupManagers().setTargetPools(project,
                                                    zone,
-                                                   replicaPoolName,
+                                                   serverGroupName,
                                                    instanceGroupManagersSetTargetPoolsRequest).execute()
 
+    task.updateStatus phaseName, "Done ${presentParticipling.toLowerCase()} server group $description.serverGroupName in $zone."
     null
   }
 

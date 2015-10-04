@@ -29,11 +29,11 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
  * If no managed instance group is specified, this operation only explicitly deletes and removes the instances. However,
  * if the instances are in a managed instance group then the manager will automatically recreate and restart the
  * instances once it sees that they are missing. The net effect is to recreate the instances. More information:
- * {@link https://cloud.google.com/compute/docs/instances#deleting_an_instance}
+ * {@link https://cloud.google.com/compute/docs/instances/stopping-or-deleting-an-instance}
  *
  * If a managed instance group is specified, this becomes a first-class explicit operation on the managed instance
  * group to terminate and recreate the instances. More information:
- * {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/recreateInstances}
+ * {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/recreateInstances}
  */
 class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "TERMINATE_INSTANCES"
@@ -59,42 +59,43 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
    * If a managed instance group is specified, we rely on the manager to terminate and recreate the instances.
    *
    * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "managedInstanceGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstances": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing termination of instances [${description.instanceIds.join(", ")}]."
+    task.updateStatus BASE_PHASE, "Initializing termination of instances (${description.instanceIds.join(", ")}) in " +
+      "$description.zone..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
     def instanceIds = description.instanceIds
 
-    if (description.managedInstanceGroupName) {
-      task.updateStatus BASE_PHASE, "Recreating instances [${instanceIds.join(", ")}] in managed instance " +
-          "group $description.managedInstanceGroupName."
+    if (description.serverGroupName) {
+      task.updateStatus BASE_PHASE, "Recreating instances (${instanceIds.join(", ")}) in server group " +
+          "$description.serverGroupName in $zone..."
 
-      def managerName = description.managedInstanceGroupName
+      def managerName = description.serverGroupName
       def instanceGroupManagers = compute.instanceGroupManagers()
       def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, managerName, instanceIds, description.credentials)
       def request = new InstanceGroupManagersRecreateInstancesRequest().setInstances(instanceUrls)
 
       instanceGroupManagers.recreateInstances(project, zone, managerName, request).execute()
 
-      task.updateStatus BASE_PHASE, "Done executing recreate of instances [${instanceIds.join(", ")}]."
+      task.updateStatus BASE_PHASE, "Done recreating instances (${instanceIds.join(", ")}) in $zone."
     } else {
       def firstFailure
       def okIds = []
       def failedIds = []
 
       for (def instanceId : instanceIds) {
-        task.updateStatus BASE_PHASE, "Terminating instance $instanceId..."
+        task.updateStatus BASE_PHASE, "Terminating instance $instanceId in $zone..."
 
         try {
           compute.instances().delete(project, zone, instanceId).execute()
           okIds.add(instanceId)
         } catch (Exception e) {
-          task.updateStatus BASE_PHASE, "Failed to terminate instance $instanceId in zone $zone: $e.message."
+          task.updateStatus BASE_PHASE, "Failed to terminate instance $instanceId in $zone: $e.message."
           failedIds.add(instanceId)
 
           if (!firstFailure) {
@@ -104,12 +105,12 @@ class TerminateGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
       }
 
       if (firstFailure) {
-        task.updateStatus BASE_PHASE, "Failed to terminate instances [${failedIds.join(", ")}] but successfully " +
-            "terminated instances [${okIds.join(", ")}]."
+        task.updateStatus BASE_PHASE, "Failed to terminate instances (${failedIds.join(", ")}) in $zone, but " +
+          "successfully terminated instances (${okIds.join(", ")})."
         throw firstFailure
       }
 
-      task.updateStatus BASE_PHASE, "Successfully terminated all instances [${instanceIds.join(", ")}]."
+      task.updateStatus BASE_PHASE, "Done terminating instances (${instanceIds.join(", ")}) in $zone."
     }
 
     null

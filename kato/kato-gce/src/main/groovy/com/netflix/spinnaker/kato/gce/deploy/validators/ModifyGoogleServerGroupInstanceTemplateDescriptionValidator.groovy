@@ -34,6 +34,6 @@ class ModifyGoogleServerGroupInstanceTemplateDescriptionValidator extends Descri
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateZone(description.zone)
-    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateServerGroupName(description.serverGroupName)
   }
 }

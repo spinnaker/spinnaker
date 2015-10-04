@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
-import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.kato.deploy.DescriptionValidator
 import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleServerGroupTagsDescription
 import org.springframework.beans.factory.annotation.Autowired
@@ -35,7 +34,7 @@ class UpsertGoogleServerGroupTagsDescriptionValidator extends DescriptionValidat
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateZone(description.zone)
-    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateServerGroupName(description.serverGroupName)
     helper.validateTags(description.tags)
   }
 }

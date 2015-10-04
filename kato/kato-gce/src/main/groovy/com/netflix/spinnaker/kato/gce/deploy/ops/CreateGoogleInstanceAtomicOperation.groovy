@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +51,11 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "debian-7-wheezy-v20141108", "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createGoogleInstanceDescription": { "instanceName": "myapp-dev-v000-abcd", "image": "ubuntu-1404-trusty-v20150909a", "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing deployment..."
+    task.updateStatus BASE_PHASE, "Initializing creation of instance $description.instanceName in $description.zone..."
 
     if (!description.credentials) {
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
@@ -91,7 +91,8 @@ class CreateGoogleInstanceAtomicOperation implements AtomicOperation<DeploymentR
 
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     compute.instances().insert(project, zone, instance).execute()
-    task.updateStatus BASE_PHASE, "Done."
+
+    task.updateStatus BASE_PHASE, "Done creating instance $description.instanceName in $description.zone."
     new DeploymentResult(serverGroupNames: [description.instanceName])
   }
 }

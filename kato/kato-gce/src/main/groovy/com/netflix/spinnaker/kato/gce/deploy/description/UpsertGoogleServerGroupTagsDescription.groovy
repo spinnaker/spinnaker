@@ -19,9 +19,9 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class UpsertGoogleServerGroupTagsDescription {
-  String replicaPoolName
-  String zone
+  String serverGroupName
   List<String> tags
+  String zone
   String accountName
   GoogleCredentials credentials
 }

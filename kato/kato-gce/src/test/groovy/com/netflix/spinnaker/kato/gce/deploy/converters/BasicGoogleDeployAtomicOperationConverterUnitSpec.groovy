@@ -28,7 +28,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final FREE_FORM_DETAILS = "detail"
-  private static final INITIAL_NUM_REPLICAS = 3
+  private static final TARGET_SIZE = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
@@ -36,7 +36,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
           ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
            "testKey": "testValue"]
   private static final TAGS = ["some-tag-1", "some-tag-2", "some-tag-3"]
-  private static final NETWORK_LOAD_BALANCERS = ["testlb1", "testlb2"]
+  private static final LOAD_BALANCERS = ["testlb1", "testlb2"]
   private static final ACCOUNT_NAME = "auto"
 
   @Shared
@@ -57,7 +57,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
     setup:
       def input = [application: APPLICATION,
                    stack: STACK,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,
@@ -81,7 +81,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
       def input = [application: APPLICATION,
                    stack: STACK,
                    freeFormDetails: FREE_FORM_DETAILS,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,
@@ -104,7 +104,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
     setup:
       def input = [application: APPLICATION,
                    stack: STACK,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,
@@ -129,7 +129,7 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
     setup:
     def input = [application: APPLICATION,
                  stack: STACK,
-                 initialNumReplicas: INITIAL_NUM_REPLICAS,
+                 targetSize: TARGET_SIZE,
                  image: IMAGE,
                  instanceType: INSTANCE_TYPE,
                  zone: ZONE,
@@ -155,16 +155,16 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
     setup:
       def input = [application: APPLICATION,
                    stack: STACK,
-                   initialNumReplicas: INITIAL_NUM_REPLICAS,
+                   targetSize: TARGET_SIZE,
                    image: IMAGE,
                    instanceType: INSTANCE_TYPE,
                    zone: ZONE,
-                   networkLoadBalancers: NETWORK_LOAD_BALANCERS,
+                   loadBalancers: LOAD_BALANCERS,
                    credentials: ACCOUNT_NAME]
 
     when:
       def description = converter.convertDescription(input)
-      description.networkLoadBalancers == NETWORK_LOAD_BALANCERS
+      description.loadBalancers == LOAD_BALANCERS
 
     then:
       description instanceof BasicGoogleDeployDescription
@@ -190,15 +190,15 @@ class BasicGoogleDeployAtomicOperationConverterUnitSpec extends Specification {
       application = "kato"
   }
 
-  void "should convert num replicas to ints"() {
+  void "should convert target size to ints"() {
     setup:
-      def input = [application: "app", initialNumReplicas: desired]
+      def input = [application: "app", targetSize: desired]
 
     when:
       def description = converter.convertDescription(input)
 
     then:
-      description.initialNumReplicas == desired as int
+      description.targetSize == desired as int
 
     where:
       desired = "8"

@@ -25,7 +25,8 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DisableGoogleServerGroupAtomicOperationConverterUnitSpec extends Specification {
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
+
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
 
@@ -43,9 +44,9 @@ class DisableGoogleServerGroupAtomicOperationConverterUnitSpec extends Specifica
     converter.accountCredentialsProvider = accountCredentialsProvider
   }
 
-  void "disableGoogleReplicaPoolDescription type returns EnableDisableGoogleServerGroupDescription and DisableGoogleServerGroupAtomicOperation"() {
+  void "disableGoogleServerGroupDescription type returns EnableDisableGoogleServerGroupDescription and DisableGoogleServerGroupAtomicOperation"() {
     setup:
-      def input = [replicaPoolName: REPLICA_POOL_NAME,
+      def input = [serverGroupName: SERVER_GROUP_NAME,
                    zone: ZONE,
                    accountName: ACCOUNT_NAME]
 

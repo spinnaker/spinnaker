@@ -25,9 +25,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class TerminateAndDecrementGoogleServerGroupAtomicOperationConverterUnitSpec extends Specification {
+  private static final SERVER_GROUP_NAME = "my-server-group-name"
   private static final ACCOUNT_NAME = "auto"
   private static final ZONE = "us-central1-b"
-  private static final REPLICA_POOL_NAME = "my-replica-pool-name"
 
   @Shared
   ObjectMapper mapper = new ObjectMapper()
@@ -45,7 +45,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperationConverterUnitSpec ext
 
   void "terminateAndDecrementGoogleServerGroupDescription type returns TerminateAndDecrementGoogleServerGroupDescription and TerminateAndDecrementGoogleServerGroupAtomicOperation"() {
     setup:
-      def input = [replicaPoolName: REPLICA_POOL_NAME, zone: ZONE, credentials: ACCOUNT_NAME]
+      def input = [serverGroupName: SERVER_GROUP_NAME, zone: ZONE, credentials: ACCOUNT_NAME]
 
     when:
       def description = converter.convertDescription(input)

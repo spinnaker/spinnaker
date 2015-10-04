@@ -32,8 +32,8 @@ import com.netflix.spinnaker.kato.config.GceConfig
 import com.netflix.spinnaker.kato.data.task.Task
 import com.netflix.spinnaker.kato.gce.deploy.description.BaseGoogleInstanceDescription
 import com.netflix.spinnaker.kato.gce.deploy.description.CreateGoogleHttpLoadBalancerDescription
-import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleFirewallRuleDescription
-import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleNetworkLoadBalancerDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleSecurityGroupDescription
+import com.netflix.spinnaker.kato.gce.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.kato.gce.deploy.exception.GoogleResourceNotFoundException
 import com.netflix.spinnaker.mort.gce.model.GoogleSecurityGroup
@@ -463,7 +463,7 @@ class GCEUtil {
     return urlParts[urlParts.length - 1]
   }
 
-  static def buildHttpHealthCheck(String name, UpsertGoogleNetworkLoadBalancerDescription.HealthCheck healthCheckDescription) {
+  static def buildHttpHealthCheck(String name, UpsertGoogleLoadBalancerDescription.HealthCheck healthCheckDescription) {
     return new HttpHealthCheck(
         name: name,
         checkIntervalSec: healthCheckDescription.checkIntervalSec,
@@ -494,13 +494,13 @@ class GCEUtil {
   }
 
   static Firewall buildFirewallRule(String projectName,
-                                    UpsertGoogleFirewallRuleDescription firewallRuleDescription,
+                                    UpsertGoogleSecurityGroupDescription firewallRuleDescription,
                                     Compute compute,
                                     Task task,
                                     String phase) {
     def network = queryNetwork(projectName, firewallRuleDescription.network, compute, task, phase)
     def firewall = new Firewall(
-        name: firewallRuleDescription.firewallRuleName,
+        name: firewallRuleDescription.securityGroupName,
         network: network.selfLink
     )
     def allowed = firewallRuleDescription.allowed.collect {

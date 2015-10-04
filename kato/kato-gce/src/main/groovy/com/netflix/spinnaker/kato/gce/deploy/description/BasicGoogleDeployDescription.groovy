@@ -26,9 +26,9 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   String application
   String stack
   String freeFormDetails
-  int initialNumReplicas
+  int targetSize
   String zone
-  List<String> networkLoadBalancers
+  List<String> loadBalancers
   Set<String> securityGroups
   Source source = new Source()
 

@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * As the instance template itself is immutable, a new instance template is created and set on the managed instance
  * group.
  *
- * Uses {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/setInstanceTemplate}
+ * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/setInstanceTemplate}
  * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instances/setTags}
  */
 class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void> {
@@ -53,35 +53,37 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleServerGroupTagsDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "upsertGoogleServerGroupTagsDescription": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Upsert Google Server Group Tags operation for $description.replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Initializing upsert of server group tags for $description.serverGroupName in " +
+      "$description.zone..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
     def tagsDescription = description.tags ? "tags $description.tags" : "empty set of tags"
-    def replicaPoolName = description.replicaPoolName
+    def serverGroupName = description.serverGroupName
 
     def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
     def instances = compute.instances()
 
     // Retrieve the managed instance group.
-    def managedInstanceGroup = instanceGroupManagers.get(project, zone, replicaPoolName).execute()
+    def managedInstanceGroup = instanceGroupManagers.get(project, zone, serverGroupName).execute()
     def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
     if (!origInstanceTemplateName) {
-      throw new GoogleResourceNotFoundException("Unable to determine instance template for server group $replicaPoolName.")
+      throw new GoogleResourceNotFoundException("Unable to determine instance template for server group " +
+        "$serverGroupName.")
     }
 
     // Retrieve the managed instance group's current instance template.
     def instanceTemplate = instanceTemplates.get(project, origInstanceTemplateName).execute()
 
     // Override the instance template's name.
-    instanceTemplate.setName("$replicaPoolName-${System.currentTimeMillis()}")
+    instanceTemplate.setName("$serverGroupName-${System.currentTimeMillis()}")
 
     // Override the instance template's tags with the new set.
     def tags = new Tags(items: description.tags)
@@ -98,16 +100,16 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
         null, task, "instance template $instanceTemplate.name", BASE_PHASE)
 
     // Set the new instance template on the managed instance group.
-    task.updateStatus BASE_PHASE, "Setting instance template $instanceTemplate.name on server group $replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Setting instance template $instanceTemplate.name on server group $serverGroupName..."
 
     def instanceGroupManagersSetInstanceTemplateRequest =
         new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
     def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-        project, zone, replicaPoolName, instanceGroupManagersSetInstanceTemplateRequest).execute()
+        project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
 
     // Block on setting the instance template on the managed instance group.
     googleOperationPoller.waitForZonalOperation(compute, project, zone,
-        setInstanceTemplateOperation.getName(), null, task, "server group $replicaPoolName", BASE_PHASE)
+        setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
 
     // Retrieve the name of the instance group being managed by the instance group manager.
     def instanceGroupName = GCEUtil.getLocalName(managedInstanceGroup.instanceGroup)
@@ -119,7 +121,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
                                                                 new InstanceGroupsListInstancesRequest()).execute().items
 
     // Set the new tags on all instances in the group (in parallel).
-    task.updateStatus BASE_PHASE, "Setting $tagsDescription on each instance in server group $replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Setting $tagsDescription on each instance in server group $serverGroupName..."
 
     def instanceUpdateOperations = []
 
@@ -146,7 +148,7 @@ class UpsertGoogleServerGroupTagsAtomicOperation implements AtomicOperation<Void
 
     instanceTemplates.delete(project, origInstanceTemplateName).execute()
 
-    task.updateStatus BASE_PHASE, "Done tagging server group $replicaPoolName."
+    task.updateStatus BASE_PHASE, "Done tagging server group $serverGroupName in $zone."
     null
   }
 }

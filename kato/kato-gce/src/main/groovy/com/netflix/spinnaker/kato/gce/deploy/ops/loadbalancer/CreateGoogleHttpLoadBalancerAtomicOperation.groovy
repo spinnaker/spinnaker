@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing create of HTTP load balancer $description.loadBalancerName..."
+    task.updateStatus BASE_PHASE, "Initializing creation of HTTP load balancer $description.loadBalancerName..."
 
     if (!description.credentials) {
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
@@ -200,7 +200,7 @@ class CreateGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<De
 
     compute.globalForwardingRules().insert(project, forwardingRule).execute()
 
-    task.updateStatus BASE_PHASE, "Done."
+    task.updateStatus BASE_PHASE, "Done creating HTTP load balancer $description.loadBalancerName."
     null
   }
 }

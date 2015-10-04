@@ -25,7 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertGoogleServerGroupTagsAtomicOperationConverterUnitSpec extends Specification {
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final ACCOUNT_NAME = "auto"
   private static final TAGS = ["some-tag-1", "some-tag-2"]
@@ -47,7 +47,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationConverterUnitSpec extends Specif
   void "upsertGoogleServerGroupTagsDescription type returns UpsertGoogleServerGroupTagsDescription and UpsertGoogleServerGroupTagsAtomicOperation"() {
     setup:
       def input = [
-        replicaPoolName: REPLICA_POOL_NAME,
+        serverGroupName: SERVER_GROUP_NAME,
         zone: ZONE,
         tags: TAGS,
         accountName: ACCOUNT_NAME

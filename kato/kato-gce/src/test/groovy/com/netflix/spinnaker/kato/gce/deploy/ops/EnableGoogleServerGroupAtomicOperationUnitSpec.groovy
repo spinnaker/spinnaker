@@ -37,8 +37,8 @@ import spock.lang.Subject
 class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final REPLICA_POOL_NAME = "mjdapp-dev-v009"
-  private static final INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-${System.currentTimeMillis()}"
+  private static final SERVER_GROUP_NAME = "mjdapp-dev-v009"
+  private static final INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-${System.currentTimeMillis()}"
   private static final FORWARDING_RULE_1 = "testlb";
   private static final FORWARDING_RULE_2 = "testlb2";
   private static final INSTANCE_METADATA =
@@ -125,7 +125,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     instanceGroupManagersSetTargetPoolsMock = Mock(Compute.InstanceGroupManagers.SetTargetPools)
 
-    description = new EnableDisableGoogleServerGroupDescription(replicaPoolName: REPLICA_POOL_NAME,
+    description = new EnableDisableGoogleServerGroupDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                 zone: ZONE,
                                                                 accountName: ACCOUNT_NAME,
                                                                 credentials: credentials)
@@ -144,11 +144,11 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesGetMock.execute() >> zone
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
       1 * computeMock.instanceGroups() >> instanceGroupsMock
-      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> instanceGroupsListInstancesMock
       1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstances
 
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
@@ -166,7 +166,7 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       }
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.setTargetPools(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >>
+      1 * instanceGroupManagersMock.setTargetPools(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >>
               instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
   }
@@ -188,11 +188,11 @@ class EnableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * zonesGetMock.execute() >> zone
 
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManager
 
       1 * computeMock.instanceGroups() >> instanceGroupsMock
-      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> instanceGroupsListInstancesMock
       1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstances
 
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
