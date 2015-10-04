@@ -166,12 +166,13 @@ module.exports = angular
     function diffServerGroups(oldGroup, newGroup) {
       var toRemove = [];
       oldGroup.serverGroups.forEach(function(serverGroup, idx) {
+        serverGroup.stringVal = angular.toJson(serverGroup);
         var newServerGroup = _.find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
         if (!newServerGroup) {
           $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
           toRemove.push(idx);
         } else {
-          if (serverGroup.stringVal !== newServerGroup.stringVal) {
+          if (serverGroup.stringVal !== angular.toJson(newServerGroup)) {
             $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
             oldGroup.serverGroups[idx] = newServerGroup;
           }

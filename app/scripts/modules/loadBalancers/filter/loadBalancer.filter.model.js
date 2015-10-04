@@ -77,7 +77,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (isChildState(toState.name)) {
+      if (isLoadBalancerStateOrChild(toState.name)) {
         filterModel.applyParamsToUrl();
         return;
       }
