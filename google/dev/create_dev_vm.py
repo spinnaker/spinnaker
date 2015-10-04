@@ -73,7 +73,7 @@ def init_argument_parser(parser):
     parser.add_argument('--zone', default='us-central1-f')
     parser.add_argument('--disk_size', default='200GB',
                         help='Warnings appear if disk size < 200GB')
-    parser.add_argument('--machine_type', default='n1-standard-16')
+    parser.add_argument('--machine_type', default='n1-standard-8')
     parser.add_argument(
         '--nopersonal', default=False, action='store_true',
         help='Do not copy personal files (.gitconfig, etc.)')
