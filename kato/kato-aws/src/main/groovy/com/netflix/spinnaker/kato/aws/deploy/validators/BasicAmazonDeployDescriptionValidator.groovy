@@ -19,8 +19,10 @@ package com.netflix.spinnaker.kato.aws.deploy.validators
 
 import com.netflix.spinnaker.amos.AccountCredentialsProvider
 import com.netflix.spinnaker.amos.aws.AmazonCredentials
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.kato.aws.deploy.description.BasicAmazonDeployDescription
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Component
 import org.springframework.validation.Errors
 
 @Component("basicAmazonDeployDescriptionValidator")
+@AmazonOperation(AtomicOperations.CREATE_SERVER_GROUP)
 class BasicAmazonDeployDescriptionValidator extends AmazonDescriptionValidationSupport<BasicAmazonDeployDescription> {
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
