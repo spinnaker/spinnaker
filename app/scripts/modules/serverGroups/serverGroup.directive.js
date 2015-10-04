@@ -20,6 +20,7 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
       },
       link: function (scope, el) {
 
+        let lastStringVal = null;
         scope.sortFilter = ClusterFilterModel.sortFilter;
         // stolen from uiSref directive
         var base = el.parent().inheritedData('$uiView').state;
@@ -31,7 +32,7 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
 
           var serverGroup = scope.serverGroup;
 
-          scope.viewModel = {
+          let viewModel = {
             waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
             serverGroup: serverGroup,
             serverGroupSequence: $filter('serverGroupSequence')(serverGroup.name),
@@ -42,11 +43,19 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
 
           if (serverGroup.buildInfo && serverGroup.buildInfo.jenkins && serverGroup.buildInfo.jenkins.host) {
             var jenkins = serverGroup.buildInfo.jenkins;
-            scope.viewModel.jenkins = {
+            viewModel.jenkins = {
               href: [jenkins.host + 'job', jenkins.name, jenkins.number, ''].join('/'),
               number: jenkins.number,
             };
           }
+
+          let modelStringVal = JSON.stringify(viewModel);
+
+          if (lastStringVal !== modelStringVal) {
+            scope.viewModel = viewModel;
+            lastStringVal = modelStringVal;
+          }
+
         }
 
         scope.loadDetails = function(e) {
