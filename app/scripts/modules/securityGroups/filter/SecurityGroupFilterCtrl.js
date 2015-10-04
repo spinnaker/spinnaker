@@ -43,7 +43,10 @@ module.exports = angular.module('securityGroup.filter.controller', [
 
     app.registerAutoRefreshHandler(this.initialize, $scope);
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', this.updateSecurityGroups));
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+      SecurityGroupFilterModel.activate();
+      securityGroupFilterService.updateSecurityGroups(app);
+    }));
 
   }
 )
