@@ -13,6 +13,8 @@ kato:
   baseUrl: http://localhost:8501
 echo:
   enabled: false
+bakery:
+  baseUrl: http://localhost:8089
 
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}
