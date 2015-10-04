@@ -25,6 +25,15 @@
   </div>
 </div>
 
+<div class="form-group small" style="margin-top: 20px">
+  <div class="col-md-9 col-md-offset-3 checkbox">
+    <p>
+      <label><input type="checkbox" ng-model="command.viewState.listImplicitSecurityGroups"/> Show Implicit Security Groups </label>
+      <help-field key="gce.serverGroup.securityGroups.implicit"></help-field>
+    </p>
+  </div>
+</div>
+
 <div class="form-group" ng-if="command.viewState.listImplicitSecurityGroups">
   <div class="col-md-3 sm-label-left"><b>Implicit Security Groups</b></div>
   <div class="col-md-9">
@@ -34,15 +43,6 @@
     <ul ng-if="!command.implicitSecurityGroups.length" style="margin-top: 10px; list-style-type: none">
       <li>None</li>
     </ul>
-  </div>
-</div>
-
-<div class="form-group small" style="margin-top: 20px">
-  <div class="col-md-9 col-md-offset-3 checkbox">
-    <p>
-      <label><input type="checkbox" ng-model="command.viewState.listImplicitSecurityGroups"/> Show Implicit Security Groups </label>
-      <help-field key="gce.serverGroup.securityGroups.implicit"></help-field>
-    </p>
   </div>
 </div>
 
