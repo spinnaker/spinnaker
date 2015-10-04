@@ -31,7 +31,11 @@ module.exports = angular
     }
 
     function isLoadBalancerStateOrChild(stateName) {
-      return isLoadBalancerState(stateName) || stateName.indexOf('loadBalancers.') > -1;
+      return isLoadBalancerState(stateName) || isChildState(stateName);
+    }
+
+    function isChildState(stateName) {
+      return stateName.indexOf('loadBalancers.') > -1;
     }
 
     function movingToLoadBalancerState(toState) {
@@ -42,10 +46,8 @@ module.exports = angular
       return isLoadBalancerStateOrChild(fromState.name) && !isLoadBalancerStateOrChild(toState.name);
     }
 
-    function shouldRouteToSavedState(toState, toParams, fromState) {
-      return isLoadBalancerState(toState.name) &&
-        filterModel.hasSavedState(toParams) &&
-        !isLoadBalancerStateOrChild(fromState.name);
+    function shouldRouteToSavedState(toParams, fromState) {
+      return filterModel.hasSavedState(toParams) && !isLoadBalancerStateOrChild(fromState.name);
     }
 
     function fromLoadBalancersState(fromState) {
@@ -75,8 +77,12 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
+      if (isChildState(toState.name)) {
+        filterModel.applyParamsToUrl();
+        return;
+      }
       if (movingToLoadBalancerState(toState)) {
-        if (filterModel.hasSavedState(toParams) && shouldRouteToSavedState(toState, toParams, fromState)) {
+        if (shouldRouteToSavedState(toParams, fromState)) {
           filterModel.restoreState(toParams);
         }
 

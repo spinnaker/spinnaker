@@ -29,7 +29,11 @@ module.exports = angular
     }
 
     function isSecurityGroupStateOrChild(stateName) {
-      return isSecurityGroupState(stateName) || stateName.indexOf('securityGroups.') > -1;
+      return isSecurityGroupState(stateName) || isChildState(stateName);
+    }
+
+    function isChildState(stateName) {
+      return stateName.indexOf('securityGroups.') > -1;
     }
 
     function movingToSecurityGroupState(toState) {
@@ -40,10 +44,8 @@ module.exports = angular
       return isSecurityGroupStateOrChild(fromState.name) && !isSecurityGroupStateOrChild(toState.name);
     }
 
-    function shouldRouteToSavedState(toState, toParams, fromState) {
-      return isSecurityGroupState(toState.name) &&
-        filterModel.hasSavedState(toParams) &&
-        !isSecurityGroupStateOrChild(fromState.name);
+    function shouldRouteToSavedState(toParams, fromState) {
+      return filterModel.hasSavedState(toParams) && !isSecurityGroupStateOrChild(fromState.name);
     }
 
     function fromSecurityGroupsState(fromState) {
@@ -73,8 +75,12 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
+      if (isChildState(toState.name)) {
+        filterModel.applyParamsToUrl();
+        return;
+      }
       if (movingToSecurityGroupState(toState)) {
-        if (filterModel.hasSavedState(toParams) && shouldRouteToSavedState(toState, toParams, fromState)) {
+        if (shouldRouteToSavedState(toParams, fromState)) {
           filterModel.restoreState(toParams);
         }
 

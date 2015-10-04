@@ -36,7 +36,11 @@ module.exports = angular
     }
 
     function isClusterStateOrChild(stateName) {
-      return isClusterState(stateName) || stateName.indexOf('clusters.') > -1;
+      return isClusterState(stateName) || isChildState(stateName);
+    }
+
+    function isChildState(stateName) {
+      return stateName.indexOf('clusters.') > -1;
     }
 
     function movingToClusterState(toState) {
@@ -51,10 +55,8 @@ module.exports = angular
       return fromState.name === 'home.applications';
     }
 
-    function shouldRouteToSavedState(toState, toParams, fromState) {
-      return isClusterState(toState.name) &&
-        filterModel.hasSavedState(toParams) &&
-        !isClusterStateOrChild(fromState.name);
+    function shouldRouteToSavedState(toParams, fromState) {
+      return filterModel.hasSavedState(toParams) && !isClusterStateOrChild(fromState.name);
     }
 
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
@@ -79,8 +81,12 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
+      if (isChildState(toState.name)) {
+        filterModel.applyParamsToUrl();
+        return;
+      }
       if (movingToClusterState(toState)) {
-        if (filterModel.hasSavedState(toParams) && shouldRouteToSavedState(toState, toParams, fromState)) {
+        if (shouldRouteToSavedState(toParams, fromState)) {
           filterModel.restoreState(toParams);
         }
         if (fromApplicationListState(fromState) && !filterModel.hasSavedState(toParams)) {
