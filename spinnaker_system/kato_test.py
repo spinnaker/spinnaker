@@ -63,7 +63,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
   # especially terminate.
   use_instance_names = []
   use_instance_zones = []
-  _use_lb_name = ''     # The network load balancer name.
+  _use_lb_name = ''     # The load balancer name.
   _use_lb_tp_name = ''  # The load balancer's target pool name.
   _use_lb_hc_name = ''  # The load balancer's health check name.
   _use_lb_target = ''   # The load balancer's 'target' resource.
@@ -243,20 +243,20 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def upsert_google_server_group_tags(self):
-    replica_pool_name = 'katotest-replica-pool'
+    server_group_name = 'katotest-server-group'
     payload = self.agent.type_to_payload(
       'upsertGoogleServerGroupTagsDescription',
       { 'credentials': self.bindings['GCE_CREDENTIALS'],
         'zone': self.bindings['TEST_GCE_ZONE'],
-        'replicaPoolName': 'katotest-replica-pool',
+        'serverGroupName': 'katotest-server-group',
         'tags': ['test-tag-1', 'test-tag-2']
       })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
-    (builder.new_clause_builder('Replica Pool Tags Added')
-        .inspect_resource('managed-instance-group', replica_pool_name)
+    (builder.new_clause_builder('Server Group Tags Added')
+        .inspect_resource('managed-instance-group', server_group_name)
         .contains_group(
-            [jc.PathContainsPredicate('name', replica_pool_name),
+            [jc.PathContainsPredicate('name', server_group_name),
              jc.PathContainsPredicate(
                  "tags/items", ['test-tag-1','test-tag-2'])]))
 
@@ -381,7 +381,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
 
-  def upsert_network_load_balancer(self):
+  def upsert_load_balancer(self):
     self._use_lb_name = 'katotest-lb-' + _TEST_DECORATOR
     self._use_lb_hc_name = '%s-hc' % self._use_lb_name
     self._use_lb_tp_name = '%s-tp' % self._use_lb_name
@@ -402,11 +402,11 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
         'requestPath': path }
 
     payload = self.agent.type_to_payload(
-        'upsertGoogleNetworkLoadBalancerDescription',
+        'upsertGoogleLoadBalancerDescription',
         { 'healthCheck': health_check,
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS'],
-          'networkLoadBalancerName': self._use_lb_name
+          'loadBalancerName': self._use_lb_name
         })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
@@ -428,15 +428,15 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
       self.new_post_operation(
-          title='upsert_network_load_balancer', data=payload, path='ops'),
+          title='upsert_load_balancer', data=payload, path='ops'),
       contract=builder.build())
 
-  def delete_network_load_balancer(self):
+  def delete_load_balancer(self):
     payload = self.agent.type_to_payload(
-      'deleteGoogleNetworkLoadBalancerDescription',
+      'deleteGoogleLoadBalancerDescription',
       { 'region': self.bindings['TEST_GCE_REGION'],
         'credentials': self.bindings['GCE_CREDENTIALS'],
-        'networkLoadBalancerName': self._use_lb_name
+        'loadBalancerName': self._use_lb_name
       })
 
     builder = gcp.GceContractBuilder(self.gce_observer)
@@ -452,7 +452,7 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
       self.new_post_operation(
-          title='delete_network_load_balancer', data=payload, path='ops'),
+          title='delete_load_balancer', data=payload, path='ops'),
       contract=builder.build())
 
   def register_load_balancer_instances(self):
@@ -462,14 +462,14 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
        the instances. Note by design these were in two different zones
        but same region as required by the API this is testing.
 
-       Assumes that upsert_network_load_balancer has been run to
+       Assumes that upsert_load_balancer has been run to
        create the load balancer itself.
     Returns:
       st.OperationContract
     """
     payload = self.agent.type_to_payload(
-        'registerInstancesWithGoogleNetworkLoadBalancerDescription',
-        { 'networkLoadBalancerNames': [ self._use_lb_name ],
+        'registerInstancesWithGoogleLoadBalancerDescription',
+        { 'loadBalancerNames': [ self._use_lb_name ],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -505,8 +505,8 @@ class KatoTestScenario(sk.SpinnakerTestScenario):
     """
               
     payload = self.agent.type_to_payload(
-       'deregisterInstancesFromGoogleNetworkLoadBalancerDescription',
-        { 'networkLoadBalancerNames': [ self._use_lb_name ],
+       'deregisterInstancesFromGoogleLoadBalancerDescription',
+        { 'loadBalancerNames': [ self._use_lb_name ],
           'instanceIds': self.use_instance_names[:2],
           'region': self.bindings['TEST_GCE_REGION'],
           'credentials': self.bindings['GCE_CREDENTIALS']
@@ -540,8 +540,8 @@ class KatoIntegrationTest(st.AgentTestCase):
   def Xtest_a_upsert_server_group_tags(self):
     self.run_test_case(self.scenario.upsert_google_server_group_tags())
 
-  def test_a_upsert_network_load_balancer(self):
-    self.run_test_case(self.scenario.upsert_network_load_balancer())
+  def test_a_upsert_load_balancer(self):
+    self.run_test_case(self.scenario.upsert_load_balancer())
 
   def test_b_create_instances(self):
     self.run_test_case(self.scenario.create_instances())
@@ -576,8 +576,8 @@ class KatoIntegrationTest(st.AgentTestCase):
                self.scenario.use_instance_names[2]],
                self.scenario.use_instance_zones[0]))
 
-  def test_z_delete_network_load_balancer(self):
-    self.run_test_case(self.scenario.delete_network_load_balancer())
+  def test_z_delete_load_balancer(self):
+    self.run_test_case(self.scenario.delete_load_balancer())
 
 
 def main():
