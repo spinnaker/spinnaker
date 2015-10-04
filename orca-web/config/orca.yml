@@ -11,6 +11,8 @@ mort:
   baseUrl: http://localhost:8082
 kato:
   baseUrl: http://localhost:8501
+echo:
+  enabled: false
 
 redis:
   connection: ${REDIS_URL:redis://localhost:6379}
