@@ -7,8 +7,9 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
   require('../clusterFilter/clusterFilterModel.js'),
   require('../instance/instances.directive.js'),
   require('../instance/instanceList.directive.js'),
+  require('./serverGroup.transformer.js'),
 ])
-  .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService, ClusterFilterModel) {
+  .directive('serverGroup', function ($rootScope, $timeout, $filter, _, clusterFilterService, ClusterFilterModel, serverGroupTransformer) {
     return {
       restrict: 'E',
       templateUrl: require('./serverGroup.directive.html'),
@@ -49,7 +50,7 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
             };
           }
 
-          let modelStringVal = JSON.stringify(viewModel);
+          let modelStringVal = JSON.stringify(viewModel, serverGroupTransformer.jsonReplacer);
 
           if (lastStringVal !== modelStringVal) {
             scope.viewModel = viewModel;

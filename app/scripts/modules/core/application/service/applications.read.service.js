@@ -13,10 +13,11 @@ module.exports = angular
     require('../../cache/infrastructureCaches.js'),
     require('../../../scheduler/scheduler.service.js'),
     require('../../../delivery/executionsService.js'),
+    require('../../../serverGroups/serverGroup.transformer.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
-                                          infrastructureCaches, settings, executionsService) {
+                                          infrastructureCaches, settings, executionsService, serverGroupTransformer) {
 
     function listApplications(forceRemoteCall) {
       var endpoint = Restangular
@@ -233,7 +234,7 @@ module.exports = angular
           })
             .then(function(results) {
               serverGroups = results.serverGroups;
-              serverGroups.forEach((serverGroup) => serverGroup.stringVal = JSON.stringify(serverGroup, jsonReplacer));
+              serverGroups.forEach((serverGroup) => serverGroup.stringVal = JSON.stringify(serverGroup, serverGroupTransformer.jsonReplacer));
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
               application.loadBalancers = applicationLoader.loadBalancers;
@@ -291,24 +292,6 @@ module.exports = angular
         application.serverGroups = serverGroups;
       }
     }
-
-    // strips out Angular bits (see angular.js#toJsonReplacer), as well as executions, which often
-    // have circular references because of the horrible things we do in executions.transformer.js
-    function jsonReplacer(key, value) {
-      var val = value;
-
-      if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
-        val = undefined;
-      }
-
-      if (key === 'executions' || key === 'runningTasks') {
-        val = undefined;
-      }
-
-      return val;
-    }
-
-
 
     return {
       listApplications: listApplications,
