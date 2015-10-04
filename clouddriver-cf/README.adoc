@@ -57,3 +57,5 @@ This will push the static assets in their built/minimized form. Then set some en
 
 * API_HOST - the URL for Gate app hosted earlier (without the 'http://' prefix)
 * PROTOCOL - *http*
+
+WARNING: Running deck with the static buildpack will NOT read environment variables in production. You MUST put the proper gate URL and protocol in settings.js as the default values.
