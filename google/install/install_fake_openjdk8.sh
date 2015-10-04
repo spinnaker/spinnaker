@@ -23,7 +23,7 @@
 # not actually provide openjdk-8-jre.
 
 cd /tmp
-cat > ignore-openjdk-8-jre.txt <<EOF
+cat > fake-openjdk-8-jre.txt <<EOF
 Section: misc
 Priority: optional
 Standards-Version: 3.9.2
