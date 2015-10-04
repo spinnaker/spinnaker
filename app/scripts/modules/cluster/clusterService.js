@@ -122,9 +122,13 @@ module.exports = angular.module('spinnaker.cluster.service', [
       'terminateinstances': instanceIdsTaskMatcher,
       'rebootinstances': instanceIdsTaskMatcher,
       'resizeasg': baseTaskMatcher,
+      'resizeservergroup': baseTaskMatcher,
       'disableasg': baseTaskMatcher,
+      'disableservergroup': baseTaskMatcher,
       'destroyasg': baseTaskMatcher,
+      'destroyservergroup': baseTaskMatcher,
       'enableasg': baseTaskMatcher,
+      'enableservergroup': baseTaskMatcher,
       'destroygooglereplicapool': baseTaskMatcher,
       'enablegoogleservergroup': baseTaskMatcher,
       'disablegoogleservergroup': baseTaskMatcher,
@@ -132,7 +136,10 @@ module.exports = angular.module('spinnaker.cluster.service', [
     };
 
     function taskMatches(task, serverGroup) {
-      var matcher = taskMatchers[task.getValueFor('notification.type')];
+      let notificationType = _.has(task, 'execution.stages') ?
+        task.execution.stages[0].context['notification.type'] :
+        task.getValueFor('notification.type');
+      var matcher = taskMatchers[notificationType];
       return matcher ? matcher(task, serverGroup) : false;
     }
 
