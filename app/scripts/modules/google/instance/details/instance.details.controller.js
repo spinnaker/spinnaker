@@ -14,8 +14,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('../../../utils/selectOnDblClick.directive.js'),
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $modal, InsightFilterStateModel,
-                                               instanceWriter, confirmationModalService, recentHistoryService,
-                                               instanceReader, _, instance, app, $q) {
+                                                  instanceWriter, confirmationModalService, recentHistoryService,
+                                                  instanceReader, _, instance, app, $q) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = require('./instanceDetails.html');
@@ -139,6 +139,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
           $scope.instance.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
+
+          $scope.instance.gcloudSSHCommand = 'gcloud compute ssh --project ' + projectId + ' --zone ' + $scope.instance.placement.availabilityZone + ' ' + instance.instanceId;
         },
         function() {
           // When an instance is first starting up, we may not have the details cached in oort yet, but we still
