@@ -140,15 +140,6 @@ module.exports = angular
       clusterService.addTasksToServerGroups(application);
     }
 
-    function determineExecutionsToAdd(application, executions) {
-      if ((!angular.isArray(executions) || _.isEmpty(executions) ) && application && application.executions) {
-        return application.executions;
-      } else if (angular.isArray(executions)) {
-        return executions;
-      }
-      return [];
-    }
-
     function addExecutionsToApplication(application, executions=[]) {
       if (application.executions) {
 
@@ -183,7 +174,7 @@ module.exports = angular
       // tasks are handled out of band and will not be part of the newApplication
       original.accounts = newApplication.accounts;
       original.clusters = newApplication.clusters;
-      original.serverGroups = newApplication.serverGroups;
+      applyNewServerGroups(original, newApplication.serverGroups);
       original.loadBalancers = newApplication.loadBalancers;
       original.securityGroups = newApplication.securityGroups;
       original.lastRefresh = newApplication.lastRefresh;
@@ -242,6 +233,7 @@ module.exports = angular
           })
             .then(function(results) {
               serverGroups = results.serverGroups;
+              serverGroups.forEach((serverGroup) => serverGroup.stringVal = JSON.stringify(serverGroup, jsonReplacer));
               application.serverGroups = serverGroups;
               application.clusters = clusterService.createServerGroupClusters(serverGroups);
               application.loadBalancers = applicationLoader.loadBalancers;
@@ -254,9 +246,6 @@ module.exports = angular
               return securityGroupReader.attachSecurityGroups(application, results.securityGroups, applicationLoader.securityGroups, true)
                 .then(
                   function() {
-                    application.serverGroups.forEach(function(sg) {
-                      sg.stringVal = JSON.stringify(sg, jsonReplacer);
-                    });
                     addDefaultRegion(application);
                     addDefaultCredentials(application);
                     return application;
@@ -271,6 +260,38 @@ module.exports = angular
         });
     }
 
+    function applyNewServerGroups(application, serverGroups) {
+      if (application.serverGroups) {
+        // remove any that have dropped off, update any that have changed
+        let toRemove = [];
+        application.serverGroups.forEach((serverGroup, idx) => {
+          let matches = serverGroups.filter((test) =>
+            test.name === serverGroup.name && test.account === serverGroup.account && test.region === serverGroup.region
+          );
+          if (!matches.length) {
+            toRemove.push(idx);
+          } else {
+            if (serverGroup.stringVal && matches[0].stringVal && serverGroup.stringVal !== matches[0].stringVal) {
+              application.serverGroups[idx] = matches[0];
+            }
+          }
+        });
+
+        toRemove.forEach((idx) => application.serverGroups.splice(idx, 1));
+
+        // add any new ones
+        serverGroups.forEach((serverGroup) => {
+          if (!application.serverGroups.filter((test) =>
+            test.name === serverGroup.name && test.account === serverGroup.account && test.region === serverGroup.region
+            ).length) {
+            application.serverGroups.push(serverGroup);
+          }
+        });
+      } else {
+        application.serverGroups = serverGroups;
+      }
+    }
+
     // strips out Angular bits (see angular.js#toJsonReplacer), as well as executions, which often
     // have circular references because of the horrible things we do in executions.transformer.js
     function jsonReplacer(key, value) {
@@ -280,7 +301,7 @@ module.exports = angular
         val = undefined;
       }
 
-      if (key === 'executions') {
+      if (key === 'executions' || key === 'runningTasks') {
         val = undefined;
       }
 
