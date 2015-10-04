@@ -83,3 +83,8 @@ buildDeb {
   dependsOn installApp
   requires("openjdk-8-jre")
 }
+
+bootRun {
+  // jamm is required when using prepared statements with in-memory C*
+  jvmArgs "-javaagent:${project.configurations.compile.find { it.name.startsWith('jamm') }}"
+}
