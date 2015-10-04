@@ -229,7 +229,7 @@ Try something like:
         --project $SPINNAKER_PROJECT \\
         --image {image} \\
         --image-project {image_project} \\
-        --machine-type n1-standard-16 \\
+        --machine-type n1-standard-8 \\
         --zone {zone} \\
         --scopes=compute-rw \\
         --metadata=startup-script=/opt/spinnaker/install/first_time_boot.sh \\
