@@ -57,6 +57,9 @@ module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
             lastStringVal = modelStringVal;
           }
 
+          viewModel.serverGroup.runningTasks = serverGroup.runningTasks;
+          viewModel.serverGroup.executions = serverGroup.executions;
+
         }
 
         scope.loadDetails = function(e) {
