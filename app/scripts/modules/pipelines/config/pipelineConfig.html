@@ -1,6 +1,6 @@
 <div class="row pipelines executions">
   <div class="execution-groups">
-  <div class="row" ng-if="application.pipelines.length">
+  <div class="row" ng-if="application.pipelines.length" style="padding-top:10px">
     <div class="col-md-3 col-md-offset-1">
       <a class="btn btn-sm btn-default" href ng-click="pipelineConfigCtrl.toggleExpansion(true)" tooltip="expand all">
         <span class="glyphicon glyphicon-plus"></span>
@@ -16,7 +16,7 @@
       </p>
     </div>
     <div class="col-md-3 text-right">
-      <a class="btn btn-link" ui-sref="^.executions">
+      <a class="btn btn-configure" ui-sref="^.executions">
         <span class="small glyphicon glyphicon glyphicon-circle-arrow-left"></span>
         Pipeline Executions
       </a>
