@@ -75,7 +75,7 @@ module.exports = angular
     });
 
     $rootScope.$on('$stateChangeSuccess', function(event, toState, toParams, fromState) {
-      if (isChildState(toState.name)) {
+      if (isSecurityGroupStateOrChild(toState.name)) {
         filterModel.applyParamsToUrl();
         return;
       }

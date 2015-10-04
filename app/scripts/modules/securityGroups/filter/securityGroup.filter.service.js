@@ -127,11 +127,6 @@ module.exports = angular
         if (!newServerGroup) {
           $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
           toRemove.push(idx);
-        } else {
-          if (serverGroup.stringVal !== newServerGroup.stringVal) {
-            $log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
-            oldGroup.serverGroups[idx] = newServerGroup;
-          }
         }
       });
       toRemove.reverse().forEach(function(idx) {
