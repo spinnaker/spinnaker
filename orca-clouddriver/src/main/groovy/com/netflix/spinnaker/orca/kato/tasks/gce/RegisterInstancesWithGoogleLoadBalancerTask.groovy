@@ -24,6 +24,6 @@ import org.springframework.stereotype.Component
 class RegisterInstancesWithGoogleLoadBalancerTask extends AbstractInstanceGoogleLoadBalancerRegistrationTask {
   @Override
   String getAction() {
-    return "registerInstancesWithGoogleNetworkLoadBalancer"
+    return "registerInstancesWithGoogleLoadBalancer"
   }
 }

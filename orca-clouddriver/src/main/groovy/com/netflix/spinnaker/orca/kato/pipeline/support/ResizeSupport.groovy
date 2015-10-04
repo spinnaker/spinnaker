@@ -190,8 +190,8 @@ class ResizeSupport {
   private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
     // TODO(ttomsu): Make clouddriver op support specifying multiple zones.
     description.zone = tsg.location
-    description.numReplicas = description.capacity.desired
-    description.replicaPoolName = description.asgName
+    description.targetSize = description.capacity.desired
+    description.serverGroupName = description.asgName
   }
 
   static enum ResizeAction {

@@ -29,11 +29,10 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def registerInstancesWithLoadBalancerConfig = [
-    instanceIds             : ["some-instance-name"],
-    loadBalancerNames       : ["flapjack-frontend"],
-    networkLoadBalancerNames: ["flapjack-frontend"],
-    region                  : "us-central1",
-    credentials             : "test-account-name"
+    instanceIds      : ["some-instance-name"],
+    loadBalancerNames: ["flapjack-frontend"],
+    region           : "us-central1",
+    credentials      : "test-account-name"
   ]
 
   def setup() {
@@ -55,10 +54,10 @@ class RegisterInstancesWithGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].registerInstancesWithGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].registerInstancesWithGoogleLoadBalancerDescription) {
         it instanceof Map
         instanceIds == this.registerInstancesWithLoadBalancerConfig.instanceIds
-        networkLoadBalancerNames == this.registerInstancesWithLoadBalancerConfig.networkLoadBalancerNames
+        loadBalancerNames == this.registerInstancesWithLoadBalancerConfig.loadBalancerNames
         region == this.registerInstancesWithLoadBalancerConfig.region
         credentials == this.registerInstancesWithLoadBalancerConfig.credentials
       }

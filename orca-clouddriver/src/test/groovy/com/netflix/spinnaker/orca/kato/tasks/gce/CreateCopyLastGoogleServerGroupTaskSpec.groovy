@@ -30,28 +30,27 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def copyLastAsgConfig = [
-    application          : "myapp",
-    stack                : "test",
-    initialNumReplicas   : 6,
+    application     : "myapp",
+    stack           : "test",
+    targetSize      : 6,
     capacity             : [
-            min    : 6,
-            max    : 6,
-            desired: 6
+            min     : 6,
+            max     : 6,
+            desired : 6
     ],
-    image                : "some-base-image",
-    instanceType         : "f1-micro",
-    zone                 : "us-central1-b",
-    instanceMetadata     : [
+    image           : "some-base-image",
+    instanceType    : "f1-micro",
+    zone            : "us-central1-b",
+    instanceMetadata: [
             someKey      : 'someValue',
             anotherKey   : 'anotherValue',
     ],
-    networkLoadBalancers : ["testlb"],
     loadBalancers        : ["testlb"],
     source               : [
             zone            : "us-central1-a",
             serverGroupName : "myapp-test-v000"
     ],
-    credentials          : "fzlem"
+    credentials     : "fzlem"
   ]
 
   def setup() {
@@ -79,11 +78,11 @@ class CreateCopyLastGoogleServerGroupTaskSpec extends Specification {
       it instanceof Map
       application == this.copyLastAsgConfig.application
       stack == this.copyLastAsgConfig.stack
-      initialNumReplicas == this.copyLastAsgConfig.initialNumReplicas
+      targetSize == this.copyLastAsgConfig.targetSize
       image == this.copyLastAsgConfig.image
       instanceType == this.copyLastAsgConfig.instanceType
       instanceMetadata == this.copyLastAsgConfig.instanceMetadata
-      networkLoadBalancers == this.copyLastAsgConfig.networkLoadBalancers
+      loadBalancers == this.copyLastAsgConfig.loadBalancers
       zone == this.copyLastAsgConfig.zone
       source.zone == this.copyLastAsgConfig.source.zone
       source.serverGroupName == this.copyLastAsgConfig.source.serverGroupName
