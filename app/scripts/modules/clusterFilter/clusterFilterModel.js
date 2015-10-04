@@ -7,7 +7,7 @@ module.exports = angular
     require('../filterModel/filter.model.service.js'),
     require('../navigation/urlParser.service.js'),
   ])
-  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser, $location) {
+  .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser) {
 
     var filterModel = this;
     var mostRecentParams = null;
@@ -31,7 +31,8 @@ module.exports = angular
     filterModelService.configureFilterModel(this, filterModelConfig);
 
     function isClusterState(stateName) {
-      return stateName === 'home.applications.application.insight.clusters';
+      return stateName === 'home.applications.application.insight.clusters' ||
+        stateName === 'home.project.application.insight.clusters';
     }
 
     function isClusterStateOrChild(stateName) {
