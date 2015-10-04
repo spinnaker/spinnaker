@@ -117,7 +117,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
             bindings=self._bindings, application=self.TEST_APP_NAME),
         contract=contract)
 
-  def create_network_load_balancer(self):
+  def create_load_balancer(self):
     load_balancer_name = self._bindings['TEST_APP_COMPONENT_NAME']
     target_pool_name = '{0}/targetPools/{1}-tp'.format(
         self._bindings['TEST_GCE_REGION'], load_balancer_name)
@@ -143,7 +143,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'region': bindings['TEST_GCE_REGION'],
           'ipProtocol': 'TCP',
           'portRange': spec['port'],
-          'networkLoadBalancerName': load_balancer_name,
+          'loadBalancerName': load_balancer_name,
           'providerType': 'gce',
           'healthCheck': {
               'port': spec['port'],
@@ -178,10 +178,10 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='create_network_load_balancer', data=payload, path='tasks'),
+            title='create_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
 
-  def delete_network_load_balancer(self):
+  def delete_load_balancer(self):
     load_balancer_name = self._bindings['TEST_APP_COMPONENT_NAME']
     bindings = self._bindings
     payload = self.agent.make_payload(
@@ -189,7 +189,6 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'type': 'deleteLoadBalancer',
           'cloudProvider': 'gce',
           'loadBalancerName': load_balancer_name,
-          'networkLoadBalancerName': load_balancer_name,
           'region': bindings['TEST_GCE_REGION'],
           'regions': [bindings['TEST_GCE_REGION']],
           'credentials': bindings['GCE_CREDENTIALS'],
@@ -214,7 +213,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
 
     return st.OperationContract(
         self.new_post_operation(
-            title='delete_network_load_balancer', data=payload, path='tasks'),
+            title='delete_load_balancer', data=payload, path='tasks'),
         contract=builder.build())
 
 
@@ -233,13 +232,13 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
           'credentials': bindings['GCE_CREDENTIALS'],
           'strategy':'',
           'capacity': {'min':2, 'max':2, 'desired':2},
-          'initialNumReplicas': 2,
+          'targetSize': 2,
           'providerType': 'gce',
           'image': 'ubuntu-1404-trusty-v20150909a',
           'zone': bindings['TEST_GCE_ZONE'], 'stack': bindings['TEST_STACK'],
           'instanceType': 'f1-micro',
           'type': 'linearDeploy',
-          'networkLoadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
+          'loadBalancers': [bindings['TEST_APP_COMPONENT_NAME']],
           'availabilityZones': { bindings['TEST_GCE_REGION']:
                                    [bindings['TEST_GCE_ZONE']] },
           'instanceMetadata': {
@@ -273,7 +272,7 @@ class SmokeTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_payload(
       job=[{
           'cloudProvider': 'gce',
-          'replicaPoolName': group_name,
+          'serverGroupName': group_name,
           'region': bindings['TEST_GCE_REGION'],
           'zone': bindings['TEST_GCE_ZONE'],
           'asgName': group_name,
@@ -307,8 +306,8 @@ class SmokeTest(st.AgentTestCase):
   def test_a_create_app(self):
     self.run_test_case(self._scenario.create_app())
 
-  def test_b_create_network_load_balancer(self):
-    self.run_test_case(self._scenario.create_network_load_balancer())
+  def test_b_create_load_balancer(self):
+    self.run_test_case(self._scenario.create_load_balancer())
 
   def test_c_create_server_group(self):
     # We'll permit this to timeout for now
@@ -320,8 +319,8 @@ class SmokeTest(st.AgentTestCase):
   def test_x_delete_server_group(self):
     self.run_test_case(self._scenario.delete_server_group(), max_retries=5)
 
-  def test_y_delete_network_load_balancer(self):
-    self.run_test_case(self._scenario.delete_network_load_balancer(),
+  def test_y_delete_load_balancer(self):
+    self.run_test_case(self._scenario.delete_load_balancer(),
                        max_retries=5)
 
   def test_z_delete_app(self):

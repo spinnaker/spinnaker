@@ -94,7 +94,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
   def __init__(self, bindings, agent):
     super(AwsKatoTestScenario, self).__init__(bindings, agent)
 
-  def upsert_network_load_balancer(self):
+  def upsert_load_balancer(self):
     detail_raw_name = 'katotestlb' + _TEST_DECORATOR
     self._use_lb_name = detail_raw_name
 
@@ -168,7 +168,7 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
 
-  def delete_network_load_balancer(self):
+  def delete_load_balancer(self):
     payload = self.substitute_variables(
       '[{'
           '"deleteAmazonLoadBalancerDescription":{'
@@ -193,11 +193,11 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
 
 
 class AwsKatoIntegrationTest(st.AgentTestCase):
-  def test_a_upsert_network_load_balancer(self):
-    self.run_test_case(self.scenario.upsert_network_load_balancer())
+  def test_a_upsert_load_balancer(self):
+    self.run_test_case(self.scenario.upsert_load_balancer())
 
-  def test_z_delete_network_load_balancer(self):
-    self.run_test_case(self.scenario.delete_network_load_balancer())
+  def test_z_delete_load_balancer(self):
+    self.run_test_case(self.scenario.delete_load_balancer())
 
 
 def main():
