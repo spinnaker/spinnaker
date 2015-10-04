@@ -189,14 +189,19 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
           results.dirty.securityGroups = removed;
         }
       }
-      command.backingData.filtered.securityGroups = newSecurityGroups;
 
-      var implicitSecurityGroups = _.filter(newSecurityGroups, function(securityGroup) {
+      // Only include explicit security group options in the pulldown list.
+      command.backingData.filtered.securityGroups = _.filter(newSecurityGroups, function(securityGroup) {
+        return !_.isEmpty(securityGroup.targetTags);
+      });
+
+      // Identify implicit security groups so they can be optionally listed in a read-only state.
+      command.implicitSecurityGroups = _.filter(newSecurityGroups, function(securityGroup) {
         return _.isEmpty(securityGroup.targetTags);
       });
-      var implicitSecurityGroupIds = _.pluck(implicitSecurityGroups, 'id');
 
-      command.securityGroups = _.union(command.securityGroups, implicitSecurityGroupIds).sort();
+      // Only include explicitly-selected security groups in the body of the command.
+      command.securityGroups = _.difference(command.securityGroups, _.pluck(command.implicitSecurityGroups, 'id'));
 
       return results;
     }

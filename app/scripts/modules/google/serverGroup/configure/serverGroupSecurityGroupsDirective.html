@@ -1,5 +1,5 @@
-<div class="col-md-12" ng-if="command.viewState.dirty.securityGroups">
-  <div class="alert alert-warning">
+<div class="col-md-12" ng-if="command.viewState.dirty.securityGroups" style="max-height: 200px">
+  <div class="alert alert-warning" style="max-height: 175px; overflow: auto">
     <p><span class="glyphicon glyphicon-warning-sign"></span>
       The following security groups could not be found in the selected account/network and were removed:
     </p>
@@ -16,12 +16,33 @@
   <div class="col-md-3 sm-label-left"><b>Security Groups</b></div>
   <div class="col-md-9">
     <ui-select multiple ng-model="command.securityGroups" class="form-control input-sm">
-      <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
+      <ui-select-match>{{$item.name}}</ui-select-match>
       <ui-select-choices repeat="securityGroup.id as securityGroup in command.backingData.filtered.securityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
         <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
         (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
       </ui-select-choices>
     </ui-select>
+  </div>
+</div>
+
+<div class="form-group" ng-if="command.viewState.listImplicitSecurityGroups">
+  <div class="col-md-3 sm-label-left"><b>Implicit Security Groups</b></div>
+  <div class="col-md-9">
+    <ul ng-if="command.implicitSecurityGroups.length" style="margin-top: 10px; list-style-type: none">
+      <li ng-repeat="securityGroup in command.implicitSecurityGroups">{{securityGroup.name}}</li>
+    </ul>
+    <ul ng-if="!command.implicitSecurityGroups.length" style="margin-top: 10px; list-style-type: none">
+      <li>None</li>
+    </ul>
+  </div>
+</div>
+
+<div class="form-group small" style="margin-top: 20px">
+  <div class="col-md-9 col-md-offset-3 checkbox">
+    <p>
+      <label><input type="checkbox" ng-model="command.viewState.listImplicitSecurityGroups"/> Show Implicit Security Groups </label>
+      <help-field key="gce.serverGroup.securityGroups.implicit"></help-field>
+    </p>
   </div>
 </div>
 

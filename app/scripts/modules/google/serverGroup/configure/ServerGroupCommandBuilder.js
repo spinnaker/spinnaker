@@ -123,6 +123,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           useAllImageSelection: false,
           useSimpleCapacity: true,
           usePreferredZones: true,
+          listImplicitSecurityGroups: false,
           mode: defaults.mode || 'create',
         }
       };
@@ -180,6 +181,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           useAllImageSelection: false,
           useSimpleCapacity: true,
           usePreferredZones: false,
+          listImplicitSecurityGroups: false,
           mode: mode,
         },
       };
