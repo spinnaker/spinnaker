@@ -20,10 +20,10 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.securityGroup.cf.details.controller', [
   require('angular-ui-router'),
-  require('../../../account/account.service.js'),
+  require('../../../core/account/account.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../securityGroups/securityGroup.write.service.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../utils/selectOnDblClick.directive.js'),
