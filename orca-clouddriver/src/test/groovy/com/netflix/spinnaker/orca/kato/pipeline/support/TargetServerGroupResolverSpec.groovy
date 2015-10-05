@@ -45,7 +45,7 @@ class TargetServerGroupResolverSpec extends Specification {
       ))
 
     then:
-      oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
+      1 * oort.getTargetServerGroup("test", "testCreds", "test-app", "abc", "north-pole", "current_asg") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([
           name: "test-app-v010",
           data: 123,
@@ -64,7 +64,7 @@ class TargetServerGroupResolverSpec extends Specification {
       ))
 
     then:
-      oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "abc") >>
+      1 * oort.getServerGroup("test", "testCreds", "test-app", "test-app-v010", null, "abc") >>
         new Response("clouddriver", 200, 'ok', [], new TypedString(mapper.writeValueAsString([[
                                                                                                 name : "test-app-v010",
                                                                                                 zones: ["north-pole"],
