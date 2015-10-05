@@ -55,7 +55,7 @@ class TerminateAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpe
   /**
    * Attempt to terminate the specified instances and remove them from the specified managed instance group.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateAndDecrementGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "terminateInstanceAndDecrementServerGroup": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
