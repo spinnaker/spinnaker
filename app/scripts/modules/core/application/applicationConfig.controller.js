@@ -9,6 +9,7 @@ module.exports = angular
     require('../cache/cacheInitializer.js'),
     require('../cache/infrastructureCaches.js'),
     require('../../utils/lodash.js'),
+    require('./modal/editApplication.controller.modal.js'),
   ])
   .controller('ApplicationConfigController', function ($modal, $state, $log, applicationWriter, confirmationModalService,
                                             cacheInitializer, infrastructureCaches, app, _) {
