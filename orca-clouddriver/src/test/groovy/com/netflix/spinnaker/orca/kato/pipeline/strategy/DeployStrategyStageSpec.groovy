@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -91,9 +92,10 @@ class DeployStrategyStageSpec extends Specification {
       availabilityZones: ['us-east-1': [], 'us-west-2': []]])
 
     def resolver = Mock(SourceResolver)
+    def deprecationRegistry = Mock(DeprecationRegistry)
 
     when:
-    new TestDeployStrategyStage(sourceResolver: resolver, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
+    new TestDeployStrategyStage(sourceResolver: resolver, deprecationRegistry: deprecationRegistry, mapper: new ObjectMapper()).composeRedBlackFlow(stage)
 
     then:
     1 * resolver.getExistingAsgs('foo', 'test', 'foo-test', 'aws') >> [[region: 'us-east-1', name: 'foo-test-v000'], [region: 'us-east-1', name: 'foo-test-v001']]

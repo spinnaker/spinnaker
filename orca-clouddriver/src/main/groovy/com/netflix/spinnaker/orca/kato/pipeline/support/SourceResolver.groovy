@@ -44,18 +44,18 @@ class SourceResolver {
     }
 
     def existingAsgs = getExistingAsgs(
-      stageData.application, stageData.account, stageData.cluster, stageData.providerType
+      stageData.application, stageData.account, stageData.cluster, stageData.cloudProvider
     )
 
     if (!existingAsgs) {
       return null
     }
 
-    if (!stageData.availabilityZones) {
-      throw new IllegalStateException("no availabilityZones in stage context")
+    if (!stageData.region && !stageData.availabilityZones) {
+      throw new IllegalStateException("No 'region' or 'availabilityZones' in stage context")
     }
 
-    def targetRegion = stageData.availabilityZones.keySet()[0]
+    def targetRegion = stageData.region
     def regionalAsgs = existingAsgs.findAll { it.region == targetRegion } as List<Map>
     if (!regionalAsgs) {
       return null
@@ -75,10 +75,17 @@ class SourceResolver {
   }
 
   List<Map> getExistingAsgs(String app, String account, String cluster, String providerType) throws RetrofitError, JsonParseException, JsonMappingException {
-    def response = oortService.getCluster(app, account, cluster, providerType)
-    def json = response.body.in().text
-    def map = mapper.readValue(json, Map)
-    (map.serverGroups as List<Map>).sort { it.createdTime }
+    try {
+      def response = oortService.getCluster(app, account, cluster, providerType)
+      def json = response.body.in().text
+      def map = mapper.readValue(json, Map)
+      (map.serverGroups as List<Map>).sort { it.createdTime }
+    } catch (RetrofitError re) {
+      if (re.kind == RetrofitError.Kind.HTTP && re.response.status == 404) {
+        return []
+      }
+      throw re
+    }
   }
 
 }

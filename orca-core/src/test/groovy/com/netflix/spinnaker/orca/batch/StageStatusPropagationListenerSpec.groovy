@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
@@ -49,7 +51,7 @@ class StageStatusPropagationListenerSpec extends Specification {
   Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   def mapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   @Subject listener = new StageStatusPropagationListener(executionRepository)
   @Shared random = Random.newInstance()
 
@@ -96,6 +98,48 @@ class StageStatusPropagationListenerSpec extends Specification {
 
     and: "the exit status of the batch step is unchanged"
     exitStatus == null
+
+    where:
+    id = random.nextLong()
+    stageType = "foo"
+  }
+
+  def "does not update stage status, startTime or endTime if the stage was originally complete"() {
+    given: "a pipeline model"
+    def pipeline = Pipeline.builder().withStage(stageType).build()
+    pipeline.stages[0].tasks << new DefaultTask(id: "task1")
+
+    pipeline.stages[0].status = ExecutionStatus.SUCCEEDED
+    pipeline.stages[0].startTime = 50L
+    pipeline.stages[0].endTime = 100L
+
+    executionRepository.store(pipeline)
+
+    and: "a batch execution context"
+    def jobExecution = new JobExecution(id, new JobParameters(pipeline: new JobParameter(pipeline.id)))
+    def stepExecution = new StepExecution("${pipeline.stages[0].id}.${stageType}.task1", jobExecution)
+
+    when: "the listener is triggered"
+    listener.beforeStep stepExecution
+    def currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
+
+    then:
+    currentStage.status == ExecutionStatus.SUCCEEDED
+    currentStage.startTime == 50L
+    currentStage.endTime == 100L
+
+    when: "the first task runs"
+    executeTaskReturning ExecutionStatus.SUCCEEDED, stepExecution
+    pipeline.stages[0].tasks[0].status = ExecutionStatus.SUCCEEDED
+    executionRepository.storeStage(pipeline.stages[0])
+
+    listener.afterStep stepExecution
+    currentStage = executionRepository.retrievePipeline(pipeline.id).stages.first()
+
+    then:
+    currentStage.status == ExecutionStatus.SUCCEEDED
+    currentStage.startTime == 50L
+    currentStage.endTime == 100L
 
     where:
     id = random.nextLong()

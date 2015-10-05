@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.batch.ExecutionStatusPropagationListener
 import com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet
-import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -26,18 +26,22 @@ import org.springframework.batch.core.Step
 import org.springframework.batch.core.job.builder.JobBuilder
 import org.springframework.batch.core.job.builder.JobFlowBuilder
 import org.springframework.batch.core.step.tasklet.Tasklet
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.batch.OrchestrationInitializerTasklet.createTasklet
-import static java.util.UUID.randomUUID
 
 @Component
 @CompileStatic
 class OrchestrationJobBuilder extends ExecutionJobBuilder<Orchestration> {
 
+  @Autowired
+  ExecutionStatusPropagationListener executionStatusPropagationListener
+
   @Override
   Job build(Orchestration orchestration) {
     String name = jobNameFor(orchestration)
     JobBuilder jobBuilder = jobs.get(name)
+    jobBuilder = jobBuilder.listener(executionStatusPropagationListener)
+
     Tasklet t = new OrchestrationInitializerTasklet(orchestration)
     Step tasklet = t.createTasklet(steps)
     JobFlowBuilder jobFlowBuilder = jobBuilder.flow(tasklet)

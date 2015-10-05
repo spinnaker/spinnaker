@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapter
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
@@ -81,7 +83,7 @@ class DeployStageSpec extends Specification {
 
   def mapper = new OrcaObjectMapper()
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
 
   @Subject DeployStage deployStage
 
@@ -89,7 +91,7 @@ class DeployStageSpec extends Specification {
   @Shared SourceResolver sourceResolver
   @Shared DisableAsgStage disableAsgStage
   @Shared DestroyServerGroupStage destroyServerGroupStage
-  @Shared ResizeAsgStage resizeAsgStage
+  @Shared ResizeServerGroupStage resizeServerGroupStage
   @Shared ModifyScalingProcessStage modifyScalingProcessStage
 
   def setup() {
@@ -97,12 +99,12 @@ class DeployStageSpec extends Specification {
     oortService = Mock(OortService)
     disableAsgStage = Mock(DisableAsgStage)
     destroyServerGroupStage = Mock(DestroyServerGroupStage)
-    resizeAsgStage = Mock(ResizeAsgStage)
+    resizeServerGroupStage = Mock(ResizeServerGroupStage)
     modifyScalingProcessStage = Mock(ModifyScalingProcessStage)
 
     deployStage = new DeployStage(sourceResolver: sourceResolver, disableAsgStage: disableAsgStage,
                                   destroyServerGroupStage: destroyServerGroupStage,
-                                  resizeAsgStage: resizeAsgStage,
+                                  resizeServerGroupStage: resizeServerGroupStage,
                                   modifyScalingProcessStage: modifyScalingProcessStage, mapper: mapper)
     deployStage.steps = new StepBuilderFactory(Stub(JobRepository), Stub(PlatformTransactionManager))
     deployStage.taskTaskletAdapter = new TaskTaskletAdapter(executionRepository, [])
@@ -171,7 +173,7 @@ class DeployStageSpec extends Specification {
       [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     2 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
+    stage.afterStages*.stageBuilder == [resizeServerGroupStage, disableAsgStage]
   }
 
   void "should create stages of deploy, resizeAsg, disableAsg stages when strategy is redblack and scaleDown is true"() {
@@ -193,7 +195,7 @@ class DeployStageSpec extends Specification {
       [[name: "pond-prestaging-v000", region: "us-west-1"]]
     }
     2 == stage.afterStages.size()
-    stage.afterStages*.stageBuilder == [resizeAsgStage, disableAsgStage]
+    stage.afterStages*.stageBuilder == [resizeServerGroupStage, disableAsgStage]
   }
 
   @Unroll

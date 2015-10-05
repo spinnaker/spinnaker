@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.clouddriver.pipeline
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.CompositeComparitor
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.CreatedTime
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.InstanceCount
-import com.netflix.spinnaker.orca.clouddriver.pipeline.ShrinkClusterStage.IsActive
+import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CompositeComparitor
+import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.CreatedTime
+import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.InstanceCount
+import com.netflix.spinnaker.orca.clouddriver.tasks.ShrinkClusterTask.IsActive
+import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.OrchestrationStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -33,17 +36,19 @@ import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
-class ShrinkClusterStageSpec extends Specification {
+class ShrinkClusterTaskSpec extends Specification {
 
   static AtomicInteger inc = new AtomicInteger(100)
   OortService oortService = Mock(OortService)
+  KatoService katoService = Mock(KatoService)
   ObjectMapper objectMapper = new ObjectMapper()
+  OortHelper oortHelper = new OortHelper(objectMapper: objectMapper, oortService: oortService)
 
   @Subject
-  ShrinkClusterStage stage
+  ShrinkClusterTask task
 
   def setup() {
-    stage = new ShrinkClusterStage(objectMapper: objectMapper, oortService: oortService)
+    task = new ShrinkClusterTask(oortHelper: oortHelper, katoService: katoService)
   }
 
   @Unroll
@@ -54,16 +59,17 @@ class ShrinkClusterStageSpec extends Specification {
     Response oortResponse = new Response('http://clouddriver', 200, 'OK', [], new TypedByteArray('application/json', objectMapper.writeValueAsBytes(cluster)))
 
     when:
-    def contexts = stage.parallelContexts(orchestration)
+    def result = task.execute(orchestration)
 
     then:
     1 * oortService.getCluster('foo', 'test', 'foo-test', 'aws') >> oortResponse
 
-    contexts.size() == expected.size()
-    expected.every { expect ->
-      contexts.find { ctx ->
-        ctx.regions == [expect.region] && ctx.serverGroupName == expect.name
+    (expectedItems ? 1 : 0) * katoService.requestOperations('aws', _) >> { p, ops ->
+      assert ops.size == expected.size()
+      expected.each { expect ->
+        assert ops.find { it.destroyServerGroup.serverGroupName == expect.name && it.destroyServerGroup.region == expect.region }
       }
+      rx.Observable.just(new TaskId('1'))
     }
 
     where:
@@ -85,7 +91,7 @@ class ShrinkClusterStageSpec extends Specification {
   def "deletion priority #desc"() {
 
     when:
-    def toDelete = stage.getDeletionServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
+    def toDelete = task.getDeletionServerGroups(serverGroups, retainLargerOverNewer, allowDeleteActive, shrinkToSize)
 
     then:
     toDelete == expected

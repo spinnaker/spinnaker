@@ -112,9 +112,9 @@ class ResizeSupport {
       operation.asgName = serverGroup.name
       operation.regions = [serverGroup.region]
 
-      def currentMin = Integer.parseInt(serverGroup.asg.minSize.toString())
-      def currentDesired = Integer.parseInt(serverGroup.asg.desiredCapacity.toString())
-      def currentMax = Integer.parseInt(serverGroup.asg.maxSize.toString())
+      def currentMin = Integer.parseInt(serverGroup.capacity.min.toString())
+      def currentDesired = Integer.parseInt(serverGroup.capacity.desired.toString())
+      def currentMax = Integer.parseInt(serverGroup.capacity.max.toString())
 
       Integer newMin, newDesired, newMax
       if (optionalConfig.scalePct) {
@@ -190,8 +190,8 @@ class ResizeSupport {
   private static augmentDescriptionForGCE(Map description, TargetServerGroup tsg) {
     // TODO(ttomsu): Make clouddriver op support specifying multiple zones.
     description.zone = tsg.location
-    description.numReplicas = description.capacity.desired
-    description.replicaPoolName = description.asgName
+    description.targetSize = description.capacity.desired
+    description.serverGroupName = description.asgName
   }
 
   static enum ResizeAction {

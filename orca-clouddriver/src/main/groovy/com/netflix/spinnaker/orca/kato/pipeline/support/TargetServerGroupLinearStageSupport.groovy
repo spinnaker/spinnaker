@@ -40,21 +40,22 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
   }
 
   void composeTargets(Stage stage) {
-    def tsgs = resolver.resolve(stage)
+    def params = TargetServerGroup.Params.fromStage(stage)
     if (TargetServerGroup.isDynamicallyBound(stage)) {
-      composeDynamicTargets(stage, tsgs)
+      composeDynamicTargets(stage, params)
     } else {
-      composeStaticTargets(stage, tsgs)
+      composeStaticTargets(stage, params)
     }
   }
 
-  private void composeStaticTargets(Stage stage, List<TargetServerGroup> targets) {
+  private void composeStaticTargets(Stage stage, TargetServerGroup.Params params) {
     if (stage.parentStageId) {
       // Only process this stage as-is when the user specifies. Otherwise, the targets should already be defined in the
       // context.
       return
     }
 
+    def targets = resolver.resolveByParams(params)
     def descriptionList = buildStaticTargetDescriptions(stage, targets)
     def first = descriptionList.remove(0)
     stage.context.putAll(first)
@@ -71,7 +72,6 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
         // Operations done after the first iteration must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
-      log.info "~~~~ INJECTING {}", name
       injectAfter(stage, name, this, description)
 
       postStatic(description).each {
@@ -98,7 +98,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
     descriptions.values().toList()
   }
 
-  private void composeDynamicTargets(Stage stage, List<TargetServerGroup> tsgs) {
+  private void composeDynamicTargets(Stage stage, TargetServerGroup.Params params) {
     if (stage.parentStageId) {
       // We only want to determine the target ASGs once per stage, so only inject if this is the root stage, i.e.
       // the one the user configured
@@ -107,7 +107,7 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
       return
     }
 
-    def configuredLocations = tsgs.collect { it.location }
+    def configuredLocations = params.locations
     Map dtsgContext = new HashMap(stage.context)
     dtsgContext.regions = new ArrayList(configuredLocations)
     stage.context.regions = [configuredLocations.remove(0)]
@@ -126,7 +126,6 @@ abstract class TargetServerGroupLinearStageSupport extends LinearStage implement
         // Operations done after the first iteration must all be added with injectAfter.
         injectAfter(stage, it.name, it.stage, it.context)
       }
-      log.info "~~~~ INJECTING {}", name
       injectAfter(stage, name, this, ctx)
       postDynamic(ctx).each {
         injectAfter(stage, it.name, it.stage, it.context)

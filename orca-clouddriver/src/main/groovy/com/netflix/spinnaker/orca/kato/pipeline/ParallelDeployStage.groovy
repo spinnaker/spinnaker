@@ -74,6 +74,7 @@ class ParallelDeployStage extends ParallelStage {
     }
   }
 
+  @CompileDynamic
   protected Map<String, Object> clusterContext(Stage stage, Map defaultStageContext, Map cluster) {
     def type = DeployStage.PIPELINE_CONFIG_TYPE
 
@@ -81,11 +82,13 @@ class ParallelDeployStage extends ParallelStage {
       type += "_$cluster.providerType"
     }
 
+    String name = cluster.region ? "Deploy in ${cluster.region}" : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
+
     return defaultStageContext + [
       account: cluster.account ?: stage.context.account,
       cluster: cluster,
       type   : type,
-      name   : "Deploy in ${(cluster.availabilityZones as Map).keySet()[0]}"
+      name   : name
     ]
   }
 

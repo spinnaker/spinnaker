@@ -73,7 +73,7 @@ class TargetServerGroup {
 
     String credentials
     List<String> locations // regions or zones.
-    String cloudProvider
+    String cloudProvider = "aws"
 
     String getApp() {
       Names.parseName(asgName ?: cluster)?.app

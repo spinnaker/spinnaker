@@ -45,6 +45,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
               asg      : [
                 desiredCapacity: 1
               ],
+              capacity : [
+                desired: 1
+              ],
               instances: [
                 [
                   health: [ [ state : "Up"] ]
@@ -56,6 +59,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
               name     : "front50-v001",
               asg      : [
                 desiredCapacity: 1
+              ],
+              capacity : [
+                desired: 1
               ],
               instances: [
                 [
@@ -73,6 +79,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
                 name     : "front50-v001",
                 asg      : [
                   desiredCapacity: 1
+                ],
+                capacity : [
+                  desired: 1
                 ],
                 instances: [
                   [
@@ -113,7 +122,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
     !task.hasSucceeded(new PipelineStage(new Pipeline(), "", "", [:]), serverGroup, instances, null)
     
     where:
-    serverGroup << [null, [:], [asg: [] ]]
+    serverGroup << [null, [:], [asg: [], capacity : [],]]
 
   }
 
@@ -125,9 +134,12 @@ class WaitForUpInstancesTaskSpec extends Specification {
       instances << [ health: [ [state: 'Up'] ] ]
     }
     def serverGroup = [
-        asg: [
-            desiredCapacity: total
-        ]
+      asg: [
+        desiredCapacity: total
+      ],
+      capacity : [
+        desired: total
+      ]
     ]
     hasSucceeded == task.hasSucceeded(
       new PipelineStage(new Pipeline(), "", "", [
@@ -165,6 +177,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
     def serverGroup = [
       asg: [
         desiredCapacity: 2
+      ],
+      capacity : [
+        desired: 2
       ]
     ]
     def context = [
@@ -189,6 +204,9 @@ class WaitForUpInstancesTaskSpec extends Specification {
     def serverGroup = [
       asg: [
         desiredCapacity: asg
+      ],
+      capacity : [
+        desired: asg
       ]
     ]
 
@@ -232,7 +250,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
       new PipelineStage(new Pipeline(), "", "", [
         targetHealthyDeployPercentage: percent
       ]
-      ), [asg: [desiredCapacity: 2]], [], null
+      ), [asg: [desiredCapacity: 2], capacity: [desired: 2]], [], null
     )
 
     then:
@@ -251,7 +269,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
             desiredCapacity: snapshotCapacity
         ]
     ]
-    def serverGroup = [asg: [desiredCapacity: 0]]
+    def serverGroup = [asg: [desiredCapacity: 0], capacity : [desired: 0]]
     hasSucceeded == task.hasSucceeded(new PipelineStage(new Pipeline(), "", "", context), serverGroup, [], null)
 
     where:
@@ -267,7 +285,7 @@ class WaitForUpInstancesTaskSpec extends Specification {
   void 'should succeed as #hasSucceeded based on instance providers #healthProviderNames for instances #instances'() {
     expect:
     hasSucceeded == task.hasSucceeded(
-      new PipelineStage(new Pipeline(), "", "", [:]), [asg: [desiredCapacity: desiredCapacity]], instances, healthProviderNames
+      new PipelineStage(new Pipeline(), "", "", [:]), [asg: [desiredCapacity: desiredCapacity], capacity : [desired: desiredCapacity]], instances, healthProviderNames
     )
 
     where:

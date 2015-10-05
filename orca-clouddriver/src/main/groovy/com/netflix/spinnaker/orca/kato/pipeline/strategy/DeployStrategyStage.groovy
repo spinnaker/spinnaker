@@ -18,12 +18,13 @@ package com.netflix.spinnaker.orca.kato.pipeline.strategy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.orca.deprecation.DeprecationRegistry
 import com.netflix.spinnaker.orca.clouddriver.pipeline.AbstractCloudProviderAwareStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.DestroyServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.DisableAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyAsgLaunchConfigurationStage
 import com.netflix.spinnaker.orca.kato.pipeline.ModifyScalingProcessStage
-import com.netflix.spinnaker.orca.kato.pipeline.ResizeAsgStage
+import com.netflix.spinnaker.orca.kato.pipeline.ResizeServerGroupStage
 import com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
@@ -44,13 +45,14 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   Logger logger = LoggerFactory.getLogger(DeployStrategyStage)
 
   @Autowired ObjectMapper mapper
-  @Autowired ResizeAsgStage resizeAsgStage
+  @Autowired ResizeServerGroupStage resizeServerGroupStage
   @Autowired DisableAsgStage disableAsgStage
   @Autowired DestroyServerGroupStage destroyServerGroupStage
   @Autowired ModifyScalingProcessStage modifyScalingProcessStage
   @Autowired SourceResolver sourceResolver
   @Autowired ModifyAsgLaunchConfigurationStage modifyAsgLaunchConfigurationStage
   @Autowired RollingPushStage rollingPushStage
+  @Autowired DeprecationRegistry deprecationRegistry
   @Autowired PipelineStage pipelineStage
 
   DeployStrategyStage(String name) {
@@ -69,7 +71,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
    */
   protected CleanupConfig determineClusterForCleanup(Stage stage) {
     def stageData = stage.mapTo(StageData)
-    new CleanupConfig(stageData.account, stageData.cluster, stageData.availabilityZones.keySet().toList())
+    new CleanupConfig(stageData.account, stageData.cluster, stageData.regions)
   }
 
   /**
@@ -123,12 +125,16 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   protected void composeRedBlackFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
+
     def existingAsgs = getExistingServerGroups(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, getCloudProvider(stage)
-    )
+      stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
+
     if (existingAsgs) {
-      for (entry in stageData.availabilityZones) {
-        def region = entry.key
+      if (stageData.regions?.size() > 1) {
+        deprecationRegistry.logDeprecatedUsage("multiRegionRedBlack", stageData.application)
+        logger.warn("Pipeline uses more than 1 regions for the same cluster in a red/black deployment")
+      }
+      for (String region in stageData.regions) {
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
@@ -149,7 +155,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
         }
         if (stageData.scaleDown) {
           nextStageContext.capacity = [min: 0, max: 0, desired: 0]
-          injectAfter(stage, "scaleDown", resizeAsgStage, nextStageContext)
+          injectAfter(stage, "scaleDown", resizeServerGroupStage, nextStageContext)
         }
         injectAfter(stage, "disable", disableAsgStage, nextStageContext)
         // delete the oldest asgs until there are maxRemainingAsgs left (including the newly created one)
@@ -212,21 +218,28 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
   protected void composeHighlanderFlow(Stage stage) {
     def stageData = stage.mapTo(StageData)
     def cleanupConfig = determineClusterForCleanup(stage)
-    def existingServerGroups = getExistingServerGroups(
-      stageData.application, cleanupConfig.account, cleanupConfig.cluster, getCloudProvider(stage)
-    )
+    def existingServerGroups = getExistingServerGroups(stageData.application, cleanupConfig.account, cleanupConfig.cluster, stageData.cloudProvider)
     if (existingServerGroups) {
-      for (entry in stageData.availabilityZones) {
-        def region = entry.key
+      if (stageData.regions?.size() > 1) {
+        deprecationRegistry.logDeprecatedUsage("multiRegionHighlander", stageData.application)
+        log.warn("Pipeline uses more than 1 regions for the same cluster in a highlander deployment")
+      }
+      for (String region in stageData.regions) {
+
         if (!cleanupConfig.regions.contains(region)) {
           continue
         }
 
-        existingServerGroups.findAll { it.region == region }.each { Map sg ->
+        existingServerGroups.findAll { it.region == region }.each { Map asg ->
           def nextContext = [
-            asgName: sg.name, credentials: cleanupConfig.account, regions: [region],
-            serverGroupName: sg.name, region: region
+            asgName: asg.name,
+            credentials: cleanupConfig.account,
+            regions: [region],
+            serverGroupName: asg.name,
+            region: region,
+            cloudProvider: stageData.cloudProvider
           ]
+
           if (nextContext.asgName) {
             def names = Names.parseName(nextContext.asgName as String)
             if (stageData.application != names.app) {
@@ -235,7 +248,7 @@ abstract class DeployStrategyStage extends AbstractCloudProviderAwareStage {
             }
           }
 
-          logger.info("Injecting destroyServerGroup stage (${sg.region}:${sg.name})")
+          logger.info("Injecting destroyServerGroup stage (${asg.region}:${asg.name})")
           injectAfter(stage, "destroyServerGroup", destroyServerGroupStage, nextContext)
         }
       }

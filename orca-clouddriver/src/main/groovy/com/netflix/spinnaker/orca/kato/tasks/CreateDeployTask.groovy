@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
+import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
@@ -34,7 +36,7 @@ import org.springframework.stereotype.Component
 @Slf4j
 @Component
 @CompileStatic
-class CreateDeployTask implements Task {
+class CreateDeployTask extends AbstractCloudProviderAwareTask implements Task {
 
   static final List<String> DEFAULT_VPC_SECURITY_GROUPS = ["nf-infrastructure-vpc", "nf-datacenter-vpc"]
   static final List<String> DEFAULT_SECURITY_GROUPS = ["nf-infrastructure", "nf-datacenter"]
@@ -56,10 +58,11 @@ class CreateDeployTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def deployOperations = deployOperationFromContext(stage)
-    def taskId = deploy(deployOperations)
+    String cloudProvider = getCloudProvider(stage)
+    Map deployOperations = deployOperationFromContext(cloudProvider, stage)
+    TaskId taskId = deploy(cloudProvider, deployOperations)
 
-    def outputs = [
+    Map outputs = [
       "notification.type"  : "createdeploy",
       "kato.result.expected": true,
       "kato.last.task.id"  : taskId,
@@ -74,7 +77,7 @@ class CreateDeployTask implements Task {
     return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
-  private Map deployOperationFromContext(Stage stage) {
+  private Map deployOperationFromContext(String cloudProvider, Stage stage) {
     def operation = [:]
     def context = stage.context
 
@@ -84,13 +87,16 @@ class CreateDeployTask implements Task {
       operation.putAll(context)
     }
 
-    def targetRegion = (operation.availabilityZones as Map<String, Object>).keySet()[0]
+    def targetRegion = operation.region ?: (operation.availabilityZones as Map<String, Object>).keySet()[0]
     def deploymentDetails = (context.deploymentDetails ?: []) as List<Map>
     if (!operation.amiName && deploymentDetails) {
       operation.amiName = deploymentDetails.find { it.region == targetRegion }?.ami
     }
+    if (!operation.dockerImageId && deploymentDetails) {
+      operation.dockerImageId = deploymentDetails.find { it.cloudProvider == cloudProvider }?.imageId
+    }
 
-    log.info("Deploying ${operation.amiName} to ${targetRegion}")
+    log.info("Deploying ${operation.amiName ?: operation.dockerImageId} to ${targetRegion}")
 
     if (context.account && !operation.credentials) {
       operation.credentials = context.account
@@ -100,7 +106,7 @@ class CreateDeployTask implements Task {
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
-  private TaskId deploy(Map deployOperation) {
+  private TaskId deploy(String cloudProvider, Map deployOperation) {
     deployOperation.securityGroups = deployOperation.securityGroups ?: []
 
     //TODO(cfieber)- remove the VPC special case asap
@@ -113,18 +119,19 @@ class CreateDeployTask implements Task {
     List<Map<String, Object>> descriptions = []
 
     if (deployOperation.credentials != defaultBakeAccount) {
-      descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
-        [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
-      })
+      if (deployOperation.availabilityZones) {
+        descriptions.addAll(deployOperation.availabilityZones.collect { String region, List<String> azs ->
+          [allowLaunchDescription: convertAllowLaunch(deployOperation.credentials, defaultBakeAccount, region, deployOperation.amiName)]
+        })
+      }
     }
 
-    descriptions.add([basicAmazonDeployDescription: deployOperation])
-    def result = kato.requestOperations(descriptions).toBlocking().first()
+    descriptions.add([createServerGroup: deployOperation])
+    def result = kato.requestOperations(cloudProvider, descriptions).toBlocking().first()
     result
   }
 
-  private
-  static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
+  private static Map convertAllowLaunch(String targetAccount, String sourceAccount, String region, String ami) {
     [account: targetAccount, credentials: sourceAccount, region: region, amiName: ami]
   }
 

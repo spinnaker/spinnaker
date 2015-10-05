@@ -1,5 +1,8 @@
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import com.netflix.spectator.api.ExtendedRegistry
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import rx.functions.Func1
 
 import java.util.function.Function
@@ -20,7 +23,6 @@ import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
 import rx.schedulers.Schedulers
-import static java.util.concurrent.Executors.newFixedThreadPool
 
 @Component
 @Slf4j
@@ -35,14 +37,15 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Autowired
   JedisExecutionRepository(
+    ExtendedRegistry extendedRegistry,
     Pool<Jedis> jedisPool,
     @Value('${threadPool.executionRepository:150}') int threadPoolSize,
     @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this(
       jedisPool,
-      Schedulers.from(newFixedThreadPool(10)),
-      Schedulers.from(newFixedThreadPool(threadPoolSize)),
+      Schedulers.from(newFixedThreadPool(extendedRegistry, 10, "QueryAll")),
+      Schedulers.from(newFixedThreadPool(extendedRegistry, threadPoolSize, "QueryByApp")),
       threadPoolChunkSize
     )
   }
@@ -293,7 +296,11 @@ class JedisExecutionRepository implements ExecutionRepository {
             return Observable.just(retrieveInternal(jedis, type, executionId))
           } catch (ExecutionNotFoundException ignored) {
             log.info("Execution (${executionId}) does not exist")
-            jedis.srem(lookupKey, executionId)
+            if (jedis.type(lookupKey) == "zset") {
+              jedis.zrem(lookupKey, executionId)
+            } else {
+              jedis.srem(lookupKey, executionId)
+            }
           } catch (Exception e) {
             log.error("Failed to retrieve execution '${executionId}', message: ${e.message}", e)
           }
@@ -319,5 +326,13 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   private <T> T withJedis(Function<Jedis, T> action) {
     jedisPool.resource.withCloseable(action.&apply)
+  }
+
+  private static ThreadPoolTaskExecutor newFixedThreadPool(ExtendedRegistry extendedRegistry,
+                                                           int threadPoolSize,
+                                                           String threadPoolName) {
+    def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
+    executor.afterPropertiesSet()
+    return OrcaConfiguration.applyThreadPoolMetrics(extendedRegistry, executor, threadPoolName)
   }
 }

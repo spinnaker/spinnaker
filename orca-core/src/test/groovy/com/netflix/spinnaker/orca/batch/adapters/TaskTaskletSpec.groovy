@@ -58,7 +58,7 @@ class TaskTaskletSpec extends Specification {
   Pool<Jedis> jedisPool = new JedisPool("localhost", embeddedRedis.@port)
 
   def objectMapper = new OrcaObjectMapper()
-  def executionRepository = new JedisExecutionRepository(jedisPool, 1, 50)
+  def executionRepository = new JedisExecutionRepository(new ExtendedRegistry(new NoopRegistry()), jedisPool, 1, 50)
   def pipeline = Pipeline.builder().withStage("stage", "stage", [foo: "foo"]).build()
   def stage = pipeline.stages.first()
   def task = Mock(Task)
@@ -110,6 +110,8 @@ class TaskTaskletSpec extends Specification {
 
     then:
     0 * task.execute(_)
+    chunkContext.stepContext.stepExecution.terminateOnly == taskStatus.halt
+    chunkContext.stepContext.stepExecution.exitStatus == (taskStatus.halt ? ExitStatus.FAILED : ExitStatus.EXECUTING)
 
     where:
     taskStatus << ExecutionStatus.values().findAll { it.complete }

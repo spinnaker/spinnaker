@@ -90,7 +90,7 @@ class JarDiffsTask implements DiffTask {
         targetInstances = oortHelper.getInstancesForCluster(stage.context, targetAsg, false, false)
         sourceInstances = oortHelper.getInstancesForCluster(stage.context, sourceAsg, false, false)
       } catch (Exception e) {
-        log.error("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg})", e)
+        log.error("Unable to fetch instances (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg}), reason: ${e.message}")
       }
 
       if (!targetInstances || !sourceInstances) {
