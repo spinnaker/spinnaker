@@ -29,7 +29,7 @@ let Clipboard = require('clipboard');
 // likely that some of these can be moved to the modules that support them
 require('./modules/core/application/application.less');
 require('./modules/healthCounts/counters.less');
-require('./modules/delivery/delivery.less');
+require('./modules/core/delivery/delivery.less');
 require('./modules/core/presentation/details.less');
 require('./modules/fastProperties/fastProperties.less');
 require('./modules/instance/instanceSelection.less');
@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker', [
 
     require('exports?"angular.filter"!angular-filter'),
     require('./modules/navigation/states.provider.js'),
-    require('./modules/delivery/states.js'),
+    require('./modules/core/delivery/states.js'),
     require('exports?"infinite-scroll"!ng-infinite-scroll/build/ng-infinite-scroll.js'),
 
     require('./modules/insight/insight.module.js'),
@@ -105,7 +105,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/instance/instance.module.js'),
     require('./modules/core/pageTitle/pageTitle.service.js'),
     require('./modules/core/help/help.module.js'),
-    require('./modules/delivery/delivery.module.js'),
+    require('./modules/core/delivery/delivery.module.js'),
     require('./modules/pipelines/pipelines.module.js'),
     require('./modules/pipelines/config/stages/bake/bakeStage.module.js'),
     require('./modules/pipelines/config/stages/canary/canaryStage.module.js'),

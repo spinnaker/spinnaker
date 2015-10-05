@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.findAmi.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('FindAmiExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

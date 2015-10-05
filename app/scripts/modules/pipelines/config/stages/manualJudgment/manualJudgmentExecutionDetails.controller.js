@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.manualJudgment.executionDetails.controller', [
   require('angular-ui-router'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, $http, settings, executionDetailsSectionService, _) {
     $scope.configSections = ['manualJudgment', 'taskStatus'];

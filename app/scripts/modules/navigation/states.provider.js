@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.states', [
   require('angular-ui-router'),
   require('./stateHelper.provider.js'),
-  require('../delivery/states.js'),
+  require('../core/delivery/states.js'),
   require('../core/cloudProvider/cloudProvider.registry.js'),
   require('../core/projects/project.controller.js'),
   require('../core/projects/dashboard/dashboard.controller.js'),

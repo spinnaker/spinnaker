@@ -6,8 +6,8 @@ module.exports = angular.module('spinnaker.pipelines.stage.deploy.details.contro
   require('../../../../utils/lodash.js'),
   require('angular-ui-router'),
   require('../../../../core/cluster/filter/clusterFilter.service.js'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('../../../../navigation/urlBuilder.service.js'),
 ])
   .controller('DeployExecutionDetailsCtrl', function ($scope, _, $stateParams, executionDetailsSectionService, $timeout, urlBuilderService, clusterFilterService) {
