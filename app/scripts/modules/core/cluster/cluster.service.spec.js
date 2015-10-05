@@ -3,7 +3,7 @@
 describe('Service: InstanceType', function () {
   beforeEach(
     window.module(
-      require('./clusterService.js')
+      require('./cluster.service.js')
     )
   );
 

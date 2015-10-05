@@ -4,8 +4,8 @@ let angular = require('angular');
 
 module.exports = angular
   .module('cluster.filter.model', [
-    require('../filterModel/filter.model.service.js'),
-    require('../navigation/urlParser.service.js'),
+    require('../../../filterModel/filter.model.service.js'),
+    require('../../../navigation/urlParser.service.js'),
   ])
   .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser) {
 

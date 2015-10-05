@@ -14,9 +14,9 @@ describe('Service: clusterFilterService', function () {
 
   beforeEach(
     window.module(
-      require('./clusterFilterService.js'),
-      require('./clusterFilterModel.js'),
-      require('../../../../test/mock/mockApplicationData.js')
+      require('./clusterFilter.service.js'),
+      require('./clusterFilter.model.js'),
+      require('../../../../../../test/mock/mockApplicationData.js')
     )
   );
 

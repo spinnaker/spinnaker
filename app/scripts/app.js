@@ -38,7 +38,6 @@ require('./modules/core/modal/modals.less');
 require('./modules/navigation/navigation.less');
 require('./modules/core/application/newapplication.less');
 require('./modules/pipelines/pipelines.less');
-require('./modules/cluster/rollups.less');
 require('./modules/tasks/tasks.less');
 require('./modules/utils/stickyHeader/stickyHeader.less');
 
@@ -95,7 +94,6 @@ module.exports = angular.module('spinnaker', [
     require('./modules/healthCounts/healthCounts.directive.js'),
     require('./modules/config/settings.js'),
     require('./modules/scheduler/scheduler.service.js'),
-    require('./modules/clusterFilter/cluster.filter.module.js'),
     require('./modules/confirmationModal/confirmationModal.service.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
     require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
@@ -139,6 +137,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/tasks/monitor/taskMonitor.module.js'),
     require('./modules/validation/validation.module.js'),
     require('./modules/loadBalancers/loadBalancers.module.js'),
+    require('./modules/core/cluster/cluster.module.js'),
     require('./modules/whatsNew/whatsNew.directive.js'),
     require('./modules/netflix/blesk/blesk.module.js'),
     require('./modules/fastProperties/fastProperties.module.js'),
