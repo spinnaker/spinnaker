@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy.deploymentStrategy.service', [
-  require('../../utils/lodash.js'),
+module.exports = angular.module('spinnaker.core.deploymentStrategy.deploymentStrategy.service', [
+  require('../../../utils/lodash.js'),
   require('../deploymentStrategyConfig.provider.js')
 ])
   .factory('deploymentStrategyService', function (deploymentStrategyConfig, _) {

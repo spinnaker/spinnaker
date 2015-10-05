@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
+module.exports = angular.module('spinnaker.core.deploymentStrategy.rollingPush', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Rolling Push (deprecated)',
@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.deploymentStrategy.rollingPush', [])
       key: 'rollingpush',
       providers: ['aws'],
       additionalFields: ['termination.totalRelaunches', 'termination.concurrentRelaunches', 'termination.order', 'termination.relaunchAllInstances'],
-      additionalFieldsTemplateUrl: 'app/scripts/modules/deploymentStrategy/strategies/rollingPush/additionalFields.html',
+      additionalFieldsTemplateUrl: require('./additionalFields.html'),
       initializationMethod: function(command) {
         command.termination = command.termination || {
           order: 'oldest',

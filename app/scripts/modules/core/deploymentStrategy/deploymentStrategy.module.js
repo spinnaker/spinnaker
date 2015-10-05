@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy', [
-  require('../utils/utils.module.js'),
+module.exports = angular.module('spinnaker.core.deploymentStrategy', [
+  require('../../utils/utils.module.js'),
   require('./deploymentStrategySelector.directive.js'),
   require('./deploymentStrategyConfig.provider.js'),
   require('./deploymentStrategySelector.controller.js'),

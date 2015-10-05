@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy.highlander', [])
+module.exports = angular.module('spinnaker.core.deploymentStrategy.highlander', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'Highlander',
