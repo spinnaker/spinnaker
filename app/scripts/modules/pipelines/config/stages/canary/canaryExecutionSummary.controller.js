@@ -5,8 +5,8 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.pipelines.stage.canary.summary.controller', [
   require('angular-ui-router'),
   require('../../../../utils/lodash.js'),
-  require('../../../../delivery/details/executionDetailsSection.service.js'),
-  require('../../../../delivery/details/executionDetailsSectionNav.directive.js'),
+  require('../../../../core/delivery/details/executionDetailsSection.service.js'),
+  require('../../../../core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),
 ])

@@ -12,12 +12,12 @@ module.exports = angular
     require('../../../securityGroups/securityGroup.read.service.js'),
     require('../../cache/infrastructureCaches.js'),
     require('../../../scheduler/scheduler.service.js'),
-    require('../../../delivery/executionsService.js'),
+    require('../../../core/delivery/execution.service.js'),
     require('../../../serverGroups/serverGroup.transformer.js'),
   ])
   .factory('applicationReader', function ($q, $log, $window,  $exceptionHandler, $rootScope, Restangular, _, clusterService, tasksReader,
                                           loadBalancerReader, loadBalancerTransformer, securityGroupReader, scheduler,
-                                          infrastructureCaches, settings, executionsService, serverGroupTransformer) {
+                                          infrastructureCaches, settings, executionService, serverGroupTransformer) {
 
     function listApplications(forceRemoteCall) {
       var endpoint = Restangular
@@ -80,7 +80,7 @@ module.exports = angular
         }
 
         function reloadExecutions() {
-          return executionsService.getAll(application).then(function(execution) {
+          return executionService.getAll(application).then(function(execution) {
             addExecutionsToApplication(application, execution);
             if (!application.executionsLoaded) {
               application.executionsLoaded = true;
