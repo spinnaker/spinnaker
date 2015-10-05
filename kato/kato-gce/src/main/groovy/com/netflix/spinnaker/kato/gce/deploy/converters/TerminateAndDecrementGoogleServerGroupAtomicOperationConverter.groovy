@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.kato.gce.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.google.GoogleOperation
 import com.netflix.spinnaker.kato.gce.deploy.description.TerminateAndDecrementGoogleServerGroupDescription
 import com.netflix.spinnaker.kato.gce.deploy.ops.TerminateAndDecrementGoogleServerGroupAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@GoogleOperation(AtomicOperations.TERMINATE_INSTANCE_AND_DECREMENT)
 @Component("terminateAndDecrementGoogleServerGroupDescription")
 class TerminateAndDecrementGoogleServerGroupAtomicOperationConverter
       extends AbstractAtomicOperationsCredentialsSupport {

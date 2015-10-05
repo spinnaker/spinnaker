@@ -32,6 +32,7 @@ final class AtomicOperations {
 
   // Instance operations
   public static final String TERMINATE_INSTANCES = "terminateInstances"
+  public static final String TERMINATE_INSTANCE_AND_DECREMENT = "terminateInstanceAndDecrementServerGroup"
 
   // Load Balancer operations
   public static final String DELETE_LOAD_BALANCER = "deleteLoadBalancer"

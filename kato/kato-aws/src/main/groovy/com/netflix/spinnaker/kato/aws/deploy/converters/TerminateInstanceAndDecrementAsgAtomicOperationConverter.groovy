@@ -17,12 +17,15 @@
 
 package com.netflix.spinnaker.kato.aws.deploy.converters
 
+import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.kato.aws.deploy.description.TerminateInstanceAndDecrementAsgDescription
 import com.netflix.spinnaker.kato.aws.deploy.ops.TerminateInstanceAndDecrementAsgAtomicOperation
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
+import com.netflix.spinnaker.kato.orchestration.AtomicOperations
 import com.netflix.spinnaker.kato.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
 
+@AmazonOperation(AtomicOperations.TERMINATE_INSTANCE_AND_DECREMENT)
 @Component("terminateInstanceAndDecrementAsgDescription")
 class TerminateInstanceAndDecrementAsgAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
