@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.pipeline
+package com.netflix.spinnaker.orca.clouddriver.pipeline
 
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
-import com.netflix.spinnaker.orca.kato.tasks.TerminateInstanceAndDecrementAsgTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.TerminateInstanceAndDecrementServerGroupTask
 import com.netflix.spinnaker.orca.kato.tasks.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.pipeline.LinearStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -25,20 +25,20 @@ import org.springframework.batch.core.Step
 import org.springframework.stereotype.Component
 
 @Component
-@Deprecated
-class TerminateInstanceAndDecrementAsgStage extends LinearStage {
+class TerminateInstanceAndDecrementServerGroupStage extends LinearStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = "terminateInstanceAndDecrementAsg"
+  public static final String PIPELINE_CONFIG_TYPE = "terminateInstanceAndDecrementServerGroup"
 
-  TerminateInstanceAndDecrementAsgStage() {
+  TerminateInstanceAndDecrementServerGroupStage() {
     super(PIPELINE_CONFIG_TYPE)
   }
 
   @Override
   public List<Step> buildSteps(Stage stage) {
-    def step1 = buildStep(stage, "terminateInstance", TerminateInstanceAndDecrementAsgTask)
-    def step2 = buildStep(stage, "monitorTermination", MonitorKatoTask)
-    def step3 = buildStep(stage, "waitForTerminatedInstance", WaitForTerminatedInstancesTask)
-    [step1, step2, step3]
+    [
+      buildStep(stage, PIPELINE_CONFIG_TYPE, TerminateInstanceAndDecrementServerGroupTask),
+      buildStep(stage, "monitorTermination", MonitorKatoTask),
+      buildStep(stage, "waitForTerminatedInstance", WaitForTerminatedInstancesTask),
+    ]
   }
 }

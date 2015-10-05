@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.kato.tasks
+package com.netflix.spinnaker.orca.clouddriver.tasks
 
 import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -26,24 +26,26 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-@Deprecated
-class TerminateInstanceAndDecrementAsgTask implements Task {
+class TerminateInstanceAndDecrementServerGroupTask extends AbstractCloudProviderAwareTask implements Task {
+  static final String CLOUD_OPERATION_TYPE = "terminateInstanceAndDecrementServerGroup"
+
   @Autowired
   KatoService kato
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[terminateInstanceAndDecrementAsgDescription: stage.context]])
-      .toBlocking()
-      .first()
+    String cloudProvider = getCloudProvider(stage)
+    String account = getCredentials(stage)
+
+    def taskId = kato.requestOperations(cloudProvider, [[(CLOUD_OPERATION_TYPE): stage.context]])
+                     .toBlocking()
+                     .first()
     new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
-      "notification.type"     : "terminateinstanceanddecrementasg",
-      "terminate.account.name": stage.context.credentials,
+      "notification.type"     : "terminateinstanceanddecrementservergroup",
+      "terminate.account.name": account,
       "terminate.region"      : stage.context.region,
       "kato.last.task.id"     : taskId,
-      "kato.task.id"          : taskId, // TODO retire this.
       "terminate.instance.ids": [stage.context.instance],
     ])
   }
-
 }
