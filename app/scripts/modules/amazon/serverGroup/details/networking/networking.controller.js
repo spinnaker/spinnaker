@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.controller', [
-  require('../../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../../utils/lodash.js'),
   require('./elasticIp.read.service.js'),
   require('./elasticIp.controller.js'),

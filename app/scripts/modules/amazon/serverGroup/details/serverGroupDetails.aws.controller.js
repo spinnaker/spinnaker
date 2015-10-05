@@ -6,7 +6,7 @@ require('../configure/serverGroup.configure.aws.module.js');
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../serverGroups/serverGroup.write.service.js'),
   require('../../../utils/lodash.js'),
   require('../../vpc/vpcTag.directive.js'),

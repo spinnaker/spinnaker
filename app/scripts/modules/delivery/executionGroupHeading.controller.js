@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.delivery.executionGroupHeading.contro
   require('./executionsService.js'),
   require('../core/cache/collapsibleSectionStateCache.js'),
   require('./manualPipelineExecution.controller.js'),
-  require('../confirmationModal/confirmationModal.service.js'),
+  require('../core/confirmationModal/confirmationModal.service.js'),
 ])
   .controller('executionGroupHeading', function($scope, $modal, $timeout, pipelineConfigService, executionsService, collapsibleSectionStateCache, _) {
     var controller = this;

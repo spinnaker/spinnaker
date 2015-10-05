@@ -8,7 +8,7 @@ module.exports = angular
     require('./fastProperty.read.service.js'),
     require('./fastProperty.write.service.js'),
     require('./modal/createNewFastProperty.controller.js'),
-    require('../confirmationModal/confirmationModal.service.js'),
+    require('../core/confirmationModal/confirmationModal.service.js'),
     require('./fastPropertyTransformer.service.js'),
     require('../utils/lodash.js'),
   ])

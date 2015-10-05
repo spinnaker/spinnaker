@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.tasks.main', [
   require('./taskProgressBar.directive.js'),
   require('../core/cache/viewStateCache.js'),
   require('../tasks/tasks.write.service.js'),
-  require('../confirmationModal/confirmationModal.service.js'),
+  require('../core/confirmationModal/confirmationModal.service.js'),
   require('../pipelines/config/stages/core/displayableTasks.filter.js'),
   require('angular-ui-router'),
   require('../core/cache/deckCacheFactory.js'),

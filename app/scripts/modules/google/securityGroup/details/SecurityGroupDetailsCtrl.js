@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   require('../../../core/account/account.service.js'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../securityGroups/securityGroup.write.service.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),

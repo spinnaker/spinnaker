@@ -9,7 +9,7 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   require('../../../instance/instance.write.service.js'),
   require('../../../instance/instance.read.service.js'),
   require('../../vpc/vpcTag.directive.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),
   require('../../../utils/selectOnDblClick.directive.js'),

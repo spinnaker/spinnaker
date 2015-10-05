@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-bootstrap'),
   require('../../../instance/instance.write.service.js'),
   require('../../../instance/instance.read.service.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../../../core/history/recentHistory.service.js'),

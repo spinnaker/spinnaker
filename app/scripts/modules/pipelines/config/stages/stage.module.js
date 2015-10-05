@@ -7,7 +7,7 @@ module.exports = angular.module('spinnaker.pipelines.config.stage', [
   require('../pipelineConfigProvider.js'),
   require('../services/pipelineConfigService.js'),
   require('./overrideTimeout/overrideTimeout.directive.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
 ])
   .directive('pipelineConfigStage', function() {
     return {
