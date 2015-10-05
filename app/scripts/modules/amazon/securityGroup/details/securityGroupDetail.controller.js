@@ -6,7 +6,7 @@ module.exports = angular.module('spinnaker.securityGroup.aws.details.controller'
   require('angular-ui-router'),
   require('../../../securityGroups/securityGroup.read.service.js'),
   require('../../../securityGroups/securityGroup.write.service.js'),
-  require('../../../confirmationModal/confirmationModal.service.js'),
+  require('../../../core/confirmationModal/confirmationModal.service.js'),
   require('../../../utils/lodash.js'),
   require('../../../insight/insightFilterState.model.js'),
   require('../clone/cloneSecurityGroup.controller.js'),

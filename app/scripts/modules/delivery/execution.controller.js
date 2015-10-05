@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.delivery.execution.controller', [
   require('angular-ui-router'),
-  require('../confirmationModal/confirmationModal.service.js'),
+  require('../core/confirmationModal/confirmationModal.service.js'),
   require('./executionsService.js'),
 ])
   .controller('execution', function($scope, $stateParams, $state, confirmationModalService, executionsService, settings) {

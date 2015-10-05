@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.confirmationModal.service', [
-  require('../tasks/monitor/taskMonitor.module.js'),
-  require('../core/account/account.module.js'),
+require('./confirmationModal.less');
+
+module.exports = angular.module('spinnaker.core.confirmationModal.service', [
+  require('../../tasks/monitor/taskMonitor.module.js'),
+  require('../account/account.module.js'),
   require('angular-ui-router'),
   require('angular-ui-bootstrap'),
 ])

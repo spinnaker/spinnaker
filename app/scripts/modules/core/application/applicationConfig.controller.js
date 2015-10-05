@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.config.controller', [
     require('./service/applications.write.service.js'),
-    require('../../confirmationModal/confirmationModal.service.js'),
+    require('../../core/confirmationModal/confirmationModal.service.js'),
     require('../cache/cacheInitializer.js'),
     require('../cache/infrastructureCaches.js'),
     require('../../utils/lodash.js'),

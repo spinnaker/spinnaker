@@ -42,7 +42,6 @@ require('./modules/tasks/tasks.less');
 require('./modules/utils/stickyHeader/stickyHeader.less');
 
 require('./modules/search/global/globalSearch.less');
-require('./modules/confirmationModal/confirmationModal.less');
 
 require('../fonts/spinnaker/icons.css');
 
@@ -94,7 +93,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/healthCounts/healthCounts.directive.js'),
     require('./modules/config/settings.js'),
     require('./modules/scheduler/scheduler.service.js'),
-    require('./modules/confirmationModal/confirmationModal.service.js'),
+    require('./modules/core/confirmationModal/confirmationModal.service.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),
     require('./modules/deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
     require('./modules/deploymentStrategy/strategies/none/none.strategy.module.js'),
