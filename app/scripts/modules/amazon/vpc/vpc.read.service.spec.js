@@ -16,6 +16,10 @@ describe('vpcReader', function() {
     $scope = $rootScope.$new();
   }));
 
+  afterEach(function() {
+    service.resetCache();
+  });
+
   beforeEach(function() {
     $http.whenGET('/vpcs').respond(200, [
       { name: 'vpc1', id: 'vpc-1', deprecated: true },
@@ -55,14 +59,12 @@ describe('vpcReader', function() {
 
     service.getVpcName('vpc-2').then(function(name) { result = name; });
 
-    $http.flush();
     $scope.$digest();
 
     expect(result).toBe('vpc2');
 
     service.getVpcName('vpc-4').then(function(name) { result = name; });
 
-    $http.flush();
     $scope.$digest();
 
     expect(result).toBe(null);

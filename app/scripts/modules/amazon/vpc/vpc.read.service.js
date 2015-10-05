@@ -9,14 +9,19 @@ module.exports = angular
     require('../../utils/lodash.js'),
     require('../../core/cache/infrastructureCaches.js')
   ])
-  .factory('vpcReader', function ($q, Restangular, infrastructureCaches ) {
+  .factory('vpcReader', function ($q, Restangular, infrastructureCaches) {
+
+    let cachedVpcs = null;
 
     function listVpcs() {
+      if (cachedVpcs) {
+        return $q.when(cachedVpcs);
+      }
       return Restangular.all('vpcs')
         .withHttpConfig({cache: infrastructureCaches.vpcs})
         .getList()
         .then(function(vpcs) {
-          return vpcs.map(function(vpc) {
+          let results = vpcs.map(function(vpc) {
             vpc.label = vpc.name;
             vpc.deprecated = !!vpc.deprecated;
             if (vpc.deprecated) {
@@ -24,7 +29,13 @@ module.exports = angular
             }
             return vpc.plain();
           });
+          cachedVpcs = results;
+          return results;
         });
+    }
+
+    function resetCache() {
+      cachedVpcs = null;
     }
 
     function getVpcName(id) {
@@ -39,6 +50,7 @@ module.exports = angular
     return {
       listVpcs: listVpcs,
       getVpcName: getVpcName,
+      resetCache: resetCache,
     };
 
   }).name;

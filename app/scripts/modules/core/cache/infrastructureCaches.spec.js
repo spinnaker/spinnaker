@@ -85,17 +85,7 @@ describe('spinnaker.core.cache.infrastructure', function() {
       infrastructureCaches.createCache('someBadCache', {
         cacheFactory: this.cacheFactory,
         version: 0,
-      });
-
-      var removalCallsAfterInitialization = this.removalCalls.length;
-      infrastructureCaches.clearCache('someBadCache');
-      expect(this.removalCalls.length).toBe(removalCallsAfterInitialization + 1);
-    });
-
-    it('should remove all keys when clearCache called', function() {
-      infrastructureCaches.createCache('someBadCache', {
-        cacheFactory: this.cacheFactory,
-        version: 0,
+        onReset: [],
       });
 
       var removalCallsAfterInitialization = this.removalCalls.length;

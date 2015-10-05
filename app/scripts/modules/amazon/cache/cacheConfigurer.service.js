@@ -37,6 +37,7 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
     config.vpcs = {
       version: 2,
       initializers: [vpcReader.listVpcs],
+      onReset: [vpcReader.resetCache],
     };
 
     config.keyPairs = {

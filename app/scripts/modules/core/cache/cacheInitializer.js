@@ -31,6 +31,7 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
       config.version = config.version || 1;
       config.maxAge = config.maxAge || 2 * 24 * 60 * 60 * 1000;
       config.initializers = config.initializers || initializers[key] || [];
+      config.onReset = config.onReset || [angular.noop];
     }
 
     function extendConfig() {
@@ -46,6 +47,7 @@ module.exports = angular.module('spinnaker.core.cache.initializer', [
               cacheConfig[key] = providerConfig[key];
             }
             cacheConfig[key].initializers = _.uniq((cacheConfig[key].initializers).concat(providerConfig[key].initializers));
+            cacheConfig[key].onReset = _.uniq((cacheConfig[key].onReset).concat(providerConfig[key].onReset));
             cacheConfig[key].version = Math.max(cacheConfig[key].version, providerConfig[key].version);
             cacheConfig[key].maxAge = Math.min(cacheConfig[key].maxAge, providerConfig[key].maxAge);
 
