@@ -3,9 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [
-  require('../../utils/lodash.js')
 ])
-  .factory('cfLoadBalancerTransformer', function ($q, settings, _) {
+  .factory('cfLoadBalancerTransformer', function ($q) {
 
     function updateHealthCounts(container) {
       var instances = container.instances;
