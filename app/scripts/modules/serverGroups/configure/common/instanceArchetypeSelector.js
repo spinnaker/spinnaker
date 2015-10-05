@@ -21,6 +21,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.common.instance
     var controller = this;
     instanceTypeService.getCategories($scope.command.selectedProvider).then(function(categories) {
       $scope.instanceProfiles = categories;
+      if ($scope.instanceProfiles.length % 3 === 0) {
+        $scope.columns = 3;
+      }
+      if ($scope.instanceProfiles.length % 4 === 0) {
+        $scope.columns = 4;
+      }
+      if ($scope.instanceProfiles.length % 5 === 0 || $scope.instanceProfiles.length === 7) {
+        $scope.columns = 5;
+      }
       controller.selectInstanceType($scope.command.viewState.instanceProfile);
     });
 
