@@ -121,15 +121,50 @@
     <collapsible-section heading="DNS" ng-if="!instance.notFound">
       <dl ng-class="InsightFilterStateModel.filtersExpanded ? '' : 'dl-horizontal'">
         <dt ng-if="instance.privateDnsName">Private DNS Name:</dt>
-        <dd ng-if="instance.privateDnsName"><a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a></dd>
+        <dd ng-if="instance.privateDnsName">
+          <a href="http://{{instance.privateDnsName}}:7001" target="_blank">{{instance.privateDnsName}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{instance.privateDnsName}}:7001"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name:</dt>
-        <dd ng-if="instance.publicDnsName"><a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a></dd>
+        <dd ng-if="instance.publicDnsName">
+          <a href="http://{{instance.publicDnsName}}:7001" target="_blank">{{instance.publicDnsName}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{instance.publicDnsName}}:7001"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
         <dt ng-if="instance.privateIpAddress">Private IP Address:</dt>
-        <dd ng-if="instance.privateIpAddress"><a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a></dd>
+        <dd ng-if="instance.privateIpAddress">
+          <a href="http://{{instance.privateIpAddress}}:7001" target="_blank">{{instance.privateIpAddress}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{instance.privateIpAddress}}:7001"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address:</dt>
-        <dd ng-if="instance.publicIpAddress"><a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a></dd>
+        <dd ng-if="instance.publicIpAddress">
+          <a href="http://{{instance.publicIpAddress}}:7001" target="_blank">{{instance.publicIpAddress}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{instance.publicIpAddress}}:7001"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
         <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address:</dt>
-        <dd ng-repeat="address in instance.vipAddress"><a href="http://{{address}}" target="_blank">{{address}}</a></dd>
+        <dd ng-repeat="address in instance.vipAddress">
+          <a href="http://{{address}}" target="_blank">{{address}}</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="http://{{address}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
+        </dd>
       </dl>
     </collapsible-section>
     <collapsible-section ng-if="!instance.notFound" heading="Security Groups">
