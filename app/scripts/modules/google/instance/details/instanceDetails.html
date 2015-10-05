@@ -23,13 +23,12 @@
       <h3 select-on-dbl-click>
         {{instance.instanceId}}
       </h3>
-
-      <copy-to-clipboard ng-if="instance.gcloudSSHCommand"
-                         class="copy-to-clipboard"
-                         text="{{instance.gcloudSSHCommand}}"
-                         tool-tip="Copy gcloud compute ssh command to clipboard">
+      <copy-to-clipboard
+          ng-if="instance.gcloudSSHCommand"
+          class="copy-to-clipboard"
+          text="{{instance.gcloudSSHCommand}}"
+          tool-tip="Copy gcloud compute ssh command to clipboard">
       </copy-to-clipboard>
-
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
@@ -171,7 +170,7 @@
           <a href="{{instance.sshLink}}" target="_blank">SSH</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="http://{{sshLink}}"
+              text="{{instance.sshLink}}"
               tool-tip="Copy to clipboard">
           </copy-to-clipboard>
         </dd>
@@ -181,6 +180,11 @@
       <ul>
         <li ng-if="instance.logsLink">
           <a href="{{instance.logsLink}}" target="_blank">Developers Console Logs</a>
+          <copy-to-clipboard
+              class="copy-to-clipboard copy-to-clipboard-sm"
+              text="{{instance.logsLink}}"
+              tool-tip="Copy to clipboard">
+          </copy-to-clipboard>
         </li>
         <li>
           <a href ng-click="ctrl.showConsoleOutput()">Console Output (Raw)</a>

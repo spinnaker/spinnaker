@@ -118,7 +118,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         selectedProvider: 'gce',
         availabilityZones: [],
         viewState: {
-          instanceProfile: null,
+          instanceProfile: 'custom',
           allImageSelection: null,
           useAllImageSelection: false,
           useSimpleCapacity: true,
