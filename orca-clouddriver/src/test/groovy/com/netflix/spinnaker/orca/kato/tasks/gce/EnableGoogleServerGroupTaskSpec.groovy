@@ -31,7 +31,7 @@ class EnableGoogleServerGroupTaskSpec extends Specification {
 
   def enableASGConfig = [
     asgName        : "test-asg",
-    replicaPoolName: "test-asg",
+    serverGroupName: "test-asg",
     regions        : ["us-central1"],
     zone           : "us-central1-b",
     credentials    : "fzlem"
@@ -56,9 +56,9 @@ class EnableGoogleServerGroupTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].enableGoogleReplicaPoolDescription) {
+    with(operations[0].enableGoogleServerGroupDescription) {
       it instanceof Map
-      replicaPoolName == this.enableASGConfig.replicaPoolName
+      serverGroupName == this.enableASGConfig.serverGroupName
       zone == this.enableASGConfig.zone
       credentials == this.enableASGConfig.credentials
     }

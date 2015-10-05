@@ -33,7 +33,7 @@ class UpsertGoogleLoadBalancerTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[upsertGoogleNetworkLoadBalancerDescription: stage.context]])
+    def taskId = kato.requestOperations([[upsertGoogleLoadBalancerDescription: stage.context]])
                      .toBlocking()
                      .first()
 

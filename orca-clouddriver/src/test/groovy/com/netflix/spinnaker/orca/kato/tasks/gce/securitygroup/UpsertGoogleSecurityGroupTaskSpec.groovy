@@ -30,17 +30,17 @@ class UpsertGoogleSecurityGroupTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def upsertGoogleSecurityGroupConfig = [
-    cloudProvider   : "gce",
-    name            : "test-security-group",
-    description     : "Some description...",
-    region          : "global",
-    credentials     : "fzlem",
-    firewallRuleName: "mysecuritygroup",
-    network         : "default",
-    sourceRanges    : [
+    cloudProvider    : "gce",
+    name             : "test-security-group",
+    description      : "Some description...",
+    region           : "global",
+    credentials      : "fzlem",
+    securityGroupName: "mysecuritygroup",
+    network          : "default",
+    sourceRanges     : [
       "192.168.0.0/16"
     ],
-    allowed         : [
+    allowed          : [
       [
         ipProtocol: "tcp",
         portRanges: [
@@ -75,7 +75,7 @@ class UpsertGoogleSecurityGroupTaskSpec extends Specification {
         description == this.upsertGoogleSecurityGroupConfig.description
         region == this.upsertGoogleSecurityGroupConfig.region
         credentials == this.upsertGoogleSecurityGroupConfig.credentials
-        firewallRuleName == this.upsertGoogleSecurityGroupConfig.firewallRuleName
+        securityGroupName == this.upsertGoogleSecurityGroupConfig.securityGroupName
         network == this.upsertGoogleSecurityGroupConfig.network
         sourceRanges == this.upsertGoogleSecurityGroupConfig.sourceRanges
         allowed == this.upsertGoogleSecurityGroupConfig.allowed

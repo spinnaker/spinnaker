@@ -32,7 +32,7 @@ class EnableGoogleServerGroupTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[enableGoogleReplicaPoolDescription: stage.context]])
+    def taskId = kato.requestOperations([[enableGoogleServerGroupDescription: stage.context]])
                      .toBlocking()
                      .first()
 

@@ -54,7 +54,7 @@ class ResetGoogleInstancesTaskSpec extends Specification {
 
     then:
     operations.size() == 1
-    with(operations[0].resetGoogleInstancesDescription) {
+    with(operations[0].rebootGoogleInstancesDescription) {
       it instanceof Map
       zone == this.resetInstancesConfig.zone
       credentials == this.resetInstancesConfig.credentials

@@ -29,13 +29,13 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
   def taskId = new TaskId(UUID.randomUUID().toString())
 
   def upsertGoogleLoadBalancerConfig = [
-    networkLoadBalancerName: "flapjack-frontend",
+    loadBalancerName: "flapjack-frontend",
     region: ["us-central1"],
     credentials: "test-account-name"
   ]
 
   def upsertGoogleLoadBalancerConfigWithPort = [
-    networkLoadBalancerName: "flapjack-frontend",
+    loadBalancerName: "flapjack-frontend",
     region: ["us-central1"],
     credentials: "test-account-name",
     ipProtocol: "TCP",
@@ -43,7 +43,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
   ]
 
   def upsertGoogleLoadBalancerConfigWithPortRange = [
-    networkLoadBalancerName: "flapjack-frontend",
+    loadBalancerName: "flapjack-frontend",
     region: ["us-central1"],
     credentials: "test-account-name",
     ipProtocol: "UDP",
@@ -51,7 +51,7 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
   ]
 
   def upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck = [
-    networkLoadBalancerName: "flapjack-frontend",
+    loadBalancerName: "flapjack-frontend",
     region: ["us-central1"],
     credentials: "test-account-name",
     healthCheck: [
@@ -82,9 +82,9 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfig.networkLoadBalancerName
+        loadBalancerName == this.upsertGoogleLoadBalancerConfig.loadBalancerName
         region == this.upsertGoogleLoadBalancerConfig.region
         credentials == this.upsertGoogleLoadBalancerConfig.credentials
         !portRange
@@ -108,9 +108,9 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.networkLoadBalancerName
+        loadBalancerName == this.upsertGoogleLoadBalancerConfigWithPort.loadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPort.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPort.credentials
         portRange == this.upsertGoogleLoadBalancerConfigWithPort.portRange
@@ -134,9 +134,9 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.networkLoadBalancerName
+        loadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRange.loadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPortRange.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRange.credentials
         portRange == this.upsertGoogleLoadBalancerConfigWithPortRange.portRange
@@ -161,9 +161,9 @@ class UpsertGoogleLoadBalancerTaskSpec extends Specification {
 
     then:
       operations.size() == 1
-      with(operations[0].upsertGoogleNetworkLoadBalancerDescription) {
+      with(operations[0].upsertGoogleLoadBalancerDescription) {
         it instanceof Map
-        networkLoadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.networkLoadBalancerName
+        loadBalancerName == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.loadBalancerName
         region == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.region
         credentials == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.credentials
         portRange == this.upsertGoogleLoadBalancerConfigWithPortRangeAndHealthCheck.portRange

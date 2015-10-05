@@ -34,7 +34,7 @@ class ResetGoogleInstancesTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    def taskId = kato.requestOperations([[resetGoogleInstancesDescription: stage.context]])
+    def taskId = kato.requestOperations([[rebootGoogleInstancesDescription: stage.context]])
                      .toBlocking()
                      .first()
 

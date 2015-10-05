@@ -24,6 +24,6 @@ import org.springframework.stereotype.Component
 class DeregisterInstancesFromGoogleLoadBalancerTask extends AbstractInstanceGoogleLoadBalancerRegistrationTask {
   @Override
   String getAction() {
-    return "deregisterInstancesFromGoogleNetworkLoadBalancer"
+    return "deregisterInstancesFromGoogleLoadBalancer"
   }
 }
