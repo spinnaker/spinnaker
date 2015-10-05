@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.diff.service', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('../utils/lodash.js'),
-  require('../config/settings.js'),
+  require('../core/config/settings.js'),
 ])
   .factory('diffService', function (_, Restangular, $q, settings) {
 

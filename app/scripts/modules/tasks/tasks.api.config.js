@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.tasks.api', [
   require('exports?"restangular"!imports?_=lodash!restangular'),
   require('./kato.js'),
-  require('../config/settings.js'),
+  require('../core/config/settings.js'),
   require('../core/cache/deckCacheFactory.js'),
   require('../navigation/urlBuilder.service.js'),
   require('../orchestratedItem/orchestratedItem.transformer.js')

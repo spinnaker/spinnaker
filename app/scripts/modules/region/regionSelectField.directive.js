@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.region.regionSelectField', [
-  require('../config/settings.js'),
+  require('../core/config/settings.js'),
   require('../utils/lodash.js'),
 ])
   .directive('regionSelectField', function (settings, _) {

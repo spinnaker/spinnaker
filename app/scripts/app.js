@@ -91,7 +91,7 @@ module.exports = angular.module('spinnaker', [
     require('./modules/core/naming/naming.service.js'),
     require('./modules/core/cloudProvider/serviceDelegate.service.js'),
     require('./modules/healthCounts/healthCounts.directive.js'),
-    require('./modules/config/settings.js'),
+    require('./modules/core/config/settings.js'),
     require('./modules/scheduler/scheduler.service.js'),
     require('./modules/core/confirmationModal/confirmationModal.service.js'),
     require('./modules/deploymentStrategy/deploymentStrategy.module.js'),

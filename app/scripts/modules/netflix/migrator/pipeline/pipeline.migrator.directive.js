@@ -9,7 +9,7 @@ module.exports = angular
     require('angular-ui-bootstrap'),
     require('../../../amazon/vpc/vpc.read.service.js'),
     require('../../../amazon/subnet/subnet.read.service.js'),
-    require('../../../config/settings.js'),
+    require('../../../core/config/settings.js'),
     require('../migrator.service.js'),
     require('../../../utils/lodash.js'),
     require('../../../core/presentation/autoScroll/autoScroll.directive.js'),
