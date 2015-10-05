@@ -25,7 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleSecurityGroupAtomicOperationConverterUnitSpec extends Specification {
-  private static final FIREWALL_RULE_NAME = "spinnaker-test-sg"
+  private static final SECURITY_GROUP_NAME = "spinnaker-test-sg"
   private static final ACCOUNT_NAME = "some-account-name"
 
   @Shared
@@ -44,7 +44,7 @@ class DeleteGoogleSecurityGroupAtomicOperationConverterUnitSpec extends Specific
 
   void "deleteGoogleSecurityGroupDescription type returns DeleteGoogleSecurityGroupDescription and DeleteGoogleSecurityGroupAtomicOperation"() {
     setup:
-      def input = [firewallRuleName: FIREWALL_RULE_NAME,
+      def input = [securityGroupName: SECURITY_GROUP_NAME,
                    accountName: ACCOUNT_NAME]
 
     when:

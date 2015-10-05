@@ -31,7 +31,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
-  private static final FIREWALL_RULE_NAME = "spinnaker-firewall-1"
+  private static final SECURITY_GROUP_NAME = "spinnaker-sg-1"
   private static final DESCRIPTION = "Some firewall description..."
   private static final NETWORK_NAME = "default"
   private static final SOURCE_RANGE = "192.0.0.0/8"
@@ -60,7 +60,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleSecurityGroupDescription(
-          securityGroupName: FIREWALL_RULE_NAME,
+          securityGroupName: SECURITY_GROUP_NAME,
           description: DESCRIPTION,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
@@ -89,17 +89,17 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.get(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsGetMock
+      1 * firewallsMock.get(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsGetMock
       1 * firewallsGetMock.execute() >> {throw notFoundException}
 
       // Insert the new firewall rule.
       1 * firewallsMock.insert(PROJECT_NAME, {
-          it.name == FIREWALL_RULE_NAME &&
+          it.name == SECURITY_GROUP_NAME &&
           it.description == DESCRIPTION &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
-          it.targetTags?.get(0).startsWith("$FIREWALL_RULE_NAME-")
+          it.targetTags?.get(0).startsWith("$SECURITY_GROUP_NAME-")
       }) >> firewallsInsertMock
   }
 
@@ -116,7 +116,7 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
       def description = new UpsertGoogleSecurityGroupDescription(
-          securityGroupName: FIREWALL_RULE_NAME,
+          securityGroupName: SECURITY_GROUP_NAME,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
           sourceTags: [SOURCE_TAG],
@@ -144,12 +144,12 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.get(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsGetMock
+      1 * firewallsMock.get(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsGetMock
       1 * firewallsGetMock.execute() >> {throw notFoundException}
 
       // Insert the new firewall rule.
       1 * firewallsMock.insert(PROJECT_NAME, {
-          it.name == FIREWALL_RULE_NAME &&
+          it.name == SECURITY_GROUP_NAME &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
@@ -164,11 +164,11 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def networksListMock = Mock(Compute.Networks.List)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
-      def firewall = new Firewall(name: FIREWALL_RULE_NAME)
+      def firewall = new Firewall(name: SECURITY_GROUP_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: FIREWALL_RULE_NAME,
+      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
           sourceTags: [SOURCE_TAG],
@@ -195,12 +195,12 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.get(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsGetMock
+      1 * firewallsMock.get(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsGetMock
       1 * firewallsGetMock.execute() >> firewall
 
       // Update the existing firewall rule.
-      1 * firewallsMock.update(PROJECT_NAME, FIREWALL_RULE_NAME, {
-          it.name == FIREWALL_RULE_NAME &&
+      1 * firewallsMock.update(PROJECT_NAME, SECURITY_GROUP_NAME, {
+          it.name == SECURITY_GROUP_NAME &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
@@ -215,11 +215,11 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def networksListMock = Mock(Compute.Networks.List)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
-      def firewall = new Firewall(name: FIREWALL_RULE_NAME)
+      def firewall = new Firewall(name: SECURITY_GROUP_NAME)
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: FIREWALL_RULE_NAME,
+      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],
         sourceTags: [SOURCE_TAG],
@@ -247,12 +247,12 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.get(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsGetMock
+      1 * firewallsMock.get(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsGetMock
       1 * firewallsGetMock.execute() >> firewall
 
       // Update the existing firewall rule.
-      1 * firewallsMock.update(PROJECT_NAME, FIREWALL_RULE_NAME, {
-        it.name == FIREWALL_RULE_NAME &&
+      1 * firewallsMock.update(PROJECT_NAME, SECURITY_GROUP_NAME, {
+        it.name == SECURITY_GROUP_NAME &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&
@@ -267,11 +267,11 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def networksListMock = Mock(Compute.Networks.List)
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsGetMock = Mock(Compute.Firewalls.Get)
-      def firewall = new Firewall(name: FIREWALL_RULE_NAME, targetTags: [ORIG_TARGET_TAG])
+      def firewall = new Firewall(name: SECURITY_GROUP_NAME, targetTags: [ORIG_TARGET_TAG])
       def firewallsUpdateMock = Mock(Compute.Firewalls.Update)
 
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: FIREWALL_RULE_NAME,
+      def description = new UpsertGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
         network: NETWORK_NAME,
         sourceRanges: [SOURCE_RANGE],
         sourceTags: [SOURCE_TAG],
@@ -299,12 +299,12 @@ class UpsertGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
       // Check if the firewall rule exists already.
       2 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.get(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsGetMock
+      1 * firewallsMock.get(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsGetMock
       1 * firewallsGetMock.execute() >> firewall
 
       // Update the existing firewall rule.
-      1 * firewallsMock.update(PROJECT_NAME, FIREWALL_RULE_NAME, {
-        it.name == FIREWALL_RULE_NAME &&
+      1 * firewallsMock.update(PROJECT_NAME, SECURITY_GROUP_NAME, {
+        it.name == SECURITY_GROUP_NAME &&
           it.sourceRanges == [SOURCE_RANGE] &&
           it.sourceTags == [SOURCE_TAG] &&
           it.allowed == [new Firewall.Allowed(IPProtocol: IP_PROTOCOL, ports: [PORT_RANGE])] &&

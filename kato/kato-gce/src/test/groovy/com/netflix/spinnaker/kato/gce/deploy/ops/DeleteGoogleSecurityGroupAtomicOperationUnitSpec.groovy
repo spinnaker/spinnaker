@@ -25,7 +25,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
-  private static final FIREWALL_RULE_NAME = "spinnaker-test-sg"
+  private static final SECURITY_GROUP_NAME = "spinnaker-test-sg"
   private static final ACCOUNT_NAME = "prod"
   private static final PROJECT_NAME = "my-project"
 
@@ -39,9 +39,9 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsDelete = Mock(Compute.Firewalls.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: FIREWALL_RULE_NAME,
-                                                                accountName: ACCOUNT_NAME,
-                                                                credentials: credentials)
+      def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
+                                                                 accountName: ACCOUNT_NAME,
+                                                                 credentials: credentials)
       @Subject def operation = new DeleteGoogleSecurityGroupAtomicOperation(description)
 
     when:
@@ -49,7 +49,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * computeMock.firewalls() >> firewallsMock
-      1 * firewallsMock.delete(PROJECT_NAME, FIREWALL_RULE_NAME) >> firewallsDelete
+      1 * firewallsMock.delete(PROJECT_NAME, SECURITY_GROUP_NAME) >> firewallsDelete
       1 * firewallsDelete.execute()
   }
 }

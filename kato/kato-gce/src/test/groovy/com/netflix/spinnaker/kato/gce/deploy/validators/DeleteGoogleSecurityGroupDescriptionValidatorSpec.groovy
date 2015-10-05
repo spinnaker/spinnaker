@@ -26,7 +26,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DeleteGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
-  private static final FIREWALL_RULE_NAME = "spinnaker-test-sg"
+  private static final SECURITY_GROUP_NAME = "spinnaker-test-sg"
   private static final ACCOUNT_NAME = "some-account-name"
 
   @Shared
@@ -45,8 +45,8 @@ class DeleteGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
 
   void "pass validation with proper description inputs"() {
     setup:
-      def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: FIREWALL_RULE_NAME,
-                                                                accountName: ACCOUNT_NAME)
+      def description = new DeleteGoogleSecurityGroupDescription(securityGroupName: SECURITY_GROUP_NAME,
+                                                                 accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:

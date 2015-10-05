@@ -26,7 +26,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
-  private static final FIREWALL_RULE_NAME = "spinnaker-firewall-1"
+  private static final SECURITY_GROUP_NAME = "spinnaker-sg-1"
   private static final DESCRIPTION = "Some firewall description..."
   private static final NETWORK_NAME = "default"
   private static final SOURCE_RANGE = "192.0.0.0/8"
@@ -53,7 +53,7 @@ class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
   void "pass validation with proper description inputs"() {
     setup:
       def description = new UpsertGoogleSecurityGroupDescription(
-          securityGroupName: FIREWALL_RULE_NAME,
+          securityGroupName: SECURITY_GROUP_NAME,
           description: DESCRIPTION,
           network: NETWORK_NAME,
           sourceRanges: [SOURCE_RANGE],
@@ -79,7 +79,7 @@ class UpsertGoogleSecurityGroupDescriptionValidatorSpec extends Specification {
   void "pass validation without description, source ranges, source tags, allowed list and without target tags"() {
     setup:
       def description = new UpsertGoogleSecurityGroupDescription(
-          securityGroupName: FIREWALL_RULE_NAME,
+          securityGroupName: SECURITY_GROUP_NAME,
           network: NETWORK_NAME,
           accountName: ACCOUNT_NAME
       )
