@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.account.accountSelectField.directive', [
-  require('../../config/settings.js')
+  require('../../core/config/settings.js')
 ])
   .directive('accountSelectField', function(settings, _) {
   return {

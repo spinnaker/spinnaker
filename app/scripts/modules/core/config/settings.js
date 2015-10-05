@@ -2,6 +2,6 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.settings', [])
+module.exports = angular.module('spinnaker.core.config.settings', [])
   .constant('settings', window.spinnakerSettings)
   .name;
