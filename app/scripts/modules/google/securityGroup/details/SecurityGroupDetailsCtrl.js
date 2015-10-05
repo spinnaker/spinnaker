@@ -153,7 +153,7 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
         securityGroup.providerType = $scope.securityGroup.type;
         return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
-          firewallRuleName: securityGroup.name,
+          securityGroupName: securityGroup.name,
         });
       };
 

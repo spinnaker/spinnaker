@@ -129,10 +129,8 @@ module.exports = angular.module('spinnaker.cluster.service', [
       'destroyservergroup': baseTaskMatcher,
       'enableasg': baseTaskMatcher,
       'enableservergroup': baseTaskMatcher,
-      'destroygooglereplicapool': baseTaskMatcher,
       'enablegoogleservergroup': baseTaskMatcher,
       'disablegoogleservergroup': baseTaskMatcher,
-      'resizegooglereplicapool': baseTaskMatcher
     };
 
     function taskMatches(task, serverGroup) {

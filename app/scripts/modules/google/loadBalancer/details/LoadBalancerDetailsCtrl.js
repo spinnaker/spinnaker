@@ -85,7 +85,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       var submitMethod = function () {
         loadBalancer.providerType = $scope.loadBalancer.provider;
         return loadBalancerWriter.deleteLoadBalancer(loadBalancer, application, {
-          networkLoadBalancerName: loadBalancer.name,
+          loadBalancerName: loadBalancer.name,
           region: loadBalancer.region,
         });
       };

@@ -97,7 +97,7 @@ module.exports = angular
           return securityGroupWriter.upsertSecurityGroup($scope.securityGroup, application, descriptor, {
             cloudProvider: 'gce',
             providerType: 'gce',
-            firewallRuleName: $scope.securityGroup.name,
+            securityGroupName: $scope.securityGroup.name,
             sourceRanges: _.uniq(_.pluck($scope.securityGroup.sourceRanges, 'value')),
             allowed: allowed,
             region: "global",
