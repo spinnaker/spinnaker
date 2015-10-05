@@ -63,8 +63,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
           if (!_.isEmpty($scope.serverGroup)) {
             if (details.securityGroups) {
               $scope.securityGroups = _(details.securityGroups).map(function(id) {
-                return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
-                    _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
+                return _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                    _.find(application.securityGroups, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
               }).compact().value();
             }
 

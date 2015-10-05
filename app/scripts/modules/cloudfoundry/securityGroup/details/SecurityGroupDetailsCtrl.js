@@ -49,53 +49,6 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
           fourOhFour();
         } else {
           $scope.securityGroup = details;
-
-          $scope.securityGroup.sourceRanges = _.uniq(
-            _.map($scope.securityGroup.ipRangeRules, (rule) => rule.range.ip + rule.range.cidr)
-          );
-
-          let ipIngress = _.map($scope.securityGroup.ipRangeRules, function(ipRangeRule) {
-            return {
-              protocol: ipRangeRule.protocol,
-              portRanges: ipRangeRule.portRanges,
-            };
-          });
-
-          let ipIngressRules = {};
-
-          ipIngress.forEach(function(ipIngressRule) {
-            if (_.has(ipIngressRules, ipIngressRule.protocol)) {
-              ipIngressRules[ipIngressRule.protocol] = ipIngressRules[ipIngressRule.protocol].concat(ipIngressRule.portRanges);
-
-              ipIngressRules[ipIngressRule.protocol] = _.uniq(ipIngressRules[ipIngressRule.protocol], function(portRange) {
-                return portRange.startPort + "->" + portRange.endPort;
-              });
-            } else {
-              ipIngressRules[ipIngressRule.protocol] = ipIngressRule.portRanges;
-            }
-          });
-
-          ipIngressRules = _.map(ipIngressRules, function(portRanges, protocol) {
-            return {
-              protocol: protocol,
-              portRanges: portRanges,
-            };
-          });
-
-          $scope.securityGroup.ipIngressRules = ipIngressRules;
-
-          $scope.securityGroup.protocolPortRangeCount = _.sum(ipIngressRules, function(ipIngressRule) {
-            return ipIngressRule.portRanges.length > 1  ? ipIngressRule.portRanges.length : 1;
-          });
-
-          if ($scope.securityGroup.targetTags) {
-            $scope.securityGroup.targetTagsDescription = $scope.securityGroup.targetTags.join(", ");
-          }
-
-          accountService.getAccountDetails(securityGroup.accountId).then(function(accountDetails) {
-            $scope.securityGroup.logsLink =
-              'https://console.developers.google.com/project/' + accountDetails.projectName + '/logs?service=compute.googleapis.com&minLogLevel=0&filters=text:' + securityGroup.name;
-          });
         }
       },
       function() {
