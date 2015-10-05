@@ -1,8 +1,7 @@
 <div class="row">
   <h4 class="col-md-12">My application is:</h4>
 </div>
-<div class="row">
-  <div class="col-md-3 col-narrow" ng-repeat="instanceProfile in instanceProfiles">
+  <div class="archetype-columns archetype-columns-{{columns}}" ng-repeat="instanceProfile in instanceProfiles">
     <button class="instance-profile"
             ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
             ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
