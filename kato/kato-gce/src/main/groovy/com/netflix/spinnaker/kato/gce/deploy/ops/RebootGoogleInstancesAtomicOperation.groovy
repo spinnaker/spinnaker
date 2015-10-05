@@ -27,7 +27,7 @@ import com.netflix.spinnaker.kato.orchestration.AtomicOperation
  * @see https://cloud.google.com/compute/docs/instances/restarting-an-instance
  */
 class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "RESET_INSTANCES"
+  private static final String BASE_PHASE = "REBOOT_INSTANCES"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -49,7 +49,7 @@ class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing reset of instances (${description.instanceIds.join(", ")}) in " +
+    task.updateStatus BASE_PHASE, "Initializing reboot of instances (${description.instanceIds.join(", ")}) in " +
       "$description.zone..."
 
     def compute = description.credentials.compute
@@ -80,7 +80,7 @@ class RebootGoogleInstancesAtomicOperation implements AtomicOperation<Void> {
       throw firstFailure
     }
 
-    task.updateStatus BASE_PHASE, "Done resetting instances (${description.instanceIds.join(", ")}) in $zone."
+    task.updateStatus BASE_PHASE, "Done rebooting instances (${description.instanceIds.join(", ")}) in $zone."
     null
   }
 }
