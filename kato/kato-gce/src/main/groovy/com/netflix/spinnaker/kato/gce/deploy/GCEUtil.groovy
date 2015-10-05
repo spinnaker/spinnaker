@@ -494,16 +494,16 @@ class GCEUtil {
   }
 
   static Firewall buildFirewallRule(String projectName,
-                                    UpsertGoogleSecurityGroupDescription firewallRuleDescription,
+                                    UpsertGoogleSecurityGroupDescription securityGroupDescription,
                                     Compute compute,
                                     Task task,
                                     String phase) {
-    def network = queryNetwork(projectName, firewallRuleDescription.network, compute, task, phase)
+    def network = queryNetwork(projectName, securityGroupDescription.network, compute, task, phase)
     def firewall = new Firewall(
-        name: firewallRuleDescription.securityGroupName,
+        name: securityGroupDescription.securityGroupName,
         network: network.selfLink
     )
-    def allowed = firewallRuleDescription.allowed.collect {
+    def allowed = securityGroupDescription.allowed.collect {
       new Firewall.Allowed(IPProtocol: it.ipProtocol, ports: it.portRanges)
     }
 
@@ -511,20 +511,20 @@ class GCEUtil {
       firewall.allowed = allowed
     }
 
-    if (firewallRuleDescription.description) {
-      firewall.description = firewallRuleDescription.description
+    if (securityGroupDescription.description) {
+      firewall.description = securityGroupDescription.description
     }
 
-    if (firewallRuleDescription.sourceRanges) {
-      firewall.sourceRanges = firewallRuleDescription.sourceRanges
+    if (securityGroupDescription.sourceRanges) {
+      firewall.sourceRanges = securityGroupDescription.sourceRanges
     }
 
-    if (firewallRuleDescription.sourceTags) {
-      firewall.sourceTags = firewallRuleDescription.sourceTags
+    if (securityGroupDescription.sourceTags) {
+      firewall.sourceTags = securityGroupDescription.sourceTags
     }
 
-    if (firewallRuleDescription.targetTags) {
-      firewall.targetTags = firewallRuleDescription.targetTags
+    if (securityGroupDescription.targetTags) {
+      firewall.targetTags = securityGroupDescription.targetTags
     }
 
     return firewall
