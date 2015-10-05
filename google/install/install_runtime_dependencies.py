@@ -26,7 +26,7 @@ from install_utils import run_or_die
 
 
 APACHE2_VERSION=None   # Whatever is in the current release
-CASSANDRA_VERSION='2.1.9'
+CASSANDRA_VERSION=''
 OPENJDK_8_VERSION='8u45-b14-1~14.04'
 REDIS_SERVER_VERSION='2:2.8.4-2'
 
