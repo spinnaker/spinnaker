@@ -155,7 +155,7 @@ class ValidateConfig(object):
     # Need to verify this. I cannot find a source.
     # It looks like secret keys can have slashes but access keys cannot.
     # Without a source I'm being overly generous.
-    aws_key_regex = '^[/a-zA-Z0-9]+$'
+    aws_key_regex = '^[+/a-zA-Z0-9]+$'
 
     if self.__bindings.get_variable('AWS_ENABLED', '').lower() != 'true':
       return True
@@ -169,7 +169,7 @@ class ValidateConfig(object):
       ok = False
     if not re.match(
           aws_key_regex, self.__bindings.get_variable('AWS_SECRET_KEY', '')):
-      self.__errors.append('AWS_SECRET does not look like {regex}.'
+      self.__errors.append('AWS_SECRET_KEY does not look like {regex}.'
                            .format(regex=aws_key_regex))
       ok = False
 
