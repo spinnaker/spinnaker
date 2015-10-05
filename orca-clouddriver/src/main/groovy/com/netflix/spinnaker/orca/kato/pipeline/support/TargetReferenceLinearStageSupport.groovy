@@ -38,6 +38,11 @@ abstract class TargetReferenceLinearStageSupport extends LinearStage {
   }
 
   void composeTargets(Stage stage) {
+    if(stage.execution.appConfig.strategy){
+      stage.context.regions = stage.execution.appConfig.strategyConfig.regions
+      stage.context.cluster = stage.execution.appConfig.strategyConfig.cluster
+      stage.context.credentials = stage.execution.appConfig.strategyConfig.credentials
+    }
     if (targetReferenceSupport.isDynamicallyBound(stage)) {
       composeDynamicTargets(stage)
     } else {
