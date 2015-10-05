@@ -44,6 +44,7 @@
             <li role="presentation" class="divider" ng-if="instance.health.length > 0"></li>
             <li><a href ng-click="ctrl.rebootInstance()">Reboot</a></li>
             <li><a href ng-click="ctrl.terminateInstance()">Terminate</a></li>
+            <li><a href ng-click="ctrl.terminateInstanceAndShrinkServerGroup()">Terminate and Shrink Server Group</a></li>
           </ul>
         </div>
         <div class="dropdown" ng-if="instance.insightActions.length > 0" dropdown>

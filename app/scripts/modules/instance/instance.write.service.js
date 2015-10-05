@@ -26,23 +26,20 @@ module.exports = angular
       });
     }
 
-    function terminateInstanceAndShrinkServerGroup(instance, application) {
+    function terminateInstanceAndShrinkServerGroup(instance, application, params={}) {
       return serverGroupReader.getServerGroup(application.name, instance.account, instance.region, instance.serverGroup).
         then(function(serverGroup) {
-          var setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
+          params.type = 'terminateInstanceAndDecrementServerGroup';
+          params.instance = instance.instanceId;
+          params.asgName = instance.serverGroup;
+          params.region = instance.region;
+          params.credentials = instance.account;
+          params.cloudProvider = instance.provider;
+          params.adjustMinIfNecessary = true;
+          params.setMaxToNewDesired = serverGroup.asg.minSize === serverGroup.asg.maxSize;
+
           return taskExecutor.executeTask({
-            job: [
-              {
-                type: 'terminateInstanceAndDecrementAsg',
-                instance: instance.instanceId,
-                asgName: instance.serverGroup,
-                region: instance.region,
-                credentials: instance.account,
-                providerType: instance.providerType,
-                adjustMinIfNecessary: true,
-                setMaxToNewDesired: setMaxToNewDesired,
-              }
-            ],
+            job: [params],
             application: application,
             description: 'Terminate instance ' + instance.instanceId + ' and shrink ' + instance.serverGroup,
           });
