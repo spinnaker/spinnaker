@@ -23,6 +23,13 @@
       <h3 select-on-dbl-click>
         {{instance.instanceId}}
       </h3>
+
+      <copy-to-clipboard ng-if="instance.gcloudSSHCommand"
+                         class="copy-to-clipboard"
+                         text="{{instance.gcloudSSHCommand}}"
+                         tool-tip="Copy gcloud compute ssh command to clipboard">
+      </copy-to-clipboard>
+
     </div>
     <div>
       <div class="actions" ng-class="{ insights: instance.insightActions.length > 0 }" ng-if="instance.placement">
