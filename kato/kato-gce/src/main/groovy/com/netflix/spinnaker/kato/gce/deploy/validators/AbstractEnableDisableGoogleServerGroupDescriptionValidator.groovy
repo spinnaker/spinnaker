@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ abstract class AbstractEnableDisableGoogleServerGroupDescriptionValidator extend
     def helper = new StandardGceAttributeValidator("enableDisableGoogleServerGroupDescription", errors)
 
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
-    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateServerGroupName(description.serverGroupName)
     helper.validateZone(description.zone)
   }
 }

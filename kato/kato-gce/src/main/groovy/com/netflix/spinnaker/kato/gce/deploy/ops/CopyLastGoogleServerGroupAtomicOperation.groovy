@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,18 +52,21 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
   /**
    * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "credentials": "my-account-name" }} ]' localhost:7002/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 4, "instanceType": "g1-small", "zone": "us-central1-a", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "copyLastGoogleServerGroupDescription": { "source": { "zone": "us-central1-f", "serverGroupName": "myapp-dev-v000" }, "application": "myapp", "stack": "dev", "image": "ubuntu-1410-utopic-v20150625", "targetSize": 4, "instanceType": "g1-small", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   DeploymentResult operate(List priorOutputs) {
     BasicGoogleDeployDescription newDescription = cloneAndOverrideDescription()
+
+    task.updateStatus BASE_PHASE, "Initializing copy of server group for " +
+      "${newDescription.application}-${newDescription.stack} in $newDescription.zone..."
 
     def result = basicGoogleDeployHandler.handle(newDescription, priorOutputs)
     def newServerGroupName = getServerGroupName(result?.serverGroupNames?.getAt(0))
 
     task.updateStatus BASE_PHASE, "Finished copying server group for " +
                                   "${newDescription.application}-${newDescription.stack}. " +
-                                  "New server group = $newServerGroupName in zone $newDescription.zone."
+                                  "New server group = $newServerGroupName in $newDescription.zone."
 
     result
   }
@@ -91,14 +94,14 @@ class CopyLastGoogleServerGroupAtomicOperation implements AtomicOperation<Deploy
 
     // Override any ancestor values that were specified directly on the copyLastGoogleServerGroupDescription call.
     newDescription.zone = description.zone ?: description.source.zone
-    newDescription.networkLoadBalancers =
-        description.networkLoadBalancers != null
-        ? description.networkLoadBalancers
+    newDescription.loadBalancers =
+        description.loadBalancers != null
+        ? description.loadBalancers
         : GCEUtil.deriveNetworkLoadBalancerNamesFromTargetPoolUrls(ancestorServerGroup.getTargetPools())
     newDescription.application = description.application ?: ancestorNames.app
     newDescription.stack = description.stack ?: ancestorNames.stack
     newDescription.freeFormDetails = description.freeFormDetails ?: ancestorNames.detail
-    newDescription.initialNumReplicas = description.initialNumReplicas ?: ancestorServerGroup.targetSize
+    newDescription.targetSize = description.targetSize ?: ancestorServerGroup.targetSize
 
     def project = description.credentials.project
     def compute = description.credentials.compute

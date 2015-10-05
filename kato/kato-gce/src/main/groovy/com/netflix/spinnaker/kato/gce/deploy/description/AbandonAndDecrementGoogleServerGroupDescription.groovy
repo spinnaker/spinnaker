@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.netflix.spinnaker.kato.gce.deploy.description
 
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class AbandonAndDecrementGoogleServerGroupDescription {
-  String replicaPoolName
+  String serverGroupName
   List<String> instanceIds
   String zone
   String accountName

@@ -20,7 +20,6 @@ import com.netflix.spinnaker.amos.DefaultAccountCredentialsProvider
 import com.netflix.spinnaker.amos.MapBackedAccountCredentialsRepository
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 import com.netflix.spinnaker.amos.gce.GoogleNamedAccountCredentials
-import com.netflix.spinnaker.kato.gce.deploy.description.BasicGoogleDeployDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
@@ -208,31 +207,31 @@ class StandardGceAttributeValidatorSpec extends Specification {
       0 * errors._
   }
 
-  void "valid replica pool name"() {
+  void "valid server group name"() {
     setup:
       def errors = Mock(Errors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateReplicaPoolName("Unchecked ")
+      validator.validateServerGroupName("Unchecked ")
     then:
       0 * errors._
 
     when:
-      validator.validateReplicaPoolName(" ")
+      validator.validateServerGroupName(" ")
     then:
       0 * errors._
   }
 
-  void "invalid replica pool name"() {
+  void "invalid server group name"() {
     setup:
       def errors = Mock(Errors)
       def validator = new StandardGceAttributeValidator(DECORATOR, errors)
 
     when:
-      validator.validateReplicaPoolName("")
+      validator.validateServerGroupName("")
     then:
-      1 * errors.rejectValue("replicaPoolName", "${DECORATOR}.replicaPoolName.empty")
+      1 * errors.rejectValue("serverGroupName", "${DECORATOR}.serverGroupName.empty")
       0 * errors._
   }
 

@@ -64,10 +64,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "networkLoadBalancers": ["testlb"], "credentials": "my-account-name" }} ]' localhost:7002/ops
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "basicGoogleDeployDescription": { "application": "myapp", "stack": "dev", "image": "debian-7-wheezy-v20141108", "initialNumReplicas": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20150909a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "freeFormDetails": "something", "image": "ubuntu-1404-trusty-v20150909a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20150909a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "loadBalancers": ["testlb"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "createServerGroup": { "application": "myapp", "stack": "dev", "image": "ubuntu-1404-trusty-v20150909a", "targetSize": 3, "instanceType": "f1-micro", "zone": "us-central1-f", "tags": ["my-tag-1", "my-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/gce/ops
    *
    * @param description
    * @param priorOutputs
@@ -77,7 +77,8 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
   DeploymentResult handle(BasicGoogleDeployDescription description, List priorOutputs) {
     def clusterName = GCEUtil.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
-    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName..."
+    task.updateStatus BASE_PHASE, "Initializing creation of server group for cluster $clusterName in " +
+      "$description.zone..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
@@ -102,9 +103,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     def networkLoadBalancers = []
 
     // We need the full url for each referenced network load balancer.
-    if (description.networkLoadBalancers) {
+    if (description.loadBalancers) {
       def forwardingRules =
-        GCEUtil.queryForwardingRules(project, region, description.networkLoadBalancers, compute, task, BASE_PHASE)
+        GCEUtil.queryForwardingRules(project, region, description.loadBalancers, compute, task, BASE_PHASE)
 
       networkLoadBalancers = forwardingRules.collect { it.target }
     }
@@ -154,10 +155,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                .setName(serverGroupName)
                                                .setBaseInstanceName(serverGroupName)
                                                .setInstanceTemplate(instanceTemplateUrl)
-                                               .setTargetSize(description.initialNumReplicas)
+                                               .setTargetSize(description.targetSize)
                                                .setTargetPools(networkLoadBalancers)).execute()
 
-    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName."
+    task.updateStatus BASE_PHASE, "Done creating server group $serverGroupName in $zone."
 
     DeploymentResult deploymentResult = new DeploymentResult()
     deploymentResult.serverGroupNames = ["$region:$serverGroupName".toString()]

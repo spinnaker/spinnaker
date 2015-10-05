@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ class DeleteGoogleHttpLoadBalancerAtomicOperation  implements AtomicOperation<Vo
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing delete of HTTP load balancer $description.loadBalancerName..."
+    task.updateStatus BASE_PHASE, "Initializing deletion of HTTP load balancer $description.loadBalancerName..."
 
     if (!description.credentials) {
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")

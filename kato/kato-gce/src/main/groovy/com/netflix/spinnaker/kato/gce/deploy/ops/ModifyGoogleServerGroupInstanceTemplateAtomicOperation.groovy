@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired
  * template is created and set on the managed instance group. No changes are made to the managed instance group's
  * instances.
  *
- * Uses {@link https://cloud.google.com/compute/docs/instance-groups/manager/v1beta2/instanceGroupManagers/setInstanceTemplate}
+ * Uses {@link https://cloud.google.com/compute/docs/reference/latest/instanceGroupManagers/setInstanceTemplate}
  */
 class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "MODIFY_SERVER_GROUP_INSTANCE_TEMPLATE"
@@ -61,26 +61,27 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "modifyGoogleServerGroupInstanceTemplateDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "instanceType": "n1-standard-2", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "modifyGoogleServerGroupInstanceTemplateDescription": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "instanceType": "n1-standard-2", "tags": ["some-tag-1", "some-tag-2"], "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Modify Google Server Group Instance Template operation for $description.replicaPoolName..."
+    task.updateStatus BASE_PHASE, "Initializing modification of instance template for $description.serverGroupName " +
+      "in $description.zone..."
 
     def compute = description.credentials.compute
     def project = description.credentials.project
     def zone = description.zone
-    def replicaPoolName = description.replicaPoolName
+    def serverGroupName = description.serverGroupName
 
     def instanceGroupManagers = compute.instanceGroupManagers()
     def instanceTemplates = compute.instanceTemplates()
 
     // Retrieve the managed instance group.
-    def managedInstanceGroup = instanceGroupManagers.get(project, zone, replicaPoolName).execute()
+    def managedInstanceGroup = instanceGroupManagers.get(project, zone, serverGroupName).execute()
     def origInstanceTemplateName = GCEUtil.getLocalName(managedInstanceGroup.instanceTemplate)
 
     if (!origInstanceTemplateName) {
-      throw new GoogleResourceNotFoundException("Unable to determine instance template for server group $replicaPoolName.")
+      throw new GoogleResourceNotFoundException("Unable to determine instance template for server group $serverGroupName.")
     }
 
     // Retrieve the managed instance group's current instance template.
@@ -93,7 +94,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def properties = [:] + description.properties
 
     // Remove the properties we don't want to compare or override.
-    properties.keySet().removeAll(["class", "replicaPoolName", "zone", "accountName", "credentials"])
+    properties.keySet().removeAll(["class", "serverGroupName", "zone", "accountName", "credentials"])
 
     // Collect all of the map entries with non-null values into a new map.
     def overriddenProperties = properties.findResults { key, value ->
@@ -110,12 +111,12 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
     def newDescription = new BaseGoogleInstanceDescription(newDescriptionProperties)
 
     if (newDescription == originalDescription) {
-      task.updateStatus BASE_PHASE, "No changes required for instance template of $replicaPoolName in $zone."
+      task.updateStatus BASE_PHASE, "No changes required for instance template of $serverGroupName in $zone."
     } else {
       def instanceTemplateProperties = instanceTemplate.properties
 
       // Override the instance template's name.
-      instanceTemplate.setName("$replicaPoolName-${System.currentTimeMillis()}")
+      instanceTemplate.setName("$serverGroupName-${System.currentTimeMillis()}")
 
       // Override the instance template's disk configuration if image, diskType, diskSizeGb or instanceType was specified.
       if (overriddenProperties.image
@@ -180,16 +181,16 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
           null, task, "instance template $instanceTemplate.name", BASE_PHASE)
 
       // Set the new instance template on the managed instance group.
-      task.updateStatus BASE_PHASE, "Setting instance template $instanceTemplate.name on server group $replicaPoolName..."
+      task.updateStatus BASE_PHASE, "Setting instance template $instanceTemplate.name on server group $serverGroupName..."
 
       def instanceGroupManagersSetInstanceTemplateRequest =
           new InstanceGroupManagersSetInstanceTemplateRequest(instanceTemplate: instanceTemplateUrl)
       def setInstanceTemplateOperation = instanceGroupManagers.setInstanceTemplate(
-          project, zone, replicaPoolName, instanceGroupManagersSetInstanceTemplateRequest).execute()
+          project, zone, serverGroupName, instanceGroupManagersSetInstanceTemplateRequest).execute()
 
       // Block on setting the instance template on the managed instance group.
       googleOperationPoller.waitForZonalOperation(compute, project, zone,
-          setInstanceTemplateOperation.getName(), null, task, "server group $replicaPoolName", BASE_PHASE)
+          setInstanceTemplateOperation.getName(), null, task, "server group $serverGroupName", BASE_PHASE)
 
       // Delete the original instance template.
       task.updateStatus BASE_PHASE, "Deleting original instance template $origInstanceTemplateName..."
@@ -197,7 +198,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation implements AtomicOp
       instanceTemplates.delete(project, origInstanceTemplateName).execute()
     }
 
-    task.updateStatus BASE_PHASE, "Done modifying instance template of $replicaPoolName in $zone."
+    task.updateStatus BASE_PHASE, "Done modifying instance template of $serverGroupName in $zone."
     null
   }
 }

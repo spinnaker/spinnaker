@@ -24,16 +24,15 @@ import com.netflix.spinnaker.kato.gce.deploy.description.AbandonAndDecrementGoog
 import com.netflix.spinnaker.kato.orchestration.AtomicOperation
 
 /**
- * Abandon instances from a replica pool, and decrement the size of the replica pool.
+ * Abandon instances from a managed instance group, and decrement the size of the managed instance group.
  *
- * This is an alternative to {@link TerminateAndDecrementGoogleServerGroup}
- * where the instances are not deleted, rather are left as normal instances
- * that are not associated with a replica pool.
+ * This is an alternative to {@link TerminateAndDecrementGoogleServerGroup} where the instances are not deleted, but
+ * rather are left as standalone instances that are not associated with a managed instance group.
  *
  * @see TerminateAndDecrementGoogleServerGroupAtomicOperation
  */
 class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOperation<Void> {
-  private static final String BASE_PHASE = "ABANDONING_INSTANCES"
+  private static final String BASE_PHASE = "ABANDON_AND_DEC_INSTANCES"
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -46,24 +45,27 @@ class AbandonAndDecrementGoogleServerGroupAtomicOperation implements AtomicOpera
   }
 
   /**
-   * Attempt to abandon the specified instanceIds and remove from the specified replica pool.
+   * Attempt to abandon the specified instanceIds and remove from the specified managed instance group.
    *
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "abandonAndDecrementGoogleServerGroupDescription": { "replicaPoolName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "abandonAndDecrementGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "instanceIds": ["myapp-dev-v000-abcd"], "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Attempting to abandon instances (${description.instanceIds.join(", ")}) and remove from replica pool (${description.replicaPoolName})."
+    task.updateStatus BASE_PHASE, "Initializing abandon and decrement of instances " +
+      "(${description.instanceIds.join(", ")}) from server group ${description.serverGroupName}..."
 
     def project = description.credentials.project
     def compute = description.credentials.compute
     def zone = description.zone
-    def replicaPoolName = description.replicaPoolName
+    def serverGroupName = description.serverGroupName
     def instanceIds = description.instanceIds
-    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, replicaPoolName, instanceIds, description.credentials)
+    def instanceUrls = GCEUtil.deriveInstanceUrls(project, zone, serverGroupName, instanceIds, description.credentials)
     def abandonRequest = new InstanceGroupManagersAbandonInstancesRequest().setInstances(instanceUrls)
 
-    compute.instanceGroupManagers().abandonInstances(project, zone, replicaPoolName, abandonRequest).execute()
-    task.updateStatus BASE_PHASE, "Successfully abandoned instances=(${description.instanceIds.join(", ")}) and removed from (${replicaPoolName})."
+    compute.instanceGroupManagers().abandonInstances(project, zone, serverGroupName, abandonRequest).execute()
+
+    task.updateStatus BASE_PHASE, "Done abandoning and decrementing instances " +
+      "(${description.instanceIds.join(", ")}) from server group ${serverGroupName}."
     null
   }
 }

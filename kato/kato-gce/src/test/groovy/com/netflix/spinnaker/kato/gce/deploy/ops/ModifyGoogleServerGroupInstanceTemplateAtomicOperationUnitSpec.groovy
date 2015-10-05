@@ -44,7 +44,7 @@ import spock.lang.Unroll
 class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
 
   private static final MACHINE_TYPE = "f1-micro"
@@ -57,7 +57,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
   private static final METADATA_2 = ["some-key": "some-value"]
   private static final TAGS_1 = ["some-tag-1", "some-tag-2", "some-tag-3"]
   private static final TAGS_2 = ["some-tag-4", "some-tag-5"]
-  private static final ORIG_INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-123"
+  private static final ORIG_INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-123"
   private static final ORIG_INSTANCE_TEMPLATE_URL =
       "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/instanceTemplates/$ORIG_INSTANCE_TEMPLATE_NAME"
   private static final NEW_INSTANCE_TEMPLATE_NAME = "new-instance-template"
@@ -93,9 +93,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       )
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
@@ -109,7 +109,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -147,15 +147,15 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def computeZonalOperations = Mock(Compute.ZoneOperations)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
       def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
-      def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
+      def setInstanceTemplateOperationReal = new Operation(targetLink: SERVER_GROUP_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
       def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                zone: ZONE,
                                                                                instanceMetadata: METADATA_2,
                                                                                tags: TAGS_2,
@@ -171,7 +171,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -190,7 +190,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       1 * instanceTemplateInsertionOperationGetMock.execute() >> instanceTemplateInsertionOperationReal
 
       // Set the new instance template on the managed instance group.
-      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, {
+      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
         // Verify that the target link of the instance creation operation is used to set the new instance template.
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
@@ -212,9 +212,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       def instanceTemplateReal = new InstanceTemplate(name: ORIG_INSTANCE_TEMPLATE_NAME)
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
@@ -228,7 +228,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -262,9 +262,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       )
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
@@ -278,7 +278,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -315,9 +315,9 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
       )
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
-      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: REPLICA_POOL_NAME)
+      def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL, group: SERVER_GROUP_NAME)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new ModifyGoogleServerGroupInstanceTemplateDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                                zone: ZONE,
                                                                                accountName: ACCOUNT_NAME,
                                                                                credentials: credentials)
@@ -331,7 +331,7 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperationUnitSpec extends Spe
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock

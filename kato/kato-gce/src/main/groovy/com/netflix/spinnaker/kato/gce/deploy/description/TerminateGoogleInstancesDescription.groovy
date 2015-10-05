@@ -19,9 +19,9 @@ package com.netflix.spinnaker.kato.gce.deploy.description
 import com.netflix.spinnaker.amos.gce.GoogleCredentials
 
 class TerminateGoogleInstancesDescription  {
-  String managedInstanceGroupName
-  String zone
+  String serverGroupName
   List<String> instanceIds
+  String zone
   String accountName
   GoogleCredentials credentials
 }

@@ -112,7 +112,7 @@ class TerminateGoogleInstancesAtomicOperationUnitSpec extends Specification {
 
       def instanceGroupManagersRecreateMock = Mock(Compute.InstanceGroupManagers.RecreateInstances)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new TerminateGoogleInstancesDescription(managedInstanceGroupName: MANAGED_INSTANCE_GROUP_NAME,
+      def description = new TerminateGoogleInstancesDescription(serverGroupName: MANAGED_INSTANCE_GROUP_NAME,
                                                                 instanceIds: GOOD_INSTANCE_IDS,
                                                                 zone: ZONE,
                                                                 accountName: ACCOUNT_NAME,

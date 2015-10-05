@@ -52,7 +52,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String HTTP_SERVER_TAG = "http-server"
   private static final String HTTPS_SERVER_TAG = "https-server"
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
-  private static final List<String> NETWORK_LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
+  private static final List<String> LOAD_BALANCERS = ["testlb-east-1", "testlb-east-2"]
   private static final String SECURITY_GROUP_1 = "sg-1"
   private static final String SECURITY_GROUP_2 = "sg-2"
   private static final Set<String> SECURITY_GROUPS = [SECURITY_GROUP_1, SECURITY_GROUP_2]
@@ -119,14 +119,14 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     instanceGroupManager = new InstanceGroupManager(name: ANCESTOR_SERVER_GROUP_NAME,
                                                     instanceTemplate: INSTANCE_TEMPLATE_NAME,
                                                     targetSize: 2,
-                                                    targetPools: NETWORK_LOAD_BALANCERS)
+                                                    targetPools: LOAD_BALANCERS)
   }
 
   void "operation builds description based on ancestor server group; overrides everything"() {
     setup:
       def description = new BasicGoogleDeployDescription(application: APPLICATION_NAME,
                                                          stack: STACK_NAME,
-                                                         initialNumReplicas: 4,
+                                                         targetSize: 4,
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
                                                          diskType: "pd-ssd",
@@ -135,7 +135,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          instanceMetadata: ["differentKey": "differentValue"],
                                                          tags: ["new-tag-1", "new-tag-2"],
                                                          network: "other-network",
-                                                         networkLoadBalancers: ["testlb-west-1", "testlb-west-2"],
+                                                         loadBalancers: ["testlb-west-1", "testlb-west-2"],
                                                          securityGroups: ["sg-3", "sg-4"] as Set,
                                                          source: [zone: ZONE,
                                                                   serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
@@ -175,7 +175,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       def newDescription = description.clone()
       newDescription.application = APPLICATION_NAME
       newDescription.stack = STACK_NAME
-      newDescription.initialNumReplicas = 2
+      newDescription.targetSize = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
       newDescription.diskType = DISK_TYPE
@@ -184,7 +184,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.instanceMetadata = INSTANCE_METADATA
       newDescription.tags = TAGS
       newDescription.network = DEFAULT_NETWORK_NAME
-      newDescription.networkLoadBalancers = NETWORK_LOAD_BALANCERS
+      newDescription.loadBalancers = LOAD_BALANCERS
       newDescription.securityGroups = SECURITY_GROUPS
       def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
       @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)

@@ -26,7 +26,7 @@ import org.springframework.util.ClassUtils
 import java.text.SimpleDateFormat
 
 class Utils {
-  public static final String TARGET_POOL_NAME_PREFIX = "target-pool"
+  public static final String TARGET_POOL_NAME_PREFIX = "tp"
   public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSX"
 
   // TODO(duftler): This list should be configurable.

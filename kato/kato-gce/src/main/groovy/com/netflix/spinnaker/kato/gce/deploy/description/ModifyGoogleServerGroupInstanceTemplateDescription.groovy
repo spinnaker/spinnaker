@@ -22,6 +22,6 @@ import groovy.transform.Canonical
 @AutoClone
 @Canonical
 class ModifyGoogleServerGroupInstanceTemplateDescription extends BaseGoogleInstanceDescription {
-  String replicaPoolName
+  String serverGroupName
   String zone
 }

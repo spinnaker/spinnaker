@@ -35,6 +35,6 @@ class TerminateAndDecrementGoogleServerGroupDescriptionValidator extends Descrip
     helper.validateCredentials(description.accountName, accountCredentialsProvider)
     helper.validateZone(description.zone)
     helper.validateInstanceIds(description.instanceIds)
-    helper.validateReplicaPoolName(description.replicaPoolName)
+    helper.validateServerGroupName(description.serverGroupName)
   }
 }

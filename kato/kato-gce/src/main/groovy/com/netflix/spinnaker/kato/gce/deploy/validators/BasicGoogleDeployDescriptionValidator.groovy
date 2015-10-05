@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateInstanceType(description.instanceType)
     helper.validateZone(description.zone)
     helper.validateName(description.application, "application")
-    helper.validateNonNegativeInt(description.initialNumReplicas, "initialNumReplicas")
+    helper.validateNonNegativeInt(description.targetSize, "targetSize")
 
     if (description.diskSizeGb != null && description.diskSizeGb < 10) {
       errors.rejectValue "diskSizeGb", "basicGoogleDeployDescription.diskSizeGb.invalid"

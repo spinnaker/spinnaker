@@ -37,10 +37,10 @@ import spock.lang.Subject
 class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
   private static final ACCOUNT_NAME = "auto"
   private static final PROJECT_NAME = "my_project"
-  private static final REPLICA_POOL_NAME = "spinnaker-test-v000"
+  private static final SERVER_GROUP_NAME = "spinnaker-test-v000"
   private static final ZONE = "us-central1-b"
   private static final TAGS = ["some-tag-1", "some-tag-2", "some-tag-3"]
-  private static final ORIG_INSTANCE_TEMPLATE_NAME = "$REPLICA_POOL_NAME-123"
+  private static final ORIG_INSTANCE_TEMPLATE_NAME = "$SERVER_GROUP_NAME-123"
   private static final ORIG_INSTANCE_TEMPLATE_URL =
       "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/instanceTemplates/$ORIG_INSTANCE_TEMPLATE_NAME"
   private static final NEW_INSTANCE_TEMPLATE_NAME = "new-instance-template"
@@ -77,9 +77,9 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL,
-                                                              instanceGroup: REPLICA_POOL_NAME)
+                                                              instanceGroup: SERVER_GROUP_NAME)
       def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
-      def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
+      def setInstanceTemplateOperationReal = new Operation(targetLink: SERVER_GROUP_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
       def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
@@ -106,7 +106,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instancesSetTagsOperation2GetMock = Mock(Compute.ZoneOperations.Get)
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new UpsertGoogleServerGroupTagsDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME,
@@ -121,7 +121,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -138,7 +138,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplateInsertionOperationGetMock.execute() >> instanceTemplateInsertionOperationReal
 
       // Set the new instance template on the managed instance group.
-      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, {
+      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
         // Verify that the target link of the instance creation operation is used to set the new instance template.
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
@@ -149,7 +149,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
       // Query the instance group's instances.
       1 * computeMock.instanceGroups() >> instanceGroupsMock
-      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> instanceGroupsListInstancesMock
       1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstancesReal
 
       // Query the first instance.
@@ -198,9 +198,9 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceGroupManagersMock = Mock(Compute.InstanceGroupManagers)
       def instanceGroupManagersGetMock = Mock(Compute.InstanceGroupManagers.Get)
       def instanceGroupManagerReal = new InstanceGroupManager(instanceTemplate: ORIG_INSTANCE_TEMPLATE_URL,
-                                                              instanceGroup: REPLICA_POOL_NAME)
+                                                              instanceGroup: SERVER_GROUP_NAME)
       def setInstanceTemplateMock = Mock(Compute.InstanceGroupManagers.SetInstanceTemplate)
-      def setInstanceTemplateOperationReal = new Operation(targetLink: REPLICA_POOL_NAME,
+      def setInstanceTemplateOperationReal = new Operation(targetLink: SERVER_GROUP_NAME,
                                                            name: SET_INSTANCE_TEMPLATE_OP_NAME,
                                                            status: DONE)
       def setInstanceTemplateOperationGetMock = Mock(Compute.ZoneOperations.Get)
@@ -209,7 +209,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       def instanceGroupsListInstancesReal = new InstanceGroupsListInstances()
       def instanceTemplatesDeleteMock = Mock(Compute.InstanceTemplates.Delete)
       def credentials = new GoogleCredentials(PROJECT_NAME, computeMock, null, null, null)
-      def description = new UpsertGoogleServerGroupTagsDescription(replicaPoolName: REPLICA_POOL_NAME,
+      def description = new UpsertGoogleServerGroupTagsDescription(serverGroupName: SERVER_GROUP_NAME,
                                                                    zone: ZONE,
                                                                    tags: TAGS,
                                                                    accountName: ACCOUNT_NAME,
@@ -224,7 +224,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
     then:
       // Query the managed instance group and its instance template.
       1 * computeMock.instanceGroupManagers() >> instanceGroupManagersMock
-      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, REPLICA_POOL_NAME) >> instanceGroupManagersGetMock
+      1 * instanceGroupManagersMock.get(PROJECT_NAME, ZONE, SERVER_GROUP_NAME) >> instanceGroupManagersGetMock
       1 * instanceGroupManagersGetMock.execute() >> instanceGroupManagerReal
       1 * computeMock.instanceTemplates() >> instanceTemplatesMock
       1 * instanceTemplatesMock.get(PROJECT_NAME, ORIG_INSTANCE_TEMPLATE_NAME) >> instanceTemplatesGetMock
@@ -241,7 +241,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplateInsertionOperationGetMock.execute() >> instanceTemplateInsertionOperationReal
 
       // Set the new instance template on the managed instance group.
-      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, {
+      1 * instanceGroupManagersMock.setInstanceTemplate(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, {
         // Verify that the target link of the instance creation operation is used to set the new instance template.
         it.instanceTemplate == NEW_INSTANCE_TEMPLATE_NAME
       }) >> setInstanceTemplateMock
@@ -252,7 +252,7 @@ class UpsertGoogleServerGroupTagsAtomicOperationUnitSpec extends Specification {
 
       // Query the instance group's instances.
       1 * computeMock.instanceGroups() >> instanceGroupsMock
-      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, REPLICA_POOL_NAME, _) >> instanceGroupsListInstancesMock
+      1 * instanceGroupsMock.listInstances(PROJECT_NAME, ZONE, SERVER_GROUP_NAME, _) >> instanceGroupsListInstancesMock
       1 * instanceGroupsListInstancesMock.execute() >> instanceGroupsListInstancesReal
 
       // Delete the original instance template.

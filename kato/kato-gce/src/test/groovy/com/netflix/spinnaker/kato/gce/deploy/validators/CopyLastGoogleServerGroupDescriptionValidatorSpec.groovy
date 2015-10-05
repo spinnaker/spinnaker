@@ -29,7 +29,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
   private static final APPLICATION = "spinnaker"
   private static final STACK = "spinnaker-test"
   private static final ANCESTOR_SERVER_GROUP_NAME = "$APPLICATION-$STACK-v000"
-  private static final INITIAL_NUM_REPLICAS = 3
+  private static final TARGET_SIZE = 3
   private static final IMAGE = "debian-7-wheezy-v20141108"
   private static final INSTANCE_TYPE = "f1-micro"
   private static final ZONE = "us-central1-b"
@@ -67,7 +67,7 @@ class CopyLastGoogleServerGroupDescriptionValidatorSpec extends Specification {
     setup:
       def description = new BasicGoogleDeployDescription(application: APPLICATION,
                                                          stack: STACK,
-                                                         initialNumReplicas: INITIAL_NUM_REPLICAS,
+                                                         targetSize: TARGET_SIZE,
                                                          image: IMAGE,
                                                          instanceType: INSTANCE_TYPE,
                                                          zone: ZONE,

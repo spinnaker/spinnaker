@@ -27,9 +27,9 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class AbandonAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Specification {
+  private static final SERVER_GROUP_NAME = "server-group-name"
   private static final ACCOUNT_NAME = "auto"
   private static final ZONE = "us-central1-b"
-  private static final REPLICA_POOL_NAME = "replica-pool-name"
   private static final INSTANCE_IDS = ["my-app7-dev-v000-instance1", "my-app7-dev-v000-instance2"]
 
   @Shared
@@ -49,7 +49,7 @@ class AbandonAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Speci
   void "pass validation with proper description inputs"() {
     setup:
       def description = new AbandonAndDecrementGoogleServerGroupDescription(
-          zone: ZONE, replicaPoolName: REPLICA_POOL_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
+          zone: ZONE, serverGroupName: SERVER_GROUP_NAME, instanceIds: INSTANCE_IDS, accountName: ACCOUNT_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -61,7 +61,7 @@ class AbandonAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Speci
 
   void "invalid instanceIds fail validation"() {
     setup:
-      def description = new AbandonAndDecrementGoogleServerGroupDescription(instanceIds: [""], replicaPoolName: REPLICA_POOL_NAME)
+      def description = new AbandonAndDecrementGoogleServerGroupDescription(instanceIds: [""], serverGroupName: SERVER_GROUP_NAME)
       def errors = Mock(Errors)
 
     when:
@@ -82,7 +82,7 @@ class AbandonAndDecrementGoogleServerGroupDescriptionValidatorSpec extends Speci
     then:
       1 * errors.rejectValue('credentials', _)
       1 * errors.rejectValue('zone', _)
-      1 * errors.rejectValue('replicaPoolName', _)
+      1 * errors.rejectValue('serverGroupName', _)
       1 * errors.rejectValue('instanceIds', _)
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ package com.netflix.spinnaker.kato.gce.deploy.ops
 import com.netflix.spinnaker.kato.gce.deploy.description.EnableDisableGoogleServerGroupDescription
 
 /**
- * curl -X POST -H "Content-Type: application/json" -d '[ { "disableGoogleReplicaPoolDescription": { "replicaPoolName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
+ * curl -X POST -H "Content-Type: application/json" -d '[ { "disableGoogleServerGroupDescription": { "serverGroupName": "myapp-dev-v000", "zone": "us-central1-f", "credentials": "my-account-name" }} ]' localhost:7002/ops
  */
 class DisableGoogleServerGroupAtomicOperation extends AbstractEnableDisableAtomicOperation {
-  final String phaseName = "DISABLE_REPLICA_POOL"
+  final String phaseName = "DISABLE_SERVER_GROUP"
 
   DisableGoogleServerGroupAtomicOperation(EnableDisableGoogleServerGroupDescription description) {
     super(description)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Google, Inc.
+ * Copyright 2015 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,6 @@ package com.netflix.spinnaker.kato.gce.deploy.validators
 
 import org.springframework.stereotype.Component
 
-@Component("disableGoogleReplicaPoolDescriptionValidator")
+@Component("disableGoogleServerGroupDescriptionValidator")
 class DisableGoogleServerGroupDescriptionValidator extends AbstractEnableDisableGoogleServerGroupDescriptionValidator {
 }
