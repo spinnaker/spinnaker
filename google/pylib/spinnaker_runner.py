@@ -404,6 +404,7 @@ Proceeding anyway.
 
   @classmethod
   def main(cls):
+    cls.check_java_version_or_die()
     runner = cls()
     parser = argparse.ArgumentParser()
     runner.init_argument_parser(parser)
@@ -421,6 +422,38 @@ Proceeding anyway.
       return 'front50-web'
     else:
       return subsystem
+
+  @staticmethod
+  def check_java_version_or_die():
+    """Ensure that we will be running the right version of Java.
+
+    The point here is to fail quickly with a concise message if not. Otherwise,
+    the runtime will perform a check and give an obscure lengthy exception
+    trace about a version mismatch which is not at all apparent as to what the
+    actual problem is.
+    """
+    try:
+      p = subprocess.Popen('java -version', shell=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+      stdout, stderr = p.communicate()
+      code = p.returncode
+    except OSError as error:
+      return str(error)
+
+    info = stdout
+    if code != 0:
+      return 'Java does not appear to be installed.'
+
+    m = re.search(r'(?m)^openjdk version "(.*)"', info)
+    if not m:
+      m = re.search(r'(?m)^java version "(.*)"', info)
+    if not m:
+        raise SystemExit('Unrecognized java version:\n{0}'.format(info))
+    if m.group(1)[0:3] != '1.8':
+        raise SystemExit('You are running Java version {version}.'
+             ' However, Java version 1.8 is required for Spinnaker.'
+             ' Your PATH may be wrong, or you may need to install Java 1.8.'
+             .format(version=m.group(1)))
 
 
 if __name__ == '__main__':
