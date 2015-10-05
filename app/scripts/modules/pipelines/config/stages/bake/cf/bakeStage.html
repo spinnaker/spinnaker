@@ -1,0 +1,134 @@
+<div ng-controller="cfBakeStageCtrl as bakeStageCtrl">
+  <div ng-if="viewState.loading">
+    <h4 ng-if="viewState.loading" class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+  <div ng-if="!viewState.loading">
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Regions</label>
+
+      <div class="col-md-6">
+        <checklist items="regions" model="stage.regions" inline="true" include-select-all-button="true"></checklist>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-2 col-md-offset-1 sm-label-left">
+        <b>Package</b>
+        <help-field key="pipeline.config.bake.package"></help-field>
+      </div>
+      <div class="col-md-6">
+        <input type="text" class="form-control input-sm"
+               ng-model="stage.package"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Base OS</label>
+
+      <div class="col-md-6">
+        <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
+          <input type="radio"
+                 ng-model="stage.baseOs"
+                 ng-value="baseOsOption"/>
+          {{baseOsOption}}
+        </label>
+      </div>
+    </div>
+    <div class="form-group" ng-if="stage.cloudProviderType === 'cf' || stage.cloudProviderType === undefined">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">VM Type</label>
+
+      <div class="col-md-6">
+        <label class="radio-inline" ng-repeat="vmType in vmTypes">
+          <input type="radio"
+                 ng-model="stage.vmType"
+                 ng-value="vmType"/>
+          {{vmType | uppercase}}
+        </label>
+      </div>
+    </div>
+    <div class="form-group" ng-if="stage.cloudProviderType === 'cf' || stage.cloudProviderType === undefined">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Store Type</label>
+
+      <div class="col-md-6">
+        <label class="radio-inline" ng-repeat="storeType in storeTypes">
+          <input type="radio"
+                 ng-model="stage.storeType"
+                 ng-value="storeType"/>
+          {{storeType | uppercase}}
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="col-md-2 col-md-offset-1 sm-label-left">Base Label</label>
+
+      <div class="col-md-6">
+        <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">
+          <input type="radio"
+                 ng-model="stage.baseLabel"
+                 ng-value="baseLabel"/>
+          {{baseLabel}}
+        </label>
+      </div>
+    </div>
+    <div class="form-group" ng-if="stage.cloudProviderType === 'cf' || stage.cloudProviderType === undefined">
+      <div class="col-md-9 col-md-offset-1">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" ng-model="stage.showAdvancedOptions">
+            <strong>Show Advanced Options</strong>
+          </label>
+        </div>
+      </div>
+    </div>
+    <div ng-class="{collapse: stage.showAdvancedOptions !== true, 'collapse.in': stage.showAdvancedOptions === true}">
+      <div class="form-group">
+        <label class="col-md-2 col-md-offset-1 sm-label-left">Base Name</label>
+
+        <div class="col-md-6">
+          <input type="text" class="form-control input-sm"
+                 ng-model="stage.baseName"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>Base AMI</b>
+          <help-field key="pipeline.config.bake.baseAmi"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" class="form-control input-sm"
+                 ng-model="stage.baseAmi"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>AMI Name</b>
+          <help-field key="pipeline.config.bake.amiName"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" class="form-control input-sm"
+                 ng-model="stage.amiName"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>AMI Suffix</b>
+          <help-field key="pipeline.config.bake.amiSuffix"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="text" class="form-control input-sm"
+                 ng-model="stage.amiSuffix"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 col-md-offset-1 sm-label-left">
+          <b>Use Enhanced Networking</b>
+          <help-field key="pipeline.config.bake.enhancedNetworking"></help-field>
+        </div>
+        <div class="col-md-6">
+          <input type="checkbox"
+                 ng-model="stage.enhancedNetworking"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

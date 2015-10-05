@@ -1,0 +1,71 @@
+<div class="details-panel">
+  <div class="header">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div ng-if="state.loading">
+      <h4 class="text-center">
+        <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+    </div>
+    <div class="header-text" ng-if="!state.loading">
+      <span class="glyphicon glyphicon-transfer"></span>
+      <h3 select-on-dbl-click>
+        {{securityGroup.name || '(not found)'}}
+      </h3>
+    </div>
+  </div>
+  <div class="content" ng-if="!state.loading">
+    <collapsible-section heading="Security Group Details" expanded="true">
+      <dl class="dl-horizontal dl-medium">
+        <dt>ID:</dt>
+        <dd>{{securityGroup.id}}</dd>
+        <dt>Account:</dt>
+        <dd><account-tag account="securityGroup.accountName"></account-tag></dd>
+        <dt>Region:</dt>
+        <dd>{{securityGroup.region}}</dd>
+        <dt>Network:</dt>
+        <dd>{{securityGroup.network}}</dd>
+        <dt>Target Tags:</dt>
+        <dd>{{securityGroup.targetTagsDescription}}</dd>
+        <dt>Description:</dt>
+        <dd>{{securityGroup.description}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="IP Range Rules ({{securityGroup.sourceRanges.length || 0}})" expanded="{{!!(securityGroup.sourceRanges && securityGroup.sourceRanges.length)}}">
+      <div ng-if="!securityGroup.sourceRanges.length">None</div>
+
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="sourceRange in securityGroup.sourceRanges">
+        <dt>IP Range</dt>
+        <dd>{{sourceRange}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Protocol/Port Ranges ({{securityGroup.protocolPortRangeCount || 0}})" expanded="{{!!(securityGroup.protocolPortRangeCount)}}">
+      <div ng-if="!securityGroup.ipIngressRules.length">None</div>
+
+      <dl ng-class="insightCtrl.vm.filtersExpanded ? '' : 'dl-horizontal dl-medium'"
+          ng-repeat="ipIngressRule in securityGroup.ipIngressRules">
+        <dt ng-if="ipIngressRule.portRanges.length === 0">Protocol</dt>
+        <dd ng-if="ipIngressRule.portRanges.length === 0">
+          {{ipIngressRule.protocol}}
+        </dd>
+        <dt ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length === 1 && ipIngressRule.portRanges[0].startPort">Port Range</dt>
+        <dt ng-if="ipIngressRule.portRanges && ipIngressRule.portRanges.length > 1 && ipIngressRule.portRanges[0].startPort">Port Ranges</dt>
+        <dd ng-repeat="portRange in ipIngressRule.portRanges" ng-if="portRange.startPort && portRange.endPort">
+          {{ipIngressRule.protocol}}: {{portRange.startPort}} &rarr; {{portRange.endPort}}
+        </dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Logs">
+      <ul>
+        <li ng-if="securityGroup.logsLink">
+          <a href="{{securityGroup.logsLink}}" target="_blank">Developers Console Logs</a>
+        </li>
+      </ul>
+    </collapsible-section>
+  </div>
+</div>
