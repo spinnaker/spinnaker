@@ -2,8 +2,8 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.sequence.filter', [
-  require('../core/naming/naming.service.js'),
+module.exports = angular.module('spinnaker.core.serverGroup.sequence.filter', [
+  require('../naming/naming.service.js'),
 ])
   .filter('serverGroupSequence', function(namingService) {
       return function(input) {

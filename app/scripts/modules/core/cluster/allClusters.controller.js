@@ -2,17 +2,20 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('clusters.all', [
-  require('../clusterFilter/clusterFilterService.js'),
-  require('../clusterFilter/clusterFilterModel.js'),
+require('./rollups.less');
+
+module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
+  require('../cluster/filter/clusterFilter.service.js'),
+  require('../cluster/filter/clusterFilter.model.js'),
+  require('./filter/clusterFilter.controller.js'),
   require('./clusterPod.directive.js'),
-  require('../core/account/account.module.js'),
-  require('../core/cloudProvider/providerSelection/providerSelection.service.js'),
-  require('../serverGroups/configure/common/serverGroupCommandBuilder.js'),
-  require('../filterModel/filter.tags.directive.js'),
-  require('../utils/waypoints/waypointContainer.directive.js'),
+  require('../account/account.module.js'),
+  require('../cloudProvider/providerSelection/providerSelection.service.js'),
+  require('../../serverGroups/configure/common/serverGroupCommandBuilder.js'),
+  require('../../filterModel/filter.tags.directive.js'),
+  require('../../utils/waypoints/waypointContainer.directive.js'),
   require('angular-ui-bootstrap'),
-  require('../core/cloudProvider/cloudProvider.registry.js'),
+  require('../cloudProvider/cloudProvider.registry.js'),
 ])
   .controller('AllClustersCtrl', function($scope, app, $modal, providerSelectionService, _, clusterFilterService,
                                           ClusterFilterModel, serverGroupCommandBuilder, cloudProviderRegistry) {
@@ -20,6 +23,8 @@ module.exports = angular.module('clusters.all', [
     ClusterFilterModel.activate();
 
     $scope.sortFilter = ClusterFilterModel.sortFilter;
+
+    this.groupingsTemplate = require('./groupings.html');
 
     function addSearchFields() {
       app.serverGroups.forEach(function(serverGroup) {

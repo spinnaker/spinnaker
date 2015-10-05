@@ -5,11 +5,12 @@ let angular = require('angular');
 // controllerAs: clustersFilters
 
 module.exports = angular.module('cluster', [
-  require('./clusterFilterService.js'),
-  require('./clusterFilterModel.js'),
-  require('../utils/lodash.js'),
+  require('./collapsibleFilterSection.directive.js'),
+  require('./clusterFilter.service.js'),
+  require('./clusterFilter.model.js'),
+  require('../../../utils/lodash.js'),
 ])
-  .controller('ClusterFilterCtr', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel, $rootScope) {
+  .controller('ClusterFilterCtrl', function ($scope, app, _, $log, clusterFilterService, ClusterFilterModel, $rootScope) {
 
     $scope.application = app;
     $scope.sortFilter = ClusterFilterModel.sortFilter;

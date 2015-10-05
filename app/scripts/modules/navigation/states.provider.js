@@ -208,12 +208,12 @@ module.exports = angular.module('spinnaker.states', [
           url: '/clusters',
           views: {
             'nav': {
-              templateUrl: require('../clusterFilter/filterNav.html'),
-              controller: 'ClusterFilterCtr',
+              templateUrl: require('../core/cluster/filter/filterNav.html'),
+              controller: 'ClusterFilterCtrl',
               controllerAs: 'clustersFilters'
             },
             'master': {
-              templateUrl: require('../cluster/all.html'),
+              templateUrl: require('../core/cluster/all.html'),
               controller: 'AllClustersCtrl',
               controllerAs: 'allClusters'
             }

@@ -5,7 +5,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.applications.read.service', [
     require('exports?"restangular"!imports?_=lodash!restangular'),
-    require('../../../cluster/clusterService.js'),
+    require('../../../core/cluster/cluster.service.js'),
     require('../../../tasks/tasks.read.service.js'),
     require('../../../loadBalancers/loadBalancer.read.service.js'),
     require('../../../loadBalancers/loadBalancer.transformer.js'),

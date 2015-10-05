@@ -6,7 +6,7 @@ describe('Cluster Filter Model', function () {
   var ClusterFilterModel;
 
   beforeEach(window.module(
-    require('./clusterFilterModel')
+    require('./clusterFilter.model')
   ));
 
   beforeEach(

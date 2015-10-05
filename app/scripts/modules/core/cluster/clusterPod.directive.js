@@ -2,11 +2,11 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.cluster.pod', [
+module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
   require('./serverGroup.sequence.filter.js'),
-  require('../navigation/urlBuilder.service.js'),
-  require('../serverGroups/serverGroup.directive.js'),
-  require('../utils/stickyHeader/stickyHeader.directive.js'),
+  require('../../navigation/urlBuilder.service.js'),
+  require('../../serverGroups/serverGroup.directive.js'),
+  require('../../utils/stickyHeader/stickyHeader.directive.js'),
 ])
   .directive('clusterPod', function(urlBuilderService) {
     return {

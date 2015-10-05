@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.serverGroup.directive', [
-  require('../clusterFilter/clusterFilterService.js'),
-  require('../clusterFilter/clusterFilterModel.js'),
+  require('../core/cluster/filter/clusterFilter.service.js'),
+  require('../core/cluster/filter/clusterFilter.model.js'),
   require('../instance/instances.directive.js'),
   require('../instance/instanceList.directive.js'),
   require('./serverGroup.transformer.js'),
