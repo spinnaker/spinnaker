@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deploymentStrategy.none', [])
+module.exports = angular.module('spinnaker.core.deploymentStrategy.none', [])
   .config(function(deploymentStrategyConfigProvider) {
     deploymentStrategyConfigProvider.registerStrategy({
       label: 'None',
