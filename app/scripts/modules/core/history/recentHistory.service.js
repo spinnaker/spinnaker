@@ -79,8 +79,10 @@ module.exports = angular.module('spinnaker.core.history.service', [
      */
     function addExtraDataToLatest(type, extraData) {
       var items = getItems(type);
-      items[0].extraData = extraData;
-      cache.put(type, items);
+      if (items.length) {
+        items[0].extraData = extraData;
+        cache.put(type, items);
+      }
     }
 
 
